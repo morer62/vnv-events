@@ -1,0 +1,291 @@
+{% extends 'templates/base.admin.twig' %}
+{% import 'templates/macros.twig' as macros %}
+
+{% block body %}
+<h1 class="h3 mb-4">🧠 Task Assignment for Order #{{ order_id }}</h1>
+
+ {# Back según convención al listado de órdenes #}
+  <a href="{{ path('panel/planner-hub/management/orders/orders/team_comunication') }}?id={{ order_id }}" class="btn btn-outline-secondary mb-3">  
+    ← Back to Team Area
+  </a>
+
+<div class="card mb-4">
+    <div class="card-header bg-primary text-white">
+        <h4 class="mb-0">📋 Main Order #{{ order_id }} - Services & Tasks</h4>
+    </div>
+    <div class="card-body">
+        {% for service in services %}
+            <div class="card mb-3">
+                <div class="card-header fw-bold bg-light">{{ service.name }}</div>
+                <div class="card-body p-0">
+                    {% if service.tasks is empty %}
+                        <div class="alert alert-warning m-3">
+                            ❌ No tasks defined for this service.
+                            <a href="{{ path('panel/planner-hub/management/orders/services/service-tasks/') }}?service_id={{ service.id_service }}" class="btn btn-sm btn-outline-primary ms-2">➕ Create Tasks</a>
+                        </div>
+                    {% else %}
+                        <div class="table-responsive">
+                            <table class="table table-striped" style="min-width: 768px;">
+                                <thead>
+                                    <tr>
+                                        <th>Task</th>
+                                        <th>Current Assignee</th>
+                                        <th>Assign/Change</th>
+                                        <th>Remove</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for task in service.tasks %}
+                                        <tr>
+                                            <td>{{ task.task_name }}</td>
+                                            <td>
+                                                {% if task.assigned_user_name %}
+                                                    <span class="badge bg-success">{{ task.assigned_user_name }}</span>
+                                                {% else %}
+                                                    <span class="badge bg-secondary">Unassigned</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                {% if members|length > 0 %}
+                                                    <form method="post" class="d-inline">
+                                                        <input type="hidden" name="order_id" value="{{ order_id }}">
+                                                        <input type="hidden" name="form_type" value="assign_single_task">
+                                                        <input type="hidden" name="task_description" value="{{ task.task_name }}">
+                                                        <input type="hidden" name="id_service" value="{{ service.id_service }}">
+                                                        <input type="hidden" name="task_source" value="main_order">
+                                                        <select name="id_user" class="form-select form-select-sm d-inline-block" style="width: auto;">
+                                                            <option value="">-- Select User --</option>
+                                                            {% for member in members %}
+                                                                <option value="{{ member.id }}" {% if task.assigned_id_user == member.id %}selected{% endif %}>{{ member.name }} {{ member.lastname }}</option>
+                                                            {% endfor %}
+                                                        </select>
+                                                        <button type="submit" class="btn btn-primary btn-sm">Assign</button>
+                                                    </form>
+                                                {% else %}
+                                                    <span class="text-muted small">No members</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                {% if task.id_task %}
+                                                    <form method="post" class="d-inline" onsubmit="return confirm('Remove this task assignment?')">
+                                                        <input type="hidden" name="order_id" value="{{ order_id }}">
+                                                        <input type="hidden" name="form_type" value="remove_single_task">
+                                                        <input type="hidden" name="task_id" value="{{ task.id_task }}">
+                                                        <button type="submit" class="btn btn-danger btn-sm" style="color: black !important">⨉</button>
+                                                    </form>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                {% if task.id_task %}
+                                                    <form method="post" class="d-inline">
+                                                        <input type="hidden" name="order_id" value="{{ order_id }}">
+                                                        <input type="hidden" name="form_type" value="toggle_done">
+                                                        <input type="hidden" name="task_id" value="{{ task.id_task }}">
+                                                        {% if task.is_done %}
+                                                            <button type="submit" class="btn btn-success btn-sm">✅ Done</button>
+                                                        {% else %}
+                                                            <button type="submit" class="btn btn-warning btn-sm">⏳ Pending</button>
+                                                        {% endif %}
+                                                    </form>
+                                                {% else %}
+                                                    <span class="badge bg-secondary">Not Assigned</span>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+
+{% if suborderServices|length > 0 %}
+    {% for suborder in suborders %}
+        <div class="card mb-4">
+            <div class="card-header bg-info text-white">
+                <h4 class="mb-0">📦 Sub-Order #{{ suborder.id }} - Services & Tasks</h4>
+            </div>
+            <div class="card-body">
+                {% for service in suborderServices %}
+                    {% if service.suborder_id == suborder.id %}
+                        <div class="card mb-3">
+                            <div class="card-header fw-bold bg-light">{{ service.name }}</div>
+                            <div class="card-body p-0">
+                                {% if service.tasks is empty %}
+                                    <div class="alert alert-warning m-3">
+                                        ❌ No tasks defined for this service.
+                                        <a href="{{ path('panel/planner-hub/management/orders/services/service-tasks/') }}?service_id={{ service.id_service }}" class="btn btn-sm btn-outline-primary ms-2">➕ Create Tasks</a>
+                                    </div>
+                                {% else %}
+                                    <div class="table-responsive">
+                                        <table class="table table-striped" style="min-width: 768px;">
+                                            <thead>
+                                                <tr>
+                                                    <th>Task</th>
+                                                    <th>Current Assignee</th>
+                                                    <th>Assign/Change</th>
+                                                    <th>Remove</th>
+                                                    <th>Status</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for task in service.tasks %}
+                                                    <tr>
+                                                        <td>{{ task.task_name }}</td>
+                                                        <td>
+                                                            {% if task.assigned_user_name %}
+                                                                <span class="badge bg-success">{{ task.assigned_user_name }}</span>
+                                                            {% else %}
+                                                                <span class="badge bg-secondary">Unassigned</span>
+                                                            {% endif %}
+                                                        </td>
+                                                        <td>
+                                                            {% if members|length > 0 %}
+                                                                <form method="post" class="d-inline">
+                                                                    <input type="hidden" name="order_id" value="{{ order_id }}">
+                                                                    <input type="hidden" name="form_type" value="assign_single_task">
+                                                                    <input type="hidden" name="task_description" value="{{ task.task_name }}">
+                                                                    <input type="hidden" name="id_service" value="{{ service.id_service }}">
+                                                                    <input type="hidden" name="suborder_id" value="{{ suborder.id }}">
+                                                                    <input type="hidden" name="task_source" value="suborder">
+                                                                    <select name="id_user" class="form-select form-select-sm d-inline-block" style="width: auto;">
+                                                                        <option value="">-- Select User --</option>
+                                                                        {% for member in members %}
+                                                                            <option value="{{ member.id }}" {% if task.assigned_id_user == member.id %}selected{% endif %}>{{ member.name }} {{ member.lastname }}</option>
+                                                                        {% endfor %}
+                                                                    </select>
+                                                                    <button type="submit" class="btn btn-primary btn-sm">Assign</button>
+                                                                </form>
+                                                            {% else %}
+                                                                <span class="text-muted small">No members</span>
+                                                            {% endif %}
+                                                        </td>
+                                                        <td>
+                                                            {% if task.id_task %}
+                                                                <form method="post" class="d-inline" onsubmit="return confirm('Remove this task assignment?')">
+                                                                    <input type="hidden" name="order_id" value="{{ order_id }}">
+                                                                    <input type="hidden" name="form_type" value="remove_single_task">
+                                                                    <input type="hidden" name="task_id" value="{{ task.id_task }}">
+                                                                    <button type="submit" class="btn btn-danger btn-sm" style="color: black !important">⨉</button>
+                                                                </form>
+                                                            {% endif %}
+                                                        </td>
+                                                        <td>
+                                                            {% if task.id_task %}
+                                                                <form method="post" class="d-inline">
+                                                                    <input type="hidden" name="order_id" value="{{ order_id }}">
+                                                                    <input type="hidden" name="form_type" value="toggle_done">
+                                                                    <input type="hidden" name="task_id" value="{{ task.id_task }}">
+                                                                    {% if task.is_done %}
+                                                                        <button type="submit" class="btn btn-success btn-sm">✅ Done</button>
+                                                                    {% else %}
+                                                                        <button type="submit" class="btn btn-warning btn-sm">⏳ Pending</button>
+                                                                    {% endif %}
+                                                                </form>
+                                                            {% else %}
+                                                                <span class="badge bg-secondary">Not Assigned</span>
+                                                            {% endif %}
+                                                        </td>
+                                                    </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+    {% endfor %}
+{% endif %}
+
+<h1 class="h3 mt-5">📝 Additional Manual Tasks</h1>
+<div class="table-responsive">
+    <table class="table table-bordered" style="min-width: 768px;">
+        <thead class="table-dark">
+            <tr>
+                <th>Task Description</th>
+                <th>Assigned Member</th>
+                <th>Actions</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for task in manualTasks %}
+                <tr>
+                    <td>{{ task.task_description }}</td>
+                    <td>
+                        {% set assigned = members | filter(m => m.id == task.id_user) | first %}
+                        {{ assigned.name }} {{ assigned.lastname }}
+                    </td>
+                    <td>
+                        <form method="post">
+                            <input type="hidden" name="order_id" value="{{ order_id }}">
+                            <input type="hidden" name="form_type" value="manual_task_delete">
+                            <input type="hidden" name="delete_manual_task_id" value="{{ task.id }}">
+                            <button type="submit" class="btn btn-danger">
+                                <i data-feather="trash"></i>
+                            </button>
+                        </form>
+                    </td>
+                    <td>
+                        <form method="post">
+                            <input type="hidden" name="form_type" value="toggle_done">
+                            <input type="hidden" name="order_id" value="{{ order_id }}">
+                            <input type="hidden" name="task_id" value="{{ task.id }}">
+                            <button type="submit" class="btn btn-sm {{ task.is_done ? 'btn-success' : 'btn-warning' }}">
+                                {{ task.is_done ? '✅ Done' : '⏳ Pending' }}
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- NUEVA TAREA -->
+<form method="post" class="mt-4">
+    <input type="hidden" name="order_id" value="{{ order_id }}">
+    <input type="hidden" name="form_type" value="manual_task_add">
+
+    <div class="row g-3 align-items-end">
+        <div class="col-md-6">
+            <label class="form-label">Task Description</label>
+            <input type="text" name="description" class="form-control" placeholder="Enter task description" maxlength="100">
+        </div>
+        <div class="col-md-4">
+            <label class="form-label">Assign to</label>
+            {% if members|length > 0 %}
+                <select name="id_user" class="form-select">
+                    <option value="">Select Member</option>
+                    {% for member in members %}
+                        <option value="{{ member.id }}">{{ member.name }} {{ member.lastname }}</option>
+                    {% endfor %}
+                </select>
+            {% else %}
+                <div class="alert alert-warning p-2 small mt-1">
+                    ⚠️ You must
+                    <a href="{{ path('panel/planner-hub/management/orders/orders/staff', { id: order_id }) }}" class="alert-link">invite members</a>
+                    before assigning tasks.
+                </div>
+            {% endif %}
+        </div>
+
+
+
+        <div class="col-md-2">
+            <button type="submit" class="btn btn-primary w-100">
+                <i data-feather="plus"></i> Add Task
+            </button>
+        </div>
+    </div>
+</form>
+{% endblock %}

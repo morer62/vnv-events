@@ -1,0 +1,203 @@
+{% extends 'templates/base.admin.twig' %}
+{% import 'templates/macros.twig' as macros %}
+
+{% block body %}
+<h1 class="h3 mb-4">🪪 My Membership</h1>
+
+{# Membership Status Card #}
+<div class="card mb-4 shadow-sm">
+    <div class="card-body">
+        <h5 class="card-title mb-3">📊 Current Plan Status</h5>
+        
+        <div class="alert {{ membershipActive ? 'alert-success' : 'alert-danger' }} mb-3">
+            {% if membershipActive %}
+                <div class="d-flex align-items-center">
+                    <span style="font-size: 2rem;" class="me-3">✅</span>
+                    <div>
+                        <strong>Active Membership</strong><br>
+                        Your membership expires on: <strong>{{ membershipDue }}</strong>
+                    </div>
+                </div>
+            {% else %}
+                <div class="d-flex align-items-center">
+                    <span style="font-size: 2rem;" class="me-3">❌</span>
+                    <div>
+                        <strong>Inactive Membership</strong><br>
+                        Please renew to continue accessing planner features.
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+
+        {# Autopay Status #}
+        {% if hasCard %}
+            <div class="alert {{ autopayEnabled ? 'alert-info' : 'alert-warning' }} mb-0">
+                {% if autopayEnabled %}
+                    <div class="d-flex align-items-center">
+                        <span style="font-size: 2rem;" class="me-3">🔄</span>
+                        <div>
+                            <strong>Autopay Enabled</strong><br>
+                            Your membership will automatically renew on a <strong>{{ autopayPlan }}</strong> basis
+                        </div>
+                    </div>
+                {% else %}
+                    <div class="d-flex align-items-center">
+                        <span style="font-size: 2rem;" class="me-3">⏸️</span>
+                        <div>
+                            <strong>Autopay Disabled</strong><br>
+                            Enable Autopay below to never miss a renewal
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+{# Autopay Settings Card #}
+{% if not isMobileApp %}
+<div class="card mb-4 shadow-sm">
+    <div class="card-body">
+        <h5 class="card-title mb-3">🔄 Autopay Settings</h5>
+        
+        {% if hasCard %}
+            <form method="post" id="autopayForm">
+                {{ macros.csrf() }}
+                <input type="hidden" name="action" value="toggle_autopay">
+                
+                <div class="form-check form-switch mb-3">
+                    <input class="form-check-input" type="checkbox" role="switch" id="autopayToggle" 
+                           name="autopay_enabled" value="1" {{ autopayEnabled ? 'checked' : '' }}
+                           onchange="document.getElementById('autopayForm').submit();">
+                    <label class="form-check-label" for="autopayToggle">
+                        <strong>Enable Automatic Renewals</strong>
+                    </label>
+                </div>
+
+                <div class="mb-3" id="planSelection" style="{{ autopayEnabled ? '' : 'display:none;' }}">
+                    <label for="autopayPlan" class="form-label">Select Renewal Plan:</label>
+                    <select name="autopay_plan" id="autopayPlan" class="form-select" onchange="document.getElementById('autopayForm').submit();">
+                        <option value="monthly" {{ autopayPlan == 'monthly' ? 'selected' : '' }}>
+                            Monthly - ${{ monthlyPrice }}/month (renews every 30 days)
+                        </option>
+                        <option value="quarterly" {{ autopayPlan == 'quarterly' ? 'selected' : '' }}>
+                            Quarterly - ${{ quarterlyPrice }}/quarter (renews every 90 days - Save 10%)
+                        </option>
+                        <option value="yearly" {{ autopayPlan == 'yearly' ? 'selected' : '' }}>
+                            Yearly - ${{ annualPrice }}/year (renews every 365 days - Save 17%)
+                        </option>
+                    </select>
+                </div>
+
+                <p class="text-muted small mb-0">
+                    💳 Payments will be charged to card ending in <strong>{{ mainCard.last4 }}</strong>
+                </p>
+            </form>
+
+            <script>
+                // Show/hide plan selection based on toggle
+                document.getElementById('autopayToggle').addEventListener('change', function() {
+                    document.getElementById('planSelection').style.display = this.checked ? 'block' : 'none';
+                });
+            </script>
+        {% else %}
+            <div class="alert alert-warning">
+                ⚠️ You need to add a payment method before enabling Autopay.
+            </div>
+            <a href="{{ path('panel/cards') }}" class="btn btn-primary">Add Payment Method</a>
+        {% endif %}
+    </div>
+</div>
+{% endif %}
+
+<hr>
+
+<h4>💳 Manual Renewal</h4>
+
+{% if isMobileApp %}
+    <div class="alert alert-info border-0 shadow-sm" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+        <div class="d-flex align-items-center">
+            <div class="me-3" style="font-size: 3rem;">
+                🌐
+            </div>
+            <div class="text-white">
+                <h5 class="mb-2 fw-bold text-white">Membership Renewal Available on Web Only</h5>
+     
+                <p class="mb-0 mt-3">
+                    <strong>🌐 Please visit our website:</strong><br>
+                    <a href="{{ websiteUrl }}/panel/membership/manage" target="_blank" class="text-white text-decoration-underline fw-bold" style="font-size: 1.1rem;">{{ websiteUrl|replace({'https://': '', 'http://': ''}) }}</a>
+                </p>
+                <p class="mb-0 mt-2 opacity-75" style="font-size: 0.9rem;">
+                    <em>You can log in with the same credentials you're using now.</em>
+                </p>
+            </div>
+        </div>
+    </div>
+{% else %}
+    <div class="card shadow-sm">
+        <div class="card-body">
+            {% if hasCard %}
+                <p class="mb-3">Renew your membership manually for a one-time payment:</p>
+                
+                <form method="post" class="mb-3">
+                    {{ macros.csrf() }}
+                    <div class="mb-3">
+                        <label for="plan" class="form-label">Choose a plan:</label>
+                        <select name="plan" id="plan" class="form-select" required>
+                            <option value="monthly">Monthly - ${{ monthlyPrice }} (30 days)</option>
+                            <option value="quarterly">Quarterly - ${{ quarterlyPrice }} (90 days - Save 10%)</option>
+                            <option value="annual">Annual - ${{ annualPrice }} (365 days - Save 17%)</option>
+                        </select>
+                    </div>
+                    <p class="text-muted small">
+                        💳 Payment will be charged to card ending in <strong>{{ mainCard.last4 }}</strong>
+                    </p>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-credit-card"></i> Pay Now
+                    </button>
+                </form>
+                
+                <div class="alert alert-info small mb-0">
+                    <strong>💡 Tip:</strong> Enable Autopay above to never worry about renewals again!
+                </div>
+            {% else %}
+                <div class="alert alert-warning">
+                    ⚠️ You don't have a saved credit card. Please add one before proceeding with payment.
+                </div>
+                <a href="{{ path('panel/cards') }}" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> Add Payment Method
+                </a>
+            {% endif %}
+        </div>
+    </div>
+{% endif %}
+
+<hr>
+
+<h4>📜 Payment History</h4>
+<div class="table-responsive">
+    <table class="table table-bordered text-center align-middle">
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Amount</th>
+                <th>Renewal Date</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for payment in payments %}
+                <tr>
+                    <td>{{ payment.payment_date|date('Y-m-d') }}</td>
+                    <td>${{ payment.total|number_format(2) }}</td>
+                    <td>{{ payment.renewal|date('Y-m-d') }}</td>
+                </tr>
+            {% else %}
+                <tr>
+                    <td colspan="3" class="text-muted">No membership payments found.</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
+

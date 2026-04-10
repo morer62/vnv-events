@@ -1,0 +1,44 @@
+{% extends 'templates/base.admin.twig' %}
+{% import 'templates/macros.twig' as macros %}
+
+{% block body %}
+    <h1 class="h3 mb-4">⏱️ My Clock</h1>
+
+    {{ macros.breadcrumb2() }}
+
+    {% if activeLog %}
+        <div class="alert alert-success">
+            ✅ Session started at <strong id="display-date"></strong>.
+        </div>
+
+        <form method="post">
+            <input type="hidden" name="action" value="end">
+            <button class="btn btn-danger">🛑 Stop Clock</button>
+        </form>
+    {% else %}
+        <div class="alert alert-warning">
+            ⚠️ You have no active work session.
+        </div>
+
+        <form method="post">
+            <input type="hidden" name="action" value="start">
+            <button class="btn btn-success">▶️ Start Clock</button>
+        </form>
+    {% endif %}
+{% endblock %}
+
+{% block scripts %}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+
+            {% if activeLog %}
+                let displayDate = document.getElementById('display-date');
+                let timestamp = parseInt("{{ activeLog.start_time }}")
+
+                let date = new Date(timestamp * 1000);
+
+                displayDate.innerHTML = date.toLocaleString();
+            {% endif %}
+        })
+    </script>
+{% endblock %}

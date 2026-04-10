@@ -1,0 +1,377 @@
+{% extends 'templates/base.admin.twig' %}
+{% import 'templates/macros.twig' as macros %}
+
+{% block style %}
+<style>
+.clock-button {
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: transform 0.2s ease;
+}
+
+.clock-button:active {
+    transform: scale(0.95);
+}
+
+.clock-face {
+    position: relative;
+    width: 160px;
+    height: 160px;
+    background: #dff6dd;
+    border-radius: 50%;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: background 0.3s ease;
+}
+
+.clock-face:hover {
+    background: #baf2c3;
+}
+
+.hand {
+    position: absolute;
+    background: #2c7a45;
+    transform-origin: bottom;
+    border-radius: 4px;
+}
+
+.hand.hour {
+    height: 30px;
+    width: 5px;
+    bottom: 50%;
+    animation: spinHour 24s linear infinite;
+}
+
+.hand.minute {
+    height: 45px;
+    width: 3px;
+    bottom: 50%;
+    animation: spinMinute 32s linear infinite;
+}
+
+.hand.second {
+    height: 55px;
+    width: 2px;
+    background: #e63946;
+    bottom: 50%;
+    animation: spinSecond 4s linear infinite;
+}
+
+.clock-label {
+    position: absolute;
+    bottom: -30px;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #2c7a45;
+    text-align: center;
+    width: 100%;
+}
+
+@keyframes spinHour {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+@keyframes spinMinute {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+@keyframes spinSecond {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.clock-face.danger {
+    background: #ffe0e0;
+}
+
+.clock-face.danger:hover {
+    background: #ffb3b3;
+}
+
+.hand.danger {
+    background: #d00000;
+}
+
+.clock-label.danger {
+    color: #d00000;
+}
+
+@keyframes pulseSecond {
+    0% { transform: rotate(0deg) scale(1); }
+    50% { transform: rotate(180deg) scale(1.15); }
+    100% { transform: rotate(360deg) scale(1); }
+}
+
+.hand.second.danger {
+    animation: pulseSecond 4s ease-in-out infinite;
+}
+</style>
+{% endblock %}
+
+{% block body %}
+<h1 class="h3 mb-4">⏱️ My Clock</h1>
+{{ macros.breadcrumb2() }}
+
+{% if isLevel4 and currentInstitution %}
+<section class="mb-4">
+  <div class="p-4 bg-white rounded-4 shadow-sm" style="border-left: 5px solid #00b894;">
+    <div class="row align-items-center">
+      <div class="col-md-6">
+        <div class="d-flex align-items-center">
+          <span class="me-3" style="font-size: 2.5rem;">🏢</span>
+          <div>
+            <h4 class="fw-bold mb-1">{{ currentInstitution.company_name }}</h4>
+            <p class="text-muted mb-0">
+              Role: 
+              {% if currentInstitutionRole == 'owner' %}
+                <span class="badge bg-success">Owner</span>
+              {% else %}
+                {% if roleName %}
+                  <span class="badge bg-info">{{ roleName }}</span>
+                {% else %}
+                  <span class="text-muted">No role</span>
+                {% endif %}
+              {% endif %}
+              | Hourly Rate: 
+              {% if hourlyRate and hourlyRate > 0 %}
+                ${{ hourlyRate|number_format(2) }}/hr
+              {% else %}
+                <span class="text-muted">Not set</span>
+              {% endif %}
+              {% if hasMultipleInstitutions %}
+                | <span class="text-success">Multiple institutions available</span>
+              {% endif %}
+            </p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-6 text-end">
+        {% if hasMultipleInstitutions %}
+        <button class="btn btn-outline-primary btn-lg fw-bold px-4" onclick="showInstitutionSwitcher()">
+          🔄 Switch Institution
+        </button>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</section>
+{% endif %}
+
+<div class="row justify-content-center">
+  <div class="col-md-6 col-12">
+    {% if activeLog %}
+      <div class="alert alert-success text-center">
+        ✅ Session running for <strong id="elapsed-time"></strong>.
+      </div>
+
+      <form method="post" class="d-grid">
+        <input type="hidden" name="action" value="end">
+        <input type="hidden" name="location_lat" />
+        <input type="hidden" name="location_long" />
+        <input type="hidden" id="notesField" name="notes" />
+
+        <button class="clock-button danger" type="button" onclick="openNotesModal()">
+          <div class="clock-face danger">
+            <div class="hand hour danger"></div>
+            <div class="hand minute danger"></div>
+            <div class="hand second danger"></div>
+            <span class="clock-label danger">Push to Stop Clock</span>
+          </div>
+        </button>
+        <input type="hidden" name="tz" id="session_tz" />
+      </form>
+    {% else %}
+      <div class="alert alert-warning text-center">
+        ⚠️ You have no active work session.
+      </div>
+
+      <form method="post" class="d-grid">
+        <input type="hidden" name="action" value="start">
+        <input type="hidden" name="location_lat" />
+        <input type="hidden" name="location_long" />
+        <button class="clock-button" type="submit">
+          <div class="clock-face">
+            <div class="hand hour"></div>
+            <div class="hand minute"></div>
+            <div class="hand second"></div>
+            <span class="clock-label">Push to Start Clock</span>
+          </div>
+        </button>
+        <input type="hidden" name="tz" id="session_tz" />
+      </form>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById("session_tz").value = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+{% if activeLog %}
+  const startStr = "{{ activeLog.start_time|e }}";
+  const startDate = new Date(startStr.replace(" ", "T"));
+  const elapsedEl = document.getElementById("elapsed-time");
+
+  function updateElapsed() {
+    const now = new Date();
+    let diff = Math.floor((now - startDate) / 1000);
+
+    const hours = Math.floor(diff / 3600);
+    diff %= 3600;
+    const minutes = Math.floor(diff / 60);
+    const seconds = diff % 60;
+
+    elapsedEl.textContent =
+      (hours > 0 ? hours + "h " : "") +
+      (minutes > 0 ? minutes + "m " : "") +
+      seconds + "s";
+  }
+
+  updateElapsed();
+  setInterval(updateElapsed, 1000);
+{% endif %}
+
+  setLocationFields();
+});
+
+async function setLocationFields() {
+  if ("geolocation" in navigator) {
+    navigator.geolocation.getCurrentPosition((position) => {
+      document.querySelector("input[name='location_lat']").value = position.coords.latitude;
+      document.querySelector("input[name='location_long']").value = position.coords.longitude;
+    });
+  }
+}
+
+function openNotesModal() {
+  const modal = new bootstrap.Modal(document.getElementById('notesModal'));
+  modal.show();
+}
+
+function submitWithNotes() {
+  const notes = document.getElementById('notesInput').value;
+  document.getElementById('notesField').value = notes;
+  document.querySelector("form").submit();
+}
+
+function showInstitutionSwitcher() {
+  const modal = new bootstrap.Modal(document.getElementById('institutionSwitcherModal'));
+  modal.show();
+}
+
+function switchInstitution(institutionId, role) {
+  const form = document.createElement('form');
+  form.method = 'POST';
+  form.action = window.location.href;
+  
+  const switchInput = document.createElement('input');
+  switchInput.type = 'hidden';
+  switchInput.name = 'switch_institution';
+  switchInput.value = '1';
+  
+  const idInput = document.createElement('input');
+  idInput.type = 'hidden';
+  idInput.name = 'institution_id';
+  idInput.value = institutionId;
+  
+  const roleInput = document.createElement('input');
+  roleInput.type = 'hidden';
+  roleInput.name = 'role';
+  roleInput.value = role;
+  
+  form.appendChild(switchInput);
+  form.appendChild(idInput);
+  form.appendChild(roleInput);
+  
+  document.body.appendChild(form);
+  form.submit();
+}
+</script>
+{% endblock %}
+
+{% block aside %}
+{% if isLevel4 %}
+<div class="modal fade" id="institutionSwitcherModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content rounded-4">
+      <div class="modal-header">
+        <h5 class="modal-title fw-bold">🏢 Switch Institution</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <p class="mb-3">Select the institution you want to work with:</p>
+        <div class="list-group">
+          {% for institution in userInstitutions %}
+          <div class="list-group-item d-flex justify-content-between align-items-center">
+            <div>
+              <h6 class="mb-1">{{ institution.company_name }}</h6>
+              <small class="text-muted">
+                {% if institution.relationship_type == 'primary' %}
+                  Role: <span class="badge bg-success">Owner</span>
+                {% else %}
+                  Role: 
+                  {% if institution.role_name %}
+                    <span class="badge bg-info">{{ institution.role_name }}</span>
+                  {% else %}
+                    <span class="text-muted">No role</span>
+                  {% endif %}
+                  | Rate: 
+                  {% if institution.hourly_rate and institution.hourly_rate > 0 %}
+                    ${{ institution.hourly_rate|number_format(2) }}/hr
+                  {% else %}
+                    <span class="text-muted">Not set</span>
+                  {% endif %}
+                {% endif %}
+                {% if institution.working_institution_id == currentInstitution.id %}
+                  <span class="badge bg-success ms-2">Current</span>
+                {% endif %}
+              </small>
+            </div>
+            {% if institution.working_institution_id != currentInstitution.id %}
+            {% set institutionRole = institution.relationship_type == 'primary' ? 'owner' : 'employee' %}
+            <button class="btn btn-outline-primary btn-sm" onclick="switchInstitution('{{ institution.working_institution_id }}', '{{ institutionRole }}')">
+              Switch
+            </button>
+            {% endif %}
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<div class="modal fade" id="notesModal" tabindex="-1" aria-labelledby="notesModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="notesModalLabel">📝 Optional Notes</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <p class="mb-2">Add a note about your work session (optional):</p>
+        <textarea id="notesInput" class="form-control" rows="3" maxlength="240" placeholder="Write something..."></textarea>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-success" onclick="submitWithNotes()">Clock Out</button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

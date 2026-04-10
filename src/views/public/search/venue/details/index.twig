@@ -1,0 +1,1738 @@
+{% extends 'templates/base.twig' %}
+{% import 'templates/macros.twig' as macros %}
+
+{% block head %}
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" integrity="sha512-Avb2QiuDEEvB4bZJYdft2mNjVShBftLdPG8FJ0V7irTLQ8Uo0qcPxh4Plq6cZ9Yp9R3SZkqCJzFYnRg4P9L4A==" crossorigin="anonymous" referrerpolicy="no-referrer"/>
+{% endblock %}
+
+{% block body %}
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+
+	{# ============================================================
+	   NUEVO: Categories (Collapsible + Multiselect) — OPCIONAL
+	   Se muestra sólo si existe "categories"
+	   ============================================================ #}
+	{% if categories is defined and categories %}
+	<section id="vnv-catFilter" class="vnv-ac-section is-collapsed" data-key="vnv_cat_ac_open">
+		<header class="vnv-ac-header" role="button" tabindex="0" aria-controls="vnv-catBody" aria-expanded="false">
+			<div class="vnv-ac-title">
+				<strong>Categories</strong>
+				<span class="vnv-ac-count" id="vnv-catCount">0 selected</span>
+			</div>
+			<div class="vnv-ac-summary" id="vnv-catSummary"></div>
+			<i class="fa-solid fa-chevron-down vnv-ac-chevron"></i>
+		</header>
+
+		<div id="vnv-catBody" class="vnv-ac-body">
+			<div class="vnv-ac-actions">
+				<input id="vnv-catSearch" class="vnv-ac-input" type="text" placeholder="Filter categories..." autocomplete="off">
+				<div class="vnv-ac-links">
+					<button type="button" class="vnv-ac-link" id="vnv-catSelectAll">Select all</button>
+					<span class="vnv-ac-sep">•</span>
+					<button type="button" class="vnv-ac-link" id="vnv-catClear">Clear</button>
+				</div>
+			</div>
+
+			<div id="vnv-catGrid" class="vnv-ac-grid" role="group" aria-label="Categories">
+				{% for c in categories %}
+					{# Hidden input para enviar multiselect #}
+					<input type="checkbox"
+						   name="categories[]"
+						   value="{{ c.id }}"
+						   id="vnv-cat-{{ c.id }}"
+						   class="vnv-ac-hidden"
+						   {% if selected_categories is defined and c.id in selected_categories %}checked{% endif %}>
+
+					<button type="button"
+							class="vnv-ac-pill {% if selected_categories is defined and c.id in selected_categories %}is-selected{% endif %}"
+							data-id="{{ c.id }}"
+							data-label="{{ c.name }}"
+							aria-pressed="{% if selected_categories is defined and c.id in selected_categories %}true{% else %}false{% endif %}">
+						<span class="vnv-ac-label">{{ c.name }}</span>
+						<i class="fa-solid fa-check vnv-ac-check"></i>
+					</button>
+				{% endfor %}
+			</div>
+		</div>
+	</section>
+	{% endif %}
+	{# ========== FIN BLOQUE NUEVO (no altera el resto de tu página) ========== #}
+
+	<div class="vnv-promo-banner">
+		<div class="vnv-promo-content">
+			<p class="vnv-promo-text">Want them for your <strong>{{ venue.category_name }}</strong>?</p>
+			<div class="vnv-promo-actions">
+				<a class="vnv-promo-button" href="{{ base_url }}/search/client_request/index?profile_cat=venue&id={{ venue.id }}">Get a quote</a>
+				<p class="vnv-promo-offer">Book this venue today and save your date.
+				 
+				</p>
+			</div>
+		</div>
+	</div> 
+	<div class="vnv-detail-wrapper">
+		<h2>{{ services.name }}</h2>
+		<div class="vnv-detail-header">
+			<div class="vnv-detail-map">
+				{% if venue.lat and venue.lng %}
+					<iframe src="https://www.google.com/maps?q={{ venue.lat }},{{ venue.lng }}&output=embed" width="100%" height="300" style="border:0;" allowfullscreen="" loading="lazy"></iframe>
+				{% else %}
+					<div class="map-placeholder">
+						<i class="fa-solid fa-map-location-dot"></i>
+						<p>Map not available</p>
+					</div>
+				{% endif %}
+			</div>
+			<div class="vnv-detail-info">
+				<ul class="vnv-detail-list">
+					<li>
+						<i class="fa-solid fa-location-dot"></i>
+						<span>Address</span>
+						<strong>{{ venue.address }}</strong>
+					</li>
+
+					{% if services.indoor_outdoor_type %}
+						<li>
+							<i class="fa-solid fa-warehouse"></i>
+							<span>Space Type</span>
+							<strong>{{ venue.indoor_outdoor_type|title }}</strong>
+						</li>
+					{% endif %}
+
+					{% if venue.category_name %}
+						<li>
+							<i class="fa-solid fa-tags"></i>
+							<span>Category</span>
+							<strong>
+								{{ venue.category_name }}
+								{% if venue.extra_categories and (venue.extra_categories|length) > 0 %}
+									<span class="text-muted"> • </span>
+									{{ venue.extra_categories|join(', ') }}
+								{% endif %}
+							</strong>
+						</li>
+					{% endif %}
+
+					{% if venue.phone_number %}
+						<li>
+							<i class="fa-solid fa-phone"></i>
+							<span>Phone</span>
+							<strong>{{ venue.phone_number }}</strong>
+						</li>
+					{% endif %}
+
+					{% if venue.email %}
+						<li>
+							<i class="fa-solid fa-envelope"></i>
+							<span>Email</span>
+							<strong>
+								<a href="mailto:{{ venue.email }}">{{ venue.email }}</a>
+							</strong>
+						</li>
+					{% endif %}
+
+					{% if venue.website and venue.website != '' %}
+						<li>
+							<i class="fa-solid fa-globe"></i>
+							<span>Website</span>
+							<strong>
+								<a href="{{ venue.website }}" target="_blank">{{ venue.website }}</a>
+							</strong>
+						</li>
+					{% endif %}
+
+					{% if venue.capacity and venue.capacity > 0 %}
+						<li>
+							<i class="fa-solid fa-users"></i>
+							<span>Capacity</span>
+							<strong>
+								{{ venue.capacity }}
+								guests
+							</strong>
+						</li>
+					{% endif %}
+
+					{% if venue.base_price %}
+						<li>
+							<i class="fa-solid fa-dollar-sign"></i>
+							<span>Base Price</span>
+							<strong>${{ venue.base_price }}</strong>
+						</li>
+					{% endif %}
+
+					{% set social_links = [] %}
+					{% if venue.instagram and venue.instagram != '' and venue.instagram != 'Not_available' %}
+						{% set social_links = social_links|merge([{ url: venue.instagram, icon: 'fab fa-instagram' }]) %}
+					{% endif %}
+					{% if venue.facebook and venue.facebook != '' and venue.facebook != 'Not_available' %}
+						{% set social_links = social_links|merge([{ url: venue.facebook, icon: 'fab fa-facebook-f' }]) %}
+					{% endif %}
+					{% if venue.twitter and venue.twitter != '' and venue.twitter != 'Not_available' %}
+						{% set social_links = social_links|merge([{ url: venue.twitter, icon: 'fab fa-twitter' }]) %}
+					{% endif %}
+					{% if venue.yelp and venue.yelp != '' and venue.yelp != 'Not_available' %}
+						{% set social_links = social_links|merge([{ url: venue.yelp, icon: 'fab fa-yelp' }]) %}
+					{% endif %}
+
+					{% if (social_links|length) > 0 %}
+						<li>
+							<i class="fa-solid fa-share-nodes"></i>
+							<span>Social</span>
+							<strong>
+								{% for social in social_links %}
+									<a href="{{ social.url }}" target="_blank" style="margin-left:10px;">
+										<i class="{{ social.icon }}"></i>
+									</a>
+								{% endfor %}
+							</strong>
+						</li>
+					{% endif %}
+				</ul>
+			</div>
+		</div>
+
+		<!-- Gallery -->
+		{% if venue.photos and (venue.photos|length) > 0 %}
+			<div class="vnv-detail-gallery">
+				{% for photo in venue.photos|slice(0, 5) %}
+					<img src="{{ photo }}" class="vnv-thumb" onclick="vnvOpenPopup('{{ photo }}')"/>
+				{% endfor %}
+			</div>
+		{% endif %}
+
+		<!-- Description -->
+		{% if venue.description %}
+			<div class="vnv-detail-description">{{ venue.description|raw }}</div>
+		{% endif %}
+
+		<!-- Weekly Availability -->
+		{% set day_names = { sun: 'Sunday', mon: 'Monday', tue: 'Tuesday', wed: 'Wednesday', thu: 'Thursday', fri: 'Friday', sat: 'Saturday' } %}
+
+		<h3>🗓️ Weekly Availability</h3>
+		{% if venue.availability %}
+			<table class="vnv-table">
+				<thead>
+					<tr>
+						<th>Day</th>
+						<th>Status</th>
+						<th>From</th>
+						<th>To</th>
+					</tr>
+				</thead>
+				<tbody>
+					{% for day, info in venue.availability %}
+						<tr>
+							<td>{{ day_names[day] ? : day|title }}</td>
+							<td>
+								{% if info.is_closed %}
+									❌ Closed
+								{% else %}
+									✅ Open
+								{% endif %}
+							</td>
+							<td>
+								{% if info.is_closed %}
+									-
+								{% elseif info.opens %}
+									{{ info.opens|date('g:i A') }}
+								{% else %}
+									-
+								{% endif %}
+							</td>
+							<td>
+								{% if info.is_closed %}
+									-
+								{% elseif info.closes %}
+									{{ info.closes|date('g:i A') }}
+								{% else %}
+									-
+								{% endif %}
+							</td>
+						</tr>
+					{% endfor %}
+				</tbody>
+			</table>
+		{% else %}
+			<p>No availability data.</p>
+		{% endif %}
+
+		<!-- Events -->
+		<h3>📅 Events</h3>
+		{% if venue.events and (venue.events|length) > 0 %}
+			<table class="vnv-table">
+				<thead>
+					<tr>
+						<th>Name</th>
+						<th>Description</th>
+						<th>Date</th>
+						<th>Actions</th>
+					</tr>
+				</thead>
+				<tbody>
+					{% for event in venue.events %}
+						<tr>
+							<td>
+								<strong>{{ event.name }}</strong>
+							</td>
+							<td>{{ event.description }}</td>
+							<td>
+								{% if event.start_date %}
+									{{ event.start_date|date('M j, Y g:i A') }}
+								{% else %}
+									-
+								{% endif %}
+							</td>
+                            <td>
+                                {% if event.ticket_sales_enabled %}
+                                    <button type="button" class="btn btn-primary btn-sm buy-tickets-btn" 
+                                            data-event-id="{{ event.id }}" 
+                                            data-event-name="{{ event.name|e('html_attr') }}" 
+                                            data-event-date="{{ event.start_date|date('Y-m-d H:i:s') }}">
+                                        <i class="fa-solid fa-ticket"></i> Buy Tickets
+                                    </button>
+                                {% elseif event.external_link %}
+                                    <a href="{{ event.external_link }}" target="_blank" class="btn btn-outline-primary btn-sm">
+                                        <i class="fa-solid fa-external-link"></i> View Event
+                                    </a>
+                                {% else %}
+                                    <span class="text-muted">Tickets not available</span>
+								{% endif %}
+							</td>
+						</tr>
+					{% endfor %}
+				</tbody>
+			</table>
+		{% else %}
+			<p>No events available.</p>
+		{% endif %}
+
+		<!-- Promotions -->
+		<h3>🎁 Promotions</h3>
+		{% if venue.promos and (venue.promos|length) > 0 %}
+			<table class="vnv-table">
+				<thead>
+					<tr>
+						<th>Name</th>
+						<th>Description</th>
+					</tr>
+				</thead>
+				<tbody>
+					{% for promo in venue.promos %}
+						<tr>
+							<td>
+								{{ promo.name }}
+								{% if promo.start_date %}
+									<hr/>{{ promo.start_date }}
+								{% endif %}
+							</td>
+							<td>{{ promo.description }}</td>
+						</tr>
+					{% endfor %}
+				</tbody>
+			</table>
+		{% else %}
+			<p>No promotions available.</p>
+		{% endif %}
+
+		{% set icon_map = { 'All-inclusive: Full food, beverage, rentals': 'fa-utensils', 'Raw space: Only the space': 'fa-box', 'Select services: Some basic add-ons': 'fa-puzzle-piece', 'Bar services': 'fa-martini-glass', 'Dance floor': 'fa-music', 'Event rentals': 'fa-chair', 'Lighting/sound': 'fa-lightbulb', 'Service staff': 'fa-user-tie', 'Wedding cake services': 'fa-cake-candles', 'Catering services': 'fa-bowl-food', 'Dressing room / bridal suite': 'fa-person-dress', 'Event staff': 'fa-user', 'On-site accommodations': 'fa-bed', 'Set up': 'fa-screwdriver-wrench', 'Wheelchair accessible': 'fa-wheelchair', 'Clean up': 'fa-soap', 'Event coordinator': 'fa-clipboard-list', 'Liability insurance': 'fa-file-shield', 'Pet friendly': 'fa-dog', Transportation: 'fa-bus', Wifi: 'fa-wifi' } %}
+
+		<!-- Services -->
+		{% if venue.services and (venue.services|length) > 0 %}
+			<h3>🛎️ Services</h3>
+			<ul class="vnv-icon-list">
+				{% for service in venue.services %}
+					<li>
+						<i class="fa-solid {{ icon_map[service] ? : 'fa-check' }}"></i>
+						{{ service }}
+					</li>
+				{% endfor %}
+			</ul>
+		{% endif %}
+
+		<!-- Amenities -->
+		{% if venue.amenities and (venue.amenities|length) > 0 %}
+			<h3>🎯 Amenities</h3>
+			<ul class="vnv-icon-list">
+				{% for amenity in venue.amenities %}
+					<li>
+						<i class="fa-solid {{ icon_map[amenity] ? : 'fa-check' }}"></i>
+						{{ amenity }}
+					</li>
+				{% endfor %}
+			</ul>
+		{% endif %}
+
+		<!-- Fullscreen image popup -->
+		<div id="vnv-popup" onclick="this.style.display='none'">
+			<img id="vnv-popup-img"/>
+		</div>
+
+		<!-- Ticket Purchase Modal -->
+		<div class="modal fade" id="ticketModal" tabindex="-1" aria-labelledby="ticketModalLabel" aria-hidden="true">
+			<div class="modal-dialog modal-xl">
+				<div class="modal-content border-0 shadow-lg">
+					<div class="modal-header bg-primary text-white border-0">
+						<div class="d-flex align-items-center">
+							<i class="fa-solid fa-ticket-alt me-2 fs-4"></i>
+							<h4 class="modal-title mb-0" id="ticketModalLabel">Buy Tickets</h4>
+					</div>
+						<button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+					</div>
+					<div class="modal-body p-4">
+						<!-- Event Info -->
+						<div class="card border-0 shadow-sm mb-4">
+							<div class="card-body bg-gradient bg-light">
+								<div class="row align-items-center">
+									<div class="col-12">
+										<h5 class="card-title mb-1 text-primary" id="modalEventName">Event Name</h5>
+										<p class="card-text text-muted mb-0" id="modalEventDate">
+											<i class="fa-solid fa-calendar-alt me-1"></i>Event Date
+										</p>
+									</div>
+								</div>
+							</div>
+						</div>
+
+						<!-- Authentication Section -->
+						<div id="authSection">
+							<!-- Login Form -->
+							<div id="loginForm" style="display: none;">
+								<div class="card border-0 shadow-sm">
+									<div class="card-header bg-white border-0 pb-0">
+										<h5 class="card-title text-center mb-0">
+											<i class="fa-solid fa-sign-in-alt me-2 text-primary"></i>Welcome Back
+										</h5>
+										<p class="text-muted text-center mt-2">Sign in to continue with your purchase</p>
+									</div>
+									<div class="card-body">
+								<form id="modalLoginForm">
+									<div class="mb-3">
+												<label class="form-label fw-semibold">
+													<i class="fa-solid fa-envelope me-1"></i>Email Address
+												</label>
+												<input type="email" class="form-control form-control-lg" name="email" 
+													   placeholder="Enter your email" required>
+									</div>
+											<div class="mb-4">
+												<label class="form-label fw-semibold">
+													<i class="fa-solid fa-lock me-1"></i>Password
+												</label>
+												<input type="password" class="form-control form-control-lg" name="password" 
+													   placeholder="Enter your password" required>
+									</div>
+											<button type="submit" class="btn btn-primary btn-lg w-100 mb-3">
+												<i class="fa-solid fa-sign-in-alt me-2"></i>Sign In
+											</button>
+								</form>
+										<div class="text-center">
+											<p class="text-muted mb-0">Don't have an account?</p>
+											<button type="button" class="btn btn-link text-decoration-none" onclick="showSignupForm()">
+												<i class="fa-solid fa-user-plus me-1"></i>Create Account
+											</button>
+										</div>
+									</div>
+								</div>
+							</div>
+
+							<!-- Signup Form -->
+							<div id="signupForm" style="display: none;">
+								<div class="card border-0 shadow-sm">
+									<div class="card-header bg-white border-0 pb-0">
+										<h5 class="card-title text-center mb-0">
+											<i class="fa-solid fa-user-plus me-2 text-success"></i>Create Account
+										</h5>
+										<p class="text-muted text-center mt-2">Join us to purchase your tickets</p>
+									</div>
+									<div class="card-body">
+								<form id="modalSignupForm">
+									<div class="row">
+										<div class="col-md-6 mb-3">
+													<label class="form-label fw-semibold">
+														<i class="fa-solid fa-user me-1"></i>First Name
+													</label>
+													<input type="text" class="form-control form-control-lg" name="name" 
+														   placeholder="Your first name" required>
+										</div>
+										<div class="col-md-6 mb-3">
+													<label class="form-label fw-semibold">
+														<i class="fa-solid fa-user me-1"></i>Last Name
+													</label>
+													<input type="text" class="form-control form-control-lg" name="lastname" 
+														   placeholder="Your last name" required>
+										</div>
+									</div>
+									<div class="mb-3">
+												<label class="form-label fw-semibold">
+													<i class="fa-solid fa-envelope me-1"></i>Email Address
+												</label>
+												<input type="email" class="form-control form-control-lg" name="email" 
+													   placeholder="your.email@example.com" required>
+									</div>
+									<div class="mb-3">
+												<label class="form-label fw-semibold">
+													<i class="fa-solid fa-phone me-1"></i>Phone Number
+												</label>
+												<input type="tel" class="form-control form-control-lg" name="phoneNumber" 
+													   placeholder="+1 (555) 123-4567">
+									</div>
+									<div class="row">
+										<div class="col-md-6 mb-3">
+													<label class="form-label fw-semibold">
+														<i class="fa-solid fa-lock me-1"></i>Password
+													</label>
+													<input type="password" class="form-control form-control-lg" name="password" 
+														   placeholder="Create a password" required>
+										</div>
+										<div class="col-md-6 mb-3">
+													<label class="form-label fw-semibold">
+														<i class="fa-solid fa-lock me-1"></i>Confirm Password
+													</label>
+													<input type="password" class="form-control form-control-lg" name="passwordConfirmation" 
+														   placeholder="Confirm your password" required>
+										</div>
+									</div>
+											<button type="submit" class="btn btn-success btn-lg w-100 mb-3">
+												<i class="fa-solid fa-user-plus me-2"></i>Create Account & Continue
+											</button>
+								</form>
+										<div class="text-center">
+											<p class="text-muted mb-0">Already have an account?</p>
+											<button type="button" class="btn btn-link text-decoration-none" onclick="showLoginForm()">
+												<i class="fa-solid fa-sign-in-alt me-1"></i>Sign In
+											</button>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+
+						<!-- Ticket Purchase Section -->
+						<div id="ticketPurchaseSection" style="display: none;">
+							<div class="row">
+								<div class="col-lg-8">
+									<div class="card border-0 shadow-sm mb-4">
+										<div class="card-header bg-white border-0">
+											<h5 class="card-title mb-0">
+												<i class="fa-solid fa-ticket-alt me-2 text-primary"></i>Select Your Tickets
+											</h5>
+										</div>
+										<div class="card-body">
+							<div id="ticketTypesContainer">
+								<!-- Dynamic content will be loaded here -->
+											</div>
+										</div>
+									</div>
+							</div>
+							
+								<div class="col-lg-4">
+							<!-- Buyer Information -->
+							<div id="buyerInfoSection" style="display: none;">
+										<div class="card border-0 shadow-sm mb-4">
+											<div class="card-header bg-white border-0">
+												<h6 class="card-title mb-0">
+													<i class="fa-solid fa-user me-2 text-info"></i>Buyer Information
+												</h6>
+											</div>
+											<div class="card-body">
+												<div class="mb-3">
+													<label class="form-label fw-semibold">Full Name</label>
+										<input type="text" class="form-control" id="buyerName" readonly>
+									</div>
+												<div class="mb-3">
+													<label class="form-label fw-semibold">Email</label>
+										<input type="email" class="form-control" id="buyerEmail" readonly>
+									</div>
+												<div class="mb-3">
+													<label class="form-label fw-semibold">Phone</label>
+										<input type="tel" class="form-control" id="buyerPhone" placeholder="Optional">
+												</div>
+									</div>
+								</div>
+
+								<!-- Payment Section -->
+										<div class="card border-0 shadow-sm mb-4">
+											<div class="card-header bg-white border-0">
+												<h6 class="card-title mb-0">
+													<i class="fa-solid fa-credit-card me-2 text-warning"></i>Payment Information
+												</h6>
+											</div>
+											<div class="card-body">
+												<div id="card-element" class="form-control p-3 border-2"></div>
+												<div id="card-errors" class="text-danger mt-2 small"></div>
+											</div>
+								</div>
+
+								<!-- Order Summary -->
+										<div class="card border-0 shadow-sm">
+											<div class="card-header bg-success text-white border-0">
+												<h6 class="card-title mb-0">
+													<i class="fa-solid fa-receipt me-2"></i>Order Summary
+												</h6>
+											</div>
+									<div class="card-body">
+										<div id="orderSummary">
+													<p class="text-muted text-center">Select tickets to see order summary</p>
+										</div>
+										<hr>
+												<div class="d-flex justify-content-between align-items-center">
+													<span class="fw-bold fs-5">Total:</span>
+													<span class="fw-bold fs-4 text-success" id="totalAmount">$0.00</span>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+						</div>
+					</div>
+					<div class="modal-footer bg-light border-0">
+						<button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+							<i class="fa-solid fa-times me-1"></i>Close
+						</button>
+						<button type="button" class="btn btn-success btn-lg" id="purchaseBtn" style="display: none;" onclick="processPurchase()">
+							<i class="fa-solid fa-credit-card me-2"></i>Complete Purchase
+						</button>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<style>
+
+		/* ======= NUEVO: estilos del acordeón de categorías (scoped con prefijo vnv-ac-) ======= */
+		.vnv-ac-section {
+			border: 1px solid #e5e7eb;
+			border-radius: 10px;
+			background:#fff;
+			overflow: hidden;
+			box-shadow: 0 1px 4px rgba(0,0,0,.04);
+			margin: 16px auto;
+			max-width: 1200px;
+			padding: 0;
+		}
+		.vnv-ac-header {
+			display:flex; align-items:center; gap:12px;
+			padding:12px 14px; cursor:pointer; user-select:none;
+		}
+		.vnv-ac-header:focus { outline: 2px solid #26a69a; outline-offset: 2px; }
+		.vnv-ac-title { display:flex; align-items:baseline; gap:10px; }
+		.vnv-ac-count { color:#6b7280; font-size: .9rem; }
+		.vnv-ac-summary { margin-left:auto; color:#374151; font-size:.9rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+		.vnv-ac-chevron { margin-left:10px; transition: transform .2s ease; color:#6b7280; }
+		.vnv-ac-section.is-open .vnv-ac-chevron { transform: rotate(180deg); }
+
+		.vnv-ac-body {
+			display:grid; gap:12px;
+			padding: 12px 14px 16px;
+			border-top:1px solid #e5e7eb;
+		}
+		.vnv-ac-section.is-collapsed .vnv-ac-body { display:none; }
+
+		.vnv-ac-actions {
+			display:flex; gap:12px; align-items:center; justify-content:space-between; flex-wrap:wrap;
+		}
+		.vnv-ac-input {
+			flex:1 1 280px; max-width:560px;
+			padding:10px 12px; border:1px solid #e5e7eb; border-radius:8px;
+		}
+		.vnv-ac-links { display:flex; align-items:center; gap:8px; }
+		.vnv-ac-link {
+			border:none; background:none; padding:0; color:#007cba; cursor:pointer; font-weight:600;
+		}
+		.vnv-ac-link:hover { text-decoration: underline; }
+		.vnv-ac-sep { color:#9ca3af; }
+
+		.vnv-ac-grid {
+			display:grid;
+			grid-template-columns: repeat(4, minmax(180px, 1fr));
+			gap:12px;
+		}
+		@media (max-width: 1024px) {
+			.vnv-ac-grid { grid-template-columns: repeat(3, minmax(160px, 1fr)); }
+		}
+		@media (max-width: 768px) {
+			.vnv-ac-grid { grid-template-columns: repeat(2, minmax(140px, 1fr)); }
+		}
+
+		.vnv-ac-pill {
+			position:relative;
+			display:flex; align-items:center; justify-content:center; gap:8px;
+			padding:14px 12px; border:1px solid #e5e7eb; border-radius:10px;
+			background:#fff; cursor:pointer; transition: all .15s ease;
+		}
+		.vnv-ac-pill:hover { border-color:#cfd4dc; box-shadow: 0 1px 4px rgba(0,0,0,.03); }
+		.vnv-ac-pill.is-selected {
+			border-color:#26a69a; background:#e8f7f4;
+		}
+		.vnv-ac-label { font-weight:600; color:#111827; text-align:center; }
+		.vnv-ac-check { opacity:0; transition: opacity .15s ease; color:#26a69a; }
+		.vnv-ac-pill.is-selected .vnv-ac-check { opacity:1; }
+
+		.vnv-ac-hidden { display:none; }
+
+		/* ======= TUS ESTILOS ORIGINALES (intactos) ======= */
+
+		.vnv-promo-banner {
+			background-color: #fff;
+			border-bottom: 1px solid #e0e0e0;
+			padding: 15px 0;
+			box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+		}
+
+		.vnv-promo-content {
+			max-width: 1200px;
+			margin: 0 auto;
+			padding: 0 30px;
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			flex-wrap: wrap;
+			gap: 15px;
+		}
+
+		.vnv-promo-text {
+			font-size: 18px;
+			font-weight: 600;
+			color: #333;
+			margin: 0;
+		}
+
+		.vnv-promo-actions {
+			display: flex;
+			align-items: center;
+			gap: 20px;
+		}
+
+		.vnv-promo-button {
+			background-color: #007cba;
+			color: white;
+			padding: 10px 20px;
+			border-radius: 4px;
+			text-decoration: none;
+			font-weight: 600;
+			transition: background-color 0.3s;
+		}
+
+		.vnv-promo-button:hover {
+			background-color: #006ba1;
+		}
+
+		.vnv-promo-offer {
+			margin: 0;
+			color: #666;
+			font-size: 14px;
+		}
+
+		.vnv-terms-link {
+			color: #007cba;
+			text-decoration: none;
+		}
+
+		.vnv-terms-link:hover {
+			text-decoration: underline;
+		}
+
+		@media(max-width: 768px) {
+			.vnv-promo-content {
+				flex-direction: column;
+				align-items: flex-start;
+				padding: 0 15px;
+			}
+
+			.vnv-promo-actions {
+				flex-direction: column;
+				align-items: flex-start;
+				gap: 10px;
+			}
+		}
+		.vnv-detail-wrapper {
+			padding: 30px;
+			font-family: Arial, sans-serif;
+			max-width: 1200px;
+			margin: 0 auto;
+		}
+		.vnv-detail-header {
+			display: flex;
+			flex-wrap: wrap;
+			gap: 20px;
+			margin-bottom: 20px;
+		}
+		.vnv-detail-info {
+			flex: 1;
+			min-width: 300px;
+		}
+		.vnv-detail-map {
+			flex: 1;
+			min-width: 300px;
+		}
+		.map-placeholder {
+			height: 300px;
+			background: #f8f9fa;
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			justify-content: center;
+			border-radius: 8px;
+			color: #6c757d;
+		}
+		.map-placeholder i {
+			font-size: 48px;
+			margin-bottom: 10px;
+		}
+		.vnv-detail-list {
+			list-style: none;
+			padding: 0;
+			margin: 0;
+		}
+		.vnv-detail-list li {
+			display: flex;
+			align-items: center;
+			margin-bottom: 12px;
+			padding: 8px;
+			background: #f9f9f9;
+			border-radius: 6px;
+		}
+		.vnv-detail-list li i {
+			width: 20px;
+			margin-right: 10px;
+			color: #333;
+		}
+		.vnv-detail-list li span {
+			min-width: 80px;
+			font-weight: 500;
+			margin-right: 10px;
+		}
+		.vnv-detail-list li strong {
+			flex: 1;
+		}
+		.vnv-detail-list li strong a {
+			color: #007cba;
+			text-decoration: none;
+		}
+		.vnv-detail-list li strong a:hover {
+			text-decoration: underline;
+		}
+		.vnv-detail-gallery {
+			display: flex;
+			gap: 10px;
+			overflow-x: auto;
+			padding: 10px 0;
+			margin-bottom: 20px;
+		}
+		.vnv-thumb {
+			width: 120px;
+			height: 90px;
+			object-fit: cover;
+			border-radius: 8px;
+			cursor: pointer;
+			transition: transform 0.2s;
+			flex-shrink: 0;
+		}
+		.vnv-thumb:hover {
+			transform: scale(1.05);
+		}
+		.vnv-detail-description {
+			margin: 20px 0;
+			padding: 20px;
+			background: #f8f9fa;
+			border-radius: 8px;
+			border-left: 4px solid #007cba;
+		}
+		.vnv-table {
+			width: 100%;
+			border-collapse: collapse;
+			margin: 15px 0;
+			box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+			border-radius: 8px;
+			overflow: hidden;
+		}
+		.vnv-table th {
+			background: #007cba;
+			color: white;
+			padding: 12px;
+			text-align: left;
+			font-weight: 600;
+		}
+		.vnv-table td {
+			border: 1px solid #ddd;
+			padding: 12px;
+			background: white;
+		}
+		.vnv-table tr:nth-child(even) td {
+			background: #f9f9f9;
+		}
+		.vnv-table hr {
+			margin: 4px 0;
+			border: none;
+			border-top: 1px solid #ddd;
+		}
+		#vnv-popup {
+			display: none;
+			position: fixed;
+			top: 0;
+			left: 0;
+			width: 100%;
+			height: 100%;
+			background: rgba(0, 0, 0, 0.9);
+			justify-content: center;
+			align-items: center;
+			z-index: 1000;
+			cursor: pointer;
+		}
+		#vnv-popup img {
+			max-width: 90%;
+			max-height: 90%;
+			border-radius: 10px;
+			box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+		}
+		.vnv-icon-list {
+			columns: 2;
+			list-style: none;
+			padding-left: 0;
+			gap: 20px;
+		}
+		.vnv-icon-list li {
+			margin-bottom: 12px;
+			font-size: 16px;
+			display: flex;
+			align-items: center;
+			gap: 12px;
+			break-inside: avoid;
+			padding: 8px;
+			background: #f8f9fa;
+			border-radius: 6px;
+		}
+		.vnv-icon-list i {
+			color: #007cba;
+			min-width: 20px;
+			font-size: 18px;
+		}
+		.btn {
+			padding: 6px 12px;
+			border-radius: 4px;
+			text-decoration: none;
+			font-size: 14px;
+			font-weight: 500;
+			display: inline-flex;
+			align-items: center;
+			gap: 6px;
+			transition: all 0.2s ease;
+		}
+		.btn-primary {
+			background-color: #007cba;
+			color: white;
+			border: 1px solid #007cba;
+		}
+		.btn-primary:hover {
+			background-color: #006ba1;
+			border-color: #006ba1;
+			color: white;
+		}
+		.btn-outline-primary {
+			background-color: transparent;
+			color: #007cba;
+			border: 1px solid #007cba;
+		}
+		.btn-outline-primary:hover {
+			background-color: #007cba;
+			color: white;
+		}
+		.btn-sm {
+			padding: 4px 8px;
+			font-size: 12px;
+		}
+		h3 {
+			color: #333;
+			border-bottom: 2px solid #007cba;
+			padding-bottom: 8px;
+			margin-top: 30px;
+			margin-bottom: 15px;
+		}
+		@media(max-width: 768px) {
+			.vnv-detail-wrapper {
+				padding: 15px;
+			}
+			.vnv-detail-header {
+				flex-direction: column;
+			}
+			.vnv-icon-list {
+				columns: 1;
+			}
+			.vnv-detail-list li {
+				flex-direction: column;
+				align-items: flex-start;
+			}
+			.vnv-detail-list li span {
+				min-width: auto;
+				margin-bottom: 4px;
+			}
+		}
+
+		/* Modal Enhancements */
+		.ticket-card {
+			transition: all 0.3s ease;
+			border-left: 4px solid transparent !important;
+		}
+		
+		.ticket-card:hover {
+			transform: translateY(-2px);
+			box-shadow: 0 8px 25px rgba(0,0,0,0.1) !important;
+			border-left-color: #0d6efd !important;
+		}
+		
+		.ticket-card.selected {
+			border-left-color: #198754 !important;
+			background-color: #f8f9fa;
+		}
+		
+		.quantity-selector button {
+			transition: all 0.2s ease;
+		}
+		
+		.quantity-selector button:hover {
+			transform: scale(1.1);
+		}
+		
+		.ticket-quantity {
+			font-size: 1.1rem;
+			font-weight: bold;
+		}
+		
+		.ticket-quantity:focus {
+			border-color: #0d6efd !important;
+			box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25) !important;
+		}
+		
+		.bg-gradient {
+			background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%) !important;
+		}
+		
+		.modal-xl {
+			max-width: 1200px;
+		}
+		
+		@media (max-width: 1200px) {
+			.modal-xl {
+				max-width: 95%;
+			}
+		}
+	</style>
+
+	<!-- Hidden data elements -->
+	<div id="auth-data" style="display: none;" 
+		 data-authenticated="{{ is_authenticated ? 'true' : 'false' }}" 
+		 data-user="{{ user|json_encode|e('html_attr') }}">
+	</div>
+
+	<script>
+		function vnvOpenPopup(url) {
+			const popup = document.getElementById('vnv-popup')
+			const img = document.getElementById('vnv-popup-img')
+			img.src = url
+			popup.style.display = 'flex'
+		}
+
+		// Ticket Modal Variables
+		let currentEventId = null;
+		let currentEventName = '';
+		let currentEventDate = '';
+		let selectedTickets = {};
+		let stripe = null;
+		let elements = null;
+		let card = null;
+
+		// Initialize Stripe when modal opens
+		function initializeStripe() {
+			if (typeof Stripe !== 'undefined' && !stripe) {
+				try {
+				stripe = Stripe('{{ _ENV.STRIPE_PUBLIC }}');
+				elements = stripe.elements();
+				card = elements.create('card');
+				card.mount('#card-element');
+				} catch (error) {
+					// Stripe initialization failed
+			}
+			}
+		}
+
+		// Open Ticket Modal
+		function openTicketModal(eventId, eventName, eventDate) {
+			currentEventId = eventId;
+			currentEventName = eventName;
+			currentEventDate = eventDate;
+
+			// Update modal content
+			document.getElementById('modalEventName').textContent = eventName;
+			document.getElementById('modalEventDate').textContent = new Date(eventDate).toLocaleDateString();
+
+			// Check if user is authenticated using server-side data
+			const authData = document.getElementById('auth-data');
+			const isAuthenticated = authData.dataset.authenticated === 'true';
+			const userData = JSON.parse(authData.dataset.user || 'null');
+			
+			if (isAuthenticated) {
+						// User is authenticated, go directly to ticket purchase
+				showTicketPurchaseSection(userData);
+						loadTicketTypes();
+				// Initialize Stripe when showing purchase section
+				setTimeout(initializeStripe, 500);
+					} else {
+				// User not authenticated, show signup form
+						showSignupForm();
+					}
+
+			// Show modal
+			const modal = new bootstrap.Modal(document.getElementById('ticketModal'));
+			modal.show();
+		}
+
+		// Show Login Form
+		function showLoginForm() {
+			document.getElementById('loginForm').style.display = 'block';
+			document.getElementById('signupForm').style.display = 'none';
+			document.getElementById('ticketPurchaseSection').style.display = 'none';
+			document.getElementById('authSection').style.display = 'block';
+		}
+
+		// Show Signup Form
+		function showSignupForm() {
+			document.getElementById('loginForm').style.display = 'none';
+			document.getElementById('signupForm').style.display = 'block';
+			document.getElementById('ticketPurchaseSection').style.display = 'none';
+			document.getElementById('authSection').style.display = 'block';
+		}
+
+		// Show Ticket Purchase Section
+		function showTicketPurchaseSection(userData = null) {
+			document.getElementById('authSection').style.display = 'none';
+			document.getElementById('ticketPurchaseSection').style.display = 'block';
+			
+			// If user data is provided, fill in the buyer information
+			if (userData) {
+				document.getElementById('buyerName').value = userData.name + ' ' + userData.lastname;
+				document.getElementById('buyerEmail').value = userData.email;
+				document.getElementById('buyerPhone').value = userData.phone || '';
+			}
+		}
+
+		// Load Ticket Types
+		function loadTicketTypes() {
+			fetch(`{{ base_url }}/api/tickets/info?event_id=${currentEventId}`)
+				.then(response => response.json())
+				.then(data => {
+					if (data.success) {
+						if (data.event_ended) {
+							alert('This event has already ended. Ticket sales are no longer available.');
+							return;
+						}
+						renderTicketTypes(data.tickets, data.current_stage, data.event);
+					} else {
+						alert('Error loading ticket types: ' + data.message);
+					}
+				})
+				.catch(error => {
+					console.error('Error loading ticket types:', error);
+					alert('Error loading ticket types');
+				});
+		}
+
+		// Load ticket availability
+		function loadTicketAvailability() {
+			if (!currentEventId) {
+				console.log('No currentEventId set');
+				return;
+			}
+			
+			console.log('Loading availability for event:', currentEventId);
+			
+			fetch(`{{ base_url }}/api/tickets/availability?event_id=${currentEventId}`)
+				.then(response => {
+					console.log('Availability response status:', response.status);
+					return response.json();
+				})
+				.then(data => {
+					console.log('Availability data:', data);
+					if (data.success) {
+						updateTicketAvailability(data.data);
+					} else {
+						console.error('Error loading availability:', data.message);
+					}
+				})
+				.catch(error => {
+					console.error('Error loading ticket availability:', error);
+				});
+		}
+
+		// Update ticket availability display
+		function updateTicketAvailability(availability) {
+			console.log('Updating availability for:', availability);
+			
+			Object.keys(availability).forEach(ticketTypeId => {
+				const ticketInfo = availability[ticketTypeId];
+				const ticketElement = document.querySelector(`[data-ticket-id="${ticketTypeId}"]`);
+				
+				console.log(`Looking for ticket element with ID ${ticketTypeId}:`, ticketElement);
+				
+				if (ticketElement) {
+					const availabilityElement = ticketElement.querySelector('.ticket-availability');
+					if (availabilityElement) {
+						const iconElement = availabilityElement.querySelector('i');
+						const textElement = availabilityElement.querySelector('span');
+						
+						if (ticketInfo.available > 0) {
+							iconElement.className = 'fa-solid fa-circle-check text-success me-2';
+							textElement.textContent = `${ticketInfo.available} available`;
+							textElement.className = 'text-success fw-semibold';
+						} else {
+							iconElement.className = 'fa-solid fa-circle-xmark text-danger me-2';
+							textElement.textContent = 'Sold out';
+							textElement.className = 'text-danger fw-semibold';
+						}
+						console.log(`Updated availability for ${ticketTypeId}: ${ticketInfo.available} available`);
+					}
+					
+					const quantityInput = ticketElement.querySelector('.ticket-quantity');
+					if (quantityInput) {
+						quantityInput.max = ticketInfo.available;
+						if (ticketInfo.available === 0) {
+							quantityInput.disabled = true;
+							quantityInput.value = 0;
+							quantityInput.classList.add('bg-light');
+						} else {
+							quantityInput.disabled = false;
+							quantityInput.classList.remove('bg-light');
+						}
+					}
+				} else {
+					console.warn(`Ticket element not found for ID ${ticketTypeId}`);
+				}
+				});
+		}
+
+		// Render Ticket Types
+		function renderTicketTypes(tickets, currentStage, event) {
+			const container = document.getElementById('ticketTypesContainer');
+			let html = '';
+
+			// Show current stage info if available
+			if (currentStage) {
+				html += `
+					<div class="alert alert-info mb-4">
+						<div class="d-flex align-items-center">
+							<i class="fa-solid fa-tag me-2"></i>
+											<div>
+								<strong>Current Stage: ${currentStage.name}</strong>
+								${currentStage.discount_percentage > 0 ? `<span class="badge bg-success ms-2">${currentStage.discount_percentage}% OFF</span>` : ''}
+											</div>
+									</div>
+						<small class="text-muted">Valid until: ${new Date(currentStage.end_date).toLocaleDateString()}</small>
+								</div>
+				`;
+			}
+
+			tickets.forEach(ticket => {
+				const originalPrice = parseFloat(ticket.original_price);
+				const finalPrice = parseFloat(ticket.discounted_price);
+				const hasDiscount = ticket.discount_percentage > 0;
+
+				html += `
+					<div class="card border-0 shadow-sm mb-3 ticket-card" data-ticket-id="${ticket.id}" data-price="${finalPrice}" data-name="${ticket.name}">
+						<div class="card-body p-4">
+							<div class="row align-items-center">
+								<div class="col-md-8">
+									<div class="d-flex align-items-start">
+										<div class="ticket-icon me-3">
+											<i class="fa-solid fa-ticket-alt text-primary fs-3"></i>
+									</div>
+										<div class="flex-grow-1">
+											<h5 class="card-title mb-2 text-dark fw-bold">${ticket.name}</h5>
+											<p class="card-text text-muted mb-3">${ticket.description || 'Standard admission ticket'}</p>
+											
+											<div class="price-section mb-3">
+												${hasDiscount ? `
+													<div class="d-flex align-items-center">
+														<span class="text-muted text-decoration-line-through me-2">$${originalPrice.toFixed(2)}</span>
+														<span class="h4 text-success fw-bold me-2">$${finalPrice.toFixed(2)}</span>
+														<span class="badge bg-success">${ticket.discount_percentage}% OFF</span>
+								</div>
+												` : `
+													<span class="h4 text-primary fw-bold">$${finalPrice.toFixed(2)}</span>
+												`}
+											</div>
+											
+											<div class="ticket-availability">
+												<div class="d-flex align-items-center">
+													<i class="fa-solid fa-circle-check text-muted me-2"></i>
+													<span class="text-muted">Available: ${ticket.available_quantity} tickets</span>
+												</div>
+											</div>
+										</div>
+									</div>
+								</div>
+								<div class="col-md-4">
+									<div class="quantity-section">
+										<label class="form-label fw-semibold text-center d-block mb-3">Quantity</label>
+										<div class="quantity-selector d-flex align-items-center justify-content-center">
+											<button type="button" class="btn btn-outline-danger btn-sm rounded-circle" 
+													onclick="decreaseQuantity(${ticket.id})" style="width: 40px; height: 40px;">
+												<i class="fa-solid fa-minus"></i>
+											</button>
+											<input type="number" id="qty-${ticket.id}" 
+												   class="form-control text-center mx-3 ticket-quantity border-2" 
+												   value="0" min="0" max="${ticket.available_quantity}" style="width: 80px; font-weight: bold;" 
+												   onchange="updateSelection()">
+											<button type="button" class="btn btn-outline-success btn-sm rounded-circle" 
+													onclick="increaseQuantity(${ticket.id})" style="width: 40px; height: 40px;">
+												<i class="fa-solid fa-plus"></i>
+											</button>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				`;
+			});
+
+			container.innerHTML = html;
+		}
+
+		// Quantity Management
+		function increaseQuantity(ticketTypeId) {
+			const input = document.getElementById(`qty-${ticketTypeId}`);
+			const max = parseInt(input.getAttribute('max'));
+			if (parseInt(input.value) < max) {
+				input.value = parseInt(input.value) + 1;
+				updateSelection();
+			}
+		}
+
+		function decreaseQuantity(ticketTypeId) {
+			const input = document.getElementById(`qty-${ticketTypeId}`);
+			if (parseInt(input.value) > 0) {
+				input.value = parseInt(input.value) - 1;
+				updateSelection();
+			}
+		}
+
+		function updateSelection() {
+			selectedTickets = {};
+			let hasSelection = false;
+
+			document.querySelectorAll('input[type="number"]').forEach(input => {
+				const ticketTypeId = parseInt(input.id.replace('qty-', ''));
+				const quantity = parseInt(input.value);
+				const ticketCard = input.closest('.ticket-card');
+
+				if (quantity > 0) {
+					selectedTickets[ticketTypeId] = quantity;
+					hasSelection = true;
+					ticketCard.classList.add('selected');
+				} else {
+					ticketCard.classList.remove('selected');
+				}
+			});
+
+			if (hasSelection) {
+				document.getElementById('buyerInfoSection').style.display = 'block';
+				updateOrderSummary();
+			} else {
+				document.getElementById('buyerInfoSection').style.display = 'none';
+			}
+		}
+
+		function updateOrderSummary() {
+			const container = document.getElementById('orderSummary');
+			let html = '';
+			let totalAmount = 0;
+
+			Object.keys(selectedTickets).forEach(ticketTypeId => {
+				const quantity = selectedTickets[ticketTypeId];
+				if (quantity > 0) {
+					// Buscar el precio del ticket desde los datos cargados
+					const ticketElement = document.querySelector(`[data-ticket-id="${ticketTypeId}"]`);
+					if (ticketElement) {
+						const price = parseFloat(ticketElement.dataset.price);
+						const subtotal = price * quantity;
+						totalAmount += subtotal;
+						
+						html += `
+							<div class="d-flex justify-content-between align-items-center mb-3 p-2 bg-light rounded">
+								<div class="d-flex align-items-center">
+									<i class="fa-solid fa-ticket-alt text-primary me-2"></i>
+									<span class="fw-semibold">${ticketElement.dataset.name}</span>
+									<span class="text-muted ms-2">x ${quantity}</span>
+								</div>
+								<span class="fw-bold text-success">$${subtotal.toFixed(2)}</span>
+							</div>
+						`;
+					}
+				}
+			});
+
+			if (html) {
+				container.innerHTML = html;
+				document.getElementById('totalAmount').textContent = `$${totalAmount.toFixed(2)}`;
+				document.getElementById('purchaseBtn').style.display = 'block';
+			} else {
+				container.innerHTML = '<div class="text-center py-3"><i class="fa-solid fa-shopping-cart text-muted fs-1 mb-2"></i><p class="text-muted mb-0">Select tickets to see order summary</p></div>';
+				document.getElementById('totalAmount').textContent = '$0.00';
+				document.getElementById('purchaseBtn').style.display = 'none';
+			}
+		}
+
+		// Process Purchase
+		function processPurchase() {
+			if (Object.keys(selectedTickets).length === 0) {
+				alert('Please select at least one ticket');
+				return;
+			}
+
+			// Validate availability before processing
+			let validationPassed = true;
+			Object.keys(selectedTickets).forEach(ticketId => {
+				const quantity = selectedTickets[ticketId];
+				const card = document.querySelector(`[data-ticket-id="${ticketId}"]`);
+				const availabilityElement = card.querySelector('.ticket-availability');
+				const availableText = availabilityElement.textContent;
+				const available = parseInt(availableText.match(/\d+/)?.[0] || 0);
+				
+				if (quantity > available) {
+					alert(`Not enough tickets available for ${card.dataset.name}. Only ${available} tickets left.`);
+					validationPassed = false;
+					return;
+				}
+			});
+			
+			if (!validationPassed) {
+				return;
+			}
+
+			// Obtener información del comprador
+			const buyerInfo = {
+				name: document.getElementById('buyerName').value,
+				email: document.getElementById('buyerEmail').value,
+				phone: document.getElementById('buyerPhone').value || ''
+			};
+
+			if (!buyerInfo.name || !buyerInfo.email) {
+				alert('Please fill in buyer information');
+				return;
+			}
+
+			// Deshabilitar botón de compra
+			const purchaseBtn = document.getElementById('purchaseBtn');
+			const cardErrors = document.getElementById('card-errors');
+			
+			purchaseBtn.disabled = true;
+			purchaseBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Processing...';
+			cardErrors.textContent = '';
+
+			// Crear token de tarjeta con Stripe (igual que order-access)
+			if (typeof Stripe === 'undefined') {
+				alert('Stripe is not loaded. Please refresh the page and try again.');
+				purchaseBtn.disabled = false;
+				purchaseBtn.innerHTML = '<i class="fa-solid fa-credit-card"></i> Purchase Tickets';
+				return;
+			}
+
+			stripe.createToken(card).then(function(result) {
+				if (result.error) {
+					console.error('Stripe token error:', result.error);
+					cardErrors.textContent = result.error.message;
+					purchaseBtn.disabled = false;
+					purchaseBtn.innerHTML = '<i class="fa-solid fa-credit-card"></i> Purchase Tickets';
+				} else {
+					// Crear formulario de pago
+					const form = document.createElement('form');
+					form.method = 'POST';
+					form.action = '{{ base_url }}/tickets/purchase';
+					
+					// Agregar campos ocultos
+					const eventIdInput = document.createElement('input');
+					eventIdInput.type = 'hidden';
+					eventIdInput.name = 'event_id';
+					eventIdInput.value = currentEventId;
+					form.appendChild(eventIdInput);
+
+					const ticketsInput = document.createElement('input');
+					ticketsInput.type = 'hidden';
+					ticketsInput.name = 'tickets';
+					ticketsInput.value = JSON.stringify(selectedTickets);
+					form.appendChild(ticketsInput);
+
+					const buyerInput = document.createElement('input');
+					buyerInput.type = 'hidden';
+					buyerInput.name = 'buyer_info';
+					buyerInput.value = JSON.stringify(buyerInfo);
+					form.appendChild(buyerInput);
+
+					// Agregar token de tarjeta
+					const tokenInput = document.createElement('input');
+					tokenInput.type = 'hidden';
+					tokenInput.name = 'customer_token';
+					tokenInput.value = result.token.id;
+					form.appendChild(tokenInput);
+
+					// Enviar formulario
+					document.body.appendChild(form);
+					form.submit();
+				}
+			});
+		}
+
+		// Handle Login Form Submission
+		document.getElementById('modalLoginForm').addEventListener('submit', function(e) {
+			e.preventDefault();
+			
+			const formData = new FormData(this);
+			
+			fetch('{{ base_url }}/login', {
+				method: 'POST',
+				headers: {
+					'X-Requested-With': 'XMLHttpRequest'
+				},
+				body: formData
+			})
+			.then(response => {
+				if (!response.ok) {
+					throw new Error('Network response was not ok');
+				}
+				return response.json();
+			})
+			.then(data => {
+				if (data.success) {
+					// Login successful, get user data and show ticket purchase section
+					fetch('{{ base_url }}/api/check-auth')
+						.then(response => response.json())
+						.then(authData => {
+							if (authData.success && authData.user) {
+								showTicketPurchaseSection(authData.user);
+							} else {
+					showTicketPurchaseSection();
+							}
+					loadTicketTypes();
+							// Initialize Stripe when showing purchase section
+							setTimeout(initializeStripe, 500);
+						})
+						.catch(error => {
+							console.error('Error getting user data:', error);
+							showTicketPurchaseSection();
+							loadTicketTypes();
+							setTimeout(initializeStripe, 500);
+						});
+				} else {
+					alert('Login failed: ' + data.message);
+				}
+			})
+			.catch(error => {
+				console.error('Login error:', error);
+				alert('Login error occurred: ' + error.message);
+			});
+		});
+
+		// Handle Buy Tickets buttons
+		document.addEventListener('click', function(e) {
+			if (e.target.closest('.buy-tickets-btn')) {
+				const btn = e.target.closest('.buy-tickets-btn');
+				const eventId = parseInt(btn.dataset.eventId);
+				const eventName = btn.dataset.eventName;
+				const eventDate = btn.dataset.eventDate;
+				openTicketModal(eventId, eventName, eventDate);
+			}
+		});
+
+		// Handle Signup Form Submission
+		document.getElementById('modalSignupForm').addEventListener('submit', function(e) {
+			e.preventDefault();
+			
+			const formData = new FormData(this);
+			formData.append('level', '5');
+			
+			
+			fetch('{{ base_url }}/signup', {
+				method: 'POST',
+				headers: {
+					'X-Requested-With': 'XMLHttpRequest'
+				},
+				body: formData
+			})
+			.then(response => {
+				
+				if (!response.ok) {
+					throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+				}
+				return response.json();
+			})
+			.then(data => {
+				if (data.success) {
+					// Signup successful, get user data and show ticket purchase section
+					fetch('{{ base_url }}/api/check-auth')
+						.then(response => response.json())
+						.then(authData => {
+							if (authData.success && authData.user) {
+								showTicketPurchaseSection(authData.user);
+							} else {
+					showTicketPurchaseSection();
+							}
+					loadTicketTypes();
+							// Initialize Stripe when showing purchase section
+							setTimeout(initializeStripe, 500);
+						})
+						.catch(error => {
+							console.error('Error getting user data:', error);
+							showTicketPurchaseSection();
+							loadTicketTypes();
+							setTimeout(initializeStripe, 500);
+						});
+				} else {
+					// Check if user already exists
+					if (data.message && data.message.includes('already registered')) {
+						// User exists, try to login automatically
+						attemptAutoLogin(formData.get('email'), formData.get('password'));
+					} else {
+						alert('Signup failed: ' + data.message);
+					}
+				}
+			})
+			.catch(error => {
+				console.error('Signup error:', error);
+				alert('Signup error occurred: ' + error.message);
+			});
+		});
+
+		// Function to attempt auto-login for existing users
+		function attemptAutoLogin(email, password) {
+			const loginData = new FormData();
+			loginData.append('email', email);
+			loginData.append('password', password);
+			
+			fetch('{{ base_url }}/login', {
+				method: 'POST',
+				headers: {
+					'X-Requested-With': 'XMLHttpRequest'
+				},
+				body: loginData
+			})
+			.then(response => response.json())
+			.then(data => {
+				if (data.success) {
+					// Login successful, show ticket purchase section
+					showTicketPurchaseSection();
+					loadTicketTypes();
+					// Initialize Stripe when showing purchase section
+					setTimeout(initializeStripe, 500);
+				} else {
+					alert('User exists but login failed: ' + data.message);
+				}
+			})
+			.catch(error => {
+				console.error('Auto-login error:', error);
+				alert('User exists but could not login automatically');
+			});
+		}
+	</script>
+
+	{# ======= NUEVO: JS del acordeón de categorías (no interfiere con lo demás) ======= #}
+	{% if categories is defined and categories %}
+	<script>
+	(function() {
+	  const section   = document.getElementById('vnv-catFilter');
+	  const header    = section.querySelector('.vnv-ac-header');
+	  const grid      = document.getElementById('vnv-catGrid');
+	  const countEl   = document.getElementById('vnv-catCount');
+	  const summaryEl = document.getElementById('vnv-catSummary');
+	  const searchEl  = document.getElementById('vnv-catSearch');
+	  const btnAll    = document.getElementById('vnv-catSelectAll');
+	  const btnClear  = document.getElementById('vnv-catClear');
+	  const storageKey = section.dataset.key || 'vnv_cat_ac_open';
+
+	  const getAllPills = () => Array.from(grid.querySelectorAll('.vnv-ac-pill'));
+	  const getHiddenById = (id) => grid.querySelector('#vnv-cat-' + id);
+
+	  function setOpen(isOpen) {
+		section.classList.toggle('is-open', isOpen);
+		section.classList.toggle('is-collapsed', !isOpen);
+		header.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+		try { localStorage.setItem(storageKey, isOpen ? '1' : '0'); } catch(e) {}
+		updateSummary();
+	  }
+
+	  function restoreOpenState() {
+		let v = '0';
+		try { v = localStorage.getItem(storageKey) || '0'; } catch(e) {}
+		const isMobile = matchMedia('(max-width: 768px)').matches;
+		setOpen(v === '1' ? true : (!isMobile)); // desktop abierto, mobile cerrado
+	  }
+
+	  function updateCount() {
+		const selected = grid.querySelectorAll('.vnv-ac-pill.is-selected').length;
+		countEl.textContent = (selected === 0) ? '0 selected' :
+							  (selected === 1) ? '1 selected' : `${selected} selected`;
+	  }
+
+	  function updateSummary() {
+		const isOpen = section.classList.contains('is-open');
+		if (isOpen) { summaryEl.textContent = ''; return; }
+		const selected = getAllPills().filter(p => p.classList.contains('is-selected'));
+		if (selected.length === 0) { summaryEl.textContent = 'No filters applied'; return; }
+		const names = selected.map(p => p.dataset.label);
+		const first = names.slice(0,3).join(', ');
+		const rest  = names.length > 3 ? ` +${names.length - 3}` : '';
+		summaryEl.innerHTML = first + rest;
+	  }
+
+	  function togglePill(pill) {
+		const id = pill.dataset.id;
+		const hidden = getHiddenById(id);
+		const sel = pill.classList.toggle('is-selected');
+		pill.setAttribute('aria-pressed', sel ? 'true' : 'false');
+		if (hidden) hidden.checked = sel;
+		updateCount();
+		updateSummary();
+	  }
+
+	  function selectAll() {
+		getAllPills().forEach(p => { if (!p.classList.contains('is-selected')) togglePill(p); });
+	  }
+
+	  function clearAll() {
+		getAllPills().forEach(p => { if (p.classList.contains('is-selected')) togglePill(p); });
+	  }
+
+	  function applySearchFilter(term) {
+		const q = term.trim().toLowerCase();
+		getAllPills().forEach(p => {
+		  const label = (p.dataset.label || '').toLowerCase();
+		  p.style.display = label.includes(q) ? '' : 'none';
+		});
+	  }
+
+	  header.addEventListener('click', () => {
+		const isOpen = section.classList.contains('is-open');
+		setOpen(!isOpen);
+	  });
+	  header.addEventListener('keydown', (e) => {
+		if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); header.click(); }
+	  });
+
+	  grid.addEventListener('click', (e) => {
+		const pill = e.target.closest('.vnv-ac-pill');
+		if (!pill) return;
+		togglePill(pill);
+	  });
+
+	  btnAll && btnAll.addEventListener('click', selectAll);
+	  btnClear && btnClear.addEventListener('click', clearAll);
+	  searchEl && searchEl.addEventListener('input', (e) => applySearchFilter(e.target.value));
+
+	  restoreOpenState();
+	  updateCount();
+	  updateSummary();
+	})();
+	</script>
+
+<!-- Stripe Script -->
+<script src="https://js.stripe.com/v3/"></script>
+	{% endif %}
+{% endblock %}

@@ -1,0 +1,385 @@
+{% extends 'templates/base.admin.twig' %}
+
+{% block body %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h4 mb-1 text-primary">My Tickets</h1>
+                    <p class="text-muted mb-0">Manage your event tickets</p>
+                </div>
+                <div>
+                    <span class="badge bg-primary fs-6">{{ totalTickets }} tickets</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if totalTickets > 0 %}
+        <!-- Tabs Navigation -->
+        <div class="card mb-4">
+            <div class="card-header p-0">
+                <ul class="nav nav-tabs card-header-tabs" id="ticketTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="active-tab" data-bs-toggle="tab" data-bs-target="#active" type="button" role="tab">
+                            <i class="fa-solid fa-ticket-alt me-2"></i>Active Tickets
+                            <span class="badge bg-success ms-2">{{ activeCount }}</span>
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="used-tab" data-bs-toggle="tab" data-bs-target="#used" type="button" role="tab">
+                            <i class="fa-solid fa-check-circle me-2"></i>Used Tickets
+                            <span class="badge bg-secondary ms-2">{{ usedCount }}</span>
+                        </button>
+                    </li>
+                </ul>
+            </div>
+            
+            <div class="card-body p-0">
+                <div class="tab-content" id="ticketTabsContent">
+                    <!-- Active Tickets Tab -->
+                    <div class="tab-pane fade show active" id="active" role="tabpanel">
+                        {% if activeCount > 0 %}
+                            <div class="p-4">
+                                <div class="row">
+                                    {% for ticket in activeTickets %}
+                                        <div class="col-lg-3 col-md-6 mb-4">
+                                            <div class="card shadow-sm h-100">
+                                                <div class="card-body">
+                                                    <div class="d-flex justify-content-between align-items-start mb-3">
+                                                        <h6 class="card-title text-primary mb-0">{{ ticket.event_name }}</h6>
+                                                        <span class="badge bg-success">{{ ticket.payment_status|title }}</span>
+                                                    </div>
+                                                    
+                                                    <div class="text-muted small mb-3">
+                                                        <div><i class="fa-solid fa-calendar me-1"></i>{{ ticket.event_date|date('M j, Y g:i A') }}</div>
+                                                        {% if ticket.event_location %}
+                                                            <div><i class="fa-solid fa-map-marker-alt me-1"></i>{{ ticket.event_location }}</div>
+                                                        {% endif %}
+                                                    </div>
+                                                    
+                                                    <div class="mb-3">
+                                                        <div class="d-flex justify-content-between">
+                                                            <span class="text-muted">Type:</span>
+                                                            <strong>{{ ticket.ticket_type_name }}</strong>
+                                                        </div>
+                                                        {% if ticket.sales_stage_name %}
+                                                            <div class="d-flex justify-content-between">
+                                                                <span class="text-muted">Stage:</span>
+                                                                <small class="text-muted">{{ ticket.sales_stage_name }}</small>
+                                                            </div>
+                                                        {% endif %}
+                                                        <div class="d-flex justify-content-between">
+                                                            <span class="text-muted">Qty:</span>
+                                                            <strong>{{ ticket.quantity }}</strong>
+                                                        </div>
+                                                        <div class="d-flex justify-content-between">
+                                                            <span class="text-muted">Total:</span>
+                                                            <strong class="text-success">${{ ticket.total_amount|number_format(2) }}</strong>
+                                                        </div>
+                                                    </div>
+                                                    
+                                                    <div class="mb-3">
+                                                        <small class="text-muted">Purchased:</small>
+                                                        <div class="small">{{ ticket.sold_at|date('M j, Y g:i A') }}</div>
+                                                    </div>
+                                                    
+                                                    {% if ticket.ticket_codes %}
+                                                        <div class="mb-3">
+                                                            <small class="text-muted">Codes:</small>
+                                                            <div class="mt-1">
+                                                                {% for code in ticket.ticket_codes %}
+                                                                    <div class="border rounded p-2 mb-2">
+                                                                        <div class="d-flex justify-content-between align-items-center">
+                                                                            <code class="mb-0 small flex-grow-1 me-2">{{ code }}</code>
+                                                                            <div class="d-flex gap-1">
+                                                                                <button class="btn btn-outline-primary btn-sm px-2 py-1 copy-btn" data-code="{{ code }}" title="Copy code">
+                                                                                    Copy
+                                                                                </button>
+                                                                                <button class="btn btn-outline-info btn-sm px-2 py-1 qr-btn" data-ticket-id="{{ ticket.id }}" data-code-index="{{ loop.index0 }}" title="View QR">
+                                                                                    QR
+                                                                                </button>
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                {% endfor %}
+                                                            </div>
+                                                        </div>
+                                                    {% endif %}
+                                                    
+                                                    <div class="d-grid gap-2">
+                                                        <button class="btn btn-primary btn-sm download-btn" data-ticket-id="{{ ticket.id }}" data-code-index="0">
+                                                            <i class="fa-solid fa-download me-1"></i>Download All
+                                                        </button>
+                                                        {% if ticket.ticket_codes|length > 1 %}
+                                                            {% for code in ticket.ticket_codes %}
+                                                                <button class="btn btn-outline-primary btn-sm download-btn" data-ticket-id="{{ ticket.id }}" data-code-index="{{ loop.index0 }}">
+                                                                    <i class="fa-solid fa-download me-1"></i>Download {{ loop.index }}
+                                                                </button>
+                                                            {% endfor %}
+                                                        {% endif %}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        {% else %}
+                            <div class="text-center py-5">
+                                <div class="mb-4">
+                                    <span class="text-muted" style="font-size: 4rem;">🎫</span>
+                                </div>
+                                <h5 class="text-muted mb-3">No Active Tickets</h5>
+                                <p class="text-muted">All your tickets have been used.</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Used Tickets Tab -->
+                    <div class="tab-pane fade" id="used" role="tabpanel">
+                        {% if usedCount > 0 %}
+                            <div class="p-4">
+                                <div class="row">
+                                    {% for ticket in usedTickets %}
+                                        <div class="col-lg-3 col-md-6 mb-4">
+                                            <div class="card shadow-sm h-100 bg-light">
+                                                <div class="card-body">
+                                                    <div class="d-flex justify-content-between align-items-start mb-3">
+                                                        <h6 class="card-title text-muted mb-0">{{ ticket.event_name }}</h6>
+                                                        <span class="badge bg-secondary">Used</span>
+                                                    </div>
+                                                    
+                                                    <div class="text-muted small mb-3">
+                                                        <div><i class="fa-solid fa-calendar me-1"></i>{{ ticket.event_date|date('M j, Y g:i A') }}</div>
+                                                        {% if ticket.event_location %}
+                                                            <div><i class="fa-solid fa-map-marker-alt me-1"></i>{{ ticket.event_location }}</div>
+                                                        {% endif %}
+                                                    </div>
+                                                    
+                                                    <div class="mb-3">
+                                                        <div class="d-flex justify-content-between">
+                                                            <span class="text-muted">Type:</span>
+                                                            <strong class="text-muted">{{ ticket.ticket_type_name }}</strong>
+                                                        </div>
+                                                        {% if ticket.sales_stage_name %}
+                                                            <div class="d-flex justify-content-between">
+                                                                <span class="text-muted">Stage:</span>
+                                                                <small class="text-muted">{{ ticket.sales_stage_name }}</small>
+                                                            </div>
+                                                        {% endif %}
+                                                        <div class="d-flex justify-content-between">
+                                                            <span class="text-muted">Qty:</span>
+                                                            <strong class="text-muted">{{ ticket.quantity }}</strong>
+                                                        </div>
+                                                        <div class="d-flex justify-content-between">
+                                                            <span class="text-muted">Total:</span>
+                                                            <strong class="text-muted">${{ ticket.total_amount|number_format(2) }}</strong>
+                                                        </div>
+                                                    </div>
+                                                    
+                                                    <div class="mb-3">
+                                                        <small class="text-muted">Purchased:</small>
+                                                        <div class="small text-muted">{{ ticket.sold_at|date('M j, Y g:i A') }}</div>
+                                                        <small class="text-muted">Used:</small>
+                                                        <div class="small text-muted">{{ ticket.updated_at|date('M j, Y g:i A') }}</div>
+                                                    </div>
+                                                    
+                                                    {% if ticket.ticket_codes %}
+                                                        <div class="mb-3">
+                                                            <small class="text-muted">Codes:</small>
+                                                            <div class="mt-1">
+                                                                {% for code in ticket.ticket_codes %}
+                                                                    <div class="border rounded p-2 mb-2">
+                                                                        <div class="d-flex justify-content-between align-items-center">
+                                                                            <code class="mb-0 small text-muted flex-grow-1 me-2">{{ code }}</code>
+                                                                            <div class="d-flex gap-1">
+                                                                                <button class="btn btn-outline-secondary btn-sm px-2 py-1 copy-btn" data-code="{{ code }}" title="Copy code">
+                                                                                    Copy
+                                                                                </button>
+                                                                                <button class="btn btn-outline-secondary btn-sm px-2 py-1 qr-btn" data-ticket-id="{{ ticket.id }}" data-code-index="{{ loop.index0 }}" title="View QR">
+                                                                                    QR
+                                                                                </button>
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                {% endfor %}
+                                                            </div>
+                                                        </div>
+                                                    {% endif %}
+                                                    
+                                                    <div class="d-grid gap-2">
+                                                        <button class="btn btn-outline-secondary btn-sm download-btn" data-ticket-id="{{ ticket.id }}" data-code-index="0">
+                                                            <i class="fa-solid fa-download me-1"></i>Download All
+                                                        </button>
+                                                        {% if ticket.ticket_codes|length > 1 %}
+                                                            {% for code in ticket.ticket_codes %}
+                                                                <button class="btn btn-outline-secondary btn-sm download-btn" data-ticket-id="{{ ticket.id }}" data-code-index="{{ loop.index0 }}">
+                                                                    <i class="fa-solid fa-download me-1"></i>Download {{ loop.index }}
+                                                                </button>
+                                                            {% endfor %}
+                                                        {% endif %}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        {% else %}
+                            <div class="text-center py-5">
+                                <div class="mb-4">
+                                    <span class="text-muted" style="font-size: 4rem;">✅</span>
+                                </div>
+                                <h5 class="text-muted mb-3">No Used Tickets</h5>
+                                <p class="text-muted">You haven't used any tickets yet.</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% else %}
+        <div class="text-center py-5">
+            <div class="mb-4">
+                <span class="text-muted" style="font-size: 4rem;">🎫</span>
+            </div>
+            <h4 class="text-muted mb-3">No tickets yet</h4>
+            <p class="text-muted mb-4">When you purchase event tickets, they will appear here.</p>
+            <a href="{{ path('search/venue/main') }}" class="btn btn-primary">
+                <i class="fa-solid fa-search me-2"></i>Browse Events
+            </a>
+        </div>
+    {% endif %}
+</div>
+
+<!-- QR Code Modal -->
+<div class="modal fade" id="qrModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fa-solid fa-qrcode me-2"></i>Ticket QR Code
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-0">
+                <div id="qrContent" style="min-height: 400px;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Copy button event listeners
+    document.querySelectorAll('.copy-btn').forEach(function(button) {
+        button.addEventListener('click', function() {
+            const code = this.getAttribute('data-code');
+            copyToClipboard(code, this);
+        });
+    });
+    
+    // QR button event listeners
+    document.querySelectorAll('.qr-btn').forEach(function(button) {
+        button.addEventListener('click', function() {
+            const ticketId = this.getAttribute('data-ticket-id');
+            const codeIndex = this.getAttribute('data-code-index');
+            showQRCode(ticketId, codeIndex);
+        });
+    });
+    
+    // Download button event listeners
+    document.querySelectorAll('.download-btn').forEach(function(button) {
+        button.addEventListener('click', function() {
+            const ticketId = this.getAttribute('data-ticket-id');
+            const codeIndex = this.getAttribute('data-code-index');
+            downloadTicket(ticketId, codeIndex);
+        });
+    });
+});
+
+function copyToClipboard(text, button) {
+    if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(text).then(function() {
+            showCopySuccess(button);
+        }).catch(function(err) {
+            fallbackCopyTextToClipboard(text, button);
+        });
+    } else {
+        fallbackCopyTextToClipboard(text, button);
+    }
+}
+
+function fallbackCopyTextToClipboard(text, button) {
+    const textArea = document.createElement("textarea");
+    textArea.value = text;
+    textArea.style.top = "0";
+    textArea.style.left = "0";
+    textArea.style.position = "fixed";
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+    
+    try {
+        const successful = document.execCommand('copy');
+        if (successful) {
+            showCopySuccess(button);
+        } else {
+            showCopyError(button);
+        }
+    } catch (err) {
+        showCopyError(button);
+    }
+    
+    document.body.removeChild(textArea);
+}
+
+function showCopySuccess(button) {
+    const originalHTML = button.innerHTML;
+    const originalClasses = button.className;
+    button.innerHTML = '<i class="fa-solid fa-check"></i>';
+    button.className = button.className.replace('btn-outline-primary', 'btn-success').replace('btn-outline-secondary', 'btn-success');
+    
+    setTimeout(function() {
+        button.innerHTML = originalHTML;
+        button.className = originalClasses;
+    }, 2000);
+}
+
+function showCopyError(button) {
+    const originalHTML = button.innerHTML;
+    const originalClasses = button.className;
+    button.innerHTML = '<i class="fa-solid fa-times"></i>';
+    button.className = button.className.replace('btn-outline-primary', 'btn-danger').replace('btn-outline-secondary', 'btn-danger');
+    
+    setTimeout(function() {
+        button.innerHTML = originalHTML;
+        button.className = originalClasses;
+    }, 2000);
+}
+
+function downloadTicket(ticketId, codeIndex = 0) {
+    window.open(`/vnv-venue/panel/tickets/download?ticket_id=${ticketId}&code_index=${codeIndex}`, '_blank');
+}
+
+function showQRCode(ticketId, codeIndex = 0) {
+    const modal = new bootstrap.Modal(document.getElementById('qrModal'));
+    const qrContent = document.getElementById('qrContent');
+    
+    qrContent.innerHTML = '<div class="text-center p-5"><i class="fa-solid fa-spinner fa-spin text-primary fs-3"></i><br><small class="text-muted">Loading QR code...</small></div>';
+    
+    modal.show();
+    
+    const iframe = document.createElement('iframe');
+    iframe.src = `/vnv-venue/panel/tickets/qr?ticket_id=${ticketId}&code_index=${codeIndex}`;
+    iframe.style.width = '100%';
+    iframe.style.height = '400px';
+    iframe.style.border = 'none';
+    
+    qrContent.innerHTML = '';
+    qrContent.appendChild(iframe);
+}
+</script>
+{% endblock %}

@@ -1,0 +1,24 @@
+{% extends 'templates/base.admin.twig' %}
+{% import 'templates/macros.twig' as macros %}
+
+{% block body %}
+<main class="container mt-4">
+    <h1 class="mb-4">📄 Generate Order Documents</h1>
+
+     <a href="{{ path('panel/planner-hub/orders/orders') }}" class="btn btn-sm btn-light mb-3">← Back to Orders </a>
+
+    <section class="card shadow-sm">
+        <div class="card-body">
+            <h5 class="card-title">Choose a document to generate</h5>
+            <p class="card-text">You can download or print the following documents related to this order.</p>
+
+            <div class="d-grid gap-3 mt-4">
+                <a class="btn btn-primary" href="{{ path(current_location ~ '/order-details?id=' ~ id) }}">
+                    🧾 Order Details
+                </a>
+                 
+            </div>
+        </div>
+    </section>
+</main>
+{% endblock %}

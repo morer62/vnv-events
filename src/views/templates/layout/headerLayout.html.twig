@@ -1,0 +1,239 @@
+<nav class="navbar navbar-expand navbar-light navbar-bg">
+  <a class="sidebar-toggle js-sidebar-toggle"><i class="hamburger align-self-center"></i></a>
+
+  <div class="navbar-collapse collapse">
+    <ul class="navbar-nav navbar-align">
+
+      <li class="nav-item dropdown">
+        <a class="nav-icon dropdown-toggle" href="#" id="alertsDropdown" data-bs-toggle="dropdown">
+          <div class="position-relative">
+            <i class="align-middle" data-feather="bell"></i>
+            {% if notifications_count > 0 %}
+              <span class="indicator">{{ notifications_count }}</span>
+            {% endif %}
+          </div>
+        </a>
+        
+        <div class="dropdown-menu dropdown-menu-lg dropdown-menu-end py-0" aria-labelledby="alertsDropdown">
+          {% if notifications|length > 0 %}
+            <div class="dropdown-menu-header">{{ notifications_count }} New Notification{% if notifications_count != 1 %}s{% endif %}</div>
+            <div class="list-group">
+              {% for notification in notifications %}
+                <a href="{{ notification.link }}" class="list-group-item notification-item" data-notification-id="{{ notification.id }}">
+                  <div class="row g-0 align-items-center">
+                    <div class="col-2">
+                      <i class="text-primary" data-feather="bell"></i>
+                    </div>
+                    <div class="col-10">
+                      <div class="text-dark">{{ notification.mensaje }}</div>
+                      <div class="text-muted small mt-1">{{ notification.timestamp|date('M j, g:i A') }}</div>
+                    </div>
+                  </div>
+                </a>
+              {% endfor %}
+            </div>
+            <div class="dropdown-menu-footer">
+              <a href="{{ path('panel/notifications') }}" class="text-muted">Show all notifications</a>
+            </div>
+          {% else %}
+            <div class="dropdown-menu-header">No New Notifications</div>
+            <div class="list-group">
+              <div class="list-group-item text-center text-muted py-3">
+                <i data-feather="check-circle" class="text-success mb-2"></i>
+                <div>You're all caught up!</div>
+              </div>
+            </div>
+            <div class="dropdown-menu-footer">
+              <a href="{{ path('panel/notifications') }}" class="text-muted">View all notifications</a>
+            </div>
+          {% endif %}
+        </div>
+      </li>
+
+      <script>
+        document.addEventListener('DOMContentLoaded', function() {
+          // Limitar el handler solo a enlaces del dropdown, no a tarjetas de la lista
+          const notificationItems = document.querySelectorAll('.dropdown-menu .notification-item, a.notification-item');
+          
+          notificationItems.forEach(item => {
+            item.addEventListener('click', function(e) {
+              e.preventDefault(); // Prevenir la navegación inmediata
+              
+              const notificationId = this.getAttribute('data-notification-id');
+              const notificationLink = this.getAttribute('href');
+              
+              if (notificationId) {
+                // Marcar como leída y luego redirigir
+                markNotificationAsReadAndRedirect(notificationId, notificationLink);
+              } else {
+                // Si no hay ID, navegar normalmente
+                window.location.href = notificationLink;
+              }
+            });
+          });
+        });
+
+        function getMarkReadRoute() {
+          // Detectar el nivel actual basado en la URL
+          const currentPath = window.location.pathname;
+          
+          // Obtener la URL base del proyecto
+          const baseUrl = '{{ app_url ?? "http://localhost/vnv-venue" }}';
+          
+          if (currentPath.includes('/level1/')) {
+            return baseUrl + '/panel/level1/notifications/mark-read';
+          } else if (currentPath.includes('/level2/')) {
+            return baseUrl + '/panel/level2/notifications/mark-read';
+          } else if (currentPath.includes('/level3/')) {
+            return baseUrl + '/panel/level3/notifications/mark-read';
+          } else if (currentPath.includes('/level4/')) {
+            return baseUrl + '/panel/level4/notifications/mark-read';
+          } else if (currentPath.includes('/level5/')) {
+            return baseUrl + '/panel/level5/notifications/mark-read';
+          } else {
+            // Ruta por defecto
+            return baseUrl + '/panel/notifications/mark-read';
+          }
+        }
+
+        function markNotificationAsReadAndRedirect(notificationId, redirectUrl) {
+          // Obtener la ruta correcta según el nivel
+          let route = getMarkReadRoute();
+
+          fetch(route, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ notification_id: notificationId })
+          })
+          .then(response => response.json())
+          .then(data => {
+            if (data.success) {
+              // Ocultar inmediatamente la notificación del dropdown
+              const notificationElement = document.querySelector(`[data-notification-id="${notificationId}"]`);
+              if (notificationElement) {
+                notificationElement.style.display = 'none';
+              }
+              
+              // Actualizar el contador en el header
+              updateHeaderNotificationCount();
+              
+              // Si no quedan notificaciones visibles, actualizar el contenido del dropdown
+              updateDropdownContent();
+              
+              // Redirigir inmediatamente después de marcar como leída
+              if (redirectUrl) {
+                window.location.href = redirectUrl;
+              }
+            } else {
+              // Si falla marcar como leída, aún así redirigir
+              if (redirectUrl) {
+                window.location.href = redirectUrl;
+              }
+            }
+          })
+          .catch(error => {
+            console.error('Error marking notification as read:', error);
+            // Si hay error, aún así redirigir
+            if (redirectUrl) {
+              window.location.href = redirectUrl;
+            }
+          });
+        }
+
+        function markNotificationAsRead(notificationId) {
+          // Obtener la ruta correcta según el nivel
+          let route = getMarkReadRoute();
+
+          fetch(route, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ notification_id: notificationId })
+          })
+          .then(response => response.json())
+          .then(data => {
+            if (data.success) {
+              // Ocultar inmediatamente la notificación del dropdown
+              const notificationElement = document.querySelector(`[data-notification-id="${notificationId}"]`);
+              if (notificationElement) {
+                notificationElement.style.display = 'none';
+              }
+              
+              // Actualizar el contador en el header
+              updateHeaderNotificationCount();
+              
+              // Si no quedan notificaciones visibles, actualizar el contenido del dropdown
+              updateDropdownContent();
+            }
+          })
+          .catch(error => {
+            console.error('Error marking notification as read:', error);
+          });
+        }
+
+        function updateHeaderNotificationCount() {
+          const indicator = document.querySelector('#alertsDropdown .indicator');
+          if (indicator) {
+            const currentCount = parseInt(indicator.textContent) || 0;
+            if (currentCount > 0) {
+              indicator.textContent = currentCount - 1;
+              if (currentCount - 1 === 0) {
+                indicator.style.display = 'none';
+              }
+            }
+          }
+        }
+
+        function updateDropdownContent() {
+          // Contar notificaciones visibles
+          const visibleNotifications = document.querySelectorAll('.notification-item:not([style*="display: none"])');
+          const dropdownHeader = document.querySelector('.dropdown-menu-header');
+          const listGroup = document.querySelector('.dropdown-menu .list-group');
+          
+          if (visibleNotifications.length === 0) {
+            // No quedan notificaciones, mostrar mensaje de "no notifications"
+            if (dropdownHeader) {
+              dropdownHeader.textContent = 'No New Notifications';
+            }
+            if (listGroup) {
+              listGroup.innerHTML = `
+                <div class="list-group-item text-center text-muted py-3">
+                  <i data-feather="check-circle" class="text-success mb-2"></i>
+                  <div>You're all caught up!</div>
+                </div>
+              `;
+              // Re-inicializar los iconos de feather
+              if (typeof feather !== 'undefined') {
+                feather.replace();
+              }
+            }
+          } else {
+            // Actualizar el contador en el header
+            if (dropdownHeader) {
+              dropdownHeader.textContent = `${visibleNotifications.length} New Notification${visibleNotifications.length !== 1 ? 's' : ''}`;
+            }
+          }
+        }
+      </script>
+
+      <li class="nav-item dropdown">
+        <a class="nav-icon dropdown-toggle d-inline-block d-sm-none" href="#" data-bs-toggle="dropdown"><i class="align-middle" data-feather="settings"></i></a>
+
+        <a class="nav-link dropdown-toggle d-none d-sm-inline-block" href="#" data-bs-toggle="dropdown">
+          <img src="{{ asset_for('template/img/avatars/profile.png') }}" class="avatar img-fluid rounded me-1" alt="Charles Hall" />
+          <span class="text-dark">{{ user.email }}</span>
+        </a>
+        {% if not session.IS_MOBILE_APP %}
+        <div class="dropdown-menu dropdown-menu-end">
+          {#<div class="dropdown-divider"></div>#}
+          <a class="dropdown-item" href="{{ path('logout') }}">Log out</a>
+        </div>
+        {% endif %}
+      </li>
+
+    </ul>
+  </div>
+</nav>

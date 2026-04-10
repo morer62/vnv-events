@@ -1,0 +1,52 @@
+{% extends 'templates/base.admin.twig' %}
+{% import 'templates/macros.twig' as macros %}
+
+{% block body %}
+<main class="mt-4">
+  <div class="container">
+
+    <h2 class="mb-4 text-center">Tools</h2>
+
+  
+
+    {{ macros.breadcrumb2() }}
+
+    <div class="row g-4">
+
+      <!-- Assigned Tasks -->
+      <div class="col-md-4">
+        <div class="p-4 bg-white rounded-4 shadow-sm h-100 text-center">
+          <img src="{{ asset_for('assets/images/icons_website/icon_3.png') }}" alt="Orders" class="mb-3" style="height: 90px;">
+          <h5 class="fw-bold mb-2">🍸 Cocktail Calculator</h5>
+          <p class="text-muted small mb-3">Just great cocktails, calculated smartly.</p>
+          <a href="{{ path('panel/planning-tools/cocktail-calculator') }}" class="btn btn-success btn-lg fw-bold px-4">Continue</a>
+        </div>
+      </div>
+
+      <!-- Time & Payments -->
+      <div class="col-md-4">
+        <div class="p-4 bg-white rounded-4 shadow-sm h-100 text-center">
+          <img src="{{ asset_for('assets/images/icons_website/icon_7.png') }}" alt="Payroll" class="mb-3" style="height: 90px;">
+          <h5 class="fw-bold mb-2">🪑 Layout Design </h5>
+          <p class="text-muted small mb-3">Interactive Event Space Planner</p>
+          <a href="{{ path('panel/planning-tools/space-designer') }}" class="btn btn-success btn-lg fw-bold px-4">Continue</a>
+        </div>
+      </div>
+
+      <!-- Internal Chat -->
+      <div class="col-md-4">
+        <div class="p-4 bg-white rounded-4 shadow-sm h-100 text-center">
+          <img src="{{ asset_for('assets/images/icons_website/icon_8.png') }}" alt="Chat" class="mb-3" style="height: 90px;">
+          <h5 class="fw-bold mb-2">💬 Meal Calculator</h5>
+          <p class="text-muted small mb-3"> Estimate portions based on the number of guests </p>
+          <a href="{{ path('panel/planning-tools/meal-calculator') }}" class="btn btn-success btn-lg fw-bold px-4">Continue</a>
+        </div>
+      </div>
+
+     
+
+    </div>
+
+  </div>
+</main>
+{% endblock %}

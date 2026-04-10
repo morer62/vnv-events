@@ -1,0 +1,79 @@
+{% extends "templates/base.admin.twig" %}
+{% import 'templates/macros.twig' as macros %}
+
+{% block body %}
+
+<h1 class="h3">
+    Create Lead
+</h1>
+
+{{ macros.breadcrumb2() }}
+
+{% if categories is empty %}
+    <div class="alert alert-warning d-flex align-items-center" role="alert">
+        <i class="bi bi-exclamation-triangle-fill me-2 fs-5"></i>
+        <div>
+            You need to create at least one category before adding a lead.
+            <a href="{{ path('panel/planner-hub/management/crm/categories') }}" class="alert-link ms-1">Go to Categories</a>
+        </div>
+    </div>
+{% endif %}
+
+<div class="card">
+    <div class="card-body">
+        <form method="post">
+            <div class="mb-3">
+                <label class="form-label">Full Name</label>
+                <input type="text" class="form-control" name="name" required />
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Email</label>
+                <input type="email" class="form-control" name="email" required />
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Phone</label>
+                <input type="text" class="form-control" name="phone" required data-phone/>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Address</label>
+                <input type="text" class="form-control" name="address" placeholder="Enter address" data-places />
+            </div>
+
+            {# NUEVO: Languaje #}
+            <div class="mb-3">
+                <label class="form-label">Language</label>
+                <select class="form-control" name="languaje">
+                    <option value="english" selected>English</option>
+                    <option value="spanish">Spanish</option>
+                    <option value="portuguese">Portuguese</option>
+                    <option value="french">French</option>
+                    <option value="other">Other</option>
+                </select>
+                <div class="form-text">Default: English.</div>
+            </div>
+
+            {# NUEVO: Comments #}
+            <div class="mb-3">
+                <label class="form-label">Comments</label>
+                <textarea class="form-control" name="comments" rows="3" maxlength="240" placeholder="Short note about this lead (max 240 chars)"></textarea>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Category</label>
+                <select class="form-control" name="category_id" required {% if categories is empty %}disabled{% endif %}>
+                    <option value="">Select a Category</option>
+                    {% for cat in categories %}
+                        <option value="{{ cat.id }}">{{ cat.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <button class="btn btn-primary" {% if categories is empty %}disabled{% endif %}>Create Lead</button>
+        </form>
+    </div>
+</div>
+
+{% endblock %}

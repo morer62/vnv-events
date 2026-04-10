@@ -1,0 +1,395 @@
+{% extends 'templates/base.admin.twig' %}
+
+{% block style %}
+<style>
+.step-wizard { display: flex; justify-content: space-between; margin-bottom: 2rem; }
+.step-wizard .step { flex: 1; text-align: center; padding: 1rem; position: relative; }
+.step-wizard .step:not(:last-child)::after { content: ''; position: absolute; top: 25px; right: -50%; width: 100%; height: 2px; background: #dee2e6; z-index: -1; }
+.step-wizard .step.active { color: #0d6efd; font-weight: bold; }
+.step-wizard .step.active .step-number { background: #0d6efd; color: white; }
+.step-wizard .step.completed { color: #198754; }
+.step-wizard .step.completed .step-number { background: #198754; color: white; }
+.step-number { display: inline-block; width: 40px; height: 40px; line-height: 40px; border-radius: 50%; background: #dee2e6; margin-bottom: 0.5rem; }
+.event-step { display: none; }
+.event-step.active { display: block; }
+.template-card { cursor: pointer; border: 3px solid transparent; transition: all 0.3s; }
+.template-card:hover { border-color: #0d6efd; transform: translateY(-5px); }
+.template-card.selected { border-color: #198754; background: #d1e7dd; }
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="container-fluid py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <h1 class="h3 mb-4 text-center">Create New Event</h1>
+            
+            <!-- Step Wizard -->
+            <div class="step-wizard">
+                <div class="step active" id="step-indicator-1">
+                    <div class="step-number">1</div>
+                    <div>Event Details</div>
+                </div>
+                <div class="step" id="step-indicator-2">
+                    <div class="step-number">2</div>
+                    <div>Venue & Date</div>
+                </div>
+                <div class="step" id="step-indicator-3">
+                    <div class="step-number">3</div>
+                    <div>Design</div>
+                </div>
+                <div class="step" id="step-indicator-4">
+                    <div class="step-number">4</div>
+                    <div>Settings</div>
+                </div>
+            </div>
+
+            <form method="post" id="eventForm" class="card shadow-lg p-4" enctype="multipart/form-data">
+                
+                <!-- STEP 1: Event Details -->
+                <div class="event-step active" id="step-1">
+                    <h4 class="mb-3">Step 1: Event Details</h4>
+                    <div class="row">
+                        <div class="col-md-8 mb-3">
+                            <label class="form-label">Event Name *</label>
+                            <input type="text" name="event_name" class="form-control" required placeholder="e.g., Sarah & John's Wedding">
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Event Type *</label>
+                            <select name="event_type" class="form-select" required>
+                                <option value="">Select type</option>
+                                {% for key, label in eventTypes %}
+                                <option value="{{ key }}">{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-12 mb-3">
+                            <label class="form-label">Event Description</label>
+                            <textarea name="event_description" class="form-control" rows="4" placeholder="Tell your guests about your special day..."></textarea>
+                        </div>
+                        <div class="col-12 mb-3">
+                            <label class="form-label">Custom Welcome Message</label>
+                            <textarea name="custom_message" class="form-control" rows="3" placeholder="We're so excited to celebrate with you!"></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- STEP 2: Venue & Date -->
+                <div class="event-step" id="step-2">
+                    <h4 class="mb-3">Step 2: Venue & Date</h4>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Event Date *</label>
+                            <input type="date" name="event_date" class="form-control" required>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label class="form-label">Start Time *</label>
+                            <input type="time" name="event_time" class="form-control" required>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label class="form-label">End Time</label>
+                            <input type="time" name="event_end_time" class="form-control">
+                        </div>
+                        <div class="col-md-12 mb-3">
+                            <label class="form-label">Venue Name</label>
+                            <input type="text" name="venue_name" class="form-control" placeholder="e.g., The Grand Ballroom">
+                        </div>
+                        <div class="col-md-12 mb-3">
+                            <label class="form-label">Venue Address</label>
+                            <input type="text" name="venue_address" class="form-control" data-places placeholder="123 Main Street">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">City</label>
+                            <input type="text" name="venue_city" class="form-control">
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label class="form-label">State</label>
+                            <input type="text" name="venue_state" class="form-control" maxlength="2" placeholder="FL">
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label class="form-label">ZIP Code</label>
+                            <input type="text" name="venue_zip" class="form-control" maxlength="10">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Expected Guests</label>
+                            <input type="number" name="expected_guests" class="form-control" min="1" placeholder="100">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Maximum Capacity</label>
+                            <input type="number" name="max_guests" class="form-control" min="1" placeholder="150">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- STEP 3: Design -->
+                <div class="event-step" id="step-3">
+                    <h4 class="mb-3">Step 3: Choose Your Design</h4>
+                    <p class="text-muted">Select a template for your event mini-site</p>
+                    
+                    <div class="row mb-4">
+                        <div class="col-md-4 mb-3">
+                            <div class="card template-card" onclick="selectTemplate(1)">
+                                <div class="card-body text-center" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; height: 200px; display: flex; align-items: center; justify-content: center;">
+                                    <div>
+                                        <h5>Elegant Purple</h5>
+                                        <p class="mb-0">Perfect for weddings</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="card template-card" onclick="selectTemplate(2)">
+                                <div class="card-body text-center" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; height: 200px; display: flex; align-items: center; justify-content: center;">
+                                    <div>
+                                        <h5>Pink Sunset</h5>
+                                        <p class="mb-0">Fun & vibrant</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="card template-card" onclick="selectTemplate(3)">
+                                <div class="card-body text-center" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white; height: 200px; display: flex; align-items: center; justify-content: center;">
+                                    <div>
+                                        <h5>Ocean Blue</h5>
+                                        <p class="mb-0">Fresh & modern</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="card template-card" onclick="selectTemplate(4)">
+                                <div class="card-body text-center" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); color: white; height: 200px; display: flex; align-items: center; justify-content: center;">
+                                    <div>
+                                        <h5>Mint Green</h5>
+                                        <p class="mb-0">Calm & sophisticated</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="card template-card" onclick="selectTemplate(5)">
+                                <div class="card-body text-center" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); color: white; height: 200px; display: flex; align-items: center; justify-content: center;">
+                                    <div>
+                                        <h5>Warm Sunset</h5>
+                                        <p class="mb-0">Cozy & inviting</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <input type="hidden" name="template_id" id="template_id" value="1">
+                    <input type="hidden" name="primary_color" id="primary_color" value="#667eea">
+                    <input type="hidden" name="secondary_color" id="secondary_color" value="#764ba2">
+                    
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Font Family</label>
+                            <select name="font_family" class="form-select">
+                                <option value="Poppins">Poppins (Modern)</option>
+                                <option value="Playfair Display">Playfair Display (Elegant)</option>
+                                <option value="Montserrat">Montserrat (Clean)</option>
+                                <option value="Dancing Script">Dancing Script (Romantic)</option>
+                                <option value="Roboto">Roboto (Simple)</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Header Text Color</label>
+                            <input type="color" name="header_text_color" class="form-control form-control-color" id="header_text_color" value="#FFFFFF" onchange="updateTextColorPreview()">
+                            <small class="text-muted">Color for header text</small>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Preview</label>
+                            <div id="text_color_preview" style="background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)); padding: 20px; border-radius: 8px; color: #FFFFFF; text-align: center; font-weight: bold;">
+                                Sample Header Text
+                            </div>
+                        </div>
+                        <div class="col-12 mb-3">
+                            <label class="form-label">Cover Image (Optional)</label>
+                            <input type="file" name="cover_image" class="form-control" accept="image/*" id="cover_image_input" onchange="previewCoverImage(this)">
+                            <small class="text-muted">Recommended: 1200x600px or larger</small>
+                            <div id="cover_preview" class="mt-3" style="display:none;">
+                                <img id="cover_preview_img" src="" alt="Cover Preview" class="img-fluid rounded shadow-sm" style="max-height: 200px;">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- STEP 4: Settings -->
+                <div class="event-step" id="step-4">
+                    <h4 class="mb-3">Step 4: RSVP Settings</h4>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">RSVP Deadline</label>
+                            <input type="date" name="rsvp_deadline" class="form-control">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Dress Code</label>
+                            <input type="text" name="dress_code" class="form-control" placeholder="e.g., Black Tie, Casual">
+                        </div>
+                        <div class="col-md-12 mb-3">
+                            <div class="form-check form-switch">
+                                <input type="checkbox" name="allow_plus_ones" class="form-check-input" id="allow_plus_ones" checked>
+                                <label class="form-check-label" for="allow_plus_ones">Allow guests to bring plus ones</label>
+                            </div>
+                        </div>
+                        <div class="col-md-12 mb-3">
+                            <label class="form-label">Max Plus Ones Per Guest</label>
+                            <input type="number" name="max_plus_ones_per_guest" class="form-control" value="5" min="1" max="10">
+                        </div>
+                    </div>
+
+                    <div class="alert alert-info mt-4">
+                        <h5>💳 Payment Required</h5>
+                        <p class="mb-0">Creating this event will charge <strong>${{ eventPrice }}</strong> to your registered payment method.</p>
+                    </div>
+                </div>
+
+                <!-- Navigation Buttons -->
+                <div class="d-flex justify-content-between mt-4">
+                    <button type="button" class="btn btn-secondary" id="prevBtn" onclick="changeStep(-1)" style="display:none;">
+                        <i class="bi bi-arrow-left"></i> Previous
+                    </button>
+                    <div></div>
+                    <button type="button" class="btn btn-primary" id="nextBtn" onclick="changeStep(1)">
+                        Next <i class="bi bi-arrow-right"></i>
+                    </button>
+                    <button type="button" class="btn btn-success d-none" id="submitBtn" data-bs-toggle="modal" data-bs-target="#paymentModal">
+                        Create Event & Pay
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Payment Modal -->
+<div class="modal fade" id="paymentModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">💳 Confirm Payment</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center">
+                <i class="bi bi-credit-card" style="font-size: 3rem; color: #0d6efd;"></i>
+                <h5 class="mt-3">Event Creation Fee</h5>
+                <p class="text-muted">Amount to be charged:</p>
+                <h2 class="text-primary">${{ eventPrice }}</h2>
+                <p class="small text-muted mt-3">By confirming, you authorize the charge and your event will be created immediately.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="confirmPaymentBtn">Confirm & Create Event</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let currentStep = 1;
+const totalSteps = 4;
+
+const templates = {
+    1: { primary: '#667eea', secondary: '#764ba2' },
+    2: { primary: '#f093fb', secondary: '#f5576c' },
+    3: { primary: '#4facfe', secondary: '#00f2fe' },
+    4: { primary: '#43e97b', secondary: '#38f9d7' },
+    5: { primary: '#fa709a', secondary: '#fee140' }
+};
+
+function selectTemplate(id) {
+    document.querySelectorAll('.template-card').forEach(card => card.classList.remove('selected'));
+    event.currentTarget.classList.add('selected');
+    document.getElementById('template_id').value = id;
+    document.getElementById('primary_color').value = templates[id].primary;
+    document.getElementById('secondary_color').value = templates[id].secondary;
+    updateTextColorPreview();
+}
+
+function changeStep(direction) {
+    if (!validateStep(currentStep) && direction > 0) return;
+    
+    document.getElementById(`step-${currentStep}`).classList.remove('active');
+    document.getElementById(`step-indicator-${currentStep}`).classList.remove('active');
+    if (direction < 0) {
+        document.getElementById(`step-indicator-${currentStep}`).classList.remove('completed');
+    }
+    
+    currentStep += direction;
+    
+    document.getElementById(`step-${currentStep}`).classList.add('active');
+    document.getElementById(`step-indicator-${currentStep}`).classList.add('active');
+    
+    for (let i = 1; i < currentStep; i++) {
+        document.getElementById(`step-indicator-${i}`).classList.add('completed');
+    }
+    
+    document.getElementById('prevBtn').style.display = currentStep === 1 ? 'none' : 'block';
+    document.getElementById('nextBtn').style.display = currentStep === totalSteps ? 'none' : 'block';
+    document.getElementById('submitBtn').classList.toggle('d-none', currentStep !== totalSteps);
+}
+
+function validateStep(step) {
+    const stepDiv = document.getElementById(`step-${step}`);
+    const requiredFields = stepDiv.querySelectorAll('[required]');
+    for (const field of requiredFields) {
+        if (!field.value.trim()) {
+            alert(`Please fill out: ${field.previousElementSibling?.textContent || 'required field'}`);
+            field.focus();
+            return false;
+        }
+    }
+    return true;
+}
+
+document.getElementById('confirmPaymentBtn').addEventListener('click', function() {
+    const confirmBtn = this;
+    const cancelBtn = document.querySelector('#paymentModal .btn-secondary');
+    const closeBtn = document.querySelector('#paymentModal .btn-close');
+    
+    confirmBtn.disabled = true;
+    cancelBtn.disabled = true;
+    closeBtn.disabled = true;
+    
+    confirmBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Procesando pago...';
+    
+    document.querySelector('#paymentModal .modal-body').innerHTML = `
+        <div class="text-center py-4">
+            <div class="spinner-border text-primary mb-3" role="status" style="width: 4rem; height: 4rem;"></div>
+            <h5>Procesando pago...</h5>
+            <p class="text-muted">Por favor espere, no cierre esta ventana.</p>
+        </div>
+    `;
+    
+    setTimeout(() => {
+        document.getElementById('eventForm').submit();
+    }, 1000);
+});
+
+selectTemplate(1);
+
+function previewCoverImage(input) {
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            document.getElementById('cover_preview_img').src = e.target.result;
+            document.getElementById('cover_preview').style.display = 'block';
+        };
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+
+function updateTextColorPreview() {
+    const textColor = document.getElementById('header_text_color').value;
+    const preview = document.getElementById('text_color_preview');
+    const primaryColor = document.getElementById('primary_color').value;
+    const secondaryColor = document.getElementById('secondary_color').value;
+    
+    preview.style.color = textColor;
+    preview.style.background = `linear-gradient(135deg, ${primaryColor}, ${secondaryColor})`;
+}
+</script>
+{% endblock %}
+

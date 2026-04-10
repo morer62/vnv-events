@@ -1,0 +1,155 @@
+{% extends 'templates/base.admin.twig' %}
+
+{% block body %}
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1 class="h3 mb-2">🎉 Event Invitations Manager</h1>
+            <p class="text-muted">Create beautiful mini-sites for your events and manage RSVPs</p>
+        </div>
+        <div class="col-md-4 text-end">
+            {% if isWeb %}
+            <a href="{{ path('panel/event-invitations/create') }}" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i> Create New Event
+            </a>
+            {% endif %}
+        </div>
+    </div>
+
+    {% if message %}
+    <div class="alert alert-{{ message.type|default('success') }} alert-dismissible fade show" role="alert">
+        {{ message.message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    {% endif %}
+
+    <!-- Stats Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card bg-primary shadow">
+                <div class="card-body text-center text-white">
+                    <h6 class="card-title mb-3 text-white opacity-75">Total Events</h6>
+                    <h1 class="display-3 fw-bold mb-0 text-white">{{ events|length }}</h1>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success shadow">
+                <div class="card-body text-center text-white">
+                    <h6 class="card-title mb-3 text-white opacity-75">Active Events</h6>
+                    <h1 class="display-3 fw-bold mb-0 text-white">{{ events|filter(e => e.status == 'active')|length }}</h1>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-info shadow">
+                <div class="card-body text-center text-white">
+                    <h6 class="card-title mb-3 text-white opacity-75">Total Guests</h6>
+                    <h1 class="display-3 fw-bold mb-0 text-white">{{ events|reduce((carry, e) => carry + e.total_guests, 0) }}</h1>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning shadow">
+                <div class="card-body text-center text-white">
+                    <h6 class="card-title mb-3 text-white opacity-75">Confirmed</h6>
+                    <h1 class="display-3 fw-bold mb-0 text-white">{{ events|reduce((carry, e) => carry + e.confirmed_guests, 0) }}</h1>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Events List -->
+    <div class="card shadow-sm">
+        <div class="card-header bg-white">
+            <h5 class="mb-0">Your Events</h5>
+        </div>
+        <div class="card-body">
+            {% if events|length > 0 %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Event Name</th>
+                            <th>Date</th>
+                            <th>Type</th>
+                            <th>Guests</th>
+                            <th>Confirmed</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for event in events %}
+                        <tr>
+                            <td>
+                                <strong>{{ event.event_name }}</strong>
+                                <br>
+                                <small class="text-muted">{{ event.venue_name }}</small>
+                            </td>
+                            <td>{{ event.event_date|date('M d, Y') }}</td>
+                            <td>
+                                <span class="badge bg-secondary">{{ event.event_type|title }}</span>
+                            </td>
+                            <td>{{ event.total_guests }}</td>
+                            <td>
+                                <span class="badge bg-success">{{ event.confirmed_guests }}</span>
+                            </td>
+                            <td>
+                                {% if event.status == 'active' %}
+                                    <span class="badge bg-success">Active</span>
+                                {% elseif event.status == 'draft' %}
+                                    <span class="badge bg-warning">Draft</span>
+                                {% elseif event.status == 'closed' %}
+                                    <span class="badge bg-secondary">Closed</span>
+                                {% else %}
+                                    <span class="badge bg-danger">Cancelled</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="d-flex gap-1">
+                                    <a href="{{ path('panel/event-invitations/guests') }}?id={{ event.id }}" class="btn btn-sm btn-success" title="Manage Guests">
+                                        👥 Guests
+                                    </a>
+                                    <a href="{{ path('event') }}?slug={{ event.slug }}" target="_blank" class="btn btn-sm btn-info text-white" title="View Mini-Site">
+                                        👁️ View
+                                    </a>
+                                    <a href="{{ path('panel/event-invitations/manage') }}?id={{ event.id }}" class="btn btn-sm btn-primary" title="Settings">
+                                        ⚙️
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center py-5">
+                <i class="bi bi-calendar-event" style="font-size: 4rem; color: #ccc;"></i>
+                <h4 class="mt-3">No events yet</h4>
+                <p class="text-muted">Create your first event to start sending invitations</p>
+                {% if isWeb %}
+                    <a href="{{ path('panel/event-invitations/create') }}" class="btn btn-primary mt-3">
+                        Create Your First Event
+                    </a>
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Pricing Info -->
+    {% if isWeb %}
+        <div class="alert alert-info mt-4">
+            <h5>💰 Pricing</h5>
+            <p class="mb-0">
+                Each event creation costs <strong>${{ env.EVENT_CREATION_PRICE }}</strong> and includes:
+                unlimited guests, custom mini-site, email invitations, RSVP management, 
+                seating chart, and advanced calculators.
+            </p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+

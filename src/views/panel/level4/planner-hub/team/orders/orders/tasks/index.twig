@@ -1,0 +1,111 @@
+{% extends 'templates/base.admin.twig' %}
+{% import 'templates/macros.twig' as macros %}
+
+{% block body %}
+{% if suborder_id %}
+<h1 class="h3 mb-4">🧠 Task Assignment for Sub-Order #{{ suborder_id }}</h1>
+{% else %}
+<h1 class="h3 mb-4">🧠 Task Assignment for Order #{{ order_id }}</h1>
+{% endif %}
+{{ macros.breadcrumb2() }}
+
+{% for service in services %}
+    {% set hasAssignedTasks = false %}
+    {% for task in service.tasks %}
+        {% if task.assigned_id_user %}
+            {% set hasAssignedTasks = true %}
+        {% endif %}
+    {% endfor %}
+    
+    {% if hasAssignedTasks %}
+    <div class="card mb-4">
+        <div class="card-header fw-bold">
+            {% if service.source == "suborder" %}
+                <span class="badge bg-info me-2">Sub-Order #{{ service.suborder_id }}</span>
+            {% else %}
+                <span class="badge bg-primary me-2">Main Order</span>
+            {% endif %}
+            {{ service.name }}
+        </div>
+        
+    <div class="px-3 py-2 text-danger fw-bold" style="font-size: 0.95rem;">
+        ⏱️ Schedule: 
+        Install  | 
+        Execution  | 
+        Breakdown (Verify <a href="{{ path('panel/planner-hub/team/orders/orders/print/team-assignment') }}?id={{ order_id }}">PDF for Details</a>)
+    </div>
+ 
+
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-striped" style="min-width: 768px;">
+                    <thead>
+                        <tr>
+                            <th>Task</th>
+                            <th>Assigned To</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for task in service.tasks %}
+                            {% if task.assigned_id_user %}
+                                <tr>
+                                    <td>{{ task.task_name }}</td>
+                                    <td>{{ task.assigned_user_name }}</td>
+                                    <td>
+                                        <form method="post">
+                                            <input type="hidden" name="form_type" value="toggle_done">
+                                            <input type="hidden" name="order_id" value="{{ order_id }}">
+                                            <input type="hidden" name="task_id" value="{{ task.id_task }}">
+                                            <button type="submit" class="btn btn-sm {{ task.is_done ? 'btn-success' : 'btn-warning' }}">
+                                                {{ task.is_done ? '✅ Done' : '➖ Pending' }}
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            {% endif %}
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+{% endfor %}
+
+<h1 class="h3 mt-5">📝 Additional Manual Tasks</h1>
+<div class="table-responsive">
+    <table class="table table-bordered" style="min-width: 768px;">
+        <thead class="table-dark">
+            <tr>
+                <th>Task Description</th>
+                <th>Assigned Member</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for task in manualTasks %}
+                {% if task.assigned_id_user %}
+                    <tr>
+                        <td>{{ task.task_description }}</td>
+                        <td>
+                            {% set assigned = members | filter(m => m.id == task.assigned_id_user) | first %}
+                            {{ assigned ? (assigned.name ~ ' ' ~ assigned.lastname) : '—' }}
+                        </td>
+                        <td>
+                            <form method="post">
+                                <input type="hidden" name="form_type" value="toggle_done">
+                                <input type="hidden" name="order_id" value="{{ order_id }}">
+                                <input type="hidden" name="task_id" value="{{ task.id_task }}">
+                                <button type="submit" class="btn btn-sm {{ task.is_done ? 'btn-success' : 'btn-warning' }}">
+                                    {{ task.is_done ? '✅ Done' : '➖ Pending' }}
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                {% endif %}
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

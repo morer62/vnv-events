@@ -1,0 +1,210 @@
+{% extends "templates/base.twig" %}
+
+{% block head %}
+<style>
+.card {
+    border: 1px solid #e9ecef;
+    border-radius: 12px;
+}
+
+.form-control {
+    border-radius: 8px;
+    border: 1px solid #dee2e6;
+}
+
+.btn {
+    border-radius: 8px;
+}
+
+.input-group .form-control {
+    border-right: 0;
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+}
+
+.input-group .btn {
+    border-left: 0;
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+    border-color: #dee2e6;
+}
+
+.input-group .btn:hover {
+    background-color: #e9ecef;
+    border-color: #ced4da;
+}
+
+.input-group .btn:focus {
+    box-shadow: none;
+}
+
+[data-feather] {
+    width: 18px;
+    height: 18px;
+}
+
+#togglePassword {
+    min-width: 45px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mb-3 {
+    margin-bottom: .8rem !important;
+}
+
+.mb-4 {
+    margin-bottom: 1rem !important;
+}
+</style>
+{% endblock %}
+
+{% block body %}
+<main class="bg-light d-flex justify-content-center align-items-center min-vh-100 flex-column">
+
+    <!-- Header Section -->
+    <div class="text-center mb-4">
+        <a href="{{ path('planner-hub') }}" class="d-inline-block mb-3">
+            <img src="{{ asset_for('assets/images/planner-hub-logo-negative.png') }}" width="180px" alt="E-Planner Hub">
+        </a>
+        <h4 class="fw-normal text-dark mb-2">Update Your Password</h4>
+        <p class="text-muted small mb-0">
+            For security reasons, you need to change your temporary password before accessing the system.
+        </p>
+    </div>
+
+    <!-- Update Password Card -->
+    <div class="card shadow-sm bg-white" style="min-width: 30dvw;">
+        <div class="card-body p-4">
+            
+            <!-- Welcome Message -->
+            <div class="alert alert-info mb-4">
+                <strong>Welcome, {{ user.name }} {{ user.lastname }}!</strong>
+                <br><small>This is your first login with a temporary password. Please create a strong, unique password to secure your account.</small>
+            </div>
+
+            <!-- Update Password Form -->
+            <form method="POST" id="updatePasswordForm">
+                <div class="mb-3">
+                    <label class="form-label fw-medium">New Password</label>
+                    <div class="input-group">
+                        <input class="form-control form-control-lg" 
+                               type="password" 
+                               name="new_password" 
+                               id="new_password"
+                               placeholder="Enter your new password" 
+                               required/>
+                        <button class="btn btn-outline-secondary" 
+                                type="button" 
+                                id="toggleNewPassword">
+                            <i data-feather="eye" id="newEyeIcon"></i>
+                        </button>
+                    </div>
+                    <small class="text-muted">
+                        <strong>Password Requirements:</strong>
+                        <ul class="mb-0 mt-1">
+                            <li>At least 8 characters long</li>
+                            <li>Mix of uppercase and lowercase letters recommended</li>
+                            <li>Include numbers and special characters for stronger security</li>
+                        </ul>
+                    </small>
+                </div>
+                
+                <div class="mb-4">
+                    <label class="form-label fw-medium">Confirm New Password</label>
+                    <div class="input-group">
+                        <input class="form-control form-control-lg" 
+                               type="password" 
+                               name="confirm_password" 
+                               id="confirm_password"
+                               placeholder="Confirm your new password" 
+                               required/>
+                        <button class="btn btn-outline-secondary" 
+                                type="button" 
+                                id="toggleConfirmPassword">
+                            <i data-feather="eye" id="confirmEyeIcon"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="d-grid">
+                    <button type="submit" class="btn btn-dark btn-lg py-3">Update Password</button>
+                </div>
+            </form>
+            
+        </div>
+    </div>
+
+    <!-- Back to Login Link -->
+    <div class="text-center mt-4">
+        <p class="text-muted small mb-0">
+            Remember your password? 
+            <a href="{{ path('login') }}" class="text-decoration-none fw-medium">Sign in</a>
+        </p>
+    </div>
+</main>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Toggle new password visibility
+    const toggleNewPassword = document.getElementById('toggleNewPassword');
+    const newPassword = document.getElementById('new_password');
+    const newEyeIcon = document.getElementById('newEyeIcon');
+
+    toggleNewPassword.addEventListener('click', function() {
+        const type = newPassword.getAttribute('type') === 'password' ? 'text' : 'password';
+        newPassword.setAttribute('type', type);
+        
+        if (type === 'text') {
+            newEyeIcon.setAttribute('data-feather', 'eye-off');
+        } else {
+            newEyeIcon.setAttribute('data-feather', 'eye');
+        }
+        
+        if (typeof feather !== 'undefined') {
+            feather.replace();
+        }
+    });
+
+    // Toggle confirm password visibility
+    const toggleConfirmPassword = document.getElementById('toggleConfirmPassword');
+    const confirmPassword = document.getElementById('confirm_password');
+    const confirmEyeIcon = document.getElementById('confirmEyeIcon');
+
+    toggleConfirmPassword.addEventListener('click', function() {
+        const type = confirmPassword.getAttribute('type') === 'password' ? 'text' : 'password';
+        confirmPassword.setAttribute('type', type);
+        
+        if (type === 'text') {
+            confirmEyeIcon.setAttribute('data-feather', 'eye-off');
+        } else {
+            confirmEyeIcon.setAttribute('data-feather', 'eye');
+        }
+        
+        if (typeof feather !== 'undefined') {
+            feather.replace();
+        }
+    });
+
+    // Form validation
+    document.getElementById('updatePasswordForm').addEventListener('submit', function(e) {
+        const newPassword = document.getElementById('new_password').value;
+        const confirmPassword = document.getElementById('confirm_password').value;
+        
+        if (newPassword !== confirmPassword) {
+            e.preventDefault();
+            alert('Passwords do not match!');
+            return false;
+        }
+        
+        if (newPassword.length < 8) {
+            e.preventDefault();
+            alert('Password must be at least 8 characters long!');
+            return false;
+        }
+    });
+});
+</script>
+
+{% endblock %}

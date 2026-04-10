@@ -1,0 +1,142 @@
+{% extends 'templates/base.admin.twig' %}
+
+{% block body %}
+
+<div class="container-fluid">
+
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-body">
+
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+                <div>
+                    <h1 class="h3 mb-1">
+                        Attribute Values
+                    </h1>
+                    <p class="text-muted mb-0">
+                        Attribute: <strong>{{ attribute.name }}</strong>
+                    </p>
+                </div>
+
+                <div class="d-flex gap-2">
+                    <a href="{{ path('panel/planner-hub/store/attributes/home') }}" class="btn btn-outline-secondary">
+                        ← Back
+                    </a>
+
+                    <a href="{{ path('panel/planner-hub/store/attribute-values/create') }}?id_attribute={{ attribute.id }}" class="btn btn-primary">
+                        + Add Value
+                    </a>
+                </div>
+            </div>
+
+            <div class="d-flex flex-wrap gap-2">
+                <a href="{{ path('panel/planner-hub/store/attributes/home') }}" class="btn btn-outline-dark btn-sm">
+                    Attributes
+                </a>
+
+                <a href="{{ path('panel/planner-hub/store/products/home') }}" class="btn btn-outline-secondary btn-sm">
+                    Products
+                </a>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="card shadow-sm border-0">
+        <div class="card-body">
+
+            {% if values|length > 0 %}
+
+                <div class="table-responsive">
+
+                    <table class="table align-middle">
+
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Value</th>
+                                <th>Slug</th>
+                                <th>Order</th>
+                                <th>Status</th>
+                                <th class="text-end">Actions</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+
+                        {% for v in values %}
+
+                            <tr>
+                                <td>#{{ v.id }}</td>
+
+                                <td>
+                                    <strong>{{ v.value }}</strong>
+                                </td>
+
+                                <td>
+                                    {{ v.slug ?: '—' }}
+                                </td>
+
+                                <td>
+                                    {{ v.sort_order }}
+                                </td>
+
+                                <td>
+                                    {% if v.status == 'ACTIVE' %}
+                                        <span class="badge bg-success">ACTIVE</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">INACTIVE</span>
+                                    {% endif %}
+                                </td>
+
+                                <td class="text-end">
+
+                                    <div class="d-inline-flex gap-2">
+
+                                        <a href="{{ path('panel/planner-hub/store/attribute-values/edit') }}?id={{ v.id }}" class="btn btn-sm btn-outline-primary">
+                                            Edit
+                                        </a>
+
+                                        <a href="{{ path('panel/planner-hub/store/attribute-values/delete') }}?id={{ v.id }}"
+                                           class="btn btn-sm btn-outline-danger"
+                                           onclick="return confirm('Delete this value?');">
+                                            Delete
+                                        </a>
+
+                                    </div>
+
+                                </td>
+
+                            </tr>
+
+                        {% endfor %}
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            {% else %}
+
+                <div class="text-center py-5">
+
+                    <h5 class="mb-2">No values yet</h5>
+
+                    <p class="text-muted mb-3">
+                        This attribute does not have values yet.
+                    </p>
+
+                    <a href="{{ path('panel/planner-hub/store/attribute-values/create') }}?id_attribute={{ attribute.id }}" class="btn btn-primary">
+                        + Add First Value
+                    </a>
+
+                </div>
+
+            {% endif %}
+
+        </div>
+    </div>
+
+</div>
+
+{% endblock %}

@@ -1,0 +1,69 @@
+{% extends 'templates/base.admin.twig' %}
+{% import 'templates/macros.twig' as macros %}
+
+{% block body %}
+<main class="container-fluid">
+    <h1 class="h3 mb-3">
+        Expired {{ type == 'services' ? 'Services' : 'Venues' }}
+    </h1>
+
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ path('panel/home') }}">Home</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Expired</li>
+        </ol>
+    </nav>
+
+    <section class="card">
+        <div class="card-body">
+
+            <div class="mb-3">
+                <a href="{{ path('panel/payments-expired?type=services') }}" class="btn btn-outline-primary {{ type == 'services' ? 'active' : '' }}">
+                    Expired Services
+                </a>
+                <a href="{{ path('panel/payments-expired?type=venues') }}" class="btn btn-outline-primary {{ type == 'venues' ? 'active' : '' }}">
+                    Expired Venues
+                </a>
+            </div>
+
+            {% if expired is not empty %}
+                <form method="post">
+                    {{ macros.csrf() }}
+                    <button type="submit" name="renew_all" value="yes" class="btn btn-success mb-3">
+                        ✅ Renew All Expired {{ type }}
+                    </button>
+                </form>
+
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover table-bordered text-center">
+                        <thead>
+                            <tr>
+                                <th>User</th>
+                                <th>Email</th>
+                                <th>Phone</th>
+                                <th>{{ type == 'services' ? 'Service' : 'Venue' }}</th>
+                                <th>Payment Date</th>
+                                <th>Renewal Until</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in expired %}
+                                <tr>
+                                    <td>{{ item.user_name }}</td>
+                                    <td>{{ item.email }}</td>
+                                    <td>{{ item.phone }}</td>
+                                    <td>{{ type == 'services' ? item.service_name : item.venue_name }}</td>
+                                    <td>{{ item.payment_date }}</td>
+                                    <td>{{ item.renewal }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <p class="text-muted">No expired {{ type }} found.</p>
+            {% endif %}
+        </div>
+    </section>
+</main>
+{% endblock %}

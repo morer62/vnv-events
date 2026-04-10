@@ -1,0 +1,275 @@
+{% extends 'templates/base.admin.twig' %}
+
+{% block style %}
+<style>
+    .disabled-input {
+        background-color: #f1f1f1 !important;
+        cursor: not-allowed;
+        opacity: 0.7;
+    }
+</style>
+
+    <!-- CSS del editor -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/trumbowyg@2.27.3/dist/ui/trumbowyg.min.css">
+
+    
+{% endblock %}
+
+{% block body %}
+<div class="container-fluid h-100 d-flex flex-column justify-content-center p-3">
+    <div class="text-center mb-4">
+        <img src="{{ asset_for('assets/images/vnv-logo.webp') }}" alt="Logo" width="180px">
+        <h1 class="h3 mt-3">Edit Venue</h1>
+    </div>
+
+    <form method="post" enctype="multipart/form-data" id="venueForm" class="card shadow-lg p-4 w-100">
+
+        {# STEP 1 - General Info #}
+        <div id="step-1" class="venue-step">
+            <h4 class="mb-3">Step 1: General Information</h4>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Venue Name</label>
+                    <input class="form-control" name="name" required type="text" value="{{ data.name }}" />
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Category</label>
+                    <select class="form-select" name="category_id" required>
+                        <option value="">Select a category</option>
+                        {% for cat in categories %}
+                            <option value="{{ cat.id }}" {% if cat.id == data.category_id %}selected{% endif %}>{{ cat.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-12 mb-3">
+                    <label class="form-label">Description</label>
+                    <textarea class="form-control" name="description" id="description-editor" required>{{ data.description }}</textarea>
+                </div>
+                <div class="col-12 mb-3">
+                    <label class="form-label">Address</label>
+                    <input id="autocomplete-address" class="form-control" name="address" required data-places value="{{ data.address }}" />
+                </div>
+            </div>
+        </div>
+
+        {# STEP 2 - Contact #}
+        <div id="step-2" class="venue-step d-none">
+            <h4 class="mb-3">Step 2: Contact and Social Links</h4>
+            <div class="row">
+                {% set fields = ['phone_number', 'email', 'website', 'instagram', 'facebook', 'twitter', 'yelp'] %}
+                {% for field in fields %}
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">{{ field|replace({'_': ' '})|title }}</label>
+                        <input class="form-control" name="{{ field }}" type="text" value="{{ attribute(data, field) }}" />
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        {# STEP 3 - Legal Info #}
+        <div id="step-3" class="venue-step d-none">
+            <h4 class="mb-3">Step 3: Business Information</h4>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Business Legal Name</label>
+                    <input class="form-control" name="business_name" type="text" required value="{{ data.business_name }}" />
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">EIN (Tax ID)</label>
+                    <input class="form-control" name="ein" type="text" required value="{{ data.ein }}" />
+                </div>
+            </div>
+        </div>
+
+        {# STEP 4 - Features & Amenities #}
+        <div id="step-4" class="venue-step d-none">
+            <h4 class="mb-3">Step 4: Features & Amenities</h4>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Guest Capacity</label>
+                    <div class="input-group">
+                        <span class="input-group-text">Up to</span>
+                        <input class="form-control" name="capacity" type="number" min="1" value="{{ data.capacity }}" />
+                        <span class="input-group-text">guests</span>
+                    </div>
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Base Price ($)</label>
+                    <input type="range" name="price" class="form-range" min="0" max="10000" step="50"
+                        value="{{ data.base_price|default(0) }}" id="priceRange"
+                        oninput="priceOutput.value = '$' + priceRange.value">
+                    <output id="priceOutput">${{ data.base_price|default(0) }}</output>
+                </div>
+
+                <div class="col-12 mb-3">
+                    <label class="form-label">Included Services</label>
+                    {% set selected_services = data.services ?? [] %}
+                    {% set services_list = ['All-inclusive: Full food, beverage, rentals', 'Raw space: Only the space', 'Select services: Some basic add-ons'] %}
+                    {% for item in services_list %}
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="services[]" value="{{ item }}"
+                                {% if item in selected_services %}checked{% endif %}>
+                            <label class="form-check-label">{{ item }}</label>
+                        </div>
+                    {% endfor %}
+                </div>
+
+                <div class="col-12 mb-3">
+                    <label class="form-label">Indoor/Outdoor Type</label>
+                    {% set options = {
+                        'outdoor': 'Open-air outdoor space',
+                        'indoor': 'Fully enclosed indoor venue',
+                        'covered': 'Partially covered outdoor areas',
+                        'both': 'Indoor and Outdoor Areas'
+                    } %}
+                    {% for key, label in options %}
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="indoor_outdoor_type" value="{{ key }}"
+                                {% if data.indoor_outdoor_type == key %}checked{% endif %}>
+                            <label class="form-check-label">{{ label }}</label>
+                        </div>
+                    {% endfor %}
+                </div>
+
+                <div class="col-12 mb-3">
+                    <label class="form-label">Amenities</label>
+                    {% set selected_amenities = data.amenities ?? [] %}
+                    {% set amenities = [
+                        'Bar services', 'Catering services', 'Clean up', 'Dance floor', 'Dressing room / bridal suite',
+                        'Event coordinator', 'Event rentals', 'Event staff', 'Liability insurance',
+                        'Lighting/sound', 'On-site accommodations', 'Pet friendly', 'Service staff',
+                        'Set up', 'Transportation', 'Wedding cake services', 'Wheelchair accessible', 'Wifi'
+                    ] %}
+                    <div class="row">
+                        {% for item in amenities %}
+                            <div class="col-md-4">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="amenities[]" value="{{ item }}"
+                                        {% if item in selected_amenities %}checked{% endif %}>
+                                    <label class="form-check-label">{{ item }}</label>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {# STEP 5 - Weekly Availability #}
+        <div id="step-5" class="venue-step d-none">
+            <h4 class="mb-3">Step 5: Weekly Availability</h4>
+            {% set availability = data.availability ?? {} %}
+            {% set days = {
+                'mon': 'Monday', 'tue': 'Tuesday', 'wed': 'Wednesday',
+                'thu': 'Thursday', 'fri': 'Friday', 'sat': 'Saturday', 'sun': 'Sunday'
+            } %}
+            <div class="row">
+                {% for key, label in days %}
+                    {% set from = availability[key].from ?? '' %}
+                    {% set to = availability[key].to ?? '' %}
+                    {% set closed = availability[key].closed ?? false %}
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">{{ label }}</label>
+                        <div class="input-group">
+                            <input type="time" class="form-control" name="availability[{{ key }}][from]" id="from-{{ key }}"
+                                value="{{ from }}" {% if closed %}disabled class="disabled-input"{% endif %}>
+                            <span class="input-group-text">to</span>
+                            <input type="time" class="form-control" name="availability[{{ key }}][to]" id="to-{{ key }}"
+                                value="{{ to }}" {% if closed %}disabled class="disabled-input"{% endif %}>
+                        </div>
+                        <div class="form-check mt-2">
+                            <input type="checkbox" class="form-check-input" id="closed-{{ key }}"
+                                name="availability[{{ key }}][closed]" onchange="toggleDayAvailability('{{ key }}')"
+                                {% if closed %}checked{% endif %}>
+                            <label class="form-check-label text-danger">Closed</label>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="d-flex justify-content-between mt-4">
+            <button type="button" class="btn btn-secondary" onclick="previousStep()">Back</button>
+            <button type="button" class="btn btn-primary" onclick="nextStep()">Next</button>
+            <button type="submit" class="btn btn-success d-none" id="submitBtn">Save Changes</button>
+        </div>
+    </form>
+</div>
+
+
+ <!-- JS del editor -->
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/trumbowyg@2.27.3/dist/trumbowyg.min.js"></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        $('#description-editor').trumbowyg();
+
+        showStep(currentStep);
+
+        const days = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
+        days.forEach(toggleDayAvailability);
+    });
+</script>
+
+<script>
+    let currentStep = 1;
+
+    function showStep(step) {
+        document.querySelectorAll('.venue-step').forEach((el, index) => {
+            el.classList.toggle('d-none', index !== step - 1);
+        }); 
+        document.getElementById('submitBtn').classList.toggle('d-none', step !== 5);
+        document.querySelector('button.btn-primary').classList.toggle('d-none', step === 5);
+
+    }
+
+    function nextStep() {
+    if (!validateCurrentStep()) return;
+        if (currentStep < 5) {
+            currentStep++;
+            showStep(currentStep);
+        }
+    }
+
+    function validateCurrentStep() {
+        const currentStepForm = document.querySelector(`#step-${currentStep}`);
+        const requiredFields = currentStepForm.querySelectorAll('[required]');
+            for (const field of requiredFields) {
+                if (!field.value || (field.tagName === 'SELECT' && field.selectedIndex === 0)) {
+                    alert(`Please fill out the field: ${field.name.replace(/_/g, ' ')}`);
+                    field.focus();
+                    return false;
+                }
+            }
+            return true;
+    }
+
+    function previousStep() {
+        if (currentStep > 1) {
+            currentStep--;
+            showStep(currentStep);
+        }
+    }
+
+    function toggleDayAvailability(day) {
+        const isClosed = document.getElementById(`closed-${day}`).checked;
+        const fromInput = document.getElementById(`from-${day}`);
+        const toInput = document.getElementById(`to-${day}`);
+        fromInput.disabled = isClosed;
+        toInput.disabled = isClosed;
+        fromInput.classList.toggle('disabled-input', isClosed);
+        toInput.classList.toggle('disabled-input', isClosed);
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        const days = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
+        days.forEach(toggleDayAvailability);
+        showStep(currentStep);
+    });
+</script>
+
+
+
+{% endblock %}

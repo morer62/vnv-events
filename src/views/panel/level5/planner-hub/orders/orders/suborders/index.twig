@@ -1,0 +1,164 @@
+{% extends 'templates/base.admin.twig' %}
+{% import 'templates/macros.twig' as macros %}
+
+{% block body %}
+
+<h2 class="mb-4">📋 Sub-Orders for Order VNV 341{{ order.id }}</h2>
+<a href="{{ path('panel/planner-hub/orders/orders') }}" class="btn btn-sm btn-light mb-3">← Back to Orders</a>
+
+<div class="alert alert-info mb-4">
+    <h5>📋 Parent Order Information</h5>
+    <p><strong>Order ID:</strong> VNV 341{{ order.id }}</p>
+    <p><strong>Event Date:</strong> {{ order.event_date|date("l, M j, Y") }}</p>
+    <p><strong>Time:</strong> {{ order.start_time|date("g:i A") }} - {{ order.end_time|date("g:i A") }}</p>
+    <p><strong>Address:</strong> {{ order.address }}</p>
+    <p><strong>Company:</strong> {{ order.institution.company_name ?? 'N/A' }}</p>
+    <p class="mb-0"><strong>Status:</strong> 
+        {% if order.status_workflow == 'INVOICE_DRAFT' %}
+            📝 Signature Pending
+        {% elseif order.status_workflow == 'INVOICE_READY' %}
+            ✍️ Signed - Payment Pending
+        {% elseif order.status_workflow == 'INVOICE_PARTIAL' %}
+            💳 First Payment Completed
+        {% elseif order.status_workflow == 'INVOICE_PAID' %}
+            ✅ Fully Paid
+        {% elseif order.status_workflow == 'INVOICE_EXPIRED' %}
+            ⏰ Expired
+        {% else %}
+            {{ order.status_workflow }}
+        {% endif %}
+    </p>
+</div>
+
+<section class="card">
+    <div class="card-body">
+        {% if suborders|length > 0 %}
+            <div class="table-responsive">
+                <table class="table table-striped table-bordered align-middle text-center">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Sub-Order ID</th>
+                            <th>Created Date</th>
+                            <th>Services</th>
+                            <th>Payment Split</th>
+                            <th>Tax %</th>
+                            <th>Total Amount</th>
+                            <th>Amount Paid</th>
+                            <th>Balance Due</th>
+                            <th>Status</th>
+                            <th>Payment Link</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for suborder in suborders %}
+                            <tr>
+                                <td style="min-width: 150px;">
+                                    <strong>Sub-{{ suborder.id }}</strong><br>
+                                    <small class="text-muted">Order VNV 341{{ order.id }}</small>
+                                </td>
+                                <td style="min-width: 200px;">
+                                    {{ suborder.created_at|date("M j, Y g:i A") }}
+                                </td>
+                                <td style="min-width: 300px; text-align: left;">
+                                    {% if suborder.services|length > 0 %}
+                                        {% for service in suborder.services %}
+                                            <div class="mb-1">
+                                                <strong>{{ service.service_name }}</strong><br>
+                                                <small class="text-muted">
+                                                    Qty: {{ service.quantity }} | 
+                                                    Price: ${{ service.actual_price|number_format(2) }} | 
+                                                    Subtotal: ${{ (service.quantity * service.actual_price)|number_format(2) }}
+                                                </small>
+                                            </div>
+                                        {% endfor %}
+                                    {% else %}
+                                        <span class="text-muted">No services assigned</span>
+                                    {% endif %}
+                                </td>
+                                <td style="min-width: 150px;">
+                                    {% if suborder.payment_split_type == 1 %}
+                                        <span class="text-success">💳 100%</span>
+                                    {% elseif suborder.payment_split_type == 2 %}
+                                        <span class="text-primary">💳 {{ suborder.payment_split_percent_1 }}% / {{ suborder.payment_split_percent_2 }}%</span>
+                                    {% else %}
+                                        <span class="text-muted">N/A</span>
+                                    {% endif %}
+                                </td>
+                                <td style="min-width: 100px;">
+                                    {{ suborder.tax_percertance|number_format(2) }}%
+                                </td>
+                                <td style="min-width: 120px;">
+                                    <strong class="text-primary">${{ suborder.total_amount|number_format(2) }}</strong>
+                                </td>
+                                <td style="min-width: 120px;">
+                                    <span class="text-success">${{ suborder.amount_paid|number_format(2) }}</span>
+                                </td>
+                                <td style="min-width: 120px;">
+                                    {% if suborder.balance_due > 0 %}
+                                        <strong class="text-warning">${{ suborder.balance_due|number_format(2) }}</strong>
+                                    {% else %}
+                                        <span class="text-success">$0.00</span>
+                                    {% endif %}
+                                </td>
+                                <td style="min-width: 100px;">
+                                    {% if suborder.is_archived == 1 %}
+                                        <span class="badge bg-secondary">Archived</span>
+                                    {% else %}
+                                        <span class="badge bg-success">Active</span>
+                                    {% endif %}
+                                </td>
+                                <td style="min-width: 200px;">
+                                    {% if suborder.payment_token %}
+                                        <div class="d-grid gap-1">
+                                            <a href="{{ path('/order-access/suborder?token=' ~ suborder.payment_token) }}" target="_blank" class="btn btn-sm btn-outline-success">💰 Pay Suborder</a>
+                                            <button type="button" class="btn btn-sm btn-outline-info" onclick="copyPaymentLink('{{ path('/order-access/suborder?token=' ~ suborder.payment_token) }}')">📋 Copy Link</button>
+                                        </div>
+                                    {% else %}
+                                        <span class="text-muted">N/A</span>
+                                    {% endif %}
+                                </td>
+                                <td style="min-width: 160px;">
+                                    <div class="btn-group">
+                                        <a href="{{ path('/panel/planner-hub/orders/orders/files') }}?id={{ order.id }}" class="btn btn-sm btn-outline-secondary">📁 Files</a>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="text-center py-5">
+                <h4 class="text-muted">No sub-orders found</h4>
+                <p class="text-muted">This order doesn't have any sub-orders yet.</p>
+            </div>
+        {% endif %}
+    </div>
+</section>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function copyPaymentLink(url) {
+        navigator.clipboard.writeText(url).then(function() {
+            // Show a temporary success message
+            const btn = event.target;
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '✅ Copied!';
+            btn.classList.remove('btn-outline-info');
+            btn.classList.add('btn-success');
+            
+            setTimeout(function() {
+                btn.innerHTML = originalText;
+                btn.classList.remove('btn-success');
+                btn.classList.add('btn-outline-info');
+            }, 2000);
+        }).catch(function(err) {
+            console.error('Could not copy text: ', err);
+            alert('Could not copy link to clipboard');
+        });
+    }
+</script>
+{% endblock %}

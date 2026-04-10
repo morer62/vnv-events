@@ -1,0 +1,1018 @@
+{% extends 'templates/base.admin.twig' %}
+{% import 'templates/macros.twig' as macros %}
+
+{% block style %}
+    <style>
+        #clientInfoBox {
+            font-size: 0.9rem;
+            padding: 0.5rem;
+            background: #f8f9fa;
+            border-left: 4px solid #ccc;
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+{% if isSubOrder %}
+    <h2 class="mb-4">📋 Create Sub-Order for Order VNV 341{{ parentOrder.id }}</h2>
+{% else %}
+    <h2 class="mb-4">📋 Create New Order admin</h2>
+{% endif %}
+
+{{ macros.breadcrumb2() }}
+
+<a class="btn btn-dark mb-3" href="{{ path('panel/planner-hub/management/orders/orders/') }}" >
+    <i data-feather="plus"></i> Back to Orders and Estimates
+</a>
+
+{% if isSubOrder %}
+<div class="alert alert-info mb-4">
+    <h5>📋 Sub-Order Information</h5>
+    <p><strong>Parent Order:</strong> VNV 341{{ parentOrder.id }}</p>
+    <p><strong>Event Date:</strong> {{ parentOrder.event_date|date("l, M j, Y") }}</p>
+    <p><strong>Time:</strong> {{ parentOrder.start_time|date("g:i A") }} - {{ parentOrder.end_time|date("g:i A") }}</p>
+    <p><strong>Address:</strong> {{ parentOrder.address }}</p>
+    <p class="mb-0"><strong>Note:</strong> This sub-order will inherit the event details from the parent order. Only billing information can be modified.</p>
+</div>
+{% endif %}
+
+<section class="card">
+    <div class="card-body">
+        <form method="POST" id="orderForm">
+            <input type="hidden" name="user_local_timestamp" id="userLocalTimestamp">
+            
+            {% if isSubOrder %}
+                <input type="hidden" name="parent_order_id" value="{{ parentOrder.id }}">
+                <input type="hidden" name="id_client" value="{{ parentOrder.id_client }}">
+                <input type="hidden" name="event_date" value="{{ parentOrder.event_date|date("Y-m-d") }}">
+                <input type="hidden" name="address" value="{{ parentOrder.address }}">
+                <input type="hidden" name="hour_start" value="{{ parentOrder.start_time }}">
+                <input type="hidden" name="hour_end" value="{{ parentOrder.end_time }}">
+                <input type="hidden" name="id_contract" value="{{ parentOrder.id_contract }}">
+                <input type="hidden" name="total_team_needed" value="{{ parentOrder.total_team_needed }}">
+            {% else %}
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Client Email <span class="text-danger">*</span></label>
+                            <div class="input-group mb-3">
+                                <input type="email" id="clientEmail" class="form-control" placeholder="Enter client email" list="clientOptions" oninput="handleEmailInput(this.value)" value="{{ prefillEmail ?? (prefillClient ? prefillClient.email : '') }}" required>
+                                <datalist id="clientOptions"></datalist>
+                                <button type="button" class="btn btn-outline-secondary" onclick="checkClientEmail()">Check</button>
+                            </div>
+                            <div id="clientInfoBox" class="mb-3"></div>
+                            <input type="hidden" name="id_client" id="id_client" required>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Event Date <span class="text-danger">*</span></label> 
+                        <input type="date" name="event_date" class="form-control" required min="{{ "now"|date("Y-m-d") }}">
+                    </div>
+
+                    <input type="hidden" name="total_team_needed" value="2">
+
+                    <div class="col-md-3">
+                        <label class="form-label">Contract <span class="text-danger">*</span></label>
+                        {% if contracts is empty %}
+                                <div class="alert alert-warning">
+                                    ⚠️ No contracts available.
+                                    <a href="{{ path('panel/planner-hub/management/orders/contracts/create') }}" class="btn btn-sm btn-outline-primary ms-2">➕ Create Contract</a>
+                                </div>
+                            {% else %}
+                                <select name="id_contract" class="form-select" required>
+                                    <option value="">Select Contract</option>
+                                    {% for contract in contracts %}
+                                        <option value="{{ contract.id }}">{{ contract.title }}</option>
+                                    {% endfor %}
+                                </select>
+                            {% endif %}
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Address <span class="text-danger">*</span></label>
+                    <input type="text" name="address" class="form-control" data-places required>
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <label class="form-label">Start Time <span class="text-danger">*</span></label>
+                        <input type="time" name="hour_start" class="form-control" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">End Time <span class="text-danger">*</span></label>
+                        <input type="time" name="hour_end" class="form-control" required>
+                    </div>
+                </div>
+            {% endif %}
+
+           <h4 class="mb-3">🛠 Services</h4>
+            <div class="alert alert-info mb-3">
+                <i data-feather="info"></i>
+                <strong>Tip:</strong> Start typing the service name to see suggestions.
+            </div>
+            {% if services is empty %}
+                <div class="alert alert-warning">
+                    ⚠️ No services available.
+                    <a href="{{ path('panel/planner-hub/management/orders/services/create') }}" class="btn btn-sm btn-outline-primary ms-2">➕ Create Service</a>
+                </div>
+            {% else %}
+                <div id="servicesTable" class="mb-4">
+                    <input type="hidden" name="selectedServices" id="selectedServices" value="" />
+                    <div class="table-responsive">
+                        <table class="table table-bordered text-center align-middle" style="width: 100%; min-width: 600px;">
+                            <thead>
+                                <tr>
+                                    <th style="min-width: 200px;">Service</th>
+                                    <th style="min-width: 100px;">Qty</th>
+                                    <th style="min-width: 120px;">Subtotal</th>
+                                    <th style="min-width: 80px;">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="serviceRows">
+                            </tbody>
+                        </table>
+                    </div>
+                    <button type="button" class="btn btn-outline-primary" onclick="addServiceRow()">
+                        <i data-feather="plus"></i>Add Service
+                    </button>
+                </div>
+            {% endif %}
+
+            <div class="row mb-4">
+                <div class="col-md-4">
+                    <label class="form-label">Discount Type <span class="text-danger">*</span></label>
+                    <select name="discount_type" class="form-select" required>
+                        <option value="amount">$ Amount</option>
+                        <option value="percent">% Percentage</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Discount Value <span class="text-danger">*</span></label>
+                    <input type="number" step="0.01" name="discount_value" class="form-control" value="0" required>
+                </div>
+                <div class="col-md-4">
+                  <label class="form-label">Tax & Processing Fee (%) <span class="text-danger">*</span></label>
+                    <input type="number" step="0.01" name="tax_percentage" required class="form-control" value="0">
+                </div>
+            </div>
+
+            <div class="row mb-4">
+                <div class="col-md-4">
+                    <label class="form-label">💵 Tip (Optional)</label>
+                    <select name="id_tip" class="form-select" id="tipSelect">
+                        <option value="">No Tip</option>
+                        {% for tip in tips %}
+                            {% if tip.is_active == 1 %}
+                                <option value="{{ tip.id }}" data-percentage="{{ tip.percentage }}">{{ tip.percentage }}%</option>
+                            {% endif %}
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <label class="form-label">📝 Event Notes</label>
+                <textarea name="notes" class="form-control" rows="10" placeholder="Playlist, schedule, timeline, speeches, and event details..."></textarea>
+            </div>
+
+            <div class="row mb-4">
+                <div class="col-md-3 offset-md-9">
+                    <label class="form-label fw-bold">Total</label>
+                    <input type="text" id="totalAmount" class="form-control fw-bold" readonly>
+                </div>
+            </div>
+
+            <div class="mt-3">
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5>💳 Payment Type</h5>
+                    <p class="text-muted small">
+                    ⚠️ This setting cannot be changed later.
+                    </p>
+
+                    <div class="mb-3">
+                    <label class="form-label">Select how you want to collect payment:</label>
+                    <select name="payment_split_type" class="form-select" id="paymentSplitSelect" required>
+                        <option value="1" selected>One-time payment (100%)</option>
+                        <option value="2">Split payment (e.g. 50/50 or 80/20)</option>
+                    </select>
+                    </div>
+
+                    <div class="row g-3" id="splitFields" style="display:none;">
+                    <div class="col-md-6">
+                        <label class="form-label">First Payment (%)</label>
+                        <input type="number" name="payment_split_percent_1" class="form-control" min="1" max="99" value="50">
+                    </div>
+                    <div class="col-md-6">
+                    <label class="form-label">Second Payment (%)</label>
+                    <input type="number" name="payment_split_percent_2" id="secondPaymentPercent" class="form-control" readonly value="50">
+                    </div>
+                    </div>
+                </div>
+</div>
+
+                {% if not isSubOrder %}
+                <div class="form-check mb-3">
+                    <input class="form-check-input" type="checkbox" value="1" id="addToCalendarAfterSave" name="add_to_calendar">
+                    <label class="form-check-label" for="addToCalendarAfterSave">
+                        📅 Add to client's Google Calendar after saving
+                    </label>
+                </div>
+                {% endif %}
+
+                <button class="btn btn-primary">Save Order</button>
+                {{ macros.back_btn(title="Cancel") }}
+            </div>
+        </form>
+    </div>
+</section>
+
+<!-- Modal para precio variable -->
+<div class="modal fade" id="priceModal" tabindex="-1" aria-labelledby="priceModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="priceModalLabel">Set Service Price</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label">Service Name</label>
+                    <input type="text" id="modalServiceName" class="form-control" readonly>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Price ($)</label>
+                    <input type="number" id="modalPrice" class="form-control" step="0.01" min="0.01" placeholder="0.00">
+                    <div class="invalid-feedback" id="priceError">
+                        Please enter a valid price greater than 0.
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="confirmPrice">Confirm Price</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de validación -->
+<div class="modal fade" id="validationModal" tabindex="-1" aria-labelledby="validationModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="validationModalLabel">⚠️ Missing Required Fields</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p id="validationMessage"></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">OK</button>
+            </div>
+        </div>
+    </div>
+</div>
+<style>
+
+
+    .service-dropdown {
+        border: 1px solid #dee2e6;
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+        border-radius: 0.375rem;
+        background: white;
+        max-height: 200px;
+        overflow-y: auto;
+        display: none;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        z-index: 1000;
+    }
+
+    .service-dropdown .dropdown-item {
+        transition: background-color 0.15s ease-in-out;
+        border-bottom: 1px solid #f8f9fa;
+        padding: 0.5rem 0.75rem;
+        cursor: pointer;
+    }
+
+    .service-dropdown .dropdown-item:hover {
+        background-color: #f8f9fa !important;
+    }
+
+    .service-dropdown .dropdown-item:last-child {
+        border-bottom: none !important;
+    }
+
+    .position-relative {
+        position: relative !important;
+    }
+    
+
+
+    .modal-backdrop {
+        z-index: 1040;
+    }
+
+    .modal {
+        z-index: 1050;
+    }
+
+    #priceModal .modal-dialog {
+        max-width: 500px;
+    }
+
+    #priceModal .form-control:focus {
+        border-color: #198754;
+        box-shadow: 0 0 0 0.2rem rgba(25, 135, 84, 0.25);
+    }
+
+    #priceModal .btn-primary {
+        background-color: #198754;
+        border-color: #198754;
+    }
+
+    #priceModal .btn-primary:hover {
+        background-color: #157347;
+        border-color: #146c43;
+    }
+
+    #priceModal.show {
+        display: block !important;
+    }
+
+    .modal-backdrop.show {
+        opacity: 0.5;
+    }
+
+    .modal-backdrop {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background-color: rgba(0, 0, 0, 0.5);
+        z-index: 1040;
+    }
+
+    #priceModal.show + .modal-backdrop {
+        display: block;
+    }
+</style>
+{% endblock %}
+ 
+{% block scripts %}
+<script>
+    let selectedServices = [];
+    const availableServices = JSON.parse('{{ services|json_encode|escape("js") }}').sort((a, b) => a.name.localeCompare(b.name));
+    let nextServiceIndex = 0;
+
+    const num = (v) => parseFloat(String(v).replace(',', '.')) || 0;
+
+    function addServiceRow() {
+        const row = document.createElement("tr");
+        row.className = "service-row";
+
+        const serviceContainer = document.createElement("div");
+        serviceContainer.className = "position-relative";
+
+        const serviceInput = document.createElement("input");
+        serviceInput.type = "text";
+        serviceInput.className = "form-control service-input";
+        serviceInput.name = "services[][service_name]";
+        serviceInput.placeholder = "Type service name...";
+        serviceInput.setAttribute("data-service-id", "");
+        serviceInput.setAttribute("data-price", "");
+        serviceInput.setAttribute("data-is-variable", "NO");
+        serviceInput.setAttribute("data-variable-price", "");
+        
+        serviceInput.addEventListener("input", function() { 
+            this.style.borderColor = "";
+            handleServiceSearch(this); 
+        });
+        serviceInput.addEventListener("focus", function() { 
+            showServiceDropdown(this); 
+        });
+        serviceInput.addEventListener("blur", function() { 
+            setTimeout(() => hideServiceDropdown(this), 300); 
+        });
+
+        const dropdown = document.createElement("div");
+        dropdown.className = "service-dropdown";
+        dropdown.style.display = "none";
+
+        serviceContainer.appendChild(serviceInput);
+        serviceContainer.appendChild(dropdown);
+
+        const qtyInput = document.createElement("input");
+        qtyInput.type = "number";
+        qtyInput.name = "services[][quantity]";
+        qtyInput.className = "form-control qty-input";
+        qtyInput.value = 1;
+        qtyInput.min = 1;
+        qtyInput.addEventListener("input", updateSubtotal);
+
+        const subtotalInput = document.createElement("input");
+        subtotalInput.name = "services[][subtotal]";
+        subtotalInput.className = "form-control subtotal-input";
+        subtotalInput.readOnly = true;
+        subtotalInput.value = "0.00";
+
+        const removeBtn = document.createElement("button");
+        removeBtn.type = "button";
+        removeBtn.className = "btn btn-danger btn-sm remove-service-btn";
+        removeBtn.innerHTML = "❌";
+        removeBtn.addEventListener("click", function() { 
+            row.remove(); 
+            updateSubtotal(); 
+        });
+
+        const sCell = document.createElement("td"); 
+        sCell.appendChild(serviceContainer);
+        const qCell = document.createElement("td"); 
+        qCell.appendChild(qtyInput);
+        const stCell = document.createElement("td"); 
+        stCell.appendChild(subtotalInput);
+        const rCell = document.createElement("td"); 
+        rCell.appendChild(removeBtn);
+
+        row.append(sCell, qCell, stCell, rCell);
+        document.getElementById("serviceRows").appendChild(row);
+        
+        updateSubtotal();
+        serviceInput.focus();
+    }
+
+    function handleServiceSearch(input) {
+        const searchTerm = input.value.toLowerCase();
+        const dropdown = input.parentNode.querySelector('.service-dropdown');
+        
+        if (searchTerm.length < 1) {
+            hideServiceDropdown(input);
+            return;
+        }
+
+        const filteredServices = availableServices.filter(service => 
+            service.name.toLowerCase().includes(searchTerm)
+        );
+
+        showServiceDropdown(input, filteredServices);
+    }
+
+    function showServiceDropdown(input, filteredServices = null) {
+        const dropdown = input.parentNode.querySelector('.service-dropdown');
+        const searchTerm = input.value.toLowerCase();
+        
+        if (!filteredServices) {
+            filteredServices = availableServices.filter(service => 
+                service.name.toLowerCase().includes(searchTerm)
+            );
+        }
+
+        if (filteredServices.length === 0) {
+            dropdown.innerHTML = '<div class="dropdown-item p-2 text-muted">No se encontraron servicios que coincidan con "' + searchTerm + '"</div>';
+            dropdown.style.display = "block";
+            return;
+        }
+
+        dropdown.innerHTML = '';
+        filteredServices.forEach(service => {
+            const item = document.createElement("div");
+            item.className = "dropdown-item p-2 border-bottom";
+            item.style.cursor = "pointer";
+            
+            const priceDisplay = service.is_variable === 'YES' 
+                ? `<span class="text-warning">Variable Price</span>` 
+                : `$${service.price}`;
+                
+            item.innerHTML = `
+                <div class="fw-bold">${service.name}</div>
+                <small class="text-muted">${priceDisplay} - ${service.description || 'Sin descripción'}</small>
+               
+            `;
+            
+            item.addEventListener("click", function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                selectService(input, service);
+            });
+            
+            dropdown.appendChild(item);
+        });
+        
+        dropdown.style.display = "block";
+    }
+
+    function hideServiceDropdown(input) {
+        const dropdown = input.parentNode.querySelector('.service-dropdown');
+        if (dropdown) {
+            dropdown.style.display = "none";
+        }
+    }
+
+    function confirmVariablePrice() {
+        const priceInput = document.getElementById('modalPrice');
+        const price = parseFloat(priceInput.value) || 0;
+        
+        if (price <= 0) {
+            priceInput.classList.add('is-invalid');
+            return;
+        }
+        
+        if (isNaN(price)) {
+            priceInput.classList.add('is-invalid');
+            return;
+        }
+        
+        priceInput.classList.remove('is-invalid');
+        
+        if (currentServiceInput && currentService) {
+            currentServiceInput.value = `${currentService.name} ($${price})`;
+            currentServiceInput.setAttribute("data-service-id", currentService.id);
+            currentServiceInput.setAttribute("data-price", price);
+            currentServiceInput.setAttribute("data-is-variable", "YES");
+            currentServiceInput.setAttribute("data-variable-price", price);
+            currentServiceInput.readOnly = true;
+            
+            currentServiceInput.style.borderColor = "#198754";
+            hideServiceDropdown(currentServiceInput);
+            updateSubtotal();
+        }
+        
+        try {
+            const modal = bootstrap.Modal.getInstance(document.getElementById('priceModal'));
+            if (modal) {
+                modal.hide();
+            } else {
+                const modalElement = document.getElementById('priceModal');
+                modalElement.classList.remove('show');
+                modalElement.style.display = 'none';
+                modalElement.setAttribute('aria-hidden', 'true');
+            }
+        } catch (error) {
+            const modalElement = document.getElementById('priceModal');
+            modalElement.classList.remove('show');
+            modalElement.style.display = 'none';
+            modalElement.setAttribute('aria-hidden', 'true');
+        }
+        
+        currentServiceInput = null;
+        currentService = null;
+    }
+
+    let currentServiceInput = null;
+    let currentService = null;
+
+    function selectService(input, service) {
+        if (service.is_variable === 'YES') {
+            currentServiceInput = input;
+            currentService = service;
+            
+            document.getElementById('modalServiceName').value = service.name;
+            document.getElementById('modalPrice').value = '';
+            document.getElementById('modalPrice').classList.remove('is-invalid');
+            
+            try {
+                const modal = new bootstrap.Modal(document.getElementById('priceModal'));
+                modal.show();
+            } catch (error) {
+                const modalElement = document.getElementById('priceModal');
+                if (modalElement) {
+                    modalElement.classList.add('show');
+                    modalElement.style.display = 'block';
+                    modalElement.setAttribute('aria-hidden', 'false');
+                }
+            }
+        } else {
+            input.value = `${service.name} ($${service.price})`;
+            input.setAttribute("data-service-id", service.id);
+            input.setAttribute("data-price", service.price);
+            input.setAttribute("data-is-variable", "NO");
+            input.setAttribute("data-variable-price", "");
+            input.readOnly = true;
+            
+            input.style.borderColor = "#198754";
+            hideServiceDropdown(input);
+            updateSubtotal();
+        }
+    }
+
+    function updateSubtotal() {
+let subtotalServicios = 0;
+        selectedServices = [];
+
+        document.querySelectorAll("#serviceRows tr").forEach((row, index) => {
+            const serviceInput = row.querySelector(".service-input");
+            const serviceId = serviceInput?.getAttribute("data-service-id");
+            const price = num(serviceInput?.getAttribute("data-price") || 0);
+            const qty = parseInt(row.querySelector(".qty-input")?.value) || 0;
+            const subtotalInput = row.querySelector(".subtotal-input");
+            const isVariable = serviceInput?.getAttribute("data-is-variable") === "YES";
+            const variablePrice = num(serviceInput?.getAttribute("data-variable-price") || 0);
+
+            if (!serviceId || serviceId.trim() === "") {
+                if (serviceInput) {
+                    serviceInput.style.borderColor = "#dc3545";
+                }
+                if (subtotalInput) {
+                    subtotalInput.value = "0.00";
+                }
+                return;
+            } else {
+                if (serviceInput) {
+                    serviceInput.style.borderColor = "#198754";
+                }
+            }
+
+            if (!price) {
+                if (subtotalInput) {
+                    subtotalInput.value = "0.00";
+                }
+                return;
+            }
+
+            const subtotal = qty * price;
+            if (subtotalInput) {
+                subtotalInput.value = subtotal.toFixed(2);
+            }
+            subtotalServicios += subtotal;
+
+            selectedServices.push({ 
+                service: serviceId, 
+                qty, 
+                subtotal,
+                is_variable: isVariable ? "YES" : "NO",
+                variable_price: isVariable ? variablePrice : null
+            });
+        });
+
+        const discountType = document.querySelector('select[name="discount_type"]')?.value || "amount";
+        const discountValue = num(document.querySelector('input[name="discount_value"]')?.value || 0);
+        const descuento = (discountType === 'amount')
+            ? discountValue
+            : subtotalServicios * (discountValue / 100);
+
+        const base = Math.max(subtotalServicios - descuento, 0);
+
+        const taxRate = num(document.querySelector('input[name="tax_percentage"]')?.value || 0);
+        const tax = base * (taxRate / 100);
+
+        const tipSelect = document.getElementById("tipSelect");
+        const tipPercentage = tipSelect?.options[tipSelect.selectedIndex]?.getAttribute("data-percentage") || 0;
+        const tipAmount = base * (num(tipPercentage) / 100);
+
+        const grandTotal = base + tax + tipAmount;
+
+        const totalElement = document.getElementById("totalAmount");
+        if (totalElement) {
+            totalElement.value = "$" + grandTotal.toFixed(2);
+        }
+        
+        const selectedServicesElement = document.getElementById("selectedServices");
+        if (selectedServicesElement) {
+            selectedServicesElement.value = JSON.stringify(selectedServices);
+        }
+    }
+
+    function setupPaymentSplit() {
+        const paymentSplit = document.getElementById("paymentSplitSelect");
+        const splitFields = document.getElementById("splitFields");
+        const firstInput = document.querySelector('input[name="payment_split_percent_1"]');
+        const secondInput = document.getElementById("secondPaymentPercent");
+
+        function toggleSplit() {
+            if (paymentSplit.value === "2") {
+                splitFields.style.display = "flex";
+                updateSecondInput();
+            } else {
+                splitFields.style.display = "none";
+            }
+        }
+
+        function updateSecondInput() {
+            const firstValue = parseInt(firstInput.value) || 0;
+            const secondValue = 100 - firstValue;
+            secondInput.value = (secondValue >= 0 && secondValue <= 100) ? secondValue : 0;
+        }
+
+        if (paymentSplit) {
+            paymentSplit.addEventListener("change", toggleSplit);
+        }
+        if (firstInput) {
+            firstInput.addEventListener("input", updateSecondInput);
+        }
+
+        toggleSplit();
+    }
+
+    function getBasePath() {
+        const path = window.location.pathname;
+        const segments = path.split('/');
+        const base = segments.length > 1 ? `/${segments[1]}` : '';
+        return base === '/panel' || base === '/api' ? '' : base;
+    }
+
+    function checkClientEmail() {
+        const email = document.getElementById("clientEmail").value;
+        const infoBox = document.getElementById("clientInfoBox");
+        if (!email) return;
+
+        infoBox.innerHTML = "🔍 Checking...";
+
+        fetch(`${getBasePath()}/api/clients/check?email=${encodeURIComponent(email)}`)
+            .then(res => res.json())
+            .then(data => {
+                if (data.exists) {
+                    if (data.is_linked) {
+                        infoBox.innerHTML = `✅ Client found: <strong>${data.name}</strong><br>
+                            <small>${data.email} - ${data.phone}</small>`;
+                        document.getElementById("id_client").value = data.id;
+                    } else {
+                        infoBox.innerHTML = `
+                            ⚠️ This client exists but is not linked to your account.<br>
+                            <strong>${data.name}</strong><br>
+                            <small>${data.email} - ${data.phone}</small><br>
+                            <button type="button" class="btn btn-sm btn-outline-success mt-2" onclick="associateClient(${data.id})">🔗 Associate to My Account</button>
+                        `;
+                    }
+                } else {
+                    infoBox.innerHTML = `<span class="text-danger">❌ No client found.</span>
+                        <br>
+                        <a href="{{ base_url }}/panel/planner-hub/management/users/create" class="btn btn-sm btn-outline-primary mt-2">
+                            ➕ Create New Client
+                        </a>`;
+                }
+            })
+        .catch(error => {
+            infoBox.innerHTML = `<span class="text-danger">❌ Error checking client. Please try again.</span>`;
+        });
+    }
+
+    function associateClient(clientId) {
+        fetch(`${getBasePath()}/api/clients/associate`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ id: clientId })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                document.getElementById("clientInfoBox").innerHTML = `
+                    ✅ Client associated successfully.<br>
+                    <strong>${data.name} ${data.lastname}</strong><br>
+                    <small>${data.email} - ${data.phone}</small>
+                `;
+                document.getElementById("id_client").value = data.id;
+            } else {
+                document.getElementById("clientInfoBox").innerHTML = `❌ ${data.message}`;
+            }
+        })
+        .catch(error => {
+            document.getElementById("clientInfoBox").innerHTML = `❌ Error associating client. Please try again.`;
+        });
+    }
+
+    function setupFormValidation() {
+        const form = document.getElementById("orderForm");
+        if (!form) return;
+
+        form.addEventListener("submit", function (e) {
+            e.preventDefault();
+            
+            const missingFields = [];
+            const isSubOrder = document.querySelector('input[name="parent_order_id"]') !== null;
+            
+            if (!isSubOrder) {
+                const clientId = document.getElementById("id_client")?.value;
+                if (!clientId || clientId.trim() === "") {
+                    missingFields.push("Client Email");
+                }
+
+                const eventDate = document.querySelector('input[name="event_date"]')?.value;
+                if (!eventDate) {
+                    missingFields.push("Event Date");
+                }
+
+                const contract = document.querySelector('select[name="id_contract"]')?.value;
+                if (!contract) {
+                    missingFields.push("Contract");
+                }
+
+                const address = document.querySelector('input[name="address"]')?.value;
+                if (!address || address.trim() === "") {
+                    missingFields.push("Address");
+                }
+
+                const startTime = document.querySelector('input[name="hour_start"]')?.value;
+                if (!startTime) {
+                    missingFields.push("Start Time");
+                }
+
+                const endTime = document.querySelector('input[name="hour_end"]')?.value;
+                if (!endTime) {
+                    missingFields.push("End Time");
+                }
+            }
+
+            const discountType = document.querySelector('select[name="discount_type"]').value;
+            if (!discountType) {
+                missingFields.push("Discount Type");
+            }
+
+            const discountValue = document.querySelector('input[name="discount_value"]').value;
+            if (!discountValue || discountValue.trim() === "") {
+                missingFields.push("Discount Value");
+            }
+
+            const taxPercentage = document.querySelector('input[name="tax_percentage"]').value;
+            if (!taxPercentage || taxPercentage.trim() === "") {
+                missingFields.push("Tax & Processing Fee");
+            }
+
+            const serviceRows = document.querySelectorAll("#serviceRows tr");
+            let invalidServiceCount = 0;
+            
+            serviceRows.forEach((row, index) => {
+                const serviceInput = row.querySelector(".service-input");
+                const serviceId = serviceInput?.getAttribute("data-service-id");
+                const isVariable = serviceInput?.getAttribute("data-is-variable") === "YES";
+                const variablePrice = parseFloat(serviceInput?.getAttribute("data-variable-price") || 0);
+                
+                if (!serviceId || serviceId.trim() === "") {
+                    invalidServiceCount++;
+                    serviceInput.style.borderColor = "#dc3545";
+                } else if (isVariable && variablePrice <= 0) {
+                    invalidServiceCount++;
+                    serviceInput.style.borderColor = "#dc3545";
+                } else {
+                    serviceInput.style.borderColor = "";
+                }
+            });
+
+            if (invalidServiceCount > 0) {
+                missingFields.push(`${invalidServiceCount} Service(s) need to be completed`);
+            }
+
+            if (serviceRows.length === 0) {
+                missingFields.push("At least one Service must be added");
+            }
+
+            if (missingFields.length > 0) {
+                const message = "The following required fields are empty:<br><br>" + 
+                    missingFields.map(field => "• " + field).join("<br>");
+                
+                document.getElementById("validationMessage").innerHTML = message;
+                
+                const modalElement = document.getElementById('validationModal');
+                
+                try {
+                    const modal = new bootstrap.Modal(modalElement);
+                    modal.show();
+                } catch (error) {
+                    modalElement.classList.add('show');
+                    modalElement.style.display = 'block';
+                    modalElement.setAttribute('aria-hidden', 'false');
+                    
+                    const backdrop = document.createElement('div');
+                    backdrop.className = 'modal-backdrop show';
+                    document.body.appendChild(backdrop);
+                }
+                return;
+            }
+
+            form.submit();
+        });
+    }
+
+    function setupEventListeners() {
+        const discountType = document.querySelector('select[name="discount_type"]');
+        const discountValue = document.querySelector('input[name="discount_value"]');
+        const taxPercentage = document.querySelector('input[name="tax_percentage"]');
+        const tipSelect = document.getElementById("tipSelect");
+        
+        if (discountType) discountType.addEventListener("change", updateSubtotal);
+        if (discountValue) discountValue.addEventListener("input", updateSubtotal);
+        if (taxPercentage) taxPercentage.addEventListener("input", updateSubtotal);
+        if (tipSelect) tipSelect.addEventListener("change", updateSubtotal);
+    }
+
+    document.addEventListener("DOMContentLoaded", function () {
+        setupPaymentSplit();
+        setupFormValidation();
+        setupEventListeners();
+        setupModalEventListeners();
+        
+        setTimeout(() => {
+            updateSubtotal();
+        }, 500);
+
+        function setupTableScroll() {
+            const tableContainer = document.querySelector('#servicesTable .table-responsive');
+            if (tableContainer) {
+                tableContainer.style.overflowX = 'auto';
+                tableContainer.style.overflowY = 'visible';
+                tableContainer.style.webkitOverflowScrolling = 'touch';
+                tableContainer.style.display = 'block';
+                tableContainer.style.width = '100%';
+                
+                const table = tableContainer.querySelector('table');
+                if (table) {
+                    table.style.minWidth = '1000px';
+                    table.style.whiteSpace = 'nowrap';
+                    table.style.width = 'auto';
+                    
+                    const headers = table.querySelectorAll('th');
+                    const cells = table.querySelectorAll('td');
+                    
+                    headers.forEach((th, idx) => {
+                        if (idx === 0) th.style.minWidth = '300px';
+                        if (idx === 1) th.style.minWidth = '100px';
+                        if (idx === 2) th.style.minWidth = '150px';
+                        if (idx === 3) th.style.minWidth = '120px';
+                    });
+                    
+                    cells.forEach((td, idx) => {
+                        const colIdx = idx % 4;
+                        if (colIdx === 0) { 
+                            td.style.minWidth = '300px';
+                            td.style.position = 'relative';
+                        }
+                        if (colIdx === 1) td.style.minWidth = '100px';
+                        if (colIdx === 2) td.style.minWidth = '150px';
+                        if (colIdx === 3) td.style.minWidth = '120px';
+                    });
+                }
+            }
+        }
+
+        setupTableScroll();
+        
+        const observer = new MutationObserver(setupTableScroll);
+        const serviceRows = document.getElementById('serviceRows');
+        if (serviceRows) {
+            observer.observe(serviceRows, { childList: true, subtree: true });
+        }
+
+        const emailInput = document.getElementById('clientEmail');
+        if (emailInput && emailInput.value && emailInput.value.trim() !== '') {
+            try { checkClientEmail(); } catch (e) {}
+        }
+    });
+
+    function setupModalEventListeners() {
+        document.getElementById('confirmPrice').addEventListener('click', confirmVariablePrice);
+        
+        document.getElementById('modalPrice').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                confirmVariablePrice();
+            }
+        });
+        
+        document.getElementById('modalPrice').addEventListener('input', function() {
+            this.classList.remove('is-invalid');
+        });
+
+        document.querySelectorAll('[data-bs-dismiss="modal"]').forEach(button => {
+            button.addEventListener('click', function() {
+                closeModal();
+            });
+        });
+
+        document.getElementById('priceModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeModal();
+            }
+        });
+    }
+
+    function closeModal() {
+        const modalElement = document.getElementById('priceModal');
+        modalElement.classList.remove('show');
+        modalElement.style.display = 'none';
+        modalElement.setAttribute('aria-hidden', 'true');
+        
+        const priceInput = document.getElementById('modalPrice');
+        priceInput.classList.remove('is-invalid');
+        
+        currentServiceInput = null;
+        currentService = null;
+    }
+
+    window.addServiceRow = addServiceRow;
+    window.checkClientEmail = checkClientEmail;
+    window.associateClient = associateClient;
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const now = new Date();
+        const timestamp = now.getFullYear() + '-' + 
+            String(now.getMonth() + 1).padStart(2, '0') + '-' + 
+            String(now.getDate()).padStart(2, '0') + ' ' + 
+            String(now.getHours()).padStart(2, '0') + ':' + 
+            String(now.getMinutes()).padStart(2, '0') + ':' + 
+            String(now.getSeconds()).padStart(2, '0');
+        
+        document.getElementById('userLocalTimestamp').value = timestamp;
+    });
+</script>
+{% endblock %}

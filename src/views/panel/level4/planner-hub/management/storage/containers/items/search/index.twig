@@ -1,0 +1,51 @@
+{% extends 'templates/base.admin.twig' %}
+
+{% block body %}
+<h1 class="h3 mb-4 text-center">🔎 Search Items</h1>
+
+<form method="get" class="mb-4">
+    <div class="row justify-content-center">
+        <div class="col-12 col-md-6">
+            <div class="input-group input-group-lg">
+                <input type="text" class="form-control" name="q" placeholder="Search item name..." value="{{ term }}">
+                <button class="btn btn-dark" type="submit">
+                    <i data-feather="search"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+</form>
+
+{% if term %}
+    <h5 class="text-center mt-4">Search results for: "<strong>{{ term }}</strong>"</h5>
+
+    <div class="table-responsive mt-3">
+        <table class="table table-bordered text-center align-middle" style="min-width: 500px;">
+            <thead>
+                <tr>
+                    <th>Container</th>
+                    <th>Item Name</th>
+                    <th>Quantity</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in results %}
+                    <tr>
+                        <td>
+                            <a href="{{ path('panel/planner-hub/management/storage/containers/items', { container_id: item.container_id }) }}">
+                                {{ item.container_name }}
+                            </a>
+                        </td>
+                        <td>{{ item.item_name }}</td>
+                        <td>{{ item.quantity }}</td>
+                    </tr>
+                {% else %}
+                    <tr>
+                        <td colspan="3" class="text-muted">No matching items found.</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endif %}
+{% endblock %}

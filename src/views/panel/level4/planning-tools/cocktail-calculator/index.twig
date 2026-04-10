@@ -1,0 +1,163 @@
+{% extends 'templates/base.admin.twig' %}
+{% import 'templates/macros.twig' as macros %}
+
+{% block body %}
+<main class="mt-4">
+ 
+ 
+<div class="container cocktail-calculator">
+  <h2 class="mb-4 text-2xl font-semibold">🍸 Cocktail Calculator for Events</h2>
+     {{ macros.breadcrumb2() }}
+
+  <div class="form-group mb-2">
+    <label for="cocktail" class="font-medium">Choose a cocktail:</label>
+    <select id="cocktail" class="form-select rounded w-full p-2 border border-gray-300">
+      <option value="">-- Select a cocktail --</option>
+    </select>
+  </div>
+
+ 
+  <div id="result" class="bg-gray-100 p-4 rounded mb-2 hidden"></div>
+
+  <div class="form-group mb-2">
+    <label for="quantity" class="font-medium">How many drinks will you serve?</label>
+    <input type="number" id="quantity" class="form-input rounded w-full p-2 border border-gray-300" min="1" placeholder="Enter number of servings">
+  </div>
+
+ 
+<button onclick="calculateNeeds()" style="background-color:#1abc9c; color:white; padding:10px 20px; border:none; border-radius:5px; font-weight:600; cursor:pointer;">
+  🍹 Calculate Ingredients
+</button>
+
+  <div id="event-output" class="bg-gray-100 p-4 rounded mt-3 hidden"></div>
+</div>
+</main>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Pega aquí el objeto grande de cócteles
+const cocktails = {
+       "Margarita": { ingredients: { tequila: 50, tripleSec: 25, limeJuice: 25 }, description: "50ml Tequila, 25ml Triple Sec, 25ml lime juice. Shake with ice and serve in a salt-rimmed glass.", extras: { lime: 0.25, ice: 100 } },
+       "Mojito": { ingredients: { whiteRum: 50, limeJuice: 25, sugar: 10, sodaWater: 100 }, description: "50ml White Rum, 25ml lime juice, 10g sugar, mint leaves, topped with soda water.", extras: { mint: 5, lime: 0.25, ice: 150 } },
+  "Moscow Mule": { ingredients: { vodka: 50, limeJuice: 25, gingerBeer: 100 }, description: "50ml Vodka, 25ml lime juice, topped with ginger beer. Serve in a copper mug.", extras: { lime: 0.25, ice: 150 } },
+  "Old Fashioned": { ingredients: { whiskey: 60, sugar: 5, bitters: 2 }, description: "60ml Whiskey, 1 sugar cube, 2 dashes of bitters. Stirred with ice and garnished with orange peel.", extras: { orange: 0.25, ice: 100 } },
+  "Manhattan": { ingredients: { whiskey: 50, vermouth: 20, bitters: 2 }, description: "50ml Whiskey, 20ml sweet vermouth, 2 dashes of bitters. Stirred with ice and strained.", extras: { cherry: 1, ice: 100 } },
+  "Whiskey Sour": { ingredients: { whiskey: 50, lemonJuice: 25, sugar: 15 }, description: "50ml Whiskey, 25ml lemon juice, 15ml sugar syrup. Shake with ice and strain.", extras: { lemon: 0.25, ice: 100 } },
+  "Daiquiri": { ingredients: { whiteRum: 50, limeJuice: 25, sugar: 15 }, description: "50ml White Rum, 25ml lime juice, 15ml sugar syrup. Shake and strain.", extras: { lime: 0.25, ice: 100 } },
+  "Piña Colada": { ingredients: { whiteRum: 50, coconutCream: 30, pineappleJuice: 60 }, description: "50ml Rum, 30ml coconut cream, 60ml pineapple juice. Blend with ice.", extras: { pineapple: 0.25, ice: 200 } },
+  "Cosmopolitan": { ingredients: { vodka: 45, tripleSec: 15, cranberryJuice: 30, limeJuice: 15 }, description: "45ml Vodka, 15ml Triple Sec, 30ml cranberry juice, 15ml lime juice. Shake and strain.", extras: { lime: 0.25, ice: 100 } },
+  "Tequila Sunrise": { ingredients: { tequila: 50, orangeJuice: 100, grenadine: 10 }, description: "50ml Tequila, 100ml orange juice, float of grenadine. Serve with ice.", extras: { orange: 0.25, ice: 150 } },
+  "Americano": { ingredients: { campari: 30, vermouth: 30, sodaWater: 60 }, description: "30ml Campari, 30ml sweet vermouth, topped with soda water. Serve over ice with orange slice.", extras: { orange: 0.25, ice: 150 } },
+"Aperol Spritz": { ingredients: { aperol: 60, prosecco: 90, sodaWater: 30 }, description: "60ml Aperol, 90ml Prosecco, splash of soda water. Serve over ice.", extras: { orange: 0.25, ice: 150 } },
+"B-52": { ingredients: { kahlua: 20, baileys: 20, tripleSec: 20 }, description: "Layered shot: 20ml Kahlua, 20ml Baileys, 20ml Triple Sec. Carefully layer in a shot glass.", extras: { ice: 0 } },
+"Bay Breeze": { ingredients: { vodka: 50, cranberryJuice: 50, pineappleJuice: 50 }, description: "50ml Vodka, equal parts cranberry and pineapple juice. Serve over ice.", extras: { pineapple: 0.25, ice: 150 } },
+"Bee's Knees": { ingredients: { gin: 50, lemonJuice: 25, honeySyrup: 15 }, description: "50ml Gin, 25ml lemon juice, 15ml honey syrup. Shake with ice and strain.", extras: { lemon: 0.25, ice: 100 } },
+"Black Russian": { ingredients: { vodka: 50, kahlua: 25 }, description: "50ml Vodka, 25ml Kahlua. Stir and serve over ice.", extras: { ice: 100 } },
+"Bloody Mary": { ingredients: { vodka: 50, tomatoJuice: 100, lemonJuice: 15, tabasco: 1 }, description: "50ml Vodka, 100ml tomato juice, 15ml lemon juice, dashes of Tabasco and Worcestershire sauce.", extras: { lemon: 0.25, celery: 1, ice: 100 } },
+"Blue Lagoon": { ingredients: { vodka: 50, blueCuracao: 20, lemonade: 100 }, description: "50ml Vodka, 20ml Blue Curaçao, topped with lemonade. Serve over ice.", extras: { lemon: 0.25, ice: 150 } },
+"Boulevardier": { ingredients: { bourbon: 30, campari: 30, vermouth: 30 }, description: "30ml Bourbon, 30ml Campari, 30ml sweet vermouth. Stirred with ice.", extras: { orange: 0.25, ice: 100 } },
+"Brandy Alexander": { ingredients: { brandy: 30, cremeDeCacao: 30, cream: 30 }, description: "30ml Brandy, 30ml dark crème de cacao, 30ml cream. Shake with ice and strain.", extras: { nutmeg: 1, ice: 0 } },
+"Caipirinha": { ingredients: { cachaca: 50, lime: 0.5, sugar: 10 }, description: "Muddle 0.5 lime with sugar, add 50ml cachaça, stir with crushed ice.", extras: { ice: 150 } },
+
+"Champagne Cocktail": { ingredients: { champagne: 90, brandy: 10, sugar: 5, bitters: 2 }, description: "Sugar cube soaked with bitters, topped with 90ml Champagne and 10ml Brandy.", extras: { lemon: 0.25, ice: 0 } },
+"Clover Club": { ingredients: { gin: 50, lemonJuice: 20, raspberrySyrup: 15, eggWhite: 1 }, description: "Dry shake then wet shake gin, lemon juice, raspberry syrup, and egg white. Strain.", extras: { lemon: 0.25, ice: 100 } },
+"Cuba Libre": { ingredients: { rum: 50, cola: 100, limeJuice: 10 }, description: "50ml rum, splash of lime juice, topped with cola. Serve with ice.", extras: { lime: 0.25, ice: 150 } },
+"Dark 'n' Stormy": { ingredients: { darkRum: 50, gingerBeer: 100, limeJuice: 15 }, description: "50ml dark rum, 15ml lime juice, topped with ginger beer. Serve in a highball.", extras: { lime: 0.25, ice: 150 } },
+"Dry Martini": { ingredients: { gin: 60, vermouth: 10 }, description: "60ml Gin, 10ml dry vermouth. Stirred or shaken, served with olive or lemon twist.", extras: { olive: 1, ice: 100 } },
+"Espresso Martini": { ingredients: { vodka: 50, coffeeLiqueur: 25, espresso: 25 }, description: "50ml Vodka, 25ml coffee liqueur, 25ml fresh espresso. Shake with ice and strain.", extras: { coffeeBeans: 3, ice: 100 } },
+"Flaming Lamborghini": { ingredients: { sambuca: 30, blueCuracao: 30, baileys: 30, kahlua: 30 }, description: "Layer sambuca and blue curacao in a glass, ignite, and pour Baileys and Kahlua through a straw.", extras: { flame: true, ice: 0 } },
+"French 75": { ingredients: { gin: 30, lemonJuice: 15, sugar: 10, champagne: 60 }, description: "30ml Gin, 15ml lemon juice, 10ml sugar syrup, topped with Champagne.", extras: { lemon: 0.25, ice: 0 } },
+"French Martini": { ingredients: { vodka: 45, chambord: 15, pineappleJuice: 30 }, description: "Shake vodka, chambord, and pineapple juice with ice and strain into a martini glass.", extras: { pineapple: 0.25, ice: 100 } },
+"Gimlet": { ingredients: { gin: 60, limeJuice: 15, sugar: 10 }, description: "60ml Gin, 15ml lime juice, 10ml sugar syrup. Shake with ice and strain.", extras: { lime: 0.25, ice: 100 } },
+"Gin Fizz": { ingredients: { gin: 50, lemonJuice: 25, sugar: 15, sodaWater: 100 }, description: "50ml Gin, 25ml lemon juice, 15ml sugar syrup, topped with soda water.", extras: { lemon: 0.25, ice: 100 } },
+"Godfather": { ingredients: { whiskey: 35, amaretto: 35 }, description: "Equal parts whiskey and amaretto. Stirred and served over ice.", extras: { ice: 100 } },
+"Grasshopper": { ingredients: { cremeDeMenthe: 30, cremeDeCacao: 30, cream: 30 }, description: "30ml crème de menthe, 30ml crème de cacao, 30ml cream. Shake and strain.", extras: { mint: 1, ice: 0 } },
+"Greyhound": { ingredients: { vodka: 50, grapefruitJuice: 100 }, description: "50ml vodka, 100ml grapefruit juice. Serve with ice.", extras: { ice: 150 } },
+"Harvey Wallbanger": { ingredients: { vodka: 50, orangeJuice: 100, galliano: 15 }, description: "50ml vodka, 100ml orange juice, float 15ml Galliano on top. Serve with ice.", extras: { orange: 0.25, ice: 150 } },
+"Hemingway Daiquiri": { ingredients: { whiteRum: 50, grapefruitJuice: 30, limeJuice: 15, maraschino: 10 }, description: "Shake white rum, grapefruit juice, lime juice, and maraschino liqueur with ice and strain.", extras: { lime: 0.25, ice: 100 } },
+"Horse's Neck": { ingredients: { bourbon: 50, gingerAle: 100, bitters: 2 }, description: "50ml bourbon, 2 dashes bitters, topped with ginger ale. Garnish with long lemon peel.", extras: { lemon: 0.25, ice: 150 } },
+"Hot Toddy": { ingredients: { whiskey: 50, honey: 15, lemonJuice: 15, hotWater: 90 }, description: "Combine whiskey, honey, lemon juice in a mug, top with hot water. Stir gently.", extras: { lemon: 0.25, cinnamon: 1, ice: 0 } },
+"Hurricane": { ingredients: { whiteRum: 30, darkRum: 30, passionFruitJuice: 45, orangeJuice: 45, limeJuice: 15, grenadine: 15 }, description: "Shake all ingredients with ice, strain into hurricane glass.", extras: { orange: 0.25, cherry: 1, ice: 200 } },
+"Irish Coffee": { ingredients: { whiskey: 40, coffee: 90, sugar: 10, cream: 30 }, description: "40ml Irish whiskey, hot coffee, sugar, topped with lightly whipped cream.", extras: { coffee: 90, ice: 0 } },
+"John Collins": { ingredients: { bourbon: 50, lemonJuice: 25, sugar: 15, sodaWater: 100 }, description: "Shake bourbon, lemon juice, sugar syrup. Pour over ice and top with soda.", extras: { lemon: 0.25, ice: 150 } },
+"Kamikaze": { ingredients: { vodka: 30, tripleSec: 30, limeJuice: 30 }, description: "Equal parts vodka, triple sec, and lime juice. Shake and strain into a shot glass.", extras: { lime: 0.25, ice: 100 } },
+"Last Word": { ingredients: { gin: 20, limeJuice: 20, greenChartreuse: 20, maraschino: 20 }, description: "Equal parts gin, lime juice, green chartreuse, maraschino. Shake and strain.", extras: { lime: 0.25, ice: 100 } },
+"Long Island Iced Tea": { ingredients: { vodka: 15, gin: 15, rum: 15, tequila: 15, tripleSec: 15, lemonJuice: 25, cola: 60 }, description: "All liquors, lemon juice, and sugar shaken. Topped with cola.", extras: { lemon: 0.25, ice: 200 } },
+"Mai Tai": { ingredients: { whiteRum: 30, darkRum: 30, limeJuice: 15, tripleSec: 15, orgeat: 10 }, description: "Shake all ingredients, serve over crushed ice.", extras: { lime: 0.25, ice: 200 } },
+"Manhattan": { ingredients: { whiskey: 50, vermouth: 20, bitters: 2 }, description: "Stir whiskey, vermouth, and bitters with ice and strain into a chilled glass.", extras: { cherry: 1, ice: 100 } },
+"Matador": { ingredients: { tequila: 45, pineappleJuice: 90, limeJuice: 15 }, description: "Shake all with ice and strain into cocktail glass.", extras: { pineapple: 0.25, ice: 100 } },
+"Mezcal Margarita": { ingredients: { mezcal: 50, limeJuice: 25, agaveSyrup: 15 }, description: "Shake mezcal, lime juice, and agave syrup with ice and strain.", extras: { lime: 0.25, ice: 100 } },
+"Mint Julep": { ingredients: { bourbon: 60, sugar: 10, mint: 6 }, description: "Muddle mint and sugar, add bourbon, fill with crushed ice and stir.", extras: { mint: 6, ice: 200 } },
+"Negroni": { ingredients: { gin: 30, vermouth: 30, campari: 30 }, description: "Equal parts gin, sweet vermouth, and Campari. Stirred with ice and served on the rocks.", extras: { orange: 0.25, ice: 100 } },
+"Paloma": { ingredients: { tequila: 50, limeJuice: 15, grapefruitSoda: 100 }, description: "Shake tequila and lime, pour into glass with ice and top with grapefruit soda.", extras: { lime: 0.25, ice: 150 } },
+"Paper Plane": { ingredients: { bourbon: 30, aperol: 30, amaro: 30, lemonJuice: 30 }, description: "Shake all ingredients with ice and strain into a coupe glass.", extras: { lemon: 0.25, ice: 100 } },
+"Pisco Sour": { ingredients: { pisco: 50, limeJuice: 25, sugar: 20, eggWhite: 1 }, description: "Shake all ingredients first without ice, then with ice. Strain and garnish with bitters.", extras: { lime: 0.25, ice: 100 } },
+"Rum Punch": { ingredients: { rum: 45, orangeJuice: 60, pineappleJuice: 60, grenadine: 15 }, description: "Mix all and serve with ice.", extras: { orange: 0.25, pineapple: 0.25, ice: 200 } },
+"Rusty Nail": { ingredients: { scotch: 45, drambuie: 25 }, description: "Stir ingredients with ice in old fashioned glass.", extras: { ice: 100 } },
+"Salty Dog": { ingredients: { gin: 50, grapefruitJuice: 100 }, description: "Rim glass with salt, shake gin and grapefruit juice, serve over ice.", extras: { ice: 150 } },
+
+"Sazerac": { ingredients: { ryeWhiskey: 60, absinthe: 5, bitters: 2, sugar: 5 }, description: "Rinse glass with absinthe, stir rye, sugar, and bitters. Serve straight.", extras: { lemon: 0.25, ice: 0 } },
+"Sea Breeze": { ingredients: { vodka: 50, cranberryJuice: 100, grapefruitJuice: 50 }, description: "50ml vodka, 100ml cranberry juice, 50ml grapefruit juice. Serve with ice.", extras: { ice: 150 } },
+"Sex on the Beach": { ingredients: { vodka: 40, peachSchnapps: 20, orangeJuice: 50, cranberryJuice: 50 }, description: "Shake and serve over ice.", extras: { orange: 0.25, ice: 150 } },
+"Singapore Sling": { ingredients: { gin: 30, cherryHeering: 15, cointreau: 7.5, benedictine: 7.5, grenadine: 10, limeJuice: 10, pineappleJuice: 60, bitters: 1 }, description: "Shake all ingredients with ice and strain into highball glass.", extras: { cherry: 1, pineapple: 0.25, ice: 200 } },
+"Spritz Veneziano": { ingredients: { aperol: 60, prosecco: 90, sodaWater: 30 }, description: "Build in glass with ice. Garnish with orange.", extras: { orange: 0.25, ice: 150 } },
+"Stinger": { ingredients: { cognac: 50, whiteCremeDeMenthe: 20 }, description: "Shake with ice and strain into cocktail glass.", extras: { ice: 100 } },
+"Tequila Slammer": { ingredients: { tequila: 30, soda: 30 }, description: "Pour both in shot glass, slam on table and drink while fizzing.", extras: { ice: 0 } },
+
+"Tom Collins": { ingredients: { gin: 50, lemonJuice: 25, sugar: 15, sodaWater: 100 }, description: "Shake gin, lemon juice, and sugar syrup. Pour into glass and top with soda.", extras: { lemon: 0.25, ice: 150 } },
+"Vesper Martini": { ingredients: { gin: 60, vodka: 15, lillet: 7.5 }, description: "Shake with ice and strain into a chilled martini glass. Garnish with lemon twist.", extras: { lemon: 0.25, ice: 100 } },
+"Vodka Martini": { ingredients: { vodka: 60, vermouth: 10 }, description: "Stir with ice and strain into a martini glass. Garnish with olive or lemon twist.", extras: { olive: 1, ice: 100 } },
+
+    };
+
+const cocktailSelect = document.getElementById("cocktail");
+const resultDiv = document.getElementById("result");
+const outputDiv = document.getElementById("event-output");
+
+for (let name in cocktails) {
+  const option = document.createElement("option");
+  option.value = name;
+  option.textContent = name;
+  cocktailSelect.appendChild(option);
+}
+
+cocktailSelect.addEventListener("change", function () {
+  const selected = this.value;
+  if (!selected) {
+    resultDiv.innerHTML = "";
+    resultDiv.classList.add("hidden");
+    return;
+  }
+  const cocktail = cocktails[selected];
+  let html = `<div class='text-lg font-bold mb-2'>${selected}</div>`;
+  html += `<p class="mb-2"><strong>Description:</strong> ${cocktail.description}</p>`;
+  html += `<p><strong>Ingredients per serving:</strong></p><ul class="list-disc pl-5">`;
+  for (let key in cocktail.ingredients) {
+    html += `<li>${key}: ${cocktail.ingredients[key]} ml</li>`;
+  }
+  html += `</ul>`;
+  resultDiv.innerHTML = html;
+  resultDiv.classList.remove("hidden");
+});
+
+function calculateNeeds() {
+  const selected = cocktailSelect.value;
+  const qty = parseInt(document.getElementById("quantity").value);
+  if (!selected || !qty || qty <= 0) return;
+  const cocktail = cocktails[selected];
+  let html = `<div class='text-lg font-bold mb-2'><h4>Shopping List for ${qty} servings of ${selected}</h4></div><ul class="list-disc pl-5">`;
+  for (let key in cocktail.ingredients) {
+    const total = (cocktail.ingredients[key] * qty) / 750;
+    html += `<li>${key}: ${total.toFixed(1)} bottles (750ml)</li>`;
+  }
+  for (let extra in cocktail.extras) {
+    const total = cocktail.extras[extra] * qty;
+    html += `<li>${extra}: ${extra === 'ice' ? (total / 1000).toFixed(1) + ' kg' : total.toFixed(1)}</li>`;
+  }
+  html += `</ul>`;
+  outputDiv.innerHTML = html;
+  outputDiv.classList.remove("hidden");
+}
+</script>
+{% endblock %}

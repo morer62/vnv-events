@@ -1,0 +1,301 @@
+{% extends 'templates/base.admin.twig' %}
+{% import 'templates/macros.twig' as macros %}
+
+{% block body %}
+<h2 class="mb-4">📧 Payment & Contract Reminders</h2>
+{{ macros.breadcrumb2() }}
+
+<div class="d-flex justify-content-between mb-3">
+    <a class="btn btn-outline-secondary" href="{{ path('/panel/planner-hub/management/orders/orders') }}">
+        <i data-feather="arrow-left"></i>
+        Back to Orders
+    </a>
+    <div class="text-muted">
+        <small>💡 Reminders can only be sent once per client per day</small>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Contract Reminders Section -->
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-warning text-dark">
+                <h5 class="mb-0">📝 Contract Signature Reminders</h5>
+                <small>Orders pending contract signature</small>
+            </div>
+            <div class="card-body">
+                {% if contractOrders|length > 0 %}
+                    <form method="post" id="contractRemindersForm">
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="selectAllContracts" onchange="toggleAllContracts()">
+                                <label class="form-check-label fw-bold" for="selectAllContracts">
+                                    Select All ({{ contractOrders|length }})
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+                            <table class="table table-sm">
+                                <thead class="table-light sticky-top">
+                                    <tr>
+                                        <th>Select</th>
+                                        <th>Order ID</th>
+                                        <th>Client</th>
+                                        <th>Event Date</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for order in contractOrders %}
+                                        <tr>
+                                            <td>
+                                                <input class="form-check-input contract-checkbox" type="checkbox" name="contract_order_ids[]" value="{{ order.id }}">
+                                            </td>
+                                            <td>
+                                                <small class="fw-bold">VNV341{{ order.id }}</small>
+                                            </td>
+                                            <td>
+                                                <small>
+                                                    <strong>{{ order.name }} {{ order.lastname }}</strong><br>
+                                                    {{ order.email }}
+                                                </small>
+                                            </td>
+                                            <td>
+                                                <small>{{ order.event_date|date("M j, Y") }}</small>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <div class="d-grid mt-3">
+                            <button type="submit" name="send_contract_reminders" class="btn btn-warning" onclick="return confirmContractReminders()">
+                                📧 Send Contract Reminders
+                            </button>
+                        </div>
+                    </form>
+                {% else %}
+                    <div class="text-center py-4">
+                        <i data-feather="check-circle" class="text-success mb-3" style="width:48px; height:48px;"></i>
+                        <h5 class="text-success">All caught up!</h5>
+                        <p class="text-muted">No orders need contract signature reminders today.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Payment Reminders Section -->
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0">💳 Payment Reminders</h5>
+                <small>Orders with pending payments</small>
+            </div>
+            <div class="card-body">
+                {% set allPaymentOrders = paymentOrders|merge(paymentSuborders) %}
+                {% if allPaymentOrders|length > 0 %}
+                    <form method="post" id="paymentRemindersForm">
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="selectAllPayments" onchange="toggleAllPayments()">
+                                <label class="form-check-label fw-bold" for="selectAllPayments">
+                                    Select All ({{ allPaymentOrders|length }})
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+                            <table class="table table-sm">
+                                <thead class="table-light sticky-top">
+                                    <tr>
+                                        <th>Select</th>
+                                        <th>Order ID</th>
+                                        <th>Client</th>
+                                        <th>Type</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for order in allPaymentOrders %}
+                                        <tr>
+                                            <td>
+                                                <input class="form-check-input payment-checkbox" type="checkbox" name="payment_order_ids[]" value="{{ order.id }}">
+                                            </td>
+                                            <td>
+                                                <small class="fw-bold">VNV341{{ order.id }}</small>
+                                            </td>
+                                            <td>
+                                                <small>
+                                                    <strong>{{ order.name }} {{ order.lastname }}</strong><br>
+                                                    {{ order.email }}
+                                                </small>
+                                            </td>
+                                            <td>
+                                                <small>
+                                                    {% if order.id_order is defined %}
+                                                        <span class="badge bg-info">Sub-order</span>
+                                                    {% else %}
+                                                        <span class="badge bg-primary">Main Order</span>
+                                                    {% endif %}
+                                                </small>
+                                            </td>
+                                            <td>
+                                                <small>
+                                                    {% if order.reminder_type == 'first_payment' %}
+                                                        <span class="badge bg-warning">First Payment</span>
+                                                    {% else %}
+                                                        <span class="badge bg-danger">Second Payment</span>
+                                                    {% endif %}
+                                                </small>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <div class="d-grid mt-3">
+                            <button type="submit" name="send_payment_reminders" class="btn btn-success" onclick="return confirmPaymentReminders()">
+                                💳 Send Payment Reminders
+                            </button>
+                        </div>
+                    </form>
+                {% else %}
+                    <div class="text-center py-4">
+                        <i data-feather="check-circle" class="text-success mb-3" style="width:48px; height:48px;"></i>
+                        <h5 class="text-success">All caught up!</h5>
+                        <p class="text-muted">No orders need payment reminders today.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Summary Card -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0">📊 Today's Reminder Summary</h5>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-md-4">
+                        <div class="border-end">
+                            <h3 class="text-warning">{{ contractOrders|length }}</h3>
+                            <p class="mb-0">Contract Reminders Available</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="border-end">
+                            <h3 class="text-success">{{ paymentOrders|length + paymentSuborders|length }}</h3>
+                            <p class="mb-0">Payment Reminders Available</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <h3 class="text-info">{{ contractOrders|length + paymentOrders|length + paymentSuborders|length }}</h3>
+                        <p class="mb-0">Total Reminders Available</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.sticky-top {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.table-responsive {
+    border: 1px solid #dee2e6;
+    border-radius: 0.375rem;
+}
+
+.card-header {
+    border-bottom: 1px solid rgba(0,0,0,.125);
+}
+
+.form-check-input:checked {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+}
+</style>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function toggleAllContracts() {
+    const selectAll = document.getElementById('selectAllContracts');
+    const checkboxes = document.querySelectorAll('.contract-checkbox');
+    
+    checkboxes.forEach(checkbox => {
+        checkbox.checked = selectAll.checked;
+    });
+}
+
+function toggleAllPayments() {
+    const selectAll = document.getElementById('selectAllPayments');
+    const checkboxes = document.querySelectorAll('.payment-checkbox');
+    
+    checkboxes.forEach(checkbox => {
+        checkbox.checked = selectAll.checked;
+    });
+}
+
+function confirmContractReminders() {
+    const checkedBoxes = document.querySelectorAll('.contract-checkbox:checked');
+    
+    if (checkedBoxes.length === 0) {
+        alert('Please select at least one order to send contract reminders.');
+        return false;
+    }
+    
+    return confirm(`Are you sure you want to send contract reminders to ${checkedBoxes.length} client(s)?\n\nThis will send one email per selected client.`);
+}
+
+function confirmPaymentReminders() {
+    const checkedBoxes = document.querySelectorAll('.payment-checkbox:checked');
+    
+    if (checkedBoxes.length === 0) {
+        alert('Please select at least one order to send payment reminders.');
+        return false;
+    }
+    
+    return confirm(`Are you sure you want to send payment reminders to ${checkedBoxes.length} client(s)?\n\nThis will send one email per selected client.`);
+}
+
+// Update select all checkboxes when individual checkboxes change
+document.addEventListener('DOMContentLoaded', function() {
+    const contractCheckboxes = document.querySelectorAll('.contract-checkbox');
+    const paymentCheckboxes = document.querySelectorAll('.payment-checkbox');
+    
+    contractCheckboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            const allChecked = Array.from(contractCheckboxes).every(cb => cb.checked);
+            const someChecked = Array.from(contractCheckboxes).some(cb => cb.checked);
+            
+            const selectAll = document.getElementById('selectAllContracts');
+            selectAll.checked = allChecked;
+            selectAll.indeterminate = someChecked && !allChecked;
+        });
+    });
+    
+    paymentCheckboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            const allChecked = Array.from(paymentCheckboxes).every(cb => cb.checked);
+            const someChecked = Array.from(paymentCheckboxes).some(cb => cb.checked);
+            
+            const selectAll = document.getElementById('selectAllPayments');
+            selectAll.checked = allChecked;
+            selectAll.indeterminate = someChecked && !allChecked;
+        });
+    });
+});
+</script>
+{% endblock %}

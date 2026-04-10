@@ -1,0 +1,88 @@
+{% extends 'templates/base.admin.twig' %}
+
+{% block body %}
+<h1 class="h3 mb-4">🪪 Membership Status</h1>
+
+<div class="alert {{ membershipActive ? 'alert-success' : 'alert-danger' }}">
+    {% if membershipActive %}
+        ✅ Your membership is active until <strong>{{ membershipDue }}</strong>.
+    {% else %}
+        ❌ Your membership is inactive. Renew to access planner features.
+    {% endif %}
+</div>
+
+<hr>
+
+<h4>💳 Renew Membership</h4>
+
+{% if isMobileApp %}
+    <div class="alert alert-info border-0 shadow-sm" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+        <div class="d-flex align-items-center">
+            <div class="me-3" style="font-size: 3rem;">
+                🌐
+            </div>
+            <div class="text-white">
+                <h5 class="mb-2 fw-bold text-white">Membership Renewal Available on Web Only</h5>
+     
+                <p class="mb-0 mt-3">
+                    <strong>🌐 Please visit our website:</strong><br>
+                    <a href="{{ websiteUrl }}/panel/planner-hub/membership" target="_blank" class="text-white text-decoration-underline fw-bold" style="font-size: 1.1rem;">{{ websiteUrl|replace({'https://': '', 'http://': ''}) }}</a>
+                </p>
+                <p class="mb-0 mt-2 opacity-75" style="font-size: 0.9rem;">
+                    <em>You can log in with the same credentials you're using now.</em>
+                </p>
+            </div>
+        </div>
+    </div>
+{% else %}
+    {% if hasCard %}
+        <form method="post" class="mb-4">
+            <input type="hidden" name="csrf" value="{{ csrf_token() }}">
+            <div class="mb-3">
+                <label for="plan">Choose a plan:</label>
+                <select name="plan" id="plan" class="form-select" required>
+                    <option value="monthly">Monthly - ${{ monthlyPrice }}</option>
+                    <option value="annual">Annual - ${{ annualPrice }}</option>
+                </select>
+            </div>
+            <p class="text-muted mt-2">
+                💳 Payment will be made using card ending in <strong>{{ mainCard.last4 }}</strong>
+            </p>
+            <button class="btn btn-dark">Pay Now</button>
+        </form>
+    {% else %}
+        <div class="alert alert-warning">
+            ⚠️ You don't have a saved credit card. Please add one before proceeding with payment.
+        </div>
+        <a href="{{ path('panel/cards') }}" class="btn btn-outline-primary">Go to My Cards</a>
+    {% endif %}
+{% endif %}
+
+<hr>
+
+<h4>📜 Payment History</h4>
+<div class="table-responsive">
+    <table class="table table-bordered text-center align-middle">
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Amount</th>
+                <th>Type</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for payment in payments %}
+                <tr>
+                    <td>{{ payment.payment_date|date('Y-m-d') }}</td>
+                    <td>${{ payment.amount }}</td>
+                    <td>{{ payment.type|capitalize }}</td>
+                </tr>
+            {% else %}
+                <tr>
+                    <td colspan="3" class="text-muted">No membership payments found.</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

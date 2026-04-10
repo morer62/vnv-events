@@ -1,0 +1,152 @@
+{% extends 'templates/base.admin.twig' %}
+{% import 'templates/macros.twig' as macros %}
+
+{% block body %}
+<h2 class="mb-4">📦 Archived Orders</h2>
+{{ macros.breadcrumb2() }}
+
+<section class="card">
+    <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="mb-0">Archived Orders</h5>
+            <div class="d-flex gap-2">
+                <a href="{{ path('panel/planner-hub/management/orders/orders/previous') }}" class="btn btn-outline-primary">
+                    📅 Past Orders
+                </a>
+                <a href="{{ path('panel/planner-hub/management/orders/orders') }}" class="btn btn-outline-secondary">
+                    ← Back to Orders
+                </a>
+            </div>
+        </div>
+
+        <!-- Search and Filter -->
+        <form method="GET" class="row g-3 mb-4">
+            <div class="col-md-4">
+                <input type="text" name="search" class="form-control" placeholder="Search by address or client..." value="{{ search ?? '' }}">
+            </div>
+            <div class="col-md-3">
+                <input type="date" name="start_date" class="form-control" value="{{ start_date ?? '' }}">
+            </div>
+            <div class="col-md-3">
+                <input type="date" name="end_date" class="form-control" value="{{ end_date ?? '' }}">
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-primary w-100">Search</button>
+            </div>
+        </form>
+
+        <!-- Results Info -->
+        <div class="alert alert-info mb-3">
+            <strong>Showing {{ orders|length }} to {{ (currentPage - 1) * perPage + orders|length }} of {{ totalOrders }} archived orders</strong>
+        </div>
+
+        {% if orders is empty %}
+            <div class="text-center py-5">
+                <div class="mb-3">
+                    <i data-feather="archive" style="width: 64px; height: 64px; color: #6c757d;"></i>
+                </div>
+                <h5 class="text-muted">No Archived Orders Found</h5>
+                <p class="text-muted">Orders that have been manually archived will appear here.</p>
+                <a href="{{ path('panel/planner-hub/management/orders/orders') }}" class="btn btn-primary">
+                    ← Back to Orders
+                </a>
+            </div>
+        {% else %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Order ID</th>
+                            <th>Client</th>
+                            <th>Event Date</th>
+                            <th>Address</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for order in orders %}
+                            <tr>
+                                <td>
+                                    <strong>VNV 341{{ order.id }}</strong>
+                                </td>
+                                <td>
+                                    {% for client in clients %}
+                                        {% if client.id == order.id_client %}
+                                            {{ client.name }} {{ client.lastname }}
+                                            <br><small class="text-muted">{{ client.email }}</small>
+                                        {% endif %}
+                                    {% endfor %}
+                                </td>
+                                <td>
+                                    {{ order.event_date|date("M j, Y") }}
+                                    <br><small class="text-muted">{{ order.start_time|date("g:i A") }} - {{ order.end_time|date("g:i A") }}</small>
+                                </td>
+                                <td>{{ order.address }}</td>
+                                <td>
+                                    <span class="badge bg-secondary">Archived</span>
+                                </td>
+                                <td>
+                                    <div class="btn-group" role="group">
+                                        <a href="{{ path('panel/planner-hub/management/orders/orders/edit') }}?id={{ order.id }}" class="btn btn-sm btn-outline-primary">
+                                            <i data-feather="edit"></i> Edit
+                                        </a>
+                                        <a href="{{ path('panel/planner-hub/management/orders/orders/files') }}?id={{ order.id }}" class="btn btn-sm btn-outline-info">
+                                            <i data-feather="folder"></i> Files
+                                        </a>
+                                        <form method="POST" style="display: inline;" onsubmit="return confirm('Are you sure you want to unarchive this order?')">
+                                            <input type="hidden" name="unarchive_order_id" value="{{ order.id }}">
+                                            <button type="submit" class="btn btn-sm btn-outline-success">
+                                                <i data-feather="archive"></i> Unarchive
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            {% if totalPages > 1 %}
+                <nav aria-label="Archived orders pagination" class="mt-4">
+                    <ul class="pagination justify-content-center">
+                        {% if currentPage > 1 %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ currentPage - 1 }}{% if search %}&search={{ search }}{% endif %}{% if start_date %}&start_date={{ start_date }}{% endif %}{% if end_date %}&end_date={{ end_date }}{% endif %}">Previous</a>
+                            </li>
+                        {% endif %}
+
+                        {% for page in 1..totalPages %}
+                            {% if page == currentPage %}
+                                <li class="page-item active">
+                                    <span class="page-link">{{ page }}</span>
+                                </li>
+                            {% elseif page <= 3 or page > totalPages - 3 or (page >= currentPage - 2 and page <= currentPage + 2) %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ page }}{% if search %}&search={{ search }}{% endif %}{% if start_date %}&start_date={{ start_date }}{% endif %}{% if end_date %}&end_date={{ end_date }}{% endif %}">{{ page }}</a>
+                                </li>
+                            {% elseif page == 4 and currentPage > 5 %}
+                                <li class="page-item disabled">
+                                    <span class="page-link">...</span>
+                                </li>
+                            {% elseif page == totalPages - 3 and currentPage < totalPages - 4 %}
+                                <li class="page-item disabled">
+                                    <span class="page-link">...</span>
+                                </li>
+                            {% endif %}
+                        {% endfor %}
+
+                        {% if currentPage < totalPages %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ currentPage + 1 }}{% if search %}&search={{ search }}{% endif %}{% if start_date %}&start_date={{ start_date }}{% endif %}{% if end_date %}&end_date={{ end_date }}{% endif %}">Next</a>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+            {% endif %}
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

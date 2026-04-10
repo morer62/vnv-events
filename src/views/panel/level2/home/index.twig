@@ -1,0 +1,298 @@
+{% extends 'templates/base.admin.twig' %}
+
+{% block body %}
+<main class="mt-4 container">
+
+  {% if isMobileApp == false %}
+      <!-- 🔹 Profile Switcher -->
+      <div class="d-flex justify-content-end mb-4">
+        <div class="dropdown">
+          <button class="btn btn-outline-primary dropdown-toggle fw-bold" type="button" id="roleSwitcher" data-bs-toggle="dropdown" aria-expanded="false">
+            🔄 Change Profile
+          </button>
+          <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="roleSwitcher">
+            <li><button class="dropdown-item" data-switch="5" data-label="👤 Client — Request and manage services" data-bs-toggle="modal" data-bs-target="#confirmRoleChange">👤 Client — Request and manage services</button></li>
+            <li><button class="dropdown-item" data-switch="4" data-label="👥 Team Member — Join a company and get assigned tasks" data-bs-toggle="modal" data-bs-target="#confirmRoleChange">👥 Team Member — Join a company and get assigned tasks</button></li>
+
+            <li><button class="dropdown-item" data-switch="3" data-label="🛠 Vendor — Offer your services as a provider" data-bs-toggle="modal" data-bs-target="#confirmRoleChange">🛠 Vendor — Offer your services as a provider</button></li>
+          </ul>
+        </div>
+      </div>
+  {% endif %}
+
+  {# ===================== MODAL NU D G E ===================== #}
+  {% set n = profile_nudge ?? null %}
+  {% if n and n.should_show %}
+    <div class="modal fade" id="profileNudgeModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 rounded-4 shadow-lg">
+          <div class="modal-body p-4">
+            <div class="d-flex align-items-center gap-3">
+              {% set icon = (n.type == 'venue') ? 'icon_2.png' : 'icon_3.png' %}
+              <img src="{{ asset_for('assets/images/icons_website/' ~ icon) }}" alt="icon" style="width:72px;height:72px">
+              <div>
+                {% if n.reason == 'no_profile' %}
+                  <h5 class="mb-1 fw-bold">
+                    {{ n.type == 'venue' ? 'Create your Venue profile' : 'Create your Vendor profile' }}
+                  </h5>
+                  <p class="mb-2 text-muted">
+                    Get discovered, receive leads and look professional — all for just
+                    <strong>${{ n.price|number_format(2, '.', ',') }}</strong> per month.
+                  </p>
+                  <ul class="mb-3 ps-3 small text-muted">
+                    <li>Public profile on our marketplace</li>
+                    <li>Appear in city searches</li>
+                    <li>Promotions & events tools</li>
+                  </ul>
+                {% elseif n.reason == 'not_active' %}
+                  <h5 class="mb-1 fw-bold">Almost there!</h5>
+                  <p class="mb-2 text-muted">
+                    Your profile isn’t active yet (needs approval or renewal). <br><br>
+                   Remember to add quality photos for faster approval.
+                  </p>
+                {% elseif n.reason == 'no_photos' %}
+                  <h5 class="mb-1 fw-bold">Add photos to shine ✨</h5>
+                  <p class="mb-2 text-muted">
+                    Your profile is live but has no photos. Upload a few images to stay active and attract more clients.
+                  </p>
+                {% endif %}
+              </div>
+            </div>
+
+            <div class="d-flex gap-2 mt-4">
+              {% if n.type == 'venue' %}
+                <a href="{{ path('panel/venues/home') }}" class="btn btn-success btn-lg w-100 rounded-3 fw-bold">
+                  {{ n.reason == 'no_profile' ? 'Promote my Venue' : 'Go to my Venue' }}
+                </a>
+              {% else %}
+                <a href="{{ path('panel/service/home') }}" class="btn btn-success btn-lg w-100 rounded-3 fw-bold">
+                  {{ n.reason == 'no_profile' ? 'Promote my Service' : 'Go to my Vendor' }}
+                </a>
+              {% endif %}
+              <button class="btn btn-outline-secondary btn-lg rounded-3" data-bs-dismiss="modal">Later</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      document.addEventListener('DOMContentLoaded', function () {
+        var el = document.getElementById('profileNudgeModal');
+        if (!el) return;
+        var m = new bootstrap.Modal(el, { backdrop: 'static' });
+        m.show();
+      });
+    </script>
+  {% endif %}
+
+  <!-- 🔹 Membership Status -->
+  <section class="mb-5">
+    {% if user.hasActivePaidMembership() %}
+      <div class="p-4 bg-white rounded-4 shadow-sm" style="border-left: 5px solid #00b894;">
+        <div class="row align-items-center">
+          <div class="col-md-8">
+            <div class="d-flex align-items-center">
+              <span class="me-3" style="font-size: 2.5rem;">✅</span>
+              <div>
+                <h4 class="fw-bold mb-1">Active Membership</h4>
+                <p class="text-muted mb-0">
+                  Your membership expires on: <strong>{{ user.getMembershipDueDate() }}</strong>
+                </p>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-4 text-end">
+            <a href="{{ path('panel/membership/pay') }}" class="btn btn-outline-success btn-lg fw-bold px-4">Renew Membership</a>
+          </div>
+        </div>
+      </div>
+    {% elseif isFreeTrial %}
+      <div class="p-4 bg-white rounded-4 shadow-sm" style="border-left: 5px solid #fdcb6e;">
+        <div class="row align-items-center">
+          <div class="col-md-8">
+            <div class="d-flex align-items-center">
+              <span class="me-3" style="font-size: 2.5rem;">🎁</span>
+              <div>
+                <h4 class="fw-bold mb-1" style="color: #e17055;">You're on a Free Trial</h4>
+                <p class="text-muted mb-0">
+                  Your free trial expires on: <strong>{{ trialExpirationDate }}</strong>
+                  {% if trialDaysRemaining > 0 %}
+                    <br><small>({{ trialDaysRemaining }} day{{ trialDaysRemaining != 1 ? 's' : '' }} remaining)</small>
+                  {% endif %}
+                </p>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-4 text-end">
+            <a href="{{ path('panel/membership/manage') }}" class="btn btn-warning btn-lg fw-bold px-4">Upgrade Now</a>
+          </div>
+        </div>
+      </div>
+    {% else %}
+      <div class="p-4 bg-white rounded-4 shadow-sm" style="border-left: 5px solid #d63031;">
+        <div class="row align-items-center">
+          <div class="col-md-8">
+            <div class="d-flex align-items-center">
+              <span class="me-3" style="font-size: 2.5rem;">⚠️</span>
+              <div>
+                <h4 class="fw-bold mb-1 text-danger">Membership Expired</h4>
+                <p class="text-muted mb-0">
+                  Renew your membership to continue creating venues and services
+                </p>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-4 text-end">
+            <a href="{{ path('panel/membership/manage') }}" class="btn btn-danger btn-lg fw-bold px-4">Renew Now</a>
+          </div>
+        </div>
+      </div>
+    {% endif %}
+  </section>
+
+  <!-- 🔹 Highlight Block (Venue Manager) -->
+  <section class="p-5 rounded-4 shadow-sm mb-5 text-white" style="background: linear-gradient(135deg, #00b894, #00cec9);">
+    <h2 class="fw-bold mb-2">🏦 Manage Your Venue</h2>
+    <p class="fs-5 mb-3">Update your profile and attract more clients</p>
+    <a href="{{ path('panel/venues/home') }}" class="btn btn-light btn-lg fw-bold px-4">Go to Venue</a>
+  </section>
+
+  <!-- 🔹 Core Actions -->
+  <section class="mb-5">
+    <h3 class="fw-bold mb-4">Main Tools</h3>
+    <div class="row text-center g-4">
+
+      <!-- Planner Hub -->
+      <div class="col-md-4">
+        <div class="p-5 bg-white rounded-4 shadow-sm h-100">
+          <img src="{{ asset_for('assets/images/icons_website/icon_2.png') }}" alt="Planner Hub" class="mb-4" style="height: 110px;">
+          <h4 class="fw-bold mb-2">🧩 Management Tools</h4>
+          <p class="text-muted fs-6 mb-3">Access your event dashboard and tools</p>
+          <a href="{{ path('panel/planner-hub') }}" class="btn btn-success btn-lg fw-bold px-4">Open</a>
+        </div>
+      </div>
+
+      <!-- Payroll -->
+      <div class="col-md-4">
+        <div class="p-5 bg-white rounded-4 shadow-sm h-100">
+          <img src="{{ asset_for('assets/images/icons_website/icon_4.png') }}" alt="Chat" class="mb-4" style="height: 110px;">
+          <h4 class="fw-bold mb-2">🕒 Payroll</h4>
+          <p class="text-muted fs-6 mb-3">Review and verify team payments</p>
+          <a href="{{ path('panel/planner-hub/management/payroll') }}" class="btn btn-primary btn-lg fw-bold px-4">Open</a>
+        </div>
+      </div>
+
+      <!-- Banking -->
+      <div class="col-md-4">
+        <div class="p-5 bg-white rounded-4 shadow-sm h-100">
+          <img src="{{ asset_for('assets/images/icons_website/icon_5.png') }}" alt="Schedule" class="mb-4" style="height: 110px;">
+          <h4 class="fw-bold mb-2">📅 Banking</h4>
+          <p class="text-muted fs-6 mb-3">Manage your Stripe account</p>
+          <a href="{{ path('panel/planner-hub/management/payments/') }}" class="btn btn-primary btn-lg fw-bold px-4">View</a>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- 🔹 Explore Carousel -->
+  <section>
+    <h3 class="fw-bold mb-4">Explore More</h3>
+    <div class="d-flex overflow-auto gap-4 pb-3">
+
+      <a href="{{ path('panel/planner-hub/team/chat') }}" class="text-decoration-none text-dark">
+        <div class="flex-shrink-0" style="min-width: 200px;">
+          <div class="p-3 bg-white rounded-4 shadow-sm text-center h-100">
+            <img src="{{ asset_for('assets/images/icons_website/icon_3.png') }}" style="height: 110px;" class="mb-3">
+            <p class="fw-bold fs-5 mb-0">💬 Chat</p>
+          </div>
+        </div>
+      </a>
+
+      <a href="{{ path('panel/planner-hub/management/orders') }}" class="text-decoration-none text-dark">
+        <div class="flex-shrink-0" style="min-width: 200px;">
+          <div class="p-3 bg-white rounded-4 shadow-sm text-center h-100">
+            <img src="{{ asset_for('assets/images/icons_website/icon_6.png') }}" style="height: 110px;" class="mb-3">
+            <p class="fw-bold fs-5 mb-0">📅 Orders</p>
+          </div>
+        </div>
+      </a>
+
+      <a href="{{ path('panel/planner-hub/management/storage') }}" class="text-decoration-none text-dark">
+        <div class="flex-shrink-0" style="min-width: 200px;">
+          <div class="p-3 bg-white rounded-4 shadow-sm text-center h-100">
+            <img src="{{ asset_for('assets/images/icons_website/icon_7.png') }}" style="height: 110px;" class="mb-3">
+            <p class="fw-bold fs-5 mb-0">📦 Inventory</p>
+          </div>
+        </div>
+      </a>
+
+      <a href="{{ path('panel/planning-tools') }}" class="text-decoration-none text-dark">
+        <div class="flex-shrink-0" style="min-width: 200px;">
+          <div class="p-3 bg-white rounded-4 shadow-sm text-center h-100">
+            <img src="{{ asset_for('assets/images/icons_website/icon_12.png') }}" style="height: 110px;" class="mb-3">
+            <p class="fw-bold fs-5 mb-0">🧰 Planning Tools</p>
+          </div>
+        </div>
+      </a>
+
+      <a href="{{ path('panel/planner-hub/management/crm') }}" class="text-decoration-none text-dark">
+        <div class="flex-shrink-0" style="min-width: 200px;">
+          <div class="p-3 bg-white rounded-4 shadow-sm text-center h-100">
+            <img src="{{ asset_for('assets/images/icons_website/icon_8.png') }}" style="height: 110px;" class="mb-3">
+            <p class="fw-bold fs-5 mb-0">📇 CRM</p>
+          </div>
+        </div>
+      </a>
+
+      <a href="{{ path('panel/settings') }}" class="text-decoration-none text-dark">
+        <div class="flex-shrink-0" style="min-width: 200px;">
+          <div class="p-3 bg-white rounded-4 shadow-sm text-center h-100">
+            <img src="{{ asset_for('assets/images/icons_website/icon_9.png') }}" style="height: 110px;" class="mb-3">
+            <p class="fw-bold fs-5 mb-0">⚙️ Basic Setting</p>
+          </div>
+        </div>
+      </a>
+
+    </div>
+  </section>
+
+</main>
+
+<!-- 🔹 Modal Confirm Change -->
+<div class="modal fade" id="confirmRoleChange" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content rounded-4">
+      <form method="POST" action="{{ path('panel/home') }}">
+        <div class="modal-header">
+          <h5 class="modal-title fw-bold">Confirm Profile Change</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          Are you sure you want to switch to <span id="selectedRoleText" class="fw-bold"></span>?
+          <p class="mt-2 text-muted small">This will reload your dashboard immediately.</p>
+          <input type="hidden" name="level" id="selectedRoleValue">
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-primary">Yes, switch</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  document.querySelectorAll("[data-switch]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const level = btn.getAttribute("data-switch");
+      const label = btn.getAttribute("data-label");
+      document.getElementById("selectedRoleValue").value = level;
+      document.getElementById("selectedRoleText").innerText = label;
+    });
+  });
+});
+</script>
+{% endblock %}

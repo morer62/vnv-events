@@ -1,0 +1,65 @@
+{% extends 'templates/base.admin.twig' %}
+
+{% block body %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+        <div>
+            <h1 class="h3 mb-1">Edit Attribute Value</h1>
+            <p class="text-muted mb-0">Update this attribute value.</p>
+        </div>
+        <a href="/panel/planner-hub/store/attribute-values/home?id_attribute={{ value.id_attribute }}" class="btn btn-outline-secondary">
+            ← Back to Values
+        </a>
+    </div>
+
+    <div class="card shadow-sm border-0">
+        <div class="card-body p-4">
+            <form method="post">
+                <input type="hidden" name="id" value="{{ value.id }}">
+                <input type="hidden" name="id_attribute" value="{{ value.id_attribute }}">
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Value</label>
+                        <input
+                            type="text"
+                            name="value"
+                            class="form-control"
+                            value="{{ value.value }}"
+                            required
+                        >
+                    </div>
+
+                    <div class="col-md-3 mb-3">
+                        <label class="form-label">Sort Order</label>
+                        <input
+                            type="number"
+                            name="sort_order"
+                            class="form-control"
+                            value="{{ value.sort_order }}"
+                            min="0"
+                        >
+                    </div>
+
+                    <div class="col-md-3 mb-3">
+                        <label class="form-label">Status</label>
+                        <select name="status" class="form-select">
+                            <option value="ACTIVE" {% if value.status == 'ACTIVE' %}selected{% endif %}>ACTIVE</option>
+                            <option value="INACTIVE" {% if value.status == 'INACTIVE' %}selected{% endif %}>INACTIVE</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="d-flex gap-2 flex-wrap">
+                    <button type="submit" class="btn btn-success">
+                        Update Value
+                    </button>
+                    <a href="/panel/planner-hub/store/attribute-values/home?id_attribute={{ value.id_attribute }}" class="btn btn-outline-secondary">
+                        Cancel
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

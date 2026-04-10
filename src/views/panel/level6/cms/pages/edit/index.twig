@@ -1,0 +1,387 @@
+{% extends "templates/base.admin.twig" %}
+
+{% block body %}
+<style>
+    .cms-wrap{
+        padding:24px;
+        max-width:1200px;
+    }
+
+    .cms-header{
+        display:flex;
+        align-items:center;
+        justify-content:space-between;
+        gap:16px;
+        margin-bottom:24px;
+        flex-wrap:wrap;
+    }
+
+    .cms-title{
+        font-size:2rem;
+        font-weight:800;
+        color:#111827;
+        margin:0 0 6px 0;
+    }
+
+    .cms-subtitle{
+        color:#6b7280;
+        font-size:.96rem;
+        margin:0;
+    }
+
+    .cms-card{
+        background:#fff;
+        border:1px solid #e5e7eb;
+        border-radius:20px;
+        padding:24px;
+        box-shadow:0 10px 30px rgba(0,0,0,.05);
+        margin-bottom:22px;
+    }
+
+    .cms-section-title{
+        font-size:1.15rem;
+        font-weight:800;
+        color:#111827;
+        margin:0 0 18px 0;
+    }
+
+    .cms-grid{
+        display:grid;
+        grid-template-columns:1fr 1fr;
+        gap:18px;
+    }
+
+    .cms-field{
+        margin-bottom:18px;
+    }
+
+    .cms-field.full{
+        grid-column:1 / -1;
+    }
+
+    .cms-label{
+        display:block;
+        font-size:.92rem;
+        font-weight:700;
+        color:#111827;
+        margin-bottom:8px;
+    }
+
+    .cms-input,
+    .cms-select,
+    .cms-textarea{
+        width:100%;
+        border:1px solid #d1d5db;
+        border-radius:14px;
+        padding:12px 14px;
+        font-size:.95rem;
+        color:#111827;
+        background:#fff;
+        outline:none;
+        transition:.2s ease;
+        box-sizing:border-box;
+        font-family:inherit;
+    }
+
+    .cms-input:focus,
+    .cms-select:focus,
+    .cms-textarea:focus{
+        border-color:#111827;
+        box-shadow:0 0 0 3px rgba(17,24,39,.08);
+    }
+
+    .cms-textarea{
+        min-height:130px;
+        resize:vertical;
+    }
+
+    .cms-textarea.code{
+        min-height:420px;
+        font-family:Consolas, Monaco, monospace;
+        font-size:.9rem;
+        line-height:1.6;
+        white-space:pre;
+    }
+
+    .cms-help{
+        margin-top:6px;
+        font-size:.84rem;
+        color:#6b7280;
+    }
+
+    .cms-check-group{
+        display:flex;
+        flex-wrap:wrap;
+        gap:16px;
+        padding:12px 14px;
+        border:1px solid #e5e7eb;
+        border-radius:14px;
+        background:#f9fafb;
+    }
+
+    .cms-check{
+        display:flex;
+        align-items:center;
+        gap:8px;
+    }
+
+    .cms-actions{
+        display:flex;
+        gap:12px;
+        flex-wrap:wrap;
+        margin-top:10px;
+    }
+
+    .cms-btn{
+        display:inline-flex;
+        align-items:center;
+        justify-content:center;
+        padding:10px 16px;
+        border-radius:12px;
+        text-decoration:none;
+        font-weight:700;
+        font-size:.92rem;
+        transition:.2s ease;
+        border:none;
+        cursor:pointer;
+    }
+
+    .cms-btn-primary{
+        background:#111827;
+        color:#fff;
+    }
+
+    .cms-btn-primary:hover{
+        background:#000;
+        color:#fff;
+    }
+
+    .cms-btn-light{
+        background:#f3f4f6;
+        color:#111827;
+    }
+
+    .cms-btn-light:hover{
+        background:#e5e7eb;
+        color:#111827;
+    }
+
+    .cms-alert{
+        margin-bottom:18px;
+        background:#fef2f2;
+        border:1px solid #fecaca;
+        color:#991b1b;
+        border-radius:16px;
+        padding:14px 16px;
+    }
+
+    .cms-alert ul{
+        margin:0;
+        padding-left:18px;
+    }
+
+    .cms-image-preview{
+        margin-top:10px;
+    }
+
+    .cms-image-preview img{
+        max-width:220px;
+        border-radius:14px;
+        border:1px solid #e5e7eb;
+        display:block;
+    }
+
+    @media (max-width:768px){
+        .cms-wrap{
+            padding:16px;
+        }
+
+        .cms-grid{
+            grid-template-columns:1fr;
+        }
+
+        .cms-title{
+            font-size:1.55rem;
+        }
+
+        .cms-textarea.code{
+            min-height:320px;
+        }
+    }
+</style>
+
+<div class="cms-wrap">
+    <div class="cms-header">
+        <div>
+            <h1 class="cms-title">Edit Page</h1>
+            <p class="cms-subtitle">
+                Update your CMS page content, Twig structure and SEO metadata.
+            </p>
+        </div>
+
+        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+            <a href="{{ path('panel/cms/pages') }}" class="cms-btn cms-btn-light">← Back to Pages</a>
+        </div>
+    </div>
+
+    {% if errors and errors|length > 0 %}
+        <div class="cms-alert">
+            <ul>
+                {% for error in errors %}
+                    <li>{{ error }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+    {% endif %}
+
+    <form method="POST" enctype="multipart/form-data">
+        <input type="hidden" name="id" value="{{ old.id }}">
+
+        <div class="cms-card">
+            <h2 class="cms-section-title">General</h2>
+
+            <div class="cms-grid">
+                <div class="cms-field">
+                    <label class="cms-label">Category *</label>
+                    <select name="id_category" class="cms-select" required>
+                        <option value="">Select a category</option>
+                        {% for item in categories %}
+                            <option value="{{ item.id }}" {% if old.id_category == item.id %}selected{% endif %}>
+                                {{ item.name }} ({{ item.slug }})
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="cms-field">
+                    <label class="cms-label">Template</label>
+                    <select name="id_template" class="cms-select">
+                        <option value="">No template</option>
+                        {% for item in templates %}
+                            <option value="{{ item.id }}" {% if old.id_template == item.id %}selected{% endif %}>
+                                {{ item.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="cms-field">
+                    <label class="cms-label">Title *</label>
+                    <input type="text" name="title" class="cms-input" value="{{ old.title }}" required>
+                </div>
+
+                <div class="cms-field">
+                    <label class="cms-label">Slug</label>
+                    <input type="text" name="slug" class="cms-input" value="{{ old.slug }}">
+                </div>
+
+                <div class="cms-field full">
+                    <label class="cms-label">Short Description</label>
+                    <textarea name="short_description" class="cms-textarea">{{ old.short_description }}</textarea>
+                </div>
+
+                <div class="cms-field">
+                    <label class="cms-label">Status</label>
+                    <select name="status" class="cms-select">
+                        <option value="DRAFT" {% if old.status == 'DRAFT' %}selected{% endif %}>Draft</option>
+                        <option value="PUBLISHED" {% if old.status == 'PUBLISHED' %}selected{% endif %}>Published</option>
+                    </select>
+                </div>
+
+                <div class="cms-field">
+                    <label class="cms-label">Robots</label>
+                    <div class="cms-check-group">
+                        <label class="cms-check">
+                            <input type="checkbox" name="robots_index" value="1" {% if old.robots_index %}checked{% endif %}>
+                            <span>Index</span>
+                        </label>
+                        <label class="cms-check">
+                            <input type="checkbox" name="robots_follow" value="1" {% if old.robots_follow %}checked{% endif %}>
+                            <span>Follow</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="cms-card">
+            <h2 class="cms-section-title">Content</h2>
+
+            <div class="cms-field">
+                <label class="cms-label">Template Source *</label>
+                <textarea name="template_source" class="cms-textarea code" required>{{ old.template_source }}</textarea>
+            </div>
+
+            <div class="cms-field">
+                <label class="cms-label">Custom CSS</label>
+                <textarea name="custom_css" class="cms-textarea code">{{ old.custom_css }}</textarea>
+            </div>
+
+            <div class="cms-field">
+                <label class="cms-label">Custom Head Code</label>
+                <textarea name="custom_head" class="cms-textarea code">{{ old.custom_head }}</textarea>
+            </div>
+
+            <div class="cms-field">
+                <label class="cms-label">Schema Markup</label>
+                <textarea name="schema_markup" class="cms-textarea code">{{ old.schema_markup }}</textarea>
+            </div>
+        </div>
+
+        <div class="cms-card">
+            <h2 class="cms-section-title">SEO / Metadata</h2>
+
+            <div class="cms-grid">
+                <div class="cms-field">
+                    <label class="cms-label">Meta Title</label>
+                    <input type="text" name="meta_title" class="cms-input" value="{{ old.meta_title }}">
+                    <div class="cms-help">If left empty, it will be generated from the article title.</div>
+                </div>
+
+                <div class="cms-field">
+                    <label class="cms-label">Canonical URL</label>
+                    <input type="text" name="canonical_url" class="cms-input" value="{{ old.canonical_url }}">
+                </div>
+
+                <div class="cms-field full">
+                    <label class="cms-label">Meta Description</label>
+                    <textarea name="meta_description" class="cms-textarea">{{ old.meta_description }}</textarea>
+                </div>
+
+                <div class="cms-field full">
+                    <label class="cms-label">Meta Keywords</label>
+                    <textarea name="meta_keywords" class="cms-textarea">{{ old.meta_keywords }}</textarea>
+                </div>
+
+                <div class="cms-field">
+                    <label class="cms-label">Thumbnail Image</label>
+                    <input type="file" name="thumbnail_image" class="cms-input" accept="image/*">
+                    <div class="cms-help">If you upload a new one, it will replace the current thumbnail / OG image.</div>
+
+                    {% if old.meta_thumbnail %}
+                        <div class="cms-image-preview">
+                            <img src="{{ old.meta_thumbnail }}" alt="Current thumbnail">
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="cms-field">
+                    <label class="cms-label">OG Title</label>
+                    <input type="text" name="og_title" class="cms-input" value="{{ old.og_title }}">
+                    <div class="cms-help">If left empty, it will be generated from the article title.</div>
+                </div>
+
+                <div class="cms-field full">
+                    <label class="cms-label">OG Description</label>
+                    <input type="text" name="og_description" class="cms-input" value="{{ old.og_description }}">
+                </div>
+            </div>
+        </div>
+
+        <div class="cms-actions">
+            <button type="submit" class="cms-btn cms-btn-primary">Update Page</button>
+            <a href="{{ path('panel/cms/pages') }}" class="cms-btn cms-btn-light">Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

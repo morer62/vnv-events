@@ -1,0 +1,699 @@
+{% extends "templates/base.twig" %}
+
+{% block styles %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+<style>
+/* ====== Base ====== */
+.hero {
+  background: linear-gradient(135deg, #0a0a0a, #1b1b1b);
+  color: white; text-align: center;
+  padding: 1rem 1rem; position: relative; overflow: hidden;
+  min-height: 80vh; display:flex; flex-direction:column; justify-content:center;
+}
+.hero-content { position:relative; z-index:2; max-width:1000px; margin:0 auto; padding:0 1rem; }
+.hero h1 { font-size: clamp(2.2rem, 5vw, 3.8rem); font-weight:800; line-height:1.1; text-shadow: 2px 2px 4px rgba(0,0,0,.45); }
+.hero p  { font-size:1.15rem; color:#e5e7eb; }
+
+.section { padding: 4rem 1.5rem; }
+.section-alt { background:#f6f6f6; }
+.section h2 { font-size: 2.2rem; font-weight: 800; text-align:center; margin-bottom: 2rem; }
+
+.venue-title{ font-family:'Poppins',sans-serif; font-weight:200; font-size:2.2rem;}
+.venue-title .highlight{ color:#26a69a; font-weight:700;}
+
+.ph-card { background: rgba(21,21,21,.85); border-radius: 14px; padding: 1.25rem; height:100%;
+  box-shadow: 0 6px 18px rgba(0,0,0,.32); border:1px solid rgba(255,255,255,.14); transition:.25s;
+}
+.ph-card:hover{ transform:translateY(-4px); box-shadow:0 12px 24px rgba(0,0,0,.45); }
+.ph-card i{ font-size:1.4rem; color:#26a69a; }
+
+/* Buttons */
+.btn-main, .ph-btn-main{
+  background:#26a69a; color:#0b1f1e !important; border:none;
+  padding:.9rem 1.6rem; border-radius:999px; font-weight:800; letter-spacing:.2px;
+  text-decoration:none; display:inline-block; box-shadow: 0 6px 16px rgba(38,166,154,.35);
+}
+.btn-main:hover, .ph-btn-main:hover { background:#1f8d82; color:#fff !important; }
+
+/* Comparison table */
+.compare { border-radius:14px; overflow:hidden; box-shadow:0 0 12px rgba(0,0,0,.06); }
+.compare .thead { background:#0f172a; color:#fff; font-weight:800; }
+.compare .row-item { background:#fff; border-bottom:1px solid #e5e7eb; }
+.compare .row-item:nth-child(even){ background:#fafafa; }
+
+/* Right column cards + general cards */
+.benefit-card{
+  background:#fff; padding:2rem; border-radius:14px; text-align:left; height:100%;
+  box-shadow: 0 0 20px rgba(0,0,0,.06);
+}
+.benefit-card h4{ font-weight:800; }
+.badge-chips .badge{ font-size: .95rem; padding:.55rem .9rem; margin:.15rem; border-radius:999px; }
+.check { color:#26a69a; }
+
+/* Calculator styles */
+.calc { background:#0b132b; color:#fff; border-radius:14px; padding:1.5rem; }
+.calc input[type="number"], .calc input[type="range"]{
+  width:100%; background:#111827; border:1px solid #1f2937; color:#fff; padding:.65rem .8rem;
+  border-radius:10px; outline:none;
+}
+.calc .muted{ color:#9ca3af; font-size:.95rem; }
+
+/* Testimonials cards */
+.testi .card{ border:0; border-radius:14px; box-shadow:0 10px 24px rgba(0,0,0,.06); }
+
+/* FAQ simple */
+.faq .item{ border-bottom:1px solid #e5e7eb; padding:1rem 0; }
+.faq .q{ font-weight:800; }
+.faq .a{ color:#4b5563; }
+
+/* Hero background image */
+.hero::after {
+  content:"";
+  position:absolute;
+  inset:0;
+  background-image:url('{{ asset_for("assets/images/caroucel/2.jpg") }}');
+  background-size:cover;
+  background-position:center;
+  filter:brightness(0.2);
+  z-index:1;
+}
+.hero, .hero h1, .hero h2, .hero h3, .hero h4, .hero h5, .hero p { color: #fff !important; }
+.hero .highlight { color: #26a69a !important; }
+
+/* How it works tweaks */
+#how-it-works .ph-btn-main, #how-it-works .btn-main {
+  color: #fff !important; font-size: 1.1rem; font-weight: 700;
+  padding: 1rem 2.2rem; border-radius: 50px;
+}
+#how-it-works .ph-card { background: #111827; color: #f9fafb; }
+#how-it-works .ph-card h5 { font-size: 1.25rem; font-weight: 700; color: #fff; }
+#how-it-works .ph-card p { color: #d1d5db; font-size: 1rem; }
+
+/* Right column list styling */
+.benefit-card ul { margin:0; padding:0; list-style:none; }
+.benefit-card ul li { margin:.55rem 0; line-height:1.6; font-size:1.05rem; display:flex; gap:.6rem; align-items:flex-start; }
+.benefit-card .badge { font-size:.95rem; padding:.55rem 1rem; border-radius:999px; margin:.2rem; background:#f3f4f6; color:#111827; font-weight:600; }
+.benefit-card .btn-main {
+  color:#fff !important; background:#26a69a; font-size:1.1rem; font-weight:700; border-radius:50px;
+  padding:1rem 2rem; margin-top:1.5rem; box-shadow:0 6px 16px rgba(38,166,154,.35);
+}
+.benefit-card .btn-main:hover { background:#1f8d82; box-shadow:0 8px 22px rgba(38,166,154,.5); }
+
+/* FAQ Pro */
+.faq-pro .accordion-item{
+  background:#fff; border:1px solid #e5e7eb; border-radius:14px; overflow:hidden;
+  box-shadow:0 6px 20px rgba(0,0,0,.05); margin-bottom:.9rem;
+}
+.faq-pro .accordion-button{
+  background:#ffffff; color:#0f172a; font-weight:800; font-size:1.05rem; padding:1.1rem 1.25rem;
+}
+.faq-pro .accordion-button:focus{ box-shadow:none; }
+.faq-pro .accordion-button:not(.collapsed){
+  color:#0f172a; background:#f8fafc; border-bottom:1px solid #eef2f7;
+}
+.faq-pro .accordion-body{ color:#4b5563; line-height:1.8; font-size:1.02rem; padding:1.1rem 1.25rem; }
+.faq-pro .accordion-item:hover{ transform: translateY(-1px); transition:.25s; box-shadow:0 12px 28px rgba(0,0,0,.08); }
+
+/* Testimonials */
+.shadow-soft{ box-shadow:0 10px 30px rgba(0,0,0,.06); border:0; border-radius:16px; }
+.testi-pro .card-body{ padding:1.6rem 1.6rem 1.4rem; }
+.testi-pro .quote-mark{ font-size:2.4rem; line-height:0.8; color:#26a69a; font-weight:900; margin-bottom:.25rem; }
+.testi-pro .quote-text{ font-size:1.2rem; line-height:1.9; color:#111827; }
+.testi-pro .name{ font-weight:800; color:#0f172a; }
+.testi-pro .role{ color:#6b7280; font-size:.95rem; }
+.testi-pro .avatar-fallback{
+  width:46px; height:46px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+  background:linear-gradient(135deg,#26a69a,#1f8d82); color:#fff; font-weight:800; flex:0 0 46px;
+}
+#testiCarousel .carousel-indicators [data-bs-target]{
+  width:10px; height:10px; border-radius:50%; background:#cbd5e1; border:0; margin:0 4px;
+}
+#testiCarousel .carousel-indicators .active{ background:#26a69a; }
+
+/* Responsive */
+@media (min-width: 992px){ .testi-pro .quote-text{ font-size:1.28rem; } }
+@media (max-width: 768px){
+  .hero{ min-height: 70vh; padding-top:5rem; padding-bottom:3rem; }
+}
+</style>
+{% endblock %}
+
+{% block body %}
+<main>
+
+  <!-- ================= HERO ================= -->
+  <section class="hero">
+    <div class="hero-content">
+      <div class="badge-chips mb-3">
+        <span class="badge text-dark" style="background:#d1fae5;">Fast Approval</span>
+        <span class="badge text-light" style="background:#111827; border:1px solid rgba(255,255,255,.25);">Custom Links</span>
+        <span class="badge text-light" style="background:#111827; border:1px solid rgba(255,255,255,.25);">Real-time Dashboard</span>
+      </div>
+
+      <h1>Turn your event audience into <span style="color:#26a69a;">recurring income</span>.</h1>
+      <p class="mt-3">
+        Earn <strong style="color:#fff;">30% recurring commission</strong> on every Ophyra App subscription you refer —
+        month after month — promoting a platform built by and for event professionals.
+      </p>
+
+      <div class="mt-4 d-flex justify-content-center gap-3 flex-wrap">
+        <a href="{{ path('signup') }}?redirect=/panel/planner-hub-sync"
+           class="ph-btn-main activate-aff"
+           data-redirect="/panel/planner-hub-sync">
+           Join & Get My Link
+        </a>
+        <a href="#how-it-works" class="btn btn-outline-light" style="border-radius:999px; padding:.9rem 1.4rem;">
+          How it Works
+        </a>
+      </div>
+
+      <p class="mt-3" style="color:#cbd5e1;">
+          Example: refer <strong>50 active subscriptions</strong> → earn around
+          <strong style="color:#fff;">$475/month</strong> in recurring income, as long as they stay active.
+        </p>
+        <p class="mt-1" style="color:#9ca3af; font-size:.95rem;">
+          Ophyra App is fully owned and operated in South Florida by Ophyra App LLC.
+
+        </p>
+
+    </div>
+  </section>
+
+  <!-- ============== WHY IT CONVERTS (for affiliates) ============== -->
+  <section class="section section-alt">
+    <div class="container">
+      <h2 class="venue-title text-center">Why <span class="highlight">Ophyra App</span> Sells Itself</h2>
+
+      <div class="row g-4 mt-2">
+        <div class="col-md-4">
+          <div class="benefit-card">
+            <h4><i class="fa-solid fa-bullseye check"></i> Painkiller, not a vitamin</h4>
+            <p>We fix daily headaches for venues & vendors: leads, client comms, tasks, inventory, payments, contracts and more. Clear ROI → easier conversions.</p>
+            <ul class="mb-0">
+              <li>✔ Centralize ops & communication</li>
+              <li>✔ Professional client portal</li>
+              <li>✔ Save time & reduce errors</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="col-md-4">
+          <div class="benefit-card">
+            <h4><i class="fa-solid fa-hand-holding-dollar check"></i> Pricing that wins</h4>
+            <p>Competes head-to-head with big names at a fraction of the price — while delivering tools they don’t.</p>
+            <ul class="mb-0">
+              <li>✔ Membership from $18.99/mo</li>
+              <li>✔ Listings vastly cheaper</li>
+              <li>✔ Cancel anytime — no penalties</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="col-md-4">
+          <div class="benefit-card">
+            <h4><i class="fa-solid fa-chart-line check"></i> Recurring you can count on</h4>
+            <p>Happy users stay. Your commission compounds month over month with each new referral that remains active.</p>
+            <ul class="mb-0">
+              <li>✔ 30% recurring on active plans</li>
+              <li>✔ Real-time reporting</li>
+              <li>✔ Fast approval & onboarding</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- quick credibility strip -->
+      <div class="text-center mt-4">
+        <span class="badge rounded-pill" style="background:#26a69a; color:#0b1f1e; font-weight:800; padding:.65rem 1rem;">No contracts</span>
+        <span class="badge rounded-pill" style="background:#111827; color:#fff; border:1px solid rgba(0,0,0,.2); padding:.65rem 1rem;">Transparent payouts</span>
+        <span class="badge rounded-pill" style="background:#111827; color:#fff; border:1px solid rgba(0,0,0,.2); padding:.65rem 1rem;">Dedicated support</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============== HOW IT WORKS ============== -->
+  <section id="how-it-works" class="section">
+    <div class="container">
+      <h2>How It Works</h2>
+      <div class="row g-4 mt-1">
+        <div class="col-md-4">
+          <div class="ph-card">
+            <i class="fa-solid fa-link"></i>
+            <h5 class="mt-2 mb-1">1) Apply & get your link</h5>
+            <p class="mb-0">Instant signup. Receive your unique tracking link and assets to promote.</p>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="ph-card">
+            <i class="fa-solid fa-bullhorn"></i>
+            <h5 class="mt-2 mb-1">2) Share with your audience</h5>
+            <p class="mb-0">Use our ready-to-go copy, posts and email swipes to drive trials and signups.</p>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="ph-card">
+            <i class="fa-solid fa-sack-dollar"></i>
+            <h5 class="mt-2 mb-1">3) Get paid monthly</h5>
+            <p class="mb-0">Earn 30% on each active subscription — automatically, month after month.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="text-center mt-4">
+        <a href="{{ path('signup') }}?redirect=/panel/planner-hub-sync"
+           class="ph-btn-main activate-aff"
+           data-redirect="/panel/planner-hub-sync">
+           Register to Promote
+        </a>
+      </div>
+    </div>
+  </section>
+
+
+
+
+
+  <section class="section">
+  <div class="container text-center">
+    <h2 class="venue-title">Who <span class="highlight">This Program Is Perfect For</span></h2>
+    <p style="max-width:760px; margin:10px auto 30px; font-size:1.1rem;">
+      If your audience includes event professionals, you can earn recurring income effortlessly.
+    </p>
+    <div class="row g-4">
+      <div class="col-md-4"><strong>🎤 Vendors & Creators</strong><br> DJs, decorators, photographers, caterers, stylists.</div>
+      <div class="col-md-4"><strong>🏛 Venues</strong><br> Share with other venues, planners, and partner vendors.</div>
+      <div class="col-md-4"><strong>📚 Event Industry Coaches</strong><br><br> Experts who teach planning, décor, rentals, photography, or business systems.</div>
+    </div>
+  </div>
+</section>
+
+
+
+  <!-- ============== COMPARISON ============== -->
+  <section class="section section-alt">
+    <div class="container">
+      <h2 class="venue-title text-center">Why Clients Choose <span class="highlight">Ophyra App</span></h2>
+      <div class="compare">
+        <div class="row thead m-0 py-3 text-center">
+          <div class="col-4">What they get</div>
+          <div class="col-4">Typical “Directory” Sites</div>
+          <div class="col-4">Ophyra App</div>
+        </div>
+
+        {% set rows = [
+          ['Public profile & lead capture', 'Often paywalled / expensive', 'Included + tools that convert'],
+          ['Client portal & contracts', 'Not provided', 'Built-in e-sign & files'],
+          ['Team/tasks & inventory', 'Not provided', 'All-in-one ops suite'],
+          ['Pricing flexibility', 'Long commitments / penalties', 'Cancel anytime'],
+          ['Total monthly cost', 'High', 'Accessible']
+        ] %}
+        {% for r in rows %}
+          <div class="row row-item m-0 py-3 text-center">
+            <div class="col-4 fw-semibold">{{ r[0] }}</div>
+            <div class="col-4 text-danger"><i class="fa-regular fa-circle-xmark"></i> {{ r[1] }}</div>
+            <div class="col-4 text-success"><i class="fa-regular fa-circle-check"></i> {{ r[2] }}</div>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="text-center mt-4">
+  <a href="{{ path('signup') }}?redirect=/panel/planner-hub-sync"
+     class="btn-main activate-aff"
+     data-redirect="/panel/planner-hub-sync"
+     style="color:#fff !important; padding:1rem 2rem; font-weight:800; border-radius:50px;">
+    Get My Affiliate Link
+  </a>
+</div>
+  </section>
+
+  <!-- ============== EARNINGS CALCULATOR ============== -->
+  <section class="section" id="earnings">
+    <div class="container">
+      <h2 class="venue-title text-center">See Your <span class="highlight">Recurring Earnings</span> Stack</h2>
+
+      <div class="row g-4 align-items-stretch mt-2">
+        <!-- LEFT: SIMPLE STACK CALCULATOR -->
+        <div class="col-lg-6">
+          <div class="calc h-100">
+            <div class="row g-3">
+              <div class="col-sm-7">
+                <label class="muted">New memberships you refer <strong>every month</strong></label>
+                <input id="aff-subs-month" type="number" min="0" step="1" value="10">
+              </div>
+              <div class="col-sm-5">
+                <label class="muted">Commission %</label>
+                <input id="aff-comm" type="number" min="1" max="100" value="30">
+              </div>
+              <div class="col-sm-6">
+                <label class="muted">Plan price (USD / month)</label>
+                <input id="aff-price" type="number" min="1" step="0.01" value="18.99">
+              </div>
+              <div class="col-sm-6 d-flex align-items-end">
+                <a href="#" id="toggle-adv" class="text-decoration-none" style="color:#9ca3af;">Advanced: monthly retention</a>
+              </div>
+            </div>
+
+            <!-- Advanced (optional) -->
+            <div id="adv-block" style="display:none; margin-top:.75rem;">
+              <label class="muted">Retention per month (kept active)</label>
+              <input id="aff-retention" type="range" min="50" max="100" value="100"
+                     oninput="document.getElementById('retention-val').innerText=this.value+'%'">
+              <div class="muted mt-1">Current: <span id="retention-val">100%</span></div>
+            </div>
+
+            <hr style="border-color:#1f2937; margin:1.25rem 0;">
+
+            <p class="muted mb-2">Referring <strong id="x-month">10</strong> new memberships every month, your <strong>recurring</strong> payout would be:</p>
+
+            <div class="row text-center g-3">
+              <div class="col-6 col-md-3">
+                <div style="background:#0f1a34; border:1px solid #1f2937; border-radius:12px; padding:.9rem;">
+                  <div class="muted">Month 1</div>
+                  <div id="m1" style="font-size:1.4rem; font-weight:800;">$0</div>
+                </div>
+              </div>
+              <div class="col-6 col-md-3">
+                <div style="background:#0f1a34; border:1px solid #1f2937; border-radius:12px; padding:.9rem;">
+                  <div class="muted">Month 3</div>
+                  <div id="m3" style="font-size:1.4rem; font-weight:800;">$0</div>
+                </div>
+              </div>
+              <div class="col-6 col-md-3">
+                <div style="background:#0f1a34; border:1px solid #1f2937; border-radius:12px; padding:.9rem;">
+                  <div class="muted">Month 6</div>
+                  <div id="m6" style="font-size:1.4rem; font-weight:800;">$0</div>
+                </div>
+              </div>
+              <div class="col-6 col-md-3">
+                <div style="background:#0f1a34; border:1px solid #1f2937; border-radius:12px; padding:.9rem;">
+                  <div class="muted">Month 12</div>
+                  <div id="m12" style="font-size:1.4rem; font-weight:800; color:#26a69a;">$0</div>
+                </div>
+              </div>
+            </div>
+
+            <p class="muted mt-3 mb-0">
+              * Assumes all stay active (100% retention). Use “Advanced” to model monthly retention.
+            </p>
+          </div>
+        </div>
+
+        <!-- RIGHT: PROMO / IDEAS -->
+        <div class="col-lg-6">
+          <div class="benefit-card h-100">
+            <h4 class="mb-3" style="font-size:1.5rem; font-weight:900; color:#111827;">
+              💡 Promotion ideas that convert
+            </h4>
+            <ul class="mb-3">
+              <li><span><strong>Niche landing pages</strong> for venues/vendors (“How to stop double bookings”).</span></li>
+              <li><span><strong>30-sec reels</strong> comparing our cost vs. legacy platforms.</span></li>
+              <li><span><strong>Email sequence</strong>: pain → solution → proof → CTA.</span></li>
+              <li><span>Use our <strong>swipe copy, screenshots</strong> and explainer deck.</span></li>
+            </ul>
+
+            <div class="badge-chips mb-3">
+              <span class="badge">Done-for-you posts</span>
+              <span class="badge">Lead magnets</span>
+              <span class="badge">Banners</span>
+            </div>
+
+            <a href="{{ path('signup') }}?redirect=/panel/planner-hub-sync"
+               class="btn-main activate-aff"
+               data-redirect="/panel/planner-hub-sync"
+               style="color:#fff !important; font-size:1.1rem; font-weight:800; border-radius:50px; padding:1rem 2rem; display:inline-block;">
+              Get My Affiliate Link
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============== TESTIMONIALS / SOCIAL PROOF ============== -->
+  <section class="section section-alt testi-pro" id="testimonials">
+    <div class="container">
+      <h2 class="venue-title text-center mb-3">What <span class="highlight">Early Users</span> Say</h2>
+      <p class="text-center text-muted mb-4" style="max-width:720px;margin:0 auto;">
+        Real operators. Real wins. Replace scattered tools, show a pro client portal, and bank recurring revenue.
+      </p>
+
+      {% set testimonials = [
+        { name:"Carolina R.", role:"Venue Owner — FL", quote:"We replaced 5 tools with Ophyra App. Fewer mistakes, happier clients." },
+        { name:"Marco G.", role:"Event Planner — TX", quote:"Client portal + contracts sell themselves. Pricing is a no-brainer." },
+        { name:"Jasmine T.", role:"Rental Company — NY", quote:"Inventory + tasks alone save us hours every week. Keeping it forever." },
+        { name:"Daniel P.", role:"Catering — CA", quote:"Quoting and approvals are smooth. We close deals faster and look pro." },
+        { name:"Lina V.", role:"DJ & Lighting — NJ", quote:"All the info on one timeline. My team finally runs on autopilot." }
+      ] %}
+
+      <div id="testiCarousel" class="carousel slide" data-bs-ride="carousel" data-bs-interval="4500" data-bs-touch="true">
+        <div class="carousel-inner">
+          {% for t in testimonials %}
+          <div class="carousel-item {% if loop.first %}active{% endif %}">
+            <div class="card shadow-soft">
+              <div class="card-body">
+                <div class="quote-mark">“</div>
+                <p class="quote-text">{{ t.quote }}</p>
+                <div class="d-flex align-items-center mt-3">
+                  <div class="avatar avatar-fallback me-3">{{ t.name|first }}</div>
+                  <div>
+                    <div class="name">{{ t.name }}</div>
+                    <div class="role">{{ t.role }}</div>
+                    <div class="stars" aria-label="5 out of 5">
+                      <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
+                      <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
+                      <i class="fa-solid fa-star"></i>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+
+        <!-- dots -->
+        <div class="carousel-indicators" style="position:relative; margin-top:.9rem;">
+          {% for t in testimonials %}
+            <button type="button" data-bs-target="#testiCarousel" data-bs-slide-to="{{ loop.index0 }}"
+                    class="{% if loop.first %}active{% endif %}" aria-current="{{ loop.first ? 'true' : 'false' }}"
+                    aria-label="Slide {{ loop.index }}"></button>
+          {% endfor %}
+        </div>
+
+        <!-- arrows -->
+        <button class="carousel-control-prev" type="button" data-bs-target="#testiCarousel" data-bs-slide="prev">
+          <span class="carousel-control-prev-icon" aria-hidden="true"></span><span class="visually-hidden">Previous</span>
+        </button>
+        <button class="carousel-control-next" type="button" data-bs-target="#testiCarousel" data-bs-slide="next">
+          <span class="carousel-control-next-icon" aria-hidden="true"></span><span class="visually-hidden">Next</span>
+        </button>
+      </div>
+
+      <div class="text-center mt-4">
+        <a href="{{ path('signup') }}?redirect=/panel/planner-hub-sync"
+           class="btn-main activate-aff"
+           data-redirect="/panel/planner-hub-sync"
+           style="color:#fff !important; font-weight:800; padding:1rem 2rem; border-radius:50px;">
+          Start Earning
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <section class="section section-alt">
+  <div class="container text-center">
+    <h2 class="venue-title">Your Audience Will <span class="highlight">Thank You</span></h2>
+    <p style="max-width:760px; margin:0 auto; font-size:1.1rem;">
+      Ophyra App isn't a random product — it's a real solution to everyday chaos in the event industry.
+      When people try it, they immediately feel the upgrade in organization, communication, and client experience.
+    </p>
+    <p class="mt-3" style="font-size:1.05rem; color:#444;">
+      Recommending a product that genuinely helps <strong>increases your authority</strong> and builds trust 
+      instead of hurting it.
+    </p>
+  </div>
+</section>
+
+
+  <!-- ============== FAQ / OBJECTIONS ============== -->
+  <section class="section section-alt" id="faq">
+    <div class="container">
+      <h2 class="venue-title text-center mb-4">FAQ — <span class="highlight">Everything Affiliates Ask</span></h2>
+
+      <div class="faq-pro mx-auto" style="max-width:980px;">
+        {% set faqs = [
+          { q: "How fast can I get approved?", a: "Most partners are approved the same business day. You’ll instantly receive your dashboard and unique tracking link." },
+          { q: "How is tracking handled?", a: "We use link tracking with first-party cookies + server validation. Standard attribution window is 60 days; last click wins (unless a manual review shows clear prior influence)." },
+          { q: "When do I get paid and how?", a: "Payouts run monthly for all active subscriptions you referred. Minimum $25. We pay via bank transfer or PayPal according to your profile settings." },
+          { q: "What’s the commission structure?", a: "You earn 30% recurring on every active plan, month after month. Commissions compound as your referrals stack." },
+          { q: "Is there any contract or minimum volume?", a: "No contracts, no quotas. Ophyra App is cancel-anytime for users, and you keep commissions on accounts that remain active." },
+          { q: "Any traffic restrictions?", a: "No brand-bidding on our trademarks, no spam or misleading claims. Paid ads are allowed if compliant with local policies and our brand guidelines." },
+          { q: "Can I use discount codes or promo pages?", a: "Yes. We periodically issue affiliate promos. If a referral uses your code during checkout, attribution is guaranteed even without a click." },
+          { q: "Do you provide creative assets?", a: "Yes — swipe copy, social posts, banners, and a short explainer deck. You also get a real-time dashboard with clicks, trials, and conversions." },
+          { q: "Who is Ophyra App perfect for?", a: "Venue owners, vendors, planners and event enthusiasts with audiences in private, corporate and social events" }
+        ] %}
+
+        <div class="accordion" id="faqProAccordion">
+          {% for item in faqs %}
+          <div class="accordion-item">
+            <h3 class="accordion-header" id="faq-{{ loop.index }}">
+              <button class="accordion-button {% if not loop.first %}collapsed{% endif %}"
+                      type="button"
+                      data-bs-toggle="collapse"
+                      data-bs-target="#faq-collapse-{{ loop.index }}"
+                      aria-expanded="{{ loop.first ? 'true' : 'false' }}"
+                      aria-controls="faq-collapse-{{ loop.index }}">
+                <i class="fa-regular fa-circle-question me-2 text-success"></i>
+                {{ item.q }}
+              </button>
+            </h3>
+            <div id="faq-collapse-{{ loop.index }}"
+                 class="accordion-collapse collapse {% if loop.first %}show{% endif %}"
+                 aria-labelledby="faq-{{ loop.index }}"
+                 data-bs-parent="#faqProAccordion">
+              <div class="accordion-body">
+                {{ item.a }}
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+
+        <div class="text-center mt-4">
+          <a href="{{ path('signup') }}?redirect=/panel/planner-hub-sync"
+             class="btn-main activate-aff"
+             data-redirect="/panel/planner-hub-sync"
+             style="color:#fff !important; font-weight:800; padding:1rem 2rem; border-radius:50px;">
+            Join Now — Get Your Link
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============== FINAL CTA ============== -->
+  <section class="section text-center" style="background:#0b1f1e;">
+    <div class="container">
+      <h2 class="text-white">Ready to Promote a Product That Truly Helps?</h2>
+      <p class="text-white-50 mb-4">Turn your audience into monthly recurring income with Ophyra App.</p>
+      <a href="{{ path('signup') }}?redirect=/panel/planner-hub-sync"
+         class="btn-main activate-aff"
+         data-redirect="/panel/planner-hub-sync"
+         style="color:#fff !important; font-weight:800; padding:1rem 2rem; border-radius:50px;">
+        Join Now — It's FREE
+      </a>
+    </div>
+  </section>
+
+</main>
+
+<!-- ===== Calculator logic ===== -->
+<script>
+(function(){
+  const $ = (id)=>document.getElementById(id);
+  const subs  = $('aff-subs-month');
+  const comm  = $('aff-comm');
+  const price = $('aff-price');
+  const ret   = $('aff-retention');
+  const xText = $('x-month');
+
+  const out = { m1:$('m1'), m3:$('m3'), m6:$('m6'), m12:$('m12') };
+
+  function fmt(n){ return '$' + (Math.round(n*100)/100).toLocaleString(); }
+
+  /* Monthly stacked payout:
+     active(M) = n * sum_{k=0}^{M-1} r^k
+  */
+  function stackedPayout(n,p,c,r,m){
+    const active = (r === 1) ? n * m : n * ((1 - Math.pow(r, m)) / (1 - r));
+    return active * p * c;
+  }
+
+  function calc(){
+    const n = parseFloat(subs.value || 0);
+    const p = parseFloat(price.value || 0);
+    const c = (parseFloat(comm.value || 0) / 100);
+    const r = (parseFloat(ret.value || 100) / 100);
+
+    xText.innerText = isNaN(n)?0:n;
+
+    out.m1.innerText  = fmt(stackedPayout(n,p,c,r,1));
+    out.m3.innerText  = fmt(stackedPayout(n,p,c,r,3));
+    out.m6.innerText  = fmt(stackedPayout(n,p,c,r,6));
+    out.m12.innerText = fmt(stackedPayout(n,p,c,r,12));
+  }
+
+  ['input','change'].forEach(ev=>{
+    subs.addEventListener(ev, calc);
+    comm.addEventListener(ev, calc);
+    price.addEventListener(ev, calc);
+    ret.addEventListener(ev, calc);
+  });
+
+  // toggle advanced
+  document.getElementById('toggle-adv').addEventListener('click', function(e){
+    e.preventDefault();
+    const adv = document.getElementById('adv-block');
+    adv.style.display = (adv.style.display === 'none' || adv.style.display === '') ? 'block' : 'none';
+  });
+
+  calc();
+})();
+</script>
+
+<!-- ===== Affiliate intent setter (robust) ===== -->
+<script>
+/* Writes redirect_after_auth every time a CTA is pressed.
+   Reads redirect from data-redirect OR from ?redirect= in href. */
+(function(){
+  const KEY     = 'redirect_after_auth';
+  const DEFAULT = '/panel/planner-hub-sync';
+  const MAX_AGE = 60 * 60 * 24 * 30; // 30 days
+
+  function setIntent(val){
+    const v = val || DEFAULT;
+    try { localStorage.setItem(KEY, v); } catch(e){}
+    document.cookie = KEY + '=' + encodeURIComponent(v) +
+      '; path=/; max-age=' + MAX_AGE + '; SameSite=Lax';
+  }
+
+  function extractRedirect(el){
+    const ds = el.getAttribute('data-redirect');
+    if (ds) return ds;
+    try {
+      const href = el.getAttribute('href') || '';
+      const u = new URL(href, location.origin);
+      return u.searchParams.get('redirect') || '';
+    } catch(e){ return ''; }
+  }
+
+  function bind(el){
+    const dest = extractRedirect(el) || DEFAULT;
+    const handler = () => setIntent(dest);
+    // Pointerdown ensures we set the cookie before navigation
+    el.addEventListener('pointerdown', handler, { capture:true });
+    el.addEventListener('click',       handler, { capture:true });
+    el.addEventListener('auxclick',    handler, { capture:true }); // middle-click
+    el.addEventListener('keydown', (e)=>{
+      if (e.key === 'Enter' || e.keyCode === 13) handler();
+    }, { capture:true });
+  }
+
+  document.querySelectorAll('a.activate-aff, a[data-redirect]').forEach(bind);
+})();
+</script>
+
+<!-- ===== Testimonials carousel init ===== -->
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  var el = document.getElementById('testiCarousel');
+  if (typeof bootstrap !== 'undefined' && el){
+    var c = new bootstrap.Carousel(el, { interval: 3000, ride: 'carousel', touch: true, pause: false });
+    el.addEventListener('mouseenter', ()=>c.pause());
+    el.addEventListener('mouseleave', ()=>c.cycle());
+  }
+});
+</script>
+
+{% endblock %}

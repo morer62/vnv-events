@@ -1,0 +1,73 @@
+{% extends 'templates/base.admin.twig' %}
+{% import 'templates/macros.twig' as macros %}
+
+
+{% block body %}
+<h2 class="mb-4">🏢 Institution Profile</h2>
+{{ macros.breadcrumb2() }}
+
+<form method="post" enctype="multipart/form-data" class="card p-4">
+
+    <div class="mb-3">
+        <label class="form-label">Company Name</label>
+        <input type="text" name="company_name" class="form-control" value="{{ profile.company_name ?? '' }}" required>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Logo</label>
+        {% if profile.logo_path %}
+            <div class="mb-2">
+                <img src="{{ profile.logo_path }}" alt="Logo" style="max-height: 100px;">
+            </div>
+        {% endif %}
+        <input type="file" name="logo" class="form-control">
+    </div>
+
+    <div class="row mb-3">
+        <div class="col-md-6">
+            <label class="form-label">Phone</label>
+            <input type="text" name="phone" class="form-control" value="{{ profile.phone ?? '' }}">
+        </div>
+        <div class="col-md-6">
+            <label class="form-label">Email</label>
+            <input type="email" name="email" class="form-control" value="{{ profile.email ?? '' }}">
+        </div>
+    </div>
+
+  
+    <div class="mb-3">
+        <label class="form-label">Address</label>
+        <input type="text" name="address_line1" class="form-control" value="{{ profile.address_line1 ?? '' }}">
+    </div>
+
+    <div class="row mb-3">
+        <div class="col-md-4">
+            <label class="form-label">City</label>
+            <input type="text" name="city" class="form-control" value="{{ profile.city ?? '' }}">
+        </div>
+        <div class="col-md-4">
+            <label class="form-label">State</label>
+            <input type="text" name="state" class="form-control" value="{{ profile.state ?? '' }}">
+        </div>
+        <div class="col-md-4">
+            <label class="form-label">ZIP</label>
+            <input type="text" name="zip" class="form-control" value="{{ profile.zip ?? '' }}">
+        </div>
+    </div>
+
+    <div class="mb-4">
+        <label class="form-label">Country</label>
+        <input type="text" name="country" class="form-control" value="{{ profile.country ?? '' }}">
+    </div>
+
+    <div class="mb-4">
+        <label class="form-label">Payment Methods Accepted</label>
+        <textarea name="payment_method_accepted" class="form-control" rows="2" placeholder="e.g. Visa, MasterCard, Zelle">{{ profile.payment_method_accepted ?? '' }}</textarea>
+    </div>
+
+
+    <div class="mt-3">
+        <button class="btn btn-primary">💾 Save</button>
+    </div>
+</form>
+{% endblock %}

@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ event.event_name }} - You're Invited!</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="{{ asset_for('template/img/icons/icon-48x48.png') }}">
+    <link rel="shortcut icon" type="image/png" href="{{ asset_for('template/img/icons/icon-48x48.png') }}">
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <link href="https://fonts.googleapis.com/css2?family={{ event.font_family|url_encode|replace({'%20': '+'}) }}:wght@300;400;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        * {
+            font-family: '{{ event.font_family }}', sans-serif;
+        }
+        body {
+            background: #f8f9fa;
+            min-height: 100vh;
+            padding: 0;
+        }
+        .event-container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 0;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        .event-header {
+            {% if event.cover_image_url %}
+            background: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.5)), url('{{ event.cover_image_url }}');
+            background-size: cover;
+            background-position: center;
+            {% else %}
+            background: linear-gradient(135deg, {{ event.primary_color }}, {{ event.secondary_color }});
+            {% endif %}
+            color: {{ event.header_text_color|default('#FFFFFF') }};
+            padding: 80px 40px;
+            text-align: center;
+            position: relative;
+        }
+        .event-header h1 {
+            font-size: 3.5rem;
+            font-weight: 700;
+            margin-bottom: 15px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            color: {{ event.header_text_color|default('#FFFFFF') }};
+        }
+        .event-header p {
+            font-size: 1.5rem;
+            opacity: 0.95;
+            font-weight: 300;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+            color: {{ event.header_text_color|default('#FFFFFF') }};
+        }
+        .event-body {
+            padding: 60px 50px;
+        }
+        .greeting {
+            font-size: 1.8rem;
+            color: #333;
+            margin-bottom: 25px;
+            font-weight: 600;
+        }
+        .lead {
+            font-size: 1.2rem;
+            line-height: 1.8;
+            color: #555;
+            margin-bottom: 30px;
+        }
+        .event-details {
+            background: linear-gradient(135deg, {{ event.primary_color }}15, {{ event.secondary_color }}15);
+            border: 2px solid {{ event.primary_color }};
+            border-radius: 15px;
+            padding: 35px;
+            margin: 40px 0;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        .detail-item {
+            margin: 18px 0;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: flex-start;
+        }
+        .detail-item strong {
+            color: {{ event.primary_color }};
+            display: inline-block;
+            min-width: 140px;
+            font-weight: 600;
+        }
+        .btn-primary {
+            background: {{ event.primary_color }} !important;
+            border-color: {{ event.primary_color }} !important;
+            padding: 15px 40px;
+            font-size: 1.2rem;
+            border-radius: 50px;
+            font-weight: 600;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        }
+        .btn-outline-danger {
+            border-width: 2px;
+            font-weight: 600;
+        }
+        .rsvp-form {
+            background: linear-gradient(135deg, #ffffff, #f8f9fa);
+            padding: 40px;
+            border-radius: 20px;
+            border: 2px solid {{ event.primary_color }};
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+            margin-top: 30px;
+        }
+        .form-label {
+            font-weight: 600;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <div class="event-container">
+        <div class="event-header">
+            <div style="position: relative; z-index: 2;">
+                <h1 style="margin-bottom: 10px;">🎉 You're Invited!</h1>
+                <p style="font-size: 2rem; font-weight: 400; margin-bottom: 0;">{{ event.event_name }}</p>
+                {% if event.event_description %}
+                <p style="font-size: 1.1rem; opacity: 0.9; margin-top: 15px; max-width: 700px; margin-left: auto; margin-right: auto;">
+                    {{ event.event_description }}
+                </p>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="event-body">
+            {% if guest %}
+            <div class="greeting">
+                Dear {{ guest.first_name }},
+            </div>
+            {% endif %}
+
+            {% if event.custom_message %}
+            <p class="lead">{{ event.custom_message|nl2br }}</p>
+            {% endif %}
+
+            <div class="event-details">
+                <div class="detail-item">
+                    <strong>📅 Date:</strong> {{ event.event_date|date('l, F j, Y') }}
+                </div>
+                <div class="detail-item">
+                    <strong>🕐 Time:</strong> {{ event.event_time|date('g:i A') }}
+                    {% if event.event_end_time %}
+                        - {{ event.event_end_time|date('g:i A') }}
+                    {% endif %}
+                </div>
+                {% if event.venue_name %}
+                <div class="detail-item">
+                    <strong>📍 Venue:</strong> {{ event.venue_name }}
+                </div>
+                {% endif %}
+                {% if event.venue_address %}
+                <div class="detail-item">
+                    <strong>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Address:</strong> {{ event.venue_address }}
+                    {% if event.venue_city %}, {{ event.venue_city }}{% endif %}
+                    {% if event.venue_state %}, {{ event.venue_state }}{% endif %}
+                </div>
+                {% endif %}
+                {% if event.dress_code %}
+                <div class="detail-item">
+                    <strong>👔 Dress Code:</strong> {{ event.dress_code }}
+                </div>
+                {% endif %}
+            </div>
+
+            {% if guest %}
+                {% if eventDatePassed and guest.rsvp_status == 'pending' %}
+                    <div class="alert alert-danger text-center" style="border-left: 5px solid #dc3545; background: #f8d7da; padding: 30px; border-radius: 10px;">
+                        <h4 style="color: #721c24; margin-bottom: 15px;">
+                            <i class="bi bi-calendar-x-fill"></i> Event Has Passed
+                        </h4>
+                        <p style="color: #721c24; font-size: 1.1rem; margin-bottom: 10px;">
+                            This event was held on <strong>{{ event.event_date|date('l, F j, Y') }}</strong>.
+                        </p>
+                        <p style="color: #721c24; margin-bottom: 0;">
+                            RSVP is no longer available for this event.
+                        </p>
+                    </div>
+                {% elseif rsvpDeadlinePassed and guest.rsvp_status == 'pending' %}
+                    <div class="alert alert-warning text-center" style="border-left: 5px solid #ffc107; background: #fff3cd; padding: 30px; border-radius: 10px;">
+                        <h4 style="color: #856404; margin-bottom: 15px;">
+                            <i class="bi bi-exclamation-triangle-fill"></i> RSVP Deadline Has Passed
+                        </h4>
+                        <p style="color: #856404; font-size: 1.1rem; margin-bottom: 10px;">
+                            {% if event.rsvp_deadline %}
+                                The RSVP deadline was <strong>{{ event.rsvp_deadline|date('F j, Y') }}</strong>.
+                            {% else %}
+                                The RSVP deadline has passed.
+                            {% endif %}
+                        </p>
+                        <p style="color: #856404; margin-bottom: 0;">
+                            Please contact the event organizer if you need to update your response.
+                        </p>
+                    </div>
+                {% elseif guest.rsvp_status == 'pending' %}
+                    {% if errorMessage %}
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        {{ errorMessage }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="rsvp-form">
+                        <h3 class="text-center mb-4">Please Confirm Your Attendance</h3>
+                        {% if event.rsvp_deadline %}
+                        <p class="text-center text-muted mb-3">
+                            <small>Please RSVP by <strong>{{ event.rsvp_deadline|date('F j, Y') }}</strong></small>
+                        </p>
+                        {% endif %}
+                        
+                        <form method="post">
+                            <input type="hidden" name="slug" value="{{ event.slug }}">
+                            <input type="hidden" name="token" value="{{ token }}">
+                            
+                            <div class="mb-4">
+                                <label class="form-label">Will you attend?</label>
+                                <div class="d-grid gap-2">
+                                    <button type="button" class="btn btn-lg btn-success" onclick="selectRSVP('confirmed')">
+                                        ✅ Yes, I'll be there!
+                                    </button>
+                                    <button type="button" class="btn btn-lg btn-outline-danger" onclick="selectRSVP('declined')">
+                                        ❌ Sorry, I can't make it
+                                    </button>
+                                </div>
+                                <input type="hidden" name="rsvp_status" id="rsvp_status" value="pending">
+                            </div>
+
+                            <div id="confirmed-section" style="display:none;">
+                                {% if event.allow_plus_ones %}
+                                <div class="mb-3">
+                                    <label class="form-label">How many guests will you bring? (max {{ event.max_plus_ones_per_guest }})</label>
+                                    <select name="plus_ones" id="plus_ones" class="form-select" onchange="updatePlusOnesFields()">
+                                        {% for i in 0..event.max_plus_ones_per_guest %}
+                                        <option value="{{ i }}">{{ i }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                
+                                <div id="plus-ones-names"></div>
+                                {% endif %}
+
+                                {% if event.require_meal_selection %}
+                                <div class="mb-3">
+                                    <label class="form-label">Meal Preference</label>
+                                    <select name="meal_preference" class="form-select">
+                                        <option value="">Select option</option>
+                                        <option value="chicken">Chicken</option>
+                                        <option value="beef">Beef</option>
+                                        <option value="fish">Fish</option>
+                                        <option value="vegetarian">Vegetarian</option>
+                                        <option value="vegan">Vegan</option>
+                                    </select>
+                                </div>
+                                {% endif %}
+
+                                <div class="mb-3">
+                                    <label class="form-label">Dietary Restrictions (Optional)</label>
+                                    <textarea name="dietary_restrictions" class="form-control" rows="2" placeholder="Any allergies or dietary needs?"></textarea>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label">Special Notes (Optional)</label>
+                                    <textarea name="special_notes" class="form-control" rows="2" placeholder="Anything we should know?"></textarea>
+                                </div>
+
+                                <button type="submit" class="btn btn-primary w-100">Submit RSVP</button>
+                            </div>
+
+                            <div id="declined-section" style="display:none;">
+                                <div class="mb-3">
+                                    <label class="form-label">We're sorry you can't make it. May we ask why? (Optional)</label>
+                                    <textarea name="decline_reason" class="form-control" rows="3" placeholder="Let us know..."></textarea>
+                                </div>
+                                <button type="submit" class="btn btn-outline-danger w-100">Submit Response</button>
+                            </div>
+                        </form>
+                    </div>
+                {% else %}
+                    <div class="alert alert-success text-center">
+                        <h4>
+                            {% if guest.rsvp_status == 'confirmed' %}
+                                ✅ You've confirmed your attendance!
+                            {% elseif guest.rsvp_status == 'declined' %}
+                                ❌ You've declined this invitation
+                            {% else %}
+                                📝 Response recorded
+                            {% endif %}
+                        </h4>
+                        {% if guest.rsvp_status == 'confirmed' %}
+                            <p class="mb-0">
+                                We look forward to seeing you
+                                {% if guest.plus_ones > 0 %}
+                                    and your {{ guest.plus_ones }} guest(s)
+                                {% endif %}
+                                !
+                            </p>
+                        {% endif %}
+                    </div>
+                {% endif %}
+            {% else %}
+                <div class="alert alert-info text-center">
+                    <h5>This is a private event</h5>
+                    <p class="mb-0">To RSVP, please use the unique link from your invitation email.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+    function selectRSVP(status) {
+        document.getElementById('rsvp_status').value = status;
+        
+        document.getElementById('confirmed-section').style.display = status === 'confirmed' ? 'block' : 'none';
+        document.getElementById('declined-section').style.display = status === 'declined' ? 'block' : 'none';
+    }
+
+    function updatePlusOnesFields() {
+        const count = parseInt(document.getElementById('plus_ones').value);
+        const container = document.getElementById('plus-ones-names');
+        container.innerHTML = '';
+        
+        for (let i = 1; i <= count; i++) {
+            container.innerHTML += `
+                <div class="mb-3">
+                    <label class="form-label">Guest ${i} Name</label>
+                    <input type="text" name="plus_one_name_${i}" class="form-control" placeholder="Full name" required>
+                </div>
+            `;
+        }
+    }
+    </script>
+</body>
+</html>

@@ -1,0 +1,59 @@
+{% extends 'templates/base.admin.twig' %}
+{% import 'templates/macros.twig' as macros %}
+
+{% block body %}
+<main class="container-fluid">
+    <h1 class="h3 mb-3">⏳ Expired Payments</h1>
+    
+    {% if error is defined %}
+        <div class="alert alert-danger">
+            <i class="feather-alert-triangle"></i> {{ error }}
+        </div>
+    {% endif %}
+
+    <div class="mb-4">
+        <form method="post">
+            {{ macros.csrf() }}
+            <input type="hidden" name="renew_all" value="yes">
+            <input type="hidden" name="type" value="{{ type }}">
+            <button class="btn btn-success">Renew All Expired</button>
+        </form>
+    </div>
+
+    <ul class="nav nav-tabs mb-3" id="typeTabs" role="tablist">
+        <li class="nav-item">
+            <a class="nav-link {% if type == 'services' %}active{% endif %}" href="{{ path('panel/payments-expired?type=services') }}">Services</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link {% if type == 'venues' %}active{% endif %}" href="{{ path('panel/payments-expired?type=venues') }}">Venues</a>
+        </li>
+    </ul>
+
+    <div class="table-responsive">
+        <table class="table table-bordered text-center align-middle">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Contact Email</th>
+                    <th>Phone</th>
+                    <th>Renewal Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in expired %}
+                    <tr>
+                        <td>{{ item.name }}</td>
+                        <td>{{ item.email }}</td>
+                        <td>{{ item.phone }}</td>
+                        <td>{{ item.renewal|date('Y-m-d') }}</td>
+                    </tr>
+                {% else %}
+                    <tr>
+                        <td colspan="4" class="text-center text-muted">No expired items found.</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</main>
+{% endblock %}

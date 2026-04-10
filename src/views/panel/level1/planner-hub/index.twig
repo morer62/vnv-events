@@ -1,0 +1,69 @@
+{% extends 'templates/base.admin.twig' %}
+{% import 'templates/macros.twig' as macros %}
+
+
+
+
+{% block body %}
+<main class="mt-4 container">
+
+ {{ macros.breadcrumb2() }}
+
+ 
+<h3 class="fw-bold mb-4">E-Planner Hub</h3>
+
+ 
+{# 🔹 Alert Blocks #}
+
+{% if user.level in [1, 2, 3] %}
+  <div class="alert alert-success text-center mb-4" role="alert">
+    🏢 <a href="{{ path('panel/planner-hub/institution-profile') }}" class="fw-bold text-decoration-none">Click here to edit your Institution Profile</a>
+  </div>
+
+{% if isWeb %}
+  <div class="alert alert-primary text-center mb-5" role="alert">
+    💳 <a href="{{ path('panel/planner-hub/management/payments/') }}" class="fw-bold text-decoration-none">To receive credit card payments, please verify your identity via Stripe</a>
+  </div>
+  {% endif %}
+
+{% elseif user.level == 4 %}
+  {% if isWeb %}
+  <div class="alert alert-primary text-center mb-5" role="alert">
+    💳 <a href="{{ path('panel/planner-hub/team/payments') }}" class="fw-bold text-decoration-none">To receive credit card payments, please verify your identity via Stripe</a>
+  </div>
+  {% endif %}
+{% endif %}
+
+
+ 
+
+  <!-- 🔹 Grid Cards -->
+  <section>
+    
+    <div class="row text-center g-4">
+
+      <!-- Personal Area -->
+      <div class="col-md-6">
+        <div class="p-5 bg-white rounded-4 shadow-sm h-100">
+          <img src="{{ asset_for('assets/images/icons_website/icon_1.png') }}" alt="Personal Area" class="mb-4" style="height: 110px;">
+          <h4 class="fw-bold mb-2">👤 Team Area</h4>
+          <p class="text-muted fs-6 mb-3">Track your time, payroll, and upcoming events.</p>
+          <a href="{{ path('panel/planner-hub/team') }}" class="btn btn-primary btn-lg fw-bold px-4">Access</a>
+        </div>
+      </div>
+
+      <!-- Management Area -->
+      <div class="col-md-6">
+        <div class="p-5 bg-white rounded-4 shadow-sm h-100">
+          <img src="{{ asset_for('assets/images/icons_website/icon_2.png') }}" alt="Management Area" class="mb-4" style="height: 110px;">
+          <h4 class="fw-bold mb-2">🛠️ Management Area</h4>
+          <p class="text-muted fs-6 mb-3">Create orders, assign team, manage CRM and inventory.</p>
+          <a href="{{ path('panel/planner-hub/management') }}" class="btn btn-secondary btn-lg fw-bold px-4">Access</a>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+</main>
+{% endblock %}

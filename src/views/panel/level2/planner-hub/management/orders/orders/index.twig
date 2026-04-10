@@ -1,0 +1,1006 @@
+{% extends 'templates/base.admin.twig' %}
+{% import 'templates/macros.twig' as macros %}
+
+{% block body %}
+	<h2 class="3 mb-4">📦 Orders Dashboard </h2>
+	{{ macros.breadcrumb2() }}
+
+	<div class="d-flex justify-content-between mb-3">
+		<a class="btn btn-dark" href="{{ path(current_location ~ '/create') }}">
+			<i data-feather="plus"></i>
+			Create new estimate	
+		</a>
+		<div class="d-flex gap-2">
+			<a class="btn btn-outline-info" href="{{ path('/panel/planner-hub/management/orders/orders/reminders') }}">
+				<i data-feather="mail"></i>
+				Reminders
+			</a>
+			<a class="btn btn-outline-primary" href="{{ path('/panel/planner-hub/management/orders/orders/previous') }}">
+				<i data-feather="clock"></i>
+				Past Orders
+			</a>
+			<a class="btn btn-outline-secondary" href="{{ path('/panel/planner-hub/management/orders/orders/archived') }}">
+				<i data-feather="archive"></i>
+				Archived Orders
+			</a>
+		</div>
+	</div>
+
+	<section class="card">
+		<div class="card-body">
+
+			<form method="get" class="row mb-4">
+				<div class="col-md-3">
+					<label class="form-label">Start Date</label>
+					<input type="date" name="start_date" value="{{ app.request.get('start_date') }}" class="form-control" min="{{ "now"|date("Y-m-d") }}">
+				</div>
+				<div class="col-md-3">
+					<label class="form-label">End Date</label>
+					<input type="date" name="end_date" value="{{ app.request.get('end_date') }}" class="form-control" min="{{ "now"|date("Y-m-d") }}">
+				</div>
+				<div class="col-md-2">
+					<label class="form-label">Client Name or Email</label>
+					<input type="text" name="search" value="{{ app.request.get('search') }}" class="form-control" placeholder="Name or Email">
+				</div>
+				<div class="col-md-2">
+					<label class="form-label">Sort by</label>
+					<select name="order_by" class="form-select">
+						<option value="event_date_asc" {{ order_by == 'event_date_asc' ? 'selected' : '' }}>📅 Events Closest First</option>
+						<option value="DESC" {{ order_by == 'DESC' ? 'selected' : '' }}>🔽 Newest First</option>
+						<option value="ASC" {{ order_by == 'ASC' ? 'selected' : '' }}>🔼 Oldest First</option>
+					</select>
+				</div>
+				<div class="col-md-2 d-flex align-items-end gap-2">
+					<button type="submit" class="btn btn-primary flex-fill">🔍 Filter</button>
+					<a href="{{ path(current_location) }}" class="btn btn-outline-secondary">Clear</a>
+				</div>
+				<input type="hidden" name="tab" id="active-tab-input" value="{{ activeTab }}">
+			</form>
+
+			<ul class="nav nav-tabs mb-3" id="ordersTabs" role="tablist">
+				<li class="nav-item" role="presentation">
+					<button class="nav-link active" id="orders-tab" data-bs-toggle="tab" data-bs-target="#orders-content" type="button" role="tab" aria-controls="orders-content" aria-selected="true">
+						📋 Orders ({{ orders|length }})
+					</button>
+				</li>
+				<li class="nav-item" role="presentation">
+					<button class="nav-link" id="estimates-tab" data-bs-toggle="tab" data-bs-target="#estimates-content" type="button" role="tab" aria-controls="estimates-content" aria-selected="false">
+						📝 Estimates ({{ estimates|length }})
+					</button>
+				</li>
+			</ul>
+
+			<div class="tab-content" id="ordersTabsContent">
+				
+				<div class="tab-pane fade show active" id="orders-content" role="tabpanel" aria-labelledby="orders-tab">
+					<div class="table-responsive">
+						<table class="table table-striped table-bordered align-middle text-center" style="min-width: 768px;">
+							<thead>
+								<tr>
+									<th>ID</th>
+									<th>Contract Link</th>
+									<th>Client</th>
+									<th>Event Date</th>
+									<th>Status</th>
+									<th>Start - End</th>
+									<th>Address</th>
+									<th>Payments Received</th> 
+									<th>Sub-Order</th>
+									<th>Basic Actions</th>
+									<th>Team Communication</th> 
+									<th>Payment Plan</th>
+									<th>Add to Calendar</th>
+									<th>Delete</th>
+								</tr>
+							</thead>
+							<tbody>
+								{% if orders|length > 0 %}
+									{% for order in orders %}
+										<tr>
+											<!-- ID -->
+											<td style="min-width: 200px;">
+											vnv-341{{ order.id }}<br>
+												<small>Created: {{ order.created_at|date("Y-m-d H:i") }}</small>
+											</td>
+											<!-- Contract Link -->
+											<td style="min-width: 220px;">
+												{% set token = order.contract_token ?? '' %}
+												{% if token %}
+													<button type="button" class="btn btn-outline-primary btn-sm mb-1" onclick="copyPaymentLink('{{ path('/order-access?token=' ~ token) }}')">📋 Copy Link</button><br>
+													<a href="{{ path('/order-access?token=' ~ token) }}" target="_blank" class="btn btn-outline-secondary btn-sm">🌐 View Details</a><br>
+													<small class="text-muted">Copy or open payment link</small>
+												{% else %}
+													<span class="text-muted">No token</span>
+												{% endif %}
+											</td>
+											<!-- Client -->
+											<td style="min-width: 220px; text-align: left;">
+												{% set found = false %}
+												{% for client in clients %}
+													{% if client.id == order.id_client %}
+														<small>
+															<b>{{ client.name }} {{ client.lastname }}</b>
+														</small><br>
+														<small>{{ client.email }}</small><br>
+														<small>{{ client.phone }}</small>
+														{% set found = true %}
+													{% endif %}
+												{% endfor %}
+
+												{% if not found %}
+													<small class="text-muted">Unknown client (ID: {{ order.id_client }})</small>
+												{% endif %}
+											</td>
+											<!-- Event Date -->
+											<td style="min-width: 200px;">{{ order.event_date|date("l, M j - Y") }}</td>
+											<!-- Status -->
+											<td style="min-width: 200px;">
+												{% set wf = order._has_suborders ? order._effective_workflow : order.status_workflow %}
+												<span class="badge bg-secondary">
+													{% if wf == 'INVOICE_DRAFT' %}
+														Signature Pending
+													{% elseif wf == 'INVOICE_READY' %}
+														Signed – Payment Pending
+													{% elseif wf == 'INVOICE_PARTIAL' %}
+														First Payment Completed
+													{% elseif wf == 'INVOICE_PAID' %}
+														Fully Paid
+													{% elseif wf == 'INVOICE_EXPIRED' %}
+														Expired
+													{% else %}
+														{{ wf }}
+													{% endif %}
+												</span>
+												
+												{% if order._status_info and order._status_info|length > 0 %}
+													<br>
+													<small class="text-muted d-block mt-2" style="font-size: 0.85rem; line-height: 1.4;">
+														{% for info in order._status_info %}
+															{{ info }}{% if not loop.last %}<br>{% endif %}
+														{% endfor %}
+													</small>
+												{% endif %}
+												
+												<br><br>
+
+												<div class="btn-group" role="group">
+													<a href="{{ path(current_location ~ '/status') }}?id={{ order.id }}" class="btn btn-sm btn-warning">🛠 Manage Status</a>
+													<button type="button" class="btn btn-sm btn-info" onclick="openEmailModal({{ order.id }}, '{{ order.id_client }}', '{{ order.status_workflow }}')">📧 Email</button>
+												</div>
+												
+												{% if order.status_workflow != 'INVOICE_DRAFT' and wf != 'INVOICE_PAID' %}
+													<br>
+													<button type="button" class="btn btn-sm btn-success mt-2" onclick="openAddAdvanceModal({{ order.id }}, '{{ order.status_workflow }}')">
+														💵 Add Advance
+													</button>
+												{% endif %}
+											</td>
+											<!-- Start - End -->
+											<td style="min-width: 200px;">{{ order.start_time|date("g:i A") }} to {{ order.end_time|date("g:i A") }}</td>
+											<!-- Address -->
+											<td style="min-width: 200px;">{{ order.address }}</td>
+											<!-- Payments Received -->
+											<td style="min-width: 230px;">
+												<div class="btn-group" role="group">
+													<a href="{{ path(current_location ~ '/payments') }}?id={{ order.id }}" class="btn btn-sm btn-primary">✏️ Payments</a>
+												</div>
+											</td>
+											<!-- Sub-Order -->
+											<td style="min-width: 200px;">
+												{% if order.status_workflow == 'INVOICE_PARTIAL' or order.status_workflow == 'INVOICE_PAID' %}
+													<a href="{{ path(current_location ~ '/create') }}?parent_order={{ order.id }}" class="btn btn-sm btn-success mb-1">
+														📋 Create Sub-Order
+													</a><br>
+													<a href="{{ path(current_location ~ '/suborders') }}?id={{ order.id }}" class="btn btn-sm btn-outline-info">
+														📋 View Sub-Orders
+													</a>
+												{% else %}
+													<small class="text-muted">
+														As long as no payment is received, the original order can continue to be modified
+													</small>
+												{% endif %}
+											</td>
+											<!-- Basic Actions -->
+											<td style="min-width: 230px;">
+												<div class="btn-group" role="group">
+													<a href="{{ path(current_location ~ '/edit') }}?id={{ order.id }}" class="btn btn-sm btn-primary">✏️ Edit</a> 
+													<a href="{{ path(current_location ~ '/files') }}?id={{ order.id }}" class="btn btn-sm btn-secondary">📁 Files</a>
+													<a href="{{ path(current_location ~ '/print') }}?id={{ order.id }}" class="btn btn-sm btn-dark">🖨 Print</a>
+												</div>
+											</td>
+											<!-- Team Communication -->
+											<td style="min-width: 180px;">
+												<a href="{{ path(current_location ~ '/team_comunication/') }}?id={{ order.id }}" class="btn btn-sm btn-outline-dark">
+													👥 Manage your Staff
+												</a>
+											</td>
+											<!-- Payment Plan -->
+											<td>
+												{% if order.payment_split_type == 1 %}
+													<span class="text-success">💳 100%</span>
+												{% elseif order.payment_split_type == 2 %}
+													<span class="text-primary">💳 {{ order.payment_split_percent_1 }} / {{ order.payment_split_percent_2 }}</span>
+												{% else %}
+													<span class="text-muted">N/A</span>
+												{% endif %}
+											</td>
+											<!-- Add to Calendar -->
+											<td style="min-width: 180px;">
+												<button type="button" class="btn btn-outline-success btn-sm" onclick="addToCalendar({{ order.id }}, '{{ order.id_client }}')">
+													📅 Add to Calendar
+												</button>
+											</td>
+											<!-- Delete -->
+											<td>
+												<form method="post" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this order?');">
+													<input type="hidden" name="archive_order_id" value="{{ order.id }}">
+													<button type="submit" class="btn btn-sm btn-outline-danger">🗑️ Delete</button>
+												</form>
+											</td>
+										</tr>
+									{% endfor %}
+								{% else %}
+									<tr>
+										<td colspan="14" class="text-center text-muted py-4">
+											<h5>📋 No signed orders</h5>
+											<p class="mb-0">Signed orders will appear here</p>
+										</td>
+									</tr>
+								{% endif %}
+							</tbody>
+						</table>
+					</div>
+				</div>
+
+				<div class="tab-pane fade" id="estimates-content" role="tabpanel" aria-labelledby="estimates-tab">
+					<div class="table-responsive">
+						<table class="table table-striped table-bordered align-middle text-center" style="min-width: 768px;">
+							<thead>
+								<tr>
+									<th>ID</th>
+									<th>Contract Link</th>
+									<th>Client</th>
+									<th>Event Date</th>
+									<th>Status</th>
+									<th>Start - End</th>
+									<th>Address</th> 
+									<th>Sub-Order</th>
+									<th>Basic Actions</th> 
+									<th>Payment Plan</th>
+									<th>Add to Calendar</th>
+									<th>Delete</th>
+								</tr>
+							</thead>
+							<tbody>
+								{% if estimates|length > 0 %}
+									{% for estimate in estimates %}
+										<tr>
+											<!-- ID -->
+											<td style="min-width: 200px;">
+												vnv-341{{ estimate.id }}<br>
+												<small>Created: {{ estimate.created_at|date("Y-m-d H:i") }}</small>
+											</td>
+											<!-- Contract Link -->
+											<td style="min-width: 220px;">
+												{% set token = estimate.contract_token ?? '' %}
+												{% if token %}
+													<button type="button" class="btn btn-outline-primary btn-sm mb-1" onclick="copyPaymentLink('{{ path('/order-access?token=' ~ token) }}')">📋 Copy Link</button><br>
+													<a href="{{ path('/order-access?token=' ~ token) }}" target="_blank" class="btn btn-outline-secondary btn-sm">🌐 View Details</a><br>
+													<small class="text-muted">Copy or open contract link</small>
+												{% else %}
+													<span class="text-muted">No token</span>
+												{% endif %}
+											</td>
+											<!-- Client -->
+											<td style="min-width: 220px; text-align: left;">
+												{% set found = false %}
+												{% for client in clients %}
+													{% if client.id == estimate.id_client %}
+														<small>
+															<b>{{ client.name }} {{ client.lastname }}</b>
+														</small><br>
+														<small>{{ client.email }}</small><br>
+														<small>{{ client.phone }}</small>
+														{% set found = true %}
+													{% endif %}
+												{% endfor %}
+
+												{% if not found %}
+													<small class="text-muted">Unknown client (ID: {{ estimate.id_client }})</small>
+												{% endif %}
+											</td>
+											<!-- Event Date -->
+											<td style="min-width: 200px;">{{ estimate.event_date|date("l, M j - Y") }}</td>
+											<!-- Status -->
+											<td style="min-width: 200px;">
+												<span class="badge bg-warning">
+													📝 Pending Signature
+												</span> <br><br>
+
+												<div class="btn-group" role="group">
+													<a href="{{ path(current_location ~ '/status') }}?id={{ estimate.id }}" class="btn btn-sm btn-warning">🛠 Status</a>
+													<button type="button" class="btn btn-sm btn-info" onclick="openEmailModal({{ estimate.id }}, '{{ estimate.id_client }}', '{{ estimate.status_workflow }}')">📧 Email</button>
+												</div>
+											</td>
+											<!-- Start - End -->
+											<td style="min-width: 200px;">{{ estimate.start_time|date("g:i A") }} to {{ estimate.end_time|date("g:i A") }}</td>
+											<!-- Address -->
+											<td style="min-width: 200px;">{{ estimate.address }}</td>
+											<!-- Sub-Order -->
+											<td style="min-width: 200px;">
+												<small class="text-muted">
+													As long as no payment is received, the original order can continue to be modified
+												</small>
+											</td>
+											<!-- Basic Actions -->
+											<td style="min-width: 230px;">
+												<div class="btn-group" role="group">
+													<a href="{{ path(current_location ~ '/edit') }}?id={{ estimate.id }}" class="btn btn-sm btn-primary">✏️ Edit</a> 
+													<a href="{{ path(current_location ~ '/files') }}?id={{ estimate.id }}" class="btn btn-sm btn-secondary">📁 Files</a>
+													<a href="{{ path(current_location ~ '/print') }}?id={{ estimate.id }}" class="btn btn-sm btn-dark">🖨 Print</a>
+													<button type="button" class="btn btn-sm btn-info" onclick="openEmailModal({{ estimate.id }}, '{{ estimate.id_client }}', '{{ estimate.status_workflow }}')">📧 Email</button>
+												</div>
+											</td>
+											<!-- Payment Plan -->
+											<td>
+												{% if estimate.payment_split_type == 1 %}
+													<span class="text-success">💳 100%</span>
+												{% elseif estimate.payment_split_type == 2 %}
+													<span class="text-primary">💳 {{ estimate.payment_split_percent_1 }} / {{ estimate.payment_split_percent_2 }}</span>
+												{% else %}
+													<span class="text-muted">N/A</span>
+												{% endif %}
+											</td>
+											<!-- Add to Calendar -->
+											<td style="min-width: 180px;">
+												<button type="button" class="btn btn-outline-success btn-sm" onclick="addToCalendar({{ estimate.id }}, '{{ estimate.id_client }}')">
+													📅 Add to Calendar
+												</button>
+											</td>
+											<!-- Delete -->
+											<td>
+												<form method="post" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this estimate?');">
+													<input type="hidden" name="archive_order_id" value="{{ estimate.id }}">
+													<button type="submit" class="btn btn-sm btn-outline-danger">🗑️ Delete</button>
+												</form>
+											</td>
+										</tr>
+									{% endfor %}
+								{% else %}
+									<tr>
+										<td colspan="12" class="text-center text-muted py-4">
+											<h5>📝 No pending estimates</h5>
+											<p class="mb-0">Pending estimates for signature will appear here</p>
+										</td>
+									</tr>
+								{% endif %}
+							</tbody>
+						</table>
+					</div>
+				</div>
+			</div>
+		</div>
+	</section>
+
+	<!-- Email Modal -->
+	<div class="modal fade" id="emailModal" tabindex="-1" aria-labelledby="emailModalLabel" aria-hidden="true">
+		<div class="modal-dialog modal-lg">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h5 class="modal-title" id="emailModalLabel">📧 Send Email to Client</h5>
+					<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+				</div>
+				<div class="modal-body">
+					<form id="emailForm">
+						<input type="hidden" id="emailOrderId" name="order_id">
+						<input type="hidden" id="emailClientId" name="client_id">
+						
+						<div class="mb-3">
+							<label for="clientEmail" class="form-label">Client Email</label>
+							<input type="email" class="form-control" id="clientEmail" readonly>
+						</div>
+						
+						<div class="mb-3">
+							<label for="emailSubject" class="form-label">Subject</label>
+							<select class="form-select" id="emailSubject" name="subject" required>
+								<option value="">Select a subject...</option>
+								<option value="contract_pending">VNV-Events - 📝 Contract Signature Required</option>
+								<option value="first_payment_due">VNV-Events - 💳 First Payment Due</option>
+								<option value="second_payment_due">VNV-Events - 💳 Second Payment Due</option>
+								<option value="payment_overdue">VNV-Events - ⚠️ Payment Overdue</option>
+								<option value="event_reminder">VNV-Events - 📅 Event Reminder</option>
+								<option value="custom">✏️ Custom Subject</option>
+							</select>
+						</div>
+						
+						<div class="mb-3" id="customSubjectDiv" style="display: none;">
+							<label for="customSubject" class="form-label">Custom Subject</label>
+							<input type="text" class="form-control" id="customSubject" name="custom_subject" placeholder="Enter custom subject...">
+						</div>
+						
+						<div class="mb-3">
+							<label for="emailBody" class="form-label">Message Body</label>
+							<textarea class="form-control" id="emailBody" name="body" rows="8" required placeholder="Enter your message..."></textarea>
+						</div>
+					</form>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+					<button type="button" class="btn btn-primary" onclick="sendEmail()">
+						<span id="sendEmailSpinner" class="spinner-border spinner-border-sm d-none" role="status"></span>
+						<span id="sendEmailText">📧 Send Email</span>
+					</button>
+				</div>
+			</div>
+		</div>
+	</div>
+	
+	<style>
+		.toast-container {
+			z-index: 9999;
+		}
+		
+		.toast {
+			min-width: 250px;
+		}
+		
+		.toast.bg-success {
+			background-color: #198754 !important;
+		}
+		
+		.toast.bg-danger {
+			background-color: #dc3545 !important;
+		}
+		
+		.toast.bg-info {
+			background-color: #0dcaf0 !important;
+		}
+	</style>
+
+	<!-- Add Advance Modal -->
+	<div class="modal fade" id="addAdvanceModal" tabindex="-1" aria-labelledby="addAdvanceModalLabel" aria-hidden="true">
+		<div class="modal-dialog">
+			<div class="modal-content">
+				<form method="post" id="addAdvanceForm">
+					<input type="hidden" name="action" value="add_manual_advance">
+					<input type="hidden" name="order_id" id="advanceOrderId">
+					<div class="modal-header">
+						<h5 class="modal-title" id="addAdvanceModalLabel">💵 Add Manual Advance</h5>
+						<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+					</div>
+					<div class="modal-body">
+						<div class="mb-3">
+							<label for="advanceAmount" class="form-label">Amount <span class="text-danger">*</span></label>
+							<input type="number" step="0.01" min="0.01" class="form-control" id="advanceAmount" name="advance_amount" required>
+							<small class="text-muted">Remaining balance: $<span id="remainingBalance">0.00</span></small>
+						</div>
+						<div class="mb-3">
+							<label for="advanceNote" class="form-label">Note (optional)</label>
+							<textarea class="form-control" id="advanceNote" name="note" rows="3" placeholder="Add a note about this advance..."></textarea>
+						</div>
+					</div>
+					<div class="modal-footer">
+						<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+						<button type="submit" class="btn btn-success">💾 Add Advance</button>
+					</div>
+				</form>
+			</div>
+		</div>
+	</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    async function copyPaymentLink(originalUrl) {
+        try {
+            const button = event.target;
+            const originalText = button.innerHTML;
+            
+            button.innerHTML = '⏳ Copying...';
+            button.disabled = true;
+            
+            await navigator.clipboard.writeText(originalUrl);
+            
+            button.innerHTML = '✅ Copied!';
+            button.classList.remove('btn-outline-primary', 'btn-outline-success');
+            button.classList.add('btn-success');
+            
+            setTimeout(() => {
+                button.innerHTML = originalText;
+                button.classList.remove('btn-success');
+                button.classList.add(originalText.includes('Payment') ? 'btn-outline-primary' : 'btn-outline-success');
+                button.disabled = false;
+            }, 2000);
+            
+            showToast('Link copied to clipboard!', 'success');
+        } catch (error) {
+            console.error('Error copying link:', error);
+            
+            const button = event.target;
+            button.innerHTML = '❌ Error';
+            button.classList.remove('btn-outline-primary', 'btn-outline-success');
+            button.classList.add('btn-danger');
+            
+            setTimeout(() => {
+                button.innerHTML = originalText;
+                button.classList.remove('btn-danger');
+                button.classList.add(originalText.includes('Payment') ? 'btn-outline-primary' : 'btn-outline-success');
+                button.disabled = false;
+            }, 2000);
+            
+            showToast('Error copying link. Please try again.', 'error');
+        }
+    }
+    
+    function showToast(message, type = 'info') {
+        const toastContainer = document.getElementById('toast-container') || createToastContainer();
+        
+        const toast = document.createElement('div');
+        toast.className = `toast align-items-center text-white bg-${type === 'success' ? 'success' : type === 'error' ? 'danger' : 'info'} border-0`;
+        toast.setAttribute('role', 'alert');
+        toast.setAttribute('aria-live', 'assertive');
+        toast.setAttribute('aria-atomic', 'true');
+        
+        toast.innerHTML = `
+            <div class="d-flex">
+                <div class="toast-body">
+                    ${message}
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+        `;
+        
+        toastContainer.appendChild(toast);
+        
+        const bsToast = new bootstrap.Toast(toast);
+        bsToast.show();
+        
+        toast.addEventListener('hidden.bs.toast', () => {
+            toast.remove();
+        });
+    }
+    
+    function createToastContainer() {
+        const container = document.createElement('div');
+        container.id = 'toast-container';
+        container.className = 'toast-container position-fixed top-0 end-0 p-3';
+        container.style.zIndex = '9999';
+        document.body.appendChild(container);
+        return container;
+    }
+
+    document.addEventListener("DOMContentLoaded", function () {
+        const tabs = document.querySelectorAll('[data-bs-toggle="tab"]');
+        const tabContents = document.querySelectorAll('.tab-pane');
+        
+        tabs.forEach(tab => {
+            tab.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                tabs.forEach(t => {
+                    t.classList.remove('active');
+                    t.setAttribute('aria-selected', 'false');
+                });
+                
+                tabContents.forEach(content => {
+                    content.classList.remove('show', 'active');
+                });
+                
+                this.classList.add('active');
+                this.setAttribute('aria-selected', 'true');
+                
+                const targetId = this.getAttribute('data-bs-target');
+                const targetContent = document.querySelector(targetId);
+                if (targetContent) {
+                    targetContent.classList.add('show', 'active');
+                }
+                
+                const activeTabInput = document.getElementById('active-tab-input');
+                if (this.id === 'orders-tab') {
+                    activeTabInput.value = 'orders';
+                } else if (this.id === 'estimates-tab') {
+                    activeTabInput.value = 'estimates';
+                }
+                
+                console.log('Tab changed to:', this.textContent.trim());
+                console.log('Active tab:', activeTabInput.value);
+            });
+        });
+        
+        if (typeof bootstrap !== 'undefined') {
+            console.log('Bootstrap detected - using native tab system');
+        } else {
+            console.log('Bootstrap not detected - using custom tab system');
+        }
+        
+        const ordersCount = {{ orders|length }};
+        const estimatesCount = {{ estimates|length }};
+        
+        console.log('Signed orders:', ordersCount);
+        console.log('Pending estimates:', estimatesCount);
+        
+        if (ordersCount > estimatesCount) {
+            document.getElementById('orders-tab').classList.add('fw-bold');
+        } else if (estimatesCount > ordersCount) {
+            document.getElementById('estimates-tab').classList.add('fw-bold');
+        }
+        
+        const urlParams = new URLSearchParams(window.location.search);
+        const activeTab = urlParams.get('tab') || 'orders';
+        
+        if (activeTab === 'estimates') {
+            document.getElementById('estimates-tab').classList.add('active');
+            document.getElementById('estimates-tab').setAttribute('aria-selected', 'true');
+            document.getElementById('orders-tab').classList.remove('active');
+            document.getElementById('orders-tab').setAttribute('aria-selected', 'false');
+            
+            document.getElementById('estimates-content').classList.add('show', 'active');
+            document.getElementById('orders-content').classList.remove('show', 'active');
+            
+            document.getElementById('active-tab-input').value = 'estimates';
+            
+            console.log('Estimates tab activated by GET parameter');
+        } else {
+            document.getElementById('orders-tab').classList.add('active');
+            document.getElementById('orders-tab').setAttribute('aria-selected', 'true');
+            document.getElementById('estimates-tab').classList.remove('active');
+            document.getElementById('estimates-tab').setAttribute('aria-selected', 'false');
+            
+            document.getElementById('orders-content').classList.add('show', 'active');
+            document.getElementById('estimates-content').classList.remove('show', 'active');
+            
+            document.getElementById('active-tab-input').value = 'orders';
+            
+            console.log('Orders tab activated by default');
+        }
+
+        // Auto-trigger Add to Calendar if redirected with params
+        try {
+            const qp = new URLSearchParams(window.location.search);
+            if (qp.get('add_calendar') === '1') {
+                const orderId = qp.get('order_id');
+                const clientId = qp.get('client_id');
+                if (orderId && clientId) {
+                    // Busca el botón correspondiente si existe; si no, llama directo
+                    const btn = document.querySelector(`button[onclick*="addToCalendar(${orderId}"]`);
+                    if (btn) {
+                        btn.click();
+                    } else {
+                        addToCalendar(parseInt(orderId, 10), clientId);
+                    }
+                }
+            }
+        } catch (e) { /* noop */ }
+    });
+
+    // Function to add event to Google Calendar
+    async function addToCalendar(orderId, clientId) {
+        try {
+            const button = event ? event.target : document.querySelector(`button[onclick*="addToCalendar(${orderId}"]`);
+            const originalText = button.innerHTML;
+            
+            button.innerHTML = '⏳ Checking...';
+            button.disabled = true;
+
+            // Check if client has Google token and add to calendar
+            const response = await fetch(`{{ base_url }}/api/calendar/add-event`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    order_id: orderId,
+                    client_id: clientId
+                })
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                button.innerHTML = '✅ Added!';
+                button.classList.remove('btn-outline-success');
+                button.classList.add('btn-success');
+                
+                setTimeout(() => {
+                    button.innerHTML = originalText;
+                    button.classList.remove('btn-success');
+                    button.classList.add('btn-outline-success');
+                    button.disabled = false;
+                }, 3000);
+                
+                showToast('Event added to client\'s Google Calendar!', 'success');
+            } else if (result.needs_auth) {
+                // Client needs to authorize Google Calendar access
+                button.innerHTML = '🔐 Auth Required';
+                button.classList.remove('btn-outline-success');
+                button.classList.add('btn-warning');
+                
+                // Open Google auth in popup
+                const authUrl = result.auth_url;
+                const popup = window.open(authUrl, 'google-auth', 'width=500,height=600');
+                
+                // Listen for popup close
+                const checkClosed = setInterval(() => {
+                    if (popup.closed) {
+                        clearInterval(checkClosed);
+                        // Retry adding to calendar after auth
+                        setTimeout(() => addToCalendar(orderId, clientId), 1000);
+                    }
+                }, 1000);
+                
+                setTimeout(() => {
+                    button.innerHTML = originalText;
+                    button.classList.remove('btn-warning');
+                    button.classList.add('btn-outline-success');
+                    button.disabled = false;
+                }, 5000);
+            } else {
+                throw new Error(result.message || 'Unknown error');
+            }
+
+        } catch (error) {
+            console.error('Calendar error:', error);
+            
+            const button = event ? event.target : document.querySelector(`button[onclick*="addToCalendar(${orderId}"]`);
+            button.innerHTML = '❌ Error';
+            button.classList.remove('btn-outline-success');
+            button.classList.add('btn-danger');
+            
+            setTimeout(() => {
+                button.innerHTML = '📅 Add to Calendar';
+                button.classList.remove('btn-danger');
+                button.classList.add('btn-outline-success');
+                button.disabled = false;
+            }, 3000);
+            
+            showToast('Error adding to calendar: ' + error.message, 'error');
+        }
+    }
+
+    // Email Modal Functions
+    function openEmailModal(orderId, clientId, statusWorkflow) {
+        // Reset form
+        document.getElementById('emailForm').reset();
+        document.getElementById('customSubjectDiv').style.display = 'none';
+        
+        // Set order and client IDs
+        document.getElementById('emailOrderId').value = orderId;
+        document.getElementById('emailClientId').value = clientId;
+        
+        // Get client email from the table
+        const clientEmail = getClientEmailFromTable(clientId);
+        document.getElementById('clientEmail').value = clientEmail;
+        
+        console.log('Opening email modal for:', {
+            orderId: orderId,
+            clientId: clientId,
+            clientEmail: clientEmail,
+            statusWorkflow: statusWorkflow
+        });
+        
+        // Set default subject based on status
+        const subjectSelect = document.getElementById('emailSubject');
+        const bodyTextarea = document.getElementById('emailBody');
+        
+        // Clear previous selections
+        subjectSelect.value = '';
+        bodyTextarea.value = '';
+        
+        // Set default based on status
+        if (statusWorkflow === 'INVOICE_DRAFT') {
+            subjectSelect.value = 'contract_pending';
+            bodyTextarea.value = `Dear Client,
+
+We hope this email finds you well. We wanted to reach out regarding your upcoming event order #VNV341${orderId}.
+
+Your contract is ready for signature. Please review and sign the contract at your earliest convenience to proceed with your event planning.
+
+You can access your contract by clicking the link provided in your order details.
+
+If you have any questions or need assistance, please don't hesitate to contact us.
+
+Best regards,
+VNV-Events Team`;
+        } else if (statusWorkflow === 'INVOICE_READY') {
+            subjectSelect.value = 'first_payment_due';
+            bodyTextarea.value = `Dear Client,
+
+Thank you for signing your contract for order #VNV341${orderId}. 
+
+Your first payment is now due. Please complete your payment to secure your event booking.
+
+You can make your payment through the secure payment link provided in your order details.
+
+If you have any questions about the payment process, please contact us.
+
+Best regards,
+VNV-Events Team`;
+        } else if (statusWorkflow === 'INVOICE_PARTIAL') {
+            subjectSelect.value = 'second_payment_due';
+            bodyTextarea.value = `Dear Client,
+
+Thank you for your first payment for order #VNV341${orderId}.
+
+Your second payment is now due. Please complete your remaining payment to finalize your event booking.
+
+You can make your payment through the secure payment link provided in your order details.
+
+If you have any questions, please don't hesitate to contact us.
+
+Best regards,
+VNV-Events Team`;
+        }
+        
+        // Show modal
+        const modal = new bootstrap.Modal(document.getElementById('emailModal'));
+        modal.show();
+    }
+    
+    function getClientEmailFromTable(clientId) {
+        // First try to get from clients data (more reliable)
+        {% for client in clients %}
+            if ('{{ client.id }}' === clientId) {
+                return '{{ client.email }}';
+            }
+        {% endfor %}
+        
+        // If not found in clients data, try to find in table rows
+        const rows = document.querySelectorAll('tbody tr');
+        for (let row of rows) {
+            // Look for the button that opened this modal to get the correct row
+            const emailButtons = row.querySelectorAll('button[onclick*="openEmailModal"]');
+            for (let button of emailButtons) {
+                const onclickAttr = button.getAttribute('onclick');
+                if (onclickAttr && onclickAttr.includes(`'${clientId}'`)) {
+                    // Found the correct row, now get the email from this row
+                    const clientCell = row.querySelector('td:nth-child(2)');
+                    if (clientCell) {
+                        const emailMatch = clientCell.textContent.match(/[\w\.-]+@[\w\.-]+\.\w+/);
+                        if (emailMatch) {
+                            return emailMatch[0];
+                        }
+                    }
+                }
+            }
+        }
+        
+        return '';
+    }
+    
+    // Handle subject selection change
+    document.getElementById('emailSubject').addEventListener('change', function() {
+        const customDiv = document.getElementById('customSubjectDiv');
+        if (this.value === 'custom') {
+            customDiv.style.display = 'block';
+            document.getElementById('customSubject').required = true;
+        } else {
+            customDiv.style.display = 'none';
+            document.getElementById('customSubject').required = false;
+        }
+    });
+    
+    async function sendEmail() {
+        const form = document.getElementById('emailForm');
+        const formData = new FormData(form);
+        
+        // Validate form
+        if (!form.checkValidity()) {
+            form.reportValidity();
+            return;
+        }
+        
+        // Get subject
+        let subject = formData.get('subject');
+        if (subject === 'custom') {
+            subject = formData.get('custom_subject');
+            if (!subject) {
+                alert('Please enter a custom subject');
+                return;
+            }
+            // Add VNV-Events to custom subject if not already present
+            if (!subject.includes('VNV-Events')) {
+                subject = 'VNV-Events - ' + subject;
+            }
+        } else {
+            // For predefined subjects, get the display text and add VNV-Events
+            const subjectSelect = document.getElementById('emailSubject');
+            const selectedOption = subjectSelect.options[subjectSelect.selectedIndex];
+            subject = selectedOption.text;
+        }
+        
+        // Get body
+        const body = formData.get('body');
+        if (!body.trim()) {
+            alert('Please enter a message body');
+            return;
+        }
+        
+        // Show loading state
+        const sendBtn = document.querySelector('#emailModal .btn-primary');
+        const spinner = document.getElementById('sendEmailSpinner');
+        const text = document.getElementById('sendEmailText');
+        
+        spinner.classList.remove('d-none');
+        text.textContent = 'Sending...';
+        sendBtn.disabled = true;
+        
+        try {
+            const requestData = {
+                order_id: parseInt(formData.get('order_id')),
+                client_id: parseInt(formData.get('client_id')),
+                subject: subject,
+                body: body
+            };
+            
+            console.log('Sending email data:', requestData);
+            
+            const response = await fetch('{{ path(current_location ~ "/send-email") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(requestData)
+            });
+            
+            const result = await response.json();
+            console.log('Email response:', result);
+            
+            if (result.success) {
+                showToast('Email sent successfully!', 'success');
+                const modal = bootstrap.Modal.getInstance(document.getElementById('emailModal'));
+                modal.hide();
+            } else {
+                throw new Error(result.message || 'Failed to send email');
+            }
+            
+        } catch (error) {
+            console.error('Email error:', error);
+            showToast('Error sending email: ' + error.message, 'error');
+        } finally {
+            // Reset button state
+            spinner.classList.add('d-none');
+            text.textContent = '📧 Send Email';
+            sendBtn.disabled = false;
+        }
+    }
+
+    // Add Advance Modal Functions
+    async function openAddAdvanceModal(orderId, statusWorkflow) {
+        document.getElementById('advanceOrderId').value = orderId;
+        document.getElementById('advanceAmount').value = '';
+        document.getElementById('advanceNote').value = '';
+        document.getElementById('remainingBalance').textContent = '0.00';
+        
+        const url = '{{ path('/panel/planner-hub/management/orders/orders/get-order-balance') }}?id=' + orderId;
+        console.log('Fetching balance from:', url);
+        
+        try {
+            const response = await fetch(url);
+            console.log('Response status:', response.status);
+            
+            if (!response.ok) {
+                throw new Error('HTTP error! status: ' + response.status);
+            }
+            
+            const data = await response.json();
+            console.log('Balance data:', data);
+            
+            if (data.success) {
+                const remaining = parseFloat(data.remaining_balance || 0);
+                document.getElementById('remainingBalance').textContent = remaining.toFixed(2);
+                document.getElementById('advanceAmount').setAttribute('max', remaining);
+                console.log('Remaining balance set to:', remaining);
+            } else {
+                console.error('Error from server:', data.error);
+                document.getElementById('remainingBalance').textContent = 'Error';
+            }
+        } catch (error) {
+            console.error('Error fetching balance:', error);
+            document.getElementById('remainingBalance').textContent = 'Error';
+        }
+        
+        const modal = new bootstrap.Modal(document.getElementById('addAdvanceModal'));
+        modal.show();
+    }
+</script>
+{% endblock %}

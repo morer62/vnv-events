@@ -1,0 +1,144 @@
+{% extends 'templates/base.admin.twig' %}
+{% import 'templates/macros.twig' as macros %}
+
+{% block style %}
+    <style>
+        .empty-files {
+            font-size: 1.25rem;
+            user-select: none;
+            cursor: pointer;
+        }
+        
+        .contract-card {
+            border: 2px solid #198754 !important;
+            background: linear-gradient(135deg, #f8fff9 0%, #e8f5e8 100%);
+        }
+        
+        .contract-card .card-img-top {
+            border-bottom: 2px solid #198754;
+        }
+        
+        .feather-sm {
+            width: 14px;
+            height: 14px;
+        }
+        
+        .protected-badge {
+            font-size: 0.75rem;
+            padding: 0.25rem 0.5rem;
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+    <section>
+        <h1 class="h3 mb-3">📁 Order Files</h1>
+
+        {{ macros.breadcrumb2() }}
+
+        <section class="card">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#uploadFileModal">
+                        <i data-feather="upload-cloud"></i> Upload a new file
+                    </button>
+                    
+                    <div class="text-end">
+                        <div class="alert alert-info mb-0 py-2 px-3">
+                            <small>
+                                <i data-feather="info" class="feather-sm me-1"></i>
+                                <strong>📋 Contracts</strong> are automatically protected and cannot be deleted
+                            </small>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    {% for file in files %}
+                        <div class="col-12 col-md-4 col-lg-3 mb-4">
+                            <div class="card border-1 border-dark-subtle {% if file.is_contract %}contract-card{% endif %}">
+
+
+                                {% if not file.is_image %}
+                                    <div class="d-flex justify-content-center align-items-center flex-column p-5">
+                                        <div class="mb-2 fs-1">📄</div>
+                                        <p class="mb-1"><a href="{{ file.file_path }}" target="_blank" download>View Document</a></p>
+                                    </div>
+                                {% else %}
+                                    <a href="{{ file.file_path }}" download>
+                                        <img class="card-img-top" src="{{ file.file_path }}" alt="file-{{ file.id }}" />
+                                    </a>
+                                {% endif %}
+
+                                <div class="card-body">
+                                    <h6 class="mb-1">
+                                        {% if file.is_contract %}
+                                            <span class="badge bg-success me-2">📋</span>
+                                        {% endif %}
+                                        {{ file.title| default("Untitled") }}
+                                    </h6>
+                                    <p class="small text-muted">{{ file.description | default("No description") }}</p>
+                                    
+                                    {% if file.is_contract %}
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <small class="text-muted">
+                                                <i data-feather="calendar" class="feather-sm"></i>
+                                                {{ file.generated_at|date('M j, Y g:i A') }}
+                                            </small>
+                                            <span class="badge bg-success">Protected</span>
+                                        </div>
+                                    {% else %}
+                                        {{ macros.delete_form(file.id) }}
+                                    {% endif %}
+                                </div>
+
+
+                            </div>
+                        </div>
+                    {% else %}
+                        <div class="col-12 text-center">
+                            <p class="p-5 bg-dark-subtle empty-files" data-bs-toggle="modal" data-bs-target="#uploadFileModal">
+                                NO FILES UPLOADED <br>
+                                <i data-feather="file" style="height: 2rem; width: 2rem;"></i>
+                            </p>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </section>
+    </section>
+
+    <section class="modal fade" id="uploadFileModal" tabindex="-1" aria-labelledby="uploadFileModal" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-body">
+                    <form method="post" enctype="multipart/form-data">
+                        <input type="hidden" name="action" value="uploadFile" />
+                        <div class="mb-3">
+                            <label class="form-label">Title</label>
+                            <input class="form-control" name="title" required type="text" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Description</label>
+                            <textarea class="form-control" name="description" rows="2"></textarea>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">File (PDF or Image)</label>
+                            <input class="form-control" name="file" required type="file" />
+                        </div>
+
+                        <div class="text-end">
+                            <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>
+                            <button type="submit" class="btn btn-primary">
+                                <i data-feather="upload-cloud"></i> Upload
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+
+{% endblock %}

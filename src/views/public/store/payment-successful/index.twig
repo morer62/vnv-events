@@ -1,0 +1,286 @@
+{% extends "templates/base.twig" %}
+
+{% block body %}
+
+<style>
+.success-wrap{
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:2rem 1rem;
+    background:linear-gradient(180deg,#fffaf4 0%, #fff6ea 100%);
+}
+
+.success-card{
+    max-width:680px;
+    width:100%;
+    background:#fff;
+    border-radius:28px;
+    padding:2.2rem 1.8rem;
+    box-shadow:0 25px 60px rgba(0,0,0,.12);
+    text-align:center;
+    border:1px solid #f1e0c8;
+}
+
+.success-icon{
+    width:84px;
+    height:84px;
+    border-radius:50%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    margin:0 auto 1rem;
+    background:linear-gradient(135deg,#dcfce7,#bbf7d0);
+    color:#15803d;
+    font-size:2.4rem;
+    font-weight:900;
+    box-shadow:0 10px 30px rgba(22,163,74,.15);
+}
+
+.success-title{
+    font-size:clamp(2rem,4vw,2.35rem);
+    font-weight:900;
+    color:#1f1307;
+    margin-bottom:.5rem;
+    line-height:1.08;
+}
+
+.success-sub{
+    color:#6f6255;
+    margin:0 auto 1.5rem;
+    line-height:1.8;
+    max-width:560px;
+    font-size:1.02rem;
+}
+
+.success-badges{
+    display:flex;
+    flex-wrap:wrap;
+    gap:.65rem;
+    justify-content:center;
+    margin-bottom:1.5rem;
+}
+
+.success-badge{
+    display:inline-flex;
+    align-items:center;
+    gap:.45rem;
+    padding:.55rem .9rem;
+    border-radius:999px;
+    font-size:.92rem;
+    font-weight:800;
+    background:#fff4e2;
+    border:1px solid #f1dcb6;
+    color:#8b4f00;
+}
+
+.success-box{
+    background:#fff9f1;
+    border:1px solid #f1dcb6;
+    border-radius:18px;
+    padding:1.15rem 1.15rem;
+    margin-bottom:1rem;
+    text-align:left;
+}
+
+.success-box strong{
+    display:block;
+    margin-bottom:.35rem;
+    color:#1f1307;
+    font-size:1rem;
+    font-weight:900;
+}
+
+.success-box span{
+    color:#6f6255;
+    line-height:1.75;
+    display:block;
+}
+
+.success-highlight{
+    margin-top:.7rem;
+    padding:.85rem 1rem;
+    border-radius:14px;
+    background:#fff1db;
+    border:1px dashed #efc98d;
+    color:#7a4500;
+    font-weight:800;
+    line-height:1.65;
+}
+
+.success-actions{
+    margin-top:1.6rem;
+    display:flex;
+    flex-wrap:wrap;
+    justify-content:center;
+    gap:.85rem;
+}
+
+.btn-main{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    gap:.55rem;
+    padding:1rem 1.65rem;
+    border-radius:999px;
+    font-weight:900;
+    text-decoration:none;
+    background:linear-gradient(135deg,#f59e0b,#fb923c);
+    color:#2a1805 !important;
+    box-shadow:0 12px 28px rgba(245,158,11,.24);
+    transition:all .2s ease;
+    border:none;
+}
+
+.btn-main:hover{
+    transform:translateY(-2px);
+}
+
+.btn-secondary{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    gap:.5rem;
+    padding:1rem 1.4rem;
+    border-radius:999px;
+    font-weight:800;
+    text-decoration:none;
+    background:#fff;
+    border:1px solid #ecd9bf;
+    color:#8b4f00 !important;
+    transition:all .2s ease;
+}
+
+.btn-secondary:hover{
+    transform:translateY(-2px);
+    background:#fff9f1;
+}
+
+.success-note{
+    margin-top:1.4rem;
+    font-size:.93rem;
+    color:#8a7a68;
+    line-height:1.75;
+}
+
+@media (max-width: 768px){
+    .success-card{
+        padding:2rem 1.15rem;
+        border-radius:24px;
+    }
+
+    .success-actions{
+        flex-direction:column;
+    }
+
+    .btn-main,
+    .btn-secondary{
+        width:100%;
+    }
+}
+</style>
+
+<div class="success-wrap">
+    <div class="success-card">
+
+        <div class="success-icon">
+            ✓
+        </div>
+
+        <div class="success-title">
+            Payment Successful
+        </div>
+
+        <p class="success-sub">
+            Your order has been confirmed and your payment went through successfully.
+            Welcome to the Avomeal experience.
+        </p>
+
+        <div class="success-badges">
+            {% if pricing_mode %}
+                <span class="success-badge">
+                    {% if pricing_mode == 'subscription' %}
+                        Weekly Subscription Active
+                    {% else %}
+                        One-Time Order
+                    {% endif %}
+                </span>
+            {% endif %}
+
+            {% if total %}
+                <span class="success-badge">
+                    Total Paid: ${{ total|number_format(2, '.', ',') }}
+                </span>
+            {% endif %}
+
+            {% if order_id %}
+                <span class="success-badge">
+                    Order #{{ order_id }}
+                </span>
+            {% endif %}
+        </div>
+
+        <div class="success-box">
+            <strong>What happens next</strong>
+            <span>
+                Your meals will now move into our preparation and fulfillment process.
+                You will be able to review your order details, track status, and manage your account from your personal dashboard.
+            </span>
+        </div>
+
+        <div class="success-box">
+            <strong>Delivery schedule</strong>
+            <span>
+                Our regular delivery window is every <strong>Sunday from 8:00 AM to 2:00 PM</strong>.
+            </span>
+
+            <div class="success-highlight">
+                Special kickoff delivery: <strong>Wednesday, March 25</strong><br>
+                Regular delivery: <strong>Sunday, March 29</strong>
+            </div>
+        </div>
+
+        <div class="success-box">
+            <strong>Manage your plan anytime</strong>
+            <span>
+                From your dashboard you can review your orders, manage subscriptions, and pause or reactivate your plan whenever needed.
+            </span>
+        </div>
+
+        <div class="success-box">
+            <strong>Need help?</strong>
+            <span>
+                If you have any delivery questions, special instructions, or need assistance with your order,
+                our team is here to help.
+            </span>
+        </div>
+
+        <div class="success-actions">
+            {% if public_token %}
+                <a href="{{ path('store/order-access') }}?token={{ public_token }}" class="btn-main">
+                    View My Order
+                </a>
+            {% elseif order_id %}
+                <a href="{{ path('store/order-access') }}?id={{ order_id }}" class="btn-main">
+                    View My Order
+                </a>
+            {% endif %}
+
+            <a href="{{ path('panel') }}" class="btn-secondary">
+                Go to Dashboard
+            </a>
+
+            <a href="{{ path('/') }}" class="btn-secondary">
+                Back to Home
+            </a>
+        </div>
+
+        <div class="success-note">
+            Thank you for choosing Avomeal by VNV Gourmet We’re excited to be part of your weekly food routine.
+        </div>
+
+    </div>
+</div>
+
+{% endblock %}

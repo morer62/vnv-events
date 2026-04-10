@@ -1,0 +1,59 @@
+{% extends 'templates/base.admin.twig' %}
+
+{% block body %}
+
+
+    <main class="container-fluid">
+
+        <h1 class="h3 mb-3">
+            Venue Categories
+        </h1>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ path('panel/home') }}">Home</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Venue Categories</li>
+            </ol>
+        </nav>
+
+
+        <section class="card">
+            <div class="card-body">
+                <a class="btn btn-secondary mb-3" href="{{ path('panel/venue-categories/create') }}">Add category</a>
+
+                <table class="table table-bordered">
+                    <thead>
+                    <tr>
+                        <th>Id</th>
+                        <th>Name</th>
+                        <th>Description</th>
+                        <th>Edit</th>
+                        <th>Remove</th>
+                    </tr>
+                    </thead>
+
+                    <tbody>
+                    {% for data in categories %}
+                        <tr>
+                            <td>{{ data.id }}</td>
+                            <td>{{ data.name }}</td>
+                            <td>{{ data.description }}</td>
+                            <td>
+                                <a href="{{ path('panel/venue-categories/edit?id=' ~ data.id)  }}">Edit</a>
+                            </td>
+                            <td>
+                                <form method="post" form-delete>
+                                    <input type="hidden" name="action" value="delete" />
+                                    <input type="hidden" name="id" value="{{ data.id }}">
+
+                                    <button type="submit" class="btn btn-danger">Delete</button>
+                                </form>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+    </main>
+{% endblock %}

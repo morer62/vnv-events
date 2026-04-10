@@ -1,0 +1,82 @@
+{% extends 'templates/base.admin.twig' %}
+
+{% block body %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+        <div>
+            <h1 class="h3 mb-1">Abandoned Carts</h1>
+            <p class="text-muted mb-0">Customers who added meals but did not complete their purchase.</p>
+        </div>
+        <a href="{{ path('panel/planner-hub/store/orders/home') }}" class="btn btn-outline-dark">
+            Back to Orders
+        </a>
+    </div>
+
+    <div class="card shadow-sm border-0">
+        <div class="card-body">
+            {% if carts|length > 0 %}
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Customer</th>
+                                <th>Phone</th>
+                                <th>Pricing</th>
+                                <th class="text-end">Meals</th>
+                                <th class="text-end">Total</th>
+                                <th>Status</th>
+                                <th>Last activity</th>
+                                <th>Items</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for c in carts %}
+                                <tr>
+                                    <td class="text-muted">#{{ c.id }}</td>
+                                    <td>
+                                        <div class="fw-semibold">{{ c.guest_name ?: '—' }}</div>
+                                        <div class="small text-muted">{{ c.guest_email ?: '—' }}</div>
+                                    </td>
+                                    <td class="small text-muted">{{ c.guest_phone ?: '—' }}</td>
+                                    <td class="text-uppercase small text-muted">{{ c.pricing_mode ?: 'PAYG' }}</td>
+                                    <td class="text-end">{{ c.meals_count }}</td>
+                                    <td class="text-end">${{ c.total|number_format(2, '.', ',') }}</td>
+                                    <td>
+                                        {% if c.status == 'ABANDONED' %}
+                                            <span class="badge bg-danger">ABANDONED</span>
+                                        {% else %}
+                                            <span class="badge bg-warning text-dark">ACTIVE</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="small text-muted text-nowrap">
+                                        {% if c.last_activity_at %}
+                                            {{ c.last_activity_at|date('M j, Y g:i A') }}
+                                        {% else %}
+                                            —
+                                        {% endif %}
+                                    </td>
+                                    <td class="small">
+                                        {% if c.items is defined and c.items|length > 0 %}
+                                            {% for it in c.items %}
+                                                <div>{{ it.product_name_snapshot ?: 'Meal' }} × {{ it.quantity ?: 0 }}</div>
+                                            {% endfor %}
+                                        {% else %}
+                                            <span class="text-muted">—</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="text-center py-5">
+                    <h5 class="mb-2">No abandoned carts</h5>
+                    <p class="text-muted mb-0">All customers who started shopping completed their purchase.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

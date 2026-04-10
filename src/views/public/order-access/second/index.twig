@@ -1,0 +1,111 @@
+{% extends 'templates/base.twig' %}
+
+{% block body %}
+<main class="container mt-5" style="max-width:500px;">
+    <h2 class="mb-4 text-center">💳 Pay Remaining Balance</h2>
+
+    <div class="alert alert-info text-center">
+        Amount to pay: <strong>${{ second_payment_amount | number_format(2) }}</strong>
+    </div>
+
+    <form id="square-payment-form" method="POST">
+        <input type="hidden" name="token" value="{{ token }}">
+        <input type="hidden" name="customer_token" id="square-customer-token">
+
+        <div class="mb-3">
+            <label class="form-label fw-bold">Your Email</label>
+            <input type="email" name="customer_email" id="square-customer-email" class="form-control form-control-lg" required>
+        </div>
+
+        <div class="mb-4">
+            <label class="form-label fw-bold">Card Information</label>
+            <div id="square-card-container" class="border rounded p-3" style="min-height: 150px;"></div>
+            <div id="square-card-errors" class="text-danger mt-2"></div>
+        </div>
+
+        <button type="submit" id="square-pay-button" class="btn btn-primary w-100 btn-lg mb-3">
+            <i class="bi bi-credit-card me-2"></i>Pay Now
+        </button>
+        <div id="loading" class="text-muted text-center" style="display:none;">Processing payment...</div>
+    </form>
+    
+    <div class="text-center mt-3">
+        <a href="{{ path('order-access', { token: token }) }}" class="btn btn-outline-secondary">
+            ← Back to Order Access
+        </a>
+    </div>
+</main>
+
+{{ processingModal|raw }}
+{% endblock %}
+
+{% block scripts %}
+<script type="text/javascript" src="https://{{ square_environment == 'production' ? 'web' : 'sandbox.web' }}.squarecdn.com/v1/square.js"></script>
+{{ processingModalScript|raw }}
+<script>
+    (async function () {
+        try {
+            const squareApplicationId = "{{ square_application_id|e('js') }}";
+            const squareLocationId = "{{ square_location_id|e('js') }}";
+            
+            if (!squareApplicationId || !squareLocationId) {
+                console.error('Square credentials not configured');
+                document.getElementById('square-card-errors').textContent = 'Payment system not configured. Please contact support.';
+                return;
+            }
+
+            const payments = Square.payments(squareApplicationId, squareLocationId);
+            const card = await payments.card();
+            await card.attach('#square-card-container');
+
+            const form = document.getElementById('square-payment-form');
+            const payButton = document.getElementById('square-pay-button');
+            const errorDiv = document.getElementById('square-card-errors');
+            const tokenInput = document.getElementById('square-customer-token');
+            const loading = document.getElementById('loading');
+
+            function setProcessingState(isProcessing) {
+                payButton.disabled = isProcessing;
+                loading.style.display = isProcessing ? "block" : "none";
+                if (isProcessing) {
+                    window.VnvProcessingModal.show("orderAccessProcessingModal", {
+                        title: "Processing payment...",
+                        message: "We are confirming your payment. Please wait."
+                    });
+                } else {
+                    window.VnvProcessingModal.hide("orderAccessProcessingModal");
+                }
+            }
+
+            form.addEventListener('submit', async function(event) {
+                event.preventDefault();
+                
+                setProcessingState(true);
+                errorDiv.textContent = '';
+
+                try {
+                    const tokenResult = await card.tokenize();
+                    if (tokenResult.status === 'OK') {
+                        tokenInput.value = tokenResult.token;
+                        form.submit();
+                    } else {
+                        let errorMessage = 'Payment failed. Please try again.';
+                        if (tokenResult.errors && tokenResult.errors.length > 0) {
+                            errorMessage = tokenResult.errors[0].detail || errorMessage;
+                        }
+                        errorDiv.textContent = errorMessage;
+                        setProcessingState(false);
+                    }
+                } catch (error) {
+                    console.error('Square payment error:', error);
+                    errorDiv.textContent = 'An error occurred processing your payment. Please try again.';
+                    setProcessingState(false);
+                }
+            });
+        } catch (error) {
+            console.error('Error initializing Square:', error);
+            document.getElementById('square-card-errors').textContent = 'Unable to load payment form. Please refresh the page.';
+        }
+    })();
+</script>
+{% endblock %}

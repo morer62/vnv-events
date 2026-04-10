@@ -1,0 +1,447 @@
+{% extends 'templates/base.admin.twig' %}
+
+{% block body %}
+<div class="container-fluid">
+    <style>
+        #selectedMealsEditor {
+            max-height: 420px;
+            overflow-y: auto;
+            padding-right: 4px;
+        }
+    </style>
+
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+        <div>
+            <h1 class="h3 mb-1">My Gourmet Subscriptions</h1>
+            <p class="text-muted mb-0">Review your recurring gourmet meal plans.</p>
+        </div>
+
+        <a href="{{ path('/meal-plans') }}" class="btn btn-outline-dark">
+            Order More Meals
+        </a>
+    </div>
+
+    <div class="card shadow-sm border-0">
+        <div class="card-body">
+            {% if subscriptions|length > 0 %}
+                <div class="table-responsive">
+                    <table class="table align-middle">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Email</th>
+                                <th>Frequency</th>
+                                <th>Meals</th>
+                                <th>Price / Meal</th>
+                                <th class="text-end">Total / renewal</th>
+                                <th>Status</th>
+                                <th>Next Charge</th>
+                                <th>Last Charge</th>
+                                <th class="text-end">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for s in subscriptions %}
+                                <tr>
+                                    <td>#{{ s.id }}</td>
+                                    <td>
+                                        <strong>{{ s.full_name ?: '—' }}</strong>
+                                        <div class="small text-muted">{{ s.email ?: '—' }}</div>
+                                    </td>
+                                    <td>{{ s.frequency }}</td>
+                                    <td>{{ s.display_meals_count }}</td>
+                                    <td>${{ s.price_per_meal|number_format(2, '.', ',') }}</td>
+                                    <td class="text-end">
+                                        <div class="fw-semibold">${{ s.weekly_charge_total|number_format(2, '.', ',') }}</div>
+                                        {% if s.coupon_display %}
+                                            <div class="small text-success">{{ s.coupon_display }}</div>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if s.status == 'ACTIVE' %}
+                                            <span class="badge bg-success">ACTIVE</span>
+                                        {% elseif s.status == 'PAUSED' %}
+                                            <span class="badge bg-warning text-dark">PAUSED</span>
+                                        {% elseif s.status == 'CANCELLED' %}
+                                            <span class="badge bg-danger">CANCELLED</span>
+                                        {% elseif s.status == 'EXPIRED' %}
+                                            <span class="badge bg-secondary">EXPIRED</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">{{ s.status }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if s.next_charge_date %}
+                                            {{ s.next_charge_date|date('M j, Y') }}
+                                        {% else %}
+                                            —
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if s.last_charge_date %}
+                                            {{ s.last_charge_date|date('M j, Y') }}
+                                        {% else %}
+                                            —
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-end">
+                                        {% if s.status == 'ACTIVE' %}
+                                            <button
+                                                type="button"
+                                                class="btn btn-sm btn-outline-primary"
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#editMealsModal"
+                                                data-subscription-id="{{ s.id }}"
+                                                data-minimum-meals="{{ s.minimum_meals ?: 5 }}"
+                                                data-items="{{ s.edit_items_json|e('html_attr') }}"
+                                                data-products="{{ s.edit_products_json|e('html_attr') }}"
+                                            >
+                                                Edit meals
+                                            </button>
+                                            <form method="post" class="d-inline">
+                                                <input type="hidden" name="action" value="pause">
+                                                <input type="hidden" name="subscription_id" value="{{ s.id }}">
+                                                <button
+                                                    type="submit"
+                                                    class="btn btn-sm btn-outline-warning"
+                                                    onclick="return confirm('Pause this subscription?');"
+                                                >
+                                                    Pause
+                                                </button>
+                                            </form>
+                                            <button
+                                                type="button"
+                                                class="btn btn-sm btn-outline-danger"
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#deleteSubscriptionModal"
+                                                data-subscription-id="{{ s.id }}"
+                                                data-subscription-name="{{ s.full_name ?: s.email ?: ('#' ~ s.id) }}"
+                                            >
+                                                Delete
+                                            </button>
+                                        {% elseif s.status == 'PAUSED' %}
+                                            <form method="post" class="d-inline">
+                                                <input type="hidden" name="action" value="resume">
+                                                <input type="hidden" name="subscription_id" value="{{ s.id }}">
+                                                <button
+                                                    type="submit"
+                                                    class="btn btn-sm btn-outline-success"
+                                                    onclick="return confirm('Resume this subscription?');"
+                                                >
+                                                    Resume
+                                                </button>
+                                            </form>
+                                            <button
+                                                type="button"
+                                                class="btn btn-sm btn-outline-danger"
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#deleteSubscriptionModal"
+                                                data-subscription-id="{{ s.id }}"
+                                                data-subscription-name="{{ s.full_name ?: s.email ?: ('#' ~ s.id) }}"
+                                            >
+                                                Delete
+                                            </button>
+                                        {% else %}
+                                            <span class="text-muted small">Unavailable</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="text-center py-5">
+                    <h5 class="mb-2">No subscriptions yet</h5>
+                    <p class="text-muted mb-3">You do not have any gourmet subscriptions yet.</p>
+                    <a href="{{ path('/meal-plans') }}" class="btn btn-primary">
+                        Start My Meal Plan
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="editMealsModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable">
+        <div class="modal-content">
+            <form method="post">
+                <div class="modal-header">
+                    <h5 class="modal-title">Edit subscription meals</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" name="action" value="edit_items">
+                    <input type="hidden" name="subscription_id" id="editMealsSubscriptionId">
+
+                    <div class="row g-3">
+                        <div class="col-lg-5">
+                            <div class="border rounded p-3 h-100">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <h6 class="mb-0">Selected meals</h6>
+                                    <span class="small text-muted">Min meals: <span id="subscriptionMinMeals">5</span></span>
+                                </div>
+                                <div id="selectedMealsEditor" class="vstack gap-2"></div>
+                                <small class="text-muted d-block mt-2">
+                                    Adjust quantity or remove any meal from your subscription.
+                                </small>
+                                <div class="alert alert-info py-2 px-3 mt-2 mb-0 small" role="alert">
+                                    Changes saved here will apply to your next renewal and future weekly renewals.
+                                    Meals already processed in previous orders will not be changed.
+                                </div>
+                                <div class="small mt-2">
+                                    <strong>Total meals:</strong> <span id="subscriptionMealsTotal">0</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-7">
+                            <div class="border rounded p-3 h-100">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <h6 class="mb-0">Available meals</h6>
+                                    <input type="text" class="form-control form-control-sm" style="max-width:220px" id="availableMealsSearch" placeholder="Search meal...">
+                                </div>
+                                <div id="availableMealsCatalog" class="row g-2"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="deleteSubscriptionModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="post">
+                <div class="modal-header">
+                    <h5 class="modal-title">Delete subscription</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" name="action" value="delete">
+                    <input type="hidden" name="subscription_id" id="deleteSubscriptionId">
+                    <p class="mb-2">Are you sure you want to delete this subscription?</p>
+                    <p class="small text-muted mb-0">
+                        Customer: <span id="deleteSubscriptionCustomer">—</span>
+                    </p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-danger">Delete</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+    {{ parent() }}
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const modalEl = document.getElementById('editMealsModal');
+            if (!modalEl) return;
+            const editorEl = document.getElementById('selectedMealsEditor');
+            const catalogEl = document.getElementById('availableMealsCatalog');
+            const searchEl = document.getElementById('availableMealsSearch');
+            const mealsTotalEl = document.getElementById('subscriptionMealsTotal');
+            const minMealsEl = document.getElementById('subscriptionMinMeals');
+            let availableProducts = [];
+            let selectedItems = {};
+            let minMeals = 5;
+
+            function esc(value) {
+                return String(value || '')
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;')
+                    .replace(/'/g, '&#039;');
+            }
+
+            function getTotalMeals() {
+                return Object.keys(selectedItems).reduce(function (acc, key) {
+                    return acc + (parseInt(selectedItems[key].quantity || 0, 10) || 0);
+                }, 0);
+            }
+
+            function updateMealsTotalLabel() {
+                if (!editorEl || !mealsTotalEl) return;
+                mealsTotalEl.textContent = String(getTotalMeals());
+            }
+
+            function renderSelectedItems() {
+                if (!editorEl) return;
+                const keys = Object.keys(selectedItems);
+                if (!keys.length) {
+                    editorEl.innerHTML = '<div class="text-muted small">No meals selected yet.</div>';
+                    updateMealsTotalLabel();
+                    return;
+                }
+
+                editorEl.innerHTML = keys.map(function (key) {
+                    const item = selectedItems[key];
+                    return '' +
+                        '<div class="border rounded p-2">' +
+                            '<input type="hidden" name="item_product_id[]" value="' + item.id_product + '">' +
+                            '<div class="d-flex justify-content-between align-items-center gap-2">' +
+                                '<div>' +
+                                    '<div class="fw-semibold">' + esc(item.product_name) + '</div>' +
+                                    '<div class="small text-muted">Meal ID #' + item.id_product + '</div>' +
+                                '</div>' +
+                                '<div class="d-flex align-items-center gap-2">' +
+                                    '<input type="number" class="form-control form-control-sm selected-qty-input" style="width:90px" name="item_quantity[]" min="1" step="1" data-product-id="' + item.id_product + '" value="' + item.quantity + '" required>' +
+                                    '<button type="button" class="btn btn-sm btn-outline-danger remove-selected-item" data-product-id="' + item.id_product + '">Remove</button>' +
+                                '</div>' +
+                            '</div>' +
+                        '</div>';
+                }).join('');
+
+                editorEl.querySelectorAll('.selected-qty-input').forEach(function (input) {
+                    input.addEventListener('input', function () {
+                        const pid = Number(input.getAttribute('data-product-id'));
+                        const qty = Math.max(1, parseInt(input.value || '1', 10) || 1);
+                        input.value = String(qty);
+                        if (selectedItems[pid]) selectedItems[pid].quantity = qty;
+                        updateMealsTotalLabel();
+                    });
+                });
+                editorEl.querySelectorAll('.remove-selected-item').forEach(function (button) {
+                    button.addEventListener('click', function () {
+                        const pid = Number(button.getAttribute('data-product-id'));
+                        delete selectedItems[pid];
+                        renderSelectedItems();
+                    });
+                });
+                updateMealsTotalLabel();
+            }
+
+            function renderCatalog(filterTerm) {
+                if (!catalogEl) return;
+                const term = String(filterTerm || '').trim().toLowerCase();
+                const filtered = availableProducts.filter(function (p) {
+                    if (!term) return true;
+                    return (p.name || '').toLowerCase().includes(term) || (p.short_description || '').toLowerCase().includes(term);
+                });
+                if (!filtered.length) {
+                    catalogEl.innerHTML = '<div class="col-12"><div class="text-muted small">No meals found.</div></div>';
+                    return;
+                }
+                catalogEl.innerHTML = filtered.map(function (p) {
+                    const image = p.main_image
+                        ? '<img src="' + esc(p.main_image) + '" alt="' + esc(p.name) + '" style="width:100%;height:120px;object-fit:cover;border-radius:8px;">'
+                        : '<div class="bg-light border rounded d-flex align-items-center justify-content-center text-muted" style="height:120px;">No image</div>';
+                    const shortDesc = p.short_description ? '<div class="small text-muted mb-2">' + esc(p.short_description) + '</div>' : '';
+                    const price = Number(p.price || 0).toFixed(2);
+                    return '' +
+                        '<div class="col-md-6">' +
+                            '<div class="border rounded p-2 h-100 d-flex flex-column">' +
+                                image +
+                                '<div class="fw-semibold mt-2">' + esc(p.name) + '</div>' +
+                                shortDesc +
+                                '<div class="small text-muted mb-2">$' + price + '</div>' +
+                                '<button type="button" class="btn btn-sm btn-outline-primary mt-auto add-meal-btn" data-product-id="' + p.id + '">Add meal</button>' +
+                            '</div>' +
+                        '</div>';
+                }).join('');
+                catalogEl.querySelectorAll('.add-meal-btn').forEach(function (button) {
+                    button.addEventListener('click', function () {
+                        const pid = Number(button.getAttribute('data-product-id'));
+                        const product = availableProducts.find(function (p) { return Number(p.id) === pid; });
+                        if (!product) return;
+                        if (selectedItems[pid]) {
+                            selectedItems[pid].quantity += 1;
+                        } else {
+                            selectedItems[pid] = {
+                                id_product: pid,
+                                product_name: product.name || ('#' + pid),
+                                quantity: 1
+                            };
+                        }
+                        renderSelectedItems();
+                    });
+                });
+            }
+
+            modalEl.addEventListener('show.bs.modal', function (event) {
+                const button = event.relatedTarget;
+                if (!button) return;
+
+                const id = button.getAttribute('data-subscription-id') || '';
+                const minimumMeals = parseInt(button.getAttribute('data-minimum-meals') || '5', 10);
+                const itemsJson = button.getAttribute('data-items') || '[]';
+                const productsJson = button.getAttribute('data-products') || '[]';
+                minMeals = Math.max(5, minimumMeals);
+                if (minMealsEl) minMealsEl.textContent = String(minMeals);
+
+                const subIdInput = document.getElementById('editMealsSubscriptionId');
+                if (subIdInput) subIdInput.value = id;
+
+                try {
+                    availableProducts = JSON.parse(productsJson) || [];
+                } catch (e) {
+                    availableProducts = [];
+                }
+                let items = [];
+                try {
+                    items = JSON.parse(itemsJson) || [];
+                } catch (e) {
+                    items = [];
+                }
+
+                selectedItems = {};
+                items.forEach(function (item) {
+                    const pid = Number(item.id_product || 0);
+                    const qty = Math.max(1, parseInt(item.quantity || 1, 10) || 1);
+                    if (pid <= 0) return;
+                    const product = availableProducts.find(function (p) { return Number(p.id) === pid; });
+                    selectedItems[pid] = {
+                        id_product: pid,
+                        product_name: (product && product.name) ? product.name : (item.product_name || ('#' + pid)),
+                        quantity: qty
+                    };
+                });
+                renderSelectedItems();
+                renderCatalog('');
+                if (searchEl) searchEl.value = '';
+            });
+
+            if (searchEl) {
+                searchEl.addEventListener('input', function () {
+                    renderCatalog(searchEl.value || '');
+                });
+            }
+
+            const form = modalEl.querySelector('form');
+            if (form) {
+                form.addEventListener('submit', function (e) {
+                    const totalMeals = getTotalMeals();
+                    if (totalMeals < minMeals) {
+                        e.preventDefault();
+                        alert('You must have at least ' + minMeals + ' meals in total.');
+                    }
+                });
+            }
+
+            const deleteModal = document.getElementById('deleteSubscriptionModal');
+            if (deleteModal) {
+                deleteModal.addEventListener('show.bs.modal', function (event) {
+                    const button = event.relatedTarget;
+                    if (!button) return;
+                    const id = button.getAttribute('data-subscription-id') || '';
+                    const name = button.getAttribute('data-subscription-name') || '—';
+                    const idInput = document.getElementById('deleteSubscriptionId');
+                    const nameEl = document.getElementById('deleteSubscriptionCustomer');
+                    if (idInput) idInput.value = id;
+                    if (nameEl) nameEl.textContent = name;
+                });
+            }
+        });
+    </script>
+{% endblock %}

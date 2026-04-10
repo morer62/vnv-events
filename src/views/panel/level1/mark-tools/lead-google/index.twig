@@ -1,0 +1,268 @@
+{% extends 'templates/base.admin.twig' %}
+{% import 'templates/macros.twig' as macros %}
+
+{% block body %}
+
+ 
+ 
+<a href="{{ path('panel/mark-tools/lead-google/collections') }}" class="btn btn-primary">
+  📚 Leads Collections
+</a>
+
+
+
+<!-- Paso 1: Se establecen los terminos de busqueda para obtener los leads-->
+<div class="container-fluid h-100 d-flex flex-column justify-content-center p-3">
+    <div class="text-center mb-4"> 
+       <h1 class="h3 mt-3">Search Leads per Area</h1>
+    </div>
+    {{ macros.breadcrumb2() }}
+    <form method="post" enctype="multipart/form-data" id="venueForm" class="card shadow-lg p-4 w-100">
+      
+        <div id="step-1" class="venue-step">
+            <h4 class="mb-3">Step 1: General Information</h4>
+            <div class="row">
+                 
+               
+                <div class="col-12 mb-3">
+                    <label class="form-label">Address</label>
+                    <input id="autocomplete-address" placeholder="Enter your address" class="form-control" name="address" required data-places />
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 mb-3">
+                    <label class="form-label">Search Term</label>
+                    <input class="form-control" name="search_term" required type="text" maxlength="120"/>
+        </div>
+
+
+        <div class="mb-3">
+            <label class="form-label">Miles Around</label>
+            <input type="range" name="milesrange" class="form-range" min="0" max="30" step="1" id="milesrange" oninput="document.getElementById('rangeValue').innerText = milesrange.value + ' mi'">
+            <output id="rangeValue">15 mi</output>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Max Leads</label>
+            <div class="input-group">
+                <span class="input-group-text">Up to</span>
+                <input class="form-control" name="capacity" type="number" min="1" max="20" placeholder="Enter number of leads">
+                <span class="input-group-text">Leads</span>
+            </div>
+        </div>
+
+        
+
+        <button type="submit" class="btn btn-success w-100" id="submitBtn">Search for Leads</button>
+
+        
+
+    </form>
+
+    <button type="button" id="resetSearchBtn" class="btn btn-secondary w-100 mt-3" style="display:none;">
+            🔄 New Search
+         </button>
+</div>
+
+<!-- Aqui debe mostarse una tabla con el resultado de la busqueda incluyendo Nombre, Telefono, Correo Sitio Web y Direccion-->
+<div class="container mt-5">
+
+  <form method="post" id="leadsForm">
+    <div id="collectionSelect"  style="display:none;" class="col-md-12 ">
+    <input type="hidden" value="add_collection">
+
+        <h4 class="mb-3">Step 2: Add Leads to collection</h4>
+           <br>
+            <select class="form-select" name="collection_id" required>
+                <option value="">Select a Collection to add</option>
+                {% for coll in collections %}
+                    <option value="{{ coll.id }}">{{ coll.name }}</option>
+                {% endfor %}
+            </select>
+
+            <br>
+        
+              <div id="results-table-container"></div>
+
+        <button type="submit" class="btn btn-success w-100" id="submitBtn">Add to Collection</button>
+    </div>
+
+  
+
+
+</form>
+</div>
+
+ 
+ 
+<script>
+let map;
+let service;
+let selectedLatLng = null;
+
+// 🔁 Siempre disponible
+document.getElementById("resetSearchBtn").addEventListener("click", function () {
+    window.location.reload();
+});
+
+function initAutocomplete() {
+    const autocompleteInput = document.getElementById("autocomplete"); // Asegurate que este sea tu input de ciudad
+
+    const autocomplete = new google.maps.places.Autocomplete(autocompleteInput, {
+      types: ["(cities)"],
+      componentRestrictions: { country: "us" },
+    });
+
+    autocomplete.addListener("place_changed", () => {
+      const place = autocomplete.getPlace();
+      if (place.geometry && place.geometry.location) {
+        const lat = place.geometry.location.lat();
+        const lng = place.geometry.location.lng();
+
+        selectedLatLng = { lat, lng }; // ✅ Guardamos las coordenadas seleccionadas
+
+        console.log("📍 Coordenadas nuevas seleccionadas:", lat, lng);
+      } else {
+        console.warn("⚠️ No se encontraron coordenadas en el lugar seleccionado.");
+      }
+    });
+  }
+
+
+
+document.getElementById("venueForm").addEventListener("submit", function(e) {
+    e.preventDefault();
+
+    document.querySelectorAll("#venueForm input, #venueForm button, #venueForm select").forEach(el => {
+        el.disabled = true;
+    });
+
+    document.getElementById("submitBtn").style.visibility = "hidden";
+
+
+    // 👁 Mostrar botón de reset
+    document.getElementById("resetSearchBtn").style.display = "block";
+    document.getElementById("collectionSelect").style.display = "block";
+
+    
+
+    const button = document.getElementById("submitBtn");
+    button.disabled = true;
+    button.innerText = "Searching...";
+
+    const address = document.getElementById("autocomplete-address").value;
+
+    function proceedWithSearch() {
+        const term = document.querySelector("[name=search_term]").value;
+        const radius = document.querySelector("[name=milesrange]").value * 1609.34;
+        const maxResults = parseInt(document.querySelector("[name=capacity]").value) || 10;
+
+        const request = {
+            location: selectedLatLng,
+            radius: radius,
+            keyword: term,
+        };
+
+        
+
+        map = new google.maps.Map(document.createElement("div"));
+        service = new google.maps.places.PlacesService(map);
+
+        service.nearbySearch(request, (results, status) => {
+            if (status === google.maps.places.PlacesServiceStatus.OK) {
+                displayResults(results.slice(0, maxResults), button);
+            } else {
+                alert("No results found or error occurred.");
+                button.disabled = false;
+                button.innerText = "Search for Leads";
+            }
+        });
+
+        
+    }
+
+    
+
+
+    // Si ya hay coordenadas (por Autocomplete), seguimos
+    if (selectedLatLng) {
+        console.log("✅ Usando coordenadas ya disponibles:", selectedLatLng.lat(), selectedLatLng.lng());
+        proceedWithSearch();
+    } else {
+        console.warn("⚠️ No hay coordenadas, ejecutando Geocoder con:", address);
+        const geocoder = new google.maps.Geocoder();
+        geocoder.geocode({ address: address }, function(results, status) {
+            if (status === "OK" && results[0] && results[0].geometry) {
+                selectedLatLng = results[0].geometry.location;
+                console.log("✅ Coordenadas desde Geocoder:", selectedLatLng.lat(), selectedLatLng.lng());
+                proceedWithSearch();
+            } else {
+                alert("Please select a valid address from the suggestions.");
+                button.disabled = false;
+                button.innerText = "Search for Leads";
+            }
+        });
+    }
+});
+
+function displayResults(places, button) {
+    let html = `
+    <div class="mb-2">
+        <input type="checkbox" id="selectAll" onclick="toggleAll(this)">
+        <label for="selectAll">Select All</label>
+    </div>
+
+    <table class="table table-striped table-hover"><thead><tr>
+
+        <th>Name</th><th>Phone</th><th>Email</th><th>Website</th><th>Address</th>
+    </tr></thead><tbody>`;
+
+    let completed = 0;
+
+    places.forEach(place => {
+        const placeId = place.place_id;
+        service.getDetails({ placeId }, function(detail, status) {
+            completed++;
+            if (status === google.maps.places.PlacesServiceStatus.OK) {
+                const name = detail.name || '';
+                const phone = detail.formatted_phone_number || '';
+                const email = detail.email || '';
+                const website = detail.website || '';
+                const address = detail.formatted_address || '';
+ 
+                const payload = btoa(JSON.stringify({ name, phone, email, website, address, place_id: place.place_id }));
+
+                html += `
+                <tr>
+                    <td><input type="checkbox" name="leads[]" value="${payload}"></td>
+                    <td>${detail.name || '-'}</td>
+                    <td>${detail.formatted_phone_number || '-'}</td>
+                    <td>${detail.email || '-'}</td>
+                    <td><a href="${detail.website || '#'}" target="_blank">${detail.website ? 'Website' : '-'}</a></td>
+                    <td>${detail.formatted_address || '-'}</td>
+                </tr>`;
+            }
+
+            if (completed === places.length) {
+                html += "</tbody></table>";
+                document.getElementById("results-table-container").innerHTML = html;
+
+                button.disabled = false;
+                button.innerText = "Search for Leads";
+            }
+        });
+    });
+}
+
+// Check/uncheck all
+function toggleAll(master) {
+    document.querySelectorAll('#leadsForm input[type=checkbox][name="leads[]"]').forEach(cb => {
+        cb.checked = master.checked;
+    });
+}
+</script>
+
+<!-- Google Maps API Key (Esto lo comento porque ya viene de la cabecera )-->
+<!-- <script src="https://maps.googleapis.com/maps/api/js?key=TU_API_KEY&libraries=places&callback=initAutocomplete" async defer></script> -->
+{% endblock %}

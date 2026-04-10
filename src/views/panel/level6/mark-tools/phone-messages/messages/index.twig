@@ -1,0 +1,322 @@
+{% extends 'templates/base.admin.twig' %}
+{% import 'templates/macros.twig' as macros %}
+
+{% block styles %}
+<style>
+    .chat-container {
+        display: flex;
+        gap: 1rem;
+        height: calc(100vh - 200px);
+        min-height: 500px;
+    }
+
+    .chat-sidebar {
+        width: 300px;
+        background: #f8f9fa;
+        border: 1px solid #e0e0e0;
+        border-radius: 10px;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .chat-sidebar h5 {
+        margin: 0;
+        padding: 1rem;
+        background: #0d6efd;
+        color: #fff;
+    }
+
+    .chat-sidebar #client-list {
+        flex: 1;
+        overflow-y: auto;
+    }
+
+    .chat-sidebar .client-item {
+        padding: 0.75rem 1rem;
+        border-bottom: 1px solid #e9ecef;
+        cursor: pointer;
+        transition: background 0.2s;
+    }
+
+    .chat-sidebar .client-item:hover,
+    .chat-sidebar .client-item.active {
+        background: #e9f5ff;
+    }
+
+    .chat-main {
+        flex: 1;
+        border: 1px solid #e0e0e0;
+        border-radius: 10px;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+    }
+
+    .chat-header {
+        padding: 1rem;
+        background: #f8f9fa;
+        font-weight: bold;
+        border-bottom: 1px solid #e9ecef;
+    }
+
+    .chat-messages {
+        flex: 1;
+        padding: 1rem;
+        overflow-y: auto;
+        background: #ffffff;
+    }
+
+    .chat-message {
+        margin-bottom: 1rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+
+    .chat-message .meta {
+        font-size: 0.8rem;
+        color: #6c757d;
+    }
+
+    .chat-message .bubble {
+        display: inline-block;
+        max-width: 80%;
+        padding: 0.75rem 1rem;
+        border-radius: 15px;
+        background: #e9f5ff;
+        align-self: flex-start;
+    }
+
+    .chat-message.sent .bubble {
+        background: #d1e7dd;
+        align-self: flex-end;
+    }
+
+    .chat-input {
+        padding: 1rem;
+        background: #f8f9fa;
+        border-top: 1px solid #e9ecef;
+        display: flex;
+        gap: 0.75rem;
+    }
+
+    .chat-input input {
+        flex: 1;
+    }
+
+    .toggle-back {
+        display: none;
+        padding: 0.75rem 1rem;
+        background: #f1f1f1;
+        border-bottom: 1px solid #ccc;
+        cursor: pointer;
+    }
+
+    @media (max-width: 768px) {
+        .chat-container {
+            flex-direction: column;
+            height: calc(100vh - 130px);
+        }
+
+        .chat-sidebar {
+            display: none;
+            width: 100%;
+            height: 100%;
+        }
+
+        .chat-main {
+            display: none;
+            width: 100%;
+            height: 100%;
+        }
+
+        .chat-sidebar.active,
+        .chat-main.active {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .toggle-back {
+            display: block;
+        }
+
+        input,
+        button {
+            font-size: 16px;
+        }
+
+        input:focus {
+            font-size: 16px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="container mt-4">
+    {{ macros.breadcrumb2() }}
+
+    <div class="mb-3">
+        <label class="form-label">Or enter a number manually</label>
+        <input type="text" class="form-control" id="manual-phone" placeholder="e.g. (305) 910-6035" maxlength="18">
+    </div>
+
+    <div class="chat-container">
+        <div class="chat-sidebar active" id="chatSidebar">
+            <h5>Clients</h5>
+            <div id="client-list"></div>
+        </div>
+
+        <div class="chat-main" id="chatMain">
+            <div class="toggle-back" id="toggleSidebar">🔙 Show All</div>
+            <div class="chat-header" id="chatHeader">Select a client</div>
+            <div class="chat-messages" id="chatMessages"></div>
+            <form class="chat-input" id="message-form">
+                <input type="text" id="message-input" class="form-control" placeholder="Type your message..." autocomplete="off" />
+                <button type="submit" class="btn btn-primary">Send</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    const clientList = document.getElementById("client-list");
+    const chatMessages = document.getElementById("chatMessages");
+    const chatHeader = document.getElementById("chatHeader");
+    const form = document.getElementById("message-form");
+    const input = document.getElementById("message-input");
+    const phoneInput = document.getElementById("manual-phone");
+
+    const chatSidebar = document.getElementById("chatSidebar");
+    const chatMain = document.getElementById("chatMain");
+    const toggleSidebar = document.getElementById("toggleSidebar");
+
+    let currentClientId = null;
+    let clientMap = {};
+    let autoScroll = true;
+
+    phoneInput.addEventListener('input', () => {
+        let raw = phoneInput.value.replace(/\D/g, '');
+        if (raw.startsWith('1') && raw.length > 10) raw = raw.slice(1);
+
+        let formatted = '';
+        if (raw.length > 0) formatted += '(' + raw.substring(0, 3);
+        if (raw.length >= 4) formatted += ') ' + raw.substring(3, 6);
+        if (raw.length >= 7) formatted += '-' + raw.substring(6, 10);
+        phoneInput.value = formatted;
+
+        currentClientId = null;
+        chatHeader.textContent = 'Manual number';
+        chatMessages.innerHTML = '';
+    });
+
+    document.getElementById("chatMessages").addEventListener("scroll", () => {
+        const nearBottom = chatMessages.scrollTop + chatMessages.clientHeight >= chatMessages.scrollHeight - 50;
+        autoScroll = nearBottom;
+    });
+
+    toggleSidebar.addEventListener("click", () => {
+        chatMain.classList.remove("active");
+        chatSidebar.classList.add("active");
+    });
+
+    async function loadClients() {
+        const res = await fetch("/api/whatsapp/clients");
+        const json = await res.json();
+
+        clientList.innerHTML = "";
+        clientMap = {};
+
+        json.data.forEach(client => {
+            clientMap[client.id] = client;
+            const item = document.createElement("div");
+            item.classList.add("client-item");
+            item.dataset.id = client.id;
+            item.innerHTML = `
+                <div class="fw-bold">${client.name}</div>
+                <div class="text-muted small">${client.phone}</div>
+            `;
+            item.addEventListener("click", () => selectClient(client.id));
+            clientList.appendChild(item);
+        });
+    }
+
+    async function loadMessages(clientId) {
+        const res = await fetch(`/api/whatsapp/messages?client_id=${clientId}`);
+        const json = await res.json();
+
+        chatMessages.innerHTML = "";
+        json.data.forEach(msg => {
+            const messageEl = document.createElement("div");
+            messageEl.classList.add("chat-message");
+            if (msg.direction === "outbound") messageEl.classList.add("sent");
+            messageEl.innerHTML = `
+                <div class="meta">${msg.created_at}</div>
+                <div class="bubble">${msg.message}</div>
+            `;
+            chatMessages.appendChild(messageEl);
+        });
+
+        if (autoScroll) {
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+    }
+
+    function selectClient(clientId) {
+        currentClientId = clientId;
+        phoneInput.value = "";
+
+        document.querySelectorAll(".client-item").forEach(item => item.classList.remove("active"));
+        const active = document.querySelector(`.client-item[data-id="${clientId}"]`);
+        if (active) active.classList.add("active");
+
+        const client = clientMap[clientId];
+        chatHeader.textContent = client ? `${client.name} (${client.phone})` : "Messages";
+
+        if (window.innerWidth <= 768) {
+            chatSidebar.classList.remove("active");
+            chatMain.classList.add("active");
+        }
+
+        loadMessages(clientId);
+    }
+
+    form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const message = input.value.trim();
+        const phone = phoneInput.value.replace(/\D/g, '');
+        const fullPhone = phone.length === 10 ? `1${phone}` : phone;
+
+        if (!message || (!currentClientId && fullPhone.length < 11)) {
+            alert("Please select a client or enter a valid phone number.");
+            return;
+        }
+
+        const formData = new FormData();
+        if (currentClientId) formData.append("client_id", currentClientId);
+        if (fullPhone) formData.append("phone", fullPhone);
+        formData.append("message", message);
+        formData.append("channel", "whatsapp");
+
+        const res = await fetch("/api/whatsapp/send", {
+            method: "POST",
+            body: formData
+        });
+
+        const json = await res.json();
+        if (json.success) {
+            input.value = "";
+            if (currentClientId) loadMessages(currentClientId);
+        } else {
+            alert("Error: " + json.message);
+        }
+    });
+
+    loadClients();
+    setInterval(() => {
+        if (currentClientId) loadMessages(currentClientId);
+    }, 3000);
+</script>
+{% endblock %}
+

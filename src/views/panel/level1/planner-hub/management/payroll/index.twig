@@ -1,0 +1,33 @@
+{% extends 'templates/base.admin.twig' %}
+{% import 'templates/macros.twig' as macros %}
+
+{% block body %}
+
+<h1 class="h3">Payroll</h1>
+{{ macros.breadcrumb2() }}
+
+<section class="row row-cols-1 row-cols-md-2 g-4">
+    <!-- Paid -->
+    <div class="col">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body text-center py-4">
+                <h5 class="card-title mb-2 text-muted">Paid</h5>
+                <p class="card-text small text-muted">Review all completed and confirmed payroll transactions.</p>
+                <a href="{{ path(current_location ~ '/paid') }}" class="btn btn-primary btn-sm mt-2">Go to Paid</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pending -->
+    <div class="col">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body text-center py-4">
+                <h5 class="card-title mb-2 text-muted">Pending</h5>
+                <p class="card-text small text-muted">View and manage pending payments for team members.</p>
+                <a href="{{ path(current_location ~ '/pending') }}" class="btn btn-primary btn-sm mt-2">Go to Pending</a>
+            </div>
+        </div>
+    </div>
+</section>
+
+{% endblock %}

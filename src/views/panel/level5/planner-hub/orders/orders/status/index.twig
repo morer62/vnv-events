@@ -1,0 +1,62 @@
+{% extends 'templates/base.admin.twig' %}
+{% import 'templates/macros.twig' as macros %}
+
+{% block body %}
+<h2 class="h4 mb-4">📜 Order Status - vnv-341{{ order.id }}</h2>
+<a href="{{ path('/panel/planner-hub/orders/orders') }}" class="btn btn-sm btn-light mb-3">← Back to Orders</a>
+
+<div class="alert alert-info">
+    ⚠️ Digital signatures and Stripe payments will be available soon. For now, please review the current status of your order.
+</div>
+
+<div class="table-responsive">
+    <table class="table table-bordered text-center align-middle">
+        <thead class="table-dark">
+            <tr>
+                <th>Status</th>
+                <th>Action</th>
+                <th>Note</th>
+                <th>File</th>
+                <th>Date</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for h in history %}
+                <tr>
+                    <td style="min-width: 200px;">
+                        <span class="badge bg-secondary">
+                            {% if h.status == 'INVOICE_DRAFT' %}
+                                Signature Pending
+                            {% elseif h.status == 'INVOICE_READY' %}
+                                Signed – Payment Pending
+                            {% elseif h.status == 'INVOICE_PARTIAL' %}
+                                First Payment Completed
+                            {% elseif h.status == 'INVOICE_PAID' %}
+                                Fully Paid
+                            {% elseif h.status == 'INVOICE_EXPIRED' %}
+                                Expired
+                            {% else %}
+                                {{ h.status }}
+                            {% endif %}
+                        </span>
+                    </td>
+                    <td style="min-width: 200px;">{{ h.action_type | replace({'_': ' '}) | title }}</td>
+                    <td style="min-width: 200px;">{{ h.note }}</td>
+                    <td style="min-width: 200px;">
+                        {% if h.file_path %}
+                            <a href="{{ asset_for(h.file_path) }}" target="_blank" class="btn btn-sm btn-outline-dark">📎 View</a>
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                    <td style="min-width: 200px;">{{ h.created_at|date("Y-m-d H:i") }}</td>
+                </tr>
+            {% else %}
+                <tr>
+                    <td colspan="5">No history available for this order.</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

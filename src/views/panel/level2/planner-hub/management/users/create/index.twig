@@ -1,0 +1,963 @@
+{% extends 'templates/base.admin.twig' %}
+{% import 'templates/macros.twig' as macros %}
+
+{% block style %}
+<style>
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 9999;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0,0,0,0.5);
+        overflow: auto;
+    }
+    
+    .modal.show {
+        display: block;
+    }
+    
+    .modal-dialog {
+        position: relative;
+        width: auto;
+        margin: 1.75rem auto;
+        max-width: 700px;
+        pointer-events: auto;
+    }
+    
+    .modal-content {
+        position: relative;
+        background-color: #fff;
+        border: 1px solid rgba(0,0,0,.2);
+        border-radius: 0.3rem;
+        box-shadow: 0 0.5rem 1rem rgba(0,0,0,.15);
+        pointer-events: auto;
+        z-index: 10000;
+    }
+    
+    .modal-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 1rem;
+        border-bottom: 1px solid #dee2e6;
+        background-color: #f8f9fa;
+    }
+    
+    .modal-body {
+        padding: 1rem;
+        background-color: #fff;
+    }
+    
+    .modal-footer {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        padding: 1rem;
+        border-top: 1px solid #dee2e6;
+        gap: 0.5rem;
+        background-color: #f8f9fa;
+    }
+    
+    .btn-close {
+        background: transparent;
+        border: 0;
+        font-size: 1.5rem;
+        cursor: pointer;
+        padding: 0;
+        line-height: 1;
+        color: #000;
+    }
+    
+    .btn-close:hover {
+        color: #666;
+    }
+    
+    .modal input[type="text"] {
+        background-color: #fff !important;
+        color: #000 !important;
+        border: 1px solid #ced4da !important;
+        padding: 0.375rem 0.75rem !important;
+        font-size: 1rem !important;
+        line-height: 1.5 !important;
+        border-radius: 0.25rem !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+    }
+    
+    .modal input[type="text"]:focus {
+        border-color: #80bdff !important;
+        outline: 0 !important;
+        box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25) !important;
+    }
+    
+    .modal .btn {
+        display: inline-block;
+        font-weight: 400;
+        text-align: center;
+        vertical-align: middle;
+        user-select: none;
+        border: 1px solid transparent;
+        padding: 0.375rem 0.75rem;
+        font-size: 1rem;
+        line-height: 1.5;
+        border-radius: 0.25rem;
+        transition: color .15s ease-in-out,background-color .15s ease-in-out,border-color .15s ease-in-out,box-shadow .15s ease-in-out;
+        cursor: pointer;
+    }
+    
+    .modal .btn-primary {
+        color: #fff;
+        background-color: #007bff;
+        border-color: #007bff;
+    }
+    
+    .modal .btn-primary:hover {
+        background-color: #0069d9;
+        border-color: #0062cc;
+    }
+    
+    .modal .btn-secondary {
+        color: #fff;
+        background-color: #6c757d;
+        border-color: #6c757d;
+    }
+    
+    .modal .btn-secondary:hover {
+        background-color: #5a6268;
+        border-color: #545b62;
+    }
+    
+    .input-group .form-control {
+        border-right: 0;
+        border-top-right-radius: 0;
+        border-bottom-right-radius: 0;
+    }
+    
+    .input-group .btn {
+        border-left: 0;
+        border-top-left-radius: 0;
+        border-bottom-left-radius: 0;
+        border-color: #dee2e6;
+    }
+    
+    .input-group .btn:hover {
+        background-color: #e9ecef;
+        border-color: #ced4da;
+    }
+    
+    .input-group .btn:focus {
+        box-shadow: none;
+    }
+    
+    [data-feather] {
+        width: 18px;
+        height: 18px;
+    }
+    
+    #togglePassword,
+    #toggleConfirmPassword {
+        min-width: 45px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .user-type-card {
+        transition: all 0.3s ease;
+        border: 2px solid transparent;
+    }
+    
+    .user-type-card:hover {
+        border-color: #007bff;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    
+    .user-type-card.selected {
+        border-color: #007bff;
+        background-color: #f8f9ff;
+    }
+</style>
+{% endblock %}
+
+{% block body %}
+<h1 class="h3 mb-4">
+    <i class="align-middle" style="width: 30px; height: 30px;" data-feather="plus"></i> Create New User
+</h1>
+{{ macros.breadcrumb2() }}
+
+<section class="card" id="startFlowCard">
+    <section class="card-body text-center">
+        <h4 class="mb-4">👤 Create New User</h4>
+        <p class="text-muted mb-4">Choose the type of user you want to create and we'll guide you through the process.</p>
+        <button type="button" class="btn btn-primary btn-lg" onclick="startUserCreationFlow()">
+            🚀 Start Creating User
+        </button>
+    </section>
+</section>
+
+<div class="modal fade" id="userTypeModal" tabindex="-1" aria-labelledby="userTypeModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="userTypeModalLabel">👤 What type of user do you want to create?</h5>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <div class="card h-100 user-type-card" data-type="4" style="cursor: pointer;">
+                            <div class="card-body text-center">
+                                <h5 class="card-title">👥 Team Member</h5>
+                                <p class="card-text">Create a new team member with role assignment and hourly rate.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <div class="card h-100 user-type-card" data-type="5" style="cursor: pointer;">
+                            <div class="card-body text-center">
+                                <h5 class="card-title">👤 Client</h5>
+                                <p class="card-text">Create a new client and optionally add to CRM system.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="cancelFlow()">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="emailValidationModal" tabindex="-1" aria-labelledby="emailValidationModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="emailValidationModalLabel">📧 Enter Email Address</h5>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label for="emailInput" class="form-label">Email Address</label>
+                    <input type="email" class="form-control" id="emailInput" placeholder="Enter email address" required>
+                    <div class="form-text">We'll check if this email is already registered.</div>
+                </div>
+                <div id="emailValidationResult" class="mt-3"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="cancelFlow()">Cancel</button>
+                <button type="button" class="btn btn-outline-secondary" onclick="goBackToUserType()">Back</button>
+                <button type="button" class="btn btn-primary" id="validateEmailBtn" onclick="validateEmail()">Check Email</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<section class="card" id="mainFormCard" style="display:none;">
+    <section class="card-body">
+        <form method="post" id="create-user-form">
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">First Name</label>
+                    <input type="text" name="name" class="form-control" required>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Last Name</label>
+                    <input type="text" name="lastname" class="form-control" required>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Email</label>
+                    <input type="email" name="email" class="form-control" required readonly>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Phone Number</label>
+                    <input type="text" name="phone" class="form-control" value="+1" required>
+                </div>
+            </div>
+
+            <div class="alert alert-info mb-3">
+                <i data-feather="info" style="width: 18px; height: 18px; vertical-align: middle;"></i>
+                <strong>Password Information:</strong> A temporary password will be automatically generated and sent to the user's email address. They will be required to change it on their first login.
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">User Type</label>
+                <select name="level" class="form-select" id="user-level" required disabled>
+                    <option value="">Select user type</option>
+                    <option value="4">👥 Team Member</option>
+                    <option value="5">👤 Client</option>
+                </select>
+                <input type="hidden" name="level" id="user-level-hidden">
+            </div>
+
+            <!-- Campos específicos para Team Member -->
+            <div id="team-member-fields" style="display:none;" class="mb-3">
+                <div class="card border-info">
+                    <div class="card-header bg-info text-white">
+                        <h6 class="mb-0">👥 Team Member Information</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label class="form-label">💵 Hourly Rate (optional)</label>
+                            <input type="number" step="0.01" name="hourly_rate" class="form-control" placeholder="e.g. 15.00">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Assign Role <span class="text-danger">*</span></label>
+                            <select name="role_id" class="form-select" id="role-select">
+                                <option value="">Select a role</option>
+                                {% for role in roles %}
+                                    <option value="{{ role.id }}">{{ role.name }}</option>
+                                {% endfor %}
+                            </select>
+                            <a href="/vnv-venue/panel/planner-hub/management/roles" class="btn btn-outline-primary btn-sm mt-2">
+                                ➕ View or Edit Roles
+                            </a>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">📝 Contract Details (optional)</label>
+                            <textarea name="contract_detail" class="form-control" rows="5" placeholder="Enter contract details, schedule, notes, etc."></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Campos específicos para Client -->
+            <div id="client-fields" style="display:none;" class="mb-3">
+                <div class="card border-primary">
+                    <div class="card-header bg-primary text-white">
+                        <h6 class="mb-0">📊 CRM Lead Information</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="add_to_crm" value="1" id="add-to-crm-check">
+                                <label class="form-check-label" for="add-to-crm-check">
+                                    <strong>Add this client to CRM as a lead?</strong>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div id="crm-details" style="display:none;">
+                            <div class="mb-3">
+                                <label class="form-label">Address (optional)</label>
+                                <input type="text" name="crm_address" class="form-control" placeholder="Enter client address">
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Category <span class="text-danger">*</span></label>
+                                <div class="d-flex gap-2">
+                                    <select name="crm_category_id" class="form-select" id="crm-category-select">
+                                        <option value="">Select a category</option>
+                                        {% for category in categories %}
+                                            <option value="{{ category.id }}">{{ category.name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                    <button type="button" class="btn btn-outline-primary" onclick="openCreateCategoryModal()">
+                                        ➕ New Category
+                                    </button>
+                                </div>
+                                {% if categories is empty %}
+                                    <div class="alert alert-warning mt-2">
+                                        <small>No categories available. <button type="button" class="btn btn-sm btn-outline-primary" onclick="openCreateCategoryModal()">Create your first category</button></small>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary">Create User</button>
+            {{ macros.back_btn(title="Cancel") }}
+        </form>
+    </section>
+</section>
+
+<div class="modal fade" id="createCategoryModal" tabindex="-1" aria-labelledby="createCategoryModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="createCategoryModalLabel">Create New Category</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" onclick="closeModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <form id="createCategoryForm">
+                    <div class="mb-3">
+                        <label for="categoryName" class="form-label">Category Name</label>
+                        <input type="text" class="form-control" id="categoryName" name="name" required placeholder="Enter category name">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="createCategory()">Create Category</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if newClientForEstimate %}
+<div class="modal fade show" id="createEstimateModal" tabindex="-1" aria-labelledby="createEstimateLabel" aria-modal="true" style="display:block;">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="createEstimateLabel">Create Estimate</h5>
+        <button type="button" class="btn-close" onclick="closeCreateEstimateModal()">×</button>
+      </div>
+      <div class="modal-body">
+        <p>Client <strong>{{ newClientForEstimate.name }} {{ newClientForEstimate.lastname }}</strong> ({{ newClientForEstimate.email }}) was created successfully.</p>
+        <p>Would you like to create an estimate for this client now?</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="closeCreateEstimateModal()">No, later</button>
+        <button type="button" class="btn btn-primary" onclick="createEstimateForClient()">
+            Yes, create estimate
+        </button>
+
+    </div>
+    </div>
+  </div>
+</div>
+<div class="modal-backdrop show"></div>
+{% endif %}
+
+{% endblock %}
+
+{% block scripts %}
+{{ parent() }}
+<script>
+let selectedUserType = null;
+
+function startUserCreationFlow() {
+    document.getElementById('startFlowCard').style.display = 'none';
+    showModal('userTypeModal');
+}
+
+function selectUserType(type) {
+    selectedUserType = type;
+    hideModal('userTypeModal');
+    showModal('emailValidationModal');
+}
+
+function goBackToUserType() {
+    hideModal('emailValidationModal');
+    showModal('userTypeModal');
+}
+
+function goBackToEmailValidation() {
+    hideModal('emailValidationModal');
+    showModal('emailValidationModal');
+}
+
+function cancelFlow() {
+    hideModal('userTypeModal');
+    hideModal('emailValidationModal');
+    document.getElementById('startFlowCard').style.display = 'block';
+    document.getElementById('mainFormCard').style.display = 'none';
+}
+
+function validateEmail() {
+    const email = document.getElementById('emailInput').value.trim();
+    const resultDiv = document.getElementById('emailValidationResult');
+    const validateBtn = document.getElementById('validateEmailBtn');
+    
+    if (!email) {
+        resultDiv.innerHTML = '<div class="alert alert-warning">Please enter an email address.</div>';
+        return;
+    }
+    
+    // Validar formato de email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+        resultDiv.innerHTML = '<div class="alert alert-danger">❌ Please enter a valid email address (e.g., user@example.com).</div>';
+        return;
+    }
+
+    validateBtn.innerHTML = '🔄 Checking...';
+    validateBtn.disabled = true;
+
+    fetch('{{ base_url }}/panel/planner-hub/management/users/create', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: `email=${encodeURIComponent(email)}&user_type=${selectedUserType}`
+    })
+    .then(response => {
+        console.log('Response status:', response.status);
+        return response.json();
+    })
+    .then(data => {
+        console.log('Response data:', data);
+        validateBtn.innerHTML = 'Check Email';
+        validateBtn.disabled = false;
+        
+        if (data.success) {
+            resultDiv.innerHTML = '<div class="alert alert-success">✅ Email is available! You can proceed with creating the user.</div>';
+            setTimeout(() => {
+                hideModal('emailValidationModal');
+                showMainForm(email);
+            }, 1500);
+        } else {
+            if (data.exists && data.user_type === "client") {
+                if (data.already_associated) {
+                    resultDiv.innerHTML = `
+                        <div class="alert alert-info">
+                            <strong>ℹ️ ${data.message}</strong>
+                            <div class="mt-3">
+                                <button type="button" class="btn btn-secondary" onclick="goBackToEmailValidation()">
+                                    Use Different Email
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `
+                        <div class="alert alert-warning">
+                            <strong>⚠️ ${data.message}</strong>
+                            <div class="mt-3">
+                                <p><strong>Client Details:</strong></p>
+                                <p>Name: ${data.client_data.name} ${data.client_data.lastname}</p>
+                                <p>Email: ${data.client_data.email}</p>
+                                <p>Phone: ${data.client_data.phone}</p>
+                            </div>
+                            <div class="mt-3">
+                                <button type="button" class="btn btn-success" onclick="associateClient(${data.client_data.id})">
+                                    ✅ Associate This Client
+                                </button>
+                                <button type="button" class="btn btn-secondary" onclick="goBackToEmailValidation()">
+                                    Use Different Email
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                }
+            } else if (data.exists && data.user_type === "team_member") {
+                if (data.already_associated) {
+                    resultDiv.innerHTML = `
+                        <div class="alert alert-info">
+                            <strong>ℹ️ ${data.message}</strong>
+                            <div class="mt-3">
+                                <button type="button" class="btn btn-secondary" onclick="goBackToEmailValidation()">
+                                    Use Different Email
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `
+                        <div class="alert alert-warning">
+                            <strong>⚠️ ${data.message}</strong>
+                            <div class="mt-3">
+                                <p><strong>Team Member Details:</strong></p>
+                                <p>Name: ${data.user_data.name} ${data.user_data.lastname}</p>
+                                <p>Email: ${data.user_data.email}</p>
+                                <p>Phone: ${data.user_data.phone}</p>
+                            </div>
+                            <div class="mt-3">
+                                <h6>Assign Role and Hourly Rate for Your Institution:</h6>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <label class="form-label">💵 Hourly Rate <span class="text-danger">*</span></label>
+                                        <input type="number" step="0.01" id="linkHourlyRate" class="form-control" placeholder="e.g. 15.00" required>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">👤 Assign Role <span class="text-danger">*</span></label>
+                                        <select id="linkRoleId" class="form-select" required>
+                                            <option value="">-- Select a Role --</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="mt-3">
+                                    <label class="form-label">📝 Contract Details (optional)</label>
+                                    <textarea id="linkContractDetail" class="form-control" rows="5" placeholder="Enter contract details, schedule, notes, etc."></textarea>
+                                </div>
+                            </div>
+                            <div class="mt-3">
+                                <button type="button" class="btn btn-success" onclick="linkExistingUserWithRole(${data.user_data.id})">
+                                    🔗 Link to My Institution
+                                </button>
+                                <button type="button" class="btn btn-secondary" onclick="goBackToEmailValidation()">
+                                    Use Different Email
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                    
+                    // Cargar roles dinámicamente
+                    loadRolesForLinking();
+                }
+            } else {
+                resultDiv.innerHTML = `<div class="alert alert-danger">❌ ${data.message}</div>`;
+            }
+        }
+    })
+    .catch(error => {
+        validateBtn.innerHTML = 'Check Email';
+        validateBtn.disabled = false;
+        resultDiv.innerHTML = '<div class="alert alert-danger">❌ Error checking email. Please try again.</div>';
+        console.error('Error:', error);
+    });
+}
+
+function associateClient(clientId) {
+    // Crear un formulario oculto para enviar la asociación
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = '{{ base_url }}/panel/planner-hub/management/users/create';
+    
+    const clientIdInput = document.createElement('input');
+    clientIdInput.type = 'hidden';
+    clientIdInput.name = 'associate_client_id';
+    clientIdInput.value = clientId;
+    
+    form.appendChild(clientIdInput);
+    document.body.appendChild(form);
+    form.submit();
+}
+
+function linkExistingUser(userId) {
+    // Crear un formulario oculto para enviar el enlace
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = '{{ base_url }}/panel/planner-hub/management/users/create';
+    
+    const userIdInput = document.createElement('input');
+    userIdInput.type = 'hidden';
+    userIdInput.name = 'link_existing_user_id';
+    userIdInput.value = userId;
+    
+    form.appendChild(userIdInput);
+    document.body.appendChild(form);
+    form.submit();
+}
+
+function linkExistingUserWithRole(userId) {
+    // Obtener los valores del formulario
+    const hourlyRate = document.getElementById('linkHourlyRate').value.trim();
+    const roleId = document.getElementById('linkRoleId').value;
+    const contractDetail = document.getElementById('linkContractDetail').value.trim();
+    
+    // Validar que ambos campos estén completos
+    if (!hourlyRate || hourlyRate === '') {
+        alert('⚠️ Please enter an hourly rate for this team member.');
+        document.getElementById('linkHourlyRate').focus();
+        return;
+    }
+    
+    if (!roleId || roleId === '') {
+        alert('⚠️ Please select a role for this team member.');
+        document.getElementById('linkRoleId').focus();
+        return;
+    }
+    
+    // Validar que la tarifa sea un número válido
+    if (isNaN(parseFloat(hourlyRate)) || parseFloat(hourlyRate) <= 0) {
+        alert('⚠️ Please enter a valid hourly rate (must be a positive number).');
+        document.getElementById('linkHourlyRate').focus();
+        return;
+    }
+    
+    // Crear un formulario oculto para enviar el enlace con rol y tarifa
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = '{{ base_url }}/panel/planner-hub/management/users/create';
+    
+    const userIdInput = document.createElement('input');
+    userIdInput.type = 'hidden';
+    userIdInput.name = 'link_existing_user_id';
+    userIdInput.value = userId;
+    
+    const hourlyRateInput = document.createElement('input');
+    hourlyRateInput.type = 'hidden';
+    hourlyRateInput.name = 'link_hourly_rate';
+    hourlyRateInput.value = hourlyRate;
+    
+    const roleIdInput = document.createElement('input');
+    roleIdInput.type = 'hidden';
+    roleIdInput.name = 'link_role_id';
+    roleIdInput.value = roleId;
+    
+    const contractDetailInput = document.createElement('input');
+    contractDetailInput.type = 'hidden';
+    contractDetailInput.name = 'link_contract_detail';
+    contractDetailInput.value = contractDetail;
+    
+    form.appendChild(userIdInput);
+    form.appendChild(hourlyRateInput);
+    form.appendChild(roleIdInput);
+    form.appendChild(contractDetailInput);
+    document.body.appendChild(form);
+    form.submit();
+}
+
+function showMainForm(email) {
+    hideModal('emailValidationModal');
+    document.getElementById('startFlowCard').style.display = 'none';
+    document.getElementById('mainFormCard').style.display = 'block';
+    document.querySelector('input[name="email"]').value = email;
+    document.querySelector('select[name="level"]').value = selectedUserType;
+    document.getElementById('user-level-hidden').value = selectedUserType;
+    
+    if (selectedUserType === "4") {
+        document.getElementById('team-member-fields').style.display = 'block';
+        document.getElementById('client-fields').style.display = 'none';
+        document.getElementById('role-select').required = true;
+    } else if (selectedUserType === "5") {
+        document.getElementById('team-member-fields').style.display = 'none';
+        document.getElementById('client-fields').style.display = 'block';
+        document.getElementById('role-select').required = false;
+    }
+}
+
+function hideModal(modalId) {
+    const modal = document.getElementById(modalId);
+    const backdrop = document.querySelector('.modal-backdrop');
+    
+    if (modal) {
+        modal.style.display = 'none';
+        modal.classList.remove('show');
+    }
+    
+    if (backdrop) {
+        backdrop.remove();
+    }
+}
+
+function showModal(modalId) {
+    const modal = document.getElementById(modalId);
+    if (modal) {
+        modal.style.display = 'block';
+        modal.classList.add('show');
+        
+        const backdrop = document.createElement('div');
+        backdrop.className = 'modal-backdrop show';
+        document.body.appendChild(backdrop);
+    }
+}
+
+// Funciones para el modal de crear categoría
+function openCreateCategoryModal() {
+    if (typeof bootstrap !== 'undefined') {
+        const modal = new bootstrap.Modal(document.getElementById('createCategoryModal'));
+        modal.show();
+    } else {
+        const modal = document.getElementById('createCategoryModal');
+        modal.style.display = 'block';
+        modal.classList.add('show');
+
+        setTimeout(() => {
+            document.getElementById('categoryName').focus();
+        }, 100);
+    }
+    
+    document.getElementById('categoryName').value = '';
+}
+
+function closeModal() {
+    if (typeof bootstrap !== 'undefined') {
+        const modal = bootstrap.Modal.getInstance(document.getElementById('createCategoryModal'));
+        if (modal) {
+            modal.hide();
+        }
+    } else {
+        document.getElementById('createCategoryModal').style.display = 'none';
+        document.getElementById('createCategoryModal').classList.remove('show');
+    }
+    
+    document.getElementById('categoryName').value = '';
+}
+
+function createCategory() {
+    const categoryName = document.getElementById('categoryName').value.trim();
+    
+    if (!categoryName) {
+        alert('Please enter a category name');
+        return;
+    }
+
+    fetch('{{ path("panel/planner-hub/management/crm/categories/create") }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: 'name=' + encodeURIComponent(categoryName)
+    })
+    .then(response => {
+        return response.text();
+    })
+    .then(data => {
+        if (data.includes('<!DOCTYPE html>') || data.includes('<html') || data.includes('<title>Dashboard</title>')) {
+            closeModal();
+            updateCategoriesList(categoryName);
+            return;
+        }
+        
+        if (data.includes('error') || data.includes('Error') || data.includes('error')) {
+            throw new Error('Server returned error: ' + data);
+        }
+        
+        closeModal();
+        updateCategoriesList(categoryName);
+    })
+    .catch(error => {
+        console.error('Error details:', error);
+        alert('Error creating category: ' + error.message + '\n\nPlease check the console for more details.');
+    });
+}
+
+function updateCategoriesList(newCategoryName) {
+    const categorySelect = document.getElementById('crm-category-select');
+    
+    if (!categorySelect) {
+        console.error('Category select not found');
+        return;
+    }
+    
+    const existingOptions = Array.from(categorySelect.options);
+    const categoryExists = existingOptions.some(option => 
+        option.textContent.trim() === newCategoryName.trim()
+    );
+    
+    if (categoryExists) {
+        existingOptions.forEach(option => {
+            if (option.textContent.trim() === newCategoryName.trim()) {
+                option.selected = true;
+            }
+        });
+    } else {
+        const newOption = document.createElement('option');
+        newOption.value = 'new'; 
+        newOption.textContent = newCategoryName;
+        newOption.selected = true; 
+        categorySelect.appendChild(newOption);
+    }
+    
+    let hiddenField = document.querySelector('input[name="new_category_name"]');
+    if (!hiddenField) {
+        hiddenField = document.createElement('input');
+        hiddenField.type = 'hidden';
+        hiddenField.name = 'new_category_name';
+        const form = document.querySelector('form');
+        if (form) {
+            form.appendChild(hiddenField);
+        }
+    }
+    hiddenField.value = newCategoryName;
+    
+    const categoryLabel = document.querySelector('label[for="crm-category-select"]');
+    if (categoryLabel) {
+        const categoryContainer = categoryLabel.parentNode;
+        const successMessage = document.createElement('div');
+        successMessage.className = 'alert alert-success alert-dismissible fade show mt-2';
+        successMessage.innerHTML = `
+            <strong>✅ Success!</strong> Category "${newCategoryName}" created successfully and selected.
+            <button type="button" class="btn-close" onclick="this.parentElement.remove()" aria-label="Close">×</button>
+        `;
+        
+        categoryContainer.appendChild(successMessage);
+        
+        setTimeout(() => {
+            if (successMessage.parentNode) {
+                successMessage.remove();
+            }
+        }, 5000);
+        
+        const noCategoriesAlert = categoryContainer.querySelector('.alert-warning');
+        if (noCategoriesAlert) {
+            noCategoriesAlert.remove();
+        }
+    }
+}
+
+// Funciones para el modal de crear estimate
+function closeCreateEstimateModal(){
+    const modal = document.getElementById('createEstimateModal');
+    if(modal){ modal.remove(); }
+    const backdrop = document.querySelector('.modal-backdrop');
+    if(backdrop){ backdrop.remove(); }
+}
+
+function createEstimateForClient(){
+    const clientId = {{ newClientForEstimate.id|default('null') }};
+    const clientEmail = '{{ newClientForEstimate.email|default('')|e('js') }}';
+    goToCreateEstimate(clientId, clientEmail);
+}
+
+function goToCreateEstimate(clientId, clientEmail){
+    const base = '{{ base_url|default("/vnv-venue") }}';
+    let url = base + '/panel/planner-hub/management/orders/orders/create?client_id=' + encodeURIComponent(clientId);
+    if (clientEmail) {
+        url += '&client_email=' + encodeURIComponent(clientEmail);
+    }
+    window.location.href = url;
+}
+
+function loadRolesForLinking() {
+    fetch('{{ base_url }}/panel/planner-hub/management/users/create', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: 'action=get_roles'
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success && data.roles) {
+            const roleSelect = document.getElementById('linkRoleId');
+            data.roles.forEach(role => {
+                const option = document.createElement('option');
+                option.value = role.id;
+                option.textContent = role.name;
+                roleSelect.appendChild(option);
+            });
+        }
+    })
+    .catch(error => {
+        console.error('Error loading roles:', error);
+    });
+}
+
+// Event listeners
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.user-type-card').forEach(card => {
+        card.addEventListener('click', function() {
+            const type = this.getAttribute('data-type');
+            selectUserType(type);
+        });
+    });
+    
+    const emailInput = document.getElementById('emailInput');
+    if (emailInput) {
+        emailInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                validateEmail();
+            }
+        });
+    }
+    
+    const addToCrmCheck = document.getElementById('add-to-crm-check');
+    const crmDetails = document.getElementById('crm-details');
+    
+    if (addToCrmCheck && crmDetails) {
+        addToCrmCheck.addEventListener("change", function () {
+            crmDetails.style.display = this.checked ? "block" : "none";
+            
+            const crmFields = crmDetails.querySelectorAll("input, select");
+            crmFields.forEach(field => {
+                if (field.name === "crm_category_id") {
+                    field.required = this.checked;
+                }
+            });
+        });
+    }
+});
+</script>
+{% endblock %}
+
+

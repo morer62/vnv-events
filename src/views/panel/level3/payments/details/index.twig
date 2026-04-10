@@ -1,0 +1,67 @@
+{% extends 'templates/base.admin.twig' %}
+
+{% block body %}
+<main class="container-fluid">
+    <h1 class="h3 mb-4">💳 Payment Details</h1>
+
+    <a href="{{ path('panel/payments') }}" class="btn btn-outline-secondary mb-3">← Back to History</a>
+
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <h5 class="mb-3">🧾 General Information</h5>
+            <table class="table table-bordered">
+                <tr>
+                    <th>Concept</th>
+                    <td>{{ payment.concept }}</td>
+                </tr>
+                <tr>
+                    <th>Related Item</th>
+                    <td>{{ item }}</td>
+                </tr>
+                {% if isMobileApp == false %}
+                <tr>
+                    <th>Total</th>
+                    <td>${{ payment.total|number_format(2) }}</td>
+                </tr>
+                {% endif %}
+                <tr>
+                    <th>Payment Date</th>
+                    <td>{{ payment.payment_date }}</td>
+                </tr>
+                <tr>
+                    <th>Renewal</th>
+                    <td>{{ payment.renewal ?: '—' }}</td>
+                </tr>
+                <tr>
+                    <th>Status</th>
+                    <td>
+                        {% if payment.status == 'ACTIVE' %}
+                            <span class="badge bg-success">Active</span>
+                        {% elseif payment.status == 'PENDING' %}
+                            <span class="badge bg-warning text-dark">Pending</span>
+                        {% else %}
+                            <span class="badge bg-danger">Expired</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                <tr>
+                    <th>Reference</th>
+                    <td>{{ payment.reference ?: '—' }}</td>
+                </tr>
+            </table>
+
+            <h5 class="mt-4 mb-3">👤 Paid By</h5>
+            <table class="table table-bordered">
+                <tr>
+                    <th>Name</th>
+                    <td>{{ user.name ?: 'N/A' }}</td>
+                </tr>
+                <tr>
+                    <th>Email</th>
+                    <td>{{ user.email ?: 'N/A' }}</td>
+                </tr>
+            </table>
+        </div>
+    </div>
+</main>
+{% endblock %}

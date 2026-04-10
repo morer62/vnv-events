@@ -1,0 +1,64 @@
+{% extends 'templates/base.admin.twig' %}
+{% import 'templates/macros.twig' as macros %}
+
+{% block body %}
+<h1 class="h3 mb-4">💰 Paid Hours History</h1>
+{{ macros.breadcrumb2() }}
+
+<section class="card">
+    <div class="card-body">
+        <form method="get" class="row mb-4" id="filter-form">
+            <div class="col-md-5">
+                <label class="form-label">From</label>
+                <input type="date" name="from" class="form-control" value="{{ from }}">
+            </div>
+            <div class="col-md-5">
+                <label class="form-label">To</label>
+                <input type="date" name="to" class="form-control" value="{{ to }}">
+            </div>
+            <div class="col-md-2 d-flex align-items-end">
+                <button class="btn btn-primary w-100">Filter</button>
+            </div>
+        </form>
+
+        <div class="table-responsive mb-3">
+            <table class="table table-bordered text-center align-middle" style="min-width: 700px;">
+                <thead>
+                    <tr>
+                        <th>Institution</th>
+                        <th>Total Hours</th>
+                        <th>Paid Date</th>
+                        <th>Proof</th>
+                        <th>Details</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for p in payments %}
+                        <tr>
+                            <td>{{ p.institution_name ?? 'N/A' }}</td>
+                            <td>{{ p.total_hours_readable }}</td>
+                            <td>{{ p.paid_at|date("l, F j, Y") }}</td>
+                            <td>
+                                {% if p.proof_url %}
+                                    <a href="{{ asset_for(p.proof_url) }}" target="_blank" download class="btn btn-sm btn-outline-primary">
+                                        📎 Download Proof
+                                    </a>
+                                {% else %}
+                                    N/A
+                                {% endif %}
+                            </td>
+                            <td>
+                                <a href="{{ path('panel/planner-hub/team/payroll/paid/details', { id: p.id }) }}" class="btn btn-sm btn-outline-primary">👁 View</a>
+                            </td>
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <td colspan="5" class="text-muted">No records found.</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>
+{% endblock %}

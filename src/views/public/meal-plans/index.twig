@@ -1,0 +1,2041 @@
+{% extends "templates/base.twig" %}
+
+{% set show_whatsapp = true %}
+
+{% block styles %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+<style>
+:root{
+    --gourmet-primary:#f59e0b;
+    --gourmet-primary-dark:#d97706;
+    --gourmet-accent:#fb923c;
+    --gourmet-cream:#fff8ef;
+    --gourmet-soft:#fff3df;
+    --gourmet-dark:#1f1307;
+    --gourmet-text:#2d241c;
+    --gourmet-muted:#6f6255;
+    --gourmet-border:#ecd9bf;
+    --gourmet-success:#16a34a;
+    --gourmet-danger:#dc2626;
+    --gourmet-shadow:0 18px 44px rgba(79,43,8,.10);
+    --mobile-bottom-bar-h:86px;
+}
+
+body{
+    color:var(--gourmet-text);
+    background:#fffaf4;
+}
+
+.mp-wrap{
+    max-width:1240px;
+    margin:0 auto;
+    padding:1.25rem 1rem 5rem;
+}
+
+.mp-hero{
+    background:linear-gradient(135deg,#fff6e8 0%, #fffdf8 100%);
+    border:1px solid var(--gourmet-border);
+    border-radius:28px;
+    padding:1.35rem 1.25rem;
+    box-shadow:var(--gourmet-shadow);
+    margin-bottom:1rem;
+}
+
+.mp-title{
+    font-family:'Poppins', sans-serif;
+    font-weight:900;
+    font-size:clamp(2rem,4vw,3.2rem);
+    line-height:1.02;
+    letter-spacing:-.8px;
+    color:var(--gourmet-dark);
+    margin-bottom:.75rem;
+}
+
+.mp-badges{
+    display:flex;
+    flex-wrap:wrap;
+    gap:.6rem;
+}
+
+.mp-badge{
+    display:inline-flex;
+    align-items:center;
+    gap:.45rem;
+    padding:.55rem .85rem;
+    border-radius:999px;
+    background:#fff;
+    border:1px solid #f0d6b0;
+    font-weight:800;
+    color:#8b4f00;
+}
+
+.mp-shell{
+    background:#fff;
+    border:1px solid #efdec5;
+    border-radius:26px;
+    box-shadow:var(--gourmet-shadow);
+    overflow:hidden;
+}
+
+.mp-main{
+    padding:1rem;
+}
+
+.mp-zip-gate{
+    border:1px solid #efddc3;
+    border-radius:22px;
+    background:linear-gradient(135deg,#fff9f0,#fff);
+    box-shadow:0 10px 24px rgba(101,61,15,.05);
+    overflow:hidden;
+}
+
+.mp-zip-gate.hide-after-continue{
+    display:none;
+}
+
+.mp-zip-top{
+    padding:.9rem 1rem .7rem;
+    border-bottom:1px solid #f2e3cb;
+    background:linear-gradient(135deg,#fff3df,#fffaf2);
+}
+
+.mp-zip-title{
+    font-size:1.05rem;
+    font-weight:900;
+    color:var(--gourmet-dark);
+    margin:0 0 .2rem;
+}
+
+.mp-zip-note{
+    color:var(--gourmet-muted);
+    margin:0;
+    line-height:1.5;
+    font-size:.95rem;
+}
+
+.mp-delivery-mini{
+    margin-top:.55rem;
+    display:inline-flex;
+    align-items:center;
+    gap:.45rem;
+    padding:.48rem .75rem;
+    border-radius:999px;
+    background:#fff;
+    border:1px solid #f1d8b1;
+    color:#8b4f00;
+    font-size:.85rem;
+    font-weight:800;
+}
+
+.mp-zip-body{
+    padding:1rem;
+}
+
+.mp-zip-row{
+    display:grid;
+    grid-template-columns:minmax(220px,280px) auto;
+    gap:.8rem;
+    align-items:end;
+}
+
+.mp-field label{
+    display:block;
+    font-size:.9rem;
+    font-weight:800;
+    color:var(--gourmet-dark);
+    margin-bottom:.45rem;
+}
+
+.mp-input,
+.mp-select{
+    width:100%;
+    border:1px solid #ead2ac;
+    border-radius:16px;
+    padding:.9rem 1rem;
+    background:#fff;
+    color:var(--gourmet-text);
+    font-weight:700;
+    outline:none;
+    box-shadow:none;
+}
+
+.mp-input:focus,
+.mp-select:focus{
+    border-color:var(--gourmet-primary);
+    box-shadow:0 0 0 4px rgba(245,158,11,.10);
+}
+
+.mp-zip-help{
+    margin-top:.7rem;
+    font-size:.92rem;
+    color:var(--gourmet-muted);
+    line-height:1.55;
+}
+
+.mp-status{
+    margin-top:.75rem;
+    padding:.85rem .95rem;
+    border-radius:16px;
+    font-weight:800;
+    display:none;
+    line-height:1.55;
+}
+
+.mp-status.show{
+    display:block;
+}
+
+.mp-status-success{
+    background:#effcf3;
+    color:#166534;
+    border:1px solid #b8e7c4;
+}
+
+.mp-status-error{
+    background:#fff3f3;
+    color:#b91c1c;
+    border:1px solid #f4c3c3;
+}
+
+.mp-status-info{
+    background:#fffaf0;
+    color:#8b4f00;
+    border:1px solid #f1d8b1;
+}
+
+.mp-zip-result{
+    display:none;
+    margin-top:.85rem;
+    padding:.95rem 1rem;
+    border:1px solid #d8e9dd;
+    border-radius:16px;
+    background:#f5fcf7;
+}
+
+.mp-zip-result.show{
+    display:block;
+}
+
+.mp-zip-result-label{
+    font-size:.8rem;
+    font-weight:900;
+    text-transform:uppercase;
+    letter-spacing:.05em;
+    color:#4d7b5b;
+    margin-bottom:.15rem;
+}
+
+.mp-zip-result-value{
+    font-size:1rem;
+    font-weight:900;
+    color:#14532d;
+}
+
+.mp-zip-result-actions{
+    display:flex;
+    gap:.75rem;
+    flex-wrap:wrap;
+    margin-top:.85rem;
+}
+
+.mp-hidden-before-zip{
+    display:none;
+}
+
+.mp-hidden-before-zip.show{
+    display:block;
+}
+
+.mp-toolbar{
+    position:sticky;
+    top:10px;
+    z-index:30;
+    background:#fffaf4;
+    padding-bottom:.85rem;
+    margin-bottom:.3rem;
+}
+
+.mp-toolbar-shell{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:.75rem;
+    flex-wrap:wrap;
+}
+
+.mp-toolbar-left{
+    display:flex;
+    align-items:center;
+    gap:.5rem;
+    flex-wrap:wrap;
+}
+
+.mp-filter-trigger{
+    border:none;
+    background:transparent;
+    color:var(--gourmet-dark);
+    display:inline-flex;
+    align-items:center;
+    gap:.55rem;
+    padding:.2rem 0;
+    font-size:1.05rem;
+    font-weight:500;
+    cursor:pointer;
+}
+
+.mp-filter-trigger i{
+    font-size:1.05rem;
+}
+
+.mp-toolbar-chip{
+    display:inline-flex;
+    align-items:center;
+    gap:.4rem;
+    padding:.5rem .72rem;
+    border-radius:999px;
+    background:#fff;
+    border:1px solid #f0d6b0;
+    color:#8b4f00;
+    font-size:.84rem;
+    font-weight:900;
+    white-space:nowrap;
+}
+
+.mp-results-head{
+    display:flex;
+    justify-content:space-between;
+    gap:1rem;
+    align-items:flex-start;
+    flex-wrap:wrap;
+    margin-bottom:1rem;
+}
+
+.mp-results-note{
+    color:var(--gourmet-muted);
+    line-height:1.7;
+    margin:0;
+}
+
+.mp-products{
+    display:grid;
+    grid-template-columns:repeat(3,minmax(0,1fr));
+    gap:1rem;
+}
+
+.mp-product{
+    background:#fff;
+    border:1px solid #efdec7;
+    border-radius:20px;
+    overflow:hidden;
+    box-shadow:0 12px 28px rgba(101,61,15,.06);
+    display:flex;
+    flex-direction:column;
+}
+
+.mp-product-image{
+    width:100%;
+    height:200px;
+    object-fit:cover;
+    background:#f8f8f8;
+}
+
+.mp-product-body{
+    padding:.9rem;
+    display:flex;
+    flex-direction:column;
+    height:100%;
+}
+
+.mp-product-title{
+    font-size:1.05rem;
+    font-weight:900;
+    color:var(--gourmet-dark);
+    margin-bottom:.3rem;
+    line-height:1.2;
+}
+
+.mp-product-desc{
+    color:var(--gourmet-muted);
+    line-height:1.55;
+    font-size:.92rem;
+    margin-bottom:.8rem;
+    min-height:42px;
+}
+
+.mp-product-tags{
+    display:flex;
+    flex-wrap:wrap;
+    gap:.4rem;
+    margin-bottom:.75rem;
+}
+
+.mp-product-tag{
+    display:inline-flex;
+    align-items:center;
+    padding:.34rem .58rem;
+    border-radius:999px;
+    background:#fff5e6;
+    border:1px solid #efd6ae;
+    color:#8b4f00;
+    font-size:.74rem;
+    font-weight:800;
+    line-height:1.1;
+}
+
+.mp-price-row{
+    display:flex;
+    align-items:center;
+    gap:.6rem;
+    flex-wrap:wrap;
+    margin-bottom:.75rem;
+}
+
+.mp-price{
+    font-size:1.35rem;
+    font-weight:900;
+    color:var(--gourmet-primary-dark);
+}
+
+.mp-stock{
+    font-size:.9rem;
+    color:#5f564b;
+    margin-bottom:.8rem;
+}
+
+.mp-qty-wrap{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:.7rem;
+    margin-top:auto;
+}
+
+.mp-qty-box{
+    display:flex;
+    align-items:center;
+    gap:.45rem;
+}
+
+.qty-btn{
+    width:34px;
+    height:34px;
+    border-radius:50%;
+    border:1px solid #e9d3ad;
+    background:#fff8ec;
+    color:#7b4700;
+    font-weight:900;
+    cursor:pointer;
+}
+
+.qty-value{
+    min-width:20px;
+    text-align:center;
+    font-weight:900;
+    color:var(--gourmet-dark);
+}
+
+.mp-mini-btn{
+    border:none;
+    background:#fff2dc;
+    border:1px solid #f0d2a2;
+    color:#8b4f00;
+    padding:.52rem .82rem;
+    border-radius:999px;
+    font-weight:800;
+    cursor:pointer;
+}
+
+.mp-summary-desktop{
+    margin-top:1rem;
+    padding:1rem 1.05rem;
+    border-radius:20px;
+    background:linear-gradient(135deg,#fff5e6, #fffdf9);
+    border:1px solid #efd4a9;
+}
+
+.mp-summary-top{
+    display:flex;
+    justify-content:space-between;
+    gap:1rem;
+    flex-wrap:wrap;
+    align-items:center;
+}
+
+.mp-summary-desktop strong{
+    color:var(--gourmet-dark);
+}
+
+.mp-summary-desktop small{
+    display:block;
+    color:var(--gourmet-muted);
+    margin-top:.2rem;
+}
+
+.mp-warning{
+    margin-top:.7rem;
+    color:var(--gourmet-danger);
+    font-weight:800;
+}
+
+.mp-success{
+    margin-top:.7rem;
+    color:var(--gourmet-success);
+    font-weight:800;
+}
+
+.mp-empty{
+    text-align:center;
+    padding:3rem 1rem;
+    color:var(--gourmet-muted);
+    border:1px dashed #ead6b9;
+    border-radius:18px;
+    background:#fffdf9;
+}
+
+.btn-main{
+    background:linear-gradient(135deg,var(--gourmet-primary),var(--gourmet-accent));
+    color:#23160a !important;
+    padding:.95rem 1.35rem;
+    font-size:1rem;
+    border-radius:999px;
+    text-decoration:none;
+    font-weight:900;
+    display:inline-flex;
+    gap:.5rem;
+    align-items:center;
+    justify-content:center;
+    border:none;
+    box-shadow:0 12px 28px rgba(245,158,11,.28);
+    transition:all .22s ease;
+    cursor:pointer;
+}
+
+.btn-main:hover{
+    transform:translateY(-2px);
+}
+
+.btn-light{
+    padding:.9rem 1.15rem;
+    font-size:1rem;
+    border-radius:999px;
+    font-weight:800;
+    border:1.2px solid #f1d1a3;
+    color:var(--gourmet-dark) !important;
+    background:#fff;
+    text-decoration:none;
+    display:inline-flex;
+    align-items:center;
+    gap:.45rem;
+    justify-content:center;
+    cursor:pointer;
+}
+
+.btn-main[disabled],
+.btn-light[disabled]{
+    opacity:.55;
+    pointer-events:none;
+}
+
+.mp-filter-modal{
+    display:none;
+    position:fixed;
+    inset:0;
+    z-index:9998;
+    background:rgba(18,12,6,.58);
+    padding:16px;
+}
+
+.mp-filter-modal.show{
+    display:flex;
+    align-items:flex-start;
+    justify-content:center;
+}
+
+.mp-filter-card{
+    width:min(100%, 520px);
+    background:#fff;
+    border-radius:24px;
+    box-shadow:0 25px 60px rgba(0,0,0,.22);
+    overflow:hidden;
+    margin-top:3vh;
+    max-height:94vh;
+    display:flex;
+    flex-direction:column;
+}
+
+.mp-filter-head{
+    padding:1rem 1rem .9rem;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:1rem;
+    border-bottom:1px solid #f1e1c7;
+    background:linear-gradient(135deg,#fff3de, #fffaf2);
+}
+
+.mp-filter-head h3{
+    margin:0;
+    font-size:1.25rem;
+    font-weight:900;
+    color:var(--gourmet-dark);
+}
+
+.mp-filter-close{
+    border:none;
+    background:transparent;
+    font-size:1.4rem;
+    cursor:pointer;
+    color:var(--gourmet-dark);
+    line-height:1;
+}
+
+.mp-filter-body{
+    padding:1rem;
+    overflow:auto;
+}
+
+.mp-filter-actions{
+    display:flex;
+    gap:.75rem;
+    flex-wrap:wrap;
+    padding:1rem;
+    border-top:1px solid #f1e1c7;
+    background:#fffdf9;
+}
+
+.mp-modal{
+    display:none;
+    position:fixed;
+    inset:0;
+    z-index:9999;
+    background:rgba(0,0,0,.64);
+    padding:16px;
+}
+
+.mp-modal.show{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+}
+
+.mp-modal-content{
+    background:#fff;
+    border-radius:24px;
+    width:min(100%, 1020px);
+    max-height:92vh;
+    position:relative;
+    box-shadow:0 25px 60px rgba(0,0,0,.22);
+    overflow:hidden;
+    display:flex;
+    flex-direction:column;
+}
+
+.mp-modal-close{
+    position:absolute;
+    top:12px;
+    right:16px;
+    cursor:pointer;
+    font-size:1.35rem;
+    border:none;
+    background:transparent;
+    z-index:3;
+}
+
+.mp-modal-scroll{
+    overflow-y:auto;
+    max-height:92vh;
+}
+
+.mp-modal-header{
+    padding:1.3rem 1.3rem 1rem;
+    border-bottom:1px solid #f1e1c7;
+    background:linear-gradient(135deg,#fff3de, #fffaf2);
+}
+
+.mp-modal-header h3{
+    margin:0 2rem 0 0;
+    font-size:1.55rem;
+    font-weight:900;
+    color:var(--gourmet-dark);
+}
+
+.mp-modal-body{
+    padding:1.25rem;
+}
+
+.mp-modal-grid{
+    display:grid;
+    grid-template-columns:380px minmax(0,1fr);
+    gap:1.25rem;
+}
+
+.mp-modal-image{
+    width:100%;
+    height:320px;
+    object-fit:cover;
+    border-radius:18px;
+    background:#f6f6f6;
+    border:1px solid #efdec7;
+}
+
+.mp-modal-pricebox{
+    background:#fff8ec;
+    border:1px solid #efd7af;
+    border-radius:18px;
+    padding:1rem;
+    margin-bottom:1rem;
+}
+
+.mp-modal-price{
+    font-size:1.65rem;
+    font-weight:900;
+    color:var(--gourmet-primary-dark);
+    margin-bottom:.25rem;
+}
+
+.mp-modal-section{
+    margin-bottom:1rem;
+}
+
+.mp-modal-section h4{
+    font-size:1rem;
+    font-weight:900;
+    color:var(--gourmet-dark);
+    margin-bottom:.5rem;
+}
+
+.mp-modal-text{
+    color:var(--gourmet-text);
+    line-height:1.75;
+}
+
+.mp-chip-row{
+    display:flex;
+    flex-wrap:wrap;
+    gap:.45rem;
+}
+
+.mp-chip{
+    display:inline-flex;
+    align-items:center;
+    padding:.48rem .72rem;
+    border-radius:999px;
+    background:#f6f7f8;
+    border:1px solid #e5e7eb;
+    color:#374151;
+    font-size:.84rem;
+    font-weight:700;
+}
+
+.mp-nutrition-grid{
+    display:grid;
+    grid-template-columns:repeat(4,minmax(0,1fr));
+    gap:.75rem;
+}
+
+.mp-nutrition-card{
+    border:1px solid #efdec7;
+    background:#fffdf9;
+    border-radius:16px;
+    padding:.85rem;
+}
+
+.mp-nutrition-label{
+    font-size:.82rem;
+    color:var(--gourmet-muted);
+    margin-bottom:.2rem;
+}
+
+.mp-nutrition-value{
+    font-size:1rem;
+    font-weight:900;
+    color:var(--gourmet-dark);
+}
+
+.mp-attrs-group{
+    margin-bottom:.75rem;
+}
+
+.mp-attrs-group strong{
+    display:block;
+    margin-bottom:.4rem;
+    color:var(--gourmet-dark);
+}
+
+.mp-mobile-bottom-bar{
+    display:none;
+}
+
+@media (max-width: 991px){
+    .mp-products{
+        grid-template-columns:repeat(2,minmax(0,1fr));
+    }
+
+    .mp-modal-grid{
+        grid-template-columns:1fr;
+    }
+
+    .mp-modal-image{
+        height:280px;
+    }
+
+    .mp-nutrition-grid{
+        grid-template-columns:repeat(2,minmax(0,1fr));
+    }
+
+    .mp-zip-row{
+        grid-template-columns:1fr;
+    }
+}
+
+@media (max-width: 768px){
+    .mp-wrap{
+        padding:1rem .8rem calc(var(--mobile-bottom-bar-h) + 1.5rem);
+    }
+
+    .mp-main{
+        padding:.85rem;
+    }
+
+    .mp-products{
+        grid-template-columns:1fr;
+        gap:.85rem;
+    }
+
+    .mp-product-image{
+        height:180px;
+    }
+
+    .mp-product-body{
+        padding:.8rem;
+    }
+
+    .mp-product-desc{
+        min-height:auto;
+        margin-bottom:.7rem;
+    }
+
+    .btn-main,
+    .btn-light{
+        width:100%;
+        justify-content:center;
+    }
+
+    .mp-modal-content{
+        width:100%;
+        max-height:94vh;
+        border-radius:18px;
+    }
+
+    .mp-modal-header h3{
+        font-size:1.22rem;
+    }
+
+    .mp-modal-body{
+        padding:1rem;
+    }
+
+    .mp-modal-image{
+        height:240px;
+    }
+
+    .mp-nutrition-grid{
+        grid-template-columns:1fr 1fr;
+    }
+
+    .mp-hero{
+        padding:1rem .95rem;
+        border-radius:22px;
+    }
+
+    .mp-title{
+        font-size:2.15rem;
+        margin-bottom:.65rem;
+    }
+
+    .mp-badge{
+        font-size:.82rem;
+        padding:.5rem .72rem;
+    }
+
+    .mp-zip-gate{
+        border-radius:20px;
+    }
+
+    .mp-zip-top,
+    .mp-zip-body{
+        padding:.85rem;
+    }
+
+    .mp-zip-title{
+        font-size:1rem;
+    }
+
+    .mp-delivery-mini{
+        font-size:.8rem;
+        line-height:1.3;
+    }
+
+    .mp-toolbar{
+        top:6px;
+        padding-bottom:.7rem;
+    }
+
+    .mp-filter-trigger{
+        font-size:1rem;
+    }
+
+    .mp-toolbar-chip{
+        font-size:.78rem;
+        padding:.46rem .62rem;
+    }
+
+    .mp-summary-desktop{
+        display:none !important;
+    }
+
+    .mp-mobile-bottom-bar{
+        display:block;
+        position:fixed;
+        left:10px;
+        right:10px;
+        bottom:10px;
+        z-index:70;
+    }
+
+    .mp-mobile-bottom-inner{
+        display:flex;
+        align-items:center;
+        justify-content:space-between;
+        gap:.75rem;
+        padding:.8rem .9rem;
+        border-radius:22px;
+        background:rgba(46,23,8,.96);
+        color:#fff6ea;
+        box-shadow:0 16px 40px rgba(0,0,0,.28);
+        backdrop-filter:blur(8px);
+    }
+
+    .mp-mobile-bottom-copy{
+        min-width:0;
+    }
+
+    .mp-mobile-bottom-copy strong{
+        display:block;
+        font-size:.95rem;
+        font-weight:900;
+        color:#fff;
+        line-height:1.2;
+    }
+
+    .mp-mobile-bottom-copy small{
+        display:block;
+        margin-top:.18rem;
+        color:#f3d8b7;
+        line-height:1.2;
+        font-size:.8rem;
+    }
+
+    .mp-mobile-continue{
+        width:auto;
+        min-width:128px;
+        padding:.85rem 1rem;
+        box-shadow:none;
+    }
+
+    .mp-filter-card{
+        width:100%;
+        margin-top:0;
+        max-height:100vh;
+        min-height:100vh;
+        border-radius:0;
+    }
+
+    .mp-filter-actions{
+        position:sticky;
+        bottom:0;
+        background:#fff;
+    }
+}
+</style>
+{% endblock %}
+
+{% block body %}
+<main class="mp-wrap">
+    <section class="mp-hero">
+        <h1 class="mp-title">Build your meal plan</h1>
+
+        <div class="mp-badges" id="heroBadges">
+            <span class="mp-badge"><i class="fa-solid fa-location-dot"></i> South East Florida delivery only</span>
+            <span class="mp-badge"><i class="fa-solid fa-bowl-food"></i> Minimum 5 meals</span>
+        </div>
+    </section>
+
+    <section class="mp-shell">
+        <div class="mp-main">
+            <div class="mp-zip-gate" id="zipGate">
+                <div class="mp-zip-top">
+                    <h2 class="mp-zip-title">First, check your delivery area</h2>
+                    <p class="mp-zip-note">Enter your ZIP code before choosing meals.</p>
+
+                    <div class="mp-delivery-mini">
+                        <i class="fa-solid fa-truck"></i>
+                        <span>{{ next_delivery_title }}</span>
+                    </div>
+                </div>
+
+                <div class="mp-zip-body">
+                    <div class="mp-zip-row">
+                        <div class="mp-field">
+                            <label for="zipCodeInput">ZIP code</label>
+                            <input
+                                type="text"
+                                id="zipCodeInput"
+                                class="mp-input"
+                                placeholder="Enter ZIP code"
+                                inputmode="numeric"
+                                maxlength="10"
+                                autocomplete="postal-code"
+                            >
+                        </div>
+
+                        <div class="mp-field">
+                            <label>&nbsp;</label>
+                            <button type="button" class="btn-main" id="validateZipBtn">
+                                Check ZIP <i class="fa-solid fa-arrow-right"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="mp-zip-help">
+                        We currently deliver in <strong>Miami-Dade</strong>, <strong>Broward</strong>, and <strong>Palm Beach County</strong>.
+                    </div>
+
+                    <div class="mp-status mp-status-info show" id="zipStatusBox">
+                        Please enter your ZIP code to continue.
+                    </div>
+
+                    <div class="mp-zip-result" id="zipResultBox">
+                        <div class="mp-zip-result-label">Delivery area confirmed</div>
+                        <div class="mp-zip-result-value" id="zipResultValue"></div>
+
+                        <div class="mp-zip-result-actions">
+                            <button type="button" class="btn-main" id="zipContinueBtn">
+                                Continue <i class="fa-solid fa-arrow-down"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mp-hidden-before-zip" id="postZipArea">
+                <div class="mp-toolbar">
+                    <div class="mp-toolbar-shell">
+                        <div class="mp-toolbar-left">
+                            <button type="button" class="mp-filter-trigger" id="openFiltersBtn">
+                                <i class="fa-solid fa-sliders"></i>
+                                <span>Filter</span>
+                            </button>
+
+                            <span class="mp-toolbar-chip" id="stickyZipChip">
+                                <i class="fa-solid fa-location-dot"></i>
+                                ZIP not confirmed
+                            </span>
+
+                            <span class="mp-toolbar-chip" id="stickyMealsChip">
+                                <i class="fa-solid fa-bowl-food"></i>
+                                0 selected
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mp-results-head">
+                    <div>
+                        <p class="mp-results-note" id="resultsCopy">
+                            Loading your meals...
+                        </p>
+                    </div>
+                </div>
+
+                <div id="mealPlansLoading" class="mp-empty" style="display:none;">
+                    Loading recommended meals...
+                </div>
+
+                <div id="mealPlansEmpty" class="mp-empty" style="display:none;">
+                    We could not find products for this combination yet.
+                </div>
+
+                <div class="mp-products" id="mealPlansGrid"></div>
+
+                <div class="mp-summary-desktop" id="mealPlansSummary" style="display:none;">
+                    <div class="mp-summary-top">
+                        <div>
+                            <strong>Total meals selected: <span id="totalMealsSelected">0</span></strong>
+                            <small id="desktopSummarySmall">Minimum required to continue: 5 meals</small>
+                        </div>
+
+                        <div class="d-flex gap-2 flex-wrap">
+                            <button type="button" class="btn-main" id="continueToCartBtn" disabled>
+                                Continue <i class="fa-solid fa-arrow-right"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="mp-warning" id="mealPlansWarning">
+                        You need at least 5 meals to continue.
+                    </div>
+
+                    <div class="mp-success" id="mealPlansSuccess" style="display:none;">
+                        Great. Your meal selection is ready to continue.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</main>
+
+<div class="mp-filter-modal" id="filtersModal">
+    <div class="mp-filter-card">
+        <div class="mp-filter-head">
+            <h3>Filter</h3>
+            <button type="button" class="mp-filter-close" id="closeFiltersBtn">&times;</button>
+        </div>
+
+        <div class="mp-filter-body">
+            <div class="mp-field" style="margin-bottom:1rem;">
+                <label for="audienceSelect">Who is this for?</label>
+                <select id="audienceSelect" class="mp-select">
+                    <option value="professional">Busy professional / Corporate</option>
+                    <option value="healthy_active">Healthy / active lifestyle</option>
+                    <option value="family_kids">Kids Menu</option>
+                </select>
+            </div>
+
+            <div class="mp-field">
+                <label for="styleSelect">Meal style</label>
+                <select id="styleSelect" class="mp-select"></select>
+            </div>
+        </div>
+
+        <div class="mp-filter-actions">
+            <button type="button" class="btn-light" id="clearFiltersBtn">Clear filters</button>
+            <button type="button" class="btn-main" id="applyFiltersBtn">
+                Apply filters <i class="fa-solid fa-arrow-right"></i>
+            </button>
+        </div>
+    </div>
+</div>
+
+<div class="mp-mobile-bottom-bar" id="mobileBottomBar" style="display:none;">
+    <div class="mp-mobile-bottom-inner">
+        <div class="mp-mobile-bottom-copy">
+            <strong><span id="mobileBottomMeals">0</span> selected</strong>
+            <small id="mobileBottomNeed">Need 5 more to continue</small>
+        </div>
+
+        <button type="button" class="btn-main mp-mobile-continue" id="mobileContinueBtn" disabled>
+            Continue
+        </button>
+    </div>
+</div>
+
+<div class="mp-modal" id="productDetailsModal">
+    <div class="mp-modal-content">
+        <button type="button" class="mp-modal-close" id="closeProductModal">&times;</button>
+
+        <div class="mp-modal-scroll">
+            <div class="mp-modal-header">
+                <h3 id="productModalTitle"></h3>
+            </div>
+            <div class="mp-modal-body" id="productModalBody"></div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const urlParams = new URLSearchParams(window.location.search);
+
+    const audienceMap = {
+        professional: {
+            label: 'Busy professional',
+            styles: ['balanced', 'protein_focused', 'vegetarian']
+        },
+        healthy_active: {
+            label: 'Healthy / active lifestyle',
+            styles: ['balanced', 'protein_focused', 'vegetarian']
+        },
+        family_kids: {
+            label: 'Kids Menu',
+            styles: ['family_friendly', 'balanced']
+        }
+    };
+
+    const styleMap = {
+        balanced: 'Balanced meals',
+        vegetarian: 'Vegetarian',
+        family_friendly: 'Family-friendly',
+        protein_focused: 'Protein-focused'
+    };
+
+    const supportedCounties = {
+        'broward county': 'Broward County',
+        'miami-dade county': 'Miami-Dade County',
+        'miami dade county': 'Miami-Dade County',
+        'palm beach county': 'Palm Beach County'
+    };
+
+    const allowedAudiences = Object.keys(audienceMap);
+    const allowedStyles = Object.keys(styleMap);
+
+    const zipGate = document.getElementById('zipGate');
+    const zipCodeInput = document.getElementById('zipCodeInput');
+    const validateZipBtn = document.getElementById('validateZipBtn');
+    const zipStatusBox = document.getElementById('zipStatusBox');
+    const zipResultBox = document.getElementById('zipResultBox');
+    const zipResultValue = document.getElementById('zipResultValue');
+    const zipContinueBtn = document.getElementById('zipContinueBtn');
+
+    const postZipArea = document.getElementById('postZipArea');
+
+    const openFiltersBtn = document.getElementById('openFiltersBtn');
+    const filtersModal = document.getElementById('filtersModal');
+    const closeFiltersBtn = document.getElementById('closeFiltersBtn');
+    const applyFiltersBtn = document.getElementById('applyFiltersBtn');
+    const clearFiltersBtn = document.getElementById('clearFiltersBtn');
+
+    const audienceSelect = document.getElementById('audienceSelect');
+    const styleSelect = document.getElementById('styleSelect');
+    const resultsCopy = document.getElementById('resultsCopy');
+
+    const grid = document.getElementById('mealPlansGrid');
+    const loading = document.getElementById('mealPlansLoading');
+    const empty = document.getElementById('mealPlansEmpty');
+    const summary = document.getElementById('mealPlansSummary');
+
+    const totalMealsSelected = document.getElementById('totalMealsSelected');
+    const desktopSummarySmall = document.getElementById('desktopSummarySmall');
+    const warning = document.getElementById('mealPlansWarning');
+    const success = document.getElementById('mealPlansSuccess');
+
+    const continueBtn = document.getElementById('continueToCartBtn');
+    const mobileContinueBtn = document.getElementById('mobileContinueBtn');
+    const mobileBottomBar = document.getElementById('mobileBottomBar');
+    const mobileBottomMeals = document.getElementById('mobileBottomMeals');
+    const mobileBottomNeed = document.getElementById('mobileBottomNeed');
+
+    const stickyZipChip = document.getElementById('stickyZipChip');
+    const stickyMealsChip = document.getElementById('stickyMealsChip');
+
+    const modal = document.getElementById('productDetailsModal');
+    const modalTitle = document.getElementById('productModalTitle');
+    const modalBody = document.getElementById('productModalBody');
+    const closeModal = document.getElementById('closeProductModal');
+
+    const initialAudience = allowedAudiences.includes(urlParams.get('audience'))
+        ? urlParams.get('audience')
+        : 'professional';
+
+    const state = {
+        audience: initialAudience,
+        mealStyle: 'balanced',
+        products: [],
+        quantities: {},
+        zipCode: '',
+        zipValidated: false,
+        countyName: '',
+        cityName: '',
+        zipStepCollapsed: false
+    };
+
+    function normalizeZip(value) {
+        return String(value || '').replace(/[^\d]/g, '').slice(0, 5);
+    }
+
+    function escapeHtml(value) {
+        const div = document.createElement('div');
+        div.textContent = value == null ? '' : String(value);
+        return div.innerHTML;
+    }
+
+    function safeTextOrHtml(value) {
+        if (!value) return '';
+        return String(value);
+    }
+
+    function formatLabel(value, fallbackMap = {}) {
+        if (!value) return '';
+        if (fallbackMap[value]) return fallbackMap[value];
+        return String(value)
+            .replace(/_/g, ' ')
+            .replace(/\b\w/g, chr => chr.toUpperCase());
+    }
+
+    function normalizeGroupedAttributes(attrs) {
+        if (!attrs) return {};
+        if (typeof attrs === 'object' && !Array.isArray(attrs)) return attrs;
+        return {};
+    }
+
+    function getAvailableStylesForAudience(audience) {
+        return audienceMap[audience] ? audienceMap[audience].styles : ['balanced'];
+    }
+
+    function populateStyleOptions() {
+        const availableStyles = getAvailableStylesForAudience(state.audience);
+        const currentStillValid = availableStyles.includes(state.mealStyle);
+
+        if (!currentStillValid) {
+            state.mealStyle = availableStyles[0];
+        }
+
+        styleSelect.innerHTML = availableStyles.map(style => {
+            return `<option value="${style}">${styleMap[style] || formatLabel(style)}</option>`;
+        }).join('');
+
+        styleSelect.value = state.mealStyle;
+    }
+
+    function updateResultsCopy() {
+        const audienceLabel = audienceMap[state.audience]?.label || formatLabel(state.audience);
+        const styleLabel = styleMap[state.mealStyle] || formatLabel(state.mealStyle);
+
+        resultsCopy.innerHTML = `
+            Showing meals for <strong>${escapeHtml(audienceLabel)}</strong>
+            with <strong>${escapeHtml(styleLabel)}</strong> style.
+        `;
+    }
+
+    function setZipStatus(type, message) {
+        zipStatusBox.className = 'mp-status show';
+        if (type === 'success') zipStatusBox.classList.add('mp-status-success');
+        else if (type === 'error') zipStatusBox.classList.add('mp-status-error');
+        else zipStatusBox.classList.add('mp-status-info');
+
+        zipStatusBox.innerHTML = message;
+    }
+
+    function updateZipUI() {
+        if (state.zipValidated) {
+            const areaText = `${state.countyName}${state.cityName ? ' · ' + state.cityName : ''} · ZIP ${state.zipCode}`;
+            zipResultValue.textContent = areaText;
+            zipResultBox.classList.add('show');
+            stickyZipChip.innerHTML = `<i class="fa-solid fa-location-dot"></i> ${escapeHtml(state.zipCode)} · ${escapeHtml(state.countyName)}`;
+        } else {
+            zipResultBox.classList.remove('show');
+            stickyZipChip.innerHTML = `<i class="fa-solid fa-location-dot"></i> ZIP not confirmed`;
+        }
+
+        if (state.zipStepCollapsed && state.zipValidated) {
+            zipGate.classList.add('hide-after-continue');
+            postZipArea.classList.add('show');
+
+            if (window.innerWidth <= 768) {
+                mobileBottomBar.style.display = 'block';
+            }
+        } else {
+            zipGate.classList.remove('hide-after-continue');
+            postZipArea.classList.remove('show');
+            mobileBottomBar.style.display = 'none';
+        }
+    }
+
+    function saveDraft() {
+        const draft = {
+            audience: state.audience,
+            mealStyle: state.mealStyle,
+            quantities: state.quantities,
+            zipCode: state.zipCode,
+            zipValidated: state.zipValidated,
+            countyName: state.countyName,
+            cityName: state.cityName
+        };
+        localStorage.setItem('vnv_gourmet_cart_draft', JSON.stringify(draft));
+    }
+
+    function loadDraft() {
+        try {
+            const raw = localStorage.getItem('vnv_gourmet_cart_draft');
+            if (!raw) return;
+
+            const draft = JSON.parse(raw);
+
+            if (draft.audience && allowedAudiences.includes(draft.audience)) {
+                state.audience = draft.audience;
+            }
+
+            if (draft.mealStyle && allowedStyles.includes(draft.mealStyle)) {
+                state.mealStyle = draft.mealStyle;
+            }
+
+            if (draft.quantities && typeof draft.quantities === 'object') {
+                state.quantities = draft.quantities;
+            }
+
+            if (draft.zipCode) {
+                state.zipCode = normalizeZip(draft.zipCode);
+            }
+
+            if (draft.zipValidated && draft.countyName) {
+                state.zipValidated = true;
+                state.countyName = draft.countyName;
+                state.cityName = draft.cityName || '';
+            }
+
+            state.zipStepCollapsed = false;
+        } catch (e) {}
+    }
+
+    function getTotalMeals() {
+        return Object.values(state.quantities).reduce((sum, qty) => sum + parseInt(qty || 0, 10), 0);
+    }
+
+    function getSelectedProducts() {
+        return state.products
+            .filter(product => parseInt(state.quantities[product.id] || 0, 10) > 0)
+            .map(product => {
+                const qty = parseInt(state.quantities[product.id] || 0, 10);
+                const unitPrice = Number(product.price || 0);
+
+                return {
+                    id: parseInt(product.id, 10),
+                    name: product.name,
+                    slug: product.slug || '',
+                    short_description: product.short_description || '',
+                    description: product.description || '',
+                    main_image: product.main_image || '',
+                    price: Number(product.price || 0),
+                    unit_price: unitPrice,
+                    quantity: qty,
+                    line_total: qty * unitPrice,
+                    stock_quantity: parseInt(product.stock_quantity || 0, 10),
+                    min_purchase_qty: parseInt(product.min_purchase_qty || 1, 10),
+                    max_purchase_qty: product.max_purchase_qty !== null ? parseInt(product.max_purchase_qty, 10) : null,
+                    categories: Array.isArray(product.categories) ? product.categories : [],
+                    audiences: Array.isArray(product.audiences) ? product.audiences : [],
+                    meal_styles: Array.isArray(product.meal_styles) ? product.meal_styles : [],
+                    attributes_grouped: product.attributes_grouped || {},
+                    nutrition: product.nutrition || null,
+                    sku: product.sku || ''
+                };
+            });
+    }
+
+    function saveCheckoutSelection() {
+        const selectedProducts = getSelectedProducts();
+        const totalMeals = getTotalMeals();
+        const subtotal = selectedProducts.reduce((sum, item) => sum + Number(item.line_total || 0), 0);
+
+        const payload = {
+            source: 'meal-plans',
+            audience: state.audience,
+            meal_style: state.mealStyle,
+            total_meals: totalMeals,
+            subtotal: subtotal,
+            zip_code: state.zipCode,
+            county_name: state.countyName,
+            city_name: state.cityName,
+            items: selectedProducts,
+            saved_at: new Date().toISOString()
+        };
+
+        localStorage.setItem('vnv_gourmet_checkout_selection', JSON.stringify(payload));
+        saveDraft();
+    }
+
+    function updateSummary() {
+        const total = getTotalMeals();
+        const remaining = Math.max(5 - total, 0);
+
+        totalMealsSelected.textContent = total;
+        mobileBottomMeals.textContent = total;
+        stickyMealsChip.innerHTML = `<i class="fa-solid fa-bowl-food"></i> ${total} selected`;
+
+        summary.style.display = state.products.length && state.zipStepCollapsed ? 'block' : 'none';
+
+        if (total >= 5) {
+            warning.style.display = 'none';
+            success.style.display = 'block';
+            continueBtn.disabled = false;
+            mobileContinueBtn.disabled = false;
+
+            desktopSummarySmall.textContent = 'Your meal selection is ready to continue.';
+            mobileBottomNeed.textContent = 'Ready to continue';
+        } else {
+            warning.style.display = 'block';
+            success.style.display = 'none';
+            continueBtn.disabled = true;
+            mobileContinueBtn.disabled = true;
+
+            desktopSummarySmall.textContent = 'Minimum required to continue: 5 meals';
+            mobileBottomNeed.textContent = `Need ${remaining} more to continue`;
+        }
+
+        saveDraft();
+    }
+
+    function renderTagList(items, mapRef = {}) {
+        if (!Array.isArray(items) || !items.length) return '';
+        return `
+            <div class="mp-chip-row">
+                ${items.map(item => `<span class="mp-chip">${escapeHtml(formatLabel(item, mapRef))}</span>`).join('')}
+            </div>
+        `;
+    }
+
+    function renderGroupedAttributes(attrs) {
+        const grouped = normalizeGroupedAttributes(attrs);
+        const keys = Object.keys(grouped || {});
+        if (!keys.length) return '';
+
+        return keys.map(groupName => `
+            <div class="mp-attrs-group">
+                <strong>${escapeHtml(groupName)}</strong>
+                <div class="mp-chip-row">
+                    ${(grouped[groupName] || []).map(value => `<span class="mp-chip">${escapeHtml(value)}</span>`).join('')}
+                </div>
+            </div>
+        `).join('');
+    }
+
+    function renderNutrition(nutrition) {
+        if (!nutrition || typeof nutrition !== 'object') return '';
+
+        const nutritionFields = [
+            ['Calories', nutrition.calories],
+            ['Protein', nutrition.protein],
+            ['Carbohydrates', nutrition.carbohydrates],
+            ['Fat', nutrition.fat],
+            ['Fiber', nutrition.fiber],
+            ['Sugar', nutrition.sugar],
+            ['Sodium', nutrition.sodium],
+            ['Serving Size', nutrition.serving_size]
+        ].filter(item => item[1]);
+
+        const ingredientsHtml = nutrition.ingredients
+            ? `
+                <div class="mp-modal-section">
+                    <h4>Ingredients</h4>
+                    <div class="mp-modal-text">${escapeHtml(nutrition.ingredients)}</div>
+                </div>
+            `
+            : '';
+
+        if (!nutritionFields.length && !ingredientsHtml) return '';
+
+        return `
+            ${nutritionFields.length ? `
+                <div class="mp-modal-section">
+                    <h4>Nutrition Information</h4>
+                    <div class="mp-nutrition-grid">
+                        ${nutritionFields.map(([label, value]) => `
+                            <div class="mp-nutrition-card">
+                                <div class="mp-nutrition-label">${escapeHtml(label)}</div>
+                                <div class="mp-nutrition-value">${escapeHtml(value)}</div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            ` : ''}
+            ${ingredientsHtml}
+        `;
+    }
+
+    function openProductModal(product) {
+        modalTitle.textContent = product.name || 'Product details';
+
+        const categories = Array.isArray(product.categories)
+            ? product.categories.map(cat => typeof cat === 'object' ? (cat.name || '') : cat).filter(Boolean)
+            : [];
+
+        const audiences = Array.isArray(product.audiences) ? product.audiences : [];
+        const mealStyles = Array.isArray(product.meal_styles) ? product.meal_styles : [];
+
+        const metaHtml = `
+            <div class="mp-chip-row">
+                ${product.sku ? `<span class="mp-chip">SKU: ${escapeHtml(product.sku)}</span>` : ''}
+                ${product.stock_quantity !== undefined && product.stock_quantity !== null ? `<span class="mp-chip">Stock: ${escapeHtml(product.stock_quantity)}</span>` : ''}
+                ${product.min_purchase_qty ? `<span class="mp-chip">Min Qty: ${escapeHtml(product.min_purchase_qty)}</span>` : ''}
+                ${product.max_purchase_qty ? `<span class="mp-chip">Max Qty: ${escapeHtml(product.max_purchase_qty)}</span>` : ''}
+            </div>
+        `;
+
+        modalBody.innerHTML = `
+            <div class="mp-modal-grid">
+                <div>
+                    ${product.main_image
+                        ? `<img src="${product.main_image}" alt="${escapeHtml(product.name)}" class="mp-modal-image">`
+                        : `<div class="mp-modal-image d-flex align-items-center justify-content-center text-muted">No image</div>`
+                    }
+                </div>
+
+                <div>
+                    <div class="mp-modal-pricebox">
+                        <div class="mp-modal-price">$${Number(product.price || 0).toFixed(2)}</div>
+                    </div>
+
+                    ${metaHtml}
+
+                    ${product.short_description ? `
+                        <div class="mp-modal-section">
+                            <h4>Short Description</h4>
+                            <div class="mp-modal-text">${escapeHtml(product.short_description)}</div>
+                        </div>
+                    ` : ''}
+
+                    ${(product.description || product.short_description) ? `
+                        <div class="mp-modal-section">
+                            <h4>Full Description</h4>
+                            <div class="mp-modal-text">${safeTextOrHtml(product.description || escapeHtml(product.short_description || ''))}</div>
+                        </div>
+                    ` : ''}
+
+                    ${categories.length ? `
+                        <div class="mp-modal-section">
+                            <h4>Categories</h4>
+                            ${renderTagList(categories)}
+                        </div>
+                    ` : ''}
+
+                    ${audiences.length ? `
+                        <div class="mp-modal-section">
+                            <h4>Recommended Audience</h4>
+                            ${renderTagList(audiences, {
+                                professional: 'Busy Professional',
+                                healthy_active: 'Healthy / Active Lifestyle',
+                                family_kids: 'Family / Kids'
+                            })}
+                        </div>
+                    ` : ''}
+
+                    ${mealStyles.length ? `
+                        <div class="mp-modal-section">
+                            <h4>Meal Styles</h4>
+                            ${renderTagList(mealStyles, styleMap)}
+                        </div>
+                    ` : ''}
+
+                    ${product.attributes_grouped ? `
+                        <div class="mp-modal-section">
+                            <h4>Attributes</h4>
+                            ${renderGroupedAttributes(product.attributes_grouped)}
+                        </div>
+                    ` : ''}
+
+                    ${renderNutrition(product.nutrition)}
+                </div>
+            </div>
+        `;
+
+        modal.classList.add('show');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeProductModal() {
+        modal.classList.remove('show');
+        document.body.style.overflow = '';
+    }
+
+    function buildCardTags(product) {
+        const tags = [];
+
+        if (Array.isArray(product.categories) && product.categories.length) {
+            const firstCategory = product.categories[0];
+            const catName = typeof firstCategory === 'object' ? firstCategory.name : firstCategory;
+            if (catName) tags.push(catName);
+        }
+
+        if (Array.isArray(product.meal_styles) && product.meal_styles.length) {
+            tags.push(formatLabel(product.meal_styles[0], styleMap));
+        }
+
+        if (product.nutrition && product.nutrition.protein) {
+            tags.push(`Protein: ${product.nutrition.protein}`);
+        }
+
+        if (product.nutrition && product.nutrition.calories) {
+            tags.push(`${product.nutrition.calories} cal`);
+        }
+
+        return tags.slice(0, 4);
+    }
+
+    function renderProducts() {
+        grid.innerHTML = '';
+
+        if (!state.products.length) {
+            empty.style.display = 'block';
+            summary.style.display = 'none';
+            return;
+        }
+
+        empty.style.display = 'none';
+
+        state.products.forEach(product => {
+            const currentQty = parseInt(state.quantities[product.id] || 0, 10);
+            const cardTags = buildCardTags(product);
+
+            const card = document.createElement('div');
+            card.className = 'mp-product';
+            card.innerHTML = `
+                ${product.main_image
+                    ? `<img src="${product.main_image}" alt="${escapeHtml(product.name)}" class="mp-product-image">`
+                    : `<div class="mp-product-image d-flex align-items-center justify-content-center text-muted">No image</div>`
+                }
+
+                <div class="mp-product-body">
+                    <div class="mp-product-title">${escapeHtml(product.name)}</div>
+                    <div class="mp-product-desc">${escapeHtml(product.short_description || 'Chef-prepared meal option.')}</div>
+
+                    ${cardTags.length ? `
+                        <div class="mp-product-tags">
+                            ${cardTags.map(tag => `<span class="mp-product-tag">${escapeHtml(tag)}</span>`).join('')}
+                        </div>
+                    ` : ''}
+
+                    <div class="mp-price-row">
+                        <span class="mp-price">$${Number(product.price || 0).toFixed(2)}</span>
+                    </div>
+
+                    <div class="mp-stock">Available: ${escapeHtml(product.stock_quantity)}</div>
+
+                    <div class="mp-qty-wrap">
+                        <div class="mp-qty-box">
+                            <button type="button" class="qty-btn" data-action="minus" data-id="${product.id}">−</button>
+                            <span class="qty-value" id="qty-value-${product.id}">${currentQty}</span>
+                            <button type="button" class="qty-btn" data-action="plus" data-id="${product.id}">+</button>
+                        </div>
+
+                        <button type="button" class="mp-mini-btn" data-action="details" data-id="${product.id}">
+                            Details
+                        </button>
+                    </div>
+                </div>
+            `;
+            grid.appendChild(card);
+        });
+
+        updateSummary();
+    }
+
+    async function loadProducts() {
+        if (!state.zipValidated || !state.zipStepCollapsed) return;
+
+        loading.style.display = 'block';
+        empty.style.display = 'none';
+        summary.style.display = 'none';
+        grid.innerHTML = '';
+        updateResultsCopy();
+
+        try {
+            const url = `{{ path('meal-plans/recommended-products') }}?audience=${encodeURIComponent(state.audience)}&meal_style=${encodeURIComponent(state.mealStyle)}`;
+            const response = await fetch(url, {
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            });
+
+            const data = await response.json();
+            state.products = (data && data.success && Array.isArray(data.products)) ? data.products : [];
+            renderProducts();
+        } catch (e) {
+            state.products = [];
+            renderProducts();
+        } finally {
+            loading.style.display = 'none';
+        }
+    }
+
+    async function geocodeZip(zip) {
+        if (!window.google || !window.google.maps || !window.google.maps.Geocoder) {
+            throw new Error('Google Maps is not available on this page.');
+        }
+
+        const geocoder = new google.maps.Geocoder();
+
+        return new Promise((resolve, reject) => {
+            geocoder.geocode(
+                {
+                    address: zip,
+                    componentRestrictions: { country: 'US' }
+                },
+                (results, status) => {
+                    if (status !== 'OK' || !results || !results.length) {
+                        reject(new Error('ZIP code not found.'));
+                        return;
+                    }
+                    resolve(results[0]);
+                }
+            );
+        });
+    }
+
+    function parseCountyAndCityFromResult(result) {
+        const components = Array.isArray(result.address_components) ? result.address_components : [];
+        let county = '';
+        let city = '';
+
+        components.forEach(component => {
+            const types = component.types || [];
+
+            if (types.includes('administrative_area_level_2')) {
+                county = component.long_name || '';
+            }
+
+            if (
+                types.includes('locality') ||
+                types.includes('postal_town') ||
+                types.includes('administrative_area_level_3')
+            ) {
+                if (!city) {
+                    city = component.long_name || '';
+                }
+            }
+        });
+
+        return { county, city };
+    }
+
+    async function validateZipFlow() {
+        const zip = normalizeZip(zipCodeInput.value);
+
+        state.zipValidated = false;
+        state.countyName = '';
+        state.cityName = '';
+        state.zipCode = zip;
+        state.zipStepCollapsed = false;
+
+        updateZipUI();
+
+        if (zip.length !== 5) {
+            setZipStatus('error', 'Please enter a valid 5-digit ZIP code.');
+            saveDraft();
+            return;
+        }
+
+        validateZipBtn.disabled = true;
+        setZipStatus('info', 'Checking your delivery area...');
+
+        try {
+            const result = await geocodeZip(zip);
+            const parsed = parseCountyAndCityFromResult(result);
+            const countyKey = String(parsed.county || '').trim().toLowerCase();
+
+            if (!supportedCounties[countyKey]) {
+                setZipStatus(
+                    'error',
+                    'At the moment, we only deliver in Miami-Dade, Broward, and Palm Beach County. Please use a ZIP code from one of those areas.'
+                );
+                saveDraft();
+                return;
+            }
+
+            state.zipValidated = true;
+            state.countyName = supportedCounties[countyKey];
+            state.cityName = parsed.city || '';
+            state.zipCode = zip;
+            state.zipStepCollapsed = false;
+
+            setZipStatus(
+                'success',
+                `Yes, we currently deliver to <strong>${escapeHtml(state.countyName)}</strong>${state.cityName ? ' · ' + escapeHtml(state.cityName) : ''}.`
+            );
+
+            updateZipUI();
+            saveDraft();
+        } catch (error) {
+            setZipStatus('error', 'We could not validate that ZIP code right now. Please try again.');
+            saveDraft();
+        } finally {
+            validateZipBtn.disabled = false;
+        }
+    }
+
+    function continueAfterZip() {
+        if (!state.zipValidated) return;
+
+        state.zipStepCollapsed = true;
+        updateZipUI();
+        saveDraft();
+        loadProducts();
+
+        setTimeout(() => {
+            postZipArea.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 120);
+    }
+
+    function openFiltersModal() {
+        filtersModal.classList.add('show');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeFiltersModal() {
+        filtersModal.classList.remove('show');
+        document.body.style.overflow = '';
+    }
+
+    function resetFilters() {
+        state.audience = 'professional';
+        state.mealStyle = 'balanced';
+        audienceSelect.value = state.audience;
+        populateStyleOptions();
+        styleSelect.value = state.mealStyle;
+    }
+
+    validateZipBtn.addEventListener('click', validateZipFlow);
+
+    zipCodeInput.addEventListener('input', function () {
+        this.value = normalizeZip(this.value);
+    });
+
+    zipCodeInput.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            validateZipFlow();
+        }
+    });
+
+    zipContinueBtn.addEventListener('click', continueAfterZip);
+
+    openFiltersBtn.addEventListener('click', openFiltersModal);
+    closeFiltersBtn.addEventListener('click', closeFiltersModal);
+
+    filtersModal.addEventListener('click', function (e) {
+        if (e.target === filtersModal) {
+            closeFiltersModal();
+        }
+    });
+
+    clearFiltersBtn.addEventListener('click', function () {
+        resetFilters();
+    });
+
+    applyFiltersBtn.addEventListener('click', async function () {
+        state.audience = audienceSelect.value;
+        state.mealStyle = styleSelect.value;
+        updateResultsCopy();
+        saveDraft();
+        closeFiltersModal();
+        await loadProducts();
+    });
+
+    audienceSelect.addEventListener('change', function () {
+        state.audience = this.value;
+        populateStyleOptions();
+    });
+
+    styleSelect.addEventListener('change', function () {
+        state.mealStyle = this.value;
+    });
+
+    grid.addEventListener('click', function (e) {
+        const btn = e.target.closest('[data-action]');
+        if (!btn) return;
+
+        const action = btn.dataset.action;
+        const id = parseInt(btn.dataset.id, 10);
+        const product = state.products.find(p => parseInt(p.id, 10) === id);
+
+        if (!product) return;
+
+        let currentQty = parseInt(state.quantities[id] || 0, 10);
+        const maxQty = parseInt(product.stock_quantity || 0, 10);
+
+        if (action === 'plus') {
+            if (maxQty > 0 && currentQty < maxQty) {
+                currentQty++;
+                state.quantities[id] = currentQty;
+                document.getElementById(`qty-value-${id}`).textContent = currentQty;
+                updateSummary();
+            }
+        }
+
+        if (action === 'minus') {
+            currentQty = Math.max(0, currentQty - 1);
+            state.quantities[id] = currentQty;
+            document.getElementById(`qty-value-${id}`).textContent = currentQty;
+            updateSummary();
+        }
+
+        if (action === 'details') {
+            openProductModal(product);
+        }
+    });
+
+    function continueToCart() {
+        if (!state.zipValidated) {
+            setZipStatus('error', 'Please validate your ZIP code before continuing.');
+            return;
+        }
+
+        if (getTotalMeals() < 5) {
+            return;
+        }
+
+        saveCheckoutSelection();
+        window.location.href = '{{ path("/store/cart") }}';
+    }
+
+    continueBtn.addEventListener('click', continueToCart);
+    mobileContinueBtn.addEventListener('click', continueToCart);
+
+    closeModal.addEventListener('click', function () {
+        closeProductModal();
+    });
+
+    modal.addEventListener('click', function (e) {
+        if (e.target === modal) {
+            closeProductModal();
+        }
+    });
+
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && modal.classList.contains('show')) {
+            closeProductModal();
+        }
+        if (e.key === 'Escape' && filtersModal.classList.contains('show')) {
+            closeFiltersModal();
+        }
+    });
+
+    window.addEventListener('resize', function () {
+        if (window.innerWidth > 768) {
+            mobileBottomBar.style.display = 'none';
+        } else if (state.zipValidated && state.zipStepCollapsed) {
+            mobileBottomBar.style.display = 'block';
+        }
+    });
+
+    loadDraft();
+
+    if (!allowedAudiences.includes(state.audience)) {
+        state.audience = 'professional';
+    }
+
+    if (!allowedStyles.includes(state.mealStyle)) {
+        state.mealStyle = 'balanced';
+    }
+
+    audienceSelect.value = state.audience;
+    populateStyleOptions();
+    styleSelect.value = state.mealStyle;
+    updateResultsCopy();
+
+    if (state.zipCode) {
+        zipCodeInput.value = state.zipCode;
+    }
+
+    updateZipUI();
+    updateSummary();
+
+    if (state.zipValidated) {
+        setZipStatus(
+            'success',
+            `Delivery already confirmed for <strong>${escapeHtml(state.countyName)}</strong>${state.cityName ? ' · ' + escapeHtml(state.cityName) : ''}.`
+        );
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,67 @@
+{% extends 'templates/base.admin.twig' %}
+{% import 'templates/macros.twig' as macros %}
+
+{% block body %}
+
+  {{ macros.breadcrumb2() }}
+
+ <div class="d-flex justify-content-between align-items-center mb-3">
+  <div>
+    <h3 class="mb-0">📋 Leads in “{{ collection.name }}”</h3>
+    <small class="text-muted">{{ items|length }} lead(s) stored</small>
+  </div>
+  <div class="d-flex gap-2">
+    <form method="post" class="d-inline">
+      <input type="hidden" name="export_csv" value="1">
+      <input type="hidden" name="collection_id" value="{{ collection.id }}">
+      <button type="submit" class="btn btn-outline-success">⬇️ Export CSV</button>
+    </form>
+    <a href="{{ path('panel/mark-tools/lead-google/collections') }}" class="btn btn-secondary">⬅️ Back</a>
+  </div>
+</div>
+
+  
+
+  <div class="table-responsive">
+    <table class="table table-hover align-middle">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Phone</th>
+          <th>Email</th>
+          <th>Web site</th>
+          <th>Address</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for lead in items %}
+          <tr>
+            <td>{{ lead.name }}</td>
+            <td>{{ lead.phone }}</td>
+            <td>{{ lead.email }}</td>
+            <td>
+              {% if lead.website %}
+                <a href="{{ lead.website }}" target="_blank">🔗 Website</a>
+              {% else %}
+                –
+              {% endif %}
+            </td>
+            <td>{{ lead.address }}</td>
+            <td class="text-end">
+              <form method="post" class="d-inline">
+                <input type="hidden" name="delete_item" value="{{ lead.id }}">
+                <button type="submit" class="btn btn-sm btn-outline-danger">Delte</button>
+              </form>
+            </td>
+          </tr>
+        {% else %}
+          <tr>
+            <td colspan="6" class="text-center text-muted">No Leads in this collection.</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+{% endblock %}

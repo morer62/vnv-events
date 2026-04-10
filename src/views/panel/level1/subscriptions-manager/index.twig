@@ -1,0 +1,803 @@
+{% extends 'templates/base.admin.twig' %}
+
+{% block body %}
+	<main
+		class="mt-4 container">
+
+		<!-- Page Header -->
+		<div class="d-flex justify-content-between align-items-center mb-4">
+			<div>
+				<h2 class="fw-bold mb-1">📊 Subscription Manager</h2>
+				<p class="text-muted mb-0">Manage and monitor unified membership subscriptions</p>
+			</div>
+			<div>
+				<a href="{{ path('panel/membership-expiry-notifications') }}" class="btn btn-outline-primary me-2">
+					<i data-feather="bell"></i>
+					Notifications
+				</a>
+				<a href="{{ path('panel/payments') }}" class="btn btn-primary">
+					<i data-feather="dollar-sign"></i>
+					View All Payments
+				</a>
+			</div>
+		</div>
+
+		<!-- 🔹 Key Metrics Cards -->
+		<section class="mb-5">
+			<div
+				class="row g-4">
+				<!-- Active Subscriptions -->
+				<div class="col-md-3">
+					<div class="p-4 bg-white rounded-4 shadow-sm h-100" style="border-left: 5px solid #00b894;">
+						<div class="d-flex justify-content-between align-items-start">
+							<div>
+								<p class="text-muted mb-1 small">Active Subscriptions</p>
+								<h2 class="fw-bold mb-0">{{ stats.active }}</h2>
+							</div>
+							<div class="bg-success bg-opacity-10 p-3 rounded-circle">
+								<i data-feather="users" class="text-success"></i>
+							</div>
+						</div>
+					</div>
+				</div>
+
+				<!-- Expired Subscriptions -->
+				<div class="col-md-3">
+					<div class="p-4 bg-white rounded-4 shadow-sm h-100" style="border-left: 5px solid #d63031;">
+						<div class="d-flex justify-content-between align-items-start mb-3">
+							<div>
+								<p class="text-muted mb-1 small">Expired Subscriptions</p>
+								<h2 class="fw-bold mb-0">{{ stats.expired }}</h2>
+							</div>
+							<div class="bg-danger bg-opacity-10 p-3 rounded-circle">
+								<i data-feather="user-x" class="text-danger"></i>
+							</div>
+						</div>
+						<a href="{{ path('panel/membership-expiry-notifications') }}" class="btn btn-sm btn-outline-danger w-100">
+							View Details
+						</a>
+					</div>
+				</div>
+
+				<!-- Monthly Recurring Revenue -->
+				<div class="col-md-3">
+					<div class="p-4 bg-white rounded-4 shadow-sm h-100" style="border-left: 5px solid #0984e3;">
+						<div class="d-flex justify-content-between align-items-start">
+							<div>
+								<p class="text-muted mb-1 small">Est. MRR</p>
+								<h2 class="fw-bold mb-0">${{ stats.mrr }}</h2>
+							</div>
+							<div class="bg-primary bg-opacity-10 p-3 rounded-circle">
+								<i data-feather="trending-up" class="text-primary"></i>
+							</div>
+						</div>
+					</div>
+				</div>
+
+				<!-- Autopay Enrollment -->
+				<div class="col-md-3">
+					<div class="p-4 bg-white rounded-4 shadow-sm h-100" style="border-left: 5px solid #6c5ce7;">
+						<div class="d-flex justify-content-between align-items-start">
+							<div>
+								<p class="text-muted mb-1 small">Autopay Rate</p>
+								<h2 class="fw-bold mb-0">{{ stats.autopay_rate }}%</h2>
+								<p class="text-muted small mb-0">{{ stats.autopay_enabled }}
+									users</p>
+							</div>
+							<div class="bg-info bg-opacity-10 p-3 rounded-circle">
+								<i data-feather="refresh-cw" class="text-info"></i>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</section>
+
+		<!-- 🔹 Plan Distribution & Revenue -->
+		<section class="mb-5">
+			<div
+				class="row g-4">
+				<!-- Plan Distribution -->
+				<div class="col-md-6">
+					<div class="p-4 bg-white rounded-4 shadow-sm h-100">
+						<h5 class="fw-bold mb-4">📈 Plan Distribution</h5>
+						<div class="mb-3">
+							<div class="d-flex justify-content-between mb-2">
+								<span>Monthly (${{ pricing.monthly }}/mo)</span>
+								<span class="fw-bold">{{ stats.plans.monthly }}
+									users</span>
+							</div>
+							<div class="progress" style="height: 20px;">
+								{% set total = stats.plans.monthly + stats.plans.quarterly + stats.plans.annual %}
+								{% set monthlyPercent = total > 0 ? (stats.plans.monthly / total * 100) : 0 %}
+								<div class="progress-bar bg-success" style="width: {{ monthlyPercent }}%">{{ monthlyPercent|number_format(0) }}%</div>
+							</div>
+						</div>
+						<div class="mb-3">
+							<div class="d-flex justify-content-between mb-2">
+								<span>Quarterly (${{ pricing.quarterly }}/3mo)</span>
+								<span class="fw-bold">{{ stats.plans.quarterly }}
+									users</span>
+							</div>
+							<div class="progress" style="height: 20px;">
+								{% set quarterlyPercent = total > 0 ? (stats.plans.quarterly / total * 100) : 0 %}
+								<div class="progress-bar bg-primary" style="width: {{ quarterlyPercent }}%">{{ quarterlyPercent|number_format(0) }}%</div>
+							</div>
+						</div>
+						<div class="mb-3">
+							<div class="d-flex justify-content-between mb-2">
+								<span>Annual (${{ pricing.annual }}/yr)</span>
+								<span class="fw-bold">{{ stats.plans.annual }}
+									users</span>
+							</div>
+							<div class="progress" style="height: 20px;">
+								{% set annualPercent = total > 0 ? (stats.plans.annual / total * 100) : 0 %}
+								<div class="progress-bar bg-warning" style="width: {{ annualPercent }}%">{{ annualPercent|number_format(0) }}%</div>
+							</div>
+						</div>
+					</div>
+				</div>
+
+				<!-- Revenue This Month -->
+				<div class="col-md-6">
+					<div class="p-4 bg-white rounded-4 shadow-sm h-100">
+						<h5 class="fw-bold mb-4">💰 Revenue This Month</h5>
+						<div class="text-center py-4">
+							<h1 class="display-4 fw-bold text-success mb-2">${{ stats.monthly_revenue }}</h1>
+							<p class="text-muted mb-0">from successful autopay transactions</p>
+						</div>
+						<hr class="my-4">
+						<div class="row text-center">
+							<div class="col-4">
+								<p class="text-muted small mb-1">Monthly Revenue</p>
+								<p class="fw-bold mb-0">${{ (stats.plans.monthly * pricing.monthly)|number_format(2) }}</p>
+							</div>
+							<div class="col-4">
+								<p class="text-muted small mb-1">Quarterly Revenue</p>
+								<p class="fw-bold mb-0">${{ (stats.plans.quarterly * pricing.quarterly)|number_format(2) }}</p>
+							</div>
+							<div class="col-4">
+								<p class="text-muted small mb-1">Annual Revenue</p>
+								<p class="fw-bold mb-0">${{ (stats.plans.annual * pricing.annual)|number_format(2) }}</p>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</section>
+
+		<!-- 🔹 Expiring Soon Alert -->
+		{% if expiring_soon|length > 0 %}
+			<section class="mb-5">
+				<div class="p-4 bg-warning bg-opacity-10 rounded-4 shadow-sm" style="border-left: 5px solid #f39c12;">
+					<div class="d-flex align-items-center mb-3">
+						<i data-feather="alert-triangle" class="text-warning me-2"></i>
+						<h5 class="fw-bold mb-0">⚠️ Memberships Expiring Soon (Next 7 Days)</h5>
+					</div>
+					<div class="table-responsive">
+						<table class="table table-hover mb-0">
+							<thead>
+								<tr>
+									<th>User</th>
+									<th>Email</th>
+									<th>Expiration Date</th>
+									<th>Days Remaining</th>
+									<th>Actions</th>
+								</tr>
+							</thead>
+							<tbody>
+								{% for user in expiring_soon %}
+									<tr>
+										<td class="fw-bold">{{ user.name }}
+											{{ user.lastname }}</td>
+										<td>{{ user.email }}</td>
+										<td>{{ user.membership_due_date }}</td>
+										<td>
+											<span class="badge bg-warning">{{ user.days_remaining }}
+												days</span>
+										</td>
+										<td>
+											<a href="{{ path('panel/venues') }}?user_id={{ user.id }}" class="btn btn-sm btn-outline-primary">View Profile</a>
+										</td>
+									</tr>
+								{% endfor %}
+							</tbody>
+						</table>
+					</div>
+				</div>
+			</section>
+		{% endif %}
+
+		<!-- 🔹 Recent Transactions & Failed Payments -->
+		<section class="mb-5">
+			<div
+				class="row g-4">
+				<!-- Recent Transactions -->
+				<div class="col-md-6">
+					<div class="p-4 bg-white rounded-4 shadow-sm h-100">
+						<h5 class="fw-bold mb-4">🔄 Recent Transactions</h5>
+						{% if recent_transactions|length > 0 %}
+							<div class="table-responsive">
+								<table class="table table-sm mb-0">
+									<thead>
+										<tr>
+											<th>Date</th>
+											<th>User</th>
+											<th>Amount</th>
+											<th>Status</th>
+										</tr>
+									</thead>
+									<tbody>
+										{% for tx in recent_transactions %}
+											<tr>
+												<td class="small">{{ tx.processed_at|date('M d, Y') }}</td>
+												<td class="small">{{ tx.name }}
+													{{ tx.lastname }}</td>
+												<td class="small fw-bold">${{ tx.amount }}</td>
+												<td>
+													{% if tx.status == 'success' %}
+														<span class="badge bg-success">Success</span>
+													{% elseif tx.status == 'failed' %}
+														<span class="badge bg-danger">Failed</span>
+													{% else %}
+														<span class="badge bg-secondary">{{ tx.status }}</span>
+													{% endif %}
+												</td>
+											</tr>
+										{% endfor %}
+									</tbody>
+								</table>
+							</div>
+						{% else %}
+							<p class="text-muted text-center py-4">No transactions yet</p>
+						{% endif %}
+					</div>
+				</div>
+
+				<!-- Failed Transactions -->
+				<div class="col-md-6">
+					<div class="p-4 bg-white rounded-4 shadow-sm h-100">
+						<h5 class="fw-bold mb-4">❌ Failed Transactions (Last 30 Days)</h5>
+						{% if failed_transactions|length > 0 %}
+							<div class="table-responsive">
+								<table class="table table-sm mb-0">
+									<thead>
+										<tr>
+											<th>Date</th>
+											<th>User</th>
+											<th>Amount</th>
+											<th>Error</th>
+										</tr>
+									</thead>
+									<tbody>
+										{% for tx in failed_transactions %}
+											<tr>
+												<td class="small">{{ tx.processed_at|date('M d, Y') }}</td>
+												<td class="small">{{ tx.name }}
+													{{ tx.lastname }}</td>
+												<td class="small">${{ tx.amount }}</td>
+												<td class="small text-danger" title="{{ tx.error_message }}">
+													{{ tx.error_message|slice(0, 30) }}
+													{% if tx.error_message|length > 30 %}...
+													{% endif %}
+												</td>
+											</tr>
+										{% endfor %}
+									</tbody>
+								</table>
+							</div>
+						{% else %}
+							<p class="text-success text-center py-4">✅ No failed transactions</p>
+						{% endif %}
+					</div>
+				</div>
+			</div>
+		</section>
+
+		<!-- 🔹 Active Users by Plan Type -->
+		<section class="mb-5">
+			<div class="p-4 bg-white rounded-4 shadow-sm">
+				<h4 class="fw-bold mb-4">👥 Active Subscribers</h4>
+
+				<!-- Nav Tabs -->
+				<ul class="nav nav-tabs mb-4" id="planTabs" role="tablist">
+					<li class="nav-item" role="presentation">
+						<button class="nav-link active" id="all-tab" data-bs-toggle="tab" data-bs-target="#all" type="button" role="tab">
+							All
+							<span class="badge bg-primary ms-1">{{ users_by_plan.all|length }}</span>
+						</button>
+					</li>
+					<li class="nav-item" role="presentation">
+						<button class="nav-link" id="monthly-tab" data-bs-toggle="tab" data-bs-target="#monthly" type="button" role="tab">
+							Monthly
+							<span class="badge bg-success ms-1">{{ users_by_plan.monthly|length }}</span>
+						</button>
+					</li>
+					<li class="nav-item" role="presentation">
+						<button class="nav-link" id="quarterly-tab" data-bs-toggle="tab" data-bs-target="#quarterly" type="button" role="tab">
+							Quarterly
+							<span class="badge bg-primary ms-1">{{ users_by_plan.quarterly|length }}</span>
+						</button>
+					</li>
+					<li class="nav-item" role="presentation">
+						<button class="nav-link" id="annual-tab" data-bs-toggle="tab" data-bs-target="#annual" type="button" role="tab">
+							Annual
+							<span class="badge bg-warning ms-1">{{ users_by_plan.annual|length }}</span>
+						</button>
+					</li>
+					{% if users_by_plan.free_trial|length > 0 %}
+					<li class="nav-item" role="presentation">
+						<button class="nav-link" id="free-trial-tab" data-bs-toggle="tab" data-bs-target="#free-trial" type="button" role="tab">
+							Free Trial
+							<span class="badge bg-info ms-1">{{ users_by_plan.free_trial|length }}</span>
+						</button>
+					</li>
+					{% endif %}
+				</ul>
+
+				<!-- Tab Content -->
+				<div
+					class="tab-content" id="planTabContent">
+					<!-- All Users Tab -->
+					<div class="tab-pane fade show active" id="all" role="tabpanel">
+						{% if users_by_plan.all|length > 0 %}
+							<div class="table-responsive">
+								<table class="table table-hover">
+									<thead>
+										<tr>
+											<th>Name</th>
+											<th>Email</th>
+											<th>Phone</th>
+											<th>Plan</th>
+											<th>Expiration Date</th>
+											<th>Days Remaining</th>
+											<th>Level</th>
+											<th>Actions</th>
+										</tr>
+									</thead>
+									<tbody>
+										{% for user in users_by_plan.all %}
+											<tr>
+												<td class="fw-bold">{{ user.name }}
+													{{ user.lastname }}</td>
+												<td>{{ user.email }}</td>
+												<td>{{ user.phone ?? 'N/A' }}</td>
+												<td>
+													{% if user.plan_type == 'monthly' %}
+														<span class="badge bg-success">Monthly</span>
+													{% elseif user.plan_type == 'quarterly' %}
+														<span class="badge bg-primary">Quarterly</span>
+													{% elseif user.plan_type == 'annual' %}
+														<span class="badge bg-warning">Annual</span>
+													{% elseif user.plan_type == 'free_trial' %}
+														<span class="badge bg-info">Free Trial</span>
+													{% endif %}
+												</td>
+												<td>{{ user.membership_due_date }}</td>
+												<td>
+													{% if user.days_until_expiry <= 7 %}
+														<span class="badge bg-danger">{{ user.days_until_expiry }}
+															days</span>
+													{% elseif user.days_until_expiry <= 30 %}
+														<span class="badge bg-warning">{{ user.days_until_expiry }}
+															days</span>
+													{% else %}
+														<span class="badge bg-success">{{ user.days_until_expiry }}
+															days</span>
+													{% endif %}
+												</td>
+												<td>
+													<span class="badge bg-secondary">Level
+														{{ user.level }}</span>
+												</td>
+												<td>
+													<div class="btn-group" role="group">
+														<a href="{{ path('panel/venues') }}?user_id={{ user.id }}" class="btn btn-sm btn-outline-primary">View</a>
+														<button type="button" class="btn btn-sm btn-outline-success" data-bs-toggle="modal" data-bs-target="#addDaysModal" data-user-id="{{ user.id }}" data-user-name="{{ user.name }} {{ user.lastname }}">
+															➕ Add Days
+														</button>
+														<button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteUserModal" data-user-id="{{ user.id }}" data-user-name="{{ user.name }} {{ user.lastname }}">
+															🗑️ Delete
+														</button>
+													</div>
+												</td>
+											</tr>
+										{% endfor %}
+									</tbody>
+								</table>
+							</div>
+						{% else %}
+							<p class="text-muted text-center py-4">No active users</p>
+						{% endif %}
+					</div>
+
+					<!-- Monthly Tab -->
+					<div class="tab-pane fade" id="monthly" role="tabpanel">
+						{% if users_by_plan.monthly|length > 0 %}
+							<div class="table-responsive">
+								<table class="table table-hover">
+									<thead>
+										<tr>
+											<th>Name</th>
+											<th>Email</th>
+											<th>Phone</th>
+											<th>Expiration Date</th>
+											<th>Days Remaining</th>
+											<th>Level</th>
+											<th>Actions</th>
+										</tr>
+									</thead>
+									<tbody>
+										{% for user in users_by_plan.monthly %}
+											<tr>
+												<td class="fw-bold">{{ user.name }}
+													{{ user.lastname }}</td>
+												<td>{{ user.email }}</td>
+												<td>{{ user.phone ?? 'N/A' }}</td>
+												<td>{{ user.membership_due_date }}</td>
+												<td>
+													{% if user.days_until_expiry <= 7 %}
+														<span class="badge bg-danger">{{ user.days_until_expiry }}
+															days</span>
+													{% elseif user.days_until_expiry <= 30 %}
+														<span class="badge bg-warning">{{ user.days_until_expiry }}
+															days</span>
+													{% else %}
+														<span class="badge bg-success">{{ user.days_until_expiry }}
+															days</span>
+													{% endif %}
+												</td>
+												<td>
+													<span class="badge bg-secondary">Level
+														{{ user.level }}</span>
+												</td>
+												<td>
+													<div class="btn-group" role="group">
+														<a href="{{ path('panel/venues') }}?user_id={{ user.id }}" class="btn btn-sm btn-outline-primary">View</a>
+														<button type="button" class="btn btn-sm btn-outline-success" data-bs-toggle="modal" data-bs-target="#addDaysModal" data-user-id="{{ user.id }}" data-user-name="{{ user.name }} {{ user.lastname }}">
+															➕ Add Days
+														</button>
+														<button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteUserModal" data-user-id="{{ user.id }}" data-user-name="{{ user.name }} {{ user.lastname }}">
+															🗑️ Delete
+														</button>
+													</div>
+												</td>
+											</tr>
+										{% endfor %}
+									</tbody>
+								</table>
+							</div>
+						{% else %}
+							<p class="text-muted text-center py-4">No monthly subscribers</p>
+						{% endif %}
+					</div>
+
+					<!-- Quarterly Tab -->
+					<div class="tab-pane fade" id="quarterly" role="tabpanel">
+						{% if users_by_plan.quarterly|length > 0 %}
+							<div class="table-responsive">
+								<table class="table table-hover">
+									<thead>
+										<tr>
+											<th>Name</th>
+											<th>Email</th>
+											<th>Phone</th>
+											<th>Expiration Date</th>
+											<th>Days Remaining</th>
+											<th>Level</th>
+											<th>Actions</th>
+										</tr>
+									</thead>
+									<tbody>
+										{% for user in users_by_plan.quarterly %}
+											<tr>
+												<td class="fw-bold">{{ user.name }}
+													{{ user.lastname }}</td>
+												<td>{{ user.email }}</td>
+												<td>{{ user.phone ?? 'N/A' }}</td>
+												<td>{{ user.membership_due_date }}</td>
+												<td>
+													{% if user.days_until_expiry <= 7 %}
+														<span class="badge bg-danger">{{ user.days_until_expiry }}
+															days</span>
+													{% elseif user.days_until_expiry <= 30 %}
+														<span class="badge bg-warning">{{ user.days_until_expiry }}
+															days</span>
+													{% else %}
+														<span class="badge bg-success">{{ user.days_until_expiry }}
+															days</span>
+													{% endif %}
+												</td>
+												<td>
+													<span class="badge bg-secondary">Level
+														{{ user.level }}</span>
+												</td>
+												<td>
+													<div class="btn-group" role="group">
+														<a href="{{ path('panel/venues') }}?user_id={{ user.id }}" class="btn btn-sm btn-outline-primary">View</a>
+														<button type="button" class="btn btn-sm btn-outline-success" data-bs-toggle="modal" data-bs-target="#addDaysModal" data-user-id="{{ user.id }}" data-user-name="{{ user.name }} {{ user.lastname }}">
+															➕ Add Days
+														</button>
+														<button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteUserModal" data-user-id="{{ user.id }}" data-user-name="{{ user.name }} {{ user.lastname }}">
+															🗑️ Delete
+														</button>
+													</div>
+												</td>
+											</tr>
+										{% endfor %}
+									</tbody>
+								</table>
+							</div>
+						{% else %}
+							<p class="text-muted text-center py-4">No quarterly subscribers</p>
+						{% endif %}
+					</div>
+
+					<!-- Annual Tab -->
+					<div class="tab-pane fade" id="annual" role="tabpanel">
+						{% if users_by_plan.annual|length > 0 %}
+							<div class="table-responsive">
+								<table class="table table-hover">
+									<thead>
+										<tr>
+											<th>Name</th>
+											<th>Email</th>
+											<th>Phone</th>
+											<th>Expiration Date</th>
+											<th>Days Remaining</th>
+											<th>Level</th>
+											<th>Actions</th>
+										</tr>
+									</thead>
+									<tbody>
+										{% for user in users_by_plan.annual %}
+											<tr>
+												<td class="fw-bold">{{ user.name }}
+													{{ user.lastname }}</td>
+												<td>{{ user.email }}</td>
+												<td>{{ user.phone ?? 'N/A' }}</td>
+												<td>{{ user.membership_due_date }}</td>
+												<td>
+													{% if user.days_until_expiry <= 7 %}
+														<span class="badge bg-danger">{{ user.days_until_expiry }}
+															days</span>
+													{% elseif user.days_until_expiry <= 30 %}
+														<span class="badge bg-warning">{{ user.days_until_expiry }}
+															days</span>
+													{% else %}
+														<span class="badge bg-success">{{ user.days_until_expiry }}
+															days</span>
+													{% endif %}
+												</td>
+												<td>
+													<span class="badge bg-secondary">Level
+														{{ user.level }}</span>
+												</td>
+												<td>
+													<div class="btn-group" role="group">
+														<a href="{{ path('panel/venues') }}?user_id={{ user.id }}" class="btn btn-sm btn-outline-primary">View</a>
+														<button type="button" class="btn btn-sm btn-outline-success" data-bs-toggle="modal" data-bs-target="#addDaysModal" data-user-id="{{ user.id }}" data-user-name="{{ user.name }} {{ user.lastname }}">
+															➕ Add Days
+														</button>
+														<button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteUserModal" data-user-id="{{ user.id }}" data-user-name="{{ user.name }} {{ user.lastname }}">
+															🗑️ Delete
+														</button>
+													</div>
+												</td>
+											</tr>
+										{% endfor %}
+									</tbody>
+								</table>
+							</div>
+						{% else %}
+							<p class="text-muted text-center py-4">No annual subscribers</p>
+						{% endif %}
+					</div>
+
+					<!-- Free Trial Tab -->
+					{% if users_by_plan.free_trial|length > 0 %}
+					<div class="tab-pane fade" id="free-trial" role="tabpanel">
+						<div class="table-responsive">
+							<table class="table table-hover">
+								<thead>
+									<tr>
+										<th>Name</th>
+										<th>Email</th>
+										<th>Phone</th>
+										<th>Expiration Date</th>
+										<th>Days Remaining</th>
+										<th>Level</th>
+										<th>Actions</th>
+									</tr>
+								</thead>
+								<tbody>
+									{% for user in users_by_plan.free_trial %}
+										<tr>
+											<td class="fw-bold">{{ user.name }}
+												{{ user.lastname }}</td>
+											<td>{{ user.email }}</td>
+											<td>{{ user.phone ?? 'N/A' }}</td>
+											<td>{{ user.membership_due_date }}</td>
+											<td>
+												{% if user.days_until_expiry <= 7 %}
+													<span class="badge bg-danger">{{ user.days_until_expiry }}
+														days</span>
+												{% elseif user.days_until_expiry <= 30 %}
+													<span class="badge bg-warning">{{ user.days_until_expiry }}
+														days</span>
+												{% else %}
+													<span class="badge bg-success">{{ user.days_until_expiry }}
+														days</span>
+												{% endif %}
+											</td>
+											<td>
+												<span class="badge bg-secondary">Level
+													{{ user.level }}</span>
+											</td>
+											<td>
+												<div class="btn-group" role="group">
+													<a href="{{ path('panel/venues') }}?user_id={{ user.id }}" class="btn btn-sm btn-outline-primary">View</a>
+													<button type="button" class="btn btn-sm btn-outline-success" data-bs-toggle="modal" data-bs-target="#addDaysModal" data-user-id="{{ user.id }}" data-user-name="{{ user.name }} {{ user.lastname }}">
+														➕ Add Days
+													</button>
+													<button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteUserModal" data-user-id="{{ user.id }}" data-user-name="{{ user.name }} {{ user.lastname }}">
+														🗑️ Delete
+													</button>
+												</div>
+											</td>
+										</tr>
+									{% endfor %}
+								</tbody>
+							</table>
+						</div>
+					</div>
+					{% endif %}
+				</div>
+			</div>
+		</section>
+
+		<!-- 🔹 Expired Users Section -->
+		{% if expired_users|length > 0 %}
+		<section class="mb-5">
+			<div class="p-4 bg-white rounded-4 shadow-sm">
+				<h4 class="fw-bold mb-4">⏰ Expired Subscriptions</h4>
+				<div class="table-responsive">
+					<table class="table table-hover">
+						<thead>
+							<tr>
+								<th>Name</th>
+								<th>Email</th>
+								<th>Phone</th>
+								<th>Expiration Date</th>
+								<th>Days Expired</th>
+								<th>Level</th>
+								<th>Actions</th>
+							</tr>
+						</thead>
+						<tbody>
+							{% for user in expired_users %}
+								<tr>
+									<td class="fw-bold">{{ user.name }}
+										{{ user.lastname }}</td>
+									<td>{{ user.email }}</td>
+									<td>{{ user.phone ?? 'N/A' }}</td>
+									<td>{{ user.membership_due_date }}</td>
+									<td>
+										<span class="badge bg-danger">{{ user.days_expired }}
+											days</span>
+									</td>
+									<td>
+										<span class="badge bg-secondary">Level
+											{{ user.level }}</span>
+									</td>
+									<td>
+										<div class="btn-group" role="group">
+											<a href="{{ path('panel/venues') }}?user_id={{ user.id }}" class="btn btn-sm btn-outline-primary">View</a>
+											<button type="button" class="btn btn-sm btn-outline-success" data-bs-toggle="modal" data-bs-target="#addDaysModal" data-user-id="{{ user.id }}" data-user-name="{{ user.name }} {{ user.lastname }}">
+												➕ Add Days
+											</button>
+											<button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteUserModal" data-user-id="{{ user.id }}" data-user-name="{{ user.name }} {{ user.lastname }}">
+												🗑️ Delete
+											</button>
+										</div>
+									</td>
+								</tr>
+							{% endfor %}
+						</tbody>
+					</table>
+				</div>
+			</div>
+		</section>
+		{% endif %}
+
+	</main>
+
+	<!-- Modal: Add Days -->
+	<div class="modal fade" id="addDaysModal" tabindex="-1" aria-labelledby="addDaysModalLabel" aria-hidden="true">
+		<div class="modal-dialog">
+			<div class="modal-content">
+				<form method="POST" action="{{ path('panel/subscriptions-manager') }}">
+					<div class="modal-header">
+						<h5 class="modal-title" id="addDaysModalLabel">➕ Add Days to Membership</h5>
+						<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+					</div>
+					<div class="modal-body">
+						<input type="hidden" name="action" value="add_days">
+						<input type="hidden" name="user_id" id="addDaysUserId">
+						<p>Add days to: <strong id="addDaysUserName"></strong></p>
+						<div class="mb-3">
+							<label for="days" class="form-label">Number of Days</label>
+							<input type="number" class="form-control" id="days" name="days" min="1" required>
+						</div>
+					</div>
+					<div class="modal-footer">
+						<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+						<button type="submit" class="btn btn-success">Add Days</button>
+					</div>
+				</form>
+			</div>
+		</div>
+	</div>
+
+	<!-- Modal: Delete User -->
+	<div class="modal fade" id="deleteUserModal" tabindex="-1" aria-labelledby="deleteUserModalLabel" aria-hidden="true">
+		<div class="modal-dialog">
+			<div class="modal-content">
+				<form method="POST" action="{{ path('panel/subscriptions-manager') }}">
+					<div class="modal-header bg-danger text-white">
+						<h5 class="modal-title" id="deleteUserModalLabel">🗑️ Delete User Permanently</h5>
+						<button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+					</div>
+					<div class="modal-body">
+						<input type="hidden" name="action" value="delete_user">
+						<input type="hidden" name="user_id" id="deleteUserId">
+						<div class="alert alert-danger">
+							<strong>⚠️ Warning:</strong> This action cannot be undone!
+						</div>
+						<p>Are you sure you want to permanently delete user: <strong id="deleteUserName"></strong>?</p>
+						<p class="text-muted small">This will delete all user data including payments, cards, and settings.</p>
+					</div>
+					<div class="modal-footer">
+						<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+						<button type="submit" class="btn btn-danger">Delete Permanently</button>
+					</div>
+				</form>
+			</div>
+		</div>
+	</div>
+
+	<script>
+		// Initialize Feather Icons
+		if (typeof feather !== 'undefined') {
+			feather.replace();
+		}
+
+		// Handle Add Days Modal
+		const addDaysModal = document.getElementById('addDaysModal');
+		if (addDaysModal) {
+			addDaysModal.addEventListener('show.bs.modal', function (event) {
+				const button = event.relatedTarget;
+				const userId = button.getAttribute('data-user-id');
+				const userName = button.getAttribute('data-user-name');
+				
+				document.getElementById('addDaysUserId').value = userId;
+				document.getElementById('addDaysUserName').textContent = userName;
+				document.getElementById('days').value = '';
+			});
+		}
+
+		// Handle Delete User Modal
+		const deleteUserModal = document.getElementById('deleteUserModal');
+		if (deleteUserModal) {
+			deleteUserModal.addEventListener('show.bs.modal', function (event) {
+				const button = event.relatedTarget;
+				const userId = button.getAttribute('data-user-id');
+				const userName = button.getAttribute('data-user-name');
+				
+				document.getElementById('deleteUserId').value = userId;
+				document.getElementById('deleteUserName').textContent = userName;
+			});
+		}
+	</script>
+
+{% endblock %}

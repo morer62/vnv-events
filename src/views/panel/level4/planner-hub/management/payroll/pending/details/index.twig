@@ -1,0 +1,626 @@
+{% extends 'templates/base.admin.twig' %}
+
+{% block body %}
+    <h1 class="h3 mb-4">🧾 Payroll Details</h1>
+
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-3">
+        <a href="{{ path('panel/planner-hub/management/payroll/pending') }}" class="text-decoration-none">
+            ← Back to Payroll Summary
+        </a>
+        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addHoursModal">
+            ➕ Add Manual Hours
+        </button>
+    </div>
+
+    <p class="mb-3">
+        💵 Hourly Rate:
+        {% if hourly_rate is not null %}
+            <strong>${{ hourly_rate|number_format(2, '.', ',') }}</strong>
+        {% else %}
+            <span class="text-muted">Not defined</span>
+        {% endif %}
+    </p>
+
+    <p class="mb-4">
+        🧮 Total Hours:
+        <strong>{{ total }}</strong>
+        {% if hourly_rate is not null %}
+            <br>💰 Estimated Total:
+            <strong>${{ (total_amount)|number_format(2, '.', ',') }}</strong>
+        {% endif %}
+    </p>
+
+    <!-- Información del Empleado -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <h6 class="card-title mb-3">
+                <i data-feather="user" class="feather-sm me-2"></i>
+                Employee Information
+            </h6>
+            <div class="row">
+                <div class="col-md-4">
+                    <strong>👤 Name:</strong><br>
+                    <span class="text-primary">{{ employee.name }}</span>
+                </div>
+                <div class="col-md-4">
+                    <strong>📧 Email:</strong><br>
+                    <span class="text-primary">{{ employee.email }}</span>
+                </div>
+                <div class="col-md-4">
+                    <strong>📱 Phone:</strong><br>
+                    <span class="text-primary">{{ employee.phone|default('Not provided') }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="alert alert-info mb-4">
+        <h6 class="alert-heading">📋 Payment Information</h6>
+        <ul class="mb-0">
+            <li><strong>✅ Can Pay:</strong> Sessions with start and end times (completed work)</li>
+            <li><strong>⏳ Cannot Pay:</strong> Active sessions (clocked in) or incomplete records</li>
+            <li><strong>💡 Note:</strong> Only completed sessions are included in payment calculations</li>
+        </ul>
+    </div>
+
+    <form id="payment-form" method="post" enctype="multipart/form-data">
+
+        <input type="hidden" name="user_id" value="{{ userId }}">
+        <input type="hidden" name="userTimezone" id="userTimezone" value="">
+
+        <div class="table-responsive mb-4">
+            <table class="table table-bordered text-center align-middle" style="min-width: 900px;">
+                <thead>
+                    <tr>
+                        <th><input type="checkbox" id="select-all"/></th>
+                        <th>Start</th>
+                        <th>End</th>
+                        <th>Total Hours</th>
+                        <th>Notes</th>
+                        <th>Location</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for h in hours %}
+                        <tr class="{% if not h.can_pay %}table-warning{% endif %}">
+                            <td>
+                                {% if h.can_pay %}
+                                    <input type="checkbox" name="selected_ids[]" value="{{ h.id }}" checked>
+                                {% else %}
+                                    <input type="checkbox" disabled title="Cannot pay active or incomplete sessions">
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if h.start_time %}
+                                    <i data-feather="edit"
+                                       class="cursor-pointer edit-start-time"
+                                       data-record-id="{{ h.id }}"
+                                       data-start-time="{{ h.start_time|e('html_attr') }}"
+                                       data-bs-toggle="tooltip"
+                                       data-bs-title="Edit"></i>
+                                    <span>{{ h.start_time_display }}</span>
+                                {% else %}
+                                    <span class="text-muted">No start time</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if h.end_time %}
+                                    <i data-feather="edit"
+                                       class="cursor-pointer edit-end-time"
+                                       data-record-id="{{ h.id }}"
+                                       data-end-time="{{ h.end_time|e('html_attr') }}"
+                                       data-bs-toggle="tooltip"
+                                       data-bs-title="Edit"></i>
+                                    <span>{{ h.end_time_display }}</span>
+                                {% else %}
+                                    <span class="text-warning">Session Active</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <span class="{% if h.can_pay %}text-success{% else %}text-warning{% endif %}">
+                                    {{ h.total_hours }}
+                                </span>
+                            </td>
+                            <td>
+                                {% if h.notes %}
+                                    <i data-feather="edit"
+                                       class="cursor-pointer me-2 edit-notes"
+                                       data-record-id="{{ h.id }}"
+                                       data-notes="{{ h.notes|e('html_attr') }}"
+                                       data-bs-toggle="tooltip"
+                                       data-bs-title="Edit Notes"></i>
+                                    <span>{{ h.notes }}</span>
+                                {% else %}
+                                    <i data-feather="edit"
+                                       class="cursor-pointer me-2 edit-notes"
+                                       data-record-id="{{ h.id }}"
+                                       data-notes=""
+                                       data-bs-toggle="tooltip"
+                                       data-bs-title="Add Notes"></i>
+                                    <span class="text-muted">—</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-start" style="max-width: 250px;">
+                                {% if h.location_lat and h.location_long %}
+                                    <div class="mt-1">
+                                        <button type="button"
+                                                class="btn btn-sm btn-outline-primary show-map-btn"
+                                                data-lat="{{ h.location_lat }}"
+                                                data-lng="{{ h.location_long }}"
+                                                data-record-id="{{ h.id }}">
+                                            <i data-feather="map-pin"></i>
+                                            View on Map
+                                        </button>
+                                    </div>
+                                {% else %}
+                                    <span class="text-muted">No location</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <button type="button"
+                                        class="btn btn-sm btn-outline-danger delete-hour-btn"
+                                        data-hour-id="{{ h.id }}"
+                                        data-user-id="{{ userId }}">
+                                    <i data-feather="trash-2"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <td colspan="7" class="text-muted">No records</td>
+                        </tr>
+                    {% endfor %}
+                    {% if hours %}
+                        <tr>
+                            <td colspan="4" class="text-end fw-bold">Total</td>
+                            <td class="fw-bold">{{ total }}</td>
+                            <td></td>
+                            <td></td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+
+        {% if hours %}
+            <div class="mb-3">
+                <label for="additional_info" class="form-label">Additional Message (optional)</label>
+                <textarea id="additional_info" name="additional_info" class="form-control" rows="3">No additional message</textarea>
+            </div>
+
+            <div class="mb-4">
+                <label class="form-label">💳 Select Payment Method</label>
+                <select name="payment_type" class="form-select" id="paymentMethodSelector" required>
+                    <option value="card">💳 Pay with Card</option>
+                    <option value="manual">🧾 Manual Payment (Upload Proof)</option>
+                </select>
+            </div>
+
+            <div id="cardSection" class="mb-3">
+                {% if not isStripeVerified %}
+                    <div class="alert alert-danger mb-3">
+                        ⚠️ This user has not completed their Stripe Connect onboarding or is not verified.
+                    </div>
+                    <div class="text-muted mb-2">
+                        🛑 You cannot process credit card payments until their Stripe account is verified.
+                    </div>
+                {% else %}
+                    <div class="mb-4">
+                        <label class="form-label">Card Info</label>
+                        <div id="card-element" class="form-control p-3"></div>
+                        <div id="card-errors" class="text-danger mt-2"></div>
+                    </div>
+
+                    <input type="hidden" name="customer_token" id="customer_token">
+
+                    <button type="submit" class="btn btn-success w-100 btn-lg mb-3" id="cardPaymentButton">✅ Pay Now</button>
+
+                    <div id="loading" class="text-muted text-center" style="display:none;">Processing payment...</div>
+                {% endif %}
+            </div>
+
+            <div id="manualSection" class="mb-3 d-none">
+                <label class="form-label">Upload Payment Proof (PDF, JPG, PNG)</label>
+                <input type="file" name="payment_proof_file" class="form-control mb-2" accept=".pdf,.jpg,.jpeg,.png">
+
+                <div class="text-muted small mb-2">
+                    📎 For just registering your transaction using an external payment method.
+                </div>
+
+                <button type="submit" class="btn btn-secondary mt-1" name="submit_manual">
+                    🧾 Mark as Paid with Proof
+                </button>
+            </div>
+        {% endif %}
+    </form>
+{% endblock %}
+
+{% block aside %}
+    <div class="modal fade" id="editDatetimeModal" data-bs-backdrop="static" tabindex="-1" aria-labelledby="editDatetimeModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <form method="post">
+                    <input type="hidden" name="userTimezone" id="userTimezoneModal"/>
+                    <input type="hidden" name="id" id="recordId"/>
+                    <input type="hidden" name="action" id="editTimeAction"/>
+                    <div class="modal-header">
+                        <h5 class="modal-title">Edit Time</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <label for="dateTimeInput">New Date and Time</label>
+                        <input id="dateTimeInput" type="datetime-local" name="date" class="form-control" required>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-primary">Save changes</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="editNotesModal" data-bs-backdrop="static" tabindex="-1" aria-labelledby="editNotesModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <form method="post">
+                    <input type="hidden" name="id" id="notesRecordId"/>
+                    <input type="hidden" name="action" value="editNotes"/>
+                    <div class="modal-header">
+                        <h5 class="modal-title">📝 Edit Notes</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <label for="notesInput" class="form-label">Notes</label>
+                        <textarea id="notesInput" name="notes" class="form-control notes-textarea" rows="4" placeholder="Enter notes for this session..."></textarea>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-primary">💾 Save Notes</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="addHoursModal" data-bs-backdrop="static" tabindex="-1" aria-labelledby="addHoursModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form method="post">
+                    <input type="hidden" name="action" value="addManualHour">
+                    <input type="hidden" name="user_id" value="{{ userId }}">
+                    <input type="hidden" name="manual_user_timezone" id="manualUserTimezone">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="addHoursModalLabel">➕ Add Manual Hours</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="manualStartTime" class="form-label">Start Time <span class="text-danger">*</span></label>
+                            <input type="datetime-local" id="manualStartTime" name="manual_start_time" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="manualEndTime" class="form-label">End Time <span class="text-danger">*</span></label>
+                            <input type="datetime-local" id="manualEndTime" name="manual_end_time" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="manualNotes" class="form-label">Comments (optional)</label>
+                            <textarea id="manualNotes" name="manual_notes" class="form-control" rows="3" placeholder="Add a short description..."></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-primary">💾 Save Hours</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <form method="post" id="deleteHourForm" class="d-none">
+        <input type="hidden" name="action" value="deleteManualHour">
+        <input type="hidden" name="hour_id" id="deleteHourId">
+        <input type="hidden" name="user_id" id="deleteHourUserId" value="{{ userId }}">
+    </form>
+
+    <div class="modal fade" id="mapModal" tabindex="-1" aria-labelledby="mapModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="mapModalLabel">📍 Location on Map</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="mapContainer" style="height: 400px; width: 100%;"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" id="openInGoogleMaps">
+                        🗺️ Open in Google Maps
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="paymentProcessingModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content text-center p-4">
+                <div class="modal-body">
+                    <div class="spinner-border text-primary mb-3" role="status">
+                        <span class="visually-hidden">Processing...</span>
+                    </div>
+                    <h5 id="paymentLoaderMessage">Processing payment, please wait...</h5>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    <script src="https://js.stripe.com/v3/"></script>
+    <script>
+        const stripe = Stripe("{{ stripe_key }}", {stripeAccount: "{{ stripe_account_id|raw }}"});
+        const elements = stripe.elements();
+        const card = elements.create("card");
+        card.mount("#card-element");
+
+        const form = document.getElementById("payment-form");
+        const paymentLoaderModal = new bootstrap.Modal("#paymentProcessingModal");
+
+        function showPaymentLoader(message) {
+            const msgEl = document.getElementById("paymentLoaderMessage");
+            if (message && msgEl) {
+                msgEl.textContent = message;
+            }
+            paymentLoaderModal.show();
+        }
+
+        function hidePaymentLoader() {
+            paymentLoaderModal.hide();
+        }
+
+        form.addEventListener("submit", async (e) => {
+                var pmEl = document.getElementById("paymentMethodSelector");
+                const selectedMethod = pmEl ? pmEl.value : null;
+            if (selectedMethod !== "card") {
+                showPaymentLoader("Processing payment...");
+                return;
+            }
+            e.preventDefault();
+            const button = form.querySelector("button");
+            const loading = document.getElementById("loading");
+            const error = document.getElementById("card-errors");
+            button.disabled = true;
+            loading.style.display = "block";
+            error.textContent = "";
+            showPaymentLoader("Processing payment...");
+            const {token, error: stripeError} = await stripe.createToken(card);
+            if (stripeError) {
+                error.textContent = stripeError.message;
+                loading.style.display = "none";
+                button.disabled = false;
+                hidePaymentLoader();
+                return;
+            }
+            document.getElementById("customer_token").value = token.id;
+            form.submit();
+        });
+    </script>
+
+    <script>
+        let dateTimeModal = new bootstrap.Modal("#editDatetimeModal");
+        let notesModal = new bootstrap.Modal("#editNotesModal");
+        let mapModal = new bootstrap.Modal("#mapModal");
+        let currentMap = null;
+        let currentLat = null;
+        let currentLng = null;
+
+        document.addEventListener('DOMContentLoaded', function () {
+            const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+            document.getElementById("userTimezone").value = timezone;
+            document.getElementById("userTimezoneModal").value = timezone;
+            const manualTimezone = document.getElementById("manualUserTimezone");
+            if (manualTimezone) {
+                manualTimezone.value = timezone;
+            }
+
+            document.getElementById("select-all").addEventListener("change", function () {
+                document.querySelectorAll('input[name="selected_ids[]"]:not([disabled])').forEach(cb => cb.checked = this.checked);
+            });
+
+            function updatePaymentButton() {
+                const selectableCheckboxes = document.querySelectorAll('input[name="selected_ids[]"]:not([disabled])');
+                const checkedCheckboxes = document.querySelectorAll('input[name="selected_ids[]"]:not([disabled]):checked');
+                const paymentButton = document.querySelector('button[name="submit_manual"]');
+                const cardPaymentButton = document.getElementById("cardPaymentButton");
+                const cardSection = document.getElementById("cardSection");
+                const manualSection = document.getElementById("manualSection");
+
+                if (checkedCheckboxes.length === 0) {
+                    paymentButton.disabled = true;
+                    paymentButton.innerHTML = 'No sessions to pay';
+                } else {
+                    paymentButton.disabled = false;
+                    paymentButton.innerHTML = 'Pay ' + checkedCheckboxes.length + ' session' + (checkedCheckboxes.length !== 1 ? 's' : '');
+                }
+
+                if (cardPaymentButton) {
+                    if (checkedCheckboxes.length === 0) {
+                        cardPaymentButton.disabled = true;
+                        cardPaymentButton.innerHTML = 'No sessions to pay';
+                    } else {
+                        cardPaymentButton.disabled = false;
+                        cardPaymentButton.innerHTML = '✅ Pay ' + checkedCheckboxes.length + ' session' + (checkedCheckboxes.length !== 1 ? 's' : '');
+                    }
+                }
+
+                const selector = document.getElementById("paymentMethodSelector");
+                if (selector) {
+                    function updateSections() {
+                        const selected = selector.value;
+                        cardSection.classList.toggle("d-none", selected !== "card");
+                        manualSection.classList.toggle("d-none", selected !== "manual");
+                    }
+                    selector.addEventListener("change", updateSections);
+                    updateSections();
+                }
+            }
+
+            updatePaymentButton();
+            document.querySelectorAll('input[name="selected_ids[]"]').forEach(cb => {
+                cb.addEventListener('change', updatePaymentButton);
+            });
+
+            // Configurar textarea de notas del modal
+            var notesTextarea = document.getElementById('notesInput');
+            if (notesTextarea) {
+                // Prevenir que otros scripts interfieran con este textarea
+                notesTextarea.setAttribute('data-payroll-notes', 'true');
+                
+                notesTextarea.addEventListener('input', function(e) {
+                    // Detener la propagación para evitar otros scripts
+                    e.stopImmediatePropagation();
+                    
+                    // Permitir crecimiento automático sin restricciones de altura
+                    this.style.height = 'auto';
+                    this.style.height = this.scrollHeight + 'px';
+                });
+            }
+            const addHoursModalEl = document.getElementById('addHoursModal');
+            if (addHoursModalEl) {
+                addHoursModalEl.addEventListener('show.bs.modal', function () {
+                    const startInput = document.getElementById('manualStartTime');
+                    const endInput = document.getElementById('manualEndTime');
+                    const now = new Date();
+                    if (startInput && !startInput.value) {
+                        startInput.value = formatDateTimeLocal(now);
+                    }
+                    if (endInput && !endInput.value) {
+                        const later = new Date(now.getTime() + 60 * 60 * 1000);
+                        endInput.value = formatDateTimeLocal(later);
+                    }
+                });
+            }
+
+            document.querySelectorAll('.delete-hour-btn').forEach(btn => {
+                btn.addEventListener('click', function () {
+                    if (!confirm('Are you sure you want to delete this manual entry?')) {
+                        return;
+                    }
+                    const form = document.getElementById('deleteHourForm');
+                    document.getElementById('deleteHourId').value = this.dataset.hourId;
+                    document.getElementById('deleteHourUserId').value = this.dataset.userId;
+                    form.submit();
+                });
+            });
+
+            document.querySelectorAll('.edit-start-time').forEach(icon => {
+                icon.addEventListener('click', function () {
+                    editStartDate(this.dataset.recordId, this.dataset.startTime);
+                });
+            });
+
+            document.querySelectorAll('.edit-end-time').forEach(icon => {
+                icon.addEventListener('click', function () {
+                    editEndDate(this.dataset.recordId, this.dataset.endTime);
+                });
+            });
+
+            document.querySelectorAll('.edit-notes').forEach(icon => {
+                icon.addEventListener('click', function () {
+                    editNotes(this.dataset.recordId, this.dataset.notes || '');
+                });
+            });
+
+            document.querySelectorAll('.show-map-btn').forEach(btn => {
+                btn.addEventListener('click', function () {
+                    showOnMap(this.dataset.lat, this.dataset.lng, this.dataset.recordId);
+                });
+            });
+        });
+
+        function formatDateTimeLocal(date) {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            const hours = String(date.getHours()).padStart(2, '0');
+            const minutes = String(date.getMinutes()).padStart(2, '0');
+            return `${year}-${month}-${day}T${hours}:${minutes}`;
+        }
+
+        function convertToLocalTime(time) {
+            const date = new Date(time);
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            const hours = String(date.getHours()).padStart(2, '0');
+            const minutes = String(date.getMinutes()).padStart(2, '0');
+            return year + '-' + month + '-' + day + 'T' + hours + ':' + minutes;
+        }
+
+        function editStartDate(id, time) {
+            document.getElementById("recordId").value = id;
+            document.getElementById("editTimeAction").value = "editStatDate";
+            document.getElementById("dateTimeInput").value = convertToLocalTime(time);
+            dateTimeModal.show();
+        }
+
+        function editEndDate(id, time) {
+            document.getElementById("recordId").value = id;
+            document.getElementById("editTimeAction").value = "editEndDate";
+            document.getElementById("dateTimeInput").value = convertToLocalTime(time);
+            dateTimeModal.show();
+        }
+
+        function editNotes(id, notes) {
+            document.getElementById("notesRecordId").value = id;
+            document.getElementById("notesInput").value = notes;
+            notesModal.show();
+        }
+
+
+        async function showOnMap(lat, lng, id) {
+            currentLat = lat;
+            currentLng = lng;
+            mapModal.show();
+            setTimeout(() => {
+                initializeMap(lat, lng);
+            }, 500);
+        }
+
+        function initializeMap(lat, lng) {
+            if (currentMap) {
+                currentMap = null;
+            }
+            currentMap = new google.maps.Map(document.getElementById('mapContainer'), {
+                zoom: 15,
+                center: {
+                    lat: parseFloat(lat),
+                    lng: parseFloat(lng)
+                }
+            });
+            new google.maps.Marker({
+                position: {
+                    lat: parseFloat(lat),
+                    lng: parseFloat(lng)
+                },
+                map: currentMap,
+                title: 'Work Location'
+            });
+        }
+
+        var openBtn = document.getElementById('openInGoogleMaps');
+        if (openBtn) {
+            openBtn.addEventListener('click', function () {
+                if (currentLat && currentLng) {
+                    var url = 'https://www.google.com/maps?q=' + currentLat + ',' + currentLng;
+                    window.open(url, '_blank');
+                }
+            });
+        }
+    </script>
+
+    <script async defer src="https://maps.googleapis.com/maps/api/js?key=GOOGLE_KEY&callback=function(){}"></script>
+{% endblock %}

@@ -1,0 +1,766 @@
+{% extends 'templates/base.admin.twig' %}
+{% import 'templates/macros.twig' as macros %}
+
+{% block body %}
+<h2 class="mb-4">✏️ Edit Sub-Order Sub-{{ suborder.id }}</h2>
+{{ macros.breadcrumb2() }}
+
+<section class="card">
+    <div class="card-body">
+        <div class="alert alert-info mb-4">
+            <h5>📋 Parent Order Information</h5>
+            <p><strong>Order ID:</strong> VNV 341{{ parentOrder.id }}</p>
+            <p><strong>Event Date:</strong> {{ parentOrder.event_date|date("l, M j, Y") }}</p>
+            <p><strong>Time:</strong> {{ parentOrder.start_time|date("g:i A") }} - {{ parentOrder.end_time|date("g:i A") }}</p>
+            <p><strong>Address:</strong> {{ parentOrder.address }}</p>
+            <p><strong>Sub-Order Created:</strong> {{ suborder.created_at|date("M j, Y g:i A") }}</p>
+        </div>
+
+        {% if not canModify %}
+        <div class="alert alert-warning mt-4">
+            <h5>⚠️ Sub-Order Modification Restricted</h5>
+            <p>{{ modificationMessage }}</p>
+            <div class="mt-3">
+                <a href="{{ path('panel/planner-hub/management/orders/orders/suborders') }}?id={{ parentOrder.id }}" class="btn btn-secondary">
+                    ← Back to Sub-Orders
+                </a>
+            </div>
+        </div>
+        {% endif %}
+
+        <form method="POST" {% if not canModify %}style="pointer-events: none; opacity: 0.6;"{% endif %}>
+            <input type="hidden" name="suborder_id" value="{{ suborder.id }}">
+
+            <div class="row mb-3">
+                <div class="col-md-4">
+                    <label class="form-label">Tax Percentage (%)</label>
+                    <input type="number" name="tax_percentage" value="{{ suborder.tax_percertance }}" class="form-control" step="0.01" min="0" max="100" {% if not canModify %}disabled{% endif %}>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Discount Type</label>
+                    <select name="discount_type" class="form-select" {% if not canModify %}disabled{% endif %}>
+                        <option value="amount" {% if suborder.discount_type == 'amount' or suborder.discount_type is not defined %}selected{% endif %}>$ Amount</option>
+                        <option value="percent" {% if suborder.discount_type == 'percent' %}selected{% endif %}>% Percentage</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Discount Value</label>
+                    <input type="number" step="0.01" name="discount_value" class="form-control" value="{{ suborder.discount_value ?? 0 }}" {% if not canModify %}disabled{% endif %}>
+                </div>
+            </div>
+
+            <div class="row mb-3">
+                <div class="col-md-4">
+                    <label class="form-label">Payment Split Type</label>
+                    <select name="payment_split_type" class="form-select" id="paymentSplitSelect" {% if not canModify %}disabled{% endif %}>
+                        <option value="1" {% if suborder.payment_split_type == 1 %}selected{% endif %}>100% Single Payment</option>
+                        <option value="2" {% if suborder.payment_split_type == 2 %}selected{% endif %}>Split Payment</option>
+                    </select>
+                </div>
+                <div class="col-md-8">
+                    <div id="splitFields" style="display: none;">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <label class="form-label">First Payment (%)</label>
+                                <input type="number" name="payment_split_percent_1" value="{{ suborder.payment_split_percent_1 }}" class="form-control" {% if suborder.payment_split_type == 1 %}readonly{% else %}min="1" max="99"{% endif %} {% if not canModify %}disabled{% endif %}>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Second Payment (%)</label>
+                                <input type="number" name="payment_split_percent_2" id="secondPaymentPercent" value="{{ suborder.payment_split_percent_2 }}" class="form-control" readonly {% if not canModify %}disabled{% endif %}>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <h4 class="mb-3 mt-4">🛠 Services</h4>
+            <div class="alert alert-info mb-3">
+                <i data-feather="info"></i>
+                <strong>Tip:</strong> Start typing the service name to see suggestions.
+            </div>
+            {% if services is empty %}
+                <div class="alert alert-warning">
+                    ⚠️ No services available.
+                    <a href="{{ path('panel/planner-hub/management/orders/services/create') }}" class="btn btn-sm btn-outline-primary ms-2">➕ Create Service</a>
+                </div>
+            {% else %}
+                <div id="servicesTable" class="mb-4">
+                    <input type="hidden" name="selectedServices" id="selectedServices" value="" />
+                    <div class="table-responsive">
+                        <table class="table table-bordered text-center align-middle" style="width: 100%; min-width: 600px;">
+                            <thead>
+                                <tr>
+                                    <th style="min-width: 200px;">Service</th>
+                                    <th style="min-width: 100px;">Qty</th>
+                                    <th style="min-width: 120px;">Subtotal</th>
+                                    <th style="min-width: 80px;">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="serviceRows">
+                                {% for service in assignedServices %}
+                                <tr class="service-row">
+                                    <td>
+                                        <div class="position-relative">
+                                                                                         <input type="text" class="form-control service-input" 
+                                                    value="{{ service.service_name }} (${{ service.actual_price }})" 
+                                                    data-service-id="{{ service.id_service }}" 
+                                                    data-price="{{ service.actual_price }}" 
+                                                    data-is-variable="{{ service.is_variable }}" 
+                                                    data-variable-price="{{ service.variable_price }}" 
+                                                    data-original-price="{{ service.service_price }}"
+                                                    readonly {% if not canModify %}disabled{% endif %}>
+                                            <div class="service-dropdown" style="display: none;"></div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <input type="number" class="form-control qty-input" value="{{ service.quantity }}" min="1" {% if not canModify %}disabled{% endif %}>
+                                    </td>
+                                    <td>
+                                                                                 <input type="text" class="form-control subtotal-input" value="${{ (service.quantity * service.actual_price)|number_format(2) }}" readonly>
+                                    </td>
+                                    <td>
+                                        {% if canModify %}
+                                        <button type="button" class="btn btn-danger btn-sm remove-service-btn">❌</button>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% if canModify %}
+                    <button type="button" class="btn btn-outline-primary" onclick="addServiceRow()">
+                        <i data-feather="plus"></i>Add Service
+                    </button>
+                    {% endif %}
+                </div>
+            {% endif %}
+
+            <div class="row mb-4">
+                <div class="col-md-3 offset-md-9">
+                    <label class="form-label fw-bold">Total</label>
+                    <input type="text" id="totalAmount" class="form-control fw-bold" readonly>
+                </div>
+            </div>
+
+            <div class="d-flex justify-content-between">
+                <a href="{{ path('panel/planner-hub/management/orders/orders/suborders') }}?id={{ parentOrder.id }}" class="btn btn-secondary">
+                    ← Back to Sub-Orders
+                </a>
+                {% if canModify %}
+                <button type="submit" class="btn btn-primary">
+                    <i data-feather="save"></i> Save Changes
+                </button>
+                {% endif %}
+            </div>
+        </form>
+    </div>
+</section>
+
+<!-- Modal para precio variable -->
+<div class="modal fade" id="priceModal" tabindex="-1" aria-labelledby="priceModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="priceModalLabel">Set Service Price</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label">Service Name</label>
+                    <input type="text" id="modalServiceName" class="form-control" readonly>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Price ($)</label>
+                    <input type="number" id="modalPrice" class="form-control" step="0.01" min="0.01" placeholder="0.00">
+                    <div class="invalid-feedback" id="priceError">
+                        Please enter a valid price greater than 0.
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="confirmPrice">Confirm Price</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .table-responsive {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    .table-responsive table {
+        margin-bottom: 0;
+    }
+    
+    .table-responsive th,
+    .table-responsive td {
+        white-space: nowrap;
+    }
+    
+    @media (max-width: 768px) {
+        .table-responsive {
+            border: 1px solid #dee2e6;
+            border-radius: 0.375rem;
+        }
+    }
+
+    .service-dropdown {
+        border: 1px solid #dee2e6;
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+        border-radius: 0.375rem;
+        background: white;
+        max-height: 200px;
+        overflow-y: auto;
+        display: none;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        z-index: 1000;
+    }
+
+    .service-dropdown .dropdown-item {
+        transition: background-color 0.15s ease-in-out;
+        border-bottom: 1px solid #f8f9fa;
+        padding: 0.5rem 0.75rem;
+        cursor: pointer;
+    }
+
+    .service-dropdown .dropdown-item:hover {
+        background-color: #f8f9fa !important;
+    }
+
+    .service-dropdown .dropdown-item:last-child {
+        border-bottom: none !important;
+    }
+
+    .position-relative {
+        position: relative !important;
+    }
+    
+    .table-responsive {
+        overflow: visible !important;
+    }
+    
+    #servicesTable td {
+        overflow: visible !important;
+        position: relative;
+    }
+    
+    #servicesTable {
+        width: 100%;
+        min-width: 600px;
+        position: relative;
+    }
+    
+    #servicesTable th,
+    #servicesTable td {
+        padding: 0.75rem;
+        vertical-align: middle;
+    }
+    
+    #servicesTable th:nth-child(1),
+    #servicesTable td:nth-child(1) {
+        min-width: 250px;
+        position: relative;
+    }
+    
+    #servicesTable th:nth-child(2),
+    #servicesTable td:nth-child(2) {
+        min-width: 100px;
+    }
+    
+    #servicesTable th:nth-child(3),
+    #servicesTable td:nth-child(3) {
+        min-width: 120px;
+    }
+    
+    #servicesTable th:nth-child(4),
+    #servicesTable td:nth-child(4) {
+        min-width: 80px;
+    }
+
+    .modal-backdrop {
+        z-index: 1040;
+    }
+
+    .modal {
+        z-index: 1050;
+    }
+
+    #priceModal .modal-dialog {
+        max-width: 500px;
+    }
+
+    #priceModal .form-control:focus {
+        border-color: #198754;
+        box-shadow: 0 0 0 0.2rem rgba(25, 135, 84, 0.25);
+    }
+
+    #priceModal .btn-primary {
+        background-color: #198754;
+        border-color: #198754;
+    }
+
+    #priceModal .btn-primary:hover {
+        background-color: #157347;
+        border-color: #146c43;
+    }
+
+    #priceModal.show {
+        display: block !important;
+    }
+
+    .modal-backdrop.show {
+        opacity: 0.5;
+    }
+
+    .modal-backdrop {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background-color: rgba(0, 0, 0, 0.5);
+        z-index: 1040;
+    }
+
+    #priceModal.show + .modal-backdrop {
+        display: block;
+    }
+</style>
+
+<script>
+    let selectedServices = [];
+    let services = {{ services|json_encode|raw }}.sort((a, b) => a.name.localeCompare(b.name));
+    let nextServiceIndex = 0;
+    let currentServiceInput = null;
+    let currentService = null;
+
+    const num = (v) => parseFloat(String(v).replace(',', '.')) || 0;
+
+    function addServiceRow() {
+        const row = document.createElement("tr");
+        row.className = "service-row";
+
+        const serviceContainer = document.createElement("div");
+        serviceContainer.className = "position-relative";
+
+        const serviceInput = document.createElement("input");
+        serviceInput.type = "text";
+        serviceInput.className = "form-control service-input";
+        serviceInput.name = "services[][service_name]";
+        serviceInput.placeholder = "Type service name...";
+        serviceInput.setAttribute("data-service-id", "");
+        serviceInput.setAttribute("data-price", "");
+        serviceInput.setAttribute("data-is-variable", "NO");
+        serviceInput.setAttribute("data-variable-price", "");
+        
+        serviceInput.addEventListener("input", function() { 
+            this.style.borderColor = "";
+            handleServiceSearch(this); 
+        });
+        serviceInput.addEventListener("focus", function() { 
+            showServiceDropdown(this); 
+        });
+        serviceInput.addEventListener("blur", function() { 
+            setTimeout(() => hideServiceDropdown(this), 300); 
+        });
+
+        const dropdown = document.createElement("div");
+        dropdown.className = "service-dropdown";
+        dropdown.style.display = "none";
+
+        serviceContainer.appendChild(serviceInput);
+        serviceContainer.appendChild(dropdown);
+
+        const qtyInput = document.createElement("input");
+        qtyInput.type = "number";
+        qtyInput.name = "services[][quantity]";
+        qtyInput.className = "form-control qty-input";
+        qtyInput.value = 1;
+        qtyInput.min = 1;
+        qtyInput.addEventListener("input", updateSubtotal);
+
+        const subtotalInput = document.createElement("input");
+        subtotalInput.name = "services[][subtotal]";
+        subtotalInput.className = "form-control subtotal-input";
+        subtotalInput.readOnly = true;
+        subtotalInput.value = "0.00";
+
+        const removeBtn = document.createElement("button");
+        removeBtn.type = "button";
+        removeBtn.className = "btn btn-danger btn-sm remove-service-btn";
+        removeBtn.innerHTML = "❌";
+        removeBtn.addEventListener("click", function() { 
+            row.remove(); 
+            updateSubtotal(); 
+        });
+
+        const sCell = document.createElement("td"); 
+        sCell.appendChild(serviceContainer);
+        const qCell = document.createElement("td"); 
+        qCell.appendChild(qtyInput);
+        const stCell = document.createElement("td"); 
+        stCell.appendChild(subtotalInput);
+        const rCell = document.createElement("td"); 
+        rCell.appendChild(removeBtn);
+
+        row.append(sCell, qCell, stCell, rCell);
+        document.getElementById("serviceRows").appendChild(row);
+        
+        updateSubtotal();
+        serviceInput.focus();
+    }
+
+    function handleServiceSearch(input) {
+        const searchTerm = input.value.toLowerCase();
+        const dropdown = input.parentNode.querySelector('.service-dropdown');
+        
+        if (searchTerm.length < 1) {
+            hideServiceDropdown(input);
+            return;
+        }
+
+        const filteredServices = services.filter(service => 
+            service.name.toLowerCase().includes(searchTerm)
+        );
+
+        showServiceDropdown(input, filteredServices);
+    }
+
+    function showServiceDropdown(input, filteredServices = null) {
+        const dropdown = input.parentNode.querySelector('.service-dropdown');
+        const searchTerm = input.value.toLowerCase();
+        
+        if (!filteredServices) {
+            filteredServices = services.filter(service => 
+                service.name.toLowerCase().includes(searchTerm)
+            );
+        }
+
+        if (filteredServices.length === 0) {
+            dropdown.innerHTML = '<div class="dropdown-item p-2 text-muted">No se encontraron servicios que coincidan con "' + searchTerm + '"</div>';
+            dropdown.style.display = "block";
+            return;
+        }
+
+        dropdown.innerHTML = '';
+        filteredServices.forEach(service => {
+            const item = document.createElement("div");
+            item.className = "dropdown-item p-2 border-bottom";
+            item.style.cursor = "pointer";
+            
+            const priceDisplay = service.is_variable === 'YES' 
+                ? `<span class="text-warning">Variable Price</span>` 
+                : `$${service.price}`;
+                
+            item.innerHTML = `
+                <div class="fw-bold">${service.name}</div>
+                <small class="text-muted">${priceDisplay} - ${service.description || 'Sin descripción'}</small>
+            `;
+            
+            item.addEventListener("click", function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('Dropdown item clicked:', service.name);
+                selectService(input, service);
+            });
+            
+            dropdown.appendChild(item);
+        });
+        
+        dropdown.style.display = "block";
+    }
+
+    function hideServiceDropdown(input) {
+        const dropdown = input.parentNode.querySelector('.service-dropdown');
+        if (dropdown) {
+            dropdown.style.display = "none";
+        }
+    }
+
+    function confirmVariablePrice() {
+        const priceInput = document.getElementById('modalPrice');
+        const price = parseFloat(priceInput.value) || 0;
+        
+        if (price <= 0) {
+            priceInput.classList.add('is-invalid');
+            return;
+        }
+        
+        if (isNaN(price)) {
+            priceInput.classList.add('is-invalid');
+            return;
+        }
+        
+        priceInput.classList.remove('is-invalid');
+        
+        if (currentServiceInput && currentService) {
+            currentServiceInput.value = `${currentService.name} ($${price})`;
+            currentServiceInput.setAttribute("data-service-id", currentService.id);
+            currentServiceInput.setAttribute("data-price", price);
+            currentServiceInput.setAttribute("data-is-variable", "YES");
+            currentServiceInput.setAttribute("data-variable-price", price);
+            currentServiceInput.readOnly = true;
+            
+            currentServiceInput.style.borderColor = "#198754";
+            hideServiceDropdown(currentServiceInput);
+            updateSubtotal();
+        }
+        
+        try {
+            const modal = bootstrap.Modal.getInstance(document.getElementById('priceModal'));
+            if (modal) {
+                modal.hide();
+            } else {
+                const modalElement = document.getElementById('priceModal');
+                modalElement.classList.remove('show');
+                modalElement.style.display = 'none';
+                modalElement.setAttribute('aria-hidden', 'true');
+            }
+        } catch (error) {
+            const modalElement = document.getElementById('priceModal');
+            modalElement.classList.remove('show');
+            modalElement.style.display = 'none';
+            modalElement.setAttribute('aria-hidden', 'true');
+        }
+        
+        currentServiceInput = null;
+        currentService = null;
+    }
+
+    function selectService(input, service) {
+        console.log('selectService called with:', service.name, service);
+        
+        // Verificar si el servicio ya está agregado
+        const existingServices = document.querySelectorAll('.service-row');
+        for (let row of existingServices) {
+            const serviceInput = row.querySelector('.service-input');
+            const existingServiceId = serviceInput?.getAttribute('data-service-id');
+            
+            // Si encontramos el mismo servicio en otra fila (no la actual)
+            if (existingServiceId == service.id && serviceInput !== input) {
+                alert('⚠️ This service is already added to this sub-order. Please select a different service.');
+                
+                // Eliminar la fila vacía automáticamente
+                const currentRow = input.closest('.service-row');
+                if (currentRow && !input.getAttribute('data-service-id')) {
+                    currentRow.remove();
+                    updateSubtotal();
+                }
+                
+                hideServiceDropdown(input);
+                return;
+            }
+        }
+        
+        if (service.is_variable === 'YES') {
+            currentServiceInput = input;
+            currentService = service;
+            
+            document.getElementById('modalServiceName').value = service.name;
+            document.getElementById('modalPrice').value = '';
+            document.getElementById('modalPrice').classList.remove('is-invalid');
+            
+            try {
+                const modal = new bootstrap.Modal(document.getElementById('priceModal'));
+                modal.show();
+            } catch (error) {
+                console.error('Error opening modal:', error);
+                const modalElement = document.getElementById('priceModal');
+                if (modalElement) {
+                    modalElement.classList.add('show');
+                    modalElement.style.display = 'block';
+                    modalElement.setAttribute('aria-hidden', 'false');
+                }
+            }
+        } else {
+            console.log('Setting fixed price service:', service.name, service.price);
+            input.value = `${service.name} ($${service.price})`;
+            input.setAttribute("data-service-id", service.id);
+            input.setAttribute("data-price", service.price);
+            input.setAttribute("data-is-variable", "NO");
+            input.setAttribute("data-variable-price", "");
+            input.readOnly = true;
+            
+            input.style.borderColor = "#198754";
+            hideServiceDropdown(input);
+            updateSubtotal();
+        }
+    }
+
+    function updateSubtotal() {
+        let subtotalServicios = 0;
+        selectedServices = [];
+
+        document.querySelectorAll("#serviceRows tr").forEach((row, index) => {
+            const serviceInput = row.querySelector(".service-input");
+            const serviceId = serviceInput?.getAttribute("data-service-id");
+            const price = num(serviceInput?.getAttribute("data-price") || 0);
+            const qty = parseInt(row.querySelector(".qty-input")?.value) || 0;
+            const subtotalInput = row.querySelector(".subtotal-input");
+            const isVariable = serviceInput?.getAttribute("data-is-variable") === "YES";
+            const variablePrice = num(serviceInput?.getAttribute("data-variable-price") || 0);
+
+            // Validar inputs vacíos y marcarlos en rojo
+            if (!serviceId || serviceId.trim() === "") {
+                if (serviceInput) {
+                    serviceInput.style.borderColor = "#dc3545";
+                    console.log('Empty service detected in row:', index + 1);
+                }
+                if (subtotalInput) {
+                    subtotalInput.value = "0.00";
+                }
+                return;
+            } else {
+                if (serviceInput) {
+                    serviceInput.style.borderColor = "#198754";
+                }
+            }
+
+            if (!price) {
+                if (subtotalInput) {
+                    subtotalInput.value = "0.00";
+                }
+                return;
+            }
+
+            const subtotal = qty * price;
+            if (subtotalInput) {
+                subtotalInput.value = "$" + subtotal.toFixed(2);
+            }
+            subtotalServicios += subtotal;
+
+            selectedServices.push({ 
+                service: serviceId, 
+                qty, 
+                subtotal,
+                is_variable: isVariable ? "YES" : "NO",
+                variable_price: isVariable ? variablePrice : null
+            });
+        });
+
+        const discountType = (document.querySelector('select[name="discount_type"]').value || 'amount');
+        const discountValue = num(document.querySelector('input[name="discount_value"]').value || 0);
+
+        const descuento = (discountType === 'amount')
+            ? discountValue
+            : subtotalServicios * (discountValue / 100);
+
+        const base = Math.max(subtotalServicios - descuento, 0);
+
+        const taxRate = num(document.querySelector('input[name="tax_percentage"]')?.value || 0);
+        const tax = base * (taxRate / 100);
+        const grandTotal = base + tax;
+
+        const totalElement = document.getElementById("totalAmount");
+        if (totalElement) {
+            totalElement.value = "$" + grandTotal.toFixed(2);
+        }
+        
+        const selectedServicesElement = document.getElementById("selectedServices");
+        if (selectedServicesElement) {
+            selectedServicesElement.value = JSON.stringify(selectedServices);
+        }
+    }
+
+    function setupPaymentSplit() {
+        const paymentSplit = document.getElementById("paymentSplitSelect");
+        const splitFields = document.getElementById("splitFields");
+        const firstInput = document.querySelector('input[name="payment_split_percent_1"]');
+        const secondInput = document.getElementById("secondPaymentPercent");
+
+        function toggleSplit() {
+            if (paymentSplit.value === "2") {
+                splitFields.style.display = "block";
+                if (firstInput) {
+                    firstInput.value = 50;
+                    firstInput.removeAttribute('disabled');
+                    firstInput.setAttribute('min', '1');
+                    firstInput.setAttribute('max', '99');
+                    firstInput.removeAttribute('readonly');
+                }
+                if (secondInput) {
+                    secondInput.value = 50;
+                }
+            } else {
+                splitFields.style.display = "none";
+                if (firstInput) {
+                    firstInput.value = 100;
+                    firstInput.setAttribute('readonly', 'readonly');
+                    firstInput.removeAttribute('min');
+                    firstInput.removeAttribute('max');
+                    firstInput.removeAttribute('disabled');
+                }
+            }
+        }
+
+        function updateSecondInput() {
+            const firstValue = parseInt(firstInput.value) || 0;
+            const secondValue = 100 - firstValue;
+            secondInput.value = (secondValue >= 0 && secondValue <= 100) ? secondValue : 0;
+        }
+
+        if (paymentSplit) {
+            paymentSplit.addEventListener("change", toggleSplit);
+        }
+        if (firstInput) {
+            firstInput.addEventListener("input", updateSecondInput);
+        }
+
+        toggleSplit();
+    }
+
+    // Initialize everything when DOM is loaded
+    document.addEventListener('DOMContentLoaded', function() {
+        setupPaymentSplit();
+        updateSubtotal();
+        
+        // Add event listeners for tax and discount changes
+        const taxInput = document.querySelector('input[name="tax_percentage"]');
+        if (taxInput) {
+            taxInput.addEventListener('input', updateSubtotal);
+        }
+        const discountTypeEl = document.querySelector('select[name="discount_type"]');
+        const discountValueEl = document.querySelector('input[name="discount_value"]');
+        if (discountTypeEl) discountTypeEl.addEventListener('change', updateSubtotal);
+        if (discountValueEl) discountValueEl.addEventListener('input', updateSubtotal);
+
+        // Add event listeners for existing service rows
+        document.querySelectorAll('.qty-input').forEach(input => {
+            input.addEventListener('input', updateSubtotal);
+        });
+
+        // Add event listener for confirm price button
+        const confirmPriceBtn = document.getElementById('confirmPrice');
+        if (confirmPriceBtn) {
+            confirmPriceBtn.addEventListener('click', confirmVariablePrice);
+        }
+
+        document.querySelectorAll('.service-input').forEach(input => {
+            const isVariable = input.getAttribute('data-is-variable') === 'YES';
+            const variablePrice = input.getAttribute('data-variable-price');
+            
+            if (isVariable && variablePrice) {
+                input.setAttribute('data-price', variablePrice);
+            }
+        });
+
+        // Add event listener delegado para botones de eliminar (funciona con servicios existentes y nuevos)
+        document.getElementById('serviceRows')?.addEventListener('click', function(e) {
+            if (e.target && e.target.classList.contains('remove-service-btn')) {
+                const row = e.target.closest('tr');
+                if (row) {
+                    row.remove();
+                    updateSubtotal();
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}

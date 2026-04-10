@@ -1,0 +1,84 @@
+{% extends 'templates/base.admin.twig' %}
+{% import 'templates/macros.twig' as macros %}
+
+{% block body %}
+
+    <h1 class="h3 mb-4">
+        <i data-feather="plus"></i> Edit Service
+    </h1>
+
+    {{ macros.breadcrumb2() }}
+
+    <section class="card">
+        <div class="card-body">
+            <form method="POST">
+                <div class="mb-3">
+                    <label class="form-label">Service Name</label>
+                    <input type="text" name="name" class="form-control" required value="{{ service.name }}" maxlength="50" required>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Description</label>
+                    <input type="text"  name="description" class="form-control"  maxlength="100" value="{{ service.description }}" required>
+                </div>
+
+                 <div class="mb-3">
+                    <label class="form-label">Extrernal URL</label> <small> (More Details or promotions you want to add))</small>
+                    <input type="text"  name="description_url" class="form-control"  maxlength="200" value="{{ service.description_url }}" >
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Variable Price</label>
+                    <div class="form-check">
+                        <input type="checkbox" name="is_variable" id="is_variable" class="form-check-input" value="YES" {% if service.is_variable == 'YES' %}checked{% endif %}>
+                        <label class="form-check-label" for="is_variable">
+                            This service has variable pricing (price will be set per order)
+                        </label>
+                    </div>
+                </div>
+
+                <div class="mb-3" id="price_field">
+                    <label class="form-label">Price ($)</label>
+                    <input type="number" name="price" step="0.01" class="form-control" value="{{ service.price }}" required {% if service.is_variable == 'YES' %}readonly{% endif %}>
+                    <small class="text-muted">{% if service.is_variable == 'YES' %}Price is readonly for variable pricing services{% else %}Leave as 0.00 if using variable pricing{% endif %}</small>
+                </div>
+
+                <div>
+                    <button class="btn btn-primary">💾 Update Service</button>
+                    {{ macros.back_btn(title="Cancel") }}
+                </div>
+            </form>
+        </div>
+    </section>
+
+    <script>
+        document.getElementById('is_variable').addEventListener('change', function() {
+            const priceField = document.getElementById('price_field');
+            const priceInput = priceField.querySelector('input[name="price"]');
+            const helpText = priceField.querySelector('small');
+            
+            if (this.checked) {
+                priceInput.value = '0.00';
+                priceInput.readOnly = true;
+                priceField.classList.add('text-muted');
+                helpText.textContent = 'Price is readonly for variable pricing services';
+            } else {
+                priceInput.value = '';
+                priceInput.readOnly = false;
+                priceField.classList.remove('text-muted');
+                helpText.textContent = 'Leave as 0.00 if using variable pricing';
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const isVariableCheckbox = document.getElementById('is_variable');
+            const priceField = document.getElementById('price_field');
+            const priceInput = priceField.querySelector('input[name="price"]');
+            
+            if (isVariableCheckbox.checked) {
+                priceInput.readOnly = true;
+                priceField.classList.add('text-muted');
+            }
+        });
+    </script>
+{% endblock %}

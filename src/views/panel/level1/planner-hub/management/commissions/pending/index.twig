@@ -1,0 +1,110 @@
+{% extends 'templates/base.admin.twig' %}
+{% import 'templates/macros.twig' as macros %}
+
+{% block body %}
+
+	<h1 class="h3 mb-4">💰 Pending Commissions to Pay</h1>
+	{{ macros.breadcrumb2() }}
+
+	{% if error is defined %}
+		<div class="alert alert-danger">
+			<strong>Error:</strong> {{ error }}
+		</div>
+	{% endif %}
+
+	<section class="card">
+		<div class="card-body">
+
+			<form method="get" class="row mb-4" id="filter-form">
+				<div class="col-md-3">
+					<label class="form-label">Affiliate</label>
+					<select name="affiliate_id" class="form-select">
+						<option value="">All Affiliates</option>
+						{% for affiliate in affiliates %}
+							<option value="{{ affiliate.id }}" {{ affiliate.id == affiliateId ? 'selected' : '' }}>
+								{{ affiliate.name }} ({{ affiliate.email }})
+							</option>
+						{% endfor %}
+					</select>
+				</div>
+
+				<div class="col-md-3">
+					<label class="form-label">From</label>
+					<input type="date" name="from" class="form-control" value="{{ from }}">
+				</div>
+
+				<div class="col-md-3">
+					<label class="form-label">To</label>
+					<input type="date" name="to" class="form-control" value="{{ to }}">
+				</div>
+
+				<div class="col-md-3 d-flex align-items-end">
+					<button class="btn btn-primary w-100">Filter</button>
+					<button type="button" onclick="resetAndSubmit()" class="btn btn-outline-secondary ms-2">
+						<i data-feather="rotate-ccw"></i>
+					</button>
+				</div>
+			</form>
+
+			<div class="bg-white rounded-4 shadow-sm overflow-hidden">
+				<div class="table-responsive">
+					<table class="table table-hover mb-0">
+						<thead class="bg-light">
+							<tr>
+								<th>Affiliate</th>
+								<th>Commissions Count</th>
+								<th>Total Amount</th>
+								<th>Date Range</th>
+								<th>Details</th>
+							</tr>
+						</thead>
+						<tbody>
+							{% for item in groupedCommissions %}
+								<tr>
+									<td style="min-width: 200px;">
+										<div>
+											<div class="fw-bold">{{ item.referrer_name }}</div>
+											<small class="text-muted">{{ item.referrer_email }}</small>
+										</div>
+									</td>
+									<td style="min-width: 150px;">
+										<span class="badge bg-info">{{ item.commission_count }}</span>
+									</td>
+									<td style="min-width: 150px;">
+										<span class="fw-bold text-success">${{ item.total_amount|number_format(2, '.', ',') }}</span>
+									</td>
+									<td style="min-width: 200px;">
+										<small>
+											{{ item.oldest_commission|date("M j, Y") }} - {{ item.newest_commission|date("M j, Y") }}
+										</small>
+									</td>
+									<td style="min-width: 200px;">
+										<a href="{{ path('panel/planner-hub/management/commissions/pending/details', { id: item.referrer_id }) }}" class="btn btn-outline-primary btn-sm">
+											<i data-feather="eye"></i>
+											View & Pay
+										</a>
+									</td>
+								</tr>
+							{% else %}
+								<tr>
+									<td colspan="5" class="text-center text-muted py-4">
+										No pending commissions found
+									</td>
+								</tr>
+							{% endfor %}
+						</tbody>
+					</table>
+				</div>
+			</div>
+		</div>
+	</section>
+
+{% endblock %}
+
+{% block scripts %}
+	<script>
+		function resetAndSubmit() {
+			window.location.href = window.location.pathname
+		}
+	</script>
+{% endblock %}

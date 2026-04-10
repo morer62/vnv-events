@@ -1,0 +1,131 @@
+{% extends 'templates/base.admin.twig' %}
+{% import 'templates/macros.twig' as macros %}
+
+{% block body %}
+<main class="mt-4 container">
+
+  {{ macros.breadcrumb2() }}
+
+  <h3 class="fw-bold mb-4">Team & Operations</h3>
+
+  <section>
+    <div class="row text-center g-4">
+
+      <!-- CRM -->
+      <div class="col-md-4">
+        <div class="p-5 bg-white rounded-4 shadow-sm h-100">
+          <img src="{{ asset_for('assets/images/icons_website/icon_4.png') }}" alt="CRM" class="mb-4" style="height: 110px;">
+          <h5 class="fw-bold mb-2">📇 CRM</h5>
+          <p class="text-muted fs-6 mb-3">Manage your client relationships and communication history.</p>
+          <a href="{{ path('panel/planner-hub/management/crm') }}" class="btn btn-primary fw-bold px-4">Access</a>
+        </div>
+      </div>
+
+      <!-- Orders -->
+      <div class="col-md-4">
+        <div class="p-5 bg-white rounded-4 shadow-sm h-100">
+          <img src="{{ asset_for('assets/images/icons_website/icon_3.png') }}" alt="Orders" class="mb-4" style="height: 110px;">
+          <h5 class="fw-bold mb-2">📦 Orders</h5>
+          <p class="text-muted fs-6 mb-3">Create and track event orders and assigned resources.</p>
+          <a href="{{ path('panel/planner-hub/management/orders') }}" class="btn btn-secondary fw-bold px-4">Access</a>
+        </div>
+      </div>
+
+      <!-- Payroll -->
+      <div class="col-md-4">
+        <div class="p-5 bg-white rounded-4 shadow-sm h-100">
+          <img src="{{ asset_for('assets/images/icons_website/icon_7.png') }}" alt="Payroll" class="mb-4" style="height: 110px;">
+          <h5 class="fw-bold mb-2">💰 Payroll</h5>
+          <p class="text-muted fs-6 mb-3">Manage team payments, roles and compensation.</p>
+          <a href="{{ path('panel/planner-hub/management/payroll') }}" class="btn btn-primary fw-bold px-4">Access</a>
+        </div>
+      </div>
+
+
+</section>
+
+  <!-- 🔹 Explore More -->
+  <section>
+    <h3 class="fw-bold mb-4"><br><br>Esential Tools</h3>
+    <div class="d-flex overflow-auto gap-4 pb-3">
+
+    <!-- Inventory -->
+    <div class="col-md-3">
+      <div class="p-5 bg-white rounded-4 shadow-sm h-100">
+        <img src="{{ asset_for('assets/images/icons_website/icon_1.png') }}" alt="Inventory" class="mb-4" style="height: 90px;">
+        <h5 class="fw-bold mb-2">📦 Inventory</h5>
+        <p class="text-muted fs-6 mb-3">Control item inventory and storage containers.</p>
+        <a href="{{ path('panel/planner-hub/management/storage') }}" class="btn btn-dark btn-lg fw-bold px-4">Access</a>
+      </div>
+    </div>
+
+    <!-- Users -->
+    <div class="col-md-3">
+      <div class="p-5 bg-white rounded-4 shadow-sm h-100 d-flex flex-column align-items-center justify-content-between">
+        <div>
+          <img src="{{ asset_for('assets/images/icons_website/icon_2.png') }}" alt="Users" class="mb-4" style="height: 90px;">
+          <h5 class="fw-bold mb-2">👥 Users</h5>
+          <p class="text-muted fs-6 mb-3">Manage team and client users.</p>
+        </div>
+        <div>
+          <a href="{{ path('panel/planner-hub/management/users') }}" class="btn btn-primary btn-lg fw-bold px-4 mb-2">Access</a><br> 
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-3">
+      <div class="p-5 bg-white rounded-4 shadow-sm h-100 d-flex flex-column align-items-center justify-content-between">
+        <div>
+          <img src="{{ asset_for('assets/images/icons_website/icon_10.png') }}" alt="Users" class="mb-4" style="height: 90px;">
+          <h5 class="fw-bold mb-2">👥 Roles Access</h5>
+
+          
+          <p class="text-muted fs-6 mb-3">Manage Roles and Private Access.</p>
+        </div>
+        <div> 
+
+            {% if user.level in [1, 2, 3] %}
+                
+                <a href="{{ path('panel/planner-hub/management/roles') }}"  class="btn btn-primary btn-lg fw-bold px-4 mb-2">Access</a>
+            {% elseif user.level == 4 %}
+            
+                  <p>This area is for management access only. </p>
+            {% endif %}
+
+          
+        </div>
+      </div>
+    </div>
+
+    <!-- Banking -->
+    <div class="col-md-3">
+      <div class="p-5 bg-white rounded-4 shadow-sm h-100">
+        <img src="{{ asset_for('assets/images/icons_website/icon_3.png') }}" alt="Banking" class="mb-4" style="height: 90px;">
+        <h5 class="fw-bold mb-2">🏦 Banking</h5>
+        <p class="text-muted fs-6 mb-3">View your balance and manage Stripe payouts.</p>
+        {% if user.level in [1, 2, 3] %}
+                
+                <a href="{{ path('panel/planner-hub/management/payments') }}" class="btn btn-success btn-lg fw-bold px-4">Access</a>
+            {% elseif user.level == 4 %}
+            
+                  <p>This area is for management access only. </p>
+            {% endif %}
+       
+      </div>
+    </div>
+
+   </section>
+
+  </div>
+</section>
+
+
+      
+
+      
+
+    </div>
+  </section>
+
+</main>
+{% endblock %}

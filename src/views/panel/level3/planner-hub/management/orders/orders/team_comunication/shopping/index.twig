@@ -1,0 +1,115 @@
+{% extends 'templates/base.admin.twig' %}
+{% import 'templates/macros.twig' as macros %}
+
+{% block body %}
+<h1 class="h3 mb-4">🛒 Shopping List for Order VNV-341{{ order_id }}</h1>
+
+ {# Back según convención al listado de órdenes #}
+  <a href="{{ path('panel/planner-hub/management/orders/orders/team_comunication') }}?id={{ order_id }}" class="btn btn-outline-secondary mb-3">  
+    ← Back to Team Area
+  </a>
+
+<form method="post">
+    <input type="hidden" name="order_id" value="{{ order_id }}">
+
+    <div class="card mb-4">
+        <div class="card-header bg-primary text-white">
+            <h4 class="mb-0">📋 Main Order #{{ order_id }} - Shopping List</h4>
+        </div>
+        <div class="card-body">
+            {% for service in services %}
+                <div class="card mb-3">
+                    <div class="card-header fw-bold bg-light">🧩 {{ service.name }}</div>
+                    <div class="card-body" id="shopping-main-{{ service.id_service }}">
+                        {% set shoppingKey = 'main_' ~ service.id_service %}
+                        <input type="hidden" name="shopping_keys[{{ shoppingKey }}][source]" value="main_order">
+                        <input type="hidden" name="shopping_keys[{{ shoppingKey }}][service_id]" value="{{ service.id_service }}">
+                        {% for item in service.items %}
+                            <div class="border p-2 mb-3 position-relative">
+                                <input type="text" maxlength="40" name="shopping[{{ shoppingKey }}][{{ loop.index0 }}][item]" value="{{ item.item }}" class="form-control mb-2" placeholder="Item name">
+                                <input type="text" maxlength="10" name="shopping[{{ shoppingKey }}][{{ loop.index0 }}][quantity]" value="{{ item.quantity }}" class="form-control mb-2" placeholder="Quantity (optional)">
+                                <textarea maxlength="40" name="shopping[{{ shoppingKey }}][{{ loop.index0 }}][notes]" class="form-control mb-2" placeholder="Notes">{{ item.notes }}</textarea>
+                                <button type="button" class="btn-close position-absolute end-0 top-0 m-3" onclick="this.parentNode.remove()"></button>
+                            </div>
+                        {% endfor %}
+                        <button type="button" class="btn btn-outline-secondary" onclick="addItem('main', {{ service.id_service }}, '{{ shoppingKey }}')">➕ Add Item</button>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    {% if suborderServices|length > 0 %}
+        {% for suborder in suborders %}
+            <div class="card mb-4">
+                <div class="card-header bg-info text-white">
+                    <h4 class="mb-0">📦 Sub-Order #{{ suborder.id }} - Shopping List</h4>
+                </div>
+                <div class="card-body">
+                    {% for service in suborderServices %}
+                        {% if service.suborder_id == suborder.id %}
+                            <div class="card mb-3">
+                                <div class="card-header fw-bold bg-light">🧩 {{ service.name }}</div>
+                                <div class="card-body" id="shopping-sub-{{ suborder.id }}-{{ service.id_service }}">
+                                    {% set shoppingKey = 'sub_' ~ suborder.id ~ '_' ~ service.id_service %}
+                                    <input type="hidden" name="shopping_keys[{{ shoppingKey }}][source]" value="suborder">
+                                    <input type="hidden" name="shopping_keys[{{ shoppingKey }}][service_id]" value="{{ service.id_service }}">
+                                    <input type="hidden" name="shopping_keys[{{ shoppingKey }}][suborder_id]" value="{{ suborder.id }}">
+                                    {% for item in service.items %}
+                                        <div class="border p-2 mb-3 position-relative">
+                                            <input type="text" maxlength="40" name="shopping[{{ shoppingKey }}][{{ loop.index0 }}][item]" value="{{ item.item }}" class="form-control mb-2" placeholder="Item name">
+                                            <input type="text" maxlength="10" name="shopping[{{ shoppingKey }}][{{ loop.index0 }}][quantity]" value="{{ item.quantity }}" class="form-control mb-2" placeholder="Quantity (optional)">
+                                            <textarea maxlength="40" name="shopping[{{ shoppingKey }}][{{ loop.index0 }}][notes]" class="form-control mb-2" placeholder="Notes">{{ item.notes }}</textarea>
+                                            <button type="button" class="btn-close position-absolute end-0 top-0 m-3" onclick="this.parentNode.remove()"></button>
+                                        </div>
+                                    {% endfor %}
+                                    <button type="button" class="btn btn-outline-secondary" onclick="addItem('sub', {{ service.id_service }}, {{ suborder.id }}, '{{ shoppingKey }}')">➕ Add Item</button>
+                                </div>
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <button class="btn btn-success">
+        <i data-feather="save"></i> Save Shopping List
+    </button>
+</form>
+
+<script>
+function addItem(source, serviceId, suborderId = null, shoppingKey = null) {
+    const containerId = source === 'sub' 
+        ? `shopping-sub-${suborderId}-${serviceId}`
+        : `shopping-main-${serviceId}`;
+    const container = document.getElementById(containerId);
+    
+    if (!container) {
+        console.error('Container not found:', containerId);
+        alert('Error: No se pudo encontrar el contenedor. Por favor, recarga la página.');
+        return;
+    }
+    
+    // Si no se proporciona shoppingKey, generarlo
+    if (!shoppingKey) {
+        shoppingKey = source === 'sub' 
+            ? `sub_${suborderId}_${serviceId}`
+            : `main_${serviceId}`;
+    }
+    
+    const existing = container.querySelectorAll('[name^="shopping[' + shoppingKey + ']"]');
+    const currentIndex = Math.floor(existing.length / 3);
+
+    const div = document.createElement('div');
+    div.className = "border p-2 mb-3 position-relative";
+    div.innerHTML = `
+        <input type="text" maxlength="40" name="shopping[${shoppingKey}][${currentIndex}][item]" class="form-control mb-2" placeholder="Item name">
+        <input type="text" maxlength="10" name="shopping[${shoppingKey}][${currentIndex}][quantity]" class="form-control mb-2" placeholder="Quantity (optional)">
+        <textarea maxlength="40" name="shopping[${shoppingKey}][${currentIndex}][notes]" class="form-control mb-2" placeholder="Notes"></textarea>
+        <button type="button" class="btn-close position-absolute end-0 top-0 m-3" onclick="this.parentNode.remove()"></button>
+    `;
+    container.insertBefore(div, container.lastElementChild);
+}
+</script>
+{% endblock %}

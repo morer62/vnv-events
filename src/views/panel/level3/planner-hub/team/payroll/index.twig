@@ -1,0 +1,67 @@
+{% extends 'templates/base.admin.twig' %}
+{% import 'templates/macros.twig' as macros %}
+
+{% block body %}
+
+
+
+<h1 class="h3">Payroll</h1>
+{{ macros.breadcrumb2() }}
+
+ {% if user.level == 4 %}
+  
+ <!-- 🔹 Highlight Block: Your Orders -->
+  <section class="p-5 rounded-4 shadow-sm mb-5 text-white" style="background: linear-gradient(135deg, #00cec9, #0984e3);">
+    <h2 class="fw-bold mb-2">💰 Your Bank</h2>
+    <p class="fs-5 mb-3">Personal informationand Finantial Updates.</p>
+    <a href="{{ path('panel/planner-hub/team/payments') }}" class="btn btn-light btn-lg fw-bold px-4">Continue</a>
+  </section>
+   {% endif %}
+
+
+
+
+  <!-- 🔹 Repeated Tools -->
+  <section>
+    <h3 class="fw-bold mb-4">Quick Access</h3>
+    <div class="row text-center g-4">
+
+      <!-- Chat -->
+      <div class="col-md-4">
+        <div class="p-5 bg-white rounded-4 shadow-sm h-100">
+          <img src="{{ asset_for('assets/images/icons_website/icon_1.png') }}" alt="Chat" class="mb-4" style="height: 110px;">
+          <h4 class="fw-bold mb-2">⏱️ Time Tracker</h4>
+          <p class="text-muted fs-6 mb-3">Start and stop your work timer with one click.</p>
+          <a href="{{ path(current_location ~ '/clock') }}" class="btn btn-primary btn-lg fw-bold px-4">Clock</a>
+        </div>
+      </div>
+
+
+      <!-- Basic Setting -->
+      <div class="col-md-4">
+        <div class="p-5 bg-white rounded-4 shadow-sm h-100">
+          <img src="{{ asset_for('assets/images/icons_website/icon_2.png') }}" alt="Settings" class="mb-4" style="height: 110px;">
+          <h4 class="fw-bold mb-2">💼  Pending Payments</h4>
+          <p class="text-muted fs-6 mb-3">Review your logged hours and any pending payments</p>
+          <a href="{{ path(current_location ~ '/pending') }}" class="btn btn-secondary btn-lg fw-bold px-4">Go</a>
+        </div>
+      </div>
+
+     
+
+      <!-- Essential Tools -->
+      <div class="col-md-4">
+        <div class="p-5 bg-white rounded-4 shadow-sm h-100">
+          <img src="{{ asset_for('assets/images/icons_website/icon_4.png') }}" alt="Tools" class="mb-4" style="height: 110px;">
+          <h4 class="fw-bold mb-2">🧰 Received Payments</h4>
+          <p class="text-muted fs-6 mb-3">Incoming Payments Record</p>
+          <a href="{{ path(current_location ~ '/paid') }}"  class="btn btn-success btn-lg fw-bold px-4">Explore</a>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+</main>
+</div>
+{% endblock %}

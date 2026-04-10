@@ -1,0 +1,151 @@
+{% extends 'templates/base.admin.twig' %}
+{% import 'templates/macros.twig' as macros %}
+
+{% block body %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h2 class="h4 mb-0">
+                        <i data-feather="edit"></i> Create New Forum Topic
+                    </h2>
+                </div>
+
+                <div class="card-body p-4">
+                    <form method="POST" enctype="multipart/form-data">
+                        <!-- Category -->
+                        <div class="mb-4">
+                            <label for="category_id" class="form-label fw-bold">
+                                Category <span class="text-danger">*</span>
+                            </label>
+                            <select name="category_id" id="category_id" class="form-select" required>
+                                <option value="">Select a category...</option>
+                                {% for category in categories %}
+                                <option value="{{ category.id }}" {% if selectedCategory == category.id %}selected{% endif %}>
+                                    {{ category.icon|default('📁') }} {{ category.name }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <!-- Title -->
+                        <div class="mb-4">
+                            <label for="title" class="form-label fw-bold">
+                                Title <span class="text-danger">*</span>
+                            </label>
+                            <input type="text" name="title" id="title" class="form-control" 
+                                   placeholder="Enter a descriptive title for your topic" 
+                                   maxlength="500" required>
+                            <div class="form-text">Make it clear and concise (max 500 characters)</div>
+                        </div>
+
+                        <!-- Content -->
+                        <div class="mb-4">
+                            <label for="content" class="form-label fw-bold">
+                                Content <span class="text-danger">*</span>
+                            </label>
+                            <textarea name="content" id="content" class="form-control" 
+                                      rows="12" placeholder="Write your post content here..." required></textarea>
+                            <div class="form-text">Share your thoughts, questions, or insights</div>
+                        </div>
+
+                        <!-- Attachments -->
+                        <div class="mb-4">
+                            <label for="attachments" class="form-label fw-bold">
+                                📎 Attachments (Optional)
+                            </label>
+                            <input type="file" name="attachments[]" id="attachments" 
+                                   class="form-control" multiple accept="image/*,.pdf">
+                            <div class="form-text">
+                                You can upload multiple images or PDFs (max 5MB each)
+                            </div>
+                            <div id="preview" class="mt-3 row g-2"></div>
+                        </div>
+
+                        <!-- Options -->
+                        <div class="mb-4">
+                            <div class="form-check">
+                                <input type="checkbox" name="is_pinned" id="is_pinned" class="form-check-input" value="1">
+                                <label for="is_pinned" class="form-check-label">
+                                    📌 Pin this topic (it will appear at the top of the category)
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Actions -->
+                        <div class="d-flex justify-content-between">
+                            <a href="{{ path('forum') }}" class="btn btn-outline-secondary">
+                                <i data-feather="x"></i> Cancel
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i data-feather="send"></i> Publish Topic
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Guidelines -->
+            <div class="card border-0 shadow-sm mt-4">
+                <div class="card-body">
+                    <h5 class="fw-bold mb-3">💡 Community Guidelines</h5>
+                    <ul class="mb-0">
+                        <li>Be respectful and courteous to all members</li>
+                        <li>Stay on topic and post in the appropriate category</li>
+                        <li>Use clear and descriptive titles</li>
+                        <li>Search before posting to avoid duplicates</li>
+                        <li>Do not spam or post promotional content</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Preview uploaded images
+document.getElementById('attachments').addEventListener('change', function(e) {
+    const preview = document.getElementById('preview');
+    preview.innerHTML = '';
+    
+    const files = e.target.files;
+    for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        
+        if (file.type.startsWith('image/')) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const col = document.createElement('div');
+                col.className = 'col-md-3';
+                col.innerHTML = `
+                    <div class="position-relative">
+                        <img src="${e.target.result}" class="img-fluid rounded" alt="${file.name}">
+                        <div class="position-absolute top-0 end-0 p-1">
+                            <span class="badge bg-dark">${(file.size / 1024).toFixed(0)}KB</span>
+                        </div>
+                    </div>
+                `;
+                preview.appendChild(col);
+            };
+            reader.readAsDataURL(file);
+        } else {
+            const col = document.createElement('div');
+            col.className = 'col-md-12';
+            col.innerHTML = `
+                <div class="alert alert-secondary py-2 px-3 mb-2">
+                    <i data-feather="file"></i> ${file.name} (${(file.size / 1024).toFixed(0)}KB)
+                </div>
+            `;
+            preview.appendChild(col);
+            feather.replace();
+        }
+    }
+});
+</script>
+{% endblock %}
+
+
+
+
+

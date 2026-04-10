@@ -1,0 +1,115 @@
+{% extends 'templates/base.admin.twig' %}
+{% import 'templates/macros.twig' as macros %}
+
+{% block body %}
+<main class="mt-4 container">
+
+  {# Back según convención al hub de team communication #}
+  <a href="{{ path('panel/planner-hub/management/orders/orders/suborders/team_comunication') }}?id={{ id }}" class="btn btn-outline-secondary mb-3">
+    ← Back to Team Communication
+  </a>
+
+  <!-- 🔹 Sub-Order Information -->
+  <div class="alert alert-info mb-4">
+    <h5>📋 Sub-Order Information</h5>
+    <p><strong>Sub-Order ID:</strong> Sub-{{ suborder.id }}</p>
+    <p><strong>Parent Order:</strong> VNV 341{{ order.id }}</p>
+    <p><strong>Event Date:</strong> {{ order.event_date|date("l, M j, Y") }}</p>
+    <p><strong>Time:</strong> {{ order.start_time|date("g:i A") }} - {{ order.end_time|date("g:i A") }}</p>
+    <p><strong>Address:</strong> {{ order.address }}</p>
+  </div>
+
+  <!-- 🔹 Staff Management -->
+  <section class="mb-5">
+    <h3 class="fw-bold mb-4">👥 Staff Management</h3>
+    
+    <div class="row">
+      <!-- Available Staff -->
+      <div class="col-md-6">
+        <div class="card">
+          <div class="card-header">
+            <h5 class="mb-0">Available Staff</h5>
+          </div>
+          <div class="card-body">
+            {% if staff|length > 0 %}
+              <div class="list-group">
+                {% for member in staff %}
+                  {% set isInvited = false %}
+                  {% for invite in invited %}
+                    {% if invite.id_user == member.id %}
+                      {% set isInvited = true %}
+                    {% endif %}
+                  {% endfor %}
+                  
+                  <div class="list-group-item d-flex justify-content-between align-items-center">
+                    <div>
+                      <strong>{{ member.name }} {{ member.lastname }}</strong><br>
+                      <small class="text-muted">{{ member.email }}</small>
+                    </div>
+                    {% if isInvited %}
+                      <span class="badge bg-success">Invited</span>
+                    {% else %}
+                      <form method="post" style="display:inline;">
+                        <input type="hidden" name="id" value="{{ id }}">
+                        <input type="hidden" name="id_user" value="{{ member.id }}">
+                        <input type="hidden" name="action" value="invite">
+                        <button type="submit" class="btn btn-success btn-sm">Invite</button>
+                      </form>
+                    {% endif %}
+                  </div>
+                {% endfor %}
+              </div>
+            {% else %}
+              <p class="text-muted">No staff available.</p>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <!-- Invited Staff -->
+      <div class="col-md-6">
+        <div class="card">
+          <div class="card-header">
+            <h5 class="mb-0">Invited Staff</h5>
+          </div>
+          <div class="card-body">
+            {% if invited|length > 0 %}
+              <div class="list-group">
+                {% for invite in invited %}
+                  <div class="list-group-item d-flex justify-content-between align-items-center">
+                    <div>
+                      <strong>{{ invite.name }} {{ invite.lastname }}</strong><br>
+                      <small class="text-muted">{{ invite.email }}</small><br>
+                      <small class="text-muted">
+                        Invited: {{ invite.created_at|date("M j, Y g:i A") }}
+                        {% if invite.is_confirmed is not null %}
+                          {% if invite.is_confirmed %}
+                            | <span class="text-success">✅ Confirmed</span>
+                          {% else %}
+                            | <span class="text-danger">❌ Declined</span>
+                          {% endif %}
+                        {% else %}
+                          | <span class="text-warning">⏳ Pending</span>
+                        {% endif %}
+                      </small>
+                    </div>
+                    <form method="post" style="display:inline;">
+                      <input type="hidden" name="id" value="{{ id }}">
+                      <input type="hidden" name="id_user" value="{{ invite.id_user }}">
+                      <input type="hidden" name="action" value="remove">
+                      <button type="submit" class="btn btn-outline-danger btn-sm" onclick="return confirm('Are you sure you want to remove this invitation?')">Remove</button>
+                    </form>
+                  </div>
+                {% endfor %}
+              </div>
+            {% else %}
+              <p class="text-muted">No staff invited yet.</p>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+{% endblock %}

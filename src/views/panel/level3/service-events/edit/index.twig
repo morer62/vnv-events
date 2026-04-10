@@ -1,0 +1,59 @@
+{% extends 'templates/base.admin.twig' %}
+
+{% block body %}
+<div class="container-fluid h-100 d-flex flex-column justify-content-center p-3">
+    <h1 class="h3 mb-3 text-center">
+        <strong>Edit Event</strong> - For Service: {{ service.name }}
+    </h1>
+
+    <nav aria-label="breadcrumb" class="text-center">
+        <ol class="breadcrumb justify-content-center">
+            <li class="breadcrumb-item"><a href="{{ path('panel/home') }}">Home</a></li>
+            <li class="breadcrumb-item"><a href="{{ path('panel/services/home') }}">My services</a></li>
+            <li class="breadcrumb-item"><a href="{{ path('panel/service-events/home?id=' ~ service.id) }}">Events</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Edit</li>
+        </ol>
+    </nav>
+
+    <div class="d-flex justify-content-center align-items-center">
+        <div class="card shadow-lg p-4 w-100 w-md-75">
+            <div class="card-body">
+                <form method="post" enctype="multipart/form-data">
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Event Title</label> 
+                        <input class="form-control" name="name" required value="{{ event.name }}" type="text"/>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Description</label>
+                        <textarea class="form-control" maxlength="900" name="description" required>{{ event.description }}</textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">External Link (Tickets for sale or personal Website)</label>
+                        <input class="form-control" value="{{ event.external_link }}" name="external_link" type="url"/>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Start Date</label>
+                        <input class="form-control" name="start_date" required type="datetime-local" value="{{ event.start_date }}"/>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">End Date</label>
+                        <input class="form-control" name="end_date" required type="datetime-local" value="{{ event.end_date }}"/>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Image or Banner</label>
+                        <input class="form-control" name="image" type="file"/>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100">SAVE</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

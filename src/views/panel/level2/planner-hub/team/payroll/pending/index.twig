@@ -1,0 +1,130 @@
+{% extends 'templates/base.admin.twig' %}
+{% import 'templates/macros.twig' as macros %}
+
+{% block body %}
+<h1 class="h3 mb-4">💰 Pending Hours to Pay</h1>
+{{ macros.breadcrumb2() }}
+
+{# Summary by Institution #}
+{% if institutionSummaries is not empty %}
+<div class="alert alert-info">
+    <h5 class="mb-3">📊 Summary by Institution</h5>
+    {% for institutionName, summary in institutionSummaries %}
+        <div class="mb-2">
+            <strong>{{ institutionName }}:</strong> 
+            {{ summary.sessions }} session(s) - {{ summary.hours }} hours
+        </div>
+    {% endfor %}
+    <hr>
+    <div class="fw-bold">
+        <strong>Grand Total:</strong> {{ grandTotalSessions }} session(s) - {{ grandTotalHours }} hours
+    </div>
+</div>
+{% endif %}
+
+<section class="card">
+    <div class="card-body">
+        {% if groupedByInstitution is empty %}
+            <p class="text-muted text-center">No pending hours to pay.</p>
+        {% else %}
+            {% for institutionName, hours in groupedByInstitution %}
+                <h5 class="mb-3 mt-4">
+                    🏢 {{ institutionName }}
+                    <span class="badge bg-secondary">{{ institutionSummaries[institutionName].sessions }} sessions</span>
+                    <span class="badge bg-primary">{{ institutionSummaries[institutionName].hours }} hours</span>
+                </h5>
+                
+                <div class="table-responsive mb-4">
+                    <table class="table table-bordered text-center align-middle" style="min-width: 700px;">
+                        <thead>
+                            <tr>
+                                <th>Start</th>
+                                <th>End</th>
+                                <th>Total Hours</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for h in hours %}
+                                <tr>
+                                    <td style="min-width: 200px;">
+                                        {{ h.start_time|date_modify("+0 seconds")|date("l, M d, Y h:i A") }}
+                                    </td>
+                                    <td style="min-width: 200px;">
+                                        {{ h.end_time|date_modify("+0 seconds")|date("l, M d, Y h:i A") }}
+                                    </td> 
+                                    <td>{{ h.total_hours }}</td>
+                                </tr>
+                            {% endfor %}
+                            <tr class="table-light">
+                                <td colspan="2" class="text-end fw-bold">Subtotal - {{ institutionName }}</td>
+                                <td class="fw-bold">{{ institutionSummaries[institutionName].hours }} hours</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            {% endfor %}
+        {% endif %}
+    </div>
+</section>
+{% endblock %}
+
+{% block aside %}
+<div class="modal fade" id="editDatetimeModal" data-bs-backdrop="static" tabindex="-1" aria-labelledby="editDatetimeModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <form method="post">
+                <input id="userTimezone" type="hidden" name="userTimezone" value="" />
+                <input id="recordId" type="hidden" name="id" value="" />
+                <input id="editTimeAction" type="hidden" name="action" value="" />
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5" id="editDatetimeModalLabel">Edit Time</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <label for="dateTimeInput">New date and time</label>
+                    <input id="dateTimeInput" type="datetime-local" name="date" class="form-control" required />
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary">Save changes</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    let dateTimeModal = null;
+
+    document.addEventListener('DOMContentLoaded', function () {
+        dateTimeModal = new bootstrap.Modal("#editDatetimeModal");
+        document.getElementById("userTimezone").value = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    });
+
+    function resetAndSubmit() {
+        window.location.href = window.location.pathname;
+    }
+
+    function convertToLocalTime(time) {
+        const { DateTime } = luxon;
+        let utcDateTime = DateTime.fromFormat(time, "yyyy-MM-dd HH:mm:ss", { zone: "utc" });
+        return utcDateTime.setZone(DateTime.local().zoneName).toFormat("yyyy-MM-dd HH:mm");
+    }
+
+    function editStartDate(id, time) {
+        document.getElementById('recordId').value = id;
+        document.getElementById('editTimeAction').value = 'editStatDate';
+        document.getElementById('dateTimeInput').value = convertToLocalTime(time);
+        dateTimeModal.show();
+    }
+
+    function editEndDate(id, time) {
+        document.getElementById('recordId').value = id;
+        document.getElementById('editTimeAction').value = 'editEndDate';
+        document.getElementById('dateTimeInput').value = convertToLocalTime(time);
+        dateTimeModal.show();
+    }
+</script>
+{% endblock %}

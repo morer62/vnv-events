@@ -1,0 +1,757 @@
+{% extends "templates/base.twig" %}
+
+{% set show_whatsapp = true %}
+
+{% block styles %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+<style>
+:root{
+    --gourmet-primary:#f59e0b;
+    --gourmet-primary-dark:#d97706;
+    --gourmet-accent:#fb923c;
+    --gourmet-cream:#fff8ef;
+    --gourmet-soft:#fff3df;
+    --gourmet-dark:#1f1307;
+    --gourmet-dark-2:#2a1808;
+    --gourmet-text:#2d241c;
+    --gourmet-muted:#6f6255;
+    --gourmet-border:#ecd9bf;
+    --gourmet-success:#16a34a;
+    --gourmet-info:#0ea5e9;
+    --gourmet-shadow:0 18px 44px rgba(79,43,8,.10);
+}
+
+body{
+    color:var(--gourmet-text);
+    background:#fff;
+}
+
+.section{
+    padding:5rem 1.2rem;
+}
+
+.section-alt{
+    background:linear-gradient(180deg,#fffaf4 0%, #fff6ea 100%);
+}
+
+.container-narrow{
+    max-width:1180px;
+    margin:auto;
+}
+
+.g-title{
+    font-family:'Poppins', sans-serif;
+    font-weight:800;
+    font-size:clamp(2rem,4vw,3.4rem);
+    line-height:1.08;
+    letter-spacing:-.8px;
+    margin-bottom:1rem;
+    color:var(--gourmet-dark);
+}
+
+.g-title .highlight{
+    color:var(--gourmet-primary-dark);
+}
+
+.g-subtitle{
+    max-width:860px;
+    margin:0 auto 2rem;
+    color:var(--gourmet-muted);
+    font-size:1.08rem;
+    line-height:1.8;
+}
+
+.btn-main{
+    background:linear-gradient(135deg,var(--gourmet-primary),var(--gourmet-accent));
+    color:#23160a !important;
+    padding:1rem 1.85rem;
+    font-size:1.02rem;
+    border-radius:999px;
+    text-decoration:none;
+    font-weight:800;
+    display:inline-flex;
+    gap:.55rem;
+    align-items:center;
+    justify-content:center;
+    border:none;
+    box-shadow:0 12px 28px rgba(245,158,11,.28);
+    transition:all .22s ease;
+}
+
+.btn-main:hover{
+    transform:translateY(-2px);
+    background:linear-gradient(135deg,var(--gourmet-primary-dark),var(--gourmet-accent));
+}
+
+.btn-light{
+    padding:.95rem 1.4rem;
+    font-size:1rem;
+    border-radius:999px;
+    font-weight:800;
+    border:1.2px solid #f1d1a3;
+    color:var(--gourmet-dark) !important;
+    background:#fff;
+    text-decoration:none;
+    display:inline-flex;
+    align-items:center;
+    gap:.45rem;
+    justify-content:center;
+}
+
+.btn-glass{
+    padding:.95rem 1.4rem;
+    font-size:1rem;
+    border-radius:999px;
+    font-weight:800;
+    border:1.4px solid rgba(255,255,255,.45);
+    color:#fff !important;
+    background:rgba(255,255,255,.10);
+    backdrop-filter:blur(7px);
+    -webkit-backdrop-filter:blur(7px);
+    text-decoration:none;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    box-shadow:0 8px 24px rgba(0,0,0,.16);
+    transition:all .22s ease;
+}
+
+.btn-glass:hover{
+    background:rgba(255,255,255,.18);
+    border-color:rgba(255,255,255,.75);
+    transform:translateY(-1px);
+}
+
+.badge-pill{
+    display:inline-flex;
+    align-items:center;
+    gap:.45rem;
+    border-radius:999px;
+    padding:.55rem .9rem;
+    font-size:.9rem;
+    font-weight:800;
+}
+
+.badge-soft{
+    background:#fff2db;
+    border:1px solid #f6d8a5;
+    color:#8a5300;
+}
+
+.badge-light{
+    background:rgba(255,255,255,.14);
+    border:1px solid rgba(255,255,255,.18);
+    color:#fff7ea;
+}
+
+.hero-free{
+    position:relative;
+    overflow:hidden;
+    color:#fff;
+    background:
+        radial-gradient(900px 420px at 0% 0%, rgba(245,158,11,.16), transparent 60%),
+        linear-gradient(135deg, #251508 0%, #1f1307 55%, #361a06 100%);
+    padding:6.8rem 1.2rem 5rem;
+}
+
+.hero-free:after{
+    content:"";
+    position:absolute;
+    right:-70px;
+    top:-70px;
+    width:220px;
+    height:220px;
+    background:radial-gradient(circle, rgba(255,209,138,.16) 0%, rgba(255,209,138,0) 70%);
+    pointer-events:none;
+}
+
+.hero-free > *{
+    position:relative;
+    z-index:2;
+}
+
+.hero-logo{
+    max-width:120px;
+    filter:drop-shadow(0 8px 20px rgba(0,0,0,.20));
+}
+
+.hero-free h1{
+    font-size:clamp(2.4rem, 5.5vw, 5rem);
+    font-weight:900;
+    line-height:1.02;
+    letter-spacing:-1.1px;
+    margin:1rem auto 1rem;
+    max-width:1100px;
+}
+
+.hero-free h1 .warm{
+    color:#ffd18a;
+}
+
+.hero-lead{
+    max-width:920px;
+    margin:0 auto;
+    font-size:1.12rem;
+    line-height:1.85;
+    color:#fff4e5;
+}
+
+.hero-cta-row{
+    margin-top:2rem;
+    display:flex;
+    flex-wrap:wrap;
+    gap:.9rem;
+    justify-content:center;
+}
+
+.hero-micro{
+    margin-top:1rem;
+    color:#fce7c5;
+    font-size:.95rem;
+}
+
+.value-ribbon{
+    margin-top:-38px;
+    position:relative;
+    z-index:4;
+}
+
+.value-grid{
+    background:#fff;
+    border:1px solid #f0dcc1;
+    border-radius:24px;
+    box-shadow:var(--gourmet-shadow);
+    padding:1.2rem;
+}
+
+.value-box{
+    text-align:center;
+    padding:1rem;
+    border-radius:18px;
+}
+
+.value-box strong{
+    display:block;
+    color:var(--gourmet-primary-dark);
+    font-size:1.8rem;
+    line-height:1.1;
+}
+
+.value-box span{
+    display:block;
+    margin-top:.3rem;
+    color:var(--gourmet-muted);
+    font-weight:600;
+}
+
+.card-clean{
+    background:#fff;
+    padding:2rem 1.4rem;
+    border-radius:20px;
+    box-shadow:var(--gourmet-shadow);
+    border:1px solid rgba(94,55,15,.06);
+    height:100%;
+    transition:all .22s ease;
+}
+
+.card-clean:hover{
+    transform:translateY(-4px);
+    box-shadow:0 24px 54px rgba(79,43,8,.12);
+}
+
+.card-clean i.big-icon{
+    font-size:2rem;
+    color:var(--gourmet-primary-dark);
+    margin-bottom:1rem;
+}
+
+.card-clean h3{
+    font-size:1.3rem;
+    font-weight:800;
+    margin-bottom:.75rem;
+    color:var(--gourmet-dark);
+}
+
+.card-clean p{
+    color:var(--gourmet-muted);
+    line-height:1.75;
+    margin-bottom:0;
+}
+
+.tool-showcase{
+    background:linear-gradient(135deg,#fff3df 0%, #fff9f2 100%);
+    border:1px solid #f1dcb6;
+    border-radius:24px;
+    padding:2rem 1.4rem;
+    box-shadow:var(--gourmet-shadow);
+    height:100%;
+}
+
+.tool-showcase h3{
+    font-size:1.6rem;
+    font-weight:900;
+    color:var(--gourmet-dark);
+    margin-bottom:.75rem;
+}
+
+.tool-showcase p{
+    color:#5f5347;
+    line-height:1.8;
+    margin-bottom:1rem;
+}
+
+.tool-list{
+    list-style:none;
+    padding:0;
+    margin:0 0 1.2rem;
+}
+
+.tool-list li{
+    position:relative;
+    padding:.5rem 0 .5rem 1.45rem;
+    color:#4f463d;
+    line-height:1.7;
+}
+
+.tool-list li:before{
+    content:"✓";
+    position:absolute;
+    left:0;
+    top:.5rem;
+    color:var(--gourmet-success);
+    font-weight:900;
+}
+
+.dark-band{
+    position:relative;
+    color:#fff;
+    background:
+        radial-gradient(900px 420px at 0% 0%, rgba(245,158,11,.17), transparent 60%),
+        linear-gradient(135deg, #251508 0%, #1f1307 55%, #361a06 100%);
+}
+
+.dark-band .g-title,
+.dark-band .g-title .highlight{
+    color:#fff;
+}
+
+.dark-band .g-subtitle{
+    color:#f3ddbc;
+}
+
+.dark-card{
+    background:rgba(255,255,255,.08);
+    border:1px solid rgba(255,255,255,.10);
+    border-radius:20px;
+    padding:1.35rem;
+    height:100%;
+}
+
+.dark-card i{
+    font-size:1.6rem;
+    color:#ffd18a;
+    margin-bottom:.8rem;
+}
+
+.dark-card h4{
+    color:#fff;
+    font-size:1.13rem;
+    font-weight:800;
+    margin-bottom:.55rem;
+}
+
+.dark-card p{
+    color:#f5e4cb;
+    line-height:1.72;
+    margin:0;
+}
+
+.step-card{
+    background:#fff;
+    border:1px solid #efdfc6;
+    border-radius:22px;
+    padding:1.6rem;
+    text-align:left;
+    height:100%;
+    box-shadow:var(--gourmet-shadow);
+}
+
+.step-number{
+    width:44px;
+    height:44px;
+    border-radius:14px;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    background:linear-gradient(135deg,var(--gourmet-primary),var(--gourmet-accent));
+    color:#2d1904;
+    font-weight:900;
+    font-size:1.05rem;
+    margin-bottom:.9rem;
+}
+
+.step-card h4{
+    font-size:1.15rem;
+    font-weight:800;
+    margin-bottom:.55rem;
+}
+
+.step-card p{
+    color:var(--gourmet-muted);
+    line-height:1.74;
+    margin:0;
+}
+
+.final-cta{
+    background:linear-gradient(135deg,#271507 0%, #3a1f08 100%);
+    color:#fff;
+    border-radius:26px;
+    padding:3rem 1.5rem;
+    box-shadow:0 20px 50px rgba(0,0,0,.18);
+}
+
+.final-cta p{
+    max-width:840px;
+    margin:0 auto 1.6rem;
+    color:#f3dfbf;
+    font-size:1.08rem;
+    line-height:1.8;
+}
+
+@media (max-width: 768px){
+    .section{
+        padding:4rem 1rem;
+    }
+
+    .hero-free{
+        padding:6rem 1rem 4rem;
+    }
+
+    .hero-free h1{
+        font-size:2.35rem;
+        line-height:1.06;
+    }
+
+    .hero-lead{
+        font-size:1rem;
+    }
+
+    .value-ribbon{
+        margin-top:-20px;
+    }
+
+    .hero-cta-row{
+        flex-direction:column;
+    }
+
+    .btn-main,
+    .btn-light,
+    .btn-glass{
+        width:100%;
+        justify-content:center;
+    }
+}
+</style>
+{% endblock %}
+
+{% block body %}
+<main>
+
+<section class="hero-free text-center">
+    <div class="container-narrow">
+        <div class="mb-3">
+            <span class="badge-pill badge-light">
+                <i class="fa-solid fa-gift"></i> 100% Free to try
+            </span>
+        </div>
+
+        <img src="{{ asset_for('assets/images/planner-hub-logo-positive.png') }}" class="hero-logo" alt="VNV Gourmet Logo">
+
+        <h1>
+            Free tools to help you <span class="warm">eat better, train smarter, and build a healthier routine</span>
+        </h1>
+
+        <p class="hero-lead">
+            Before you even order, VNV Gourmet gives you something useful:
+            <strong>two free calculators</strong> that help you understand your calories, protein, hydration, training days,
+            weekly workouts, bedtime, wake-up targets, and more. No guesswork. No random internet advice. Just a smarter starting point.
+        </p>
+
+        <div class="hero-cta-row">
+            <a href="{{ path('signup?level=5') }}" class="btn-main">
+                <i class="fa-solid fa-user-plus"></i> Create free account
+            </a>
+
+            <a href="{{ path('login') }}" class="btn-glass">
+                <i class="fa-solid fa-right-to-bracket"></i> I already have an account
+            </a>
+        </div>
+
+        <p class="hero-micro">
+            Free access · Personalized tools · Better than guessing on your own
+        </p>
+    </div>
+</section>
+
+<section class="value-ribbon">
+    <div class="container">
+        <div class="value-grid">
+            <div class="row g-0">
+                <div class="col-md-3 col-6">
+                    <div class="value-box">
+                        <strong>Free</strong>
+                        <span>No cost to try</span>
+                    </div>
+                </div>
+                <div class="col-md-3 col-6">
+                    <div class="value-box">
+                        <strong>2 tools</strong>
+                        <span>Nutrition + Wellness</span>
+                    </div>
+                </div>
+                <div class="col-md-3 col-6">
+                    <div class="value-box">
+                        <strong>Real plan</strong>
+                        <span>Not generic advice</span>
+                    </div>
+                </div>
+                <div class="col-md-3 col-6">
+                    <div class="value-box">
+                        <strong>Better routine</strong>
+                        <span>Meals + movement + sleep</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="section">
+    <div class="container-narrow text-center">
+        <h2 class="g-title">
+            Why this is such a strong <span class="highlight">free offer</span>
+        </h2>
+        <p class="g-subtitle">
+            Most people do not need more random health content. They need clarity. These calculators give them a fast, useful, personalized starting point —
+            and that makes registering feel like a smart move, not a commitment trap.
+        </p>
+
+        <div class="row g-4 justify-content-center">
+            <div class="col-md-4">
+                <div class="card-clean">
+                    <i class="fa-solid fa-brain big-icon"></i>
+                    <h3>Less guesswork</h3>
+                    <p>Users stop bouncing between TikTok advice, YouTube opinions, and random calorie calculators that do not understand their real life.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card-clean">
+                    <i class="fa-solid fa-heart-pulse big-icon"></i>
+                    <h3>Immediate value</h3>
+                    <p>Before they even place an order, they already receive something practical: a better understanding of what to eat, how to train, and how to recover.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card-clean">
+                    <i class="fa-solid fa-repeat big-icon"></i>
+                    <h3>Natural path to meals</h3>
+                    <p>Once users see their nutrition and routine more clearly, your meal plans become the next obvious step instead of a hard sell.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="section section-alt">
+    <div class="container-narrow">
+        <div class="row g-4 align-items-stretch">
+            <div class="col-lg-6">
+                <div class="tool-showcase">
+                    <span class="badge-pill badge-soft mb-3">
+                        <i class="fa-solid fa-heart-pulse"></i> Free Nutrition Advisor
+                    </span>
+
+                    <h3>Know what your body may need</h3>
+                    <p>
+                        This tool helps users estimate daily calories, protein, hydration, fiber and food targets in a way that feels practical and real.
+                    </p>
+
+                    <ul class="tool-list">
+                        <li>Personalized calorie target based on goal and activity</li>
+                        <li>Protein goal with real portions like eggs, chicken, tuna and protein scoops</li>
+                        <li>Hydration and fiber guidance that feels usable</li>
+                        <li>Simple copyable daily plan users can actually follow</li>
+                    </ul>
+
+                    <a href="{{ path('signup?level=5') }}" class="btn-main">
+                        <i class="fa-solid fa-unlock"></i> Unlock for free
+                    </a>
+                </div>
+            </div>
+
+            <div class="col-lg-6">
+                <div class="tool-showcase">
+                    <span class="badge-pill badge-soft mb-3">
+                        <i class="fa-solid fa-dumbbell"></i> Free Wellness Advisor
+                    </span>
+
+                    <h3>Get a real weekly routine</h3>
+                    <p>
+                        This tool acts more like a coach. It gives users a structured weekly plan with exact training days, exercise ideas, cardio guidance, bedtime targets and recovery direction.
+                    </p>
+
+                    <ul class="tool-list">
+                        <li>Coach-style weekly schedule from Monday to Sunday</li>
+                        <li>Gym, home and no-gym options</li>
+                        <li>Training time guidance based on real availability</li>
+                        <li>Suggested bedtime, wake-up time and reset habits</li>
+                    </ul>
+
+                    <a href="{{ path('signup?level=5') }}" class="btn-main">
+                        <i class="fa-solid fa-bolt"></i> Try it free
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="section dark-band">
+    <div class="container-narrow">
+        <h2 class="g-title text-center">
+            Built for <span class="highlight">real people</span>, not just fitness influencers
+        </h2>
+        <p class="g-subtitle text-center">
+            These tools are designed to feel useful for the person who is busy, overwhelmed, trying to restart, trying to stay consistent, or simply wants a more practical routine.
+        </p>
+
+        <div class="row g-4">
+            <div class="col-md-3">
+                <div class="dark-card">
+                    <i class="fa-solid fa-briefcase"></i>
+                    <h4>Busy professionals</h4>
+                    <p>People who want a better routine without turning wellness into another full-time job.</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="dark-card">
+                    <i class="fa-solid fa-child-reaching"></i>
+                    <h4>Parents & families</h4>
+                    <p>Users who need a plan that respects limited time, real stress, and changing schedules.</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="dark-card">
+                    <i class="fa-solid fa-person-walking"></i>
+                    <h4>Beginners</h4>
+                    <p>Perfect for people who are starting with walking, home workouts, or simple better habits.</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="dark-card">
+                    <i class="fa-solid fa-dumbbell"></i>
+                    <h4>Goal-driven users</h4>
+                    <p>Also useful for people who want more structure around protein, workouts, recovery and progress.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="section">
+    <div class="container-narrow text-center">
+        <h2 class="g-title">
+            How it works in <span class="highlight">3 quick steps</span>
+        </h2>
+        <p class="g-subtitle">
+            This is one of the easiest ways to turn cold traffic into leads: offer real value first, then invite the next step.
+        </p>
+
+        <div class="row g-4 mt-2">
+            <div class="col-md-4">
+                <div class="step-card">
+                    <div class="step-number">01</div>
+                    <h4>Create your free account</h4>
+                    <p>Users register once and immediately unlock the free tools instead of landing on a dead-end sales page.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="step-card">
+                    <div class="step-number">02</div>
+                    <h4>Use both calculators</h4>
+                    <p>They get nutrition targets, training structure, sleep guidance and a better sense of what their routine needs.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="step-card">
+                    <div class="step-number">03</div>
+                    <h4>Move into meal plans</h4>
+                    <p>Once they see what supports their goals, your meals become the natural next action — not a random product push.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="section section-alt text-center">
+    <div class="container-narrow">
+        <h2 class="g-title">
+            Free tools can make your meal plans <span class="highlight">convert better</span>
+        </h2>
+        <p class="g-subtitle">
+            When users understand their goals more clearly, they become more confident buyers. They stop asking, “Should I do this?”
+            and start thinking, “What should I order first?”
+        </p>
+
+        <div class="row g-4 justify-content-center">
+            <div class="col-md-4">
+                <div class="card-clean">
+                    <i class="fa-solid fa-user-check big-icon"></i>
+                    <h3>Better-qualified leads</h3>
+                    <p>People who register for useful tools are often warmer and more intentional than random clicks.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card-clean">
+                    <i class="fa-solid fa-chart-line big-icon"></i>
+                    <h3>Higher trust</h3>
+                    <p>Free value builds credibility fast. It shows your brand is not just trying to sell meals — it is trying to help.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card-clean">
+                    <i class="fa-solid fa-cart-shopping big-icon"></i>
+                    <h3>Cleaner conversion path</h3>
+                    <p>Once the tools define the need, the meal plan becomes the obvious solution to support that routine.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="section text-center">
+    <div class="container-narrow">
+        <div class="final-cta">
+            <h2 class="g-title" style="color:#fff;">
+                Start with the free tools. Stay for the better routine.
+            </h2>
+            <p>
+                Give yourself a smarter place to begin. Unlock your <strong>free Nutrition Advisor</strong> and <strong>free Wellness Advisor</strong>,
+                then explore meal plans that support your goals with less chaos and more consistency.
+            </p>
+
+            <div class="d-flex flex-wrap gap-3 justify-content-center">
+                <a href="{{ path('signup?level=5') }}" class="btn-main">
+                    <i class="fa-solid fa-user-plus"></i> Create free account
+                </a>
+                <a href="{{ path('/meal-plans') }}" class="btn-glass">
+                    <i class="fa-solid fa-bowl-food"></i> View meal plans
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+</main>
+{% endblock %}

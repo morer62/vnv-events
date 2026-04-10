@@ -1,0 +1,96 @@
+{% extends 'templates/base.admin.twig' %}
+{% import 'templates/macros.twig' as macros %}
+
+{% block style %}
+    <style>
+        .empty-files {
+            font-size: 1.25rem;
+            user-select: none;
+            cursor: pointer;
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+    <section>
+        <h1 class="h3 mb-3">📁 Order Files</h1>
+
+        {{ macros.breadcrumb2() }}
+
+        <section class="card">
+            <div class="card-body">
+                <button type="button" class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#uploadFileModal">
+                    <i data-feather="upload-cloud"></i> Upload a new file
+                </button>
+
+                <div class="row">
+                    {% for file in files %}
+                        <div class="col-12 col-md-4 col-lg-3 mb-4">
+                            <div class="card border-1 border-dark-subtle">
+
+
+                                {% if not file.is_image %}
+                                    <div class="d-flex justify-content-center align-items-center flex-column p-5">
+                                        <div class="mb-2 fs-1">📄</div>
+                                        <p class="mb-1"><a href="{{ file.file_path }}" target="_blank" download>View Document</a></p>
+                                    </div>
+                                {% else %}
+                                    <img class="card-img-top" src="{{ file.file_path }}" alt="file-{{ file.id }}" />
+                                {% endif %}
+
+                                <div class="card-body">
+                                    <h6 class="mb-1">{{ file.title| default("Untitled") }}</h6>
+                                    <p class="small text-muted">{{ file.description | default("No description") }}</p>
+                                    {{ macros.delete_form(file.id) }}
+                                </div>
+
+
+                            </div>
+                        </div>
+                    {% else %}
+                        <div class="col-12 text-center">
+                            <p class="p-5 bg-dark-subtle empty-files" data-bs-toggle="modal" data-bs-target="#uploadFileModal">
+                                NO FILES UPLOADED <br>
+                                <i data-feather="file" style="height: 2rem; width: 2rem;"></i>
+                            </p>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </section>
+    </section>
+
+    <section class="modal fade" id="uploadFileModal" tabindex="-1" aria-labelledby="uploadFileModal" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-body">
+                    <form method="post" enctype="multipart/form-data">
+                        <input type="hidden" name="action" value="uploadFile" />
+                        <div class="mb-3">
+                            <label class="form-label">Title</label>
+                            <input class="form-control" name="title" type="text" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Description</label>
+                            <textarea class="form-control" name="description" rows="2"></textarea>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">File (PDF or Image)</label>
+                            <input class="form-control" name="file" required type="file" />
+                        </div>
+
+                        <div class="text-end">
+                            <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>
+                            <button type="submit" class="btn btn-primary">
+                                <i data-feather="upload-cloud"></i> Upload
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+
+{% endblock %}

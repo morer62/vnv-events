@@ -1,0 +1,131 @@
+{% extends 'templates/base.admin.twig' %}
+{% import 'templates/macros.twig' as macros %}
+
+{% block body %}
+<main class="mt-4">
+  <div class="container">
+
+    <h2 class="mb-4 text-center">Tools</h2>
+
+    {{ macros.breadcrumb2() }}
+
+   <div style="font-family: Arial, sans-serif; width: 100%; max-width: 600px; margin: auto; padding: 20px; background-color: #ffffff; border-radius: 8px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);">
+    <h2 style="text-align: center; color: #333333;">Complete Food Calculator</h2>
+
+    <!-- Primera Calculadora: Cantidades de Comida -->
+    <div style="display: grid; grid-template-columns: 1fr; gap: 15px; width: 100%;">
+        <div class="input-group">
+            <label for="eventType" style="display: block; color: #666666;">Event Type:</label>
+            <select id="eventType" style="width: 100%; padding: 8px; border: 1px solid #cccccc; border-radius: 4px;">
+                <option value="light">Light Gathering</option>
+                <option value="cocktail">Cocktail Party</option>
+                <option value="fullMeal">Full Meal</option>
+            </select>
+        </div>
+        
+        <div class="input-group">
+            <label for="guests" style="display: block; color: #666666;">Number of Guests:</label>
+            <input type="number" id="guests" placeholder="0" style="width: 100%; padding: 8px; border: 1px solid #cccccc; border-radius: 4px;">
+        </div>
+    </div>
+
+    <button onclick="calculateFoodQuantities()" style="width: 100%; margin-top: 15px; padding: 10px; background-color: #007BFF; color: #ffffff; border: none; border-radius: 4px; cursor: pointer;">
+        Calculate Food Quantities
+    </button>
+
+    <!-- Resultados de la Cantidad de Alimentos -->
+    <h3 style="text-align: center; color: #333333; margin-top: 20px;">Required Quantities</h3>
+    <p style="text-align: center; color: #333333;">Appetizers: <span id="appetizerQty">0</span> servings</p>
+    <p style="text-align: center; color: #333333;">Main Plates (protein, sides, salads): <span id="mainPlateQty">0</span> servings</p>
+    <p style="text-align: center; color: #333333;">Desserts: <span id="dessertQty">0</span> servings</p>
+
+    <!-- Segunda Calculadora: Costos de Comida -->
+    <h2 style="text-align: center; color: #333333; margin-top: 40px;">Food Cost Calculator</h2>
+
+    <div style="display: grid; grid-template-columns: 1fr; gap: 15px; width: 100%;">
+        <div class="input-group">
+            <label for="appetizerPrice" style="display: block; color: #666666;">Price per Appetizer Serving:</label>
+            <input type="number" id="appetizerPrice" placeholder="0" style="width: 100%; padding: 8px; border: 1px solid #cccccc; border-radius: 4px;">
+        </div>
+
+        <div class="input-group">
+            <label for="mainPlatePrice" style="display: block; color: #666666;">Price per Main Plate (protein, sides, salads):</label>
+            <input type="number" id="mainPlatePrice" placeholder="0" style="width: 100%; padding: 8px; border: 1px solid #cccccc; border-radius: 4px;">
+        </div>
+
+        <div class="input-group">
+            <label for="dessertPrice" style="display: block; color: #666666;">Price per Dessert Serving:</label>
+            <input type="number" id="dessertPrice" placeholder="0" style="width: 100%; padding: 8px; border: 1px solid #cccccc; border-radius: 4px;">
+        </div>
+    </div>
+
+    <button onclick="calculateFoodCosts()" style="width: 100%; margin-top: 15px; padding: 10px; background-color: #28a745; color: #ffffff; border: none; border-radius: 4px; cursor: pointer;">
+        Calculate Total Cost
+    </button>
+
+    <h3 style="text-align: center; color: #333333; margin-top: 20px;">Total Food Costs</h3>
+    <p style="text-align: center; color: #333333;">Appetizers: $<span id="appetizerCost">0</span></p>
+    <p style="text-align: center; color: #333333;">Main Plates: $<span id="mainPlateCost">0</span></p>
+    <p style="text-align: center; color: #333333;">Desserts: $<span id="dessertCost">0</span></p>
+    <p style="text-align: center; color: #333333; font-weight: bold;">Total Cost: $<span id="totalCost">0</span></p>
+
+    <script>
+        let appetizerQty = 0, mainPlateQty = 0, dessertQty = 0;
+
+        function calculateFoodQuantities() {
+            const eventType = document.getElementById('eventType').value;
+            const guests = parseInt(document.getElementById('guests').value) || 0;
+
+            let appetizerPerPerson, mainPlatePerPerson, dessertPerPerson;
+
+            // Ajuste de cantidades según el tipo de evento
+            switch (eventType) {
+                case 'light':
+                    appetizerPerPerson = 3;
+                    mainPlatePerPerson = 1;
+                    dessertPerPerson = 1;
+                    break;
+                case 'cocktail':
+                    appetizerPerPerson = 5;
+                    mainPlatePerPerson = 1;
+                    dessertPerPerson = 1;
+                    break;
+                case 'fullMeal':
+                    appetizerPerPerson = 3;
+                    mainPlatePerPerson = 2;
+                    dessertPerPerson = 1;
+                    break;
+            }
+
+            // Cálculo de la cantidad total de cada tipo de comida
+            appetizerQty = guests * appetizerPerPerson;
+            mainPlateQty = guests * mainPlatePerPerson;
+            dessertQty = guests * dessertPerPerson;
+
+            // Mostrar resultados
+            document.getElementById('appetizerQty').innerText = appetizerQty;
+            document.getElementById('mainPlateQty').innerText = mainPlateQty;
+            document.getElementById('dessertQty').innerText = dessertQty;
+        }
+
+        function calculateFoodCosts() {
+            const appetizerPrice = parseFloat(document.getElementById('appetizerPrice').value) || 0;
+            const mainPlatePrice = parseFloat(document.getElementById('mainPlatePrice').value) || 0;
+            const dessertPrice = parseFloat(document.getElementById('dessertPrice').value) || 0;
+
+            const appetizerCost = appetizerQty * appetizerPrice;
+            const mainPlateCost = mainPlateQty * mainPlatePrice;
+            const dessertCost = dessertQty * dessertPrice;
+            const totalCost = appetizerCost + mainPlateCost + dessertCost;
+
+            // Mostrar costos
+            document.getElementById('appetizerCost').innerText = appetizerCost.toFixed(2);
+            document.getElementById('mainPlateCost').innerText = mainPlateCost.toFixed(2);
+            document.getElementById('dessertCost').innerText = dessertCost.toFixed(2);
+            document.getElementById('totalCost').innerText = totalCost.toFixed(2);
+        }
+    </script>
+</div>
+
+</main>
+{% endblock %}

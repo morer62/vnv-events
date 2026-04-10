@@ -1,0 +1,46 @@
+{% extends 'templates/base.admin.twig' %}
+{% import 'templates/macros.twig' as macros %}
+
+{% block body %}
+<h2 class="mb-4">💳 Payment History for Order vnv-341{{ order.id }}</h2>
+{{ macros.breadcrumb2() }}
+
+<section class="card">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-striped text-center align-middle">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Amount</th>
+                        <th>Method</th>
+                        <th>Stripe Charge ID</th>
+                        <th>Paid At</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for p in payments %}
+                        <tr>
+                            <td>{{ loop.index }}</td>
+                            <td>${{ p.amount }}</td>
+                            <td>{{ p.method|capitalize }}</td>
+                            <td>
+                                {% if p.stripe_charge_id %}
+                                    <code>{{ p.stripe_charge_id }}</code>
+                                {% else %}
+                                    <span class="text-muted">Manual</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ p.paid_at|date("Y-m-d H:i") }}</td>
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <td colspan="5" class="text-muted">No payments recorded yet.</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,220 @@
+{% extends 'templates/base.admin.twig' %}
+
+{% block body %}
+<main class="container mt-4 pb-5">
+
+  <style>
+    :root{
+      --gourmet-primary:#f59e0b;
+      --gourmet-primary-dark:#d97706;
+      --gourmet-accent:#fb923c;
+      --gourmet-dark:#1f1307;
+      --gourmet-text:#2d241c;
+      --gourmet-muted:#6f6255;
+      --gourmet-border:#ecd9bf;
+      --gourmet-shadow:0 18px 44px rgba(79,43,8,.10);
+    }
+
+    .orders-hero{
+      border-radius:28px;
+      padding:2rem 1.5rem;
+      color:#fff;
+      background:
+        radial-gradient(900px 420px at 0% 0%, rgba(245,158,11,.16), transparent 60%),
+        linear-gradient(135deg, #251508 0%, #1f1307 55%, #361a06 100%);
+      box-shadow:0 22px 54px rgba(0,0,0,.16);
+      margin-bottom:1.6rem;
+    }
+
+    .orders-hero h1{
+      font-size:clamp(2rem,4vw,3rem);
+      line-height:1.05;
+      font-weight:900;
+      margin-bottom:.8rem;
+      letter-spacing:-1px;
+    }
+
+    .orders-hero p{
+      max-width:820px;
+      color:#f4e4cb;
+      line-height:1.72;
+      margin-bottom:0;
+    }
+
+    .orders-badge{
+      display:inline-flex;
+      align-items:center;
+      gap:.45rem;
+      padding:.55rem .9rem;
+      border-radius:999px;
+      font-size:.9rem;
+      font-weight:800;
+      background:rgba(255,255,255,.08);
+      border:1px solid rgba(255,255,255,.15);
+      color:#fff;
+      margin-bottom:1rem;
+    }
+
+    .orders-grid{
+      display:grid;
+      grid-template-columns:repeat(3,minmax(0,1fr));
+      gap:1rem;
+      margin-bottom:1.4rem;
+    }
+
+    .orders-card{
+      background:#fff;
+      border:1px solid rgba(94,55,15,.06);
+      border-radius:22px;
+      box-shadow:var(--gourmet-shadow);
+      padding:1.5rem 1.2rem;
+      height:100%;
+    }
+
+    .orders-card i{
+      font-size:1.9rem;
+      color:var(--gourmet-primary-dark);
+      margin-bottom:.75rem;
+    }
+
+    .orders-card h3{
+      font-size:1.16rem;
+      font-weight:800;
+      color:var(--gourmet-dark);
+      margin-bottom:.55rem;
+    }
+
+    .orders-card p{
+      color:var(--gourmet-muted);
+      line-height:1.68;
+      margin-bottom:0;
+    }
+
+    .orders-note{
+      background:#fffdf9;
+      border:1px solid #ead6b9;
+      border-radius:20px;
+      padding:1.2rem;
+      color:var(--gourmet-muted);
+      line-height:1.75;
+    }
+
+    .orders-actions{
+      display:flex;
+      flex-wrap:wrap;
+      gap:.85rem;
+      margin-top:1rem;
+    }
+
+    .btn-g-main{
+      background:linear-gradient(135deg,var(--gourmet-primary),var(--gourmet-accent));
+      color:#23160a !important;
+      padding:1rem 1.35rem;
+      font-size:1rem;
+      border-radius:999px;
+      text-decoration:none;
+      font-weight:800;
+      display:inline-flex;
+      gap:.55rem;
+      align-items:center;
+      justify-content:center;
+      border:none;
+      box-shadow:0 12px 28px rgba(245,158,11,.28);
+    }
+
+    .btn-g-soft{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:.45rem;
+      padding:.92rem 1.15rem;
+      border-radius:999px;
+      font-weight:800;
+      text-decoration:none;
+      background:#fff6e8;
+      color:#8b4f00;
+      border:1px solid #f1d4a3;
+    }
+
+    @media (max-width: 991px){
+      .orders-grid{
+        grid-template-columns:1fr;
+      }
+    }
+  </style>
+
+  <section class="orders-hero">
+    <span class="orders-badge">
+      <i class="fa-solid fa-box-open"></i> Store Orders Area
+    </span>
+
+    <h1>Store orders for the team workflow</h1>
+
+    <p>
+      This is the new operational area for Gourmet store orders. It is separated from the old service orders module so the team can work with a clearer process for preparation, packaging, and delivery.
+      {% if currentInstitution %}<br><strong>Institution:</strong> {{ currentInstitution.company_name }}{% endif %}
+    </p>
+  </section>
+
+  <section class="orders-grid">
+    <div class="orders-card">
+      <i class="fa-solid fa-eye"></i>
+      <h3>Weekly Order Visibility</h3>
+      <p>
+        The admin should be able to see all orders for the week clearly, open details in a popup, and move the order into the next operational stage.
+      </p>
+    </div>
+
+    <div class="orders-card">
+      <i class="fa-solid fa-kitchen-set"></i>
+      <h3>Kitchen / Packaging Flow</h3>
+      <p>
+        Kitchen should first see totals by dish to prepare, then a second area to assemble packages by specific client order.
+      </p>
+    </div>
+
+    <div class="orders-card">
+      <i class="fa-solid fa-truck-fast"></i>
+      <h3>Delivery Flow</h3>
+      <p>
+        Delivery should receive assigned orders, mark groups as sending, upload a proof photo, and close each order as delivered.
+      </p>
+    </div>
+  </section>
+
+  <section class="orders-note">
+    <strong>Current phase:</strong> this screen is the clean entry point for the new store order workflow for level 4.
+    <br><br>
+    <strong>Recommended next screens:</strong>
+    <br>
+    1. <code>/team/store/kitchen/home</code> for preparation and package assembly
+    <br>
+    2. <code>/team/store/delivery/home</code> for assigned deliveries and completion flow
+    <br>
+    3. a future admin/store orders board that pushes work into kitchen and delivery
+    <br><br>
+    <strong>Your current store role:</strong> {{ storeTeamRole|default('general') }}
+  </section>
+
+  <div class="orders-actions">
+    {% if storeTeamRole == 'kitchen' %}
+      <a href="{{ path('panel/planner-hub/team/store/kitchen/home') }}" class="btn-g-main">
+        <i class="fa-solid fa-kitchen-set"></i> Go to Kitchen
+      </a>
+    {% elseif storeTeamRole == 'delivery' %}
+      <a href="{{ path('panel/planner-hub/team/store/delivery/home') }}" class="btn-g-main">
+        <i class="fa-solid fa-truck-fast"></i> Go to Delivery
+      </a>
+    {% else %}
+      <a href="{{ path('panel/planner-hub/team/store/home') }}" class="btn-g-main">
+        <i class="fa-solid fa-store"></i> Back to Store Hub
+      </a>
+    {% endif %}
+
+    <a href="{{ path('panel/planner-hub/team/payroll/clock') }}" class="btn-g-soft">
+      <i class="fa-solid fa-clock"></i> Track Time
+    </a>
+  </div>
+
+</main>
+{% endblock %}

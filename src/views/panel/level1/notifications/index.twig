@@ -1,0 +1,449 @@
+{% extends 'templates/base.admin.twig' %}
+
+{% block body %}
+<div class="container-fluid p-0">
+  <div class="row mb-2 mb-xl-3">
+    <div class="col-auto d-none d-sm-block">
+      <h3>🔔 Admin Notifications</h3>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-header d-flex align-items-center justify-content-between">
+          <h5 class="card-title mb-0">Unread Notifications</h5>
+          <div class="d-flex align-items-center gap-2">
+            {% if notifications|length > 0 %}
+              <span class="text-muted small">{{ notifications|length }} unread</span>
+              <button class="btn btn-sm btn-outline-danger" id="markAllReadBtn" onclick="markAllAsRead()">
+                <i data-feather="check-circle" class="me-1"></i> Mark All as Read
+              </button>
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="card-body">
+          {% if notifications|length > 0 %}
+            <div class="notifications-list">
+              {% for n in notifications %}
+                <div class="notification-item unread">
+                  <div class="notification-left">
+                    <div class="notification-dot"></div>
+                    <div class="notification-icon">
+                      <i data-feather="{% if 'Payment' in n.mensaje %}dollar-sign{% elseif 'Contract' in n.mensaje %}file-text{% else %}bell{% endif %}"></i>
+                    </div>
+                    <div class="notification-content">
+                      <div class="notification-title text-primary">
+                        {{ n.mensaje }}
+                      </div>
+                      <div class="notification-meta">
+                        <i data-feather="clock" class="me-1"></i>
+                        {{ n.timestamp|date('M j, Y - g:i A') }}
+                        <span class="badge bg-primary-subtle text-primary ms-2">New</span>
+                      </div>
+
+                      {% if n.link %}
+                      <a href="{{ n.link }}" data-url="{{ n.link }}" data-notification-id="{{ n.id }}" class="btn btn-sm btn-outline-primary notif-link" title="{{ n.link }}">
+                        View Details
+                      </a>
+                      {% else %}
+                        <div class="mt-2">
+                          <button class="btn btn-sm btn-outline-secondary" disabled title="No details available">
+                            <i data-feather="slash" class="me-1"></i> No details
+                          </button>
+                        </div>
+                      {% endif %}
+                    </div>
+                  </div>
+
+                  <div class="notification-actions">
+                    <button class="btn btn-sm btn-outline-success mark-read-btn" data-notification-id="{{ n.id }}">
+                      <i data-feather="check" class="me-1"></i> Mark as Read
+                    </button>
+                  </div>
+                </div>
+              {% endfor %}
+            </div>
+          {% else %}
+            <div class="text-center py-5">
+              <i data-feather="bell-off" class="text-muted mb-3" style="width:48px; height:48px;"></i>
+              <h5 class="text-muted">All caught up!</h5>
+              <p class="text-muted">You have no unread notifications. New notifications will appear here when they arrive.</p>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+/* —— Clean modern notifications —— */
+.notifications-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.notification-item {
+  display: flex;
+  align-items: stretch;
+  justify-content: space-between;
+  border: 1px solid var(--bs-border-color);
+  border-radius: 14px;
+  padding: 14px 16px;
+  background: var(--bs-body-bg);
+  transition: box-shadow .2s ease, transform .08s ease;
+}
+.notification-item:hover {
+  box-shadow: 0 4px 18px rgba(0,0,0,.06);
+}
+.notification-item.unread {
+  background: var(--bs-primary-bg-subtle);
+  border-color: var(--bs-primary-border-subtle);
+}
+.notification-left {
+  display: grid;
+  grid-template-columns: 8px 32px 1fr;
+  gap: 12px;
+  align-items: start;
+  flex: 1 1 auto;
+}
+.notification-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: transparent;
+  margin-top: 8px;
+}
+.notification-item.unread .notification-dot {
+  background: var(--bs-primary);
+}
+.notification-icon i {
+  width: 22px; height: 22px;
+  color: var(--bs-primary);
+  opacity: .9;
+  margin-top: 4px;
+}
+.notification-content {
+  min-width: 0;
+}
+.notification-title {
+  font-weight: 600;
+  line-height: 1.35;
+}
+.notification-meta {
+  color: var(--bs-secondary-color);
+  font-size: .875rem;
+  margin-top: 4px;
+  display: flex;
+  align-items: center;
+}
+.notification-meta i {
+  width: 16px; height: 16px;
+}
+.notification-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+@media (max-width: 575.98px) {
+  .notification-actions { margin-left: 8px; }
+  .notification-item { padding: 12px; }
+}
+
+/* Mark All as Read button styles */
+#markAllReadBtn {
+  transition: all 0.2s ease;
+}
+
+#markAllReadBtn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(220, 53, 69, 0.3);
+}
+
+#markAllReadBtn:disabled {
+  opacity: 0.6;
+  transform: none;
+  box-shadow: none;
+}
+
+/* Alert styles */
+.alert {
+  margin-bottom: 1rem;
+}
+
+.alert i {
+  width: 16px;
+  height: 16px;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  document.querySelectorAll('.mark-read-btn').forEach(btn => {
+    btn.addEventListener('click', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      const id = this.getAttribute('data-notification-id');
+      markNotificationAsRead(id, this);
+    });
+  });
+  
+  // Add event listener for mark all read button
+  const markAllBtn = document.getElementById('markAllReadBtn');
+  if (markAllBtn) {
+    markAllBtn.addEventListener('click', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      console.log('Mark all read button clicked via event listener');
+      markAllAsRead();
+    });
+  } else {
+    console.error('Mark all read button not found in DOM');
+  }
+});
+
+function markNotificationAsRead(notificationId, buttonElement) {
+  const base = window.location.pathname.replace(/\/$/, '');
+  const route = base + '/mark-read';
+  fetch(route, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ notification_id: notificationId })
+  })
+  .then(r => r.json())
+  .then(data => {
+    if (!data.success) return;
+    
+    // Remove the entire notification item from the list
+    const item = buttonElement.closest('.notification-item');
+    item.remove();
+    
+    // Update the count in the header
+    updateHeaderNotificationCount();
+    
+    // Update the count in the card header
+    updateCardNotificationCount();
+    
+    // If no notifications left, show empty state
+    checkEmptyState();
+  })
+  .catch(err => console.error('Error marking notification as read:', err));
+}
+
+function updateHeaderNotificationCount() {
+  const indicator = document.querySelector('#alertsDropdown .indicator');
+  if (!indicator) return;
+  const current = parseInt(indicator.textContent) || 0;
+  const next = Math.max(0, current - 1);
+  indicator.textContent = next;
+  if (next === 0) indicator.style.display = 'none';
+}
+
+function updateCardNotificationCount() {
+  const countSpan = document.querySelector('.card-header .text-muted.small');
+  if (!countSpan) return;
+  
+  const notificationsList = document.querySelector('.notifications-list');
+  const remainingCount = notificationsList ? notificationsList.children.length : 0;
+  
+  if (remainingCount === 0) {
+    countSpan.style.display = 'none';
+  } else {
+    countSpan.textContent = `${remainingCount} unread`;
+    countSpan.style.display = 'inline';
+  }
+}
+
+function checkEmptyState() {
+  const notificationsList = document.querySelector('.notifications-list');
+  const cardBody = document.querySelector('.card-body');
+  
+  if (!notificationsList || notificationsList.children.length === 0) {
+    // Show empty state
+    const emptyState = document.createElement('div');
+    emptyState.className = 'text-center py-5';
+    emptyState.innerHTML = `
+      <i data-feather="bell-off" class="text-muted mb-3" style="width:48px; height:48px;"></i>
+      <h5 class="text-muted">All caught up!</h5>
+      <p class="text-muted">You have no unread notifications. New notifications will appear here when they arrive.</p>
+    `;
+    
+    if (notificationsList) {
+      notificationsList.style.display = 'none';
+    }
+    cardBody.appendChild(emptyState);
+    
+    // Re-initialize feather icons
+    if (typeof feather !== 'undefined') {
+      feather.replace();
+    }
+  }
+}
+
+function markAllAsRead() {
+  console.log('markAllAsRead function called');
+  
+  if (!confirm('Are you sure you want to mark all notifications as read? This action cannot be undone.')) {
+    console.log('User cancelled the action');
+    return;
+  }
+  
+  const button = document.getElementById('markAllReadBtn');
+  if (!button) {
+    console.error('Mark all read button not found');
+    return;
+  }
+  
+  const originalText = button.innerHTML;
+  console.log('Original button text:', originalText);
+  
+  // Show loading state
+  button.disabled = true;
+  button.innerHTML = '<i data-feather="loader" class="me-1"></i> Marking all as read...';
+  if (typeof feather !== 'undefined') {
+    feather.replace();
+  }
+  
+  const base = window.location.pathname.replace(/\/$/, '');
+  const route = base + '/mark-all-read';
+  console.log('Making request to:', route);
+  
+  fetch(route, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({})
+  })
+  .then(r => {
+    console.log('Response status:', r.status);
+    return r.json();
+  })
+  .then(data => {
+    console.log('Response data:', data);
+    if (data.success) {
+      // Remove all notification items
+      const notificationsList = document.querySelector('.notifications-list');
+      if (notificationsList) {
+        notificationsList.innerHTML = '';
+        console.log('Cleared notifications list');
+      }
+      
+      // Update header notification count to 0
+      const indicator = document.querySelector('#alertsDropdown .indicator');
+      if (indicator) {
+        indicator.textContent = '0';
+        indicator.style.display = 'none';
+        console.log('Updated header indicator');
+      }
+      
+      // Show empty state
+      checkEmptyState();
+      
+      // Show success message
+      showSuccessMessage('All notifications marked as read!');
+    } else {
+      console.error('Server returned success: false', data);
+      showErrorMessage('Failed to mark all notifications as read');
+    }
+  })
+  .catch(err => {
+    console.error('Error marking all notifications as read:', err);
+    showErrorMessage('Error occurred while marking notifications as read');
+  })
+  .finally(() => {
+    // Restore button state
+    button.disabled = false;
+    button.innerHTML = originalText;
+    if (typeof feather !== 'undefined') {
+      feather.replace();
+    }
+    console.log('Button state restored');
+  });
+}
+
+function showSuccessMessage(message) {
+  const alertDiv = document.createElement('div');
+  alertDiv.className = 'alert alert-success alert-dismissible fade show';
+  alertDiv.innerHTML = `
+    <i data-feather="check-circle" class="me-2"></i>
+    ${message}
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+  `;
+  
+  const cardBody = document.querySelector('.card-body');
+  cardBody.insertBefore(alertDiv, cardBody.firstChild);
+  
+  if (typeof feather !== 'undefined') {
+    feather.replace();
+  }
+  
+  // Auto-dismiss after 3 seconds
+  setTimeout(() => {
+    if (alertDiv.parentNode) {
+      alertDiv.remove();
+    }
+  }, 3000);
+}
+
+function showErrorMessage(message) {
+  const alertDiv = document.createElement('div');
+  alertDiv.className = 'alert alert-danger alert-dismissible fade show';
+  alertDiv.innerHTML = `
+    <i data-feather="alert-circle" class="me-2"></i>
+    ${message}
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+  `;
+  
+  const cardBody = document.querySelector('.card-body');
+  cardBody.insertBefore(alertDiv, cardBody.firstChild);
+  
+  if (typeof feather !== 'undefined') {
+    feather.replace();
+  }
+  
+  // Auto-dismiss after 5 seconds
+  setTimeout(() => {
+    if (alertDiv.parentNode) {
+      alertDiv.remove();
+    }
+  }, 5000);
+}
+  // View Details: marcar como leído y redirigir (mismo comportamiento que el dropdown)
+  document.addEventListener('DOMContentLoaded', function() {
+    const links = document.querySelectorAll('.notif-link');
+    links.forEach(a => {
+      a.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        const url = this.getAttribute('data-url') || this.getAttribute('href');
+        const id  = this.getAttribute('data-notification-id');
+        if (!url || url === 'null') return;
+
+        const base = window.location.pathname.replace(/\/$/, '');
+        const route = base + '/mark-read';
+
+        fetch(route, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ notification_id: id })
+        }).then(() => {
+          // Remove the notification from the list
+          const item = this.closest('.notification-item');
+          item.remove();
+          
+          // Update counts
+          updateHeaderNotificationCount();
+          updateCardNotificationCount();
+          checkEmptyState();
+          
+          // Navigate to the link
+          window.location.href = url;
+        }).catch(() => {
+          window.location.href = url;
+        });
+      });
+    });
+  });
+</script>
+{% endblock %}

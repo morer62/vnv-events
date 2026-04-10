@@ -1,0 +1,128 @@
+{% extends 'templates/base.admin.twig' %}
+{% import 'templates/macros.twig' as macros %}
+
+{% block body %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h2 class="h4 mb-0">
+                        <i data-feather="edit"></i> Edit Forum Topic
+                    </h2>
+                </div>
+
+                <div class="card-body p-4">
+                    <form method="POST" enctype="multipart/form-data">
+                        <input type="hidden" name="topic_id" value="{{ topic.id }}">
+
+                        <!-- Category -->
+                        <div class="mb-4">
+                            <label for="category_id" class="form-label fw-bold">
+                                Category <span class="text-danger">*</span>
+                            </label>
+                            <select name="category_id" id="category_id" class="form-select" required>
+                                {% for category in categories %}
+                                <option value="{{ category.id }}" {% if topic.id_category == category.id %}selected{% endif %}>
+                                    {{ category.icon|default('📁') }} {{ category.name }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <!-- Title -->
+                        <div class="mb-4">
+                            <label for="title" class="form-label fw-bold">
+                                Title <span class="text-danger">*</span>
+                            </label>
+                            <input type="text" name="title" id="title" class="form-control" 
+                                   value="{{ topic.title }}" maxlength="500" required>
+                        </div>
+
+                        <!-- Content -->
+                        <div class="mb-4">
+                            <label for="content" class="form-label fw-bold">
+                                Content <span class="text-danger">*</span>
+                            </label>
+                            <textarea name="content" id="content" class="form-control" 
+                                      rows="12" required>{{ topic.content }}</textarea>
+                        </div>
+
+                        <!-- Existing Attachments -->
+                        {% if attachments and attachments|length > 0 %}
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">📎 Existing Attachments</label>
+                            <div class="row g-3">
+                                {% for attachment in attachments %}
+                                <div class="col-md-3">
+                                    <div class="card border shadow-sm">
+                                        {% if attachment.is_image == 1 or attachment.is_image == '1' %}
+                                            <img src="{{ attachment.file_path }}" class="card-img-top" alt="{{ attachment.file_name }}" style="height: 150px; object-fit: cover;">
+                                        {% else %}
+                                            <div class="card-body text-center bg-light" style="height: 150px; display: flex; align-items: center; justify-content: center;">
+                                                <div>
+                                                    <i data-feather="file" style="width: 48px; height: 48px;" class="text-primary"></i>
+                                                    <small class="d-block mt-2 text-truncate">{{ attachment.file_name }}</small>
+                                                </div>
+                                            </div>
+                                        {% endif %}
+                                        <div class="card-footer bg-white border-top">
+                                            <div class="form-check">
+                                                <input type="checkbox" name="delete_attachments[]" value="{{ attachment.id }}" class="form-check-input" id="del-{{ attachment.id }}">
+                                                <label for="del-{{ attachment.id }}" class="form-check-label small text-danger">
+                                                    <i data-feather="trash-2" style="width: 14px; height: 14px;"></i> Delete
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        <!-- New Attachments -->
+                        <div class="mb-4">
+                            <label for="attachments" class="form-label fw-bold">
+                                📎 Add New Attachments (Optional)
+                            </label>
+                            <input type="file" name="attachments[]" id="attachments" 
+                                   class="form-control" multiple accept="image/*,.pdf">
+                            <div class="form-text">
+                                You can upload multiple images or PDFs (max 5MB each)
+                            </div>
+                        </div>
+
+                        <!-- Options -->
+                        <div class="mb-4">
+                            <div class="form-check mb-2">
+                                <input type="checkbox" name="is_pinned" id="is_pinned" class="form-check-input" value="1" {% if topic.is_pinned %}checked{% endif %}>
+                                <label for="is_pinned" class="form-check-label">
+                                    📌 Pin this topic
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input type="checkbox" name="is_locked" id="is_locked" class="form-check-input" value="1" {% if topic.is_locked %}checked{% endif %}>
+                                <label for="is_locked" class="form-check-label">
+                                    🔒 Lock this topic (prevent new replies)
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Actions -->
+                        <div class="d-flex justify-content-between">
+                            <a href="{{ path('panel/forum') }}" class="btn btn-outline-secondary">
+                                <i data-feather="arrow-left"></i> Back to Forum Management
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i data-feather="save"></i> Save Changes
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

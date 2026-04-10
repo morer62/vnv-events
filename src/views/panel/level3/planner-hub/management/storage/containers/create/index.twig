@@ -1,0 +1,27 @@
+{% extends "templates/base.admin.twig" %}
+{% import 'templates/macros.twig' as macros %}
+
+{% block body %}
+<h1 class="h3 mb-4">📦 Add New Container</h1>
+
+{{ macros.breadcrumb2() }}
+
+<section class="card">
+    <div class="card-body">
+        <form method="post" enctype="multipart/form-data">
+            <div class="mb-3">
+                <label class="form-label">Container Name</label>
+                <input type="text" name="name" class="form-control" required>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Reference Image <small class="text-muted">(optional)</small></label>
+                <input type="file" name="img_reference" class="form-control" accept="image/*">
+            </div>
+
+            <button class="btn btn-primary">Create Container</button>
+            <a href="{{ path('panel/planner-hub/management/storage/containers') }}" class="btn btn-danger">Cancel</a>
+        </form>
+    </div>
+</section>
+{% endblock %}

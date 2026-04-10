@@ -1,0 +1,265 @@
+{% extends 'templates/base.admin.twig' %}
+{% import 'templates/macros.twig' as macros %}
+
+{% block body %}
+<h2 class="mb-4">📋 Sub-Orders for Order VNV 341{{ order.id }}</h2>
+{{ macros.breadcrumb2() }}
+
+<div class="d-flex justify-content-between mb-3">
+    <a class="btn btn-dark" href="{{ path('panel/planner-hub/management/orders/orders/create') }}?parent_order={{ order.id }}">
+        <i data-feather="plus"></i>
+        Create New Sub-Order
+    </a>
+    <a class="btn btn-outline-secondary" href="{{ path('panel/planner-hub/management/orders/orders') }}">
+        <i data-feather="arrow-left"></i>
+        Back to Orders
+    </a>
+</div>
+
+<div class="alert alert-info mb-4">
+    <h5>📋 Parent Order Information</h5>
+    <p><strong>Order ID:</strong> VNV 341{{ order.id }}</p>
+    <p><strong>Event Date:</strong> {{ order.event_date|date("l, M j, Y") }}</p>
+    <p><strong>Time:</strong> {{ order.start_time|date("g:i A") }} - {{ order.end_time|date("g:i A") }}</p>
+    <p><strong>Address:</strong> {{ order.address }}</p>
+    <p class="mb-0"><strong>Status:</strong> 
+        {% if order.status_workflow == 'INVOICE_DRAFT' %}
+            📝 Signature Pending
+        {% elseif order.status_workflow == 'INVOICE_READY' %}
+            ✍️ Signed - Payment Pending
+        {% elseif order.status_workflow == 'INVOICE_PARTIAL' %}
+            💳 First Payment Completed
+        {% elseif order.status_workflow == 'INVOICE_PAID' %}
+            ✅ Fully Paid
+        {% elseif order.status_workflow == 'INVOICE_EXPIRED' %}
+            ⏰ Expired
+        {% else %}
+            {{ order.status_workflow }}
+        {% endif %}
+    </p>
+</div>
+
+<section class="card">
+    <div class="card-body">
+        {% if suborders|length > 0 %}
+            <div class="table-responsive">
+                <table class="table table-striped table-bordered align-middle text-center">
+                    <thead>
+                        <tr>
+                            <th>Sub-Order ID</th>
+                            <th>Created Date</th>
+                            <th>Services</th>
+                            <th>Payment Split</th>
+                            <th>Tax %</th>
+                            <th>Status</th>
+                            <th>Payment Link</th>
+                            <th>Invoice Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for suborder in suborders %}
+                            <tr>
+                                <td style="min-width: 150px;">
+                                    <strong>Sub-{{ suborder.id }}</strong><br>
+                                    <small class="text-muted">Order VNV 341{{ order.id }}</small>
+                                </td>
+                                <td style="min-width: 200px;">
+                                    {{ suborder.created_at|date("M j, Y g:i A") }}
+                                </td>
+                                <td style="min-width: 300px; text-align: left;">
+                                    {% if suborder.services|length > 0 %}
+                                        {% for service in suborder.services %}
+                                            <div class="mb-1">
+                                                <strong>{{ service.service_name }}</strong><br>
+                                                <small class="text-muted">
+                                                    Qty: {{ service.quantity }} | 
+                                                    Price: ${{ service.actual_price|number_format(2) }} | 
+                                                    Subtotal: ${{ service.subtotal|number_format(2) }}
+                                                </small>
+                                            </div>
+                                        {% endfor %}
+                                    {% else %}
+                                        <span class="text-muted">No services assigned</span>
+                                    {% endif %}
+                                </td>
+                                <td style="min-width: 150px;">
+                                    {% if suborder.payment_split_type == 1 %}
+                                        <span class="text-success">💳 100%</span>
+                                    {% elseif suborder.payment_split_type == 2 %}
+                                        <span class="text-primary">💳 {{ suborder.payment_split_percent_1 }}% / {{ suborder.payment_split_percent_2 }}%</span>
+                                    {% else %}
+                                        <span class="text-muted">N/A</span>
+                                    {% endif %}
+                                </td>
+                                <td style="min-width: 100px;">
+                                    {{ suborder.tax_percertance|number_format(2) }}%
+                                </td>
+                                <td style="min-width: 100px;">
+                                    {% if suborder.is_archived == 1 %}
+                                        <span class="badge bg-secondary">Archived</span>
+                                    {% else %}
+                                        <span class="badge bg-success">Active</span>
+                                    {% endif %}
+                                </td>
+                                <td style="min-width: 200px;">
+                                    {% if suborder.is_archived != 1 %}
+                                        <div class="d-grid gap-1">
+                                            <button type="button" class="btn btn-sm btn-outline-success copy-payment-btn" data-payment-url="{{ path('/order-access/suborder?token=' ~ suborder.payment_token) }}">💳 Copy Payment Link</button>
+                                            <a href="{{ path('/order-access/suborder?token=' ~ suborder.payment_token) }}" target="_blank" class="btn btn-sm btn-outline-info">🌐 Open Payment</a>
+                                        </div>
+                                    {% else %}
+                                        <span class="text-muted">N/A</span>
+                                    {% endif %}
+                                </td>
+                                <td style="min-width: 160px;">
+                                    {% if suborder.status_workflow == 'INVOICE_DRAFT' %}
+                                        <span class="badge bg-warning text-dark">📝 Pending Signature</span>
+                                    {% elseif suborder.status_workflow == 'INVOICE_READY' %}
+                                        <span class="badge bg-secondary">Signed – Payment Pending</span>
+                                    {% elseif suborder.status_workflow == 'INVOICE_PARTIAL' %}
+                                        <span class="badge bg-info text-dark">Partial Payment</span>
+                                    {% elseif suborder.status_workflow == 'INVOICE_PAID' %}
+                                        <span class="badge bg-success">Fully Paid</span>
+                                    {% else %}
+                                        <span class="badge bg-light text-dark">{{ suborder.status_workflow }}</span>
+                                    {% endif %}
+                                </td>
+                                <td style="min-width: 200px;">
+                                    <div class="btn-group" role="group">
+                                        {% if suborder.is_archived != 1 %}
+                                            <a href="{{ path('panel/planner-hub/management/orders/orders/suborders/edit') }}?id={{ suborder.id }}" class="btn btn-sm btn-primary">✏️ Edit</a>
+                                        {% endif %}
+                                        {% if suborder.is_archived != 1 %}
+                                            <form method="post" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this sub-order?');">
+                                                <input type="hidden" name="archive_suborder_id" value="{{ suborder.id }}">
+                                                <button type="submit" class="btn btn-sm btn-outline-danger">🗑️ Delete</button>
+                                            </form>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="text-center text-muted py-4">
+                <h5>📋 No sub-orders found</h5>
+                <p class="mb-0">This order doesn't have any sub-orders yet.</p>
+                <a href="{{ path('panel/planner-hub/management/orders/orders/create') }}?parent_order={{ order.id }}" class="btn btn-primary mt-3">
+                    <i data-feather="plus"></i>
+                    Create First Sub-Order
+                </a>
+            </div>
+        {% endif %}
+    </div>
+</section>
+
+<style>
+    .toast-container {
+        z-index: 9999;
+    }
+    
+    .toast {
+        min-width: 250px;
+    }
+    
+    .toast.bg-success {
+        background-color: #198754 !important;
+    }
+    
+    .toast.bg-danger {
+        background-color: #dc3545 !important;
+    }
+    
+    .toast.bg-info {
+        background-color: #0dcaf0 !important;
+    }
+</style>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('.copy-payment-btn').forEach(function(button) {
+            button.addEventListener('click', async function() {
+                const originalUrl = this.dataset.paymentUrl;
+                const originalText = this.innerHTML;
+                
+                try {
+                    this.innerHTML = '⏳ Copying...';
+                    this.disabled = true;
+                    
+                    await navigator.clipboard.writeText(originalUrl);
+                    
+                    this.innerHTML = '✅ Copied!';
+                    this.classList.remove('btn-outline-success');
+                    this.classList.add('btn-success');
+                    
+                    setTimeout(() => {
+                        this.innerHTML = originalText;
+                        this.classList.remove('btn-success');
+                        this.classList.add('btn-outline-success');
+                        this.disabled = false;
+                    }, 2000);
+                    
+                    showToast('Payment link copied to clipboard!', 'success');
+                } catch (error) {
+                    console.error('Error copying link:', error);
+                    
+                    this.innerHTML = '❌ Error';
+                    this.classList.remove('btn-outline-success');
+                    this.classList.add('btn-danger');
+                    
+                    setTimeout(() => {
+                        this.innerHTML = originalText;
+                        this.classList.remove('btn-danger');
+                        this.classList.add('btn-outline-success');
+                        this.disabled = false;
+                    }, 2000);
+                    
+                    showToast('Error copying link. Please try again.', 'error');
+                }
+            });
+        });
+    });
+    
+    function showToast(message, type = 'info') {
+        const toastContainer = document.getElementById('toast-container') || createToastContainer();
+        
+        const toast = document.createElement('div');
+        toast.className = `toast align-items-center text-white bg-${type === 'success' ? 'success' : type === 'error' ? 'danger' : 'info'} border-0`;
+        toast.setAttribute('role', 'alert');
+        toast.setAttribute('aria-live', 'assertive');
+        toast.setAttribute('aria-atomic', 'true');
+        
+        toast.innerHTML = `
+            <div class="d-flex">
+                <div class="toast-body">
+                    ${message}
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+        `;
+        
+        toastContainer.appendChild(toast);
+        
+        const bsToast = new bootstrap.Toast(toast);
+        bsToast.show();
+        
+        toast.addEventListener('hidden.bs.toast', () => {
+            toast.remove();
+        });
+    }
+    
+    function createToastContainer() {
+        const container = document.createElement('div');
+        container.id = 'toast-container';
+        container.className = 'toast-container position-fixed top-0 end-0 p-3';
+        container.style.zIndex = '9999';
+        document.body.appendChild(container);
+        return container;
+    }
+</script>
+{% endblock %}

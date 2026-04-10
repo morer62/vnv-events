@@ -1,0 +1,52 @@
+{% extends 'templates/base.admin.twig' %}
+{% import 'templates/macros.twig' as macros %}
+
+{% block body %}
+ 
+<main class="container-fluid">
+
+    <h1 class="h3 mb-3">
+        CRM Categories
+    </h1>
+
+    {{ macros.breadcrumb2() }}
+
+    <div class="card">
+        <div class="card-body">
+            <a href="{{ path('panel/planner-hub/management/crm/categories/create') }}" class="btn btn-primary mb-3">
+                <i class="align-middle" data-feather="plus"></i>  Add New Category
+            </a>
+
+            <div class="table-responsive">
+                <table class="table table-bordered text-center align-middle" style="min-width: 500px;">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for category in categories %}
+                            <tr>
+                                <td>{{ category.name }}</td>
+                                <td class="d-flex justify-content-center gap-1">
+                                    <a href="{{ path('panel/planner-hub/management/crm/categories/edit', { id: category.id }) }}" class="btn btn-primary">
+                                        {{ macros.icon("edit-2") }}Edit
+                                    </a>
+
+                                    {{ macros.delete_form(category.id) }}
+                                </td>
+                            </tr>
+                        {% else %}
+                            <tr>
+                                <td colspan="2" class="text-muted">No categories were found.</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+</main>
+{% endblock %}

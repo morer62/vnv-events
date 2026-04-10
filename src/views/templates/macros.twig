@@ -1,0 +1,59 @@
+
+{#
+    This macro blocks all csrf token attacks
+#}
+{% macro csrf() %}
+    <input type="hidden" name="csrf_token" value="{{ get_csrf() }}" />
+{% endmacro %}
+
+{% macro icon(iconName) %}
+    <i class="align-middle" data-feather="{{ iconName }}"></i>
+{% endmacro %}
+
+{% macro delete_form(value, expected_key="id", action="") %}
+    <form {% if action %}action="{{ action }}" {% endif %} method="post" form-delete="true">
+        <input type="hidden" name="{{ expected_key }}" value="{{ value }}" />
+        <input type="hidden" name="action" value="delete" />
+
+        <button type="submit" class="btn btn-danger">
+            <i class="align-middle" data-feather="trash-2"></i>Delete
+        </button>
+    </form>
+{% endmacro %}
+
+{% macro back_btn(classes="", title="Back") %}
+    <button type="button" class="btn btn-secondary" onclick="window.history.back()">{{ title }}</button>
+{% endmacro %}
+
+{% macro breadcrumb(paths=[]) %}
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+
+            {% for currentPath in paths %}
+                {% if currentPath | length > 1 %}
+                    <li class="breadcrumb-item"><a href="{{ path(currentPath[1]) }}">{{ currentPath[0] }}</a></li>
+                {% else %}
+                    <li class="breadcrumb-item active" aria-current="page">{{ currentPath[0] }}</li>
+                {% endif %}
+
+            {% endfor %}
+        </ol>
+    </nav>
+{% endmacro %}
+
+{% macro breadcrumb2() %}
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+
+            <li class="breadcrumb-item"><a href="{{ path("panel") }}">Home</a></li>
+
+            {% for currentPath in getTreeRoutes() %}
+                {% if not loop.last %}
+                    <li class="breadcrumb-item"><a href="{{ path('panel/' ~ currentPath[1]) }}">{{ currentPath[0] }}</a></li>
+                {% else %}
+                    <li class="breadcrumb-item active" aria-current="page">{{ currentPath[0] }}</li>
+                {% endif %}
+            {% endfor %}
+        </ol>
+    </nav>
+{% endmacro %}

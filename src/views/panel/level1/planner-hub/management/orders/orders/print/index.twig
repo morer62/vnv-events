@@ -1,0 +1,29 @@
+{% extends 'templates/base.admin.twig' %}
+{% import 'templates/macros.twig' as macros %}
+
+{% block body %}
+<main class="container mt-4">
+    <h1 class="mb-4">📄 Generate Order Documents</h1>
+    {{ macros.breadcrumb2() }}
+
+    <section class="card shadow-sm">
+        <div class="card-body">
+            <h5 class="card-title">Choose a document to generate</h5>
+            <p class="card-text">You can download or print the following documents related to this order.</p>
+
+            <div class="d-grid gap-3 mt-4">
+                <a class="btn btn-primary" href="{{ path(current_location ~ '/order-details?id=' ~ id) }}">
+                    🧾 Order Details
+                </a>
+                <a class="btn btn-secondary" href="{{ path(current_location ~ '/team-assignment?id=' ~ id) }}">
+                    👷 Team Task Assignment
+                </a>
+
+                 <a class="btn btn-success" href="{{ path(current_location ~ '/shopping-list?id=' ~ id) }}">
+                    🛒 Shopping List by Service
+                </a>
+            </div>
+        </div>
+    </section>
+</main>
+{% endblock %}

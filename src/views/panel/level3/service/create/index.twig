@@ -1,0 +1,218 @@
+{% extends 'templates/base.admin.twig' %}
+
+{% block style %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/trumbowyg@2.27.3/dist/ui/trumbowyg.min.css">
+{% endblock %}
+
+{% block body %}
+<div>
+    <h1 class="h3 text-center mb-4">Create New Service</h1>
+
+
+
+    <!-- Paso 1: Categoría -->
+    <section id="step-1">
+        <select class="form-select mb-3" name="category_id" id="service-category" required>
+            <option value="">Select a category</option>
+            {% for c in categories %}
+                <option value="{{ c.id }}">{{ c.service_category }}</option>
+            {% endfor %}
+        </select>
+        <button type="button" class="btn btn-primary w-100" id="to-step-2">Continue</button>
+    </section>
+
+    <!-- Paso 2: Detalles -->
+    <section id="step-2" style="display:none;">
+        <form method="post" class="card shadow-lg p-4" id="service-form">
+            <input type="hidden" name="category_id" id="final-category">
+            <div class="row">
+                <div class="col-12 mb-3">
+                    <label class="form-label">Additional categories (optional)</label>
+                    <div class="border rounded p-2" style="max-height: 220px; overflow:auto;">
+                        {% for c in categories %}
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="extra_categories[]" value="{{ c.id }}" id="cat-{{ c.id }}">
+                                <label class="form-check-label" for="cat-{{ c.id }}">{{ c.service_category }}</label>
+                            </div>
+                        {% endfor %}
+                    </div>
+                    <small class="text-muted">Check all that apply. The main category won’t be duplicated.</small>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Profile Name</label>
+                    <input name="name" class="form-control" required placeholder="e.g. DJ Mike Entertainment" />
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Phone Number</label>
+                    <input name="phone_number" class="form-control" data-phone placeholder="e.g. (305) 123-4567" />
+                </div>
+                <div class="col-12 mb-3">
+                    <label class="form-label">Biography</label>
+                    <textarea class="form-control" name="description" id="description-editor" placeholder="Tell us what makes your service special..." required></textarea>
+                </div>
+                <div class="col-12 mb-3">
+                    <label class="form-label">Address</label>
+                    <input name="address" data-places class="form-control" required placeholder="Start typing and select from the list..." />
+                    <small class="text-danger">Example: 123 Main St, Miami, FL</small>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label>Email</label>
+                    <input name="email" class="form-control" placeholder="e.g. contact@yourservice.com" />
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label>Website</label>
+                    <input name="website" class="form-control" placeholder="e.g. https://yourservice.com" />
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label>Instagram</label>
+                    <input name="instagram" class="form-control" placeholder="e.g. @yourprofile" />
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label>Facebook</label>
+                    <input name="facebook" class="form-control" placeholder="e.g. facebook.com/yourpage" />
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label>Twitter</label>
+                    <input name="twitter" class="form-control" placeholder="e.g. @yourhandle" />
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label>Yelp</label>
+                    <input name="yelp" class="form-control" placeholder="e.g. yelp.com/biz/yourbiz" />
+                </div>
+
+                <button type="button" class="btn btn-outline-secondary w-100 mb-2" id="back-step-1">Back</button>
+                <button type="submit" class="btn btn-success w-100">Create Service</button>
+            </div>
+        </form>
+    </section>
+</div>
+
+<!-- Modal de confirmación de pago -->
+<div class="modal fade" id="servicePaymentModal" tabindex="-1" aria-labelledby="servicePaymentModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title" id="servicePaymentModalLabel">💳 Confirm Payment</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body text-center">
+        <div class="mb-3">
+          <i class="bi bi-credit-card" style="font-size: 3rem; color: #0d6efd;"></i>
+        </div>
+        <h5>Service Promotion Fee</h5>
+        <p class="text-muted">To publish your service, a monthly promotion fee will be charged to your registered payment method.</p>
+        
+        {% if hasServiceDiscount %}
+        <div class="alert alert-success">
+          <strong>🎉 Membership Discount Applied!</strong><br>
+          <span class="text-decoration-line-through text-muted">${{ servicePrice }}</span>
+          <span class="fs-4 fw-bold text-success">${{ servicePriceDiscount }}</span>
+        </div>
+        {% else %}
+        <div class="alert alert-info">
+          <strong>Amount to be charged:</strong><br>
+          <span class="fs-4 fw-bold">${{ servicePrice }}</span>
+        </div>
+        {% endif %}
+        
+        <p class="small text-muted">
+          By confirming, you authorize the charge and agree that your service will be published immediately after successful payment.
+        </p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-primary" id="confirmServicePaymentBtn">Confirm and Pay</button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/trumbowyg@2.27.3/dist/trumbowyg.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    $('#description-editor').trumbowyg();
+
+    document.getElementById('to-step-2').onclick = () => {
+        const cat = document.getElementById('service-category').value;
+        if (!cat) return alert("Please select a category.");
+        document.getElementById('final-category').value = cat;
+        document.getElementById('step-1').style.display = 'none';
+        document.getElementById('step-2').style.display = 'block';
+    };
+
+    document.getElementById('back-step-1').onclick = () => {
+        document.getElementById('step-1').style.display = 'block';
+        document.getElementById('step-2').style.display = 'none';
+    };
+
+    document.getElementById('confirmServicePaymentBtn').addEventListener('click', function() {
+        const confirmBtn = this;
+        const cancelBtn = document.querySelector('#servicePaymentModal .btn-secondary');
+        const closeBtn = document.querySelector('#servicePaymentModal .btn-close');
+        
+        confirmBtn.disabled = true;
+        cancelBtn.disabled = true;
+        closeBtn.disabled = true;
+        
+        confirmBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Procesando pago...';
+        
+        document.querySelector('#servicePaymentModal .modal-body').innerHTML = `
+            <div class="text-center py-4">
+                <div class="spinner-border text-primary mb-3" role="status" style="width: 4rem; height: 4rem;">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <h5>Procesando pago...</h5>
+                <p class="text-muted">Por favor espere, no cierre esta ventana.</p>
+            </div>
+        `;
+        
+        setTimeout(() => {
+            document.getElementById('service-form').submit();
+        }, 1000);
+    });
+
+    const addressInput = document.querySelector('[name="address"]');
+    const autocomplete = new google.maps.places.Autocomplete(addressInput, {
+        types: ['address'],
+        componentRestrictions: { country: 'us' }
+    });
+
+    autocomplete.addListener("place_changed", () => {
+        const place = autocomplete.getPlace();
+        addressInput.dataset.lat = place.geometry?.location?.lat() || "";
+        addressInput.dataset.lng = place.geometry?.location?.lng() || "";
+    });
+
+    document.getElementById("service-form").addEventListener("submit", function(e) {
+        const requiredFields = ["name", "description", "address"];
+        for (const field of requiredFields) {
+            const input = document.querySelector(`[name='${field}']`);
+            if (!input.value.trim()) {
+                alert(`${field} is required.`);
+                input.focus();
+                e.preventDefault();
+                return;
+            }
+        }
+
+        // Asegurar que la categoría principal no quede duplicada en extra_categories
+        const mainCat = document.getElementById('final-category').value;
+        const extraChecks = document.querySelectorAll('input[name="extra_categories[]"]');
+        extraChecks.forEach(chk => {
+            if (chk.value === mainCat && chk.checked) {
+                chk.checked = false;
+            }
+        });
+
+        if (!addressInput.dataset.lat || !addressInput.dataset.lng) {
+            alert("Please select a valid address from suggestions.");
+            addressInput.focus();
+            e.preventDefault();
+        }
+    });
+});
+</script>
+{% endblock %}

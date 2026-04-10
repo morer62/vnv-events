@@ -1,0 +1,1385 @@
+{% extends "templates/base.twig" %}
+
+{% block styles %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+{% if active_provider_type == 'square' and square_environment %}
+<script type="text/javascript" src="https://{{ square_environment == 'production' ? 'web' : 'sandbox.web' }}.squarecdn.com/v1/square.js"></script>
+{% endif %}
+<style>
+:root{
+    --gourmet-primary:#f59e0b;
+    --gourmet-primary-dark:#d97706;
+    --gourmet-accent:#fb923c;
+    --gourmet-cream:#fff8ef;
+    --gourmet-soft:#fff3df;
+    --gourmet-dark:#1f1307;
+    --gourmet-text:#2d241c;
+    --gourmet-muted:#6f6255;
+    --gourmet-border:#ecd9bf;
+    --gourmet-success:#16a34a;
+    --gourmet-danger:#dc2626;
+    --gourmet-shadow:0 18px 44px rgba(79,43,8,.10);
+}
+
+body{
+    color:var(--gourmet-text);
+    background:#fffaf4;
+}
+
+.checkout-wrap{
+    max-width:1240px;
+    margin:0 auto;
+    padding:2rem 1rem 4rem;
+}
+
+.checkout-header{
+    background:linear-gradient(135deg,#fff6e8 0%, #fffdf8 100%);
+    border:1px solid var(--gourmet-border);
+    border-radius:28px;
+    padding:2rem 1.5rem;
+    box-shadow:var(--gourmet-shadow);
+    margin-bottom:1.5rem;
+}
+
+.checkout-title{
+    font-family:'Poppins', sans-serif;
+    font-weight:900;
+    font-size:clamp(2rem,4vw,3rem);
+    line-height:1.05;
+    color:var(--gourmet-dark);
+    margin-bottom:.75rem;
+}
+
+.checkout-subtitle{
+    color:var(--gourmet-muted);
+    line-height:1.8;
+    max-width:820px;
+    margin:0;
+}
+
+.checkout-shell{
+    display:grid;
+    grid-template-columns:1fr .95fr;
+    gap:1.2rem;
+}
+
+.checkout-card{
+    background:#fff;
+    border:1px solid #efdec5;
+    border-radius:26px;
+    box-shadow:var(--gourmet-shadow);
+    overflow:hidden;
+}
+
+.checkout-card-body{
+    padding:1.5rem;
+}
+
+.checkout-section-title{
+    font-size:1.35rem;
+    font-weight:900;
+    color:var(--gourmet-dark);
+    margin-bottom:1rem;
+}
+
+.checkout-items{
+    display:flex;
+    flex-direction:column;
+    gap:1rem;
+}
+
+.checkout-item{
+    display:grid;
+    grid-template-columns:80px 1fr auto;
+    gap:1rem;
+    align-items:center;
+    border:1px solid #efdec7;
+    border-radius:18px;
+    padding:1rem;
+    background:#fffdf9;
+}
+
+.checkout-item-image{
+    width:80px;
+    height:80px;
+    object-fit:cover;
+    border-radius:14px;
+    background:#f6f6f6;
+}
+
+.checkout-item-title{
+    font-weight:900;
+    color:var(--gourmet-dark);
+    margin-bottom:.2rem;
+}
+
+.checkout-item-meta{
+    color:var(--gourmet-muted);
+    font-size:.94rem;
+    line-height:1.6;
+}
+
+.checkout-item-total{
+    font-weight:900;
+    color:var(--gourmet-primary-dark);
+}
+
+.summary-box{
+    background:linear-gradient(135deg,#fff5e6, #fffdf9);
+    border:1px solid #efd4a9;
+    border-radius:22px;
+    padding:1rem;
+    margin-bottom:1rem;
+}
+
+.summary-row{
+    display:flex;
+    justify-content:space-between;
+    gap:1rem;
+    padding:.5rem 0;
+    color:#4f463d;
+}
+
+.summary-row.total{
+    border-top:1px dashed #ebd6b2;
+    margin-top:.35rem;
+    padding-top:.95rem;
+    font-weight:900;
+    color:var(--gourmet-dark);
+    font-size:1.05rem;
+}
+
+.field{
+    margin-bottom:1rem;
+}
+
+.field label{
+    display:block;
+    font-weight:800;
+    margin-bottom:.45rem;
+    color:#4d3c28;
+}
+
+.field input{
+    width:100%;
+    border:1px solid #e9d7bd;
+    border-radius:14px;
+    padding:.95rem 1rem;
+    background:#fffdfa;
+    color:#2d241c;
+    outline:none;
+}
+
+.field input:focus{
+    border-color:#f59e0b;
+    box-shadow:0 0 0 4px rgba(245,158,11,.10);
+    background:#fff;
+}
+
+.field input[readonly]{
+    background:#f8f4ee;
+    color:#6b5b49;
+    cursor:not-allowed;
+}
+
+#square-card-container{
+    min-height:150px;
+    border:1px solid #e9d7bd;
+    border-radius:16px;
+    padding:14px;
+    background:#fffdfa;
+}
+
+#stripe-card-container{
+    min-height:44px;
+    border:1px solid #e9d7bd;
+    border-radius:16px;
+    padding:14px;
+    background:#fffdfa;
+}
+
+.alert-box{
+    border-radius:16px;
+    padding:1rem 1rem;
+    font-weight:800;
+    margin-bottom:1rem;
+    display:none;
+}
+
+.alert-error{
+    background:#fff1f2;
+    border:1px solid #fecdd3;
+    color:#be123c;
+}
+
+.alert-success{
+    background:#ecfdf3;
+    border:1px solid #bbf7d0;
+    color:#166534;
+}
+
+.btn-main{
+    background:linear-gradient(135deg,var(--gourmet-primary),var(--gourmet-accent));
+    color:#23160a !important;
+    padding:1rem 1.75rem;
+    font-size:1rem;
+    border-radius:999px;
+    text-decoration:none;
+    font-weight:900;
+    display:inline-flex;
+    gap:.55rem;
+    align-items:center;
+    justify-content:center;
+    border:none;
+    box-shadow:0 12px 28px rgba(245,158,11,.28);
+    transition:all .22s ease;
+    width:100%;
+}
+
+.btn-light{
+    padding:.95rem 1.4rem;
+    font-size:1rem;
+    border-radius:999px;
+    font-weight:800;
+    border:1.2px solid #f1d1a3;
+    color:var(--gourmet-dark) !important;
+    background:#fff;
+    text-decoration:none;
+    display:inline-flex;
+    align-items:center;
+    gap:.45rem;
+    justify-content:center;
+    width:100%;
+}
+
+.checkout-note{
+    color:var(--gourmet-muted);
+    font-size:.92rem;
+    line-height:1.7;
+    margin-top:.75rem;
+}
+
+.checkout-empty{
+    text-align:center;
+    padding:3rem 1rem;
+    color:var(--gourmet-muted);
+    border:1px dashed #ead6b9;
+    border-radius:18px;
+    background:#fffdf9;
+}
+
+.shipping-fields{
+    display:block;
+    margin-top:1rem;
+}
+
+.shipping-fields.hidden{
+    display:none;
+}
+
+@media (max-width: 991px){
+    .checkout-shell{
+        grid-template-columns:1fr;
+    }
+}
+
+@media (max-width: 768px){
+    .checkout-item{
+        grid-template-columns:1fr;
+    }
+}
+</style>
+{% endblock %}
+
+{% block body %}
+<main class="checkout-wrap">
+    <section class="checkout-header">
+        <h1 class="checkout-title">Checkout</h1>
+        <p class="checkout-subtitle">
+            Review your meal plan, confirm your details, and complete your payment securely.
+        </p>
+    </section>
+
+    <section class="checkout-shell">
+        <div class="checkout-card">
+            <div class="checkout-card-body">
+                <h2 class="checkout-section-title">Order summary</h2>
+
+                <div class="alert-box alert-error" id="checkoutErrorBox"></div>
+                <div class="alert-box alert-success" id="checkoutSuccessBox"></div>
+
+                <div id="checkoutItemsWrap">
+                    <div class="checkout-empty">Loading your cart...</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="checkout-card">
+            <div class="checkout-card-body">
+                <h2 class="checkout-section-title">Payment</h2>
+
+                <div class="summary-box">
+                    <div class="summary-row">
+                        <span>Meals selected</span>
+                        <strong id="checkoutMealsCount">0</strong>
+                    </div>
+                    <div class="summary-row">
+                        <span>Subscription</span>
+                        <strong id="checkoutPricingMode">ON</strong>
+                    </div>
+                    <div class="summary-row">
+                        <span>Subtotal</span>
+                        <strong id="checkoutSubtotal">$0.00</strong>
+                    </div>
+                    <div class="summary-row">
+                        <span>Coupon discount</span>
+                        <strong id="checkoutCouponDiscount">$0.00</strong>
+                    </div>
+                    <div class="summary-row" id="nextChargeRow" style="display:none;">
+                        <span>Next weekly charge</span>
+                        <strong id="checkoutNextCharge">$0.00</strong>
+                    </div>
+                    <div class="summary-row total">
+                        <span>Total</span>
+                        <strong id="checkoutTotal">$0.00</strong>
+                    </div>
+                </div>
+
+                <input type="hidden" id="checkout_coupon_code" value="">
+                <input type="hidden" id="checkout_guest_name" value="">
+                <input type="hidden" id="checkout_guest_email" value="">
+                <input type="hidden" id="checkout_guest_phone" value="">
+                <input type="hidden" id="checkout_city" value="">
+
+                <div style="padding:0;">
+                    <h2 class="checkout-section-title" style="margin-top:1.25rem;">Billing & Shipping Address</h2>
+
+                    <div class="form-check form-switch mt-2">
+                        <input class="form-check-input" type="checkbox" role="switch" id="shippingSameAsBilling" checked>
+                        <label class="form-check-label" for="shippingSameAsBilling">
+                            Shipping address is the same as Billing
+                        </label>
+                    </div>
+
+                    <div class="field">
+                        <label for="billing_address_1">Billing address</label>
+                        <input
+                            type="text"
+                            id="billing_address_1"
+                            name="billing_address_1"
+                            autocomplete="off"
+                            required
+                            placeholder="Start typing and select from the list..."
+                        >
+                    </div>
+
+                    <div class="field">
+                        <label for="billing_address_2">Apt / Suite / Unit (optional)</label>
+                        <input
+                            type="text"
+                            id="billing_address_2"
+                            name="billing_address_2"
+                            placeholder="Apt 4B, Suite 210, Unit 7..."
+                        >
+                    </div>
+
+                    <div class="row g-2">
+                        <div class="col-md-4 field">
+                            <label for="billing_city">Billing city</label>
+                            <input type="text" id="billing_city" name="billing_city" required readonly>
+                        </div>
+                        <div class="col-md-4 field">
+                            <label for="billing_state">Billing state</label>
+                            <input type="text" id="billing_state" name="billing_state" required readonly>
+                        </div>
+                        <div class="col-md-4 field">
+                            <label for="billing_zip">Billing zip</label>
+                            <input type="text" id="billing_zip" name="billing_zip" required readonly>
+                        </div>
+                    </div>
+
+                    <div id="shippingFieldsBlock" class="shipping-fields hidden">
+                        <div class="field">
+                            <label for="shipping_address_1">Shipping address</label>
+                            <input
+                                type="text"
+                                id="shipping_address_1"
+                                name="shipping_address_1"
+                                autocomplete="off"
+                                required
+                                placeholder="Start typing and select from the list..."
+                            >
+                        </div>
+
+                        <div class="field">
+                            <label for="shipping_address_2">Apt / Suite / Unit (optional)</label>
+                            <input
+                                type="text"
+                                id="shipping_address_2"
+                                name="shipping_address_2"
+                                placeholder="Apt 4B, Suite 210, Unit 7..."
+                            >
+                        </div>
+
+                        <div class="row g-2">
+                            <div class="col-md-4 field">
+                                <label for="shipping_city">Shipping city</label>
+                                <input type="text" id="shipping_city" name="shipping_city" required readonly>
+                            </div>
+                            <div class="col-md-4 field">
+                                <label for="shipping_state">Shipping state</label>
+                                <input type="text" id="shipping_state" name="shipping_state" required readonly>
+                            </div>
+                            <div class="col-md-4 field">
+                                <label for="shipping_zip">Shipping zip</label>
+                                <input type="text" id="shipping_zip" name="shipping_zip" required readonly>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="checkout-note">Order city/area is taken from Shipping city.</div>
+                </div>
+
+                <div class="field" id="savedCardsField" style="display:none;">
+                    <label for="savedCardsSelect">Saved card</label>
+                    <select id="savedCardsSelect" class="form-select"></select>
+                    <button type="button" class="btn-light w-100 mt-2" id="useAnotherCardBtn">
+                        <i class="fa-solid fa-credit-card"></i> Use another card
+                    </button>
+                </div>
+
+                <div class="field">
+                    <label>Card information</label>
+                    {% if active_provider_type == 'stripe' %}
+                        <div id="stripe-card-container"></div>
+                        <div class="checkout-note" id="stripeCardErrors" style="color:#be123c;"></div>
+                    {% else %}
+                        <div id="square-card-container"></div>
+                        <div class="checkout-note" id="squareCardErrors" style="color:#be123c;"></div>
+                    {% endif %}
+                </div>
+
+                <button type="button" class="btn-main" id="payNowBtn">
+                    <i class="fa-solid fa-credit-card"></i> Pay now
+                </button>
+
+                <a href="{{ path('/store/cart') }}" class="btn-light mt-3">
+                    <i class="fa-solid fa-arrow-left"></i> Back to cart
+                </a>
+
+                <div class="checkout-note">
+                    Your first order is paid in full at checkout. Subscription is enabled when your cart was saved with it turned on, and if that is the case we will create your recurring weekly plan after this payment.
+                </div>
+            </div>
+        </div>
+    </section>
+</main>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', async function () {
+    const SESSION_KEY = 'vnv_gourmet_cart_session_token'; 
+    const PAYMENT_SUCCESS_FALLBACK = `{{ path('store/payment-successful') }}`;
+    const RECOVERY_TOKEN = `{{ recovery_token|default('')|e('js') }}`;
+    const HAS_RECOVERY = {{ has_recovery ? 'true' : 'false' }};
+
+    const billingAddress2Input = document.getElementById('billing_address_2');
+    const shippingAddress2Input = document.getElementById('shipping_address_2');
+
+    const checkoutItemsWrap = document.getElementById('checkoutItemsWrap');
+    const errorBox = document.getElementById('checkoutErrorBox');
+    const successBox = document.getElementById('checkoutSuccessBox');
+    const mealsCountEl = document.getElementById('checkoutMealsCount');
+    const pricingModeEl = document.getElementById('checkoutPricingMode');
+    const subtotalEl = document.getElementById('checkoutSubtotal');
+    const couponDiscountEl = document.getElementById('checkoutCouponDiscount');
+    const totalEl = document.getElementById('checkoutTotal');
+    const nextChargeRow = document.getElementById('nextChargeRow');
+    const nextChargeEl = document.getElementById('checkoutNextCharge');
+    const couponCodeInput = document.getElementById('checkout_coupon_code');
+    const applyCouponBtn = document.getElementById('applyCouponBtn');
+
+    const nameInput = document.getElementById('checkout_guest_name');
+    const emailInput = document.getElementById('checkout_guest_email');
+    const phoneInput = document.getElementById('checkout_guest_phone');
+    const cityInput = document.getElementById('checkout_city');
+
+    const billingAddress1Input = document.getElementById('billing_address_1');
+    const billingCityInput = document.getElementById('billing_city');
+    const billingStateInput = document.getElementById('billing_state');
+    const billingZipInput = document.getElementById('billing_zip');
+
+    const shippingAddress1Input = document.getElementById('shipping_address_1');
+    const shippingCityInput = document.getElementById('shipping_city');
+    const shippingStateInput = document.getElementById('shipping_state');
+    const shippingZipInput = document.getElementById('shipping_zip');
+
+    const shippingSameAsBillingInput = document.getElementById('shippingSameAsBilling');
+    const shippingFieldsBlock = document.getElementById('shippingFieldsBlock');
+    const payNowBtn = document.getElementById('payNowBtn');
+    const activeProviderType = `{{ active_provider_type|default('')|e('js') }}`;
+    const stripePublicKey = `{{ stripe_public_key|default('')|e('js') }}`;
+    const cardErrors = document.getElementById(activeProviderType === 'stripe' ? 'stripeCardErrors' : 'squareCardErrors');
+
+    const savedCardsField = document.getElementById('savedCardsField');
+    const savedCardsSelect = document.getElementById('savedCardsSelect');
+    const useAnotherCardBtn = document.getElementById('useAnotherCardBtn');
+
+    let sessionToken = localStorage.getItem(SESSION_KEY) || '';
+
+    let checkoutState = {
+        cart: null,
+        items: []
+    };
+
+    let card = null;
+    let stripe = null;
+    let stripeCard = null;
+    let stripeElements = null;
+
+    let paymentTokenType = 'new_card';
+    let selectedSavedCardToken = '';
+    let savedCards = [];
+
+    function setPaymentMode(mode) {
+        paymentTokenType = mode;
+
+        if (mode === 'stored_card') {
+            selectedSavedCardToken = selectedSavedCardToken || '';
+            if (savedCardsField) savedCardsField.style.display = 'block';
+
+            const stripeContainer = document.getElementById('stripe-card-container');
+            const squareContainer = document.getElementById('square-card-container');
+            const stripeErr = document.getElementById('stripeCardErrors');
+            const squareErr = document.getElementById('squareCardErrors');
+
+            if (stripeContainer) stripeContainer.style.display = 'none';
+            if (squareContainer) squareContainer.style.display = 'none';
+            if (stripeErr) stripeErr.style.display = 'none';
+            if (squareErr) squareErr.style.display = 'none';
+        } else {
+            if (savedCardsField) savedCardsField.style.display = 'none';
+
+            const stripeContainer = document.getElementById('stripe-card-container');
+            const squareContainer = document.getElementById('square-card-container');
+            const stripeErr = document.getElementById('stripeCardErrors');
+            const squareErr = document.getElementById('squareCardErrors');
+
+            if (stripeContainer) stripeContainer.style.display = '';
+            if (squareContainer) squareContainer.style.display = '';
+            if (stripeErr) stripeErr.style.display = '';
+            if (squareErr) squareErr.style.display = '';
+        }
+
+        updatePayNowButtonState();
+    }
+
+    function canPayNow() {
+        const billingOk =
+            (billingAddress1Input?.value || '').trim() !== '' &&
+            (billingCityInput?.value || '').trim() !== '' &&
+            (billingStateInput?.value || '').trim() !== '' &&
+            (billingZipInput?.value || '').trim() !== '';
+
+        const shippingOk =
+            (shippingAddress1Input?.value || '').trim() !== '' &&
+            (shippingCityInput?.value || '').trim() !== '' &&
+            (shippingStateInput?.value || '').trim() !== '' &&
+            (shippingZipInput?.value || '').trim() !== '';
+
+        if (!billingOk || !shippingOk) return false;
+
+        if (paymentTokenType === 'stored_card') {
+            return !!(selectedSavedCardToken && selectedSavedCardToken.trim() !== '');
+        }
+
+        return true;
+    }
+
+    function updatePayNowButtonState() {
+        if (!payNowBtn) return;
+        payNowBtn.disabled = !canPayNow();
+    }
+
+    function showError(message) {
+        errorBox.textContent = message;
+        errorBox.style.display = 'block';
+        successBox.style.display = 'none';
+    }
+
+    function showSuccess(message) {
+        successBox.textContent = message;
+        successBox.style.display = 'block';
+        errorBox.style.display = 'none';
+    }
+
+    function hideMessages() {
+        errorBox.style.display = 'none';
+        successBox.style.display = 'none';
+        if (cardErrors) cardErrors.textContent = '';
+    }
+
+    function normalizeUSPhoneToE164(value) {
+        const digits = String(value || '').replace(/\D/g, '');
+        if (!digits) return '';
+        if (digits.length === 10) return '+1' + digits;
+        if (digits.length === 11 && digits.startsWith('1')) return '+' + digits;
+        if (digits.startsWith('1') && digits.length > 11) return digits.slice(-10).length ? '+1' + digits.slice(-10) : '';
+        return '+' + digits;
+    }
+
+    function formatUSPhoneDisplay(value) {
+        const digits = String(value || '').replace(/\D/g, '').slice(0, 10);
+        const area = digits.slice(0, 3);
+        const exch = digits.slice(3, 6);
+        const line = digits.slice(6, 10);
+
+        if (!digits) return '';
+        if (digits.length < 4) return `(${area}`;
+        if (digits.length < 7) return `(${area}) ${exch}`;
+        return `(${area}) ${exch}-${line}`;
+    }
+
+    if (phoneInput) {
+        phoneInput.addEventListener('input', () => {
+            const formatted = formatUSPhoneDisplay(phoneInput.value);
+            if (phoneInput.value !== formatted) {
+                phoneInput.value = formatted;
+            }
+        });
+    }
+
+    function setAddressFields(prefix, values) {
+        const addressInput = document.getElementById(`${prefix}_address_1`);
+        const cityInputField = document.getElementById(`${prefix}_city`);
+        const stateInputField = document.getElementById(`${prefix}_state`);
+        const zipInputField = document.getElementById(`${prefix}_zip`);
+
+        if (addressInput && typeof values.address1 === 'string') addressInput.value = values.address1;
+        if (cityInputField) cityInputField.value = values.city || '';
+        if (stateInputField) stateInputField.value = values.state || '';
+        if (zipInputField) zipInputField.value = values.zip || '';
+    }
+
+    function clearAddressDetails(prefix, keepAddressLine = true) {
+        const addressInput = document.getElementById(`${prefix}_address_1`);
+        const cityInputField = document.getElementById(`${prefix}_city`);
+        const stateInputField = document.getElementById(`${prefix}_state`);
+        const zipInputField = document.getElementById(`${prefix}_zip`);
+
+        if (!keepAddressLine && addressInput) addressInput.value = '';
+        if (cityInputField) cityInputField.value = '';
+        if (stateInputField) stateInputField.value = '';
+        if (zipInputField) zipInputField.value = '';
+    }
+
+    function extractPlaceData(place) {
+        const result = {
+            address1: '',
+            city: '',
+            state: '',
+            zip: ''
+        };
+
+        if (!place) return result;
+
+        if (place.formatted_address) {
+            result.address1 = place.formatted_address;
+        } else if (place.name) {
+            result.address1 = place.name;
+        }
+
+        const components = Array.isArray(place.address_components) ? place.address_components : [];
+
+        let streetNumber = '';
+        let route = '';
+        let locality = '';
+        let postalTown = '';
+        let sublocality = '';
+        let county = '';
+        let stateShort = '';
+        let postalCode = '';
+
+        components.forEach(component => {
+            const types = component.types || [];
+
+            if (types.includes('street_number')) streetNumber = component.long_name || '';
+            if (types.includes('route')) route = component.long_name || '';
+            if (types.includes('locality')) locality = component.long_name || '';
+            if (types.includes('postal_town')) postalTown = component.long_name || '';
+            if (types.includes('sublocality') || types.includes('sublocality_level_1')) sublocality = component.long_name || '';
+            if (types.includes('administrative_area_level_2')) county = component.long_name || '';
+            if (types.includes('administrative_area_level_1')) stateShort = component.short_name || component.long_name || '';
+            if (types.includes('postal_code')) postalCode = component.long_name || '';
+        });
+
+        const line1 = [streetNumber, route].filter(Boolean).join(' ').trim();
+        if (line1) {
+            result.address1 = line1;
+        }
+
+        result.city = locality || postalTown || sublocality || county || '';
+        result.state = stateShort || '';
+        result.zip = postalCode || '';
+
+        return result;
+    }
+
+    function syncShippingFromBilling() {
+        if (!billingAddress1Input || !shippingAddress1Input) return;
+
+        if (shippingSameAsBillingInput && shippingSameAsBillingInput.checked) {
+            shippingAddress1Input.value = billingAddress1Input.value || '';
+            if (shippingAddress2Input && billingAddress2Input) shippingAddress2Input.value = billingAddress2Input.value || '';
+            if (shippingCityInput && billingCityInput) shippingCityInput.value = billingCityInput.value || '';
+            if (shippingStateInput && billingStateInput) shippingStateInput.value = billingStateInput.value || '';
+            if (shippingZipInput && billingZipInput) shippingZipInput.value = billingZipInput.value || '';
+
+            if (cityInput && billingCityInput) {
+                cityInput.value = billingCityInput.value || '';
+            }
+        }
+    }
+
+    function applyShippingToggle() {
+        const same = shippingSameAsBillingInput ? !!shippingSameAsBillingInput.checked : true;
+        if (!shippingAddress1Input || !shippingCityInput || !shippingStateInput || !shippingZipInput) return;
+
+        shippingAddress1Input.disabled = same;
+        shippingCityInput.disabled = same;
+        shippingStateInput.disabled = same;
+        shippingZipInput.disabled = same;
+
+        if (shippingFieldsBlock) {
+            shippingFieldsBlock.classList.toggle('hidden', same);
+        }
+
+        if (same) {
+            syncShippingFromBilling();
+        } else {
+            if (cityInput && shippingCityInput) {
+                cityInput.value = shippingCityInput.value || '';
+            }
+        }
+
+        updatePayNowButtonState();
+    }
+
+    function initAddressAutocomplete(inputEl, prefix) {
+        if (!inputEl || typeof window.google === 'undefined' || !google.maps || !google.maps.places) {
+            return;
+        }
+
+        const autocomplete = new google.maps.places.Autocomplete(inputEl, {
+            types: ['address'],
+            componentRestrictions: { country: 'us' },
+            fields: ['address_components', 'formatted_address', 'name']
+        });
+
+        autocomplete.addListener('place_changed', () => {
+            const place = autocomplete.getPlace();
+            const data = extractPlaceData(place);
+
+            setAddressFields(prefix, data);
+
+            if (prefix === 'billing') {
+                if (shippingSameAsBillingInput && shippingSameAsBillingInput.checked) {
+                    syncShippingFromBilling();
+                }
+            }
+
+            if (prefix === 'shipping') {
+                if (cityInput) {
+                    cityInput.value = data.city || '';
+                }
+            }
+
+            if (prefix === 'billing' && shippingSameAsBillingInput && shippingSameAsBillingInput.checked) {
+                if (cityInput) {
+                    cityInput.value = data.city || '';
+                }
+            }
+
+            updatePayNowButtonState();
+        });
+
+        inputEl.addEventListener('input', () => {
+            clearAddressDetails(prefix, true);
+
+            if (prefix === 'billing' && shippingSameAsBillingInput && shippingSameAsBillingInput.checked) {
+                syncShippingFromBilling();
+            }
+
+            if (prefix === 'shipping' && cityInput) {
+                cityInput.value = '';
+            }
+
+            if (prefix === 'billing' && shippingSameAsBillingInput && shippingSameAsBillingInput.checked && cityInput) {
+                cityInput.value = '';
+            }
+
+            updatePayNowButtonState();
+        });
+    }
+
+    function renderSummary() {
+        if (!checkoutState.cart) return;
+
+        mealsCountEl.textContent = checkoutState.cart.meals_count || 0;
+        pricingModeEl.textContent = (checkoutState.cart.pricing_mode || '').toUpperCase() === 'SUBSCRIPTION' ? 'ON' : 'OFF';
+        subtotalEl.textContent = `$${Number(checkoutState.cart.subtotal || 0).toFixed(2)}`;
+        couponDiscountEl.textContent = `-$${Number(checkoutState.cart.coupon_discount || 0).toFixed(2)}`;
+        totalEl.textContent = `$${Number(checkoutState.cart.total || 0).toFixed(2)}`;
+
+        const isSub = (checkoutState.cart.pricing_mode || '').toUpperCase() === 'SUBSCRIPTION';
+        const nextChargeTotal = checkoutState.cart.next_charge_total;
+        const nextChargeDate = checkoutState.cart.next_charge_date;
+        if (nextChargeRow && nextChargeEl) {
+            if (isSub && nextChargeTotal !== null && nextChargeTotal !== undefined) {
+                const amount = `$${Number(nextChargeTotal || 0).toFixed(2)}`;
+                nextChargeEl.textContent = nextChargeDate ? `${amount} (${nextChargeDate})` : amount;
+                nextChargeRow.style.display = '';
+            } else {
+                nextChargeRow.style.display = 'none';
+            }
+        }
+
+        if (couponCodeInput) {
+            couponCodeInput.value = checkoutState.cart.coupon_code || '';
+        }
+    }
+
+    function renderItems() {
+        if (!checkoutState.items.length) {
+            checkoutItemsWrap.innerHTML = `<div class="checkout-empty">Your cart is empty.</div>`;
+            return;
+        }
+
+        checkoutItemsWrap.innerHTML = `
+            <div class="checkout-items">
+                ${checkoutState.items.map(item => `
+                    <div class="checkout-item">
+                        ${
+                            item.main_image
+                                ? `<img src="${item.main_image}" alt="${item.product_name_snapshot}" class="checkout-item-image">`
+                                : `<div class="checkout-item-image d-flex align-items-center justify-content-center text-muted">No image</div>`
+                        }
+
+                        <div>
+                            <div class="checkout-item-title">${item.product_name_snapshot}</div>
+                            <div class="checkout-item-meta">
+                                ${item.quantity} meal(s) × $${Number(item.unit_price).toFixed(2)}
+                            </div>
+                        </div>
+
+                        <div class="checkout-item-total">
+                            $${Number(item.line_total).toFixed(2)}
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+        `;
+    }
+
+    async function loadSummary() {
+        if (!sessionToken && !HAS_RECOVERY) {
+            showError('Cart session not found.');
+            checkoutItemsWrap.innerHTML = `<div class="checkout-empty">We could not find your cart session.</div>`;
+            return false;
+        }
+
+        try {
+            const response = await fetch('{{ path("store/checkout") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify({
+                    action: 'summary',
+                    session_token: sessionToken,
+                    recovery_token: HAS_RECOVERY ? RECOVERY_TOKEN : ''
+                })
+            });
+
+            const data = await response.json();
+
+            if (!data.success) {
+                showError(data.message || 'Could not load checkout.');
+                checkoutItemsWrap.innerHTML = `<div class="checkout-empty">We could not load your cart.</div>`;
+                return false;
+            }
+
+            checkoutState.cart = data.cart;
+            checkoutState.items = data.items || [];
+
+            if ((!sessionToken || sessionToken === '') && data.cart && data.cart.session_token) {
+                sessionToken = data.cart.session_token;
+                localStorage.setItem(SESSION_KEY, sessionToken);
+            }
+
+            nameInput.value = data.cart.guest_name || '';
+            emailInput.value = data.cart.guest_email || '';
+            phoneInput.value = data.cart.guest_phone || '';
+            cityInput.value = data.cart.city || '';
+
+            if (phoneInput && phoneInput.value) {
+                phoneInput.value = formatUSPhoneDisplay(phoneInput.value);
+            }
+
+            if (billingAddress1Input) billingAddress1Input.value = data.cart.billing_address_1 || '';
+            if (billingAddress2Input) billingAddress2Input.value = data.cart.billing_address_2 || '';
+            if (billingCityInput) billingCityInput.value = data.cart.billing_city || '';
+            if (billingStateInput) billingStateInput.value = data.cart.billing_state || '';
+            if (billingZipInput) billingZipInput.value = data.cart.billing_zip || '';
+
+            if (shippingAddress1Input) shippingAddress1Input.value = data.cart.shipping_address_1 || '';
+            if (shippingAddress2Input) shippingAddress2Input.value = data.cart.shipping_address_2 || '';
+            if (shippingCityInput) shippingCityInput.value = data.cart.shipping_city || '';
+            if (shippingStateInput) shippingStateInput.value = data.cart.shipping_state || '';
+            if (shippingZipInput) shippingZipInput.value = data.cart.shipping_zip || '';
+
+            await loadSavedCardsIfPossible();
+
+            renderSummary();
+            renderItems();
+
+            return true;
+        } catch (e) {
+            showError('Unexpected error loading checkout.');
+            checkoutItemsWrap.innerHTML = `<div class="checkout-empty">We could not load your cart.</div>`;
+            return false;
+        }
+    }
+
+    async function loadSavedCardsIfPossible() {
+        if (!savedCardsField || !savedCardsSelect) return;
+        if (!emailInput || !emailInput.value) return;
+
+        const email = emailInput.value.trim();
+        if (!email) return;
+
+        try {
+            const response = await fetch('{{ path("store/checkout") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify({
+                    action: 'saved_cards',
+                    session_token: sessionToken,
+                    recovery_token: HAS_RECOVERY ? RECOVERY_TOKEN : '',
+                    guest_email: email
+                })
+            });
+
+            const data = await response.json();
+            if (!data.success || !Array.isArray(data.cards) || data.cards.length === 0) {
+                savedCards = [];
+                setPaymentMode('new_card');
+                return;
+            }
+
+            savedCards = data.cards;
+
+            savedCardsSelect.innerHTML = '';
+            let mainToken = '';
+            for (const c of savedCards) {
+                const isMain = (c.main_card || '').toString().toLowerCase() === 'yes';
+                if (isMain && !mainToken) mainToken = c.token;
+
+                const optionText = `${c.brand} •••• ${c.last4}${c.exp ? ' (' + c.exp + ')' : ''}`;
+                const option = document.createElement('option');
+                option.value = c.token;
+                option.textContent = optionText;
+                savedCardsSelect.appendChild(option);
+            }
+
+            selectedSavedCardToken = mainToken || savedCards[0].token || '';
+            savedCardsSelect.value = selectedSavedCardToken;
+
+            setPaymentMode('stored_card');
+        } catch (e) {
+            setPaymentMode('new_card');
+        }
+    }
+
+    async function initSquare() {
+        const appId = `{{ square_application_id|e('js') }}`;
+        const locationId = `{{ square_location_id|e('js') }}`;
+
+        if (!window.Square || !appId || !locationId) {
+            if (cardErrors) cardErrors.textContent = 'Payment form is unavailable right now.';
+            return false;
+        }
+
+        try {
+            const payments = window.Square.payments(appId, locationId);
+            card = await payments.card();
+            await card.attach('#square-card-container');
+            return true;
+        } catch (e) {
+            if (cardErrors) cardErrors.textContent = 'Could not initialize the payment form.';
+            return false;
+        }
+    }
+
+    function initStripe() {
+        if (!stripePublicKey) {
+            showError('Payment system not configured. Please contact support.');
+            return false;
+        }
+        if (typeof Stripe === 'undefined') {
+            showError('Stripe could not be loaded. Please refresh.');
+            return false;
+        }
+
+        stripe = Stripe(stripePublicKey);
+        stripeElements = stripe.elements();
+        stripeCard = stripeElements.create('card', {
+            style: {
+                base: {
+                    fontFamily: 'Inter, Arial, sans-serif',
+                    fontSize: '16px',
+                    color: '#2d241c'
+                }
+            }
+        });
+        stripeCard.mount('#stripe-card-container');
+        return true;
+    }
+
+    if (savedCardsSelect) {
+        savedCardsSelect.addEventListener('change', () => {
+            selectedSavedCardToken = savedCardsSelect.value || '';
+            if (selectedSavedCardToken) {
+                setPaymentMode('stored_card');
+            }
+        });
+    }
+
+    if (useAnotherCardBtn) {
+        useAnotherCardBtn.addEventListener('click', () => {
+            selectedSavedCardToken = '';
+            setPaymentMode('new_card');
+        });
+    }
+
+    if (shippingSameAsBillingInput) {
+        shippingSameAsBillingInput.addEventListener('change', () => {
+            applyShippingToggle();
+        });
+    }
+
+    let savedCardsDebounceTimer = null;
+    if (emailInput) {
+        emailInput.addEventListener('input', () => {
+            if (savedCardsDebounceTimer) clearTimeout(savedCardsDebounceTimer);
+            savedCardsDebounceTimer = setTimeout(() => {
+                loadSavedCardsIfPossible();
+            }, 500);
+        });
+    }
+
+    if (billingAddress1Input) {
+        [
+            billingAddress1Input,
+            billingCityInput,
+            billingStateInput,
+            billingZipInput,
+            shippingAddress1Input,
+            shippingCityInput,
+            shippingStateInput,
+            shippingZipInput
+        ].forEach(elm => {
+            if (!elm) return;
+            elm.addEventListener('input', () => updatePayNowButtonState());
+            elm.addEventListener('change', () => updatePayNowButtonState());
+        });
+    }
+
+    if (billingAddress1Input) {
+        [billingAddress1Input, billingCityInput, billingStateInput, billingZipInput].forEach(elm => {
+            if (!elm) return;
+            elm.addEventListener('input', () => {
+                if (shippingSameAsBillingInput && shippingSameAsBillingInput.checked) {
+                    syncShippingFromBilling();
+                }
+                updatePayNowButtonState();
+            });
+        });
+    }
+
+    if (shippingCityInput) {
+        shippingCityInput.addEventListener('input', () => {
+            if (shippingSameAsBillingInput && !shippingSameAsBillingInput.checked && cityInput) {
+                cityInput.value = shippingCityInput.value || '';
+            }
+            updatePayNowButtonState();
+        });
+    }
+
+    if (nameInput) nameInput.addEventListener('input', () => updatePayNowButtonState());
+    if (emailInput) emailInput.addEventListener('input', () => updatePayNowButtonState());
+
+    applyShippingToggle();
+    updatePayNowButtonState();
+
+    payNowBtn.addEventListener('click', async function () {
+        hideMessages();
+
+        if (!checkoutState.cart || !checkoutState.items.length) {
+            showError('Your cart is empty.');
+            return;
+        }
+
+        if (!emailInput.value.trim()) {
+            showError('Email is required. Please update your details in the cart.');
+            return;
+        }
+
+        const guestPhoneE164 = normalizeUSPhoneToE164(phoneInput.value);
+
+        const shippingSameAsBilling = shippingSameAsBillingInput ? !!shippingSameAsBillingInput.checked : true;
+        if (shippingSameAsBilling) {
+            syncShippingFromBilling();
+        }
+
+        const billingAddress1 = (billingAddress1Input?.value || '').trim();
+        const billingCity = (billingCityInput?.value || '').trim();
+        const billingState = (billingStateInput?.value || '').trim();
+        const billingZip = (billingZipInput?.value || '').trim();
+
+        const shippingAddress1 = (shippingAddress1Input?.value || '').trim();
+        const shippingCity = (shippingCityInput?.value || '').trim();
+        const shippingState = (shippingStateInput?.value || '').trim();
+        const shippingZip = (shippingZipInput?.value || '').trim();
+
+        if (!billingAddress1 || !billingCity || !billingState || !billingZip) {
+            showError('Billing address is required.');
+            return;
+        }
+
+        if (!shippingAddress1 || !shippingCity || !shippingState || !shippingZip) {
+            showError('Shipping address is required.');
+            return;
+        }
+
+        const billingAddress2 = (billingAddress2Input?.value || '').trim();
+        const shippingAddress2 = (shippingAddress2Input?.value || '').trim();
+
+        if (shippingSameAsBilling) {
+            if (
+                billingAddress1 !== shippingAddress1 ||
+                billingAddress2 !== shippingAddress2 ||
+                billingCity !== shippingCity ||
+                billingState !== shippingState ||
+                billingZip !== shippingZip
+            ) {
+                showError('Shipping address must match billing address.');
+                return;
+            }
+        } else {
+            if (cityInput) cityInput.value = shippingCity || '';
+        }
+
+        if (paymentTokenType === 'new_card') {
+            if (activeProviderType === 'stripe') {
+                if (!stripe || !stripeCard) {
+                    showError('Payment form is not ready.');
+                    return;
+                }
+            } else {
+                if (!card) {
+                    showError('Payment form is not ready.');
+                    return;
+                }
+            }
+        }
+
+        payNowBtn.disabled = true;
+        payNowBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Processing payment...';
+
+        try {
+            let paymentToken = '';
+            let cardInfo = {};
+
+            if (paymentTokenType === 'stored_card') {
+                paymentToken = selectedSavedCardToken;
+                if (!paymentToken) {
+                    showError('Please select a saved card.');
+                    return;
+                }
+            } else {
+                if (activeProviderType === 'stripe') {
+                    const { token, error } = await stripe.createToken(stripeCard);
+                    if (error) {
+                        if (cardErrors) cardErrors.textContent = error.message || 'Card tokenization failed.';
+                        return;
+                    }
+
+                    paymentToken = token?.id || '';
+                    if (!paymentToken) {
+                        if (cardErrors) cardErrors.textContent = 'Card tokenization failed.';
+                        return;
+                    }
+
+                    const c = token?.card;
+                    if (c && c.brand && c.last4 && c.exp_month && c.exp_year) {
+                        cardInfo = {
+                            brand: c.brand,
+                            last4: c.last4,
+                            exp: c.exp_month + '/' + c.exp_year
+                        };
+                    }
+                } else {
+                    const tokenResult = await card.tokenize();
+
+                    if (tokenResult.status !== 'OK') {
+                        let message = 'Card tokenization failed.';
+                        if (tokenResult.errors && tokenResult.errors.length) {
+                            message = tokenResult.errors[0].detail || message;
+                        }
+                        if (cardErrors) cardErrors.textContent = message;
+                        return;
+                    }
+
+                    paymentToken = tokenResult.token;
+                    const details = tokenResult.details || tokenResult.card || {};
+                    const cd = details.card || details;
+                    if (cd && cd.brand && cd.last4 && cd.exp_month && cd.exp_year) {
+                        cardInfo = {
+                            brand: cd.brand,
+                            last4: cd.last4,
+                            exp: cd.exp_month + '/' + cd.exp_year
+                        };
+                    }
+                }
+            }
+
+            const response = await fetch('{{ path("store/checkout") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify({
+                    action: 'pay',
+                    session_token: sessionToken,
+                    recovery_token: HAS_RECOVERY ? RECOVERY_TOKEN : '',
+                    customer_token: paymentToken,
+                    payment_token_type: paymentTokenType,
+                    guest_name: nameInput.value.trim(),
+                    guest_email: emailInput.value.trim(),
+                    guest_phone: guestPhoneE164,
+                    city: cityInput.value.trim(),
+                    billing_address_1: billingAddress1,
+                    billing_address_2: (billingAddress2Input?.value || '').trim(),
+                    billing_city: billingCity,
+                    billing_state: billingState,
+                    billing_zip: billingZip,
+                    shipping_address_1: shippingAddress1,
+                    shipping_address_2: (shippingAddress2Input?.value || '').trim(),
+                    shipping_city: shippingCity,
+                    shipping_state: shippingState,
+                    shipping_zip: shippingZip,
+                    shipping_same_as_billing: shippingSameAsBilling,
+                    card_info: cardInfo
+                })
+            });
+
+            const data = await response.json();
+
+            if (!data.success) {
+                showError(data.message || 'Payment failed.');
+                return;
+            }
+
+            try {
+                localStorage.removeItem('vnv_gourmet_checkout_selection');
+                localStorage.removeItem('vnv_gourmet_cart_draft');
+                localStorage.removeItem(SESSION_KEY);
+            } catch (e) {}
+
+            window.location.href = data.redirect || PAYMENT_SUCCESS_FALLBACK;
+            return;
+        } catch (e) {
+            showError('Unexpected error processing payment.');
+        } finally {
+            updatePayNowButtonState();
+            payNowBtn.innerHTML = '<i class="fa-solid fa-credit-card"></i> Pay now';
+        }
+    });
+
+    if (applyCouponBtn) {
+        applyCouponBtn.addEventListener('click', async function () {
+            hideMessages();
+
+            if (!checkoutState.cart) {
+                showError('Cart not loaded.');
+                return;
+            }
+
+            applyCouponBtn.disabled = true;
+            const previousText = applyCouponBtn.textContent;
+            applyCouponBtn.textContent = 'Applying...';
+
+            try {
+                const response = await fetch('{{ path("store/checkout") }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: JSON.stringify({
+                        action: 'apply_coupon',
+                        session_token: sessionToken,
+                        recovery_token: HAS_RECOVERY ? RECOVERY_TOKEN : '',
+                        coupon_code: (couponCodeInput?.value || '').trim(),
+                        guest_email: (emailInput?.value || '').trim()
+                    })
+                });
+                const data = await response.json();
+                if (!data.success) {
+                    showError(data.message || 'Coupon could not be applied.');
+                    return;
+                }
+
+                if (checkoutState.cart) {
+                    checkoutState.cart.coupon_code = data.coupon_code || null;
+                    checkoutState.cart.coupon_discount = Number(data.coupon_discount || 0);
+                    checkoutState.cart.discount = Number(data.discount || 0);
+                    checkoutState.cart.subtotal = Number(data.subtotal || 0);
+                    checkoutState.cart.total = Number(data.total || 0);
+                    if (data.next_charge_total !== undefined && data.next_charge_total !== null) {
+                        checkoutState.cart.next_charge_total = Number(data.next_charge_total);
+                    }
+                }
+                renderSummary();
+                showSuccess(data.message || 'Coupon applied.');
+            } catch (e) {
+                showError('Unexpected error applying coupon.');
+            } finally {
+                applyCouponBtn.disabled = false;
+                applyCouponBtn.textContent = previousText;
+            }
+        });
+    }
+
+    const loaded = await loadSummary();
+
+    if (loaded) {
+        if (activeProviderType === 'stripe') {
+            initStripe();
+        } else {
+            await initSquare();
+        }
+    }
+
+    initAddressAutocomplete(billingAddress1Input, 'billing');
+    initAddressAutocomplete(shippingAddress1Input, 'shipping');
+});
+</script>
+{% endblock %}

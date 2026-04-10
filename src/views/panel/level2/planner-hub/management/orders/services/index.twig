@@ -1,0 +1,118 @@
+{% extends 'templates/base.admin.twig' %}
+{% import 'templates/macros.twig' as macros %}
+
+{% block body %}
+
+<h2 class="mb-4">🛠️ Services</h2>
+{{ macros.breadcrumb2() }}
+
+<section class="card">
+    <div class="card-body">
+        <a href="{{ path(current_location ~ '/create') }}" class="btn btn-primary mb-3">
+            <i data-feather="plus"></i> Add New Service
+        </a>
+
+        <input type="text" id="searchService" class="form-control mb-3" placeholder="🔍 Search services by name..." />
+
+        <div class="table-responsive">
+            <table class="table table-bordered text-center align-middle" style="min-width: 768px;" id="servicesTable">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Price</th>
+                        <th>Type</th>
+                        <th>Description</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for service in services|sort((a, b) => a.name <=> b.name) %}
+                        <tr>
+                            <td class="service-name">{{ service.name }}</td>
+                            <td>${{ service.price }}</td>
+                            <td>
+                                {% if service.is_variable == 'YES' %}
+                                    <span class="badge bg-warning">Variable</span>
+                                {% else %}
+                                    <span class="badge bg-success">Fixed</span>
+                                {% endif %}
+                            </td>
+                             <td style="min-width: 200px;" >{{ service.description}}</td>
+                            <td class="d-flex justify-content-center gap-2">
+                                <a href="{{ path(current_location ~ '/edit') }}?id={{ service.id }}" class="btn btn-warning">✏️ Edit</a>
+                                
+                                <form method="post" class="d-inline">
+                                    <input type="hidden" name="id" value="{{ service.id }}">
+                                    <input type="hidden" name="action" value="duplicate">
+                                    <button type="submit" class="btn btn-info" onclick="return confirm('Are you sure you want to duplicate this service?')" title="Duplicate Service">
+                                        📋 Duplicate
+                                    </button>
+                                </form>
+                                
+                                {% if pending_modal_open and pending_modal_service_id == service.id %}
+                                    <form method="post" class="d-inline">
+                                        <input type="hidden" name="id" value="{{ service.id }}">
+                                        <input type="hidden" name="confirm_pending" value="1">
+                                        <button type="submit" class="btn btn-danger" title="Confirm Delete">
+                                            ⚠️ Confirm Delete ({{ pending_modal_count }})
+                                        </button>
+                                    </form>
+                                {% else %}
+                                    <form method="post" class="d-inline">
+                                        <input type="hidden" name="id" value="{{ service.id }}">
+                                        <button type="submit" class="btn btn-danger" title="Delete">🗑️ Delete</button>
+                                    </form>
+                                {% endif %}
+                                
+                                <a href="{{ path('panel/planner-hub/management/orders/services/service-tasks/', { service_id: service.id }) }}" class="btn btn-secondary">
+                                    ✅ Team Tasks
+                                </a>
+                            </td>
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <td colspan="5" class="text-muted">No services found.</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% if pending_modal_open %}
+    <div class="modal fade show" id="pendingModal" tabindex="-1" style="display:block; background: rgba(0,0,0,.5);">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Confirm deletion</h5>
+                    <a href="{{ path(current_location) }}" class="btn-close"></a>
+                </div>
+                <div class="modal-body">
+                    <p>This service is used by <b>{{ pending_modal_count }}</b> active order(s). Do you still want to delete it?</p>
+                </div>
+                <div class="modal-footer">
+                    <a href="{{ path(current_location) }}" class="btn btn-secondary">Cancel</a>
+                    <form method="post" class="d-inline">
+                        <input type="hidden" name="id" value="{{ pending_modal_service_id }}">
+                        <input type="hidden" name="confirm_pending" value="1">
+                        <button type="submit" class="btn btn-danger">Yes, delete</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</section>
+
+<script>
+    document.getElementById('searchService').addEventListener('input', function () {
+        const filter = this.value.toLowerCase();
+        const rows = document.querySelectorAll('#servicesTable tbody tr');
+
+        rows.forEach(row => {
+            const name = row.querySelector('.service-name')?.textContent.toLowerCase() || '';
+            row.style.display = name.includes(filter) ? '' : 'none';
+        });
+    });
+</script>
+
+{% endblock %}

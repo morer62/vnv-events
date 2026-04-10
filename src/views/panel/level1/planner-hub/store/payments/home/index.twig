@@ -1,0 +1,126 @@
+{% extends 'templates/base.admin.twig' %}
+
+{% block body %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+        <div>
+            <h1 class="h3 mb-1">Store Payments</h1>
+            <p class="text-muted mb-0">Track gourmet checkout payments and statuses.</p>
+        </div>
+        <a href="{{ path('panel/planner-hub/store/orders/home') }}" class="btn btn-outline-dark">Go to Orders</a>
+    </div>
+
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-2">
+                    <label class="form-label">Status</label>
+                    <select name="status" class="form-select">
+                        <option value="">All</option>
+                        <option value="PENDING" {% if filters.status == 'PENDING' %}selected{% endif %}>PENDING</option>
+                        <option value="PAID" {% if filters.status == 'PAID' %}selected{% endif %}>PAID</option>
+                        <option value="FAILED" {% if filters.status == 'FAILED' %}selected{% endif %}>FAILED</option>
+                        <option value="REFUNDED" {% if filters.status == 'REFUNDED' %}selected{% endif %}>REFUNDED</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Method</label>
+                    <select name="method" class="form-select">
+                        <option value="">All</option>
+                        <option value="square" {% if filters.method == 'square' %}selected{% endif %}>Square</option>
+                        <option value="stripe" {% if filters.method == 'stripe' %}selected{% endif %}>Stripe</option>
+                        <option value="paypal" {% if filters.method == 'paypal' %}selected{% endif %}>PayPal</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Payer Email</label>
+                    <input type="text" name="email" class="form-control" value="{{ filters.email }}" placeholder="Search by email">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Order #</label>
+                    <input type="number" min="1" name="order_id" class="form-control" value="{{ filters.order_id }}" placeholder="e.g. 25">
+                </div>
+                <div class="col-md-1 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary w-100">Filter</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="card shadow-sm border-0">
+        <div class="card-body">
+            {% if payments|length > 0 %}
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead>
+                            <tr>
+                                <th>Payment #</th>
+                                <th>Order</th>
+                                <th>Payer</th>
+                                <th>Method</th>
+                                <th>Type</th>
+                                <th class="text-end">Amount</th>
+                                <th>Status</th>
+                                <th>Paid At</th>
+                                <th>Reference</th>
+                                <th class="text-end">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        {% for p in payments %}
+                            <tr>
+                                <td>#{{ p.id }}</td>
+                                <td>#{{ p.id_store_order ?: '—' }}</td>
+                                <td>
+                                    <div>{{ p.payer_name ?: p.order_customer_name ?: '—' }}</div>
+                                    <small class="text-muted">{{ p.payer_email ?: p.order_customer_email ?: '—' }}</small>
+                                </td>
+                                <td class="text-uppercase">{{ p.payment_method ?: '—' }}</td>
+                                <td>{{ p.payment_type ?: '—' }}</td>
+                                <td class="text-end">${{ (p.amount ?: 0)|number_format(2, '.', ',') }} {{ p.currency ?: 'USD' }}</td>
+                                <td>
+                                    {% if p.status == 'PAID' %}
+                                        <span class="badge bg-success">PAID</span>
+                                    {% elseif p.status == 'FAILED' %}
+                                        <span class="badge bg-danger">FAILED</span>
+                                    {% elseif p.status == 'REFUNDED' %}
+                                        <span class="badge bg-secondary">REFUNDED</span>
+                                    {% else %}
+                                        <span class="badge bg-warning text-dark">{{ p.status ?: 'PENDING' }}</span>
+                                    {% endif %}
+                                </td>
+                                <td class="small text-muted">
+                                    {% if p.paid_at %}
+                                        {{ p.paid_at|date('M j, Y g:i A') }}
+                                    {% else %}
+                                        —
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <small class="text-muted">{{ p.external_reference ?: p.external_payment_id ?: '—' }}</small>
+                                </td>
+                                <td class="text-end">
+                                    {% if p.order_public_token %}
+                                        <a href="{{ path('store/order-access?token=' ~ p.order_public_token) }}" target="_blank" class="btn btn-sm btn-outline-dark">
+                                            View Order
+                                        </a>
+                                    {% else %}
+                                        <span class="text-muted small">No order link</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="text-center py-5">
+                    <h5 class="mb-2">No payments found</h5>
+                    <p class="text-muted mb-0">No store payments match your current filters.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+

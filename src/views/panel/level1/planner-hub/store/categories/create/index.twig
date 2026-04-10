@@ -1,0 +1,74 @@
+{% extends 'templates/base.admin.twig' %}
+
+{% block body %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+        <div>
+            <h1 class="h3 mb-1">Create Store Category</h1>
+            <p class="text-muted mb-0">Create categories to organize your store products.</p>
+        </div>
+        <a href="/panel/planner-hub/store/categories/home" class="btn btn-outline-secondary">
+            ← Back to Categories
+        </a>
+    </div>
+
+    <div class="card shadow-sm border-0">
+        <div class="card-body p-4">
+            <form method="post">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Category Name</label>
+                        <input
+                            type="text"
+                            name="name"
+                            class="form-control"
+                            placeholder="e.g. Clothing"
+                            required
+                        >
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Status</label>
+                        <select name="status" class="form-select">
+                            <option value="ACTIVE" selected>ACTIVE</option>
+                            <option value="INACTIVE">INACTIVE</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Icon (optional)</label>
+                        <input
+                            type="text"
+                            name="icon"
+                            class="form-control"
+                            placeholder="e.g. fa-solid fa-shirt"
+                        >
+                        <small class="text-muted">
+                            You can save a Font Awesome class or any custom icon reference.
+                        </small>
+                    </div>
+
+                    <div class="col-12 mb-3">
+                        <label class="form-label">Description (optional)</label>
+                        <textarea
+                            name="description"
+                            class="form-control"
+                            rows="4"
+                            placeholder="Short description for this category..."
+                        ></textarea>
+                    </div>
+                </div>
+
+                <div class="d-flex gap-2 flex-wrap">
+                    <button type="submit" class="btn btn-success">
+                        Save Category
+                    </button>
+                    <a href="/panel/planner-hub/store/categories/home" class="btn btn-outline-secondary">
+                        Cancel
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

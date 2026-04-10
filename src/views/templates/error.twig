@@ -1,0 +1,41 @@
+{% extends 'templates/base.twig' %}
+
+{% block styles %}
+
+    <style>
+        .main {
+            width: 100%;
+            height: 100%;
+        }
+
+        .main h1 {
+            font-size: 5rem;
+        }
+
+        .alert p {
+            font-size: 1.5rem;
+        }
+    </style>
+{% endblock %}
+
+
+
+{% block body %}
+
+    <main class="main d-flex justify-content-center align-items-center">
+        <div class="alert alert-warning" style="min-width: 30dvw;">
+            <p class="text-center">{{ message }}</p>
+        </div>
+        <a href="#" class="text-center" id="goBackLink">go back</a>
+    </main>
+{% endblock %}
+
+{% block scripts %}
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('goBackLink').addEventListener('click', () => {
+                parent.history.back()
+            })
+        })
+    </script>
+{% endblock %}

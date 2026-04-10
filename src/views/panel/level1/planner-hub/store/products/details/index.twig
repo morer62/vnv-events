@@ -1,0 +1,416 @@
+{% extends 'templates/base.admin.twig' %}
+
+{% block style %}
+<style>
+    .store-details-image-wrap{
+        width:100%;
+        max-width:420px;
+        margin:0 auto;
+    }
+
+    .store-details-image-trigger{
+        border:0;
+        background:transparent;
+        padding:0;
+        width:100%;
+        cursor:pointer;
+    }
+
+    .store-details-image {
+        width: 100%;
+        height: 320px;
+        border-radius: 16px;
+        object-fit: cover;
+        border: 1px solid #dee2e6;
+        background: #fff;
+        box-shadow: 0 10px 24px rgba(0,0,0,.06);
+        transition: transform .18s ease, box-shadow .18s ease;
+    }
+
+    .store-details-image:hover{
+        transform: translateY(-2px);
+        box-shadow: 0 16px 32px rgba(0,0,0,.10);
+    }
+
+    .store-image-hint{
+        font-size:.85rem;
+        color:#6c757d;
+        margin-top:.65rem;
+    }
+
+    .store-info-card {
+        border: 1px solid #e9ecef;
+        border-radius: 16px;
+        background: #fff;
+        padding: 18px;
+        height: 100%;
+    }
+
+    .store-info-card h5,
+    .store-info-card h6 {
+        margin-bottom: 14px;
+    }
+
+    .store-chip {
+        display: inline-block;
+        padding: 6px 10px;
+        border-radius: 999px;
+        background: #f1f3f5;
+        margin: 0 8px 8px 0;
+        font-size: 0.9rem;
+    }
+
+    .store-meta-label {
+        font-size: 0.85rem;
+        color: #6c757d;
+        margin-bottom: 4px;
+    }
+
+    .store-meta-value {
+        font-weight: 600;
+        margin-bottom: 14px;
+        word-break: break-word;
+    }
+
+    .store-top-card{
+        border:1px solid #e9ecef;
+        border-radius:16px;
+        background:#fff;
+    }
+
+    .store-top-nav{
+        display:flex;
+        flex-wrap:wrap;
+        gap:.5rem;
+    }
+
+    .store-image-empty{
+        height:320px;
+    }
+
+    .store-modal-image{
+        width:100%;
+        max-height:80vh;
+        object-fit:contain;
+        border-radius:12px;
+        background:#fff;
+    }
+
+    @media (max-width: 768px){
+        .store-details-image{
+            height:260px;
+        }
+
+        .store-image-empty{
+            height:260px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="container-fluid">
+
+    <div class="store-top-card shadow-sm mb-4">
+        <div class="card-body p-3 p-md-4">
+            <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                <div>
+                    <h1 class="h3 mb-1">Product Details</h1>
+                    <p class="text-muted mb-0">Review your product information.</p>
+                </div>
+
+                <div class="d-flex gap-2 flex-wrap">
+                    <a href="{{ path('panel/planner-hub/store/products/home') }}" class="btn btn-outline-secondary">
+                        ← Back to Products
+                    </a>
+                    <a href="{{ path('panel/planner-hub/store/products/edit') }}?id={{ product.id }}" class="btn btn-primary">
+                        Edit Product
+                    </a>
+                </div>
+            </div>
+
+            <div class="store-top-nav">
+                <a href="{{ path('panel/planner-hub/store/products/home') }}" class="btn btn-dark btn-sm">
+                    Products
+                </a>
+                <a href="{{ path('panel/planner-hub/store/categories/home') }}" class="btn btn-outline-dark btn-sm">
+                    Categories
+                </a>
+                <a href="{{ path('panel/planner-hub/store/attributes/home') }}" class="btn btn-outline-dark btn-sm">
+                    Attributes
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-5 mb-4">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body text-center p-4">
+                    {% if product.main_image %}
+                        <div class="store-details-image-wrap">
+                            <button type="button"
+                                    class="store-details-image-trigger"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#productImageModal">
+                                <img src="{{ product.main_image }}" alt="{{ product.name }}" class="store-details-image">
+                            </button>
+                            <div class="store-image-hint">Click image to enlarge</div>
+                        </div>
+                    {% else %}
+                        <div class="border rounded d-flex align-items-center justify-content-center bg-light store-image-empty">
+                            <span class="text-muted">No image uploaded</span>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-7 mb-4">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-start justify-content-between gap-3 flex-wrap mb-3">
+                        <div>
+                            <h2 class="h4 mb-1">{{ product.name }}</h2>
+                            {% if product.slug %}
+                                <div class="text-muted small">{{ product.slug }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="text-end">
+                            {% if product.status == 'ACTIVE' %}
+                                <span class="badge bg-success">ACTIVE</span>
+                            {% elseif product.status == 'DRAFT' %}
+                                <span class="badge bg-warning text-dark">DRAFT</span>
+                            {% else %}
+                                <span class="badge bg-secondary">INACTIVE</span>
+                            {% endif %}
+
+                            {% if product.is_public %}
+                                <span class="badge bg-primary">PUBLIC</span>
+                            {% else %}
+                                <span class="badge bg-dark">PRIVATE</span>
+                            {% endif %}
+
+                            {% if product.is_featured %}
+                                <span class="badge bg-info text-dark">FEATURED</span>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="store-meta-label">SKU</div>
+                            <div class="store-meta-value">{{ product.sku ?: '—' }}</div>
+                        </div>
+
+                        <div class="col-md-4">
+                            <div class="store-meta-label">Price</div>
+                            <div class="store-meta-value">${{ product.price|number_format(2, '.', ',') }}</div>
+                        </div>
+
+                        <div class="col-md-4">
+                            <div class="store-meta-label">Promo Price</div>
+                            <div class="store-meta-value">
+                                {% if product.promo_price %}
+                                    ${{ product.promo_price|number_format(2, '.', ',') }}
+                                {% else %}
+                                    —
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="col-md-4">
+                            <div class="store-meta-label">Stock</div>
+                            <div class="store-meta-value">{{ product.stock_quantity }}</div>
+                        </div>
+
+                        <div class="col-md-4">
+                            <div class="store-meta-label">Min Purchase Qty</div>
+                            <div class="store-meta-value">{{ product.min_purchase_qty }}</div>
+                        </div>
+
+                        <div class="col-md-4">
+                            <div class="store-meta-label">Max Purchase Qty</div>
+                            <div class="store-meta-value">{{ product.max_purchase_qty ?: '—' }}</div>
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <div class="mb-3">
+                        <h6>Short Description</h6>
+                        <p class="mb-0">{{ product.short_description ?: 'No short description provided.' }}</p>
+                    </div>
+
+                    <div>
+                        <h6>Full Description</h6>
+                        <div>{{ product.description|raw }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6 mb-4">
+            <div class="store-info-card shadow-sm">
+                <h5>Categories</h5>
+
+                {% if product.categories|length > 0 %}
+                    {% for category in product.categories %}
+                        <span class="store-chip">{{ category.name }}</span>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-muted mb-0">No categories assigned.</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="col-lg-6 mb-4">
+            <div class="store-info-card shadow-sm">
+                <h5>Recommended Audience</h5>
+
+                {% if product.audiences|length > 0 %}
+                    {% for audience in product.audiences %}
+                        <span class="store-chip">
+                            {% if audience == 'professional' %}
+                                Busy Professional
+                            {% elseif audience == 'healthy_active' %}
+                                Healthy / Active Lifestyle
+                            {% elseif audience == 'family_kids' %}
+                                Family / Kids
+                            {% elseif audience == 'corporate' %}
+                                Corporate
+                            {% else %}
+                                {{ audience }}
+                            {% endif %}
+                        </span>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-muted mb-0">No audience assigned.</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="col-lg-6 mb-4">
+            <div class="store-info-card shadow-sm">
+                <h5>Meal Styles</h5>
+
+                {% if product.meal_styles|length > 0 %}
+                    {% for style in product.meal_styles %}
+                        <span class="store-chip">
+                            {% if style == 'balanced' %}
+                                Balanced Meals
+                            {% elseif style == 'vegetarian' %}
+                                Vegetarian
+                            {% elseif style == 'family_friendly' %}
+                                Family-Friendly
+                            {% elseif style == 'protein_focused' %}
+                                Protein-Focused
+                            {% elseif style == 'corporate_lunch' %}
+                                Corporate Lunch
+                            {% else %}
+                                {{ style }}
+                            {% endif %}
+                        </span>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-muted mb-0">No meal styles assigned.</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="col-lg-6 mb-4">
+            <div class="store-info-card shadow-sm">
+                <h5>Attributes</h5>
+
+                {% if product.attributes_grouped is not empty %}
+                    {% for attributeName, values in product.attributes_grouped %}
+                        <div class="mb-3">
+                            <h6 class="mb-2">{{ attributeName }}</h6>
+                            {% for value in values %}
+                                <span class="store-chip">{{ value }}</span>
+                            {% endfor %}
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-muted mb-0">No attributes assigned.</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="col-12 mb-4">
+            <div class="store-info-card shadow-sm">
+                <h5>Nutrition Information</h5>
+
+                {% if product.nutrition %}
+                    <div class="row">
+                        <div class="col-md-3 col-sm-6">
+                            <div class="store-meta-label">Calories</div>
+                            <div class="store-meta-value">{{ product.nutrition.calories ?: '—' }}</div>
+                        </div>
+
+                        <div class="col-md-3 col-sm-6">
+                            <div class="store-meta-label">Protein</div>
+                            <div class="store-meta-value">{{ product.nutrition.protein ?: '—' }}</div>
+                        </div>
+
+                        <div class="col-md-3 col-sm-6">
+                            <div class="store-meta-label">Carbohydrates</div>
+                            <div class="store-meta-value">{{ product.nutrition.carbohydrates ?: '—' }}</div>
+                        </div>
+
+                        <div class="col-md-3 col-sm-6">
+                            <div class="store-meta-label">Fat</div>
+                            <div class="store-meta-value">{{ product.nutrition.fat ?: '—' }}</div>
+                        </div>
+
+                        <div class="col-md-3 col-sm-6">
+                            <div class="store-meta-label">Fiber</div>
+                            <div class="store-meta-value">{{ product.nutrition.fiber ?: '—' }}</div>
+                        </div>
+
+                        <div class="col-md-3 col-sm-6">
+                            <div class="store-meta-label">Sugar</div>
+                            <div class="store-meta-value">{{ product.nutrition.sugar ?: '—' }}</div>
+                        </div>
+
+                        <div class="col-md-3 col-sm-6">
+                            <div class="store-meta-label">Sodium</div>
+                            <div class="store-meta-value">{{ product.nutrition.sodium ?: '—' }}</div>
+                        </div>
+
+                        <div class="col-md-3 col-sm-6">
+                            <div class="store-meta-label">Serving Size</div>
+                            <div class="store-meta-value">{{ product.nutrition.serving_size ?: '—' }}</div>
+                        </div>
+
+                        <div class="col-12">
+                            <div class="store-meta-label">Ingredients</div>
+                            <div class="store-meta-value">{{ product.nutrition.ingredients ?: '—' }}</div>
+                        </div>
+                    </div>
+                {% else %}
+                    <p class="text-muted mb-0">No nutrition information added.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if product.main_image %}
+<div class="modal fade" id="productImageModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header">
+                <h5 class="modal-title">{{ product.name }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center p-3 p-md-4">
+                <img src="{{ product.main_image }}" alt="{{ product.name }}" class="store-modal-image">
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% endblock %}

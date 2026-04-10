@@ -1,0 +1,502 @@
+{% extends "templates/base.twig" %}
+
+{% block styles %}
+<style>
+.forum-header {
+    background: linear-gradient(to right, #4f46e5, #7c3aed);
+    color: white;
+    padding: 2rem 0;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+.topic-content {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+}
+.topic-header {
+    background: linear-gradient(135deg, #f0f9ff, #faf5ff);
+    padding: 2rem;
+    border-bottom: 2px solid #e5e7eb;
+}
+.topic-body {
+    padding: 2rem;
+}
+.author-section {
+    background: #f9fafb;
+    padding: 1.5rem;
+    border-radius: 12px;
+    text-align: center;
+}
+.author-avatar {
+    width: 80px;
+    height: 80px;
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1rem;
+    box-shadow: 0 4px 6px rgba(99, 102, 241, 0.3);
+}
+.reply-card {
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+    transition: all 0.2s;
+}
+.reply-card:hover {
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    border-color: #6366f1;
+}
+.reply-card.nested {
+    margin-left: 3rem;
+    border-left: 3px solid #a78bfa;
+}
+.badge-best {
+    background: linear-gradient(135deg, #10b981, #06b6d4);
+    color: white;
+    padding: 0.375rem 0.875rem;
+    border-radius: 6px;
+    font-weight: 600;
+    box-shadow: 0 2px 4px rgba(16, 185, 129, 0.3);
+}
+.badge-pinned {
+    background: linear-gradient(135deg, #fef3c7, #fde68a);
+    color: #92400e;
+    border: 2px solid #fcd34d;
+    padding: 0.375rem 0.75rem;
+    border-radius: 6px;
+    font-weight: 600;
+    box-shadow: 0 2px 4px rgba(252, 211, 77, 0.3);
+}
+.badge-locked {
+    background: linear-gradient(135deg, #e5e7eb, #d1d5db);
+    color: #374151;
+    border: 2px solid #9ca3af;
+    padding: 0.375rem 0.75rem;
+    border-radius: 6px;
+    font-weight: 600;
+}
+.badge-category {
+    background: white;
+    border: 2px solid;
+    padding: 0.375rem 0.875rem;
+    border-radius: 6px;
+    font-weight: 600;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+.btn-like {
+    background: white;
+    border: 2px solid #e5e7eb;
+    color: #6b7280;
+    border-radius: 8px;
+    padding: 0.5rem 1rem;
+    font-weight: 600;
+    transition: all 0.2s;
+}
+.btn-like:hover {
+    border-color: #ef4444;
+    color: #ef4444;
+}
+.btn-like.active {
+    background: linear-gradient(135deg, #fecaca, #fca5a5);
+    border-color: #ef4444;
+    color: #dc2626;
+}
+.reply-form {
+    background: linear-gradient(135deg, #f0f9ff, #faf5ff);
+    border-radius: 12px;
+    padding: 2rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+.attachment-gallery {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-top: 1.5rem;
+}
+.attachment-item {
+    position: relative;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    transition: all 0.3s;
+}
+.attachment-item:hover {
+    transform: scale(1.05);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.15);
+}
+.attachment-item img {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    display: block;
+}
+</style>
+{% endblock %}
+
+{% block body %}
+<!-- Header -->
+<div class="forum-header">
+    <div class="container">
+        <nav aria-label="breadcrumb" class="mb-3">
+            <ol class="breadcrumb mb-0">
+                <li class="breadcrumb-item"><a href="{{ path('forum') }}" class="text-white">Forum</a></li>
+                <li class="breadcrumb-item"><a href="{{ path('forum') }}?category={{ topic.id_category }}" class="text-white">{{ topic.category_name }}</a></li>
+                <li class="breadcrumb-item active text-white-50">{{ topic.title|slice(0, 40) }}...</li>
+            </ol>
+        </nav>
+        <h1 class="h3 fw-bold mb-0">{{ topic.title }}</h1>
+    </div>
+</div>
+
+<div class="container pb-5">
+    <!-- Main Topic -->
+    <div class="topic-content mb-4">
+        <div class="topic-header">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <div class="mb-3">
+                        {% if topic.is_pinned %}
+                            <span class="badge-pinned me-2">📌 Pinned</span>
+                        {% endif %}
+                        {% if topic.is_locked %}
+                            <span class="badge-locked me-2">🔒 Locked</span>
+                        {% endif %}
+                        <span class="badge-category" style="border-color: {{ topic.category_color }}; color: {{ topic.category_color }};">
+                            {{ topic.category_name }}
+                        </span>
+                    </div>
+                    <div class="text-muted small">
+                        <i data-feather="clock" style="width: 14px; height: 14px;"></i>
+                        Posted {{ topic.created_at|date('F d, Y \\a\\t g:i A') }}
+                    </div>
+                </div>
+                {% if user and user.level == 1 and user.id == topic.id_user %}
+                <a href="{{ path('panel/forum/edit') }}?id={{ topic.id }}" class="btn btn-outline-secondary btn-sm">
+                    <i data-feather="edit-2" style="width: 14px; height: 14px;"></i> Edit
+                </a>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="topic-body">
+            <div class="row">
+                <!-- Author Info -->
+                <div class="col-md-2">
+                    <div class="author-section">
+                        <div class="author-avatar">
+                            <i data-feather="user" style="width: 40px; height: 40px; color: white;"></i>
+                        </div>
+                        <div class="fw-bold mb-1">{{ topic.user_name }} {{ topic.user_lastname }}</div>
+                        {% if topic.user_level == 1 %}
+                            <span class="badge bg-danger small">Admin</span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Content -->
+                <div class="col-md-10">
+                    <div class="mb-3" style="font-size: 1rem; line-height: 1.7; color: #374151;">
+                        {{ topic.content|nl2br|raw }}
+                    </div>
+
+                    <!-- Attachments -->
+                    {% if attachments and attachments|length > 0 %}
+                    <div class="mt-4">
+                        <h6 class="fw-bold mb-3" style="color: #6b7280;">📎 Attachments ({{ attachments|length }})</h6>
+                        <div class="attachment-gallery">
+                            {% for attachment in attachments %}
+                                {% if attachment.is_image == 1 or attachment.is_image == '1' %}
+                                <div class="attachment-item">
+                                    <a href="#" onclick="openImagePreview('{{ attachment.file_path }}', '{{ attachment.file_name }}'); return false;">
+                                        <img src="{{ attachment.file_path }}" alt="{{ attachment.file_name }}">
+                                    </a>
+                                </div>
+                                {% else %}
+                                <div class="p-3 bg-light rounded">
+                                    <a href="{{ attachment.file_path }}" class="text-decoration-none d-flex align-items-center" target="_blank">
+                                        <i data-feather="file" style="width: 24px; height: 24px;" class="me-2 text-primary"></i>
+                                        <div>
+                                            <div class="fw-bold">{{ attachment.file_name }}</div>
+                                            <small class="text-muted">{{ (attachment.file_size / 1024)|round(1) }} KB</small>
+                                        </div>
+                                    </a>
+                                </div>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Stats & Actions -->
+                    <div class="d-flex align-items-center gap-3 mt-4 pt-3 border-top">
+                        <button class="btn-like {% if userLikedTopic %}active{% endif %}" 
+                                onclick="toggleLike('topic', {{ topic.id }})"
+                                id="topic-like-btn">
+                            <i data-feather="heart" style="width: 16px; height: 16px;"></i>
+                            <span id="topic-likes-count">{{ topic.likes_count }}</span> likes
+                        </button>
+                        <span class="text-muted small fw-bold">
+                            <i data-feather="message-circle" style="width: 16px; height: 16px;"></i> {{ topic.replies_count }} replies
+                        </span>
+                        <span class="text-muted small fw-bold">
+                            <i data-feather="eye" style="width: 16px; height: 16px;"></i> {{ topic.views_count }} views
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Replies -->
+    <h4 class="fw-bold mb-3" style="color: #1f2937;">💬 Replies ({{ replies|length }})</h4>
+
+    {% for reply in replies %}
+    <div class="reply-card {% if reply.id_parent_reply %}nested{% endif %}" id="reply-{{ reply.id }}">
+        <div class="row">
+            <!-- Author -->
+            <div class="col-md-2 text-center">
+                <div class="author-avatar" style="width: 60px; height: 60px; margin: 0 auto 0.5rem;">
+                    <i data-feather="user" style="width: 30px; height: 30px; color: white;"></i>
+                </div>
+                <div class="fw-bold small">{{ reply.user_name }}</div>
+                {% if reply.user_level == 1 %}
+                    <span class="badge bg-danger small mt-1">Admin</span>
+                {% endif %}
+            </div>
+
+            <!-- Content -->
+            <div class="col-md-10">
+                {% if reply.is_best_answer %}
+                <div class="mb-2">
+                    <span class="badge-best">
+                        <i data-feather="check-circle" style="width: 14px; height: 14px;"></i> Best Answer
+                    </span>
+                </div>
+                {% endif %}
+
+                {% if reply.parent_user_name %}
+                <div class="text-muted small mb-2 p-2 bg-light rounded">
+                    <i data-feather="corner-down-right" style="width: 14px; height: 14px;"></i>
+                    Replying to <strong>{{ reply.parent_user_name }} {{ reply.parent_user_lastname }}</strong>
+                </div>
+                {% endif %}
+
+                <div class="mb-3" style="line-height: 1.7; color: #374151;">
+                    {{ reply.content|nl2br|raw }}
+                </div>
+
+                <div class="d-flex align-items-center gap-3 text-muted small">
+                    <span class="fw-bold">{{ reply.created_at|date('M d, Y \\a\\t g:i A') }}</span>
+                    <button class="btn-like btn-sm {% if reply.id in userLikedReplies %}active{% endif %}" 
+                            onclick="toggleLike('reply', {{ reply.id }})"
+                            id="reply-like-btn-{{ reply.id }}">
+                        <i data-feather="heart" style="width: 14px; height: 14px;"></i>
+                        <span id="reply-likes-count-{{ reply.id }}">{{ reply.likes_count }}</span>
+                    </button>
+                    {% if user and not topic.is_locked %}
+                    <button class="btn btn-link btn-sm text-decoration-none p-0" onclick="showReplyForm({{ reply.id }}, '{{ reply.user_name }}')">
+                        <i data-feather="corner-up-left" style="width: 14px; height: 14px;"></i> Reply
+                    </button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="alert alert-light border p-4 text-center">
+        <i data-feather="message-circle" style="width: 48px; height: 48px;" class="text-muted mb-2"></i>
+        <p class="mb-0 text-muted">No replies yet. Be the first to reply!</p>
+    </div>
+    {% endfor %}
+
+    <!-- Reply Form -->
+    {% if user %}
+        {% if not topic.is_locked %}
+        <div class="reply-form mt-4">
+            <h5 class="fw-bold mb-3" style="color: #1f2937;">Add Your Reply</h5>
+            <form method="POST" id="replyForm">
+                <input type="hidden" name="topic_id" value="{{ topic.id }}">
+                <input type="hidden" name="parent_reply_id" id="parentReplyId" value="">
+                
+                <div id="replyingTo" class="alert alert-info d-none mb-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span>
+                            <i data-feather="corner-down-right"></i>
+                            Replying to <strong id="replyingToName"></strong>
+                        </span>
+                        <button type="button" class="btn-close" onclick="cancelReply()"></button>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <textarea name="content" id="replyContent" class="form-control" 
+                              rows="5" placeholder="Write your reply..." 
+                              style="border: 2px solid #e5e7eb; border-radius: 8px;" required></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary-custom">
+                    <i data-feather="send"></i> Post Reply
+                </button>
+            </form>
+        </div>
+        {% else %}
+        <div class="alert alert-warning mt-4">
+            <i data-feather="lock"></i> This topic is locked. No new replies can be added.
+        </div>
+        {% endif %}
+    {% else %}
+    <div class="alert alert-light border mt-4 text-center p-4">
+        <i data-feather="info" style="width: 32px; height: 32px;" class="text-muted mb-2"></i>
+        <p class="mb-3">Please log in to participate in this discussion</p>
+        <a href="{{ path('login') }}" class="btn btn-primary-custom me-2">Log In</a>
+        <a href="{{ path('signup') }}" class="btn btn-outline-custom">Sign Up</a>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+.btn-primary-custom {
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    color: white;
+    border: none;
+    padding: 0.625rem 1.5rem;
+    border-radius: 8px;
+    font-weight: 600;
+    transition: all 0.3s;
+    box-shadow: 0 4px 6px -1px rgba(99, 102, 241, 0.4);
+}
+.btn-primary-custom:hover {
+    background: linear-gradient(135deg, #4f46e5, #7c3aed);
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px -1px rgba(99, 102, 241, 0.5);
+}
+.btn-outline-custom {
+    background: white;
+    color: #6366f1;
+    border: 2px solid #6366f1;
+    padding: 0.625rem 1.5rem;
+    border-radius: 8px;
+    font-weight: 600;
+    transition: all 0.3s;
+}
+.btn-outline-custom:hover {
+    background: #eff6ff;
+    color: #4f46e5;
+    border-color: #4f46e5;
+}
+</style>
+
+<!-- Image Preview Modal -->
+<div id="imagePreviewModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 9999; padding: 20px;">
+    <div style="position: relative; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+        <!-- Close button -->
+        <button onclick="closeImagePreview()" style="position: absolute; top: 20px; right: 40px; background: white; border: none; border-radius: 50%; width: 40px; height: 40px; font-size: 24px; cursor: pointer; box-shadow: 0 2px 10px rgba(0,0,0,0.5); z-index: 10000;">
+            ×
+        </button>
+        
+        <!-- Image -->
+        <img id="previewImage" src="" alt="" style="max-width: 90%; max-height: 85vh; object-fit: contain; border-radius: 8px; box-shadow: 0 10px 40px rgba(0,0,0,0.5);">
+        
+        <!-- Image name -->
+        <div id="previewImageName" style="color: white; margin-top: 20px; font-size: 16px; text-align: center;"></div>
+        
+        <!-- Download button -->
+        <a id="downloadImageBtn" href="" download style="margin-top: 15px; padding: 10px 20px; background: linear-gradient(135deg, #6366f1, #8b5cf6); color: white; text-decoration: none; border-radius: 8px; font-weight: 600; box-shadow: 0 4px 10px rgba(99, 102, 241, 0.4);">
+            <i data-feather="download" style="width: 16px; height: 16px;"></i> Download
+        </a>
+    </div>
+</div>
+
+<script>
+function openImagePreview(imageUrl, imageName) {
+    document.getElementById('previewImage').src = imageUrl;
+    document.getElementById('previewImageName').textContent = imageName;
+    document.getElementById('downloadImageBtn').href = imageUrl;
+    document.getElementById('imagePreviewModal').style.display = 'block';
+    document.body.style.overflow = 'hidden';
+    
+    // Re-initialize feather icons
+    if (typeof feather !== 'undefined') {
+        feather.replace();
+    }
+}
+
+function closeImagePreview() {
+    document.getElementById('imagePreviewModal').style.display = 'none';
+    document.body.style.overflow = 'auto';
+}
+
+// Close on ESC key
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        closeImagePreview();
+    }
+});
+
+// Close when clicking outside the image
+document.getElementById('imagePreviewModal')?.addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeImagePreview();
+    }
+});
+
+function showReplyForm(replyId, userName) {
+    document.getElementById('parentReplyId').value = replyId;
+    document.getElementById('replyingToName').textContent = userName;
+    document.getElementById('replyingTo').classList.remove('d-none');
+    document.getElementById('replyContent').focus();
+    document.getElementById('replyForm').scrollIntoView({ behavior: 'smooth' });
+}
+
+function cancelReply() {
+    document.getElementById('parentReplyId').value = '';
+    document.getElementById('replyingTo').classList.add('d-none');
+}
+
+function toggleLike(type, id) {
+    {% if not user %}
+        alert('Please log in to like posts.');
+        window.location.href = '{{ path("login") }}';
+        return;
+    {% endif %}
+
+    fetch('{{ path("api/forum/like") }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ type: type, id: id })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            if (type === 'topic') {
+                const btn = document.getElementById('topic-like-btn');
+                const count = document.getElementById('topic-likes-count');
+                count.textContent = data.likes_count;
+                if (data.liked) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            } else {
+                const btn = document.getElementById('reply-like-btn-' + id);
+                const count = document.getElementById('reply-likes-count-' + id);
+                count.textContent = data.likes_count;
+                if (data.liked) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            }
+        }
+    })
+    .catch(error => console.error('Error:', error));
+}
+</script>
+{% endblock %}

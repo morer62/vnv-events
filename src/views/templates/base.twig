@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+
+    <title>{% block title %}VNV Gourmet | Chef-Prepared Meal Plans in South Florida{% endblock %}</title>
+
+  <!-- Google Tag Manager -->
+      <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+      new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+      j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+      'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+      })(window,document,'script','dataLayer','GTM-NCK9W86W');</script>
+  <!-- End Google Tag Manager -->
+
+
+    {# -------------------------------------------------------
+       CORE BRAND / SEO DEFAULTS
+       ------------------------------------------------------- #}
+    {% set site_name = 'VNV Gourmet' %}
+    {% set site_url = 'https://vnvgourmet.com' %}
+    {% set site_phone_display = '+1 (305) 204-5427' %}
+    {% set site_phone_raw = '+13052045427' %}
+    {% set site_email = 'info@vnvevents.com' %}
+    {% set site_logo = asset_for('assets/images/planner-hub-logo-negative.png') %}
+    {% set site_favicon = asset_for('assets/images/planner-hub-logo-negative.png') %}
+    {% set default_description = 'VNV Gourmet, by VNV Events offers chef-prepared meal plans, healthy meal prep, family meals, subscription meals, and corporate food solutions across South Florida, including Broward County, Miami-Dade County, and Palm Beach County.' %}
+    {% set default_keywords = 'VNV Gourmet, VNV Events, South Florida meal prep, chef-prepared meals, healthy meal plans, meal delivery South Florida, Broward meal prep, Miami-Dade meal prep, West Palm Beach meal prep, family meals, kids meals, corporate meal plans, subscription meal plans, healthy prepared meals, local meal service, meal prep Broward, meal prep Miami, meal prep West Palm Beach' %}
+    {% set default_og_image = site_logo %}
+
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+    <meta name="googlebot" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+    <meta name="bingbot" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+
+    <meta name="description" content="{% block meta_description %}{{ default_description }}{% endblock %}">
+    <meta name="keywords" content="{% block meta_keywords %}{{ default_keywords }}{% endblock %}">
+    <meta name="author" content="VNV Gourmet">
+    <meta name="publisher" content="VNV Gourmet">
+    <meta name="application-name" content="VNV Gourmet">
+    <meta name="apple-mobile-web-app-title" content="VNV Gourmet">
+    <meta name="format-detection" content="telephone=no">
+    <meta name="theme-color" content="#1f1307">
+    <meta name="color-scheme" content="light only">
+    <meta name="referrer" content="strict-origin-when-cross-origin">
+    <meta name="language" content="English">
+    <meta http-equiv="content-language" content="en-US">
+
+    {# -------------------------------------------------------
+       CANONICAL / FAVICON / APP ICONS
+       ------------------------------------------------------- #}
+    <link rel="canonical" href="{% block canonical %}{{ site_url }}{% endblock %}">
+    <link rel="icon" type="image/png" href="{{ site_favicon }}">
+    <link rel="shortcut icon" href="{{ site_favicon }}">
+    <link rel="apple-touch-icon" href="{{ site_favicon }}">
+    <link rel="mask-icon" href="{{ site_favicon }}" color="#1f1307">
+
+    {# -------------------------------------------------------
+       PRECONNECT / STYLES
+       ------------------------------------------------------- #}
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet" />
+
+    <link rel="stylesheet" href="{{ asset_for('template/css/app.css') }}" />
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+    {# -------------------------------------------------------
+       OPEN GRAPH / SOCIAL
+       ------------------------------------------------------- #}
+    <meta property="og:site_name" content="VNV Gourmet">
+    <meta property="og:type" content="{% block og_type %}website{% endblock %}">
+    <meta property="og:title" content="{% block og_title %}VNV Gourmet | Chef-Prepared Meal Plans in South Florida{% endblock %}">
+    <meta property="og:description" content="{% block og_description %}{{ default_description }}{% endblock %}">
+    <meta property="og:url" content="{% block og_url %}{{ site_url }}{% endblock %}">
+    <meta property="og:image" content="{% block og_image %}{{ default_og_image }}{% endblock %}">
+    <meta property="og:image:alt" content="{% block og_image_alt %}VNV Gourmet logo and South Florida chef-prepared meal plans{% endblock %}">
+    <meta property="og:locale" content="en_US">
+
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="{% block twitter_title %}VNV Gourmet | Chef-Prepared Meal Plans in South Florida{% endblock %}">
+    <meta name="twitter:description" content="{% block twitter_description %}{{ default_description }}{% endblock %}">
+    <meta name="twitter:image" content="{% block twitter_image %}{{ default_og_image }}{% endblock %}">
+
+    {# -------------------------------------------------------
+       LOCAL / GEO SIGNALS
+       ------------------------------------------------------- #}
+    <meta name="geo.region" content="US-FL">
+    <meta name="geo.placename" content="South Florida">
+    <meta name="ICBM" content="26.1224, -80.1373">
+
+    {# -------------------------------------------------------
+       DISCOVERY / AI / INDEXING FRIENDLY HINTS
+       ------------------------------------------------------- #}
+    <meta name="subject" content="Chef-prepared meal plans, healthy meal prep, family meals, kids meals, corporate food solutions, and subscription meals in South Florida">
+    <meta name="category" content="Food, Meal Prep, Healthy Meals, Catering, Corporate Meals">
+    <meta name="coverage" content="Broward County, Miami-Dade County, Palm Beach County">
+    <meta name="distribution" content="global">
+    <meta name="rating" content="general">
+
+    <style>
+      .floating-whatsapp{
+          position:fixed;
+          right:20px;
+          bottom:20px;
+          z-index:10;
+          display:inline-flex;
+          align-items:center;
+          gap:.65rem;
+          padding:.9rem 1.1rem;
+          border-radius:999px;
+          background:#25D366;
+          color:#fff !important;
+          text-decoration:none;
+          font-weight:800;
+          box-shadow:0 14px 30px rgba(0,0,0,.18);
+          transition:transform .2s ease, box-shadow .2s ease;
+      }
+
+      .floating-whatsapp i{
+          font-size:1.3rem;
+      }
+
+      .floating-whatsapp:hover{
+          transform:translateY(-2px);
+          box-shadow:0 18px 36px rgba(0,0,0,.22);
+      }
+
+      @media (max-width: 768px){
+          .floating-whatsapp{
+              right:14px;
+              bottom:14px;
+              width:66px;
+              height:66px;
+              justify-content:center;
+              border-radius:50%;
+              padding:0;
+          }
+
+          .floating-whatsapp span{
+              display:none;
+          }
+
+          .floating-whatsapp i{
+              font-size:2rem;
+          }
+      }
+      </style>
+
+    {% block head %}
+    {% endblock %}
+
+    {% block meta %}
+        <meta name="priority" content="0.9">
+    {% endblock %}
+
+    {% block styles %}
+
+    
+    
+    {% endblock %}
+
+    {# -------------------------------------------------------
+       STRUCTURED DATA
+       Google supports Organization / LocalBusiness and uses
+       structured data to understand entities and site names.
+       ------------------------------------------------------- #}
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "Organization",
+          "@id": "{{ site_url }}#organization",
+          "name": "VNV Gourmet",
+          "alternateName": [
+            "VNV Gourmet South Florida",
+            "VNV Gourmet Meal Plans"
+          ],
+          "url": "{{ site_url }}",
+          "logo": {
+            "@type": "ImageObject",
+            "url": "{{ site_logo }}"
+          },
+          "image": "{{ site_logo }}",
+          "description": "VNV Gourmet is a South Florida food brand offering chef-prepared meal plans, healthy prepared meals, family meal solutions, kids meal options, subscription meal plans, and corporate food services.",
+          "telephone": "{{ site_phone_raw }}",
+          "email": "{{ site_email }}",
+          "areaServed": [
+            {
+              "@type": "AdministrativeArea",
+              "name": "Broward County"
+            },
+            {
+              "@type": "AdministrativeArea",
+              "name": "Miami-Dade County"
+            },
+            {
+              "@type": "AdministrativeArea",
+              "name": "Palm Beach County"
+            },
+            {
+              "@type": "City",
+              "name": "Fort Lauderdale"
+            },
+            {
+              "@type": "City",
+              "name": "Hollywood"
+            },
+            {
+              "@type": "City",
+              "name": "Pembroke Pines"
+            },
+            {
+              "@type": "City",
+              "name": "Miramar"
+            },
+            {
+              "@type": "City",
+              "name": "Sunrise"
+            },
+            {
+              "@type": "City",
+              "name": "Plantation"
+            },
+            {
+              "@type": "City",
+              "name": "Davie"
+            },
+            {
+              "@type": "City",
+              "name": "Coral Springs"
+            },
+            {
+              "@type": "City",
+              "name": "Weston"
+            },
+            {
+              "@type": "City",
+              "name": "Boca Raton"
+            },
+            {
+              "@type": "City",
+              "name": "Delray Beach"
+            },
+            {
+              "@type": "City",
+              "name": "West Palm Beach"
+            },
+            {
+              "@type": "City",
+              "name": "Miami"
+            },
+            {
+              "@type": "City",
+              "name": "Miami Beach"
+            },
+            {
+              "@type": "City",
+              "name": "Aventura"
+            },
+            {
+              "@type": "City",
+              "name": "Doral"
+            },
+            {
+              "@type": "City",
+              "name": "Hialeah"
+            },
+            {
+              "@type": "City",
+              "name": "Coral Gables"
+            }
+          ],
+          "contactPoint": [
+            {
+              "@type": "ContactPoint",
+              "telephone": "{{ site_phone_raw }}",
+              "contactType": "customer service",
+              "areaServed": "US-FL",
+              "availableLanguage": ["English", "Spanish"]
+            },
+            {
+              "@type": "ContactPoint",
+              "telephone": "{{ site_phone_raw }}",
+              "contactType": "sales",
+              "areaServed": "US-FL",
+              "availableLanguage": ["English", "Spanish"]
+            }
+          ],
+          "knowsAbout": [
+            "Chef-prepared meal plans",
+            "Healthy meal prep",
+            "Meal subscriptions",
+            "Prepared family meals",
+            "Kids meal planning",
+            "Corporate meal plans",
+            "Office lunch solutions",
+            "South Florida meal delivery",
+            "Protein-focused prepared meals",
+            "Convenient healthy eating"
+          ]
+        },
+        {
+          "@type": "WebSite",
+          "@id": "{{ site_url }}#website",
+          "url": "{{ site_url }}",
+          "name": "VNV Gourmet",
+          "alternateName": "VNV Gourmet South Florida",
+          "publisher": {
+            "@id": "{{ site_url }}#organization"
+          },
+          "inLanguage": "en-US",
+          "potentialAction": {
+            "@type": "SearchAction",
+            "target": "{{ site_url }}/search?q={search_term_string}",
+            "query-input": "required name=search_term_string"
+          }
+        },
+        {
+          "@type": ["LocalBusiness", "FoodEstablishment"],
+          "@id": "{{ site_url }}#localbusiness",
+          "name": "VNV Gourmet",
+          "url": "{{ site_url }}",
+          "image": "{{ site_logo }}",
+          "logo": "{{ site_logo }}",
+          "telephone": "{{ site_phone_raw }}",
+          "email": "{{ site_email }}",
+          "priceRange": "$$",
+          "currenciesAccepted": "USD",
+          "paymentAccepted": "Cash, Credit Card, Debit Card",
+          "servesCuisine": [
+            "Healthy Prepared Meals",
+            "Meal Prep",
+            "Chef-Prepared Meals",
+            "Family Meals",
+            "Corporate Meals"
+          ],
+          "description": "Chef-prepared meal plans and premium prepared food solutions for busy professionals, families, health-focused clients, and corporate teams across South Florida.",
+          "areaServed": [
+            "South Florida",
+            "Broward County",
+            "Miami-Dade County",
+            "Palm Beach County",
+            "Fort Lauderdale",
+            "Hollywood",
+            "Pembroke Pines",
+            "Miramar",
+            "Sunrise",
+            "Plantation",
+            "Davie",
+            "Coral Springs",
+            "Weston",
+            "Boca Raton",
+            "Delray Beach",
+            "West Palm Beach",
+            "Miami",
+            "Miami Beach",
+            "Aventura",
+            "Doral",
+            "Coral Gables"
+          ],
+          "hasOfferCatalog": {
+            "@type": "OfferCatalog",
+            "name": "VNV Gourmet Services",
+            "itemListElement": [
+              {
+                "@type": "OfferCatalog",
+                "name": "Meal Plans",
+                "itemListElement": [
+                  {
+                    "@type": "Service",
+                    "name": "Weekly Meal Plan Subscription"
+                  },
+                  {
+                    "@type": "Service",
+                    "name": "Pay-As-You-Go Meal Orders"
+                  },
+                  {
+                    "@type": "Service",
+                    "name": "Healthy Prepared Meals"
+                  }
+                ]
+              },
+              {
+                "@type": "OfferCatalog",
+                "name": "Audience Solutions",
+                "itemListElement": [
+                  {
+                    "@type": "Service",
+                    "name": "Meals for Busy Professionals"
+                  },
+                  {
+                    "@type": "Service",
+                    "name": "Family and Kids Meal Solutions"
+                  },
+                  {
+                    "@type": "Service",
+                    "name": "Corporate Meal Plans"
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "@type": "Service",
+          "@id": "{{ site_url }}#service-mealplans",
+          "name": "Chef-Prepared Meal Plans in South Florida",
+          "provider": {
+            "@id": "{{ site_url }}#organization"
+          },
+          "serviceType": "Meal Prep and Chef-Prepared Meal Plan Service",
+          "description": "Weekly and on-demand chef-prepared meal plans for professionals, families, health-focused clients, and corporate teams in Broward, Miami-Dade, and Palm Beach County.",
+          "areaServed": [
+            "Broward County",
+            "Miami-Dade County",
+            "Palm Beach County"
+          ],
+          "availableChannel": {
+            "@type": "ServiceChannel",
+            "serviceUrl": "{{ site_url }}/meal-plans",
+            "servicePhone": "{{ site_phone_raw }}"
+          }
+        }
+      ]
+    }
+    </script>
+</head>
+<body>
+
+
+ 
+
+<!-- Google Tag Manager (noscript) -->
+<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-NCK9W86W"
+height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+<!-- End Google Tag Manager (noscript) -->
+
+    {% block body %}
+    {% endblock %}
+
+    {% if show_whatsapp is defined and show_whatsapp %}
+        <a href="https://wa.me/13053761210"
+        class="floating-whatsapp"
+        target="_blank"
+        rel="noopener noreferrer">
+            <i class="fa-brands fa-whatsapp"></i>
+            <span>Chat with us</span>
+        </a>
+    {% endif %}
+
+    <script src="{{ asset_for('template/js/app.js') }}"></script>
+    <script src="https://maps.googleapis.com/maps/api/js?key={{ env.GOOGLE_KEY }}&libraries=places&callback=initMap" async defer></script>
+    <script src="{{ asset_for('assets/js/googleMaps.js') }}"></script>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Stripe JS -->
+    <script src="https://js.stripe.com/v3/"></script>
+
+    <script>
+        function formatNumber(elm) {
+            let value = elm.value.replace(/\D/g, "");
+
+            if (value.startsWith("1")) {
+                value = "+" + value;
+            } else if (value.length > 0) {
+                value = "+1" + value;
+            }
+
+            if (value.length > 2 && value.length <= 5) {
+                value = `${value.slice(0, 2)} (${value.slice(2)}`;
+            } else if (value.length > 5 && value.length <= 8) {
+                value = `${value.slice(0, 2)} (${value.slice(2, 5)}) ${value.slice(5)}`;
+            } else if (value.length > 8) {
+                value = `${value.slice(0, 2)} (${value.slice(2, 5)}) ${value.slice(5, 8)}-${value.slice(8, 12)}`;
+            }
+
+            elm.value = value;
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            {% if alertMessage is not null %}
+            setTimeout(() => {
+                alert('{{ alertMessage.message }}')
+            }, 1)
+            {% endif %}
+
+            document.querySelectorAll("[data-phone]").forEach(elm => {
+                formatNumber(elm)
+                elm.addEventListener("input", () => formatNumber(elm))
+            })
+        })
+    </script>
+
+    {% block scripts %}{% endblock %}
+
+</body>
+</html>

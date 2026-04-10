@@ -1,0 +1,155 @@
+{% extends 'templates/base.admin.twig' %}
+
+{% block body %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+        <div>
+            <h1 class="h3 mb-1">Abandoned Carts</h1>
+            <p class="text-muted mb-0">Follow up on carts that did not complete payment.</p>
+        </div>
+        <a href="/panel/planner-hub/store/orders/home" class="btn btn-outline-dark">
+            View Store Orders
+        </a>
+    </div>
+
+    <div id="recoveryAlert" class="alert d-none" role="alert"></div>
+
+    <div class="card shadow-sm border-0">
+        <div class="card-body">
+            {% if carts|length > 0 %}
+                <div class="table-responsive">
+                    <table class="table align-middle">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Customer</th>
+                                <th>Pricing</th>
+                                <th>Meals</th>
+                                <th>Total</th>
+                                <th>Status</th>
+                                <th>Last Activity</th>
+                                <th>Recovery</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for c in carts %}
+                                <tr>
+                                    <td>#{{ c.id }}</td>
+                                    <td>
+                                        <strong>{{ c.guest_name ?: '—' }}</strong>
+                                        <div class="small text-muted">{{ c.guest_email ?: '—' }}</div>
+                                        {% if c.guest_phone %}
+                                            <div class="small text-muted">{{ c.guest_phone }}</div>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ c.pricing_mode }}</td>
+                                    <td>{{ c.meals_count }}</td>
+                                    <td>${{ c.total|number_format(2, '.', ',') }}</td>
+                                    <td>
+                                        {% if c.status == 'CONVERTED' %}
+                                            <span class="badge bg-success">CONVERTED</span>
+                                        {% elseif c.status == 'ABANDONED' %}
+                                            <span class="badge bg-danger">ABANDONED</span>
+                                        {% elseif c.status == 'EXPIRED' %}
+                                            <span class="badge bg-secondary">EXPIRED</span>
+                                        {% else %}
+                                            <span class="badge bg-warning text-dark">ACTIVE</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if c.last_activity_at %}
+                                            {{ c.last_activity_at|date('M j, Y g:i A') }}
+                                        {% else %}
+                                            —
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div class="d-flex flex-wrap gap-2">
+                                            {% if c.recovery_token %}
+                                                <a href="/store/checkout?recovery={{ c.recovery_token|url_encode }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                                    Recovery Link
+                                                </a>
+
+                                                {% if c.guest_email %}
+                                                    <button
+                                                        type="button"
+                                                        class="btn btn-sm btn-primary send-recovery-email-btn"
+                                                        data-cart-id="{{ c.id }}">
+                                                        Send Email
+                                                    </button>
+                                                {% endif %}
+                                            {% else %}
+                                                —
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="text-center py-5">
+                    <h5 class="mb-2">No abandoned carts found</h5>
+                    <p class="text-muted mb-0">No gourmet carts are currently available for recovery.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const alertBox = document.getElementById('recoveryAlert');
+
+    function showAlert(message, type = 'success') {
+        alertBox.className = 'alert alert-' + type;
+        alertBox.textContent = message;
+        alertBox.classList.remove('d-none');
+
+        setTimeout(() => {
+            alertBox.classList.add('d-none');
+        }, 4500);
+    }
+
+    document.querySelectorAll('.send-recovery-email-btn').forEach(btn => {
+        btn.addEventListener('click', async function () {
+            const cartId = this.dataset.cartId;
+            const originalText = this.textContent;
+
+            this.disabled = true;
+            this.textContent = 'Sending...';
+
+            try {
+                const response = await fetch('/panel/planner-hub/store/carts/send-recovery-email', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: JSON.stringify({
+                        cart_id: cartId
+                    })
+                });
+
+                const data = await response.json();
+
+                if (!data.success) {
+                    showAlert(data.message || 'Could not send recovery email.', 'danger');
+                    return;
+                }
+
+                showAlert(data.message || 'Recovery email sent successfully.', 'success');
+            } catch (e) {
+                showAlert('Unexpected error sending recovery email.', 'danger');
+            } finally {
+                this.disabled = false;
+                this.textContent = originalText;
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

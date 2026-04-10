@@ -1,0 +1,52 @@
+{% extends 'templates/base.admin.twig' %}
+{% import 'templates/macros.twig' as macros %}
+
+{% block style %}
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/trumbowyg@2.27.3/dist/ui/trumbowyg.min.css">
+{% endblock %}
+
+{% block body %}
+<h1 class="h3 mb-4">📄 Create Contract</h1>
+{{ macros.breadcrumb2() }}
+
+<section class="card">
+  <div class="card-body">
+    <form method="POST">
+      <div class="mb-3">
+        <label class="form-label">Title</label>
+        <input type="text" name="title" class="form-control" required>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">Contract Content</label>
+        <textarea name="content" id="contract-editor" class="form-control" rows="12" required></textarea>
+      </div>
+
+      <div>
+        <button class="btn btn-primary">Save Contract</button>
+        {{ macros.back_btn(title="Cancel") }}
+      </div>
+    </form>
+  </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+  <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/trumbowyg@2.27.3/dist/trumbowyg.min.js"></script>
+  <script>
+    $(document).ready(function () {
+      $('#contract-editor').trumbowyg({
+        btns: [
+          ['formatting'], // Titles and subtitles
+          ['strong', 'em'], // Bold / Italic
+          ['fontsize'], // Font sizes
+          ['unorderedList', 'orderedList'], // ✅ bullet and number list
+          ['horizontalRule'], // Divider
+          ['removeformat'] // Remove formatting
+        ],
+        autogrow: true
+      });
+    });
+  </script>
+{% endblock %}

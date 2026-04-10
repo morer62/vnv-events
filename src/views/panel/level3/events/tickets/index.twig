@@ -1,0 +1,884 @@
+{% extends 'templates/base.admin.twig' %}
+{% import 'templates/macros.twig' as macros %}
+
+{% block body %}
+<main class="container-fluid">
+    <!-- Header Section -->
+    <div class="row mb-3">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h4 mb-1 text-primary">Ticket Sales Management</h1>
+                    <p class="text-muted mb-0">{{ venueEvent.name }} - {{ venueEvent.start_date|date('M j, Y') }}</p>
+                </div>
+                <div>
+                    <a href="{{ path('panel/events/home') }}" class="btn btn-outline-secondary btn-sm">
+                        <i class="fa-solid fa-arrow-left me-1"></i>Back to Events
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <nav aria-label="breadcrumb" class="text-center">
+        <ol class="breadcrumb justify-content-center">
+            <li class="breadcrumb-item"><a href="{{ path('panel/home') }}">Home</a></li>
+            <li class="breadcrumb-item"><a href="{{ path('panel/venues/home') }}">My Venues</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Ticket Sales Management</li>
+        </ol>
+    </nav>
+    <!-- Status Alerts -->
+    <div class="row mb-3">
+        <div class="col-12">
+            {% if ticketsConfig.ticket_sales_enabled %}
+                <div class="alert alert-success" role="alert">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                            <i class="fa-solid fa-check-circle me-2"></i>
+                            <strong>Ticket sales are LIVE!</strong> Your event is accepting ticket purchases.
+                        </div>
+                        <form method="post" class="d-inline">
+                            <input type="hidden" name="action" value="disable_ticket_sales">
+                            <input type="hidden" name="venue_event_id" value="{{ venueEvent.id }}">
+                            <button type="submit" class="btn btn-outline-danger btn-sm">
+                                <i class="fa-solid fa-pause me-1"></i>Disable Sales
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            {% else %}
+                <div class="alert alert-warning" role="alert">
+                    <i class="fa-solid fa-exclamation-triangle me-2"></i>
+                    <strong>Ticket sales are disabled.</strong> Complete the setup below to enable ticket sales.
+                </div>
+            {% endif %}
+            
+            <div class="alert alert-info" role="alert">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <i class="fa-solid fa-credit-card me-2"></i>
+                        <strong>Payment Processing:</strong> Connected to Stripe ✅
+                    </div>
+                    <a href="{{ path('panel/planner-hub/management/payments') }}" class="btn btn-outline-info btn-sm">
+                        <i class="fa-solid fa-cog me-1"></i>Manage Payments
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sales Summary Dashboard -->
+    <div class="row mb-3">
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body text-center p-3">
+                    <i class="fa-solid fa-ticket-alt text-primary mb-2"></i>
+                    <h4 class="text-primary mb-1">{{ salesSummary.total_tickets_sold|default(0) }}</h4>
+                    <small class="text-muted">Tickets Sold</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body text-center p-3">
+                    <i class="fa-solid fa-dollar-sign text-success mb-2"></i>
+                    <h4 class="text-success mb-1">${{ salesSummary.total_revenue|default(0)|number_format(2) }}</h4>
+                    <small class="text-muted">Total Revenue</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body text-center p-3">
+                    <i class="fa-solid fa-percentage text-warning mb-2"></i>
+                    <h4 class="text-warning mb-1">${{ salesSummary.total_commission|default(0)|number_format(2) }}</h4>
+                    <small class="text-muted">Platform Fee</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body text-center p-3">
+                    <i class="fa-solid fa-wallet text-info mb-2"></i>
+                    <h4 class="text-info mb-1">${{ salesSummary.total_net|default(0)|number_format(2) }}</h4>
+                    <small class="text-muted">Your Earnings</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="row mb-3">
+        <div class="col-12">
+            <div class="card border-0 bg-light">
+                <div class="card-body text-center p-3">
+                    <div class="row align-items-center">
+                        <!-- Sales Report -->
+                        {% if salesSummary.total_tickets_sold > 0 %}
+                        <div class="col-md-6 mb-2 mb-md-0">
+                            <div class="d-flex align-items-center justify-content-center">
+                                <i class="fa-solid fa-chart-line text-primary me-3 fs-4"></i>
+                                <div>
+                                    <h6 class="mb-1 text-primary">View Sales Report</h6>
+                                    <p class="text-muted mb-0">Detailed sales analytics</p>
+                                </div>
+                                <div class="ms-3">
+                                    <a href="{{ path('panel/events/tickets/sales-report') }}?event_id={{ venueEvent.id }}" 
+                                       class="btn btn-primary btn-sm">
+                                        <i class="fa-solid fa-chart-bar me-1"></i>View Report
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                        
+                        <!-- QR Scanner -->
+                        <div class="col-md-6">
+                            <div class="d-flex align-items-center justify-content-center">
+                                <i class="fa-solid fa-qrcode text-success me-3 fs-4"></i>
+                                <div>
+                                    <h6 class="mb-1 text-success">Validate Tickets</h6>
+                                    <p class="text-muted mb-0">Scan QR codes at entrance</p>
+                                </div>
+                                <div class="ms-3">
+                                    <button class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#qrScannerModal">
+                                        <i class="fa-solid fa-qrcode me-1"></i>Scan QR
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Step Navigation -->
+    <div class="card mb-3">
+        <div class="card-body p-3">
+            <div class="row text-center">
+                <div class="col-md-3">
+                    <div class="step-item {{ step == 1 ? 'active' : (step > 1 ? 'completed' : '') }}">
+                        <div class="step-number">{{ step == 1 ? '1' : (step > 1 ? '✓' : '1') }}</div>
+                        <div class="step-title">Event Type</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="step-item {{ step == 2 ? 'active' : (step > 2 ? 'completed' : '') }}">
+                        <div class="step-number">{{ step == 2 ? '2' : (step > 2 ? '✓' : '2') }}</div>
+                        <div class="step-title">Ticket Types</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="step-item {{ step == 3 ? 'active' : (step > 3 ? 'completed' : '') }}">
+                        <div class="step-number">{{ step == 3 ? '3' : (step > 3 ? '✓' : '3') }}</div>
+                        <div class="step-title">Sales Stages</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="step-item {{ step == 4 ? 'active' : (step > 4 ? 'completed' : '') }}">
+                        <div class="step-number">{{ step == 4 ? '4' : (step > 4 ? '✓' : '4') }}</div>
+                        <div class="step-title">Inventory</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Step 1: Event Type Configuration -->
+    {% if step == 1 %}
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">📋 Step 1: Configure Event Type</h5>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    <input type="hidden" name="action" value="update_config">
+                    <input type="hidden" name="venue_event_id" value="{{ venueEvent.id }}">
+                    
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Event Type</label>
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="radio" name="event_type" value="physical" 
+                                       {{ ticketsConfig.event_type == 'physical' ? 'checked' : '' }}>
+                                <label class="form-check-label">
+                                    <i data-feather="map-pin" class="me-2"></i>Physical Event
+                                    <small class="d-block text-muted">In-person event at a venue</small>
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="event_type" value="digital" 
+                                       {{ ticketsConfig.event_type == 'digital' ? 'checked' : '' }}>
+                                <label class="form-check-label">
+                                    <i data-feather="monitor" class="me-2"></i>Digital Event
+                                    <small class="d-block text-muted">Online event (Zoom, Meet, etc.)</small>
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Platform Commission (%)</label>
+                            <input type="number" class="form-control" 
+                                   value="{{ ticketsConfig.commission_percentage }}" step="0.01" min="0" max="100" readonly>
+                            <small class="text-muted">Fixed: 5% + 2.9% Stripe fee = 7.9% total</small>
+                        </div>
+                    </div>
+
+                    <div id="digital-link-section" style="display: {% if ticketsConfig.event_type == 'digital' %}block{% else %}none{% endif %};">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Digital Event Link</label>
+                            <input type="url" name="digital_link" class="form-control" 
+                                   value="{{ ticketsConfig.digital_link }}" 
+                                   placeholder="https://zoom.us/j/... or https://meet.google.com/...">
+                            <small class="text-muted">This link will be sent to ticket buyers after purchase</small>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-between">
+                        <div></div>
+                        <div>
+                            <button type="submit" class="btn btn-primary">
+                                <i data-feather="save"></i> Save Configuration
+                            </button>
+                            {% if ticketsConfig.event_type %}
+                                <a href="{{ path('panel/events/tickets') }}?event_id={{ venueEvent.id }}&step=2" class="btn btn-success ms-2">
+                                    Next: Ticket Types <i data-feather="arrow-right"></i>
+                                </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    {% endif %}
+
+    <!-- Step 2: Ticket Types -->
+    {% if step == 2 %}
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">🎫 Step 2: Define Ticket Types</h5>
+                <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#createTicketTypeModal">
+                    <i data-feather="plus"></i> Add Ticket Type
+                </button>
+            </div>
+            <div class="card-body">
+                {% if ticketTypes|length > 0 %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Description</th>
+                                    <th>Price</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for ticketType in ticketTypes %}
+                                    <tr>
+                                        <td><strong>{{ ticketType.name }}</strong></td>
+                                        <td>{{ ticketType.description|default('No description') }}</td>
+                                        <td>${{ ticketType.price|number_format(2) }}</td>
+                                        <td>
+                                            {% if ticketType.is_active %}
+                                                <span class="badge bg-success">Active</span>
+                                            {% else %}
+                                                <span class="badge bg-secondary">Inactive</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <button class="btn btn-sm btn-outline-primary" 
+                                                    onclick="editTicketType({{ ticketType.id }}, {{ ticketType.name|json_encode }}, {{ ticketType.description|json_encode }}, {{ ticketType.price }})">
+                                                <i data-feather="edit"></i>
+                                            </button>
+                                            <form method="post" class="d-inline">
+                                                <input type="hidden" name="action" value="delete_ticket_type">
+                                                <input type="hidden" name="venue_event_id" value="{{ venueEvent.id }}">
+                                                <input type="hidden" name="ticket_type_id" value="{{ ticketType.id }}">
+                                                <button type="submit" class="btn btn-sm btn-outline-danger" 
+                                                        onclick="return confirm('Are you sure you want to delete this ticket type?')">
+                                                    <i data-feather="trash"></i>
+                                                </button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-5">
+                        <i data-feather="ticket" class="text-muted mb-3" style="width: 64px; height: 64px;"></i>
+                        <h5 class="text-muted">No ticket types defined</h5>
+                        <p class="text-muted">Create your first ticket type to get started</p>
+                    </div>
+                {% endif %}
+
+                <div class="d-flex justify-content-between mt-4">
+                    <a href="{{ path('panel/events/tickets') }}?event_id={{ venueEvent.id }}&step=1" class="btn btn-outline-secondary">
+                        <i data-feather="arrow-left"></i> Previous
+                    </a>
+                    {% if ticketTypes|length > 0 %}
+                        <a href="{{ path('panel/events/tickets') }}?event_id={{ venueEvent.id }}&step=3" class="btn btn-success">
+                            Next: Sales Stages <i data-feather="arrow-right"></i>
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    {% endif %}
+
+    <!-- Step 3: Sales Stages -->
+    {% if step == 3 %}
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">📅 Step 3: Define Sales Stages</h5>
+                <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#createSalesStageModal">
+                    <i data-feather="plus"></i> Add Sales Stage
+                </button>
+            </div>
+            <div class="card-body">
+                {% if salesStages|length > 0 %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Description</th>
+                                    <th>Start Date</th>
+                                    <th>End Date</th>
+                                    <th>Discount</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for stage in salesStages %}
+                                    <tr>
+                                        <td><strong>{{ stage.name }}</strong></td>
+                                        <td>{{ stage.description|default('No description') }}</td>
+                                        <td>{{ stage.start_date|date('M j, Y g:i A') }}</td>
+                                        <td>{{ stage.end_date|date('M j, Y g:i A') }}</td>
+                                        <td>
+                                            {% if stage.discount_percentage > 0 %}
+                                                <span class="badge bg-info">{{ stage.discount_percentage }}% off</span>
+                                            {% else %}
+                                                <span class="text-muted">No discount</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if stage.is_active %}
+                                                <span class="badge bg-success">Active</span>
+                                            {% else %}
+                                                <span class="badge bg-secondary">Inactive</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <button class="btn btn-sm btn-outline-primary" 
+                                                    onclick="editSalesStage({{ stage.id }}, {{ stage.name|json_encode }}, {{ stage.description|json_encode }}, {{ stage.start_date|date('Y-m-d H:i:s')|json_encode }}, {{ stage.end_date|date('Y-m-d H:i:s')|json_encode }}, {{ stage.discount_percentage }})">
+                                                <i data-feather="edit"></i>
+                                            </button>
+                                            <form method="post" class="d-inline">
+                                                <input type="hidden" name="action" value="delete_sales_stage">
+                                                <input type="hidden" name="venue_event_id" value="{{ venueEvent.id }}">
+                                                <input type="hidden" name="stage_id" value="{{ stage.id }}">
+                                                <button type="submit" class="btn btn-sm btn-outline-danger" 
+                                                        onclick="return confirm('Are you sure you want to delete this sales stage?')">
+                                                    <i data-feather="trash"></i>
+                                                </button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-5">
+                        <i data-feather="calendar" class="text-muted mb-3" style="width: 64px; height: 64px;"></i>
+                        <h5 class="text-muted">No sales stages defined</h5>
+                        <p class="text-muted">Create sales stages to manage different pricing periods</p>
+                    </div>
+                {% endif %}
+
+                <div class="d-flex justify-content-between mt-4">
+                    <a href="{{ path('panel/events/tickets') }}?event_id={{ venueEvent.id }}&step=2" class="btn btn-outline-secondary">
+                        <i data-feather="arrow-left"></i> Previous
+                    </a>
+                    {% if salesStages|length > 0 %}
+                        <a href="{{ path('panel/events/tickets') }}?event_id={{ venueEvent.id }}&step=4" class="btn btn-success">
+                            Next: Inventory <i data-feather="arrow-right"></i>
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    {% endif %}
+
+    <!-- Step 4: Inventory Management -->
+    {% if step == 4 %}
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">📊 Step 4: Set Ticket Inventory</h5>
+            </div>
+            <div class="card-body">
+                {% if ticketTypes|length > 0 and salesStages|length > 0 %}
+                    <form method="post">
+                        <input type="hidden" name="action" value="update_inventory">
+                        <input type="hidden" name="venue_event_id" value="{{ venueEvent.id }}">
+                        
+                        <div class="table-responsive">
+                            <table class="table table-bordered">
+                                <thead class="bg-light">
+                                    <tr>
+                                        <th>Ticket Type</th>
+                                        {% for stage in salesStages %}
+                                            <th class="text-center">
+                                                {{ stage.name }}<br>
+                                                <small class="text-muted">{{ stage.start_date|date('M j') }} - {{ stage.end_date|date('M j') }}</small>
+                                            </th>
+                                        {% endfor %}
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for ticketType in ticketTypes %}
+                                        <tr>
+                                            <td>
+                                                <strong>{{ ticketType.name }}</strong><br>
+                                                <small class="text-muted">${{ ticketType.price|number_format(2) }}</small>
+                                            </td>
+                                            {% for stage in salesStages %}
+                                                <td class="text-center">
+                                                    {% set inventory = null %}
+                                                    {% for inv in inventoryMatrix %}
+                                                        {% if inv.ticket_type_id == ticketType.id and inv.stage_id == stage.id %}
+                                                            {% set inventory = inv %}
+                                                        {% endif %}
+                                                    {% endfor %}
+                                                    
+                                                    {% set uniqueIndex = (ticketType.id * 1000) + stage.id %}
+                                                    
+                                                    <input type="number" 
+                                                           name="inventory[{{ uniqueIndex }}][quantity]" 
+                                                           class="form-control text-center" 
+                                                           value="{{ inventory.total_quantity|default(0) }}" 
+                                                           min="0" 
+                                                           style="width: 80px; margin: 0 auto;">
+                                                    
+                                                    <input type="hidden" name="inventory[{{ uniqueIndex }}][ticket_type_id]" value="{{ ticketType.id }}">
+                                                    <input type="hidden" name="inventory[{{ uniqueIndex }}][stage_id]" value="{{ stage.id }}">
+                                                    
+                                                    {% if inventory %}
+                                                        <small class="text-muted d-block">
+                                                            Sold: {{ inventory.sold_quantity }}<br>
+                                                            Available: {{ inventory.available_quantity }}
+                                                        </small>
+                                                    {% endif %}
+                                                </td>
+                                            {% endfor %}
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="d-flex justify-content-between mt-3">
+                            <a href="{{ path('panel/events/tickets') }}?event_id={{ venueEvent.id }}&step=3" class="btn btn-outline-secondary">
+                                <i class="fa-solid fa-arrow-left me-1"></i>Previous
+                            </a>
+                            <div>
+                                <button type="submit" class="btn btn-primary me-2">Save Inventory</button>
+                                {% if not ticketsConfig.ticket_sales_enabled %}
+                                    <form method="post" class="d-inline">
+                                        <input type="hidden" name="action" value="enable_ticket_sales">
+                                        <input type="hidden" name="venue_event_id" value="{{ venueEvent.id }}">
+                                        <button type="submit" class="btn btn-success">
+                                            <i class="fa-solid fa-play me-1"></i>Enable Ticket Sales
+                                        </button>
+                                    </form>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </form>
+                {% else %}
+                    <div class="text-center py-4">
+                        <i class="fa-solid fa-exclamation-triangle text-warning mb-3" style="font-size: 3rem;"></i>
+                        <h5 class="text-warning mb-3">Setup Required</h5>
+                        <p class="text-muted mb-3">Please complete steps 2 and 3 before setting inventory</p>
+                        <a href="{{ path('panel/events/tickets') }}?event_id={{ venueEvent.id }}&step=2" class="btn btn-primary">
+                            Go to Ticket Types
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    {% endif %}
+</main>
+
+<!-- Create Ticket Type Modal -->
+<div class="modal fade" id="createTicketTypeModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Create Ticket Type</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="post">
+                <div class="modal-body">
+                    <input type="hidden" name="action" value="create_ticket_type">
+                    <input type="hidden" name="venue_event_id" value="{{ venueEvent.id }}">
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Name *</label>
+                        <input type="text" name="name" class="form-control" required placeholder="e.g., General Admission, VIP, Early Bird">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Description</label>
+                        <textarea name="description" class="form-control" rows="3" placeholder="Describe what this ticket includes..."></textarea>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Price *</label>
+                        <div class="input-group">
+                            <span class="input-group-text">$</span>
+                            <input type="number" name="price" class="form-control" required step="0.01" min="0" placeholder="0.00">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Create Ticket Type</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Create Sales Stage Modal -->
+<div class="modal fade" id="createSalesStageModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Create Sales Stage</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="post">
+                <div class="modal-body">
+                    <input type="hidden" name="action" value="create_sales_stage">
+                    <input type="hidden" name="venue_event_id" value="{{ venueEvent.id }}">
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Name *</label>
+                        <input type="text" name="name" class="form-control" required placeholder="e.g., Early Bird, Regular Sale, Last Chance">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Description</label>
+                        <textarea name="description" class="form-control" rows="2" placeholder="Describe this sales period..."></textarea>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Start Date *</label>
+                            <input type="datetime-local" name="start_date" class="form-control" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">End Date *</label>
+                            <input type="datetime-local" name="end_date" class="form-control" required>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Discount Percentage</label>
+                        <div class="input-group">
+                            <input type="number" name="discount_percentage" class="form-control" step="0.01" min="0" max="100" placeholder="0">
+                            <span class="input-group-text">%</span>
+                        </div>
+                        <small class="text-muted">Optional discount for this sales stage</small>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Create Sales Stage</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Ticket Type Modal -->
+<div class="modal fade" id="editTicketTypeModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Edit Ticket Type</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="post">
+                <div class="modal-body">
+                    <input type="hidden" name="action" value="update_ticket_type">
+                    <input type="hidden" name="venue_event_id" value="{{ venueEvent.id }}">
+                    <input type="hidden" name="ticket_type_id" id="edit_ticket_type_id">
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Name *</label>
+                        <input type="text" name="name" id="edit_ticket_name" class="form-control" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Description</label>
+                        <textarea name="description" id="edit_ticket_description" class="form-control" rows="3"></textarea>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Price *</label>
+                        <div class="input-group">
+                            <span class="input-group-text">$</span>
+                            <input type="number" name="price" id="edit_ticket_price" class="form-control" required step="0.01" min="0">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Update Ticket Type</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Sales Stage Modal -->
+<div class="modal fade" id="editSalesStageModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Edit Sales Stage</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="post">
+                <div class="modal-body">
+                    <input type="hidden" name="action" value="update_sales_stage">
+                    <input type="hidden" name="venue_event_id" value="{{ venueEvent.id }}">
+                    <input type="hidden" name="stage_id" id="edit_stage_id">
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Name *</label>
+                        <input type="text" name="name" id="edit_stage_name" class="form-control" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Description</label>
+                        <textarea name="description" id="edit_stage_description" class="form-control" rows="2"></textarea>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Start Date *</label>
+                            <input type="datetime-local" name="start_date" id="edit_stage_start_date" class="form-control" required></div>
+<div class="col-md-6">
+    <label class="form-label">End Date *</label>
+    <input type="datetime-local" name="end_date" id="edit_stage_end_date" class="form-control" required>
+</div>
+</div>
+
+<div class="mb-3">
+<label class="form-label">Discount Percentage</label>
+<div class="input-group">
+    <input type="number" name="discount_percentage" id="edit_stage_discount" class="form-control" step="0.01" min="0" max="100">
+    <span class="input-group-text">%</span>
+</div>
+</div>
+</div>
+<div class="modal-footer">
+<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+<button type="submit" class="btn btn-primary">Update Sales Stage</button>
+</div>
+</form>
+</div>
+</div>
+</div>
+
+<!-- QR Scanner Modal -->
+<div class="modal fade" id="qrScannerModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title">
+                    <i class="fa-solid fa-qrcode me-2"></i>Validate Ticket QR Code
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="text-center mb-3">
+                            <h6 class="text-muted">Scan QR Code</h6>
+                            <div id="qr-reader" style="width: 100%; max-width: 300px; margin: 0 auto;"></div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="text-center mb-3">
+                            <h6 class="text-muted">Or Enter Manually</h6>
+                            <form method="post" id="manualQrForm">
+                                <input type="hidden" name="action" value="validate_qr_code">
+                                <input type="hidden" name="venue_event_id" value="{{ venueEvent.id }}">
+                                
+                                <div class="mb-3">
+                                    <label class="form-label">QR Code</label>
+                                    <input type="text" name="qr_code" id="manualQrCode" class="form-control" 
+                                           placeholder="Enter ticket code manually" required>
+                                </div>
+                                
+                                <button type="submit" class="btn btn-success w-100">
+                                    <i class="fa-solid fa-check me-1"></i>Validate Ticket
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="alert alert-info">
+                    <i class="fa-solid fa-info-circle me-2"></i>
+                    <strong>Instructions:</strong> Use the camera to scan QR codes or enter the ticket code manually. 
+                    Valid tickets will be marked as used and access will be granted.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.step-item {
+padding: 1rem 0.5rem;
+border-radius: 8px;
+transition: all 0.2s ease;
+cursor: pointer;
+border: 1px solid transparent;
+}
+
+.step-item:hover {
+background-color: #f8f9fa;
+}
+
+.step-item.active {
+background-color: #0d6efd;
+color: white;
+border-color: #0d6efd;
+}
+
+.step-item.completed {
+background-color: #198754;
+color: white;
+border-color: #198754;
+}
+
+.step-number {
+width: 30px;
+height: 30px;
+border-radius: 50%;
+background-color: #e9ecef;
+display: flex;
+align-items: center;
+justify-content: center;
+font-weight: bold;
+font-size: 0.9rem;
+margin: 0 auto 0.5rem;
+transition: all 0.2s ease;
+}
+
+.step-item.active .step-number,
+.step-item.completed .step-number {
+background-color: rgba(255, 255, 255, 0.2);
+}
+
+.step-title {
+font-weight: 500;
+font-size: 0.9rem;
+}
+
+</style>
+
+<script>
+// Show/hide digital link section based on event type
+document.querySelectorAll('input[name="event_type"]').forEach(radio => {
+radio.addEventListener('change', function() {
+const digitalSection = document.getElementById('digital-link-section');
+digitalSection.style.display = this.value === 'digital' ? 'block' : 'none';
+});
+});
+
+// Edit ticket type functions
+function editTicketType(id, name, description, price) {
+document.getElementById('edit_ticket_type_id').value = id;
+document.getElementById('edit_ticket_name').value = name;
+document.getElementById('edit_ticket_description').value = description;
+document.getElementById('edit_ticket_price').value = price;
+
+new bootstrap.Modal(document.getElementById('editTicketTypeModal')).show();
+}
+
+// Edit sales stage functions
+function editSalesStage(id, name, description, startDate, endDate, discount) {
+document.getElementById('edit_stage_id').value = id;
+document.getElementById('edit_stage_name').value = name;
+document.getElementById('edit_stage_description').value = description;
+document.getElementById('edit_stage_start_date').value = startDate.replace(' ', 'T').substring(0, 16);
+document.getElementById('edit_stage_end_date').value = endDate.replace(' ', 'T').substring(0, 16);
+document.getElementById('edit_stage_discount').value = discount;
+
+new bootstrap.Modal(document.getElementById('editSalesStageModal')).show();
+}
+
+// QR Scanner functionality
+let qrScanner = null;
+
+document.getElementById('qrScannerModal').addEventListener('shown.bs.modal', function () {
+    // Initialize QR scanner when modal opens
+    if (typeof Html5QrcodeScanner !== 'undefined') {
+        qrScanner = new Html5QrcodeScanner("qr-reader", {
+            qrbox: { width: 250, height: 250 },
+            fps: 20
+        });
+        
+        qrScanner.render(onScanSuccess, onScanFailure);
+    }
+});
+
+document.getElementById('qrScannerModal').addEventListener('hidden.bs.modal', function () {
+    // Clean up scanner when modal closes
+    if (qrScanner) {
+        qrScanner.clear();
+        qrScanner = null;
+    }
+});
+
+function onScanSuccess(decodedText, decodedResult) {
+    // Stop the scanner to prevent multiple reads
+    if (qrScanner) {
+        qrScanner.clear();
+        qrScanner = null;
+    }
+    
+    // Show processing indicator
+    const qrReader = document.getElementById('qr-reader');
+    qrReader.innerHTML = '<div class="text-center p-4"><i class="fa-solid fa-spinner fa-spin text-success fs-3"></i><br><small class="text-muted">Processing QR code...</small></div>';
+    
+    // Fill the manual input with scanned code
+    document.getElementById('manualQrCode').value = decodedText;
+    
+    // Auto-submit the form
+    document.getElementById('manualQrForm').submit();
+}
+
+function onScanFailure(error) {
+    // Handle scan failure silently
+}
+</script>
+
+<!-- QR Scanner Library -->
+<script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+
+{% endblock %}

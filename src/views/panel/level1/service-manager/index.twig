@@ -1,0 +1,90 @@
+{% extends 'templates/base.admin.twig' %}
+{% import 'templates/macros.twig' as macros %}
+
+{% block body %}
+<main class="container-fluid">
+    <h1 class="h3 mb-3">Service Requests</h1>
+
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ path('panel/home') }}">Home</a></li>
+            <li class="breadcrumb-item active">Services</li>
+        </ol>
+    </nav>
+
+    <section class="card">
+        <div class="card-body">
+            <div class="mb-3">
+                {% for status in statuses %}
+                    <a href="{{ path('panel/service-manager?status=' ~ status) }}" class="btn btn-outline-primary {% if status == statusPage %}active{% endif %} me-2">
+                        {{ status | upper }}
+                    </a>
+                {% endfor %}
+            </div>
+
+            <table class="table table-striped table-bordered text-center" style="min-width: 1000px; table-layout: fixed;">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Address</th>
+                        <th>Category</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for service in services %}
+                        <tr>
+                            <td>{{ service.id }}</td>
+                            <td>{{ service.name }}</td>
+                            <td>{{ service.address }}</td>
+                            <td>
+                                {{
+                                    categories
+                                    | filter(c => c.id == service.category_id)
+                                    | first.service_category
+                                }}
+                            </td>
+                            <td>
+                                <span class="badge bg-{{ service.status == 'APPROVED' ? 'success' : service.status == 'REJECTED' ? 'danger' : 'warning text-dark' }}">
+                                    {{ service.status }}
+                                </span>
+                            </td>
+                            <td>
+                                <div class="dropdown">
+                                    <button class="btn btn-sm btn-secondary dropdown-toggle" data-bs-toggle="dropdown">
+                                        Options
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end">
+                                        
+                                        <li><a class="dropdown-item" href="{{ path('panel/service/edit?id=' ~ service.id) }}">📝 Details</a></li>
+                                        <li><a class="dropdown-item" href="{{ path('panel/service-events/home?id=' ~ service.id) }}">📅 View Events</a></li>
+                                        <li><a class="dropdown-item" href="{{ path('panel/service-promotions/home?id=' ~ service.id) }}">🏷️ View Promotions</a></li>
+                                        <li><a class="dropdown-item" href="{{ path('panel/service-photos/home?id=' ~ service.id) }}">📸 View Photos</a></li>
+                                        <li><hr class="dropdown-divider" /></li>
+                                        {% for st in statuses %}
+                                            {% if st != service.status %}
+                                                <li>
+                                                    <form method="post">
+                                                        {{ macros.csrf() }}
+                                                        <input type="hidden" name="id" value="{{ service.id }}" />
+                                                        <input type="hidden" name="status" value="{{ st }}" />
+                                                        <button type="submit" class="dropdown-item">
+                                                            Set to {{ st | lower }}
+                                                        </button>
+                                                    </form>
+                                                </li>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </ul>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+</main>
+{% endblock %}

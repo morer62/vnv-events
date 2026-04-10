@@ -1,0 +1,615 @@
+{% extends 'templates/base.admin.twig' %}
+
+{% block body %}
+<div class="container-fluid gourmet-products-page">
+
+    <style>
+        :root{
+            --gourmet-primary:#f59e0b;
+            --gourmet-primary-dark:#d97706;
+            --gourmet-accent:#fb923c;
+            --gourmet-cream:#fff8ef;
+            --gourmet-soft:#fff3df;
+            --gourmet-dark:#1f1307;
+            --gourmet-dark-2:#2a1808;
+            --gourmet-text:#2d241c;
+            --gourmet-muted:#6f6255;
+            --gourmet-border:#ecd9bf;
+            --gourmet-success:#16a34a;
+            --gourmet-danger:#dc2626;
+            --gourmet-shadow:0 18px 44px rgba(79,43,8,.10);
+        }
+
+        .gourmet-products-page{
+            color:var(--gourmet-text);
+        }
+
+        .gp-hero{
+            position:relative;
+            overflow:hidden;
+            border-radius:28px;
+            padding:1.8rem 1.6rem;
+            color:#fff;
+            background:
+                radial-gradient(900px 420px at 0% 0%, rgba(245,158,11,.16), transparent 60%),
+                linear-gradient(135deg, #251508 0%, #1f1307 55%, #361a06 100%);
+            box-shadow:0 22px 54px rgba(0,0,0,.16);
+            margin-bottom:1.5rem;
+        }
+
+        .gp-hero:after{
+            content:"";
+            position:absolute;
+            right:-70px;
+            top:-70px;
+            width:220px;
+            height:220px;
+            background:radial-gradient(circle, rgba(255,209,138,.16) 0%, rgba(255,209,138,0) 70%);
+            pointer-events:none;
+        }
+
+        .gp-hero > *{
+            position:relative;
+            z-index:2;
+        }
+
+        .gp-badge{
+            display:inline-flex;
+            align-items:center;
+            gap:.45rem;
+            border-radius:999px;
+            padding:.55rem .9rem;
+            font-size:.9rem;
+            font-weight:800;
+            background:rgba(255,255,255,.10);
+            border:1px solid rgba(255,255,255,.14);
+            color:#ffe8c6;
+            margin-bottom:.9rem;
+        }
+
+        .gp-hero h1{
+            font-size:clamp(1.9rem,3vw,2.7rem);
+            line-height:1.08;
+            font-weight:900;
+            letter-spacing:-.8px;
+            margin-bottom:.45rem;
+            color:#fff;
+        }
+
+        .gp-hero p{
+            color:#f4e4cb;
+            line-height:1.72;
+            font-size:1rem;
+            margin:0;
+            max-width:760px;
+        }
+
+        .gp-hero-top{
+            display:flex;
+            justify-content:space-between;
+            align-items:flex-start;
+            gap:1rem;
+            flex-wrap:wrap;
+        }
+
+        .btn-g-main{
+            background:linear-gradient(135deg,var(--gourmet-primary),var(--gourmet-accent));
+            color:#23160a !important;
+            padding:.95rem 1.35rem;
+            font-size:1rem;
+            border-radius:999px;
+            text-decoration:none;
+            font-weight:800;
+            display:inline-flex;
+            gap:.55rem;
+            align-items:center;
+            justify-content:center;
+            border:none;
+            box-shadow:0 12px 28px rgba(245,158,11,.28);
+            transition:all .22s ease;
+            white-space:nowrap;
+        }
+
+        .btn-g-main:hover{
+            transform:translateY(-2px);
+            background:linear-gradient(135deg,var(--gourmet-primary-dark),var(--gourmet-accent));
+        }
+
+        .gp-tools{
+            margin-bottom:1.5rem;
+        }
+
+        .gp-tools-card{
+            background:#fff;
+            border:1px solid var(--gourmet-border);
+            border-radius:24px;
+            box-shadow:var(--gourmet-shadow);
+            padding:1.2rem;
+        }
+
+        .gp-tools-head{
+            margin-bottom:1rem;
+        }
+
+        .gp-tools-head h2{
+            font-size:1.1rem;
+            font-weight:900;
+            color:var(--gourmet-dark);
+            margin:0 0 .2rem;
+        }
+
+        .gp-tools-head p{
+            margin:0;
+            color:var(--gourmet-muted);
+            line-height:1.6;
+        }
+
+        .gp-tool-item{
+            display:block;
+            text-decoration:none;
+            color:inherit;
+            height:100%;
+        }
+
+        .gp-tool-box{
+            height:100%;
+            background:linear-gradient(180deg,#fff 0%, #fff8ef 100%);
+            border:1px solid #efdec7;
+            border-radius:20px;
+            padding:1.15rem 1rem;
+            transition:all .2s ease;
+            box-shadow:0 10px 24px rgba(91,52,11,.06);
+        }
+
+        .gp-tool-box:hover{
+            transform:translateY(-3px);
+            box-shadow:0 18px 34px rgba(91,52,11,.10);
+        }
+
+        .gp-tool-box i{
+            font-size:1.4rem;
+            color:var(--gourmet-primary-dark);
+            margin-bottom:.7rem;
+        }
+
+        .gp-tool-box strong{
+            display:block;
+            font-size:1rem;
+            color:var(--gourmet-dark);
+            margin-bottom:.25rem;
+        }
+
+        .gp-tool-box span{
+            display:block;
+            color:var(--gourmet-muted);
+            font-size:.92rem;
+            line-height:1.55;
+        }
+
+        .gp-card{
+            background:#fff;
+            border:1px solid var(--gourmet-border);
+            border-radius:24px;
+            box-shadow:var(--gourmet-shadow);
+            overflow:hidden;
+        }
+
+        .gp-card-body{
+            padding:1.25rem;
+        }
+
+        .gp-table{
+            margin-bottom:0;
+        }
+
+        .gp-table thead th{
+            border-bottom:1px solid #efdec7;
+            color:var(--gourmet-dark);
+            font-size:.92rem;
+            font-weight:800;
+            text-transform:uppercase;
+            letter-spacing:.02em;
+            background:#fffaf3;
+            padding:1rem .85rem;
+            white-space:nowrap;
+        }
+
+        .gp-table tbody td{
+            vertical-align:middle;
+            padding:1rem .85rem;
+            border-color:#f3e5d1;
+        }
+
+        .gp-table tbody tr:hover{
+            background:#fffdf9;
+        }
+
+        .gp-product-name{
+            font-weight:800;
+            color:var(--gourmet-dark);
+            margin-bottom:.15rem;
+        }
+
+        .gp-product-slug{
+            font-size:.85rem;
+            color:var(--gourmet-muted);
+            word-break:break-word;
+        }
+
+        .gp-thumb{
+            width:60px;
+            height:60px;
+            object-fit:cover;
+            border-radius:12px;
+            border:1px solid #f0dcc1;
+            box-shadow:0 8px 20px rgba(91,52,11,.08);
+            background:#fff;
+        }
+
+        .gp-thumb-empty{
+            width:60px;
+            height:60px;
+            border-radius:12px;
+            border:1px dashed #e6d1b3;
+            background:#fff8ef;
+            color:#9b8a78;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            font-size:.75rem;
+            font-weight:700;
+            text-align:center;
+            line-height:1.2;
+        }
+
+        .gp-price{
+            font-weight:800;
+            color:var(--gourmet-dark);
+        }
+
+        .gp-muted{
+            color:var(--gourmet-muted);
+        }
+
+        .gp-badges{
+            display:flex;
+            flex-wrap:wrap;
+            gap:.35rem;
+        }
+
+        .gp-badge-status{
+            display:inline-flex;
+            align-items:center;
+            justify-content:center;
+            padding:.42rem .7rem;
+            border-radius:999px;
+            font-size:.78rem;
+            font-weight:800;
+            letter-spacing:.01em;
+            border:1px solid transparent;
+        }
+
+        .gp-active{
+            background:rgba(22,163,74,.12);
+            color:#166534;
+            border-color:rgba(22,163,74,.18);
+        }
+
+        .gp-draft{
+            background:rgba(245,158,11,.16);
+            color:#8a5300;
+            border-color:rgba(245,158,11,.22);
+        }
+
+        .gp-inactive{
+            background:rgba(107,114,128,.12);
+            color:#4b5563;
+            border-color:rgba(107,114,128,.18);
+        }
+
+        .gp-public{
+            background:rgba(59,130,246,.12);
+            color:#1d4ed8;
+            border-color:rgba(59,130,246,.18);
+        }
+
+        .gp-private{
+            background:rgba(31,19,7,.10);
+            color:#3f2a15;
+            border-color:rgba(31,19,7,.14);
+        }
+
+        .gp-featured{
+            background:rgba(251,146,60,.16);
+            color:#9a3412;
+            border-color:rgba(251,146,60,.22);
+        }
+
+        .gp-actions{
+            display:flex;
+            flex-wrap:wrap;
+            gap:.45rem;
+            justify-content:flex-end;
+        }
+
+        .gp-btn{
+            display:inline-flex;
+            align-items:center;
+            justify-content:center;
+            gap:.4rem;
+            padding:.58rem .88rem;
+            border-radius:999px;
+            font-weight:800;
+            font-size:.84rem;
+            text-decoration:none;
+            transition:all .18s ease;
+            border:1px solid transparent;
+        }
+
+        .gp-btn-dark{
+            background:#fff8ef;
+            border-color:#ead2ad;
+            color:var(--gourmet-dark);
+        }
+
+        .gp-btn-dark:hover{
+            background:#ffefcf;
+            color:var(--gourmet-dark);
+        }
+
+        .gp-btn-primary{
+            background:#fff3df;
+            border-color:#f1cf98;
+            color:#8a5300;
+        }
+
+        .gp-btn-primary:hover{
+            background:#ffe6bc;
+            color:#7a4500;
+        }
+
+        .gp-btn-danger{
+            background:#fff1f1;
+            border-color:#f3c6c6;
+            color:#b91c1c;
+        }
+
+        .gp-btn-danger:hover{
+            background:#ffe2e2;
+            color:#991b1b;
+        }
+
+        .gp-empty{
+            padding:4rem 1.5rem;
+            text-align:center;
+        }
+
+        .gp-empty-icon{
+            width:76px;
+            height:76px;
+            border-radius:22px;
+            background:linear-gradient(135deg,#fff3df,#fff8ef);
+            border:1px solid #efd7b0;
+            color:var(--gourmet-primary-dark);
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            font-size:2rem;
+            margin:0 auto 1rem;
+            box-shadow:0 12px 28px rgba(91,52,11,.08);
+        }
+
+        .gp-empty h5{
+            font-size:1.25rem;
+            font-weight:900;
+            color:var(--gourmet-dark);
+            margin-bottom:.5rem;
+        }
+
+        .gp-empty p{
+            color:var(--gourmet-muted);
+            margin-bottom:1.2rem;
+        }
+
+        @media (max-width: 991px){
+            .gp-hero-top{
+                flex-direction:column;
+                align-items:flex-start;
+            }
+        }
+
+        @media (max-width: 768px){
+            .gp-hero{
+                padding:1.35rem 1rem;
+                border-radius:22px;
+            }
+
+            .gp-card,
+            .gp-tools-card{
+                border-radius:20px;
+            }
+
+            .gp-card-body,
+            .gp-tools-card{
+                padding:1rem;
+            }
+
+            .gp-actions{
+                justify-content:flex-start;
+            }
+
+            .btn-g-main{
+                width:100%;
+            }
+        }
+    </style>
+
+    <section class="gp-hero">
+        <div class="gp-hero-top">
+            <div>
+                <span class="gp-badge">
+                    <i class="fa-solid fa-burger"></i> Store Catalog
+                </span>
+                <h1>Store Products</h1>
+                <p>Manage your gourmet catalog, create products, and organize categories and attributes from one place.</p>
+            </div>
+
+            <div>
+                <a href="{{ path('panel/planner-hub/store/products/create') }}" class="btn-g-main">
+                    <i class="fa-solid fa-plus"></i> Create Product
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <section class="gp-tools">
+        <div class="gp-tools-card">
+            <div class="gp-tools-head">
+                <h2>Catalog shortcuts</h2>
+                <p>Use this area to move quickly between products, categories, and attribute setup.</p>
+            </div>
+
+            <div class="row g-3">
+                 
+
+                <div class="col-md-6">
+                    <a href="{{ path('panel/planner-hub/store/categories/home') }}" class="gp-tool-item">
+                        <div class="gp-tool-box">
+                            <i class="fa-solid fa-tags"></i>
+                            <strong>Categories</strong>
+                            <span>Organize the catalog with clear product groups.</span>
+                        </div>
+                    </a>
+                </div>
+
+                <div class="col-md-6">
+                    <a href="{{ path('panel/planner-hub/store/attributes/home') }}" class="gp-tool-item">
+                        <div class="gp-tool-box">
+                            <i class="fa-solid fa-sliders"></i>
+                            <strong>Attributes</strong>
+                            <span>Define options like size, diet type, and variants.</span>
+                        </div>
+                    </a>
+                </div>
+
+               
+            </div>
+        </div>
+    </section>
+
+    <div class="gp-card">
+        <div class="gp-card-body">
+            {% if products|length > 0 %}
+                <div class="table-responsive">
+                    <table class="table gp-table align-middle">
+                        <thead>
+                            <tr>
+                                <th style="min-width:90px;">Image</th>
+                                <th style="min-width:240px;">Product</th>
+                                <th style="min-width:120px;">SKU</th>
+                                <th style="min-width:120px;">Price</th>
+                                <th style="min-width:120px;">Promo</th>
+                                <th style="min-width:100px;">Stock</th>
+                                <th style="min-width:120px;">Status</th>
+                                <th style="min-width:170px;">Visibility</th>
+                                <th style="min-width:220px;" class="text-end">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for p in products %}
+                                <tr>
+                                    <td>
+                                        {% if p.main_image %}
+                                            <img src="{{ p.main_image }}" alt="{{ p.name }}" class="gp-thumb">
+                                        {% else %}
+                                            <div class="gp-thumb-empty">No Img</div>
+                                        {% endif %}
+                                    </td>
+
+                                    <td>
+                                        <div class="gp-product-name">{{ p.name }}</div>
+                                        {% if p.slug %}
+                                            <div class="gp-product-slug">{{ p.slug }}</div>
+                                        {% endif %}
+                                    </td>
+
+                                    <td>
+                                        <span class="gp-muted">{{ p.sku ?: '—' }}</span>
+                                    </td>
+
+                                    <td>
+                                        <span class="gp-price">${{ p.price|number_format(2, '.', ',') }}</span>
+                                    </td>
+
+                                    <td>
+                                        {% if p.promo_price %}
+                                            <span class="gp-price">${{ p.promo_price|number_format(2, '.', ',') }}</span>
+                                        {% else %}
+                                            <span class="gp-muted">—</span>
+                                        {% endif %}
+                                    </td>
+
+                                    <td>
+                                        <strong>{{ p.stock_quantity }}</strong>
+                                    </td>
+
+                                    <td>
+                                        {% if p.status == 'ACTIVE' %}
+                                            <span class="gp-badge-status gp-active">ACTIVE</span>
+                                        {% elseif p.status == 'DRAFT' %}
+                                            <span class="gp-badge-status gp-draft">DRAFT</span>
+                                        {% else %}
+                                            <span class="gp-badge-status gp-inactive">INACTIVE</span>
+                                        {% endif %}
+                                    </td>
+
+                                    <td>
+                                        <div class="gp-badges">
+                                            {% if p.is_public %}
+                                                <span class="gp-badge-status gp-public">PUBLIC</span>
+                                            {% else %}
+                                                <span class="gp-badge-status gp-private">PRIVATE</span>
+                                            {% endif %}
+
+                                            {% if p.is_featured %}
+                                                <span class="gp-badge-status gp-featured">FEATURED</span>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+
+                                    <td class="text-end">
+                                        <div class="gp-actions">
+                                            <a href="{{ path('panel/planner-hub/store/products/details') }}?id={{ p.id }}" class="gp-btn gp-btn-dark">
+                                                Details
+                                            </a>
+                                            <a href="{{ path('panel/planner-hub/store/products/edit') }}?id={{ p.id }}" class="gp-btn gp-btn-primary">
+                                                Edit
+                                            </a>
+                                            <a href="{{ path('panel/planner-hub/store/products/delete') }}?id={{ p.id }}"
+                                               class="gp-btn gp-btn-danger"
+                                               onclick="return confirm('Are you sure you want to delete this product?');">
+                                                Delete
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="gp-empty">
+                    <div class="gp-empty-icon">
+                        <i class="fa-solid fa-burger"></i>
+                    </div>
+                    <h5>No products created yet</h5>
+                    <p>Start by creating your first store product and then organize your categories and attributes from this same area.</p>
+                    <a href="{{ path('panel/planner-hub/store/products/create') }}" class="btn-g-main">
+                        <i class="fa-solid fa-plus"></i> Create Product
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

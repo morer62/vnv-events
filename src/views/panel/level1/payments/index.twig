@@ -1,0 +1,99 @@
+{% extends 'templates/base.admin.twig' %}
+{% import 'templates/macros.twig' as macros %}
+
+{% block body %}
+<main class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h1 class="h3 mb-0">
+                Payments Received{% if type %} - {{ type | capitalize }}{% endif %}
+            </h1>
+        </div>
+        <div>
+            <a href="{{ path('panel/subscriptions-manager') }}" class="btn btn-outline-primary">
+                <i class="feather-users"></i> Subscriptions Manager
+            </a>
+        </div>
+    </div>
+
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ path('panel/home') }}">Home</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Payments</li>
+        </ol>
+    </nav>
+
+    <form method="get" class="mb-4 row g-2">
+        <div class="col-md-3">
+            <select name="type" class="form-select">
+                <option value="">All Types</option>
+                <option value="services" {{ type == 'services' ? 'selected' : '' }}>Services</option>
+                <option value="venues" {{ type == 'venues' ? 'selected' : '' }}>Venues</option>
+                <option value="memberships" {{ type == 'memberships' ? 'selected' : '' }}>Memberships</option>
+                <option value="events" {{ type == 'events' ? 'selected' : '' }}>Events</option>
+            </select>
+        </div>
+        <div class="col-md-3">
+            <input type="email" name="email" class="form-control" placeholder="User Email" value="{{ email }}">
+        </div>
+        <div class="col-md-2">
+            <input type="date" name="from" class="form-control" value="{{ from }}">
+        </div>
+        <div class="col-md-2">
+            <input type="date" name="to" class="form-control" value="{{ to }}">
+        </div>
+        <div class="col-md-2">
+            <button type="submit" class="btn btn-primary w-100">Filter</button>
+        </div>
+    </form>
+
+    <div class="card">
+        <div class="card-body table-responsive">
+            <table class="table table-striped table-bordered text-center">
+                <thead>
+                    <tr>
+                        <th>User</th>
+                        <th>Email</th>
+                        <th>Phone</th>
+                        <th>Item</th>
+                        <th>Payment Date</th>
+                        <th>Renewal</th>
+                        <th>Amount</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for payment in payments %}
+                        <tr>
+                            <td>{{ payment.name }}</td>
+                            <td>{{ payment.email }}</td>
+                            <td>{{ payment.phone }}</td>
+                            <td>{{ payment.item }}</td>
+                            <td>{{ payment.payment_date }}</td>
+                            <td>{{ payment.renewal }}</td>
+                            <td>${{ payment.total|number_format(2) }}</td>
+                            <td>
+                                {% if payment.status == 'ACTIVE' %}
+                                    <span class="badge bg-success">Active</span>
+                                {% elseif payment.status == 'PENDING' %}
+                                    <span class="badge bg-warning text-dark">Pending</span>
+                                {% else %}
+                                    <span class="badge bg-danger">Expired</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <a href="{{ path('panel/payments/details') }}?id={{ payment.id }}" class="btn btn-sm btn-outline-primary">🔍 View</a>
+                            </td>
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <td colspan="9">No payments found.</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</main>
+{% endblock %}

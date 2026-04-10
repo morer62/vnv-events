@@ -1,0 +1,220 @@
+{% extends 'templates/base.admin.twig' %}
+
+{% block body %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+        <div>
+            <h1 class="h3 mb-1">My Gourmet Orders</h1>
+            <p class="text-muted mb-0">Review your meal orders, line items, and upcoming subscription charges.</p>
+        </div>
+
+        <a href="{{ path('/meal-plans') }}" class="btn btn-outline-dark">
+            Order More Meals
+        </a>
+    </div>
+
+    <div class="card shadow-sm border-0">
+        <div class="card-body">
+            {% if orders|length > 0 %}
+                <div class="table-responsive">
+                    <table class="table align-middle">
+                        <thead>
+                            <tr>
+                                <th>Order</th>
+                                <th>Pricing</th>
+                                <th>Coupon</th>
+                                <th>Details</th>
+                                <th class="text-end">Meals</th>
+                                <th class="text-end">Total</th>
+                                <th class="text-nowrap">Next charge</th>
+                                <th>Payment</th>
+                                <th>Status</th>
+                                <th>Date</th>
+                                <th class="text-end">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for o in orders %}
+                                <tr>
+                                    <td>
+                                        <strong>#{{ o.id }}</strong>
+                                        <div class="small text-muted">{{ o.guest_email ?: '—' }}</div>
+                                    </td>
+                                    <td>{{ o.pricing_mode }}</td>
+                                    <td class="small">
+                                        {% if o.coupon_code %}
+                                            <span class="badge bg-info text-dark">{{ o.coupon_code }}</span>
+                                            {% if (o.coupon_discount ?: 0) > 0 %}
+                                                <div class="text-muted mt-1">− ${{ o.coupon_discount|number_format(2, '.', ',') }}</div>
+                                            {% endif %}
+                                        {% else %}
+                                            <span class="text-muted">—</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <button type="button"
+                                                class="btn btn-sm btn-outline-primary px-3"
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#orderItemsModal"
+                                                data-items="{{ o.items_modal_json|e('html_attr') }}">
+                                            View details
+                                        </button>
+                                    </td>
+                                    <td class="text-end">{{ o.meals_count }}</td>
+                                    <td class="text-end">${{ o.total|number_format(2, '.', ',') }}</td>
+                                    <td class="small">
+                                        {% if o.pricing_mode == 'SUBSCRIPTION' and subscription_next_charge %}
+                                            <div class="fw-semibold">${{ subscription_next_charge.total|number_format(2, '.', ',') }}</div>
+                                            {% if subscription_next_charge.next_charge_date %}
+                                                <div class="text-muted">{{ subscription_next_charge.next_charge_date|date('M j, Y') }}</div>
+                                            {% else %}
+                                                <div class="text-muted">Date TBD</div>
+                                            {% endif %}
+                                        {% else %}
+                                            <span class="text-muted">—</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if o.payment_status == 'PAID' %}
+                                            <span class="badge bg-success">PAID</span>
+                                        {% elseif o.payment_status == 'FAILED' %}
+                                            <span class="badge bg-danger">FAILED</span>
+                                        {% elseif o.payment_status == 'REFUNDED' %}
+                                            <span class="badge bg-secondary">REFUNDED</span>
+                                        {% else %}
+                                            <span class="badge bg-warning text-dark">PENDING</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if o.status == 'NEW' or o.status == 'PROCESSING' %}
+                                            <span class="badge bg-info text-dark">Paid / Preparing</span>
+                                        {% elseif o.status == 'READY' %}
+                                            <span class="badge bg-warning text-dark">Sending</span>
+                                        {% elseif o.status == 'DELIVERED' %}
+                                            <span class="badge bg-success">Received</span>
+                                        {% elseif o.status == 'CANCELLED' %}
+                                            <span class="badge bg-danger">CANCELLED</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">{{ o.status }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ o.created_at|date('M j, Y g:i A') }}</td>
+                                    <td class="text-end">
+                                        <a href="{{ path('store/order-access?token=' ~ o.public_token) }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                            View
+                                        </a>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="text-center py-5">
+                    <h5 class="mb-2">No gourmet orders yet</h5>
+                    <p class="text-muted mb-3">You have not placed any meal orders yet.</p>
+                    <a href="{{ path('/meal-plans') }}" class="btn btn-primary">
+                        Start My Meal Plan
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="modal fade" id="orderItemsModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Items</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm align-middle mb-0">
+                            <thead>
+                            <tr>
+                                <th>Product</th>
+                                <th class="text-end">Qty</th>
+                                <th class="text-end">Unit price</th>
+                                <th class="text-end">Total</th>
+                            </tr>
+                            </thead>
+                            <tbody id="orderItemsTableBody">
+                            <tr>
+                                <td colspan="4" class="text-center text-muted py-3">No products found.</td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+    {{ parent() }}
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const modalEl = document.getElementById('orderItemsModal');
+            if (!modalEl) return;
+
+            modalEl.addEventListener('show.bs.modal', function (event) {
+                const button = event.relatedTarget;
+                if (!button) return;
+
+                const itemsJson = button.getAttribute('data-items') || '[]';
+
+                let items = [];
+                try {
+                    items = JSON.parse(itemsJson);
+                } catch (e) {
+                    items = [];
+                }
+
+                const tbody = document.getElementById('orderItemsTableBody');
+                tbody.innerHTML = '';
+
+                if (!items.length) {
+                    const tr = document.createElement('tr');
+                    const td = document.createElement('td');
+                    td.colSpan = 4;
+                    td.className = 'text-center text-muted py-3';
+                    td.textContent = 'No products found.';
+                    tr.appendChild(td);
+                    tbody.appendChild(tr);
+                    return;
+                }
+
+                items.forEach(function (item) {
+                    const tr = document.createElement('tr');
+
+                    const tdName = document.createElement('td');
+                    tdName.textContent = item.name || '—';
+
+                    const tdQty = document.createElement('td');
+                    tdQty.className = 'text-end';
+                    tdQty.textContent = item.quantity ?? 0;
+
+                    const tdUnit = document.createElement('td');
+                    tdUnit.className = 'text-end';
+                    tdUnit.textContent = '$' + Number(item.unit_price ?? 0).toFixed(2);
+
+                    const tdTotal = document.createElement('td');
+                    tdTotal.className = 'text-end';
+                    tdTotal.textContent = '$' + Number(item.line_total ?? 0).toFixed(2);
+
+                    tr.appendChild(tdName);
+                    tr.appendChild(tdQty);
+                    tr.appendChild(tdUnit);
+                    tr.appendChild(tdTotal);
+                    tbody.appendChild(tr);
+                });
+            });
+        });
+    </script>
+{% endblock %}

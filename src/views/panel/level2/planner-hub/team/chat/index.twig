@@ -1,0 +1,566 @@
+{% extends 'templates/base.admin.twig' %}
+
+{% block style %}
+<style>
+    .chat-layout {
+        display: flex;
+        height: 75vh;
+    }
+
+    .chat-sidebar {
+        width: 300px;
+        border-right: 1px solid #ccc;
+        overflow-y: auto;
+        padding: 0.5rem;
+    }
+
+    .chat-main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+     min-height: 0; 
+    }
+
+    .chat-messages {
+        flex: 1;
+        min-height: 0;
+        overflow-y: auto;
+        padding: 1rem;
+        scroll-behavior: smooth;
+        -webkit-overflow-scrolling: touch;
+    }
+
+
+    .chat-input {
+        padding: 1rem;
+        border-top: 1px solid #ccc;
+        background: #fafafa;
+    }
+
+    .bubble {
+        max-width: 60%;
+        margin-bottom: 1rem;
+        padding: 0.75rem;
+        border-radius: 10px;
+        position: relative;
+    }
+
+    .me {
+        align-self: flex-end;
+        background: #d4fcd4;
+    }
+
+    .them {
+        align-self: flex-start;
+        background: #f0f0f0;
+    }
+
+    .sender-info {
+        font-size: 0.75rem;
+        color: #666;
+        margin-bottom: 0.25rem;
+        font-weight: 500;
+    }
+
+    .timestamp {
+        font-size: 0.7rem;
+        color: #999;
+        margin-top: 0.25rem;
+        text-align: right;
+    }
+
+    .thread-item {
+        padding: 0.75rem;
+        border-bottom: 1px solid #eee;
+        cursor: pointer;
+        text-decoration: none;
+        display: block;
+        color: #000;
+        transition: background 0.2s;
+    }
+
+    .thread-item:hover {
+        background: #f9f9f9;
+    }
+
+    .thread-item.active {
+        background: #e9f3ff;
+    }
+
+    .unread {
+        font-weight: bold;
+    }
+    
+
+ 
+
+  @media (max-width: 768px) {
+    
+    .chat-layout {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        overflow: hidden;
+    }
+
+    .chat-sidebar {
+        width: 100%;
+        flex: 1 1 auto;
+        max-height: 100%; 
+        overflow-y: auto;
+        border-right: none;
+        border-bottom: 1px solid #ccc;
+    }
+
+    .chat-main {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        min-height: 0;
+        overflow: hidden;
+    }
+
+    .chat-messages {
+        flex: 1;
+        overflow-y: auto;
+        padding: 1rem;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+        scroll-behavior: smooth;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .chat-input {
+        padding: 0.75rem;
+        border-top: 1px solid #ccc;
+        background: #fafafa;
+        position: sticky;
+        bottom: 0;
+        z-index: 10;
+        flex-shrink: 0;
+    }
+
+    #chatSidebar,
+    #chatMain {
+        display: block;
+    }
+
+    #toggleSidebar {
+    padding: 0.3rem 0.75rem;
+    font-size: 1.2rem; /* 👈 Aumenta este valor si quieres aún más grande */
+    line-height: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+}
+
+
+    
+}
+
+ 
+
+</style>
+{% endblock %}
+
+{% block body %}
+ 
+
+<div class="chat-layout"> 
+    <div class="chat-sidebar" id="chatSidebar">
+        {% if is_admin or is_vendor or (can_chat_with_clients) %}
+            <form method="post" class="mb-3">
+                <select name="to" class="form-select mb-2" required>
+                    <option value="">➕ Start new chat...</option>
+                    {% for u in users %}
+                        {% if u.id != me.getId() %}
+                            <option value="{{ u.id }}">{{ u.name }} {{ u.lastname }} - {{ u.email }}</option>
+                        {% endif %}
+                    {% endfor %}
+                </select>
+                <input type="text" name="message" class="form-control" placeholder="Type a message..." autocomplete="off" required />
+            </form>
+        {% endif %}
+
+        {% if threads is empty %}
+            <p class="text-muted p-2">No active conversations.</p>
+        {% else %}
+            {% for t in threads %}
+                {% set partnerId = t.id_user_1 == me.getId() ? t.id_user_2 : t.id_user_1 %}
+                {% set partnerName = t.id_user_1 == me.getId() ? t.name2 : t.name1 %}
+                {% set partnerEmail = t.id_user_1 == me.getId() ? t.email2 : t.email1 %}
+
+                <a href="?thread={{ t.id }}" class="thread-item {{ thread and thread.id == t.id ? 'active' }} {{ t.unread_count > 0 ? 'unread' }}">
+                    <div>
+                        <strong>{{ partnerName is not empty ? partnerName : 'User #' ~ partnerId }}</strong><br>
+                        <small>{{ partnerEmail ?? '' }}</small>
+                    </div>
+                    <div>{{ t.last_message|slice(0, 30) }}...</div>
+                    {% if t.unread_count > 0 %}
+                        <small>🔴 {{ t.unread_count }} unread</small>
+                    {% endif %}
+                </a>
+
+            {% endfor %}
+        {% endif %}
+    </div>
+
+    <div class="chat-main" id="chatMain">
+        <div class="chat-messages d-flex flex-column">
+            {% for msg in messages %}
+                <div class="bubble {{ msg.id_sender == me.getId() ? 'me' : 'them' }}">
+                    {% if msg.id_sender != me.getId() %}
+                        <div class="sender-info">
+                            {{ msg.sender_name ?? ('User #' ~ msg.id_sender) }} - {{ msg.sender_email ?? '' }}
+                        </div>
+                    {% endif %}
+
+                    {{ msg.message }}
+                    <div class="timestamp">{{ msg.created_at|date("H:i") }}</div>
+                </div>
+            {% endfor %}
+
+        </div>
+
+        {% if thread %}
+            <form method="post" class="chat-input d-flex">
+                <button
+                    type="button"
+                    class="btn btn-outline-secondary d-md-none me-2"
+                    id="toggleSidebar"
+                    style="display: none;">
+                    🔙
+                </button>
+                <input type="hidden" name="to" value="{{ thread.id_user_1 == me.getId() ? thread.id_user_2 : thread.id_user_1 }}" />
+                <input type="text" name="message" class="form-control me-2" placeholder="Type a message..." autocomplete="off" required />
+                <button class="btn btn-primary">Send</button>
+            </form>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+
+
+ 
+{% block scripts %}
+<script>
+    function getBasePath() {
+        const segments = window.location.pathname.split('/');
+        return segments.length > 1 ? '/' + segments[1] : '';
+    }
+
+    const chatMessages = document.querySelector('.chat-messages');
+    let autoScroll = true;
+    const myId = {{ me.getId()|e('js') }};
+    const form = document.querySelector('.chat-input');
+
+    if (form) {
+        form.addEventListener("submit", function (e) {
+            e.preventDefault();
+
+            const to = form.querySelector('input[name="to"]').value;
+            const message = form.querySelector('input[name="message"]').value.trim();
+            if (!message) return;
+
+            const formData = new FormData();
+            formData.append("to", to);
+            formData.append("message", message);
+
+            fetch(window.location.href, {
+                method: "POST",
+                body: formData
+            }).then(() => {
+                localStorage.setItem("chatView", "conversation");
+                fetchNewMessages();
+
+                form.reset();
+                form.querySelector('input[name="message"]').focus();
+
+                // ✅ Scroll a fondo en móvil después de enviar
+                const el = document.querySelector('.chat-messages');
+
+                setTimeout(() => {
+    if (window.innerWidth < 768) {
+        const toggleBtn = document.getElementById("toggleSidebar");
+        if (toggleBtn) {
+            toggleBtn.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+    } else {
+        el.scrollTop = el.scrollHeight + 1000;
+    }
+}, 300);
+
+
+
+
+
+            });
+        });
+    }
+
+    chatMessages.addEventListener('scroll', () => {
+        const nearBottom = chatMessages.scrollTop + chatMessages.clientHeight >= chatMessages.scrollHeight - 100;
+        autoScroll = nearBottom;
+
+        if (!nearBottom) {
+            manualScroll = true;
+        } else {
+            manualScroll = false;
+        }
+    });
+
+
+    let manualScroll = false;
+
+    
+
+
+    function fetchNewMessages() {
+        let threadId = new URLSearchParams(window.location.search).get('thread');
+
+        if (!threadId) {
+            const activeItem = document.querySelector(".thread-item.active");
+            if (activeItem) {
+                const url = new URL(activeItem.href);
+                threadId = url.searchParams.get("thread");
+            }
+        }
+
+        if (!threadId) return;
+
+        fetch(`${getBasePath()}/api/chat/messages?thread=${threadId}`)
+            .then(res => res.json())
+            .then(json => {
+                if (json.success) {
+                    chatMessages.innerHTML = '';
+                    json.data.forEach(msg => {
+                        const div = document.createElement("div");
+                        div.className = `bubble ${msg.id_sender == myId ? 'me' : 'them'}`;
+                        div.innerHTML = `
+                            ${msg.id_sender != myId ? `<div class="sender-info">${msg.sender_name} - ${msg.sender_email}</div>` : ''}
+                            ${msg.message}
+                            <div class="timestamp">${msg.created_at.slice(11, 16)}</div>
+                        `;
+                        chatMessages.appendChild(div);
+                    });
+
+                    // ✅ Scroll forzado con doble frame
+                    // ✅ Scroll a toggle si en mobile
+
+
+                    if (window.innerWidth < 768) {
+                        if (autoScroll && !manualScroll) {
+                            scrollToToggleButton();
+                        }
+                    } else {
+                        requestAnimationFrame(() => {
+                            requestAnimationFrame(() => {
+                                if (autoScroll && !manualScroll) {
+                                    chatMessages.scrollTop = chatMessages.scrollHeight + 1000;
+                                }
+                            });
+                        });
+                    }
+
+
+                }
+            });
+    }
+
+
+    
+
+    setInterval(fetchNewMessages, 3000);
+    setInterval(refreshThreadsSidebar, 6000);
+
+     
+
+    function updateMobileView() {
+        const isMobile = window.innerWidth < 768;
+        const hasThread = new URLSearchParams(window.location.search).has("thread");
+        const toggleBtn = document.getElementById("toggleSidebar");
+        const sidebar = document.getElementById("chatSidebar");
+        const main = document.getElementById("chatMain");
+        const currentView = localStorage.getItem("chatView") || "sidebar";
+
+        if (isMobile) {
+            toggleBtn.style.display = hasThread ? "inline-block" : "none";
+            if (currentView === "conversation") {
+                sidebar.classList.add("d-none");
+                main.classList.remove("d-none");
+            } else {
+                sidebar.classList.remove("d-none");
+                main.classList.add("d-none");
+            }
+        } else {
+            // Desktop: mostrar ambos siempre
+            sidebar.classList.remove("d-none");
+            main.classList.remove("d-none");
+            toggleBtn.style.display = "none";
+        }
+    }
+
+ 
+ 
+
+
+    document.querySelectorAll(".thread-item").forEach(item => {
+        item.addEventListener("click", () => {
+            if (window.innerWidth < 768) {
+                document.getElementById("chatSidebar").classList.add("d-none");
+                document.getElementById("chatMain").classList.remove("d-none");
+                localStorage.setItem("chatView", "conversation");
+            }
+        });
+    });
+
+    document.getElementById("toggleSidebar").addEventListener("click", function () {
+        const sidebar = document.getElementById("chatSidebar");
+        const main = document.getElementById("chatMain");
+        sidebar.classList.toggle("d-none");
+        main.classList.toggle("d-none");
+    });
+
+    document.addEventListener ("DOMContentLoaded", () =>
+     {
+    const url = new URL(window.location.href);
+    const threadParam = url.searchParams.get("thread");
+    const sidebar = document.getElementById("chatSidebar");
+    const main = document.getElementById("chatMain");
+    const toggleBtn = document.getElementById("toggleSidebar");
+
+    // Abrir primer chat automáticamente
+    if (!threadParam) {
+        const firstActive = document.querySelector(".thread-item");
+        if (firstActive) {
+            const href = firstActive.getAttribute("href");
+            if (href && href.includes("?thread=")) {
+                window.location.href = href;
+            }
+        }
+    } else {
+        setTimeout(() => {
+            const toggleBtn = document.getElementById("toggleSidebar");
+            if (window.innerWidth < 768 && toggleBtn) {
+                toggleBtn.scrollIntoView({ behavior: "smooth", block: "start" });
+            } else {
+                chatMessages.scrollTop = chatMessages.scrollHeight + 1000;
+            }
+        }, 300);
+
+    }
+
+    // Mostrar u ocultar sidebar/conversación correctamente
+    // Primero, forzar la vista "conversation" si hay thread y estamos en mobile
+    if (window.innerWidth < 768 && threadParam) {
+        localStorage.setItem("chatView", "conversation");
+    }
+
+    // Luego, aplicar la vista según localStorage
+    updateMobileView();
+
+    // Mostrar botón si corresponde
+    if (window.innerWidth < 768 && localStorage.getItem("chatView") === "conversation") {
+        toggleBtn.classList.remove("d-none");
+    } else {
+        toggleBtn.classList.add("d-none");
+    }
+
+
+
+    // Click en un thread en mobile cambia vista
+    document.querySelectorAll(".thread-item").forEach(item => {
+        item.addEventListener("click", () => {
+            if (window.innerWidth < 768) {
+                sidebar.classList.add("d-none");
+                main.classList.remove("d-none");
+                localStorage.setItem("chatView", "conversation");
+            }
+        });
+    });
+
+    toggleBtn.addEventListener("click", () => {
+    const currentView = localStorage.getItem("chatView") || "conversation";
+
+    if (currentView === "conversation") {
+        sidebar.classList.remove("d-none");
+        main.classList.add("d-none");
+        localStorage.setItem("chatView", "sidebar");
+    } else {
+        sidebar.classList.add("d-none");
+        main.classList.remove("d-none");
+        localStorage.setItem("chatView", "conversation");
+    }
+
+    if (window.innerWidth < 768) {
+        const view = localStorage.getItem("chatView");
+        if (view === "conversation") {
+            toggleBtn.classList.remove("d-none");
+        } else {
+            toggleBtn.classList.add("d-none");
+        }
+    }
+});
+
+});
+
+
+function scrollToToggleButton() {
+    if (window.innerWidth < 768) {
+        const toggleBtn = document.getElementById("toggleSidebar");
+        if (toggleBtn) {
+            toggleBtn.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+    }
+}
+
+
+function refreshThreadsSidebar() {
+    fetch(window.location.href)
+        .then(res => res.text())
+        .then(html => {
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(html, "text/html");
+            const newItems = doc.querySelectorAll("#chatSidebar .thread-item");
+            const currentSidebar = document.querySelector("#chatSidebar");
+
+            if (!currentSidebar || newItems.length === 0) return;
+
+            const existingItems = currentSidebar.querySelectorAll(".thread-item");
+
+            // Si el número o contenido cambió, reemplazar solo los items
+            const changed = newItems.length !== existingItems.length || Array.from(newItems).some((item, i) => {
+                return item.outerHTML !== existingItems[i]?.outerHTML;
+            });
+
+            if (changed) {
+                // Reemplazar solo los items, no el formulario o contenido superior
+                const existingForm = currentSidebar.querySelector("form")?.outerHTML ?? "";
+                const updatedHTML = Array.from(newItems).map(e => e.outerHTML).join("");
+
+                currentSidebar.innerHTML = existingForm + updatedHTML;
+
+                // Volver a asignar los listeners
+                currentSidebar.querySelectorAll(".thread-item").forEach(item => {
+                    item.addEventListener("click", () => {
+                        if (window.innerWidth < 768) {
+                            document.getElementById("chatSidebar").classList.add("d-none");
+                            document.getElementById("chatMain").classList.remove("d-none");
+                            localStorage.setItem("chatView", "conversation");
+                        }
+                    });
+                });
+            }
+        });
+}
+
+
+
+
+</script>
+{% endblock %}
+
+

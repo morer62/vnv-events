@@ -1,0 +1,62 @@
+{% extends 'templates/base.admin.twig' %}
+{% import 'templates/macros.twig' as macros %}
+
+{% block body %}
+<h2 class="mb-4">👥 Manage Staff Invitations – Order vnv-341{{ order.id }}</h2>
+
+ {# Back según convención al listado de órdenes #}
+  <a href="{{ path('panel/planner-hub/management/orders/orders/team_comunication') }}?id={{ order.id }}" class="btn btn-outline-secondary mb-3">  
+    ← Back to Team Area
+  </a>
+
+<form method="post" class="d-flex gap-2 mb-4">
+    <input type="hidden" name="id_order" value="{{ order.id }}">
+    <input type="hidden" name="action" value="invite">
+    <select name="id_user" class="form-select w-50" required>
+        <option value="">Select a staff member</option>
+        {% for user in staff %}
+            <option value="{{ user.id }}">{{ user.name }} ({{ user.email }})</option>
+        {% endfor %}
+    </select>
+    <button type="submit" class="btn btn-primary">➕ Invite</button>
+</form>
+
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th>Staff</th>
+            <th>Email</th>
+            <th>Status</th>
+            <th>Action</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for invite in invited %}
+            <tr>
+                <td>{{ invite.name }}</td>
+                <td>{{ invite.email }}</td>
+                <td>
+                    {% if invite.is_confirmed is null %}
+                        <span class="badge bg-warning">Pending</span>
+                    {% elseif invite.is_confirmed == 1 %}
+                        <span class="badge bg-success">Accepted</span>
+                    {% else %}
+                        <span class="badge bg-danger">Rejected</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <form method="post" class="d-inline">
+                        <input type="hidden" name="id_order" value="{{ order.id }}">
+                        <input type="hidden" name="id_user" value="{{ invite.id_user }}">
+                        <input type="hidden" name="action" value="remove">
+                        <button class="btn btn-sm btn-outline-danger">❌ Remove</button>
+                    </form>
+
+                </td>
+            </tr>
+        {% else %}
+            <tr><td colspan="4">No staff invited yet.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

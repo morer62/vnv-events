@@ -1,0 +1,74 @@
+{% extends 'templates/base.admin.twig' %}
+{% import 'templates/macros.twig' as macros %}
+
+{% block style %}
+    <style>
+        .img-cover {
+            width: 10rem;
+            height: 10rem;
+            object-fit: cover;
+            object-position: center;
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+<main class="container-fluid h-100 d-flex flex-column justify-content-center p-3">
+    <h1 class="h3 mb-3 text-center">Service Photos</h1>
+
+    <nav aria-label="breadcrumb" class="text-center">
+        <ol class="breadcrumb justify-content-center">
+            <li class="breadcrumb-item"><a href="{{ path('panel/home') }}">Home</a></li>
+            <li class="breadcrumb-item"><a href="{{ path('panel/service') }}">My Services</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Photos</li>
+        </ol>
+    </nav>
+
+    <section class="card w-100 shadow-lg">
+        <div class="card-body">
+            <button type="button" class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#uploadPhotoModal">
+                Upload a new photo
+            </button>
+
+            <div class="row">
+                {% for photo in photos %}
+                    <div class="col-12 col-md-4 col-lg-3">
+                        <div class="mb-3 img-thumbnail">
+                            <img class="img-cover" src="{{ photo.image }}" alt="{{ photo.id }}"/>
+                        </div>
+
+                        <form method="post" form-delete>
+                            {{ macros.csrf() }}
+                            <input type="hidden" name="id" value="{{ photo.id }}" />
+                            <input type="hidden" name="action" value="delete" />
+                            <button class="btn btn-danger w-100" type="submit">Delete</button>
+                        </form>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </section>
+</main>
+
+<div class="modal fade" id="uploadPhotoModal" tabindex="-1" aria-labelledby="uploadPhotoModal" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-body">
+                <form method="post" enctype="multipart/form-data">
+                    {{ macros.csrf() }}
+                    <input type="hidden" name="action" value="uploadPhoto" />
+                    <div class="mb-3">
+                        <label class="w-100">
+                            Image
+                            <input class="form-control" name="image" required type="file"/>
+                        </label>
+                    </div>
+
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-primary">Upload</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,215 @@
+{% extends 'templates/base.admin.twig' %}
+
+{% block body %}
+<main class="container mt-4 pb-5">
+
+  <style>
+    :root{
+      --gourmet-primary:#f59e0b;
+      --gourmet-primary-dark:#d97706;
+      --gourmet-accent:#fb923c;
+      --gourmet-dark:#1f1307;
+      --gourmet-text:#2d241c;
+      --gourmet-muted:#6f6255;
+      --gourmet-border:#ecd9bf;
+      --gourmet-shadow:0 18px 44px rgba(79,43,8,.10);
+    }
+
+    .store-home-hero{
+      border-radius:28px;
+      padding:2rem 1.5rem;
+      color:#fff;
+      background:
+        radial-gradient(900px 420px at 0% 0%, rgba(245,158,11,.16), transparent 60%),
+        linear-gradient(135deg, #251508 0%, #1f1307 55%, #361a06 100%);
+      box-shadow:0 22px 54px rgba(0,0,0,.16);
+      margin-bottom:1.7rem;
+    }
+
+    .store-home-hero h1{
+      font-size:clamp(2rem,4vw,3rem);
+      line-height:1.05;
+      font-weight:900;
+      margin-bottom:.8rem;
+      letter-spacing:-1px;
+    }
+
+    .store-home-hero p{
+      max-width:760px;
+      color:#f4e4cb;
+      line-height:1.72;
+      margin-bottom:1rem;
+    }
+
+    .store-badge{
+      display:inline-flex;
+      align-items:center;
+      gap:.45rem;
+      padding:.55rem .9rem;
+      border-radius:999px;
+      font-size:.9rem;
+      font-weight:800;
+      background:rgba(255,255,255,.08);
+      border:1px solid rgba(255,255,255,.15);
+      color:#fff;
+      margin-bottom:1rem;
+    }
+
+    .store-grid{
+      display:grid;
+      grid-template-columns:repeat(3,minmax(0,1fr));
+      gap:1rem;
+    }
+
+    .store-card{
+      background:#fff;
+      border:1px solid rgba(94,55,15,.06);
+      border-radius:22px;
+      box-shadow:var(--gourmet-shadow);
+      padding:1.5rem 1.2rem;
+      text-align:center;
+      height:100%;
+    }
+
+    .store-card i{
+      font-size:2rem;
+      color:var(--gourmet-primary-dark);
+      margin-bottom:.8rem;
+    }
+
+    .store-card h3{
+      font-size:1.18rem;
+      font-weight:800;
+      color:var(--gourmet-dark);
+      margin-bottom:.55rem;
+    }
+
+    .store-card p{
+      color:var(--gourmet-muted);
+      line-height:1.68;
+      margin-bottom:1rem;
+    }
+
+    .store-btn{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:.45rem;
+      padding:.85rem 1.15rem;
+      border-radius:999px;
+      font-weight:800;
+      text-decoration:none;
+      background:#fff6e8;
+      color:#8b4f00;
+      border:1px solid #f1d4a3;
+    }
+
+    .store-btn-main{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:.45rem;
+      padding:1rem 1.35rem;
+      border-radius:999px;
+      font-weight:800;
+      text-decoration:none;
+      background:linear-gradient(135deg,var(--gourmet-primary),var(--gourmet-accent));
+      color:#23160a !important;
+      border:none;
+      box-shadow:0 12px 28px rgba(245,158,11,.28);
+    }
+
+    .store-final{
+      margin-top:1.7rem;
+      background:linear-gradient(135deg,#271507 0%, #3a1f08 100%);
+      color:#fff;
+      border-radius:24px;
+      padding:2rem 1.3rem;
+      text-align:center;
+      box-shadow:0 20px 50px rgba(0,0,0,.18);
+    }
+
+    .store-final p{
+      max-width:720px;
+      margin:0 auto 1rem;
+      color:#f3dfbf;
+      line-height:1.75;
+    }
+
+    @media (max-width: 991px){
+      .store-grid{
+        grid-template-columns:1fr;
+      }
+    }
+  </style>
+
+  <section class="store-home-hero">
+    <span class="store-badge">
+      <i class="fa-solid fa-store"></i> Store Team Area · {{ storeRoleLabel }}
+    </span>
+
+    <h1>
+      Welcome{% if user.name is defined and user.name %}, {{ user.name }}{% endif %}.
+    </h1>
+
+    <p>
+      This is your store workspace inside the team area. From here you can move into orders, kitchen flow, or delivery flow without mixing this with the old service orders module.
+    </p>
+
+    {% if currentInstitution %}
+      <p class="mb-0">
+        <strong>Institution:</strong> {{ currentInstitution.company_name }}
+        {% if roleName %} · <strong>Role:</strong> {{ roleName }}{% endif %}
+        {% if hourlyRate and hourlyRate > 0 %} · <strong>Rate:</strong> ${{ hourlyRate|number_format(2) }}/hr{% endif %}
+      </p>
+    {% endif %}
+  </section>
+
+  <section class="store-grid">
+    <div class="store-card">
+      <i class="fa-solid fa-box-open"></i>
+      <h3>Store Orders</h3>
+      <p>
+        Review the new store order workflow from a cleaner operational area for Gourmet.
+      </p>
+      <a href="{{ path('panel/planner-hub/team/store/orders/home') }}" class="store-btn">
+        Open Orders <i class="fa-solid fa-arrow-right"></i>
+      </a>
+    </div>
+
+    <div class="store-card">
+      <i class="fa-solid fa-kitchen-set"></i>
+      <h3>Kitchen Area</h3>
+      <p>
+        Focus on preparation quantities, package assembly, and handoff to delivery.
+      </p>
+      <a href="{{ path('panel/planner-hub/team/store/kitchen/home') }}" class="store-btn">
+        Open Kitchen <i class="fa-solid fa-arrow-right"></i>
+      </a>
+    </div>
+
+    <div class="store-card">
+      <i class="fa-solid fa-truck-fast"></i>
+      <h3>Delivery Area</h3>
+      <p>
+        Review assigned deliveries, update sending status, and confirm completed drop-offs.
+      </p>
+      <a href="{{ path('panel/planner-hub/team/store/delivery/home') }}" class="store-btn">
+        Open Delivery <i class="fa-solid fa-arrow-right"></i>
+      </a>
+    </div>
+  </section>
+
+  <section class="store-final">
+    <h2 class="mb-3">Use the right workflow for the right job</h2>
+    <p>
+      The goal is to separate Gourmet store operations from the old event service order area, so kitchen and delivery can work with a clearer process.
+    </p>
+
+    <a href="{{ path('panel/planner-hub/team/store/orders/home') }}" class="store-btn-main">
+      <i class="fa-solid fa-store"></i> Go to Store Orders
+    </a>
+  </section>
+
+</main>
+{% endblock %}

@@ -1,0 +1,121 @@
+{% extends 'templates/base.admin.twig' %}
+{% import 'templates/macros.twig' as macros %}
+
+{% block body %}
+
+<h2 class="mb-4">📦 Orders Dashboard</h2>
+<a href="{{ path('panel/') }}" class="btn btn-sm btn-light mb-3">← Back to Home </a>
+
+<section class="card">
+    <div class="card-body">
+
+        <div class="table-responsive">
+            <table class="table table-striped table-bordered text-center align-middle" style="min-width: 900px;">
+                <thead class="table-dark">
+                <tr>
+                    <th>ID</th>
+                    <th>Event Date</th>
+                    <th>Start - End</th>
+                    <th>Address</th>
+                    <th>Company</th>
+                    <th>Payment Link</th>
+                    <th>Created</th>
+                    <th>Actions</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for order in orders %}
+                <tr>
+                    <td style="min-width: 120px;"><strong>vnv-341{{ order.id }}</strong></td>
+                    <td style="min-width: 160px;">{{ order.event_date|date("l, M j") }}</td>
+                    <td style="min-width: 160px;">{{ order.start_time|date("g:i A") }} - {{ order.end_time|date("g:i A") }}</td>
+                    <td style="min-width: 240px;"><small>{{ order.address }}</small></td>
+                    <td style="min-width: 160px;">
+                        {% if order.institution %}
+                            <button 
+                                class="btn btn-sm btn-outline-primary show-institution-btn" 
+                                data-institution='{{ order.institution|json_encode|e('html_attr') }}' 
+                                data-owner-id="{{ order.id_owner }}">
+                                {{ order.institution.company_name }}
+                            </button>
+                        {% else %}
+                            <span class="text-muted">N/A</span>
+                        {% endif %}
+                    </td>
+                    <td style="min-width: 200px;"> 
+                        {% set token = order.contract_token ?? '' %}
+                        {% set payment_url = app_url ~ '/order-access?token=' ~ token %}
+                        {% if token %}
+                            <a href="{{ payment_url }}" target="_blank" class="btn btn-outline-primary btn-sm mb-1" title="{{ payment_url }}">📝 Payment Link</a><br>
+                        {% else %}
+                            <span class="text-muted">No link available</span>
+                        {% endif %} 
+                    </td>
+                    <td style="min-width: 160px;">{{ order.created_at|date("Y-m-d H:i") }}</td>
+                    <td style="min-width: 160px;">
+                        <div class="btn-group">
+                            <a href="{{ path('/panel/planner-hub/orders/orders/files') }}?id={{ order.id }}" class="btn btn-sm btn-secondary">📁 Files</a>
+                            <a href="{{ path('/panel/planner-hub/orders/orders/suborders') }}?id={{ order.id }}" class="btn btn-sm btn-info">📋 Suborders</a>
+                            <a href="{{ path('/panel/planner-hub/orders/orders/print') }}?id={{ order.id }}" class="btn btn-sm btn-dark">🖨 Print</a>
+                        </div>
+                    </td>
+                </tr>
+                
+                {% else %}
+                <tr>
+                    <td colspan="8">No orders were found.</td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+</section>
+
+<div class="modal fade" id="institutionModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-scrollable modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">🏢 Institution Info</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="institutionBody">
+                Loading...
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function showInstitutionModal(data, ownerId) {
+        let html = `
+            <strong>Company Name:</strong> ${data.company_name}<br>
+            <strong>Phone:</strong> ${data.phone ?? 'N/A'}<br>
+            <strong>Email:</strong> ${data.email ?? 'N/A'}<br>
+            <strong>Address:</strong> ${data.address_line1 ?? ''}, ${data.city ?? ''}, ${data.state ?? ''}, ${data.zip ?? ''}, ${data.country ?? ''}<br>
+            <strong>Payment Methods:</strong> ${data.payment_method_accepted ?? 'N/A'}<br><br> 
+            <a href="{{ path('panel/chat') }}?to=${ownerId}" class="btn btn-outline-success">💬 Start Chat</a>
+
+        `;
+        document.getElementById("institutionBody").innerHTML = html;
+        let modal = new bootstrap.Modal(document.getElementById('institutionModal'));
+        modal.show();
+    }
+
+    document.querySelectorAll('.show-institution-btn').forEach(btn => {
+        btn.addEventListener('click', function () {
+            const data = JSON.parse(this.dataset.institution);
+            const ownerId = this.dataset.ownerId;
+
+            showInstitutionModal(data, ownerId);
+        });
+    });
+
+</script>
+
+
+{% endblock %}

@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% set cms_title = cms_page.meta_title ?? cms_page.title ?? 'VNV Gourmet' %}
+    {% set cms_description = cms_page.meta_description ?? 'VNV Gourmet, by VNV Events offers chef-prepared meal plans, healthy meal prep, family meals, subscription meals, and corporate food solutions across South Florida, including Broward County, Miami-Dade County, and Palm Beach County.' %}
+    {% set cms_keywords = cms_page.meta_keywords ?? 'VNV Gourmet, VNV Events, South Florida meal prep, chef-prepared meals, healthy meal plans, meal delivery South Florida, Broward meal prep, Miami-Dade meal prep, West Palm Beach meal prep, family meals, kids meals, corporate meal plans, subscription meal plans, healthy prepared meals, local meal service, meal prep Broward, meal prep Miami, meal prep West Palm Beach' %}
+    {% set cms_canonical = cms_page.canonical_url ?? site_url ?? 'https://vnvgourmet.com' %}
+    {% set cms_og_title = cms_page.og_title ?? cms_page.meta_title ?? cms_page.title ?? 'VNV Gourmet | Chef-Prepared Meal Plans in South Florida' %}
+    {% set cms_og_description = cms_page.og_description ?? cms_page.meta_description ?? cms_description %}
+    {% set cms_og_image = cms_page.og_image ?? cms_page.meta_thumbnail ?? asset_for('assets/images/planner-hub-logo-negative.png') %}
+    {% set cms_robots_index = cms_page.robots_index is defined ? cms_page.robots_index : 1 %}
+    {% set cms_robots_follow = cms_page.robots_follow is defined ? cms_page.robots_follow : 1 %}
+    {% set cms_robots_content = (cms_robots_index ? 'index' : 'noindex') ~ ', ' ~ (cms_robots_follow ? 'follow' : 'nofollow') ~ ', max-image-preview:large, max-snippet:-1, max-video-preview:-1' %}
+
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+
+    <title>{% block title %}{{ cms_title }}{% endblock %}</title>
+
+    <!-- Google Tag Manager -->
+    <script>
+      (function(w,d,s,l,i){
+        w[l]=w[l]||[];
+        w[l].push({'gtm.start': new Date().getTime(),event:'gtm.js'});
+        var f=d.getElementsByTagName(s)[0],
+            j=d.createElement(s),
+            dl=l!='dataLayer'?'&l='+l:'';
+        j.async=true;
+        j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;
+        f.parentNode.insertBefore(j,f);
+      })(window,document,'script','dataLayer','GTM-NCK9W86W');
+    </script>
+    <!-- End Google Tag Manager -->
+
+    {# -------------------------------------------------------
+       CORE BRAND / SEO DEFAULTS
+       ------------------------------------------------------- #}
+    {% set site_name = 'VNV Gourmet' %}
+    {% set site_url = 'https://vnvgourmet.com' %}
+    {% set site_phone_display = '+1 (305) 204-5427' %}
+    {% set site_phone_raw = '+13052045427' %}
+    {% set site_email = 'info@vnvevents.com' %}
+    {% set site_logo = asset_for('assets/images/planner-hub-logo-negative.png') %}
+    {% set site_favicon = asset_for('assets/images/planner-hub-logo-negative.png') %}
+
+    <meta name="robots" content="{{ cms_robots_content }}">
+    <meta name="googlebot" content="{{ cms_robots_content }}">
+    <meta name="bingbot" content="{{ cms_robots_content }}">
+
+    <meta name="description" content="{% block meta_description %}{{ cms_description }}{% endblock %}">
+    <meta name="keywords" content="{% block meta_keywords %}{{ cms_keywords }}{% endblock %}">
+    <meta name="author" content="VNV Gourmet">
+    <meta name="publisher" content="VNV Gourmet">
+    <meta name="application-name" content="VNV Gourmet">
+    <meta name="apple-mobile-web-app-title" content="VNV Gourmet">
+    <meta name="format-detection" content="telephone=no">
+    <meta name="theme-color" content="#1f1307">
+    <meta name="color-scheme" content="light only">
+    <meta name="referrer" content="strict-origin-when-cross-origin">
+    <meta name="language" content="English">
+    <meta http-equiv="content-language" content="en-US">
+
+    {# -------------------------------------------------------
+       CANONICAL / FAVICON / APP ICONS
+       ------------------------------------------------------- #}
+    <link rel="canonical" href="{% block canonical %}{{ cms_canonical }}{% endblock %}">
+    <link rel="icon" type="image/png" href="{{ site_favicon }}">
+    <link rel="shortcut icon" href="{{ site_favicon }}">
+    <link rel="apple-touch-icon" href="{{ site_favicon }}">
+    <link rel="mask-icon" href="{{ site_favicon }}" color="#1f1307">
+
+    {# -------------------------------------------------------
+       PRECONNECT / STYLES
+       ------------------------------------------------------- #}
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet" />
+
+    <link rel="stylesheet" href="{{ asset_for('template/css/app.css') }}" />
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+    {# -------------------------------------------------------
+       OPEN GRAPH / SOCIAL
+       ------------------------------------------------------- #}
+    <meta property="og:site_name" content="VNV Gourmet">
+    <meta property="og:type" content="{% block og_type %}website{% endblock %}">
+    <meta property="og:title" content="{% block og_title %}{{ cms_og_title }}{% endblock %}">
+    <meta property="og:description" content="{% block og_description %}{{ cms_og_description }}{% endblock %}">
+    <meta property="og:url" content="{% block og_url %}{{ cms_canonical }}{% endblock %}">
+    <meta property="og:image" content="{% block og_image %}{{ cms_og_image }}{% endblock %}">
+    <meta property="og:image:alt" content="{% block og_image_alt %}{{ cms_page.title ?? 'VNV Gourmet page image' }}{% endblock %}">
+    <meta property="og:locale" content="en_US">
+
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="{% block twitter_title %}{{ cms_og_title }}{% endblock %}">
+    <meta name="twitter:description" content="{% block twitter_description %}{{ cms_og_description }}{% endblock %}">
+    <meta name="twitter:image" content="{% block twitter_image %}{{ cms_og_image }}{% endblock %}">
+
+    {# -------------------------------------------------------
+       LOCAL / GEO SIGNALS
+       ------------------------------------------------------- #}
+    <meta name="geo.region" content="US-FL">
+    <meta name="geo.placename" content="South Florida">
+    <meta name="ICBM" content="26.1224, -80.1373">
+
+    {# -------------------------------------------------------
+       DISCOVERY / AI / INDEXING FRIENDLY HINTS
+       ------------------------------------------------------- #}
+    <meta name="subject" content="Chef-prepared meal plans, healthy meal prep, family meals, kids meals, corporate food solutions, and subscription meals in South Florida">
+    <meta name="category" content="Food, Meal Prep, Healthy Meals, Catering, Corporate Meals">
+    <meta name="coverage" content="Broward County, Miami-Dade County, Palm Beach County">
+    <meta name="distribution" content="global">
+    <meta name="rating" content="general">
+
+    <style>
+      .floating-whatsapp{
+          position:fixed;
+          right:20px;
+          bottom:20px;
+          z-index:10;
+          display:inline-flex;
+          align-items:center;
+          gap:.65rem;
+          padding:.9rem 1.1rem;
+          border-radius:999px;
+          background:#25D366;
+          color:#fff !important;
+          text-decoration:none;
+          font-weight:800;
+          box-shadow:0 14px 30px rgba(0,0,0,.18);
+          transition:transform .2s ease, box-shadow .2s ease;
+      }
+
+      .floating-whatsapp i{
+          font-size:1.3rem;
+      }
+
+      .floating-whatsapp:hover{
+          transform:translateY(-2px);
+          box-shadow:0 18px 36px rgba(0,0,0,.22);
+      }
+
+      @media (max-width: 768px){
+          .floating-whatsapp{
+              right:14px;
+              bottom:14px;
+              width:66px;
+              height:66px;
+              justify-content:center;
+              border-radius:50%;
+              padding:0;
+          }
+
+          .floating-whatsapp span{
+              display:none;
+          }
+
+          .floating-whatsapp i{
+              font-size:2rem;
+          }
+      }
+    </style>
+
+    {# Custom head from CMS first #}
+    {% if cms_page.custom_head is defined and cms_page.custom_head %}
+        {{ cms_page.custom_head|raw }}
+    {% endif %}
+
+    {# Custom schema from CMS #}
+    {% if cms_page.schema_markup is defined and cms_page.schema_markup %}
+        <script type="application/ld+json">
+{{ cms_page.schema_markup|raw }}
+        </script>
+    {% endif %}
+
+    {% block head %}
+    {% endblock %}
+
+    {% block meta %}
+        <meta name="priority" content="0.9">
+    {% endblock %}
+
+    {# -------------------------------------------------------
+       IMPORTANT:
+       Base/global styles load first.
+       CMS custom styles come AFTER, so they can override base styles.
+       ------------------------------------------------------- #}
+    {% block styles %}
+    {% endblock %}
+
+    {% if cms_page.custom_css is defined and cms_page.custom_css %}
+        <style id="cms-custom-styles">
+{{ cms_page.custom_css|raw }}
+        </style>
+    {% endif %}
+
+    {# -------------------------------------------------------
+       DEFAULT STRUCTURED DATA
+       Keep the brand schema unless a page adds its own extra schema.
+       ------------------------------------------------------- #}
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "Organization",
+          "@id": "{{ site_url }}#organization",
+          "name": "VNV Gourmet",
+          "alternateName": [
+            "VNV Gourmet South Florida",
+            "VNV Gourmet Meal Plans"
+          ],
+          "url": "{{ site_url }}",
+          "logo": {
+            "@type": "ImageObject",
+            "url": "{{ site_logo }}"
+          },
+          "image": "{{ site_logo }}",
+          "description": "VNV Gourmet is a South Florida food brand offering chef-prepared meal plans, healthy prepared meals, family meal solutions, kids meal options, subscription meal plans, and corporate food services.",
+          "telephone": "{{ site_phone_raw }}",
+          "email": "{{ site_email }}",
+          "areaServed": [
+            {"@type":"AdministrativeArea","name":"Broward County"},
+            {"@type":"AdministrativeArea","name":"Miami-Dade County"},
+            {"@type":"AdministrativeArea","name":"Palm Beach County"},
+            {"@type":"City","name":"Fort Lauderdale"},
+            {"@type":"City","name":"Hollywood"},
+            {"@type":"City","name":"Pembroke Pines"},
+            {"@type":"City","name":"Miramar"},
+            {"@type":"City","name":"Sunrise"},
+            {"@type":"City","name":"Plantation"},
+            {"@type":"City","name":"Davie"},
+            {"@type":"City","name":"Coral Springs"},
+            {"@type":"City","name":"Weston"},
+            {"@type":"City","name":"Boca Raton"},
+            {"@type":"City","name":"Delray Beach"},
+            {"@type":"City","name":"West Palm Beach"},
+            {"@type":"City","name":"Miami"},
+            {"@type":"City","name":"Miami Beach"},
+            {"@type":"City","name":"Aventura"},
+            {"@type":"City","name":"Doral"},
+            {"@type":"City","name":"Hialeah"},
+            {"@type":"City","name":"Coral Gables"}
+          ],
+          "contactPoint": [
+            {
+              "@type": "ContactPoint",
+              "telephone": "{{ site_phone_raw }}",
+              "contactType": "customer service",
+              "areaServed": "US-FL",
+              "availableLanguage": ["English", "Spanish"]
+            },
+            {
+              "@type": "ContactPoint",
+              "telephone": "{{ site_phone_raw }}",
+              "contactType": "sales",
+              "areaServed": "US-FL",
+              "availableLanguage": ["English", "Spanish"]
+            }
+          ]
+        },
+        {
+          "@type": "WebSite",
+          "@id": "{{ site_url }}#website",
+          "url": "{{ site_url }}",
+          "name": "VNV Gourmet",
+          "publisher": {
+            "@id": "{{ site_url }}#organization"
+          },
+          "inLanguage": "en-US"
+        }
+      ]
+    }
+    </script>
+</head>
+<body>
+
+    <!-- Google Tag Manager (noscript) -->
+    <noscript>
+        <iframe src="https://www.googletagmanager.com/ns.html?id=GTM-NCK9W86W"
+        height="0" width="0" style="display:none;visibility:hidden"></iframe>
+    </noscript>
+    <!-- End Google Tag Manager (noscript) -->
+
+    {% block body %}
+    {% endblock %}
+
+    {% if show_whatsapp is defined and show_whatsapp %}
+        <a href="https://wa.me/13053761210"
+           class="floating-whatsapp"
+           target="_blank"
+           rel="noopener noreferrer">
+            <i class="fa-brands fa-whatsapp"></i>
+            <span>Chat with us</span>
+        </a>
+    {% endif %}
+
+    <script src="{{ asset_for('template/js/app.js') }}"></script>
+    <script src="https://maps.googleapis.com/maps/api/js?key={{ env.GOOGLE_KEY }}&libraries=places&callback=initMap" async defer></script>
+    <script src="{{ asset_for('assets/js/googleMaps.js') }}"></script>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Stripe JS -->
+    <script src="https://js.stripe.com/v3/"></script>
+
+    <script>
+        function formatNumber(elm) {
+            let value = elm.value.replace(/\D/g, "");
+
+            if (value.startsWith("1")) {
+                value = "+" + value;
+            } else if (value.length > 0) {
+                value = "+1" + value;
+            }
+
+            if (value.length > 2 && value.length <= 5) {
+                value = `${value.slice(0, 2)} (${value.slice(2)}`;
+            } else if (value.length > 5 && value.length <= 8) {
+                value = `${value.slice(0, 2)} (${value.slice(2, 5)}) ${value.slice(5)}`;
+            } else if (value.length > 8) {
+                value = `${value.slice(0, 2)} (${value.slice(2, 5)}) ${value.slice(5, 8)}-${value.slice(8, 12)}`;
+            }
+
+            elm.value = value;
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            {% if alertMessage is defined and alertMessage is not null %}
+            setTimeout(() => {
+                alert('{{ alertMessage.message }}')
+            }, 1)
+            {% endif %}
+
+            document.querySelectorAll("[data-phone]").forEach(elm => {
+                formatNumber(elm)
+                elm.addEventListener("input", () => formatNumber(elm))
+            })
+        })
+    </script>
+
+    {% block scripts %}{% endblock %}
+</body>
+</html>

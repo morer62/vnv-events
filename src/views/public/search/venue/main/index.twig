@@ -1,0 +1,500 @@
+{% extends 'templates/base.twig' %}
+{% import 'templates/macros.twig' as macros %}
+
+
+{% block head %}
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&display=swap" rel="stylesheet">
+{% endblock %}
+
+{% block body %}
+<style>
+.venue-title {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 200;
+    font-size: 2.2rem;
+}
+.venue-title .highlight {
+    color: #26a69a;
+    font-weight: 700;
+}
+/* Layout original */
+.cat-toolbar { display: flex; justify-content: space-between; align-items: center; }
+.cat-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: .5rem .75rem; }
+.cat-grid .btn { width: 100%; text-align: left; }
+.btn-check:checked + .btn { background-color: #212529; color: #fff; border-color: #212529; }
+
+/* -------- Acordeón para categorías -------- */
+.cat-acc { border: 1px solid #e5e7eb; border-radius: 12px; background:#fff; }
+.cat-acc-head{
+  display:flex; align-items:center; gap:12px; width:100%;
+  padding:12px 14px; cursor:pointer; user-select:none;
+  background:#f8fafc; border-radius:12px;
+  transition: background .15s ease, box-shadow .15s ease;
+}
+.cat-acc-head:hover{ background:#eef2f7; box-shadow: 0 1px 6px rgba(0,0,0,.05); }
+.cat-acc.open .cat-acc-head{ border-bottom-left-radius:0; border-bottom-right-radius:0; }
+
+.cat-acc-badge{
+  display:inline-flex; align-items:center; gap:6px;
+  font-size:.8rem; padding:4px 8px; border-radius:999px;
+  background:#e8f7f4; color:#0f766e; border:1px solid #bfe6df; font-weight:700;
+}
+
+.cat-acc-title{ display:flex; align-items:baseline; gap:8px; }
+.cat-acc-count{ color:#6b7280; font-size:.9rem; }
+
+.cat-acc-summary{ margin-left:auto; color:#374151; font-size:.9rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:50%; }
+.cat-acc-hint{ color:#6b7280; font-style:normal; }
+
+.cat-acc-opencta{
+  display:inline-flex; align-items:center; gap:8px; margin-left:12px;
+  background:#111827; color:#fff; padding:6px 10px; border-radius:8px;
+  font-size:.85rem; font-weight:700;
+  box-shadow: 0 1px 4px rgba(0,0,0,.08);
+}
+.cat-acc-chevron{ transition: transform .2s ease; }
+.cat-acc.open .cat-acc-chevron{ transform: rotate(180deg); }
+
+/* ping amable que invita a abrir (se oculta al abrir) */
+.cat-acc-ping{
+  position:relative; width:8px; height:8px; border-radius:999px; background:#22c55e; display:inline-block;
+}
+.cat-acc-ping::after{
+  content:""; position:absolute; inset:-6px; border:2px solid #22c55e; border-radius:999px; opacity:.6;
+  animation: catPing 1.4s infinite;
+}
+@keyframes catPing{
+  0%{ transform: scale(.6); opacity:.8; }
+  80%{ transform: scale(1.6); opacity:0; }
+  100%{ opacity:0; }
+}
+
+/* cuerpo del acordeón */
+.cat-acc-body{ display:none; border-top:1px solid #e5e7eb; padding:12px 14px 16px; }
+.cat-acc.open .cat-acc-body{ display:block; }
+
+/* ====== Chips suaves para categorías ====== */
+
+/* Grid un poquito más aireado */
+.cat-grid {
+  gap: .75rem 1rem;
+}
+
+/* Estado base del chip */
+.cat-grid .btn {
+  /* reset del outline-dark */
+  border-color: #e5e7eb !important;
+  color: #111827 !important;
+  background: #fff !important;
+
+  /* look & feel */
+  border-radius: 14px;
+  padding: 14px 16px;
+  font-weight: 600;
+  line-height: 1.25;
+  letter-spacing: .1px;
+
+  /* microelevación */
+  box-shadow: 0 1px 2px rgba(16, 24, 40, .04);
+  transition: border-color .15s ease, box-shadow .15s ease, transform .04s ease;
+}
+
+/* Hover: un pelín de realce */
+.cat-grid .btn:hover {
+  border-color: #cfd6df !important;
+  box-shadow: 0 2px 6px rgba(16, 24, 40, .06);
+}
+
+/* Focus accesible (teclado) */
+.cat-grid .btn:focus-visible {
+  outline: 3px solid #bfe6df;
+  outline-offset: 2px;
+}
+
+/* Estado seleccionado: pastel + tipografía más oscura verdosa */
+.btn-check:checked + .btn {
+  background: #e8f7f4 !important;
+  border-color: #94d5cb !important;
+  color: #0f766e !important;
+  box-shadow: 0 2px 8px rgba(16, 24, 40, .08);
+}
+
+/* Pequeño “tap” feedback en dispositivos apuntadores */
+@media (hover:hover) {
+  .cat-grid .btn:hover { transform: translateY(-1px); }
+}
+
+/* Check discreto arriba a la derecha cuando está seleccionado */
+.btn-check + .btn {
+  position: relative;
+  padding-right: 42px; /* espacio para el check */
+}
+.btn-check:checked + .btn::after {
+  content: "";
+  position: absolute;
+  top: 10px; right: 12px;
+  width: 18px; height: 18px;
+  border-radius: 999px;
+  background: #10b981; /* verde */
+  box-shadow: 0 0 0 2px #fff inset, 0 1px 3px rgba(16, 24, 40, .12);
+  -webkit-mask: 
+    radial-gradient(transparent 7px, #000 7px) center/18px 18px no-repeat;
+}
+/* dibujamos el “tick” sobre el circulito con un SVG inline via background-image */
+.btn-check:checked + .btn::before {
+  content: "";
+  position: absolute;
+  top: 13px; right: 16px;
+  width: 10px; height: 10px;
+  mask: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 12"><path fill="%23fff" d="M4.7 9.3 1.9 6.5l1-1 1.8 1.8L9.1 2.9l1 1z"/></svg>') center / contain no-repeat;
+  -webkit-mask: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 12"><path fill="%23fff" d="M4.7 9.3 1.9 6.5l1-1 1.8 1.8L9.1 2.9l1 1z"/></svg>') center / contain no-repeat;
+  background: #fff;
+}
+
+/* Texto de varias líneas más bonito (chips altos) */
+.cat-grid .btn {
+  min-height: 56px;                 /* touch friendly */
+  display: flex; align-items: center;
+  justify-content: flex-start;
+  text-align: left;
+  white-space: normal;
+}
+
+/* Clamp suave para textos larguitos (dos líneas máx) */
+.cat-grid .btn {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Modo oscuro opcional (si tu app lo usa) */
+@media (prefers-color-scheme: dark) {
+  .cat-grid .btn {
+    background: #0f1216 !important;
+    border-color: #2a2f36 !important;
+    color: #e5e7eb !important;
+    box-shadow: none;
+  }
+  .cat-grid .btn:hover { border-color: #38404a !important; }
+  .btn-check:checked + .btn {
+    background: rgba(34, 197, 94, .12) !important;
+    border-color: #289e8f !important;
+    color: #93e6d3 !important;
+  }
+  .btn-check:checked + .btn::after { box-shadow: 0 0 0 2px #0f1216 inset; }
+}
+
+</style>
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&display=swap" rel="stylesheet">
+
+<main class="container py-5">
+
+<h1 class="venue-title text-center">Find a <span class="highlight">Venue</span> Near You</h1>
+<div class="text-center mb-4" style="width: 80px; height: 3px; background-color: #000; margin: 0 auto 1rem auto; border-radius: 5px;"></div>
+
+<div class="alert alert-light border text-center mb-4">
+  Want to see your profile listed here? 
+  <a  href="{{ base_url }}/signup" href="/signup" class="text-primary fw-bold">Create a free account now</a>
+</div>
+
+<nav aria-label="breadcrumb" class="mb-4">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{{ path('/') }}">🏠 Home</a></li>
+    <li class="breadcrumb-item active" aria-current="page">Event Experts Search</li>
+  </ol>
+</nav>
+ 
+<form method="get" class="card p-4 shadow-sm mb-5">
+  <div class="row g-3">
+
+    {# ==================== CATEGORÍAS (ACORDEÓN + MULTISELECT) ==================== #}
+    <div class="col-12">
+      <div id="catAcc" class="cat-acc" data-key="vnv_cat_acc_open">
+        <div class="cat-acc-head" role="button" tabindex="0" aria-controls="catAccBody" aria-expanded="false">
+          <span class="cat-acc-badge"><i class="fa-solid fa-sliders"></i> Filters</span>
+
+          <div class="cat-acc-title">
+            <strong>Categories</strong>
+            <span id="catCount" class="cat-acc-count">0 selected</span>
+          </div>
+
+          <div id="catSummary" class="cat-acc-summary">
+            <span class="cat-acc-hint"><i class="fa-regular fa-hand-pointer me-1"></i>Tap to choose categories</span>
+          </div>
+
+          <span class="cat-acc-opencta">
+            Edit
+            <span class="cat-acc-ping"></span>
+            <i class="fa-solid fa-chevron-down cat-acc-chevron"></i>
+          </span>
+        </div>
+
+        <div id="catAccBody" class="cat-acc-body">
+          <div class="cat-toolbar mb-2">
+            <input type="text" class="form-control form-control-sm" id="cat-filter" placeholder="Filter categories..." style="max-width:560px;">
+            <div class="small">
+              <a href="#" id="cat-select-all" class="me-2">Select all</a>
+              <a href="#" id="cat-clear">Clear</a>
+            </div>
+          </div>
+
+          <div id="cat-list" class="cat-grid">
+            {% for c in categories %}
+              {% set isSelected = selected_category is defined and c.id in selected_category %}
+              <input type="checkbox"
+                     class="btn-check category-item"
+                     id="cat-{{ c.id }}"
+                     autocomplete="off"
+                     name="category[]"
+                     value="{{ c.id }}"
+                     {{ isSelected ? 'checked' : '' }}
+                     data-label="{{ c.name|lower }}">
+              <label class="btn btn-outline-dark" for="cat-{{ c.id }}">{{ c.name }}</label>
+            {% endfor %}
+          </div>
+          <small class="text-muted">You can select multiple categories.</small>
+        </div>
+      </div>
+    </div>
+    {# ==================== FIN CATEGORÍAS ==================== #}
+
+    <div class="col-md-8">
+      <label class="form-label">Your Location</label>
+      <input id="autocomplete-address" placeholder="Enter your address" class="form-control" name="address" required data-places/>
+      <input type="hidden" name="lat" id="lat" value="{{ lat }}">
+      <input type="hidden" name="lng" id="lng" value="{{ lng }}">
+    </div>
+
+    <div class="col-md-4">
+      <label class="form-label">Range</label>
+      <select class="form-select" name="range">
+        {% for miles in [5, 10, 25, 50] %}
+          <option value="{{ miles }}" {% if selected_range == miles %} selected {% endif %}>{{ miles }} mi</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div class="col-12 d-grid mt-2">
+      <button type="submit" class="btn btn-dark">Search</button>
+    </div>
+  </div>
+</form>
+
+{% if no_results and lat and lng %}
+  <div class="alert alert-warning text-center" role="alert">
+    No results were found for your search.No results were found for your search.
+  </div>
+{% endif %}
+
+{% if venues %}
+  <h2 class="h3 mb-3">Venues matching your search</h2>
+  <div class="list-group shadow-sm">
+    {% for venue in venues %}
+      <div class="list-group-item list-group-item-action d-flex gap-4 py-4 align-items-start">
+        <img src="{{ venue.main_image ?: '/assets/images/no-image.png' }}" class="rounded shadow-sm" style="width: 150px; height: 100px; object-fit: cover;" alt="{{ venue.name }}">
+        <div class="flex-fill">
+          <h5 class="mb-1">{{ venue.name }}</h5>
+          <p class="mb-1 text-muted">{{ venue.address }}, {{ venue.state }}</p>
+          <small class="d-block mb-2">
+            📂 {{ venue.category_name }}  
+            {% if venue.distance is defined %}
+              • 🚗 {{ venue.distance|round(1) }} mi away
+            {% endif %}
+          </small>
+          <a href="{{ path('search/venue/details?id=' ~ venue.id) }}" class="btn btn-sm btn-outline-dark">View Profile</a>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+{% endif %}
+
+{% if farVenues %}
+  <h3 class="h6 mt-5 mb-3 text-warning">Other venues farther from you</h3>
+  <div class="list-group shadow-sm">
+    {% for service in services %}
+      <div class="list-group-item list-group-item-action d-flex gap-4 py-4 align-items-start">
+        <img src="{{ service.main_image ?: (base_url ~ '/assets/images/no-image.png') }}"
+             class="rounded shadow-sm"
+             style="width: 150px; height: 100px; object-fit: cover;"
+             alt="{{ service.name }}">
+        <div class="flex-fill">
+          <h5 class="mb-1">{{ service.name }}</h5>
+          <p class="mb-1 text-muted">{{ service.address }}, {{ service.state }}</p>
+          <small class="d-block mb-2">
+            📂 {{ service.category_name }}
+            {% if service.distance is defined %}
+              • 🚗 {{ (service.distance * 0.621371)|round(1) }} mi away
+            {% endif %}
+          </small>
+          <a href="{{ base_url }}/search/vendors/details?id={{ service.id }}"
+             class="btn btn-sm btn-outline-dark">View Profile</a>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+{% endif %}
+
+{% if related %}
+  <h3 class="h6 mt-5 mb-3 text-muted">Other venues nearby (different categories)</h3>
+  <div class="row g-4">
+    {% for venue in related %}
+      <div class="col-md-6 col-lg-4">
+        <div class="card mb-3 border-light" style="max-width: 540px;">
+          <div class="row g-0">
+            <div class="col-md-4">
+              <img src="{{ venue.main_image ?: '/assets/images/no-image.png' }}" class="img-fluid rounded-start" alt="{{ venue.name }}" style="height: 100%; object-fit: cover;">
+            </div>
+            <div class="col-md-8">
+              <div class="card-body">
+                <h5 class="card-title">{{ venue.name }}</h5>
+                <p class="card-text text-muted">{{ venue.address }}, {{ venue.state }}</p>
+                <p class="card-text">
+                  📂 {{ venue.category_name }}<br>
+                  🚗 {{ venue.distance|round(1) }} miles away
+                </p>
+                <a href="{{ base_url }}/search/venue/details?id={{ venue.id }}" class="btn btn-outline-dark btn-sm">View Profile</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+{% endif %}
+</main>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  function initAutocomplete() {
+    const input = document.getElementById("autocomplete-address");
+    const autocomplete = new google.maps.places.Autocomplete(input);
+    autocomplete.addListener("place_changed", function () {
+      const place = autocomplete.getPlace();
+      if (place.geometry) {
+        document.getElementById("lat").value = place.geometry.location.lat();
+        document.getElementById("lng").value = place.geometry.location.lng();
+      }
+    });
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    /* ---------- Lógica original de filtro/selección ---------- */
+    const filterInput = document.getElementById('cat-filter');
+    const checkboxes = Array.from(document.querySelectorAll('#cat-list .category-item'));
+    const selectAllBtn = document.getElementById('cat-select-all');
+    const clearBtn = document.getElementById('cat-clear');
+
+    // Si la URL no trae categorías seleccionadas, forzamos todo desmarcado
+    const params = new URLSearchParams(window.location.search);
+    const catSingle = params.getAll('category').filter(v => v !== '');
+    const catArray = params.getAll('category[]').filter(v => v !== '');
+    const hasSelected = (catSingle.length + catArray.length) > 0;
+    if (!hasSelected) { checkboxes.forEach(cb => cb.checked = false); }
+
+    function visible(el) { return el && el.offsetParent !== null; }
+
+    if (filterInput) {
+      filterInput.addEventListener('input', () => {
+        const q = filterInput.value.trim().toLowerCase();
+        checkboxes.forEach(cb => {
+          const label = cb.getAttribute('data-label') || '';
+          const btnLabel = document.querySelector(`label[for="${cb.id}"]`);
+          const match = label.includes(q);
+          cb.style.display = match ? '' : 'none';
+          if (btnLabel) btnLabel.style.display = match ? '' : 'none';
+        });
+        updateCountAndSummary();
+      });
+    }
+
+    if (selectAllBtn) {
+      selectAllBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        checkboxes.forEach(cb => { if (visible(cb)) cb.checked = true; });
+        updateCountAndSummary();
+      });
+    }
+
+    if (clearBtn) {
+      clearBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        checkboxes.forEach(cb => { if (visible(cb)) cb.checked = false; });
+        updateCountAndSummary();
+      });
+    }
+
+    // Al click en cualquier label también actualizamos contador/resumen
+    document.getElementById('cat-list').addEventListener('click', (e) => {
+      if (e.target.tagName === 'LABEL') {
+        requestAnimationFrame(updateCountAndSummary);
+      }
+    });
+
+    /* ---------- Acordeón + contador/resumen ---------- */
+    const acc = document.getElementById('catAcc');
+    const accHead = acc.querySelector('.cat-acc-head');
+    const catCount = document.getElementById('catCount');
+    const catSummary = document.getElementById('catSummary');
+    const storageKey = acc.dataset.key || 'vnv_cat_acc_open';
+
+    function selectedBoxes() { return checkboxes.filter(cb => cb.checked); }
+
+    function updateCountAndSummary() {
+      const sel = selectedBoxes();
+      const n = sel.length;
+      catCount.textContent = n === 0 ? '0 selected' : (n === 1 ? '1 selected' : `${n} selected`);
+
+      const isOpen = acc.classList.contains('open');
+      if (isOpen) { catSummary.textContent = ''; return; }
+
+      if (n === 0) { catSummary.textContent = 'No filters applied'; return; }
+
+      const names = sel.map(cb => {
+        const lab = document.querySelector(`label[for="${cb.id}"]`);
+        return lab ? lab.textContent.trim() : '';
+      }).filter(Boolean);
+
+      const first = names.slice(0,3).join(', ');
+      const rest  = names.length > 3 ? ` +${names.length - 3}` : '';
+      catSummary.textContent = first + rest;
+    }
+
+    function setOpen(isOpen) {
+      acc.classList.toggle('open', isOpen);
+      accHead.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+      try { localStorage.setItem(storageKey, isOpen ? '1' : '0'); } catch(e) {}
+      if (isOpen) {
+        const ping = accHead.querySelector('.cat-acc-ping');
+        if (ping) ping.style.display = 'none';
+      }
+      updateCountAndSummary();
+    }
+
+    function restoreOpen() {
+      let v = '0';
+      try { v = localStorage.getItem(storageKey) || '0'; } catch(e) {}
+      // Cerrado por defecto; si el user lo dejó abierto antes, se respeta
+      setOpen(v === '1');
+    }
+
+    // **ÚNICO** listener de click (arregla el bug de doble toggle)
+    accHead.addEventListener('click', () => {
+      const willOpen = !acc.classList.contains('open');
+      setOpen(willOpen);
+    });
+
+    accHead.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); accHead.click(); }
+    });
+
+    // Init
+    restoreOpen();
+    updateCountAndSummary();
+  });
+</script>
+{% endblock %}

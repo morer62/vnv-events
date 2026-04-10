@@ -1,0 +1,121 @@
+{% extends 'templates/base.admin.twig' %}
+{% import 'templates/macros.twig' as macros %}
+
+{% block body %}
+<h2 class="mb-4">🏦 Banking</h2>
+{{ macros.breadcrumb2() }}
+
+<div class="row">
+    <div class="col-md-6 mx-auto">
+
+        <div class="card text-center p-4 mb-4 shadow-sm"> 
+            <strong class="mb-2">Payout Schedule:</strong> <em>Automatic – Processed on a rolling basis every two business days.</em>
+
+
+            <h2 class="text-success fw-bold mb-1">
+                💰 In Transit: {{ currency }} {{ pending | number_format(2) }}
+            </h2>
+
+            <hr>
+
+           <!-- <form method="post" id="withdrawForm">
+                <input type="hidden" name="action" value="withdraw">
+                <input type="hidden" name="payout_type" id="payoutTypeInput" value="">
+
+                {% if instant_enabled %}
+                    <button type="button" onclick="showExpressModal({{ available | number_format(2, '.', '') }})" class="btn btn-outline-danger">
+                        Withdraw Express
+                    </button>
+                {% else %}
+                    <p class="text-muted">⚠️ Instant payouts are currently unavailable for your account.</p>
+                {% endif %}
+            </form> -->
+        </div>
+
+        <div class="card p-4 shadow-sm">
+            <h6 class="mb-3">🔌 Stripe Account Details</h6>
+
+            {% if account %}
+                <p class="mb-1"><strong>Account ID:</strong> <code>{{ account.stripe_account_id }}</code></p>
+                <p class="mb-1"><strong>Charges Enabled:</strong> {{ charges_enabled ? '✅ Yes' : '❌ No' }}</p>
+                <p class="mb-1"><strong>Payouts Enabled:</strong> {{ payouts_enabled ? '✅ Yes' : '❌ No' }}</p>
+                <p class="mb-1"><strong>Details Submitted:</strong> {{ details_submitted ? '✅ Yes' : '❌ No' }}</p>
+
+                {% if account.is_verified %}
+                    <div class="alert alert-success mt-3 text-center">
+                        ✅ Your account is fully verified and ready to receive payouts.
+                    </div>
+                {% else %}
+                    <div class="alert alert-warning text-center mt-2">
+                        ⚠️ Your Stripe account is not verified in the system. Please complete your onboarding to avoid payout issues.
+                        <a href="{{ login_link }}" class="btn btn-dark">🔐 Open Stripe Dashboard</a>
+                    </div>
+                {% endif %}
+
+                <div class="d-grid gap-2 mt-3">
+                    {% if onboarding_link %}
+                        <a href="{{ onboarding_link }}" class="btn btn-warning">
+                            {{ (charges_enabled and payouts_enabled and details_submitted) ? '✅ Account Verified' : '⚠️ Fix or Complete Account Info' }}
+                        </a>
+                    {% endif %}
+                    {% if login_link %}
+                        <a href="{{ login_link }}" class="btn btn-dark">🔐 Open Stripe Dashboard</a>
+                    {% endif %}
+                </div>
+            {% else %}
+                <div class="alert alert-warning">No Stripe account connected yet.</div>
+                <a href="{{ path('panel/planner-hub/team/payments/create-account-link') }}"
+                   class="btn btn-outline-primary mt-3">
+                   Connect Stripe
+                </a>
+            {% endif %}
+        </div>
+
+    </div>
+</div>
+
+<!-- Modal Express -->
+<div class="modal fade" id="expressModal" tabindex="-1" aria-labelledby="expressModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 shadow">
+      <div class="modal-header bg-light">
+        <h5 class="modal-title" id="expressModalLabel">💸 Express Withdrawal Confirmation</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body text-start">
+        <p>
+          Express withdrawals include a <strong>1% + $0.50 processing fee</strong>.<br>
+          From your balance of <strong>USD <span id="express-amount"></span></strong>,
+          a fee of <strong>USD <span id="express-fee"></span></strong> will be applied.
+        </p>
+        <p>
+          You will receive: <strong>USD <span id="express-net"></span></strong> to your bank account.
+        </p>
+        <p class="mb-0">Do you want to continue with the express withdrawal?</p>
+      </div>
+      <div class="modal-footer bg-light">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-primary" onclick="submitPayout('instant')">Confirm Express Withdrawal</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function showExpressModal(amount) {
+    const fee = (amount * 0.01 + 0.50).toFixed(2);
+    const net = (amount - fee).toFixed(2);
+    document.getElementById('express-amount').textContent = amount.toFixed(2);
+    document.getElementById('express-fee').textContent = fee;
+    document.getElementById('express-net').textContent = net;
+
+    const modal = new bootstrap.Modal(document.getElementById('expressModal'));
+    modal.show();
+}
+
+function submitPayout(type) {
+    document.getElementById('payoutTypeInput').value = type;
+    document.getElementById('withdrawForm').submit();
+}
+</script>
+{% endblock %}

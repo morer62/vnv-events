@@ -1,0 +1,51 @@
+{% extends 'templates/base.admin.twig' %}
+{% block body %}
+
+<main class="container-fluid">
+    <h1 class="h3 mb-3">
+        Payment Details
+    </h1>
+
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ path('panel/payments') }}">Payments</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Details</li>
+        </ol>
+    </nav>
+
+    <div class="card mb-4">
+        <div class="card-header">
+            💳 Payment #{{ payment.id }}
+        </div>
+        <div class="card-body">
+            <p><strong>Concept:</strong> {{ payment.concept }}</p>
+            <p><strong>Item:</strong> {{ item }}</p>
+            <p><strong>Total:</strong> ${{ payment.total|number_format(2) }}</p>
+            <p><strong>Status:</strong>
+                {% if payment.status == 'ACTIVE' %}
+                    <span class="badge bg-success">Active</span>
+                {% elseif payment.status == 'PENDING' %}
+                    <span class="badge bg-warning text-dark">Pending</span>
+                {% else %}
+                    <span class="badge bg-danger">Expired</span>
+                {% endif %}
+            </p>
+            <p><strong>Payment Date:</strong> {{ payment.payment_date }}</p>
+            <p><strong>Renewal Date:</strong> {{ payment.renewal ?: '—' }}</p>
+            <p><strong>Reference:</strong> {{ payment.reference ?: '—' }}</p>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            👤 User Info
+        </div>
+        <div class="card-body">
+            <p><strong>Name:</strong> {{ user.name }}</p>
+            <p><strong>Email:</strong> {{ user.email }}</p>
+            <p><strong>Phone:</strong> {{ user.phone ?: '—' }}</p>
+        </div>
+    </div>
+</main>
+
+{% endblock %}

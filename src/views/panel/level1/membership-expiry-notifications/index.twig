@@ -1,0 +1,403 @@
+{% extends 'templates/base.admin.twig' %}
+
+{% block body %}
+<main class="mt-4 container">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2 class="fw-bold mb-1">Membership Expiry Notifications</h2>
+                    <p class="text-muted mb-0">Manage users with expired or expiring memberships</p>
+                </div>
+                <div class="d-flex gap-2 align-items-center">
+                    <a href="{{ path('panel/subscriptions-manager') }}" class="btn btn-outline-primary">
+                        <i class="feather-users"></i> Subscriptions Manager
+                    </a>
+                    <span class="badge bg-danger fs-6">{{ expiredCount }} Expired</span>
+                    <span class="badge bg-warning fs-6">{{ expiringSoonCount }} Expiring Soon</span>
+                </div>
+            </div>
+
+            <!-- Filtro de búsqueda -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <form method="GET" class="row align-items-end">
+                        <div class="col-md-8">
+                            <label class="form-label fw-bold">Search Users:</label>
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class="feather-search"></i>
+                                </span>
+                                <input type="text" name="search" class="form-control form-control-lg" 
+                                       placeholder="Search by name or email..." value="{{ searchTerm }}">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="feather-search"></i> Search
+                                </button>
+                                {% if searchTerm %}
+                                    <a href="{{ path('panel/membership-expiry-notifications') }}" class="btn btn-outline-secondary">
+                                        <i class="feather-x"></i> Clear
+                                    </a>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            {% if searchTerm %}
+                                <div class="alert alert-info mb-0">
+                                    <i class="feather-info"></i> Filtered by: "{{ searchTerm }}"
+                                </div>
+                            {% endif %}
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Tabs para diferentes tipos de usuarios -->
+            <form method="POST" id="notificationForm">
+                <input type="hidden" name="action" value="send_notifications">
+                
+                <!-- Controles de notificación -->
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <div class="row align-items-end">
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold">Notification Type:</label>
+                                <select name="notification_type" class="form-select" required>
+                                    <option value="expired">Expired Memberships</option>
+                                    <option value="expiring_soon">Expiring Soon</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold">Selection:</label>
+                                <div class="btn-group" role="group">
+                                    <button type="button" class="btn btn-outline-primary" onclick="selectAll()">
+                                        <i class="feather-check-square"></i> Select All Visible
+                                    </button>
+                                    <button type="button" class="btn btn-outline-secondary" onclick="deselectAll()">
+                                        <i class="feather-square"></i> Deselect All
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="col-md-4 text-end">
+                                <label class="form-label fw-bold">Actions:</label>
+                                <button type="submit" class="btn btn-primary btn-lg" id="sendNotificationsBtn" disabled>
+                                    <i class="feather-send"></i> Send Notifications
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                <div class="card-header">
+                    <ul class="nav nav-tabs card-header-tabs" id="membershipTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="expired-tab" data-bs-toggle="tab" data-bs-target="#expired" type="button" role="tab">
+                                <i class="feather-alert-triangle text-danger"></i> Expired Memberships ({{ expiredCount }})
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="expiring-tab" data-bs-toggle="tab" data-bs-target="#expiring" type="button" role="tab">
+                                <i class="feather-clock text-warning"></i> Expiring Soon ({{ expiringSoonCount }})
+                            </button>
+                        </li>
+                    </ul>
+                </div>
+                <div class="card-body">
+                    <div class="tab-content" id="membershipTabsContent">
+                        <!-- Tab Expired Memberships -->
+                        <div class="tab-pane fade show active" id="expired" role="tabpanel">
+                            {% if users.expired|length > 0 %}
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <small class="text-muted">
+                                        Showing {{ ((currentPage - 1) * perPage) + 1 }} to {{ min(currentPage * perPage, expiredCount) }} of {{ expiredCount }} expired memberships
+                                        {% if searchTerm %} (filtered by "{{ searchTerm }}"){% endif %}
+                                    </small>
+                                </div>
+                                <div class="table-responsive">
+                                    <table class="table table-hover">
+                                        <thead>
+                                            <tr>
+                                                <th width="50">
+                                                    <input type="checkbox" class="form-check-input" id="selectAllExpired" onchange="toggleAllExpired(this)">
+                                                </th>
+                                                <th>User</th>
+                                                <th>Type</th>
+                                                <th>Email</th>
+                                                <th>Expiry Date</th>
+                                                <th>Days Overdue</th>
+                                                <th>Status</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for user in users.expired %}
+                                            <tr>
+                                                <td>
+                                                    <input type="checkbox" class="form-check-input user-checkbox" name="selected_users[]" value="{{ user.id }}" data-type="expired">
+                                                </td>
+                                                <td>
+                                                    <div class="d-flex align-items-center">
+                                                        <div class="avatar-sm bg-danger text-white rounded-circle d-flex align-items-center justify-content-center me-2">
+                                                            {{ user.name|first|upper }}{{ user.lastname|first|upper }}
+                                                        </div>
+                                                        <div>
+                                                            <div class="fw-bold">{{ user.name }} {{ user.lastname }}</div>
+                                                            <small class="text-muted">ID: {{ user.id }}</small>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    {% if user.level == 2 %}
+                                                        <span class="badge bg-info">Venue Owner</span>
+                                                    {% elseif user.level == 3 %}
+                                                        <span class="badge bg-success">Vendor</span>
+                                                    {% else %}
+                                                        <span class="badge bg-secondary">Level {{ user.level }}</span>
+                                                    {% endif %}
+                                                </td>
+                                                <td>{{ user.email }}</td>
+                                                <td>{{ user.membership_due_date ? user.membership_due_date|date('M j, Y') : 'N/A' }}</td>
+                                                <td>
+                                                    {% if user.membership_due_date %}
+                                                        {% set daysOverdue = (('now'|date('U')) - (user.membership_due_date|date('U'))) / 86400 %}
+                                                        <span class="badge bg-danger">{{ daysOverdue|round }} days</span>
+                                                    {% else %}
+                                                        <span class="text-muted">N/A</span>
+                                                    {% endif %}
+                                                </td>
+                                                <td>
+                                                    <span class="badge bg-danger">Expired</span>
+                                                </td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            {% else %}
+                                <div class="text-center py-5">
+                                    <i class="feather-check-circle text-success" style="font-size: 3rem;"></i>
+                                    <h4 class="mt-3">No Expired Memberships</h4>
+                                    <p class="text-muted">All users have active memberships!</p>
+                                </div>
+                            {% endif %}
+                            
+                            <!-- Paginación para usuarios vencidos -->
+                            {% if expiredTotalPages > 1 %}
+                                <nav aria-label="Expired users pagination" class="mt-4">
+                                    <ul class="pagination justify-content-center">
+                                        {% if currentPage > 1 %}
+                                            <li class="page-item">
+                                                <a class="page-link" href="?page={{ currentPage - 1 }}{% if searchTerm %}&search={{ searchTerm }}{% endif %}">Previous</a>
+                                            </li>
+                                        {% endif %}
+                                        
+                                        {% set startPage = max(1, currentPage - 2) %}
+                                        {% set endPage = min(expiredTotalPages, currentPage + 2) %}
+                                        {% for page in startPage..endPage %}
+                                            {% if page == currentPage %}
+                                                <li class="page-item active">
+                                                    <span class="page-link">{{ page }}</span>
+                                                </li>
+                                            {% else %}
+                                                <li class="page-item">
+                                                    <a class="page-link" href="?page={{ page }}{% if searchTerm %}&search={{ searchTerm }}{% endif %}">{{ page }}</a>
+                                                </li>
+                                            {% endif %}
+                                        {% endfor %}
+                                        
+                                        {% if currentPage < expiredTotalPages %}
+                                            <li class="page-item">
+                                                <a class="page-link" href="?page={{ currentPage + 1 }}{% if searchTerm %}&search={{ searchTerm }}{% endif %}">Next</a>
+                                            </li>
+                                        {% endif %}
+                                    </ul>
+                                </nav>
+                            {% endif %}
+                        </div>
+
+                        <!-- Tab Expiring Soon -->
+                        <div class="tab-pane fade" id="expiring" role="tabpanel">
+                            {% if users.expiring_soon|length > 0 %}
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <small class="text-muted">
+                                        Showing {{ ((currentPage - 1) * perPage) + 1 }} to {{ min(currentPage * perPage, expiringSoonCount) }} of {{ expiringSoonCount }} expiring memberships
+                                        {% if searchTerm %} (filtered by "{{ searchTerm }}"){% endif %}
+                                    </small>
+                                </div>
+                                <div class="table-responsive">
+                                    <table class="table table-hover">
+                                        <thead>
+                                            <tr>
+                                                <th width="50">
+                                                    <input type="checkbox" class="form-check-input" id="selectAllExpiring" onchange="toggleAllExpiring(this)">
+                                                </th>
+                                                <th>User</th>
+                                                <th>Type</th>
+                                                <th>Email</th>
+                                                <th>Expiry Date</th>
+                                                <th>Days Remaining</th>
+                                                <th>Status</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for user in users.expiring_soon %}
+                                            <tr>
+                                                <td>
+                                                    <input type="checkbox" class="form-check-input user-checkbox" name="selected_users[]" value="{{ user.id }}" data-type="expiring">
+                                                </td>
+                                                <td>
+                                                    <div class="d-flex align-items-center">
+                                                        <div class="avatar-sm bg-warning text-white rounded-circle d-flex align-items-center justify-content-center me-2">
+                                                            {{ user.name|first|upper }}{{ user.lastname|first|upper }}
+                                                        </div>
+                                                        <div>
+                                                            <div class="fw-bold">{{ user.name }} {{ user.lastname }}</div>
+                                                            <small class="text-muted">ID: {{ user.id }}</small>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    {% if user.level == 2 %}
+                                                        <span class="badge bg-info">Venue Owner</span>
+                                                    {% elseif user.level == 3 %}
+                                                        <span class="badge bg-success">Vendor</span>
+                                                    {% else %}
+                                                        <span class="badge bg-secondary">Level {{ user.level }}</span>
+                                                    {% endif %}
+                                                </td>
+                                                <td>{{ user.email }}</td>
+                                                <td>{{ user.membership_due_date ? user.membership_due_date|date('M j, Y') : 'N/A' }}</td>
+                                                <td>
+                                                    {% if user.membership_due_date %}
+                                                        {% set daysRemaining = ((user.membership_due_date|date('U')) - ('now'|date('U'))) / 86400 %}
+                                                        <span class="badge bg-warning">{{ daysRemaining|round }} days</span>
+                                                    {% else %}
+                                                        <span class="text-muted">N/A</span>
+                                                    {% endif %}
+                                                </td>
+                                                <td>
+                                                    <span class="badge bg-warning">Expiring Soon</span>
+                                                </td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            {% else %}
+                                <div class="text-center py-5">
+                                    <i class="feather-check-circle text-success" style="font-size: 3rem;"></i>
+                                    <h4 class="mt-3">No Expiring Memberships</h4>
+                                    <p class="text-muted">No users have memberships expiring in the next 7 days!</p>
+                                </div>
+                            {% endif %}
+                            
+                            <!-- Paginación para usuarios próximos a vencer -->
+                            {% if expiringSoonTotalPages > 1 %}
+                                <nav aria-label="Expiring soon users pagination" class="mt-4">
+                                    <ul class="pagination justify-content-center">
+                                        {% if currentPage > 1 %}
+                                            <li class="page-item">
+                                                <a class="page-link" href="?page={{ currentPage - 1 }}{% if searchTerm %}&search={{ searchTerm }}{% endif %}">Previous</a>
+                                            </li>
+                                        {% endif %}
+                                        
+                                        {% set startPage = max(1, currentPage - 2) %}
+                                        {% set endPage = min(expiringSoonTotalPages, currentPage + 2) %}
+                                        {% for page in startPage..endPage %}
+                                            {% if page == currentPage %}
+                                                <li class="page-item active">
+                                                    <span class="page-link">{{ page }}</span>
+                                                </li>
+                                            {% else %}
+                                                <li class="page-item">
+                                                    <a class="page-link" href="?page={{ page }}{% if searchTerm %}&search={{ searchTerm }}{% endif %}">{{ page }}</a>
+                                                </li>
+                                            {% endif %}
+                                        {% endfor %}
+                                        
+                                        {% if currentPage < expiringSoonTotalPages %}
+                                            <li class="page-item">
+                                                <a class="page-link" href="?page={{ currentPage + 1 }}{% if searchTerm %}&search={{ searchTerm }}{% endif %}">Next</a>
+                                            </li>
+                                        {% endif %}
+                                    </ul>
+                                </nav>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            </form>
+        </div>
+    </div>
+</main>
+
+<script>
+function selectAll() {
+    const activeTab = document.querySelector('.tab-pane.active');
+    const checkboxes = activeTab.querySelectorAll('.user-checkbox');
+    checkboxes.forEach(checkbox => checkbox.checked = true);
+    updateSendButton();
+}
+
+function deselectAll() {
+    const checkboxes = document.querySelectorAll('.user-checkbox');
+    checkboxes.forEach(checkbox => checkbox.checked = false);
+    updateSendButton();
+}
+
+function toggleAllExpired(checkbox) {
+    const checkboxes = document.querySelectorAll('#expired .user-checkbox');
+    checkboxes.forEach(cb => cb.checked = checkbox.checked);
+    updateSendButton();
+}
+
+function toggleAllExpiring(checkbox) {
+    const checkboxes = document.querySelectorAll('#expiring .user-checkbox');
+    checkboxes.forEach(cb => cb.checked = checkbox.checked);
+    updateSendButton();
+}
+
+function updateSendButton() {
+    const checkedBoxes = document.querySelectorAll('.user-checkbox:checked');
+    const sendBtn = document.getElementById('sendNotificationsBtn');
+    sendBtn.disabled = checkedBoxes.length === 0;
+}
+
+// Event listeners
+document.addEventListener('DOMContentLoaded', function() {
+    const checkboxes = document.querySelectorAll('.user-checkbox');
+    checkboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', updateSendButton);
+    });
+    
+    // Update notification type based on active tab
+    const tabs = document.querySelectorAll('[data-bs-toggle="tab"]');
+    tabs.forEach(tab => {
+        tab.addEventListener('shown.bs.tab', function() {
+            const target = this.getAttribute('data-bs-target');
+            const notificationType = document.querySelector('select[name="notification_type"]');
+            
+            if (target === '#expired') {
+                notificationType.value = 'expired';
+            } else if (target === '#expiring') {
+                notificationType.value = 'expiring_soon';
+            }
+        });
+    });
+    
+    // Handle form submission
+    const form = document.getElementById('notificationForm');
+    form.addEventListener('submit', function(e) {
+        const checkedBoxes = document.querySelectorAll('.user-checkbox:checked');
+        if (checkedBoxes.length === 0) {
+            e.preventDefault();
+            alert('Please select at least one user to notify.');
+            return false;
+        }
+        
+        
+        return true;
+    });
+});
+</script>
+{% endblock %}

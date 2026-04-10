@@ -1,0 +1,126 @@
+{% extends 'templates/base.admin.twig' %}
+{% import 'templates/macros.twig' as macros %}
+{% block body %}
+
+<h2 class="mb-4">🕘 Lead History: {{ lead_name  }}</h2>
+ 
+ {{ macros.breadcrumb2() }}
+
+<form method="post" class="row g-2 mb-4" id="statusChangeForm">
+    <input type="hidden" name="id_lead" value="{{ lead_id }}">
+
+    <div class="col-md-4">
+        <select name="new_status" class="form-select" required id="newStatusSelect">
+            <option value="">Change to status...</option>
+            {% for status in statuses %}
+                <option value="{{ status.id }}">{{ status.name }}</option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <div class="col-md-5">
+        <input type="text" name="comment" class="form-control" maxlength="100" placeholder="Optional comment...">
+    </div>
+
+    <div class="col-md-3">
+        <button class="btn btn-dark w-100" type="submit">➕ Add Status Change</button>
+    </div>
+</form>
+ 
+<a href="{{ path('panel/planner-hub/management/crm/lead') }}" class="btn btn-sm btn-light mb-3">← Back to Leads</a>
+
+<div class="table-responsive">
+    <table class="table table-bordered table-striped text-center" style="min-width: 600px;">
+        <thead>
+            <tr> 
+               
+                <th> Status</th>
+                <th>Comment</th>
+                <th>Last Updated</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in history|reverse %}
+                <tr>
+                     
+                     <td style="min-width: 200px;">{{ row.new_status }}</td>
+                     <td style="min-width: 240px;">{{ row.comment ?: '—' }}</td>
+                    
+                     <td style="min-width: 240px;">➡️ {{ row.created_at|date("l, j F Y \\a\\t g:i A") }}</td>
+                </tr>
+            {% else %}
+                <tr>
+                    <td colspan="5" class="text-muted">No changes found for this lead.</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Modal para preguntar si archivar -->
+<div class="modal fade" id="archiveModal" tabindex="-1" aria-labelledby="archiveModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="archiveModalLabel">⚠️ Archive Lead?</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>You are changing this lead to "<span id="modalStatusName"></span>".</p>
+                <p>Would you like to archive it to keep your active leads organized?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">No, Keep Active</button>
+                <button type="button" class="btn btn-warning" id="confirmArchiveBtn">Yes, Archive It</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const statusChangeForm = document.getElementById('statusChangeForm');
+    const newStatusSelect = document.getElementById('newStatusSelect');
+    const archiveModal = new bootstrap.Modal(document.getElementById('archiveModal'));
+    
+    statusChangeForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const selectedStatus = newStatusSelect.options[newStatusSelect.selectedIndex];
+        if (!selectedStatus.value) return;
+        
+        const statusName = selectedStatus.text;
+        
+        // Verificar si el nuevo status es "no interesado"
+        const isNoInterested = statusName.toLowerCase().includes('no interesado') || 
+                             statusName.toLowerCase().includes('not interested') ||
+                             statusName.toLowerCase().includes('rechazado') ||
+                             statusName.toLowerCase().includes('rejected');
+        
+        if (isNoInterested) {
+            // Mostrar modal preguntando si archivar
+            document.getElementById('modalStatusName').textContent = statusName;
+            archiveModal.show();
+        } else {
+            // Si no es "no interesado", enviar directamente
+            statusChangeForm.submit();
+        }
+    });
+    
+    // Manejar confirmación de archivo
+    document.getElementById('confirmArchiveBtn').addEventListener('click', function() {
+        // Agregar campo para indicar que se debe archivar automáticamente
+        const archiveInput = document.createElement('input');
+        archiveInput.type = 'hidden';
+        archiveInput.name = 'archive_automatically';
+        archiveInput.value = '1';
+        statusChangeForm.appendChild(archiveInput);
+        
+        // Cerrar el modal y enviar el formulario
+        archiveModal.hide();
+        statusChangeForm.submit();
+    });
+});
+</script>
+
+{% endblock %}

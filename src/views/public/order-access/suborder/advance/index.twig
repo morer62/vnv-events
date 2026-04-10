@@ -1,0 +1,292 @@
+{% extends 'templates/base.twig' %}
+
+{% block body %}
+<main class="container mt-5" style="max-width:520px;">
+    <h2 class="mb-4 text-center">💵 Add advance to this sub-order</h2>
+
+    <div class="alert alert-secondary">
+        <div><strong>Order:</strong> VNV-341{{ parentOrder.id }}</div>
+        <div><strong>Sub-Order:</strong> #{{ suborder.id }}</div>
+    </div>
+
+    <form
+        id="advance-form"
+        method="POST"
+        data-suggested="{{ suggested_advance_cents|e('html_attr') }}"
+        data-redirect-base="{{ (base_url ~ '/order-access/suborder?token=')|e('html_attr') }}"
+        data-token="{{ token|e('html_attr') }}"
+    >
+        <input type="hidden" name="token" value="{{ token }}">
+        <input type="hidden" name="customer_token" id="customer_token">
+
+        <div class="mb-3">
+            <label class="form-label">Your Email</label>
+            <input type="email" name="customer_email" class="form-control form-control-lg" required>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Amount to advance</label>
+            <input type="number" name="advance_amount" step="0.01" min="1" class="form-control form-control-lg" required placeholder="Enter the amount you want to pay">
+            <small class="text-muted d-block">You can pay any amount up to the remaining balance shown below.</small>
+            <div class="alert alert-info mt-3 mb-0">
+                <strong>Remaining balance:</strong>
+                ${{ (remaining_balance ?? 0)|number_format(2, '.', ',') }}
+            </div>
+        </div>
+
+        <div id="payment-request-section" class="mb-4 mt-4" style="display:none;">
+            <div id="payment-request-loader" class="text-center text-muted py-3">
+                <div class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></div>
+                <span>Loading wallet options…</span>
+            </div>
+            <div id="payment-request-button" style="display:none;"></div>
+            <p id="payment-request-note" class="text-center text-muted mt-2 mb-0"></p>
+        </div>
+
+        <div class="mb-4">
+            <label class="form-label">Card Info</label>
+            <div id="card-element" class="form-control p-3"></div>
+            <div id="card-errors" class="text-danger mt-2"></div>
+        </div>
+
+        <button class="btn btn-success w-100 btn-lg mb-3">✅ Confirm Advance</button>
+        <div id="loading" class="text-muted text-center" style="display:none;">Processing advance...</div>
+    </form>
+
+    <!-- Modal de Error -->
+    <div class="modal fade" id="errorModal" tabindex="-1" aria-labelledby="errorModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title text-danger" id="errorModalLabel">
+                        <i class="fas fa-exclamation-triangle me-2"></i>Payment Error
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-danger" id="errorMessage">
+                        <!-- Error message will be inserted here -->
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+{{ processingModal|raw }}
+{% endblock %}
+
+{% block scripts %}
+<script src="https://js.stripe.com/v3/"></script>
+{{ processingModalScript|raw }}
+<script>
+    (function () {
+        const stripe = Stripe("{{ stripe_key|e('js') }}");
+        const elements = stripe.elements();
+        const card = elements.create("card");
+        card.mount("#card-element");
+
+        const form = document.getElementById("advance-form");
+        const nameInput = form.querySelector('input[name="customer_name"]');
+        const emailInput = form.querySelector('input[name="customer_email"]');
+        const amountInput = form.querySelector('input[name="advance_amount"]');
+        const customerTokenInput = document.getElementById("customer_token");
+        const loading = document.getElementById("loading");
+        const errorElement = document.getElementById("card-errors");
+        const submitButton = form.querySelector("button");
+        const suggestedAdvanceCents = Number.parseInt(form.dataset.suggested || "0", 10) || 0;
+        const redirectBase = form.dataset.redirectBase || "";
+        const tokenValue = form.dataset.token || "";
+
+        function setProcessingState(isProcessing, message) {
+            submitButton.disabled = isProcessing;
+            loading.style.display = isProcessing ? "block" : "none";
+            if (isProcessing) {
+                window.VnvProcessingModal.show("orderAccessProcessingModal", {
+                    title: message || "Processing advance...",
+                    message: "We are registering your payment. Please wait."
+                });
+            } else {
+                window.VnvProcessingModal.hide("orderAccessProcessingModal");
+            }
+        }
+
+        function showErrorModal(message) {
+            document.getElementById("errorMessage").textContent = message;
+            const modal = new bootstrap.Modal(document.getElementById("errorModal"));
+            modal.show();
+        }
+
+        function displayError(message, showModal = false) {
+            errorElement.textContent = message;
+            errorElement.style.display = message ? "block" : "none";
+            setProcessingState(false);
+            if (message && showModal) {
+                showErrorModal(message);
+            }
+        }
+
+        function validateAdvanceAmount() {
+            const value = parseFloat(amountInput.value);
+            return Number.isFinite(value) && value > 0;
+        }
+
+        function getAdvanceAmountCents() {
+            const value = parseFloat(amountInput.value);
+            if (!Number.isFinite(value) || value <= 0) {
+                return suggestedAdvanceCents;
+            }
+            return Math.round(value * 100);
+        }
+
+        async function submitAdvanceForm() {
+            const formData = new FormData(form);
+            try {
+                const response = await fetch(window.location.href, {
+                    method: "POST",
+                    body: formData
+                });
+                const result = await response.json();
+
+                if (result.success === false) {
+                    displayError(result.error || "Unable to process the advance. Please try again.", true);
+                    return false;
+                }
+
+                if (result.redirect) {
+                    window.location.href = result.redirect;
+                } else if (redirectBase && tokenValue) {
+                    const fallbackUrl = redirectBase + encodeURIComponent(tokenValue) + "&t=" + Date.now();
+                    window.location.href = fallbackUrl;
+                } else {
+                    window.location.reload();
+                }
+                return true;
+            } catch (err) {
+                console.error(err);
+                displayError("An error occurred while processing the advance.", true);
+                return false;
+            }
+        }
+
+        form.addEventListener("submit", async (event) => {
+            event.preventDefault();
+
+            if (!validateAdvanceAmount()) {
+                displayError("Enter a valid amount greater than 0 before continuing.");
+                return;
+            }
+
+            errorElement.textContent = "";
+            setProcessingState(true);
+
+            const { token, error: stripeError } = await stripe.createToken(card);
+            if (stripeError) {
+                displayError(stripeError.message);
+                return;
+            }
+
+            customerTokenInput.value = token.id;
+            const success = await submitAdvanceForm();
+            if (!success) {
+                return;
+            }
+        });
+
+        function initializePaymentRequest() {
+            if (!stripe || typeof stripe.paymentRequest !== "function") return;
+
+            const paymentLabel = "{{ payment_request_label|e('js') }}";
+            const paymentRequest = stripe.paymentRequest({
+                country: "{{ stripe_country|e('js') }}",
+                currency: "{{ stripe_currency|e('js') }}",
+                total: {
+                    label: paymentLabel,
+                    amount: getAdvanceAmountCents()
+                },
+                requestPayerName: true,
+                requestPayerEmail: true
+            });
+
+            const section = document.getElementById("payment-request-section");
+            const loader = document.getElementById("payment-request-loader");
+            const buttonContainer = document.getElementById("payment-request-button");
+            const note = document.getElementById("payment-request-note");
+
+            section.style.display = "block";
+
+            paymentRequest.canMakePayment().then((result) => {
+                loader.style.display = "none";
+                if (!result) {
+                    note.textContent = "Digital wallets are not available on this device.";
+                    return;
+                }
+
+                const prButton = elements.create("paymentRequestButton", {
+                    paymentRequest,
+                    style: {
+                        paymentRequestButton: { theme: "dark", height: "48px" }
+                    }
+                });
+
+                buttonContainer.style.display = "block";
+                prButton.mount("#payment-request-button");
+
+                if (result.applePay) note.textContent = "Use Apple Pay or continue with your card.";
+                else if (result.googlePay) note.textContent = "Use Google Pay or continue with your card.";
+                else if (result.link) note.textContent = "Use Link or continue with your card.";
+                else note.textContent = "Use a digital wallet or continue with your card.";
+            });
+
+            paymentRequest.on("click", (event) => {
+                if (!validateAdvanceAmount()) {
+                    event.preventDefault();
+                    displayError("Enter a valid amount greater than 0 before using the digital wallet.");
+                    return;
+                }
+
+                const cents = getAdvanceAmountCents();
+                amountInput.value = (cents / 100).toFixed(2);
+                paymentRequest.update({
+                    total: {
+                        label: paymentLabel,
+                        amount: cents
+                    }
+                });
+            });
+
+            amountInput.addEventListener("input", () => {
+                const cents = getAdvanceAmountCents();
+                paymentRequest.update({
+                    total: {
+                        label: paymentLabel,
+                        amount: cents
+                    }
+                });
+            });
+
+            paymentRequest.on("token", async (event) => {
+                if (!validateAdvanceAmount()) {
+                    event.complete("fail");
+                    displayError("Enter a valid amount before using the digital wallet.");
+                    return;
+                }
+
+                if (event.payerName) nameInput.value = event.payerName;
+                if (event.payerEmail) emailInput.value = event.payerEmail;
+
+                customerTokenInput.value = event.token.id;
+                errorElement.textContent = "";
+                setProcessingState(true);
+
+                const success = await submitAdvanceForm();
+                event.complete(success ? "success" : "fail");
+            });
+        }
+
+        initializePaymentRequest();
+    })();
+</script>
+{% endblock %}

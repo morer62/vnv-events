@@ -1,0 +1,135 @@
+{% extends "templates/base.twig" %}
+
+{% block styles %}
+<style>
+    body {
+        background-color: #f8fbff !important;
+    }
+
+    .card {
+        background-color: #f0f6ff !important;
+        border: none !important;
+        border-radius: 1rem !important;
+        padding: 2.5rem !important;
+        box-shadow: 0 0 20px rgba(0,0,0,0.05) !important;
+    }
+
+    .btn-option {
+        background-color: #e6f0ff !important;
+        color: #00324e !important;
+        border: none !important;
+        border-radius: 1rem !important;
+        padding: 2rem !important;
+        font-size: 1.1rem !important;
+        transition: 0.3s ease-in-out !important;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.03) !important;
+        text-align: center !important;
+        display: block !important;
+    }
+
+    .btn-option:hover {
+        background-color: #d7e9ff !important;
+        color: #000 !important;
+        transform: translateY(-2px) !important;
+        text-decoration: none !important;
+        box-shadow: 0 6px 16px rgba(0,0,0,0.05) !important;
+    }
+
+    .btn-option svg {
+        width: 32px !important;
+        height: 32px !important;
+        margin-bottom: 10px !important;
+        fill: #004b66 !important;
+    }
+
+    .btn-option strong {
+        font-size: 1.4rem !important;
+        font-weight: 600 !important;
+    }
+
+    .btn-option span {
+        display: block !important;
+        font-size: 0.95rem !important;
+        color: #555 !important;
+        margin-top: 0.3rem !important;
+    }
+
+    .btn-option:focus {
+        box-shadow: none !important;
+        outline: none !important;
+    }
+</style>
+{% endblock %}
+
+{% block body %}
+<main class="d-flex w-100 justify-content-center align-items-center">
+    <div class="container py-5 text-center">
+ 
+        <img src="{{ asset_for('assets/images/planner-hub-logo-negative.png') }}" width="200px"><br><br>
+
+        <h2 class="mb-2">How would you like to use Ophyra App?</h2>
+        <p class="lead text-muted mb-4">Please select your account type to get started:</p>
+
+        <div class="card">
+            <div class="row justify-content-center mt-4">
+
+    <div class="col-md-4 mb-3">
+        <a href="{{ path('signup') }}?level=2" class="btn btn-option w-100">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16">
+                <path d="M8 4.5a3.5 3.5 0 1 1 0 7 3.5 3.5 0 0 1 0-7z"/>
+                <path d="M8 0a.5.5 0 0 1 .5.5V2a.5.5 0 0 1-1 0V.5A.5.5 0 0 1 8 0zm0 14a.5.5 0 0 1 .5.5v1.5a.5.5 0 0 1-1 0V14.5a.5.5 0 0 1 .5-.5zM3.636 3.636a.5.5 0 0 1 .707 0l1.06 1.06a.5.5 0 0 1-.707.707l-1.06-1.06a.5.5 0 0 1 0-.707zM10.596 10.596a.5.5 0 0 1 .707 0l1.06 1.06a.5.5 0 1 1-.707.707l-1.06-1.06a.5.5 0 0 1 0-.707zM0 8a.5.5 0 0 1 .5-.5H2a.5.5 0 0 1 0 1H.5A.5.5 0 0 1 0 8zm14 0a.5.5 0 0 1 .5-.5h1.5a.5.5 0 1 1 0 1H14.5a.5.5 0 0 1-.5-.5zM3.636 12.364a.5.5 0 0 1 0-.707l1.06-1.06a.5.5 0 1 1 .707.707l-1.06 1.06a.5.5 0 0 1-.707 0zm6.96-6.96a.5.5 0 0 1 0-.707l1.06-1.06a.5.5 0 1 1 .707.707l-1.06 1.06a.5.5 0 0 1-.707 0z"/>
+            </svg>
+            &nbsp;&nbsp;&nbsp;<strong>I’m a Venue Owner</strong>
+            <span>Create and manage event spaces</span>
+        </a>
+    </div>
+
+    <div class="col-md-4 mb-3">
+        <a href="{{ path('signup') }}?level=3" class="btn btn-option w-100">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16">
+                <path d="M6.5 0A1.5 1.5 0 0 0 5 1.5V2H3a2 2 0 0 0-2 2v1h14V4a2 2 0 0 0-2-2h-2V1.5A1.5 1.5 0 0 0 9.5 0h-3zM6 2V1.5a.5.5 0 0 1 .5-.5h3a.5.5 0 0 1 .5.5V2H6z"/>
+                <path d="M0 5v6a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V5H0zm9 3v1H7V8h2z"/>
+            </svg>
+            &nbsp;&nbsp;&nbsp;<strong>I’m a Vendor</strong>
+            <span>Offer services for events</span>
+        </a>
+    </div>
+
+    <div class="col-md-4 mb-3">
+        <a href="{{ path('signup') }}?level=5" class="btn btn-option w-100">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16">
+                <path d="M3 14s-1 0-1-1 1-4 6-4 6 3 6 4-1 1-1 1H3zm5-6a3 3 0 1 1 0-6 3 3 0 0 1 0 6z"/>
+            </svg>
+            &nbsp;&nbsp;&nbsp;<strong>I’m a Client</strong>
+            <span>Plan events and book vendors</span>
+        </a>
+    </div>
+
+</div>
+
+
+            <div class="text-center mt-4">
+                Do you have an account? <a href="{{ path('login') }}">Back to Sign in</a>
+            </div>
+        </div>
+
+    </div>
+</main>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const vendorBtn = document.getElementById('vendor-btn');
+    const warning = document.getElementById('vendor-warning');
+
+    const releaseDate = new Date("2025-08-15T00:00:00");
+    const now = new Date();
+
+    if (now < releaseDate) {
+        vendorBtn.classList.add("disabled");
+        vendorBtn.style.pointerEvents = "none";
+        vendorBtn.style.opacity = "0.5";
+        warning.style.display = "block";
+    }
+});
+</script>
+{% endblock %}

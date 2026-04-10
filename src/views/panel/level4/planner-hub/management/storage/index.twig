@@ -1,0 +1,35 @@
+{% extends 'templates/base.admin.twig' %}
+{% import 'templates/macros.twig' as macros %}
+
+{% block body %}
+<main class="mt-4">
+    <div class="container">
+
+        <h1 class="h3 mt-4">My Storage</h1>
+
+        {{ macros.breadcrumb2() }}
+
+        <div class="row row-cols-1 row-cols-md-2 g-4">
+            <div class="col">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body text-center py-4">
+                        <h5 class="card-title mb-2">Containers</h5>
+                        <p class="text-muted small">Manage lead types, statuses, and message categories.</p>
+                        <a href="{{ path('panel/planner-hub/management/storage/containers') }}" class="btn btn-primary btn-sm mt-2">Go to Containers</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body text-center py-4">
+                        <h5 class="card-title mb-2">Search Items</h5>
+                        <p class="text-muted small">View and manage all Items in One Place.</p>
+                        <a href="{{ path('panel/planner-hub/management/storage/containers/items/search') }}" class="btn btn-primary btn-sm mt-2">Go to Search</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+{% endblock %}

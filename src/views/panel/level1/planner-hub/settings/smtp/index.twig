@@ -1,0 +1,256 @@
+{% extends 'templates/base.admin.twig' %}
+
+{% block body %}
+  <h1 class="h3 mb-4">SMTP Configuration</h1>
+
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <p class="text-muted mb-0">Configure email SMTP providers for this account.</p>
+    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addSmtpModal">
+      Add SMTP
+    </button>
+  </div>
+
+  {% if smtpConfigs is empty %}
+    <div class="alert alert-info">
+      No SMTP configurations yet. Add one to start sending with your own credentials.
+    </div>
+  {% else %}
+    <div class="table-responsive">
+      <table class="table table-hover align-middle">
+        <thead>
+          <tr>
+            <th>Provider</th>
+            <th>From</th>
+            <th>Server</th>
+            <th>Status</th>
+            <th class="text-center">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for smtp in smtpConfigs %}
+            <tr class="{% if smtp.is_default %}table-primary{% endif %}">
+              <td>
+                <strong>{{ smtp.provider_name }}</strong>
+                {% if smtp.is_default %}<span class="badge bg-primary ms-2">Default</span>{% endif %}
+                {% if not smtp.is_active %}<span class="badge bg-secondary ms-2">Inactive</span>{% endif %}
+              </td>
+              <td>
+                <div>{{ smtp.from_name }}</div>
+                <small class="text-muted">{{ smtp.from_email }}</small>
+              </td>
+              <td>
+                <div>{{ smtp.smtp_host }}:{{ smtp.smtp_port }}</div>
+                <small class="text-muted">{{ smtp.smtp_encryption|upper }}</small>
+              </td>
+              <td>
+                {% if smtp.is_verified %}
+                  <span class="badge bg-success">Verified</span>
+                {% else %}
+                  <span class="badge bg-warning text-dark">Not verified</span>
+                {% endif %}
+              </td>
+              <td class="text-center">
+                <div class="btn-group btn-group-sm">
+                  {% if not smtp.is_default %}
+                    <form method="post" class="d-inline">
+                      <input type="hidden" name="action" value="set_default">
+                      <input type="hidden" name="smtp_id" value="{{ smtp.id }}">
+                      <button type="submit" class="btn btn-outline-primary" title="Set default">★</button>
+                    </form>
+                  {% endif %}
+
+                  <button type="button" class="btn btn-outline-info"
+                          data-bs-toggle="modal" data-bs-target="#testEmailModal"
+                          data-smtp-id="{{ smtp.id }}" data-smtp-name="{{ smtp.provider_name }}"
+                          title="Send test">
+                    Test
+                  </button>
+
+                  <button type="button" class="btn btn-outline-secondary"
+                          data-bs-toggle="modal" data-bs-target="#editSmtpModal"
+                          data-smtp-id="{{ smtp.id }}"
+                          data-provider-name="{{ smtp.provider_name }}"
+                          data-smtp-host="{{ smtp.smtp_host }}"
+                          data-smtp-port="{{ smtp.smtp_port }}"
+                          data-smtp-encryption="{{ smtp.smtp_encryption }}"
+                          data-smtp-username="{{ smtp.smtp_username }}"
+                          data-from-email="{{ smtp.from_email }}"
+                          data-from-name="{{ smtp.from_name }}"
+                          data-reply-to-email="{{ smtp.reply_to_email }}">
+                    Edit
+                  </button>
+
+                  {% if smtp.is_active %}
+                    <form method="post" class="d-inline">
+                      <input type="hidden" name="action" value="deactivate">
+                      <input type="hidden" name="smtp_id" value="{{ smtp.id }}">
+                      <button type="submit" class="btn btn-outline-warning">Pause</button>
+                    </form>
+                  {% else %}
+                    <form method="post" class="d-inline">
+                      <input type="hidden" name="action" value="activate">
+                      <input type="hidden" name="smtp_id" value="{{ smtp.id }}">
+                      <button type="submit" class="btn btn-outline-success">Activate</button>
+                    </form>
+                  {% endif %}
+
+                  {% if not smtp.is_default %}
+                    <button type="button" class="btn btn-outline-danger" onclick="confirmDelete({{ smtp.id }}, '{{ smtp.provider_name|e('js') }}')">Delete</button>
+                  {% endif %}
+                </div>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% endif %}
+
+  <form method="post" id="deleteForm" class="d-none">
+    <input type="hidden" name="action" value="delete">
+    <input type="hidden" name="smtp_id" id="deleteSmtpId">
+  </form>
+{% endblock %}
+
+{% block aside %}
+  <div class="modal fade" id="addSmtpModal" tabindex="-1" data-bs-backdrop="static">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <form method="post">
+          <input type="hidden" name="action" value="add">
+          <input type="hidden" name="provider_type" id="providerTypeInput" value="custom">
+          <div class="modal-header"><h5 class="modal-title">Add SMTP</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+          <div class="modal-body">
+            <div class="mb-3">
+              <label class="form-label">Quick setup</label>
+              <select class="form-select" id="providerTemplate">
+                <option value="">Select provider template</option>
+                {% for type, name in availableProviders %}
+                  <option value="{{ type }}">{{ name }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="row">
+              <div class="col-md-6 mb-3"><label class="form-label">Name *</label><input type="text" name="provider_name" class="form-control" required></div>
+              <div class="col-md-6 mb-3"><label class="form-label">Host *</label><input type="text" name="smtp_host" id="smtpHost" class="form-control" required></div>
+            </div>
+            <div class="row">
+              <div class="col-md-4 mb-3"><label class="form-label">Port *</label><input type="number" name="smtp_port" id="smtpPort" class="form-control" value="2525" required></div>
+              <div class="col-md-4 mb-3"><label class="form-label">Encryption</label><select name="smtp_encryption" id="smtpEncryption" class="form-select"><option value="tls">TLS</option><option value="ssl">SSL</option><option value="none">None</option></select></div>
+              <div class="col-md-4 mb-3"><label class="form-label">Username *</label><input type="text" name="smtp_username" id="smtpUsername" class="form-control" required></div>
+            </div>
+            <div class="mb-3"><label class="form-label">Password *</label><input type="password" name="smtp_password" class="form-control" required></div>
+            <div class="row">
+              <div class="col-md-6 mb-3"><label class="form-label">From email *</label><input type="email" name="from_email" class="form-control" required></div>
+              <div class="col-md-6 mb-3"><label class="form-label">From name *</label><input type="text" name="from_name" class="form-control" required></div>
+            </div>
+            <div class="mb-3"><label class="form-label">Reply-To email</label><input type="email" name="reply_to_email" class="form-control"></div>
+            <div id="providerInstructions" class="alert alert-info d-none"><div id="instructionsContent"></div></div>
+          </div>
+          <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button><button type="submit" class="btn btn-primary">Save</button></div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="testEmailModal" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <form method="post">
+          <input type="hidden" name="action" value="send_test">
+          <input type="hidden" name="smtp_id" id="testSmtpId">
+          <div class="modal-header"><h5 class="modal-title">Send test email</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+          <div class="modal-body">
+            <p>SMTP: <strong id="testSmtpName"></strong></p>
+            <label class="form-label">Test email</label>
+            <input type="email" name="test_email" class="form-control" required>
+          </div>
+          <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button><button type="submit" class="btn btn-primary">Send</button></div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="editSmtpModal" tabindex="-1" data-bs-backdrop="static">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <form method="post">
+          <input type="hidden" name="action" value="update">
+          <input type="hidden" name="smtp_id" id="editSmtpId">
+          <div class="modal-header"><h5 class="modal-title">Edit SMTP</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+          <div class="modal-body">
+            <div class="row">
+              <div class="col-md-6 mb-3"><label class="form-label">Name *</label><input type="text" name="provider_name" id="editProviderName" class="form-control" required></div>
+              <div class="col-md-6 mb-3"><label class="form-label">Host *</label><input type="text" name="smtp_host" id="editSmtpHost" class="form-control" required></div>
+            </div>
+            <div class="row">
+              <div class="col-md-4 mb-3"><label class="form-label">Port *</label><input type="number" name="smtp_port" id="editSmtpPort" class="form-control" required></div>
+              <div class="col-md-4 mb-3"><label class="form-label">Encryption</label><select name="smtp_encryption" id="editSmtpEncryption" class="form-select"><option value="tls">TLS</option><option value="ssl">SSL</option><option value="none">None</option></select></div>
+              <div class="col-md-4 mb-3"><label class="form-label">Username *</label><input type="text" name="smtp_username" id="editSmtpUsername" class="form-control" required></div>
+            </div>
+            <div class="mb-3"><label class="form-label">Password</label><input type="password" name="smtp_password" class="form-control" placeholder="Leave empty to keep current"></div>
+            <div class="row">
+              <div class="col-md-6 mb-3"><label class="form-label">From email *</label><input type="email" name="from_email" id="editFromEmail" class="form-control" required></div>
+              <div class="col-md-6 mb-3"><label class="form-label">From name *</label><input type="text" name="from_name" id="editFromName" class="form-control" required></div>
+            </div>
+            <div class="mb-3"><label class="form-label">Reply-To email</label><input type="email" name="reply_to_email" id="editReplyToEmail" class="form-control"></div>
+          </div>
+          <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button><button type="submit" class="btn btn-primary">Update</button></div>
+        </form>
+      </div>
+    </div>
+  </div>
+{% endblock %}
+
+{% block scripts %}
+  <script>
+    const providerTemplates = {
+      gmail: { smtp_host: 'smtp.gmail.com', smtp_port: 587, smtp_encryption: 'tls', smtp_username: '', instructions: 'Use App Password with 2FA enabled.' },
+      sendgrid: { smtp_host: 'smtp.sendgrid.net', smtp_port: 587, smtp_encryption: 'tls', smtp_username: 'apikey', instructions: 'Username: apikey. Password: your SendGrid API key.' },
+      mailgun: { smtp_host: 'smtp.mailgun.org', smtp_port: 587, smtp_encryption: 'tls', smtp_username: '', instructions: 'Use Mailgun SMTP credentials.' },
+      aws_ses: { smtp_host: 'email-smtp.us-east-1.amazonaws.com', smtp_port: 587, smtp_encryption: 'tls', smtp_username: '', instructions: 'Use AWS SES SMTP credentials.' },
+      brevo: { smtp_host: 'smtp-relay.brevo.com', smtp_port: 587, smtp_encryption: 'tls', smtp_username: '', instructions: 'Use Brevo SMTP key.' },
+      outlook: { smtp_host: 'smtp.office365.com', smtp_port: 587, smtp_encryption: 'tls', smtp_username: '', instructions: 'Use Outlook/365 account credentials.' }
+    };
+
+    document.getElementById('providerTemplate')?.addEventListener('change', function () {
+      const t = providerTemplates[this.value];
+      const box = document.getElementById('providerInstructions');
+      const txt = document.getElementById('instructionsContent');
+      if (!t) { box.classList.add('d-none'); return; }
+      document.getElementById('smtpHost').value = t.smtp_host;
+      document.getElementById('smtpPort').value = t.smtp_port;
+      document.getElementById('smtpEncryption').value = t.smtp_encryption;
+      if (t.smtp_username) document.getElementById('smtpUsername').value = t.smtp_username;
+      document.getElementById('providerTypeInput').value = this.value;
+      txt.textContent = t.instructions || '';
+      box.classList.remove('d-none');
+    });
+
+    document.getElementById('testEmailModal')?.addEventListener('show.bs.modal', function (e) {
+      const b = e.relatedTarget;
+      document.getElementById('testSmtpId').value = b.dataset.smtpId || '';
+      document.getElementById('testSmtpName').textContent = b.dataset.smtpName || '';
+    });
+
+    document.getElementById('editSmtpModal')?.addEventListener('show.bs.modal', function (e) {
+      const b = e.relatedTarget;
+      document.getElementById('editSmtpId').value = b.dataset.smtpId || '';
+      document.getElementById('editProviderName').value = b.dataset.providerName || '';
+      document.getElementById('editSmtpHost').value = b.dataset.smtpHost || '';
+      document.getElementById('editSmtpPort').value = b.dataset.smtpPort || '2525';
+      document.getElementById('editSmtpEncryption').value = b.dataset.smtpEncryption || 'tls';
+      document.getElementById('editSmtpUsername').value = b.dataset.smtpUsername || '';
+      document.getElementById('editFromEmail').value = b.dataset.fromEmail || '';
+      document.getElementById('editFromName').value = b.dataset.fromName || '';
+      document.getElementById('editReplyToEmail').value = b.dataset.replyToEmail || '';
+    });
+
+    function confirmDelete(id, name) {
+      if (!confirm('Delete "' + name + '"?')) return;
+      document.getElementById('deleteSmtpId').value = id;
+      document.getElementById('deleteForm').submit();
+    }
+  </script>
+{% endblock %}
+

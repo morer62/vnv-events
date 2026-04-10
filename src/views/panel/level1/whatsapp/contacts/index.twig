@@ -1,0 +1,51 @@
+{% extends 'templates/base.admin.twig' %}
+{% import 'templates/macros.twig' as macros %}
+
+{% block body %}
+<h1 class="mb-4">📇 WhatsApp Contacts</h1>
+{{ macros.breadcrumb2() }} 
+
+<div class="alert alert-primary text-center mb-5" role="alert">
+   <a href="{{ path('panel/whatsapp/contacts/archived') }}" class="fw-bold text-decoration-none">Unarchive contacts to view hidden messages</a>
+  </div>
+
+<div class="card">
+  <div class="card-body table-responsive">
+    <table class="table table-hover align-middle text-nowrap">
+      <thead class="table-light">
+        <tr>
+          <th style="min-width: 60px;">ID</th>
+          <th style="min-width: 120px;">Phone</th>
+          <th style="min-width: 200px;">Name</th>
+          <th style="min-width: 100px;">Action</th>
+        </tr>
+      </thead>
+      <tbody>
+  {% for c in clients %}
+  <tr>
+    <td>{{ c.id }}</td>
+    <td>+{{ c.phone }}</td>
+    <td>
+      <form method="post" class="d-inline-flex gap-2">
+        <input type="text" name="name_{{ c.id }}" value="{{ c.name ?? '' }}" class="form-control form-control-sm" />
+        <input type="hidden" name="save" value="{{ c.id }}">
+        <button type="submit" class="btn btn-sm btn-primary">Save</button>
+      </form>
+    </td>
+    <td>
+      <form method="post" class="d-inline">
+        <input type="hidden" name="delete" value="{{ c.id }}">
+        <button type="submit" class="btn btn-sm btn-danger"
+                onclick="return confirm('Are you sure you want to delete this contact?');">
+          Delete
+        </button>
+      </form>
+    </td>
+  </tr>
+  {% endfor %}
+</tbody>
+
+    </table>
+  </div>
+</div>
+{% endblock %}

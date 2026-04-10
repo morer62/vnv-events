@@ -1,0 +1,316 @@
+{% extends 'templates/base.admin.twig' %}
+
+{% block body %}
+    <h1 class="h3 mb-4">💰 Commission Payment Details</h1>
+
+    <a href="{{ path('panel/planner-hub/management/commissions/pending') }}" class="mb-3 d-inline-block">
+        ← Back to Commissions Summary
+    </a>
+
+    <p class="mb-3">
+        💵 Total Amount:
+        <strong class="text-success">${{ totalAmount|number_format(2, '.', ',') }}</strong>
+    </p>
+
+    <!-- Información del Afiliado -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <h6 class="card-title mb-3">
+                <i data-feather="user" class="feather-sm me-2"></i>
+                Affiliate Information
+            </h6>
+            <div class="row">
+                <div class="col-md-4">
+                    <strong>👤 Name:</strong><br>
+                    <span class="text-primary">{{ affiliate.name }}</span>
+                </div>
+                <div class="col-md-4">
+                    <strong>📧 Email:</strong><br>
+                    <span class="text-primary">{{ affiliate.email }}</span>
+                </div>
+                <div class="col-md-4">
+                    <strong>📱 Phone:</strong><br>
+                    <span class="text-primary">{{ affiliate.phone ?? 'Not provided' }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="alert alert-info mb-4">
+        <h6 class="alert-heading">📋 Payment Information</h6>
+        <ul class="mb-0">
+            <li><strong>✅ Can Pay:</strong> Commissions with 'pending' or 'approved' status</li>
+            <li><strong>⏳ Cannot Pay:</strong> Commissions already paid or cancelled</li>
+            <li><strong>💡 Note:</strong> Only pending/approved commissions are included in payment calculations</li>
+        </ul>
+    </div>
+
+    <form id="payment-form" method="post" enctype="multipart/form-data">
+
+        <input type="hidden" name="affiliate_id" value="{{ affiliateId }}">
+
+        <div class="table-responsive mb-4">
+            <table class="table table-bordered text-center align-middle" style="min-width: 900px;">
+                <thead>
+                    <tr>
+                        <th><input type="checkbox" id="select-all"/></th>
+                        <th>Transaction Type</th>
+                        <th>Referred User</th>
+                        <th>Gross Amount</th>
+                        <th>Commission Rate</th>
+                        <th>Commission Amount</th>
+                        <th>Status</th>
+                        <th>Created</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for commission in commissions %}
+                        <tr class="{% if commission.status == 'paid' %}table-success{% elseif commission.status == 'cancelled' %}table-danger{% endif %}">
+                            <td>
+                                {% if commission.status in ['pending', 'approved'] %}
+                                    <input type="checkbox" name="selected_ids[]" value="{{ commission.id }}" checked>
+                                {% else %}
+                                    <input type="checkbox" disabled title="Cannot pay {{ commission.status }} commissions">
+                                {% endif %}
+                            </td>
+                            <td>
+                                <span class="badge bg-secondary">
+                                    {% if commission.transaction_type == 'membership_monthly' %}
+                                        Monthly Membership
+                                    {% elseif commission.transaction_type == 'membership_annual' %}
+                                        Annual Membership
+                                    {% elseif commission.transaction_type == 'listing_fee' %}
+                                        Listing Fee
+                                    {% else %}
+                                        {{ commission.transaction_type }}
+                                    {% endif %}
+                                </span>
+                            </td>
+                            <td>
+                                <div>
+                                    <strong>{{ commission.referred_name }}</strong><br>
+                                    <small class="text-muted">{{ commission.referred_email }}</small>
+                                </div>
+                            </td>
+                            <td>
+                                <strong>${{ commission.gross_amount|number_format(2, '.', ',') }}</strong>
+                            </td>
+                            <td>
+                                <span class="badge bg-info">{{ commission.commission_rate }}%</span>
+                            </td>
+                            <td>
+                                <strong class="text-success">${{ commission.commission_amount|number_format(2, '.', ',') }}</strong>
+                            </td>
+                            <td>
+                                {% if commission.status == 'pending' %}
+                                    <span class="badge bg-warning">Pending</span>
+                                {% elseif commission.status == 'approved' %}
+                                    <span class="badge bg-primary">Approved</span>
+                                {% elseif commission.status == 'paid' %}
+                                    <span class="badge bg-success">Paid</span>
+                                {% elseif commission.status == 'cancelled' %}
+                                    <span class="badge bg-danger">Cancelled</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <small>{{ commission.created_at|date("M j, Y") }}</small>
+                            </td>
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <td colspan="8" class="text-muted">No commissions found</td>
+                        </tr>
+                    {% endfor %}
+                    {% if commissions %}
+                        <tr>
+                            <td colspan="5" class="text-end fw-bold">Total</td>
+                            <td class="fw-bold text-success">${{ totalAmount|number_format(2, '.', ',') }}</td>
+                            <td colspan="2"></td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+
+        {% if commissions %}
+            <div class="mb-3">
+                <label for="additional_info" class="form-label">Additional Message (optional)</label>
+                <textarea id="additional_info" name="additional_info" class="form-control" rows="3">No additional message</textarea>
+            </div>
+
+            <div class="mb-4">
+                <label class="form-label">💳 Select Payment Method</label>
+                <select name="payment_type" class="form-select" id="paymentMethodSelector" required>
+                    <option value="card">💳 Pay with Card</option>
+                    <option value="manual">🧾 Manual Payment (Upload Proof)</option>
+                </select>
+            </div>
+
+            <div id="cardSection" class="mb-3">
+                {% if not isStripeVerified %}
+                    <div class="alert alert-danger mb-3">
+                        ⚠️ This affiliate has not completed their Stripe Connect onboarding or is not verified.
+                    </div>
+                    <div class="text-muted mb-2">
+                        🛑 You cannot process credit card payments until their Stripe account is verified.
+                    </div>
+                {% else %}
+                    <div class="mb-4">
+                        <label class="form-label">Card Info</label>
+                        <div id="card-element" class="form-control p-3"></div>
+                        <div id="card-errors" class="text-danger mt-2"></div>
+                    </div>
+
+                    <input type="hidden" name="customer_token" id="customer_token">
+
+                    <button type="submit" class="btn btn-success w-100 btn-lg mb-3" id="cardPaymentButton">✅ Pay Now</button>
+
+                    <div id="loading" class="text-muted text-center" style="display:none;">Processing payment...</div>
+                {% endif %}
+            </div>
+
+            <div id="manualSection" class="mb-3 d-none">
+                <label class="form-label">Upload Payment Proof (PDF, JPG, PNG)</label>
+                <input type="file" name="payment_proof_file" class="form-control mb-2" accept=".pdf,.jpg,.jpeg,.png">
+
+                <div class="text-muted small mb-2">
+                    📎 For just registering your transaction using an external payment method.
+                </div>
+
+                <button type="submit" class="btn btn-secondary mt-1" name="submit_manual">
+                    🧾 Mark as Paid with Proof
+                </button>
+            </div>
+        {% endif %}
+    </form>
+{% endblock %}
+
+{% block scripts %}
+    <script src="https://js.stripe.com/v3/"></script>
+    <script>
+        // Solo inicializar Stripe si hay stripe_account_id válido
+        let stripe = null;
+        let elements = null;
+        let card = null;
+        
+        {% if stripe_account_id %}
+            stripe = Stripe("{{ stripe_key }}", {stripeAccount: "{{ stripe_account_id }}"});
+            elements = stripe.elements();
+            card = elements.create("card");
+            
+            // Solo montar el elemento si existe el contenedor
+            const cardElement = document.getElementById("card-element");
+            if (cardElement) {
+                card.mount("#card-element");
+            }
+        {% endif %}
+
+        const form = document.getElementById("payment-form");
+
+        form.addEventListener("submit", async (e) => {
+            const selectedMethod = document.getElementById("paymentMethodSelector")?.value;
+            if (selectedMethod !== "card") {
+                return; // Permitir submit normal para pagos manuales
+            }
+            
+            // Validar que Stripe esté disponible
+            if (!stripe || !card) {
+                console.error("Stripe not initialized");
+                return;
+            }
+            
+            e.preventDefault();
+            const button = form.querySelector("button");
+            const loading = document.getElementById("loading");
+            const error = document.getElementById("card-errors");
+            
+            if (!button || !loading || !error) {
+                console.error("Required elements not found");
+                return;
+            }
+            
+            button.disabled = true;
+            loading.style.display = "block";
+            error.textContent = "";
+            
+            try {
+                const {token, error: stripeError} = await stripe.createToken(card);
+                if (stripeError) {
+                    error.textContent = stripeError.message;
+                    loading.style.display = "none";
+                    button.disabled = false;
+                    return;
+                }
+                document.getElementById("customer_token").value = token.id;
+                form.submit();
+            } catch (err) {
+                console.error("Stripe error:", err);
+                error.textContent = "Payment processing error. Please try again.";
+                loading.style.display = "none";
+                button.disabled = false;
+            }
+        });
+    </script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Solo seleccionar comisiones que se pueden pagar
+            const selectAllCheckbox = document.getElementById("select-all");
+            if (selectAllCheckbox) {
+                selectAllCheckbox.addEventListener("change", function () {
+                    document.querySelectorAll('input[name="selected_ids[]"]:not([disabled])').forEach(cb => cb.checked = this.checked);
+                });
+            }
+
+            // Verificar si hay comisiones seleccionables para el pago
+            function updatePaymentButton() {
+                const selectableCheckboxes = document.querySelectorAll('input[name="selected_ids[]"]:not([disabled])');
+                const checkedCheckboxes = document.querySelectorAll('input[name="selected_ids[]"]:not([disabled]):checked');
+                const paymentButton = document.querySelector('button[name="submit_manual"]');
+                const cardPaymentButton = document.getElementById("cardPaymentButton");
+                const cardSection = document.getElementById("cardSection");
+                const manualSection = document.getElementById("manualSection");
+
+                // Actualizar botón de pago manual
+                if (paymentButton) {
+                    if (checkedCheckboxes.length === 0) {
+                        paymentButton.disabled = true;
+                        paymentButton.innerHTML = 'No commissions to pay';
+                    } else {
+                        paymentButton.disabled = false;
+                        paymentButton.innerHTML = `Pay ${checkedCheckboxes.length} commission${checkedCheckboxes.length !== 1 ? 's' : ''}`;
+                    }
+                }
+
+                // Actualizar botón de pago con tarjeta
+                if (cardPaymentButton) {
+                    if (checkedCheckboxes.length === 0) {
+                        cardPaymentButton.disabled = true;
+                        cardPaymentButton.innerHTML = 'No commissions to pay';
+                    } else {
+                        cardPaymentButton.disabled = false;
+                        cardPaymentButton.innerHTML = `✅ Pay ${checkedCheckboxes.length} commission${checkedCheckboxes.length !== 1 ? 's' : ''}`;
+                    }
+                }
+
+                // Actualizar secciones de pago
+                const selector = document.getElementById("paymentMethodSelector");
+                if (selector && cardSection && manualSection) {
+                    function updateSections() {
+                        const selected = selector.value;
+                        cardSection.classList.toggle("d-none", selected !== "card");
+                        manualSection.classList.toggle("d-none", selected !== "manual");
+                    }
+                    selector.addEventListener("change", updateSections);
+                    updateSections();
+                }
+            }
+
+            // Ejecutar al cargar y cuando cambien las selecciones
+            updatePaymentButton();
+            document.querySelectorAll('input[name="selected_ids[]"]').forEach(cb => {
+                cb.addEventListener('change', updatePaymentButton);
+            });
+        });
+    </script>
+{% endblock %}

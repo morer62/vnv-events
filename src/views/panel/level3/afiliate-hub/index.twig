@@ -1,0 +1,494 @@
+{% extends 'templates/base.admin.twig' %}
+
+{% block body %}
+<main class="container mt-4">
+
+  {# ---------- Vars (ajusta si tu ruta no es /r/{code}) ---------- #}
+{% set aff_code = affiliate_code %}
+{% set BASE_PATH = path('/r/' ~ aff_code) %}
+
+  <!-- ========= HERO / MAIN LINK + SIMPLE UTM BUILDER ========= -->
+  <section class="p-4 p-md-5 rounded-4 mb-5" style="background: linear-gradient(135deg, #0b1f1e 0%, #0aa38f 100%); color:#fff;">
+    <div class="row g-4 align-items-start">
+
+      <!-- LEFT: Main Link -->
+      <div class="col-lg-7">
+        <h2 class="fw-extrabold mb-2" style="color:#fff;">Your Affiliate Link</h2>
+        <p class="mb-3" style="color:#e6fffb;">Share this link to start earning 30% recurring commissions.</p>
+
+        <div class="input-group input-group-lg">
+          <input id="affLink" type="text" class="form-control" value="" readonly aria-label="affiliate link">
+          <button id="copyMainLink" class="btn btn-light fw-bold">Click to copy</button>
+        </div>
+
+        <small class="d-block mt-2" style="opacity:.9;">
+          The link always includes your code <code>{{ aff_code }}</code>. Use the selects on the right to append UTM tags (optional).
+        </small>
+      </div>
+
+      <!-- RIGHT: Simple UTM Builder -->
+      <div class="col-lg-5">
+        <div class="bg-white text-dark rounded-4 p-4 shadow-sm">
+          <h5 class="fw-bold mb-3">UTM Builder</h5>
+
+          <div class="mb-3">
+            <label class="form-label">Source</label>
+            <select id="utmSource" class="form-select">
+              <option value="">— Select source —</option>
+              <option value="instagram">Instagram</option>
+              <option value="facebook">Facebook</option>
+              <option value="yelp">Yelp</option>
+              <option value="linkedin">LinkedIn</option>
+              <option value="blog">Blog</option>
+              <option value="google_ads">Google Ads</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+
+          <div class="mb-4">
+            <label class="form-label">Medium</label>
+            <select id="utmMedium" class="form-select">
+              <option value="">— Select medium —</option>
+              <option value="bio">bio</option>
+              <option value="cpc">cpc</option>
+              <option value="email">email</option>
+            </select>
+            <small class="text-muted d-block mt-1">Suggested: Instagram/Facebook/LinkedIn → <code>bio</code>, Google Ads → <code>cpc</code>, Email → <code>email</code>.</small>
+          </div>
+
+          <div class="d-flex gap-2">
+            <button id="resetUtm" class="btn btn-outline-secondary w-25">Reset</button>
+            <button id="copyWithUtm" class="btn btn-success fw-bold w-75">Copy link with UTM</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ========= QUICK STATS ========= -->
+  <section class="mb-5">
+    <h3 class="fw-bold mb-3">Overview</h3>
+    <div class="row g-3">
+      <div class="col-6 col-md-3">
+        <div class="p-3 bg-white rounded-4 shadow-sm h-100">
+          <div class="text-muted">Total referrals</div>
+          <div class="fs-3 fw-extrabold">{{ stats.confirmed_referrals }}</div>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="p-3 bg-white rounded-4 shadow-sm h-100">
+          <div class="text-muted">Pending payout</div>
+          <div class="fs-3 fw-extrabold">${{ (stats.pending_commissions + stats.approved_commissions)|number_format(2,'.',',') }}</div>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="p-3 bg-white rounded-4 shadow-sm h-100">
+          <div class="text-muted">Total earned</div>
+          <div class="fs-3 fw-extrabold">${{ stats.total_commissions_earned|number_format(2,'.',',') }}</div>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="p-3 bg-white rounded-4 shadow-sm h-100">
+          <div class="text-muted">Paid out</div>
+          <div class="fs-3 fw-extrabold">${{ stats.paid_commissions|number_format(2,'.',',') }}</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========= STRIPE CONNECT ========= -->
+  {% if isMobileApp == false %}
+  <section class="mb-5">
+    <h3 class="fw-bold mb-3">Payouts (Stripe Connect)</h3>
+    <div class="p-4 bg-white rounded-4 shadow-sm d-flex flex-wrap align-items-center justify-content-between gap-3">
+      <div>
+        {% if stripe.connected %}
+          <div class="badge bg-success me-2">Connected</div>
+          <span class="text-muted">Status: {{ stripe.status|default('active') }}</span>
+        {% else %}
+          <div class="badge bg-warning text-dark me-2">Not connected</div>
+          <span class="text-muted">You must complete verification to receive payouts.</span>
+        {% endif %}
+      </div>
+      <div>
+        {% if stripe.connected %}
+          <a href="{{ path('panel/planner-hub/management/payments/') }}" class="btn btn-outline-dark">Open Payouts</a>
+        {% else %}
+          <a href="{{ stripe.connect_url|default(path('panel/planner-hub/management/payments/')) }}" class="btn btn-dark fw-bold">
+            Connect / Verify with Stripe
+          </a>
+        {% endif %}
+      </div>
+    </div>
+  </section>
+  {% endif %}
+  <!-- ========= TABS SECTION ========= -->
+  <section class="mb-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h3 class="fw-bold mb-0">Referrals & Commissions</h3>
+      <button class="btn btn-outline-primary" data-bs-toggle="collapse" data-bs-target="#searchForm">
+        <i class="fas fa-search"></i> Search & Filter
+      </button>
+    </div>
+
+    <!-- Search Form -->
+    <div class="collapse mb-4" id="searchForm">
+      <div class="p-4 bg-light rounded-4">
+        <form method="GET" class="row g-3">
+          <div class="col-md-4">
+            <label class="form-label">Search by name or email</label>
+            <input type="text" name="search" class="form-control" value="{{ search_params.search|default('') }}" placeholder="Enter name or email">
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">From date</label>
+            <input type="date" name="date_from" class="form-control" value="{{ search_params.date_from|default('') }}">
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">To date</label>
+            <input type="date" name="date_to" class="form-control" value="{{ search_params.date_to|default('') }}">
+          </div>
+          <div class="col-md-2 d-flex align-items-end gap-2">
+            <button type="submit" class="btn btn-primary flex-fill">Search</button>
+            <a href="{{ path('/panel/afiliate-hub') }}" class="btn btn-outline-secondary">Clear</a>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Tabs Navigation -->
+    <ul class="nav nav-tabs mb-4" id="affiliateTabs" role="tablist">
+      <li class="nav-item" role="presentation">
+        <button class="nav-link active" id="referrals-tab" data-bs-toggle="tab" data-bs-target="#referrals" type="button" role="tab" aria-controls="referrals" aria-selected="true">
+          <i class="fas fa-users me-2"></i>Referrals ({{ referrals_total }})
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" id="commissions-tab" data-bs-toggle="tab" data-bs-target="#commissions" type="button" role="tab" aria-controls="commissions" aria-selected="false">
+          <i class="fas fa-dollar-sign me-2"></i>Commissions ({{ commissions|length }})
+        </button>
+      </li>
+    </ul>
+
+    <!-- Tab Content -->
+    <div class="tab-content" id="affiliateTabsContent">
+      <!-- Referrals Tab -->
+      <div class="tab-pane fade show active" id="referrals" role="tabpanel" aria-labelledby="referrals-tab">
+        <div class="bg-white rounded-4 shadow-sm overflow-hidden">
+          <div class="table-responsive">
+            <table class="table table-hover mb-0">
+              <thead class="bg-light">
+                <tr>
+                  <th>User</th>
+                  <th>Email</th>
+                  <th>Source</th>
+                  <th>Joined</th>
+                  <th>Commissions Generated</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% if referrals|length > 0 %}
+                  {% for referral in referrals %}
+                    <tr>
+                      <td>
+                        <div class="fw-bold">{{ referral.name }} {{ referral.lastname }}</div>
+                      </td>
+                      <td>{{ referral.email }}</td>
+                      <td>
+                        {% if referral.utm_source %}
+                          <span class="badge bg-info">{{ referral.utm_source }}</span>
+                          {% if referral.utm_medium %}
+                            <small class="text-muted">/ {{ referral.utm_medium }}</small>
+                          {% endif %}
+                        {% else %}
+                          <span class="text-muted">Direct</span>
+                        {% endif %}
+                      </td>
+                      <td>{{ referral.user_registered_at|date('M d, Y') }}</td>
+                      <td>
+                        <span class="fw-bold text-success">${{ referral.total_commissions_generated|number_format(2) }}</span>
+                      </td>
+                      <td>
+                        {% if referral.status == 'confirmed' %}
+                          <span class="badge bg-success">Active</span>
+                        {% else %}
+                          <span class="badge bg-warning">{{ referral.status|title }}</span>
+                        {% endif %}
+                      </td>
+                    </tr>
+                  {% endfor %}
+                {% else %}
+                  <tr>
+                    <td colspan="6" class="text-center text-muted py-4">
+                      No referrals found. Start sharing your affiliate link to see results here!
+                    </td>
+                  </tr>
+                {% endif %}
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Referrals Pagination -->
+          {% if referrals_pagination.total_pages > 1 %}
+            <div class="p-3 border-top">
+              <nav>
+                <ul class="pagination pagination-sm justify-content-center mb-0">
+                  {% if referrals_pagination.has_prev %}
+                    <li class="page-item">
+                      <a class="page-link" href="?page={{ referrals_pagination.prev_page }}{% if search_params.search %}&search={{ search_params.search }}{% endif %}{% if search_params.date_from %}&date_from={{ search_params.date_from }}{% endif %}{% if search_params.date_to %}&date_to={{ search_params.date_to }}{% endif %}">Previous</a>
+                    </li>
+                  {% endif %}
+                  
+                  {% for i in 1..referrals_pagination.total_pages %}
+                    {% if i == referrals_pagination.current_page %}
+                      <li class="page-item active">
+                        <span class="page-link">{{ i }}</span>
+                      </li>
+                    {% else %}
+                      <li class="page-item">
+                        <a class="page-link" href="?page={{ i }}{% if search_params.search %}&search={{ search_params.search }}{% endif %}{% if search_params.date_from %}&date_from={{ search_params.date_from }}{% endif %}{% if search_params.date_to %}&date_to={{ search_params.date_to }}{% endif %}">{{ i }}</a>
+                      </li>
+                    {% endif %}
+                  {% endfor %}
+                  
+                  {% if referrals_pagination.has_next %}
+                    <li class="page-item">
+                      <a class="page-link" href="?page={{ referrals_pagination.next_page }}{% if search_params.search %}&search={{ search_params.search }}{% endif %}{% if search_params.date_from %}&date_from={{ search_params.date_from }}{% endif %}{% if search_params.date_to %}&date_to={{ search_params.date_to }}{% endif %}">Next</a>
+                    </li>
+                  {% endif %}
+                </ul>
+              </nav>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Commissions Tab -->
+      <div class="tab-pane fade" id="commissions" role="tabpanel" aria-labelledby="commissions-tab">
+        <div class="bg-white rounded-4 shadow-sm overflow-hidden">
+          <div class="table-responsive">
+            <table class="table table-hover mb-0">
+              <thead class="bg-light">
+                <tr>
+                  <th>Date</th>
+                  <th>User</th>
+                  <th>Transaction Type</th>
+                  <th>Gross Amount</th>
+                  <th>Commission (30%)</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% if commissions|length > 0 %}
+                  {% for commission in commissions %}
+                    <tr>
+                      <td>{{ commission.created_at|date('M d, Y') }}</td>
+                      <td>{{ commission.referred_name }}</td>
+                      <td>
+                        {% if commission.transaction_type == 'membership_monthly' %}
+                          <span class="badge bg-primary">Monthly Membership</span>
+                        {% elseif commission.transaction_type == 'membership_annual' %}
+                          <span class="badge bg-success">Annual Membership</span>
+                        {% elseif commission.transaction_type == 'listing_fee' %}
+                          <span class="badge bg-info">Listing Fee</span>
+                        {% else %}
+                          <span class="badge bg-secondary">{{ commission.transaction_type|title }}</span>
+                        {% endif %}
+                      </td>
+                      <td>${{ commission.gross_amount|number_format(2) }}</td>
+                      <td>
+                        <span class="fw-bold text-success">${{ commission.commission_amount|number_format(2) }}</span>
+                      </td>
+                      <td>
+                        {% if commission.status == 'pending' %}
+                          <span class="badge bg-warning">Pending</span>
+                        {% elseif commission.status == 'approved' %}
+                          <span class="badge bg-info">Approved</span>
+                        {% elseif commission.status == 'paid' %}
+                          <span class="badge bg-success">Paid</span>
+                        {% else %}
+                          <span class="badge bg-danger">{{ commission.status|title }}</span>
+                        {% endif %}
+                      </td>
+                    </tr>
+                  {% endfor %}
+                {% else %}
+                  <tr>
+                    <td colspan="6" class="text-center text-muted py-4">
+                      No commissions yet. Your commissions will appear here when your referrals make purchases.
+                    </td>
+                  </tr>
+                {% endif %}
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Commissions Pagination -->
+          {% if commissions_pagination.total_pages > 1 %}
+            <div class="p-3 border-top">
+              <nav>
+                <ul class="pagination pagination-sm justify-content-center mb-0">
+                  {% if commissions_pagination.has_prev %}
+                    <li class="page-item">
+                      <a class="page-link" href="?tab=commissions&page={{ commissions_pagination.prev_page }}{% if search_params.search %}&search={{ search_params.search }}{% endif %}{% if search_params.date_from %}&date_from={{ search_params.date_from }}{% endif %}{% if search_params.date_to %}&date_to={{ search_params.date_to }}{% endif %}">Previous</a>
+                    </li>
+                  {% endif %}
+                  
+                  {% for i in 1..commissions_pagination.total_pages %}
+                    {% if i == commissions_pagination.current_page %}
+                      <li class="page-item active">
+                        <span class="page-link">{{ i }}</span>
+                      </li>
+                    {% else %}
+                      <li class="page-item">
+                        <a class="page-link" href="?tab=commissions&page={{ i }}{% if search_params.search %}&search={{ search_params.search }}{% endif %}{% if search_params.date_from %}&date_from={{ search_params.date_from }}{% endif %}{% if search_params.date_to %}&date_to={{ search_params.date_to }}{% endif %}">{{ i }}</a>
+                      </li>
+                    {% endif %}
+                  {% endfor %}
+                  
+                  {% if commissions_pagination.has_next %}
+                    <li class="page-item">
+                      <a class="page-link" href="?tab=commissions&page={{ commissions_pagination.next_page }}{% if search_params.search %}&search={{ search_params.search }}{% endif %}{% if search_params.date_from %}&date_from={{ search_params.date_from }}{% endif %}{% if search_params.date_to %}&date_to={{ search_params.date_to }}{% endif %}">Next</a>
+                    </li>
+                  {% endif %}
+                </ul>
+              </nav>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- ========= Toast (copy feedback) ========= -->
+<div class="position-fixed bottom-0 end-0 p-3" style="z-index: 1080;">
+  <div id="copyToast" class="toast align-items-center text-bg-dark border-0" role="status" aria-live="assertive" aria-atomic="true">
+    <div class="d-flex">
+      <div class="toast-body">Link copied to clipboard.</div>
+      <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  // ---------- Config ----------
+  const BASE_PATH = "{{ BASE_PATH }}";   // e.g. "/r/abc123"
+  const AFF_CODE  = "{{ aff_code }}";    // used in ?ref=
+
+  // DOM
+  const affLink     = document.getElementById('affLink');
+  const srcSel      = document.getElementById('utmSource');
+  const medSel      = document.getElementById('utmMedium');
+  const btnCopyMain = document.getElementById('copyMainLink');
+  const btnCopyUtm  = document.getElementById('copyWithUtm');
+  const btnReset    = document.getElementById('resetUtm');
+
+  // Suggested defaults per source
+  const DEFAULT_MEDIUM = {
+    instagram: 'bio',
+    facebook:  'bio',
+    linkedin:  'bio',
+    yelp:      'bio',
+    blog:      'email',
+    google_ads:'cpc',
+    other:     'email'
+  };
+
+  // Helpers
+  function showToast(){
+    if (!window.bootstrap) return alert('Copied!');
+    new bootstrap.Toast(document.getElementById('copyToast')).show();
+  }
+
+  function buildUrl(){
+    const url = new URL(BASE_PATH, window.location.origin);
+    url.searchParams.set('ref', AFF_CODE);
+    if (srcSel.value) url.searchParams.set('utm_source', srcSel.value);
+    if (medSel.value) url.searchParams.set('utm_medium', medSel.value);
+    return url.toString();
+  }
+
+  function renderLink(){
+    affLink.value = buildUrl();
+    try {
+      localStorage.setItem('aff_src', srcSel.value || '');
+      localStorage.setItem('aff_med', medSel.value || '');
+    } catch(e){}
+  }
+
+  // Events
+  srcSel.addEventListener('change', () => {
+    // Autocomplete medium if empty or previously auto-filled
+    const suggested = DEFAULT_MEDIUM[srcSel.value] || '';
+    if (!medSel.value || medSel.dataset.autofill === '1') {
+      medSel.value = suggested;
+      medSel.dataset.autofill = '1';
+    }
+    renderLink();
+  });
+
+  medSel.addEventListener('change', () => {
+    medSel.dataset.autofill = '0';
+    renderLink();
+  });
+
+  btnCopyMain.addEventListener('click', async () => {
+    try { await navigator.clipboard.writeText(affLink.value); } catch(e){}
+    showToast();
+  });
+
+  btnCopyUtm.addEventListener('click', async () => {
+    try { await navigator.clipboard.writeText(buildUrl()); } catch(e){}
+    showToast();
+  });
+
+  btnReset.addEventListener('click', () => {
+    srcSel.value = '';
+    medSel.value = '';
+    medSel.dataset.autofill = '1';
+    renderLink();
+  });
+
+  // Init from storage
+  try {
+    const s = localStorage.getItem('aff_src');
+    const m = localStorage.getItem('aff_med');
+    if (s) srcSel.value = s;
+    if (m) { medSel.value = m; medSel.dataset.autofill = '0'; }
+  } catch(e){}
+
+  if (!medSel.value && DEFAULT_MEDIUM[srcSel.value]) {
+    medSel.value = DEFAULT_MEDIUM[srcSel.value];
+    medSel.dataset.autofill = '1';
+  }
+
+  renderLink();
+})();
+
+// Tab functionality
+document.addEventListener('DOMContentLoaded', function() {
+  const urlParams = new URLSearchParams(window.location.search);
+  const activeTab = urlParams.get('tab') || 'referrals';
+  
+  // Activar el tab correcto
+  const tabButton = document.getElementById(activeTab + '-tab');
+  if (tabButton) {
+    tabButton.click();
+  }
+  
+  // Actualizar URLs de paginación para mantener el tab activo
+  const paginationLinks = document.querySelectorAll('.pagination a');
+  paginationLinks.forEach(link => {
+    const href = new URL(link.href);
+    if (activeTab === 'commissions' && !href.searchParams.has('tab')) {
+      href.searchParams.set('tab', 'commissions');
+      link.href = href.toString();
+    }
+  });
+});
+</script>
+{% endblock %}

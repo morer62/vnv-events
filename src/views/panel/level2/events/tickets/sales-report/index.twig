@@ -1,0 +1,341 @@
+{% extends 'templates/base.admin.twig' %}
+{% import 'templates/macros.twig' as macros %}
+
+{% block body %}
+<main class="container-fluid">
+    <!-- Header Section -->
+    <div class="row mb-3">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h4 mb-1 text-primary">Sales Report</h1>
+                    <p class="text-muted mb-0">{{ venueEvent.name }} - {{ venueEvent.start_date|date('M j, Y') }}</p>
+                </div>
+                <div>
+                    <a href="{{ path('panel/events/tickets') }}?event_id={{ venueEvent.id }}" class="btn btn-outline-secondary btn-sm">
+                        <i class="fa-solid fa-arrow-left me-1"></i>Back to Tickets
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row mb-3">
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body text-center p-3">
+                    <i class="fa-solid fa-ticket-alt text-primary mb-2"></i>
+                    <h4 class="text-primary mb-1">{{ stats.total_tickets_sold|default(0) }}</h4>
+                    <small class="text-muted">Total Tickets Sold</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body text-center p-3">
+                    <i class="fa-solid fa-dollar-sign text-success mb-2"></i>
+                    <h4 class="text-success mb-1">${{ stats.total_revenue|default(0)|number_format(2) }}</h4>
+                    <small class="text-muted">Total Revenue</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body text-center p-3">
+                    <i class="fa-solid fa-users text-info mb-2"></i>
+                    <h4 class="text-info mb-1">{{ stats.unique_customers|default(0) }}</h4>
+                    <small class="text-muted">Unique Customers</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body text-center p-3">
+                    <i class="fa-solid fa-calendar-alt text-warning mb-2"></i>
+                    <h4 class="text-warning mb-1">{{ stats.total_orders|default(0) }}</h4>
+                    <small class="text-muted">Total Orders</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="card mb-3">
+        <div class="card-header">
+            <h5 class="mb-0">🔍 Filters</h5>
+        </div>
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <input type="hidden" name="event_id" value="{{ venueEvent.id }}">
+                
+                <div class="col-md-3">
+                    <label class="form-label">Ticket Type</label>
+                    <select name="ticket_type_id" class="form-select">
+                        <option value="">All Types</option>
+                        {% for ticketType in ticketTypes %}
+                            <option value="{{ ticketType.id }}" {{ filters.ticket_type_id == ticketType.id ? 'selected' : '' }}>
+                                {{ ticketType.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div class="col-md-3">
+                    <label class="form-label">Email</label>
+                    <input type="email" name="email" class="form-control" 
+                           value="{{ filters.email }}" placeholder="customer@email.com">
+                </div>
+                
+                <div class="col-md-2">
+                    <label class="form-label">Date From</label>
+                    <input type="date" name="date_from" class="form-control" 
+                           value="{{ filters.date_from }}">
+                </div>
+                
+                <div class="col-md-2">
+                    <label class="form-label">Date To</label>
+                    <input type="date" name="date_to" class="form-control" 
+                           value="{{ filters.date_to }}">
+                </div>
+                
+                <div class="col-md-2">
+                    <label class="form-label">&nbsp;</label>
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fa-solid fa-search me-1"></i>Filter
+                        </button>
+                        <a href="?event_id={{ venueEvent.id }}" class="btn btn-outline-secondary">
+                            <i class="fa-solid fa-times me-1"></i>Clear
+                        </a>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Sales Table -->
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">📊 Sales Report</h5>
+            <div class="text-muted">
+                Showing {{ pagination.total_records }} records
+            </div>
+        </div>
+        <div class="card-body p-0">
+            {% if salesData|length > 0 %}
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="bg-light">
+                            <tr>
+                                <th>Order ID</th>
+                                <th>Customer</th>
+                                <th>Email</th>
+                                <th>Ticket Type</th>
+                                <th>Quantity</th>
+                                <th>Unit Price</th>
+                                <th>Total Amount</th>
+                                <th>Purchase Date</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for sale in salesData %}
+                                <tr>
+                                    <td>
+                                        <strong>#{{ sale.id }}</strong>
+                                    </td>
+                                    <td>
+                                        <div>
+                                            <strong>{{ sale.buyer_name }}</strong>
+                                            {% if sale.buyer_phone %}
+                                                <br><small class="text-muted">{{ sale.buyer_phone }}</small>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <a href="mailto:{{ sale.buyer_email }}" class="text-decoration-none">
+                                            {{ sale.buyer_email }}
+                                        </a>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-primary">{{ sale.ticket_type_name }}</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-info">{{ sale.quantity }}</span>
+                                    </td>
+                                    <td>
+                                        ${{ sale.unit_price|number_format(2) }}
+                                    </td>
+                                    <td>
+                                        <strong>${{ sale.total_amount|number_format(2) }}</strong>
+                                    </td>
+                                    <td>
+                                        {{ sale.sold_at|date('M j, Y g:i A') }}
+                                    </td>
+                                    <td>
+                                        {% if sale.payment_status == 'paid' %}
+                                            <span class="badge bg-success">
+                                                <i class="fa-solid fa-check me-1"></i>Paid
+                                            </span>
+                                        {% elseif sale.payment_status == 'pending' %}
+                                            <span class="badge bg-warning">
+                                                <i class="fa-solid fa-clock me-1"></i>Pending
+                                            </span>
+                                        {% else %}
+                                            <span class="badge bg-danger">
+                                                <i class="fa-solid fa-times me-1"></i>Failed
+                                            </span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <button class="btn btn-primary btn-sm" 
+                                                onclick="viewTicketDetails({{ sale.id }})"
+                                                title="View QR Code"
+                                                style="min-width: 40px; height: 32px; display: flex; align-items: center; justify-content: center;">
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                                <path d="M3 3h7v7H3V3zm1 1v5h5V4H4zm9-1h7v7h-7V3zm1 1v5h5V4h-5zM3 14h7v7H3v-7zm1 1v5h5v-5H4zm9-1h7v7h-7v-7zm1 1v5h5v-5h-5z"/>
+                                            </svg>
+                                        </button>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination -->
+                {% if pagination.total_pages > 1 %}
+                    <div class="card-footer">
+                        <nav aria-label="Sales report pagination">
+                            <ul class="pagination justify-content-center mb-0">
+                                <!-- Previous Page -->
+                                {% if pagination.current_page > 1 %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?event_id={{ venueEvent.id }}&page={{ pagination.current_page - 1 }}{% for key, value in filters %}{% if value %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                                            <i class="fa-solid fa-chevron-left"></i>
+                                        </a>
+                                    </li>
+                                {% endif %}
+
+                                <!-- Page Numbers -->
+                                {% set start_page = max(1, pagination.current_page - 2) %}
+                                {% set end_page = min(pagination.total_pages, pagination.current_page + 2) %}
+
+                                {% if start_page > 1 %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?event_id={{ venueEvent.id }}&page=1{% for key, value in filters %}{% if value %}&{{ key }}={{ value }}{% endif %}{% endfor %}">1</a>
+                                    </li>
+                                    {% if start_page > 2 %}
+                                        <li class="page-item disabled">
+                                            <span class="page-link">...</span>
+                                        </li>
+                                    {% endif %}
+                                {% endif %}
+
+                                {% for page in start_page..end_page %}
+                                    <li class="page-item {{ page == pagination.current_page ? 'active' : '' }}">
+                                        <a class="page-link" href="?event_id={{ venueEvent.id }}&page={{ page }}{% for key, value in filters %}{% if value %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                                            {{ page }}
+                                        </a>
+                                    </li>
+                                {% endfor %}
+
+                                {% if end_page < pagination.total_pages %}
+                                    {% if end_page < pagination.total_pages - 1 %}
+                                        <li class="page-item disabled">
+                                            <span class="page-link">...</span>
+                                        </li>
+                                    {% endif %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?event_id={{ venueEvent.id }}&page={{ pagination.total_pages }}{% for key, value in filters %}{% if value %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                                            {{ pagination.total_pages }}
+                                        </a>
+                                    </li>
+                                {% endif %}
+
+                                <!-- Next Page -->
+                                {% if pagination.current_page < pagination.total_pages %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?event_id={{ venueEvent.id }}&page={{ pagination.current_page + 1 }}{% for key, value in filters %}{% if value %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                                            <i class="fa-solid fa-chevron-right"></i>
+                                        </a>
+                                    </li>
+                                {% endif %}
+                            </ul>
+                        </nav>
+                        
+                        <div class="text-center mt-2">
+                            <small class="text-muted">
+                                Page {{ pagination.current_page }} of {{ pagination.total_pages }} 
+                                ({{ pagination.total_records }} total records)
+                            </small>
+                        </div>
+                    </div>
+                {% endif %}
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="fa-solid fa-chart-line text-muted mb-3" style="font-size: 3rem;"></i>
+                    <h5 class="text-muted mb-3">No Sales Found</h5>
+                    <p class="text-muted mb-3">
+                        {% if filters.ticket_type_id or filters.email or filters.date_from or filters.date_to %}
+                            No sales match your current filters. Try adjusting your search criteria.
+                        {% else %}
+                            No tickets have been sold for this event yet.
+                        {% endif %}
+                    </p>
+                    {% if filters.ticket_type_id or filters.email or filters.date_from or filters.date_to %}
+                        <a href="?event_id={{ venueEvent.id }}" class="btn btn-primary">
+                            <i class="fa-solid fa-times me-1"></i>Clear Filters
+                        </a>
+                    {% endif %}
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</main>
+
+<!-- QR Code Modal -->
+<div class="modal fade" id="ticketDetailsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content" style="border-radius: 20px; border: none; box-shadow: 0 25px 50px rgba(0,0,0,0.15);">
+            <div class="modal-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 20px 20px 0 0; border: none;">
+                <h5 class="modal-title" style="font-weight: 600; font-size: 20px;">
+                    <i class="fa-solid fa-qrcode me-2"></i>QR Code
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="ticketDetailsContent" style="padding: 0; background: #f8f9fa;">
+                <!-- QR Code will be loaded here -->
+            </div>
+            <div class="modal-footer" style="background: #f8f9fa; border-radius: 0 0 20px 20px; border: none; padding: 20px;">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" style="border-radius: 10px; padding: 10px 20px; font-weight: 500;">
+                    <i class="fa-solid fa-times me-2"></i>Close
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let currentTicketId = null;
+
+function viewTicketDetails(saleId) {
+    currentTicketId = saleId;
+    
+    // Create iframe to load QR code
+    const iframe = document.createElement('iframe');
+    iframe.src = `{{ path("panel/events/tickets/qr") }}?ticket_id=${saleId}&code_index=0`;
+    iframe.style.width = '100%';
+    iframe.style.height = '500px';
+    iframe.style.border = 'none';
+    iframe.style.borderRadius = '0';
+    
+    document.getElementById('ticketDetailsContent').innerHTML = '';
+    document.getElementById('ticketDetailsContent').appendChild(iframe);
+    
+    new bootstrap.Modal(document.getElementById('ticketDetailsModal')).show();
+}
+</script>
+{% endblock %}

@@ -1,0 +1,40 @@
+{% extends 'templates/base.admin.twig' %}
+
+{% block body %}
+<div class="container-fluid h-100 d-flex flex-column justify-content-center p-3">
+    <h1 class="h3 mb-3 text-center">VNV Certificated</h1>
+
+    <nav aria-label="breadcrumb" class="text-center">
+        <ol class="breadcrumb justify-content-center">
+            <li class="breadcrumb-item"><a href="{{ path('panel/home') }}">Home</a></li>
+            <li class="breadcrumb-item"><a href="{{ path('panel/venues/home') }}">My Venues</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Edit</li>
+        </ol>
+    </nav>
+
+    <main class="card w-100 shadow-lg">
+        <div class="card-body text-center">
+            <label>
+                Copy and paste this code into your website or personal blog to link your profile to your certified account.<br><br>
+                <textarea id="certCode" class="form-control" disabled>
+                    <a href="{{ data.wordpress_profile }}">
+                        <img src="https://vnvevents.com/wp-content/uploads/2025/03/vnv_certificated.png" style="width:250px">
+                    </a>
+                </textarea>
+                <br>
+                <button class="btn btn-dark w-100" onclick="copyCode()">Click to Copy</button>
+            </label>
+        </div>
+    </main>
+</div>
+
+<script>
+    function copyCode() {
+        var copyText = document.getElementById("certCode");
+        copyText.select();
+        copyText.setSelectionRange(0, 99999);
+        navigator.clipboard.writeText(copyText.value);
+        alert("Code copied to clipboard!");
+    }
+</script>
+{% endblock %}

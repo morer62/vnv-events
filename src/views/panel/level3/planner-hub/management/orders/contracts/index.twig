@@ -1,0 +1,45 @@
+{% extends 'templates/base.admin.twig' %}
+{% import 'templates/macros.twig' as macros %}
+
+{% block body %}
+
+    <h2 class="mb-4">📜 Contracts</h2>
+
+    {{ macros.breadcrumb2() }}
+
+    <section class="card">
+        <div class="card-body">
+
+            <a href="{{ path(current_location ~ '/create') }}" class="btn btn-primary mb-3">
+                <i data-feather="plus"></i> Add New Contract
+            </a>
+
+            <div class="table-responsive">
+                <table class="table table-bordered text-center align-middle" style="min-width: 500px;">
+                    <thead>
+                    <tr>
+                        <th>Title</th>
+                        <th>Actions</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for contract in contracts %}
+                        <tr>
+                            <td>{{ contract.title }}</td>
+                            <td class="d-flex justify-content-center gap-2">
+                                <a href="{{ path(current_location ~ '/edit') }}?id={{ contract.id }}" class="btn btn-warning">✏️ Edit</a>
+                                {{ macros.delete_form(contract.id) }}
+                            </td>
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <td colspan="2" class="text-muted">No contracts were found.</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+{% endblock %}

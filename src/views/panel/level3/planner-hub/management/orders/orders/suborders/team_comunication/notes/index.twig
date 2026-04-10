@@ -1,0 +1,99 @@
+{% extends 'templates/base.admin.twig' %}
+{% import 'templates/macros.twig' as macros %}
+
+{% block body %}
+
+<style>
+.fixed-textarea {
+  min-height: 160px;
+  max-height: 400px;
+  resize: none;
+  overflow-y: auto; 
+  line-height: 2;
+  font-size: 13px;
+}
+</style>
+
+<h1 class="h3 mb-4">📝 Service Notes for Sub-Order #{{ id }}</h1>
+
+<a href="{{ path('panel/planner-hub/management/orders/orders/suborders/team_comunication') }}?id={{ id }}" class="btn btn-outline-secondary mb-3">  
+  ← Back to Team Area
+</a>
+
+<div class="alert alert-info mb-4">
+  <h5>📋 Sub-Order Information</h5>
+  <p><strong>Sub-Order ID:</strong> Sub-{{ suborder.id }}</p>
+  <p><strong>Parent Order:</strong> VNV 341{{ order.id }}</p>
+  <p><strong>Event Date:</strong> {{ order.event_date|date("l, M j, Y") }}</p>
+  <p><strong>Time:</strong> {{ order.start_time|date("g:i A") }} - {{ order.end_time|date("g:i A") }}</p>
+</div>
+
+<form method="post">
+  <input type="hidden" name="suborder_id" value="{{ id }}">
+
+  {% for service in services %}
+    <div class="card mb-4">
+      <div class="card-header fw-bold">{{ service.name }}</div>
+      <div class="card-body">
+        <div class="mb-3">
+          <label class="form-label">Custom notes for this service</label>
+          <textarea name="notes[{{ service.id_service }}]"
+                    class="form-control fixed-textarea"
+                    maxlength="1200"
+                    id="notes-{{ service.id_service }}">{{ service.notes }}</textarea>
+        </div>
+
+        <div class="row">
+          <div class="col-md-4 mb-2">
+            <label class="form-label">🛠️ Install Time</label>
+            <input type="time" name="install_time[{{ service.id_service }}]" value="{{ service.install_time }}" class="form-control">
+          </div>
+          <div class="col-md-4 mb-2">
+            <label class="form-label">🎬 Execution Time</label>
+            <input type="time" name="execution_time[{{ service.id_service }}]" value="{{ service.execution_time }}" class="form-control">
+          </div>
+          <div class="col-md-4 mb-2">
+            <label class="form-label">📦 Breakdown Time</label>
+            <input type="time" name="breakdown_time[{{ service.id_service }}]" value="{{ service.breakdown_time }}" class="form-control">
+          </div>
+        </div>
+
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" name="manual[]" value="{{ service.id_service }}" id="manualCheck{{ service.id_service }}"
+            {% if service.has_manual_entry %}checked{% endif %}>
+          <label class="form-check-label" for="manualCheck{{ service.id_service }}">
+            🖊️ This service should include space for handwritten instructions.
+          </label>
+        </div>
+      </div>
+    </div>
+  {% endfor %}
+
+  <button class="btn btn-success">
+    <i data-feather="save"></i> Save Comments
+  </button>
+</form>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  document.querySelectorAll('textarea[name^="notes["]').forEach(textarea => {
+    if (textarea.hasAttribute('data-payroll-notes')) {
+      return;
+    }
+    
+    textarea.addEventListener('input', function() {
+      this.style.height = 'auto';
+      const newHeight = this.scrollHeight;
+      const maxHeight = 400;
+      
+      if (newHeight <= maxHeight) {
+        this.style.height = newHeight + 'px';
+      } else {
+        this.style.height = maxHeight + 'px';
+      }
+    });
+  });
+});
+</script>
+
+{% endblock %}

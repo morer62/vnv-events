@@ -1,0 +1,57 @@
+{% extends 'templates/base.admin.twig' %}
+{% import 'templates/macros.twig' as macros %}
+{% block body %}
+
+<main>
+    <h1 class="h3 mb-4">📦 My Containers</h1>
+
+    {{ macros.breadcrumb2() }}
+
+    <section class="card">
+        <div class="card-body">
+
+            <!--
+            <a class="btn btn-primary mb-3" href="{{ path('panel/planner-hub/team/storage/containers/create') }}">
+                <i class="align-middle" data-feather="plus"></i>Add a new container
+            </a>
+            -->
+
+            <div class="table-responsive">
+                <table class="table table-bordered text-center align-middle" style="min-width: 600px;">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for container in containers %}
+                            <tr>
+                                <td>{{ container.name }}</td>
+                                <td class="d-flex justify-content-center gap-2">
+                                    <a href="{{ path(current_location ~ '/items', { container_id: container.id}) }}" class="btn btn-primary">
+                                        <i class="align-middle" data-feather="list"></i> View Items
+                                    </a>
+
+                                    <!--
+                                    <a href="{{ path(current_location ~ '/edit', { id: container.id }) }}" class="btn btn-warning">
+                                        <i class="align-middle" data-feather="edit-2"></i> Edit
+                                    </a>
+
+                                    {{ macros.delete_form(container.id) }}
+                                    -->
+                                </td>
+                            </tr>
+                        {% else %}
+                            <tr>
+                                <td colspan="2" class="text-muted">No containers were found.</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+    </section>
+</main>
+{% endblock %}

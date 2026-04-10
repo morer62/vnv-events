@@ -1,0 +1,45 @@
+{% extends 'templates/base.admin.twig' %}
+{% block body %}
+
+<main class="container-fluid">
+    <h1 class="h3 mb-4">💳 Venue Payment History</h1>
+
+    <div class="card">
+        <div class="card-body">
+            {% if payments is empty %}
+                <div class="alert alert-info">No payment history found.</div>
+            {% else %}
+                <table class="table table-bordered table-striped text-center">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Payment Date</th>
+                            <th>Renewal Date</th>
+                            <th>Amount</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for payment in payments %}
+                            <tr>
+                                <td>{{ loop.index }}</td>
+                                <td>{{ payment.payment_date ?: '—' }}</td>
+                                <td>{{ payment.renewal ?: '—' }}</td>
+                                <td>${{ env.VENUE_PAYMENT_AMOUNT }}</td>
+                                <td>
+                                    {% if payment.active == 'yes' %}
+                                        <span class="badge bg-success">Active</span>
+                                    {% else %}
+                                        <span class="badge bg-danger">Expired</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% endif %}
+        </div>
+    </div>
+</main>
+
+{% endblock %}

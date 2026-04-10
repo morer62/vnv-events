@@ -1,0 +1,636 @@
+{% extends 'templates/base.twig' %}
+{% import 'templates/macros.twig' as macros %}
+
+{% block head %}
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+          integrity="sha512-Avb2QiuDEEvB4bZJYdft2mNjVShBftLdPG8FJ0V7irTLQ8Uo0qcPxh4Plq6cZ9Yp9R3SZkqCJzFYnRg4P9L4A=="
+          crossorigin="anonymous" referrerpolicy="no-referrer"/>
+{% endblock %}
+
+{% block title %}
+    {{ venue.name }}
+{% endblock %}
+
+{% block meta %}
+    <!-- Open Graph (for Facebook, WhatsApp, Messenger, LinkedIn, etc.) -->
+    <meta property="og:title" content="{{ venue.name }}"/>
+    <meta property="og:description" content="{{ venue.description | html_to_text | truncate(80) }}"/>
+    <meta property="og:url" content="{{ path('profiles/venue/' ~ venue.id ~ '/details') }}"/>
+    <meta property="og:type" content="website"/>
+    <meta property="og:site_name" content="E-Planner Hub"/>
+
+    <meta name="twitter:card" content="summary_large_image"/>
+    <meta name="twitter:title" content="{{ venue.name }}"/>
+    <meta name="twitter:description" content="{{ venue.description | html_to_text | truncate(80) }}"/>
+
+    {% if venue.photos and (venue.photos|length) > 0 %}
+        <meta property="og:image" content="{{ venue.photos[0] }}"/>
+        <meta property="og:image:alt" content="{{ venue.name }} ~ main image"/>
+        <meta name="twitter:image" content="{{ venue.photos[0] }}"/>
+    {% endif %}
+
+{% endblock %}
+
+{% block body %}
+    <div class="vnv-promo-banner">
+        <div class="vnv-promo-content">
+            <p class="vnv-promo-text">Want them for your <strong>{{ venue.category_name }}</strong>?</p>
+            <div class="vnv-promo-actions">
+                <a class="vnv-promo-button"
+                   href="{{ path('search/client_request?profile_cat=vendor&id=' ~ venue.id) }}">
+                    Get a Quote
+                </a>
+                <p class="vnv-promo-offer">Book this venue today and save your date.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <div class="vnv-detail-wrapper">
+        <h2>{{ venue.name }}</h2>
+        <div class="vnv-detail-header">
+            <div class="vnv-detail-map">
+                {% if venue.lat and venue.lng %}
+                    <iframe src="https://www.google.com/maps?q={{ venue.lat }},{{ venue.lng }}&output=embed"
+                            width="100%" height="300" style="border:0;" allowfullscreen="" loading="lazy"></iframe>
+                {% else %}
+                    <div class="map-placeholder">
+                        <i class="fa-solid fa-map-location-dot"></i>
+                        <p>Map not available</p>
+                    </div>
+                {% endif %}
+            </div>
+            <div class="vnv-detail-info">
+                <ul class="vnv-detail-list">
+                    <li>
+                        <i class="fa-solid fa-location-dot"></i>
+                        <span>Address</span>
+                        <strong>{{ venue.address }}</strong>
+                    </li>
+
+                    {% if services.indoor_outdoor_type %}
+                        <li>
+                            <i class="fa-solid fa-warehouse"></i>
+                            <span>Space Type</span>
+                            <strong>{{ venue.indoor_outdoor_type|title }}</strong>
+                        </li>
+                    {% endif %}
+
+                    {% if venue.category_name %}
+                        <li>
+                            <i class="fa-solid fa-tags"></i>
+                            <span>Category</span>
+                            <strong>{{ venue.category_name }}</strong>
+                        </li>
+                    {% endif %}
+
+                    {% if venue.phone_number %}
+                        <li>
+                            <i class="fa-solid fa-phone"></i>
+                            <span>Phone</span>
+                            <strong>{{ venue.phone_number }}</strong>
+                        </li>
+                    {% endif %}
+
+                    {% if venue.email %}
+                        <li>
+                            <i class="fa-solid fa-envelope"></i>
+                            <span>Email</span>
+                            <strong>
+                                <a href="mailto:{{ venue.email }}">{{ venue.email }}</a>
+                            </strong>
+                        </li>
+                    {% endif %}
+
+                    {% if venue.website and venue.website != '' %}
+                        <li>
+                            <i class="fa-solid fa-globe"></i>
+                            <span>Website</span>
+                            <strong>
+                                <a href="{{ venue.website }}" target="_blank">{{ venue.website }}</a>
+                            </strong>
+                        </li>
+                    {% endif %}
+
+                    {% if venue.capacity and venue.capacity > 0 %}
+                        <li>
+                            <i class="fa-solid fa-users"></i>
+                            <span>Capacity</span>
+                            <strong>
+                                {{ venue.capacity }}
+                                guests
+                            </strong>
+                        </li>
+                    {% endif %}
+
+                    {% if venue.base_price %}
+                        <li>
+                            <i class="fa-solid fa-dollar-sign"></i>
+                            <span>Base Price</span>
+                            <strong>${{ venue.base_price }}</strong>
+                        </li>
+                    {% endif %}
+
+                    {% set social_links = [] %}
+                    {% if venue.instagram and venue.instagram != '' and venue.instagram != 'Not_available' %}
+                        {% set social_links = social_links|merge([{ url: venue.instagram, icon: 'fab fa-instagram' }]) %}
+                    {% endif %}
+                    {% if venue.facebook and venue.facebook != '' and venue.facebook != 'Not_available' %}
+                        {% set social_links = social_links|merge([{ url: venue.facebook, icon: 'fab fa-facebook-f' }]) %}
+                    {% endif %}
+                    {% if venue.twitter and venue.twitter != '' and venue.twitter != 'Not_available' %}
+                        {% set social_links = social_links|merge([{ url: venue.twitter, icon: 'fab fa-twitter' }]) %}
+                    {% endif %}
+                    {% if venue.yelp and venue.yelp != '' and venue.yelp != 'Not_available' %}
+                        {% set social_links = social_links|merge([{ url: venue.yelp, icon: 'fab fa-yelp' }]) %}
+                    {% endif %}
+
+                    {% if (social_links|length) > 0 %}
+                        <li>
+                            <i class="fa-solid fa-share-nodes"></i>
+                            <span>Social</span>
+                            <strong>
+                                {% for social in social_links %}
+                                    <a href="{{ social.url }}" target="_blank" style="margin-left:10px;">
+                                        <i class="{{ social.icon }}"></i>
+                                    </a>
+                                {% endfor %}
+                            </strong>
+                        </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+
+        <!-- Gallery -->
+        {% if venue.photos and (venue.photos|length) > 0 %}
+            <div class="vnv-detail-gallery">
+                {% for photo in venue.photos|slice(0, 5) %}
+                    <img src="{{ photo }}" class="vnv-thumb" onclick="vnvOpenPopup('{{ photo }}')"/>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <!-- Description -->
+        {% if venue.description %}
+            <div class="vnv-detail-description">{{ venue.description|raw }}</div>
+        {% endif %}
+
+        <!-- Weekly Availability -->
+        {% set day_names = { sun: 'Sunday', mon: 'Monday', tue: 'Tuesday', wed: 'Wednesday', thu: 'Thursday', fri: 'Friday', sat: 'Saturday' } %}
+
+        <h3>🗓️ Weekly Availability</h3>
+        {% if venue.availability %}
+            <table class="vnv-table">
+                <thead>
+                <tr>
+                    <th>Day</th>
+                    <th>Status</th>
+                    <th>From</th>
+                    <th>To</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for day, info in venue.availability %}
+                    <tr>
+                        <td>{{ day_names[day] ? : day|title }}</td>
+                        <td>
+                            {% if info.is_closed %}
+                                ❌ Closed
+                            {% else %}
+                                ✅ Open
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if info.is_closed %}
+                                -
+                            {% elseif info.opens %}
+                                {{ info.opens|date('g:i A') }}
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if info.is_closed %}
+                                -
+                            {% elseif info.closes %}
+                                {{ info.closes|date('g:i A') }}
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p>No availability data.</p>
+        {% endif %}
+
+        <!-- Events -->
+        <h3>📅 Events</h3>
+        {% if venue.events and (venue.events|length) > 0 %}
+            <table class="vnv-table">
+                <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Description</th>
+                    <th>Link</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for event in venue.events %}
+                    <tr>
+                        <td>
+                            {{ event.name }}
+                            {% if event.start_date %}
+                                <hr/>{{ event.start_date }}
+                            {% endif %}
+                        </td>
+                        <td>{{ event.description }}</td>
+                        <td>
+                            {% if event.external_link %}
+                                <a href="{{ event.external_link }}" target="_blank">View</a>
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p>No events available.</p>
+        {% endif %}
+
+        <!-- Promotions -->
+        <h3>🎁 Promotions</h3>
+        {% if venue.promos and (venue.promos|length) > 0 %}
+            <table class="vnv-table">
+                <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Description</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for promo in venue.promos %}
+                    <tr>
+                        <td>
+                            {{ promo.name }}
+                            {% if promo.start_date %}
+                                <hr/>{{ promo.start_date }}
+                            {% endif %}
+                        </td>
+                        <td>{{ promo.description }}</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p>No promotions available.</p>
+        {% endif %}
+
+        {% set icon_map = { 'All-inclusive: Full food, beverage, rentals': 'fa-utensils', 'Raw space: Only the space': 'fa-box', 'Select services: Some basic add-ons': 'fa-puzzle-piece', 'Bar services': 'fa-martini-glass', 'Dance floor': 'fa-music', 'Event rentals': 'fa-chair', 'Lighting/sound': 'fa-lightbulb', 'Service staff': 'fa-user-tie', 'Wedding cake services': 'fa-cake-candles', 'Catering services': 'fa-bowl-food', 'Dressing room / bridal suite': 'fa-person-dress', 'Event staff': 'fa-user', 'On-site accommodations': 'fa-bed', 'Set up': 'fa-screwdriver-wrench', 'Wheelchair accessible': 'fa-wheelchair', 'Clean up': 'fa-soap', 'Event coordinator': 'fa-clipboard-list', 'Liability insurance': 'fa-file-shield', 'Pet friendly': 'fa-dog', Transportation: 'fa-bus', Wifi: 'fa-wifi' } %}
+
+        <!-- Services -->
+        {% if venue.services and (venue.services|length) > 0 %}
+            <h3>🛎️ Services</h3>
+            <ul class="vnv-icon-list">
+                {% for service in venue.services %}
+                    <li>
+                        <i class="fa-solid {{ icon_map[service] ? : 'fa-check' }}"></i>
+                        {{ service }}
+                    </li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+
+        <!-- Amenities -->
+        {% if venue.amenities and (venue.amenities|length) > 0 %}
+            <h3>🎯 Amenities</h3>
+            <ul class="vnv-icon-list">
+                {% for amenity in venue.amenities %}
+                    <li>
+                        <i class="fa-solid {{ icon_map[amenity] ? : 'fa-check' }}"></i>
+                        {{ amenity }}
+                    </li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+
+        <!-- Fullscreen image popup -->
+        <div id="vnv-popup" onclick="this.style.display='none'">
+            <img id="vnv-popup-img"/>
+        </div>
+    </div>
+
+    <style>
+
+        .vnv-promo-banner {
+            background-color: #fff;
+            border-bottom: 1px solid #e0e0e0;
+            padding: 15px 0;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .vnv-promo-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 30px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .vnv-promo-text {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            margin: 0;
+        }
+
+        .vnv-promo-actions {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .vnv-promo-button {
+            background-color: #007cba;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 4px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: background-color 0.3s;
+        }
+
+        .vnv-promo-button:hover {
+            background-color: #006ba1;
+        }
+
+        .vnv-promo-offer {
+            margin: 0;
+            color: #666;
+            font-size: 14px;
+        }
+
+        .vnv-terms-link {
+            color: #007cba;
+            text-decoration: none;
+        }
+
+        .vnv-terms-link:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 768px) {
+            .vnv-promo-content {
+                flex-direction: column;
+                align-items: flex-start;
+                padding: 0 15px;
+            }
+
+            .vnv-promo-actions {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+        }
+
+        .vnv-detail-wrapper {
+            padding: 30px;
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .vnv-detail-header {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .vnv-detail-info {
+            flex: 1;
+            min-width: 300px;
+        }
+
+        .vnv-detail-map {
+            flex: 1;
+            min-width: 300px;
+        }
+
+        .map-placeholder {
+            height: 300px;
+            background: #f8f9fa;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            color: #6c757d;
+        }
+
+        .map-placeholder i {
+            font-size: 48px;
+            margin-bottom: 10px;
+        }
+
+        .vnv-detail-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .vnv-detail-list li {
+            display: flex;
+            align-items: center;
+            margin-bottom: 12px;
+            padding: 8px;
+            background: #f9f9f9;
+            border-radius: 6px;
+        }
+
+        .vnv-detail-list li i {
+            width: 20px;
+            margin-right: 10px;
+            color: #333;
+        }
+
+        .vnv-detail-list li span {
+            min-width: 80px;
+            font-weight: 500;
+            margin-right: 10px;
+        }
+
+        .vnv-detail-list li strong {
+            flex: 1;
+        }
+
+        .vnv-detail-list li strong a {
+            color: #007cba;
+            text-decoration: none;
+        }
+
+        .vnv-detail-list li strong a:hover {
+            text-decoration: underline;
+        }
+
+        .vnv-detail-gallery {
+            display: flex;
+            gap: 10px;
+            overflow-x: auto;
+            padding: 10px 0;
+            margin-bottom: 20px;
+        }
+
+        .vnv-thumb {
+            width: 120px;
+            height: 90px;
+            object-fit: cover;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: transform 0.2s;
+            flex-shrink: 0;
+        }
+
+        .vnv-thumb:hover {
+            transform: scale(1.05);
+        }
+
+        .vnv-detail-description {
+            margin: 20px 0;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #007cba;
+        }
+
+        .vnv-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .vnv-table th {
+            background: #007cba;
+            color: white;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        .vnv-table td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            background: white;
+        }
+
+        .vnv-table tr:nth-child(even) td {
+            background: #f9f9f9;
+        }
+
+        .vnv-table hr {
+            margin: 4px 0;
+            border: none;
+            border-top: 1px solid #ddd;
+        }
+
+        #vnv-popup {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            cursor: pointer;
+        }
+
+        #vnv-popup img {
+            max-width: 90%;
+            max-height: 90%;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+        }
+
+        .vnv-icon-list {
+            columns: 2;
+            list-style: none;
+            padding-left: 0;
+            gap: 20px;
+        }
+
+        .vnv-icon-list li {
+            margin-bottom: 12px;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            break-inside: avoid;
+            padding: 8px;
+            background: #f8f9fa;
+            border-radius: 6px;
+        }
+
+        .vnv-icon-list i {
+            color: #007cba;
+            min-width: 20px;
+            font-size: 18px;
+        }
+
+        h3 {
+            color: #333;
+            border-bottom: 2px solid #007cba;
+            padding-bottom: 8px;
+            margin-top: 30px;
+            margin-bottom: 15px;
+        }
+
+        @media (max-width: 768px) {
+            .vnv-detail-wrapper {
+                padding: 15px;
+            }
+
+            .vnv-detail-header {
+                flex-direction: column;
+            }
+
+            .vnv-icon-list {
+                columns: 1;
+            }
+
+            .vnv-detail-list li {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .vnv-detail-list li span {
+                min-width: auto;
+                margin-bottom: 4px;
+            }
+
+
+        }
+    </style>
+
+    <script>
+        function vnvOpenPopup(url) {
+            const popup = document.getElementById('vnv-popup')
+            const img = document.getElementById('vnv-popup-img')
+            img.src = url
+            popup.style.display = 'flex'
+        }
+    </script>
+{% endblock %}

@@ -1,0 +1,101 @@
+{% extends "templates/base.twig" %}
+
+{% block styles %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+<style>
+.hero {
+    background: linear-gradient(135deg, #0a0a0a, #1b1b1b);
+    color: white;
+    text-align: center;
+    padding: 5rem 2rem;
+}
+.hero h1 { font-size: 2.8rem; font-weight: 700; }
+.hero p { font-size: 1.2rem; margin-top: 1rem; }
+
+.section {
+    padding: 4rem 2rem;
+    line-height: 1.7;
+    font-size: 1rem;
+}
+.section h2 {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-top: 3rem;
+    margin-bottom: 1rem;
+}
+.btn-main {
+    background: #28a745;
+    color: white;
+    padding: 0.75rem 2rem;
+    font-size: 1.1rem;
+    border-radius: 50px;
+    text-decoration: none;
+    font-weight: 600;
+    display: inline-block;
+}
+.btn-outline-secondary {
+    padding: 0.75rem 2rem;
+    font-size: 1rem;
+    border-radius: 50px;
+    background: transparent;
+    border: 2px solid #28a745;
+    color: #28a745;
+    font-weight: 500;
+    text-decoration: none;
+}
+</style>
+{% endblock %}
+
+{% block body %}
+<main>
+  <section class="hero">
+    <h1 style="color:#fff">Support Center</h1>
+    <p>We're here to help you with anything related to account cancellations, payments or additional settings.</p>
+  </section>
+
+  <section class="section">
+    <div class="container" style="max-width: 700px; margin: auto;">
+    
+      <p>If you have any questions, you can use the form below to contact our support team. We usually respond within 24–48 hours. You can also email us directly at:</p>
+      <ul>
+        
+        <li><strong>Sales:</strong> <a href="mailto:info@vnvevents.com">info@vnvevents.com</a></li>
+      </ul>
+
+    
+
+       
+
+      {% if sent %}
+        <div class="alert alert-success text-center mt-4">✅ Your message has been sent successfully.</div>
+      {% endif %}
+      {% if error %}
+        <div class="alert alert-danger text-center mt-4">⚠️ Please fill out all fields correctly.</div>
+      {% endif %}
+
+      <form method="post" class="mt-4">
+        <div class="mb-3">
+          <label class="form-label">Full Name</label>
+          <input type="text" name="name" class="form-control" placeholder="John Doe" required>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Email Address</label>
+          <input type="email" name="email" class="form-control" placeholder="you@example.com" required>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Your Message</label>
+          <textarea name="message" class="form-control" rows="5" placeholder="Tell us how we can help you..." required></textarea>
+        </div>
+        <div class="text-center mt-4">
+          <button type="submit" class="btn btn-main">Send Message</button>
+        </div>
+      </form>
+<hr>
+       
+        <p>Already have an account?
+        <a href="{{ path('login') }}" >Go to Login</a>
+     
+    </div>
+  </section>
+</main>
+{% endblock %}

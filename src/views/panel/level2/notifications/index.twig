@@ -1,0 +1,229 @@
+{% extends 'templates/base.admin.twig' %}
+
+{% block body %}
+<div class="container-fluid p-0">
+  <div class="row mb-2 mb-xl-3">
+    <div class="col-auto d-none d-sm-block">
+      <h3>🔔 Admin Notifications</h3>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-header d-flex align-items-center justify-content-between">
+          <h5 class="card-title mb-0">All System Notifications</h5>
+          {% if notifications|length > 0 %}
+            <span class="text-muted small">{{ notifications|length }} total</span>
+          {% endif %}
+        </div>
+
+        <div class="card-body">
+          {% if notifications|length > 0 %}
+            <div class="notifications-list">
+              {% for n in notifications %}
+                <div class="notification-item {% if n.leido == 0 %}unread{% endif %}">
+                  <div class="notification-left">
+                    <div class="notification-dot"></div>
+                    <div class="notification-icon">
+                      <i data-feather="{% if 'Payment' in n.mensaje %}dollar-sign{% elseif 'Contract' in n.mensaje %}file-text{% else %}bell{% endif %}"></i>
+                    </div>
+                    <div class="notification-content">
+                      <div class="notification-title {% if n.leido == 0 %}text-primary{% endif %}">
+                        {{ n.mensaje }}
+                      </div>
+                      <div class="notification-meta">
+                        <i data-feather="clock" class="me-1"></i>
+                        {{ n.timestamp|date('M j, Y - g:i A') }}
+                        {% if n.leido == 0 %}
+                          <span class="badge bg-primary-subtle text-primary ms-2">New</span>
+                        {% endif %}
+                      </div>
+
+                      {% if n.link %}
+                      <a href="{{ n.link }}" data-url="{{ n.link }}" data-notification-id="{{ n.id }}" class="btn btn-sm btn-outline-primary notif-link" title="{{ n.link }}">
+                        View Details
+                      </a>
+                      {% else %}
+                        <div class="mt-2">
+                          <button class="btn btn-sm btn-outline-secondary" disabled title="No details available">
+                            <i data-feather="slash" class="me-1"></i> No details
+                          </button>
+                        </div>
+                      {% endif %}
+                    </div>
+                  </div>
+
+                  <div class="notification-actions">
+                    {% if n.leido == 0 %}
+                      <button class="btn btn-sm btn-outline-success mark-read-btn" data-notification-id="{{ n.id }}">
+                        <i data-feather="check" class="me-1"></i> Mark as Read
+                      </button>
+                    {% else %}
+                      <span class="badge bg-secondary-subtle text-secondary">Read</span>
+                    {% endif %}
+                  </div>
+                </div>
+              {% endfor %}
+            </div>
+          {% else %}
+            <div class="text-center py-5">
+              <i data-feather="bell-off" class="text-muted mb-3" style="width:48px; height:48px;"></i>
+              <h5 class="text-muted">No notifications yet</h5>
+              <p class="text-muted">You're all caught up! New system notifications will appear here.</p>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+/* —— Clean modern notifications —— */
+.notifications-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.notification-item {
+  display: flex;
+  align-items: stretch;
+  justify-content: space-between;
+  border: 1px solid var(--bs-border-color);
+  border-radius: 14px;
+  padding: 14px 16px;
+  background: var(--bs-body-bg);
+  transition: box-shadow .2s ease, transform .08s ease;
+}
+.notification-item:hover {
+  box-shadow: 0 4px 18px rgba(0,0,0,.06);
+}
+.notification-item.unread {
+  background: var(--bs-primary-bg-subtle);
+  border-color: var(--bs-primary-border-subtle);
+}
+.notification-left {
+  display: grid;
+  grid-template-columns: 8px 32px 1fr;
+  gap: 12px;
+  align-items: start;
+  flex: 1 1 auto;
+}
+.notification-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: transparent;
+  margin-top: 8px;
+}
+.notification-item.unread .notification-dot {
+  background: var(--bs-primary);
+}
+.notification-icon i {
+  width: 22px; height: 22px;
+  color: var(--bs-primary);
+  opacity: .9;
+  margin-top: 4px;
+}
+.notification-content {
+  min-width: 0;
+}
+.notification-title {
+  font-weight: 600;
+  line-height: 1.35;
+}
+.notification-meta {
+  color: var(--bs-secondary-color);
+  font-size: .875rem;
+  margin-top: 4px;
+  display: flex;
+  align-items: center;
+}
+.notification-meta i {
+  width: 16px; height: 16px;
+}
+.notification-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+@media (max-width: 575.98px) {
+  .notification-actions { margin-left: 8px; }
+  .notification-item { padding: 12px; }
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  document.querySelectorAll('.mark-read-btn').forEach(btn => {
+    btn.addEventListener('click', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      const id = this.getAttribute('data-notification-id');
+      markNotificationAsRead(id, this);
+    });
+  });
+});
+
+function markNotificationAsRead(notificationId, buttonElement) {
+  const base = window.location.pathname.replace(/\/$/, '');
+  const route = base + '/mark-read';
+  fetch(route, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ notification_id: notificationId })
+  })
+  .then(r => r.json())
+  .then(data => {
+    if (!data.success) return;
+    const item = buttonElement.closest('.notification-item');
+    item.classList.remove('unread');
+    // Quita "New", cambia badge final
+    const newBadge = item.querySelector('.badge.bg-primary-subtle');
+    if (newBadge) newBadge.remove();
+    const span = document.createElement('span');
+    span.className = 'badge bg-secondary-subtle text-secondary';
+    span.textContent = 'Read';
+    buttonElement.replaceWith(span);
+    updateHeaderNotificationCount();
+  })
+  .catch(err => console.error('Error marking notification as read:', err));
+}
+
+function updateHeaderNotificationCount() {
+  const indicator = document.querySelector('#alertsDropdown .indicator');
+  if (!indicator) return;
+  const current = parseInt(indicator.textContent) || 0;
+  const next = Math.max(0, current - 1);
+  indicator.textContent = next;
+  if (next === 0) indicator.style.display = 'none';
+}
+  // View Details: marcar como leído y redirigir (mismo comportamiento que el dropdown)
+  document.addEventListener('DOMContentLoaded', function() {
+    const links = document.querySelectorAll('.notif-link');
+    links.forEach(a => {
+      a.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        const url = this.getAttribute('data-url') || this.getAttribute('href');
+        const id  = this.getAttribute('data-notification-id');
+        if (!url || url === 'null') return;
+
+        const base = window.location.pathname.replace(/\/$/, '');
+        const route = base + '/mark-read';
+
+        fetch(route, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ notification_id: id })
+        }).then(() => {
+          window.location.href = url;
+        }).catch(() => {
+          window.location.href = url;
+        });
+      });
+    });
+  });
+</script>
+{% endblock %}

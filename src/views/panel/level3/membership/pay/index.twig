@@ -1,0 +1,169 @@
+{% extends 'templates/base.admin.twig' %}
+
+{% block style %}
+<style>
+    .membership-header {
+        background-color: #e3f2fd;
+        padding: 1.5rem;
+        border-radius: 1rem;
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+
+    .membership-header h2 {
+        margin-bottom: 0.5rem;
+    }
+
+    .membership-features {
+        list-style: none;
+        padding: 0;
+    }
+
+    .membership-features li {
+        margin: 0.3rem 0;
+        font-size: 0.95rem;
+    }
+
+    .plan-card {
+        border: 1px solid #ccc;
+        border-radius: 1rem;
+        padding: 2rem;
+        text-align: center;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+    }
+
+    .plan-price {
+        font-size: 2rem;
+        font-weight: bold;
+        margin-bottom: 0.5rem;
+    }
+
+    .plan-btn {
+        font-size: 1.1rem;
+        font-weight: 500;
+        padding: 0.6rem 1.5rem;
+        border-radius: 8px;
+    }
+
+    .plan-btn-monthly {
+        border: 2px solid #0d6efd;
+        color: #0d6efd;
+        background: white;
+    }
+
+    .plan-btn-annual {
+        border: 2px solid #198754;
+        background-color: #198754;
+        color: white;
+    }
+
+    .plan-btn:hover {
+        opacity: 0.9;
+    }
+
+    .card h2 {
+        font-weight: bold;
+        font-size: 2rem;
+    }
+
+    @media (min-width: 768px) {
+        .plans-grid {
+            display: flex;
+            gap: 2rem;
+            justify-content: center;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block body %}
+<main>
+    <section class="membership-header">
+        <div class="bg-light rounded p-4 my-4 text-center">
+            <h2 class="mb-4">Unlock exclusive tools to grow your event business</h2>
+            <div class="d-flex flex-column align-items-start mx-auto" style="max-width: 520px;">
+                <div class="d-flex align-items-center mb-2">
+                    <span class="text-success me-2">✅</span>
+                    <span>Client & lead management (CRM)</span>
+                </div>
+                <div class="d-flex align-items-center mb-2">
+                    <span class="text-success me-2">✅</span>
+                    <span>Team assignments and task tracking</span>
+                </div>
+                <div class="d-flex align-items-center mb-2">
+                    <span class="text-success me-2">✅</span>
+                    <span>Inventory & services organizer</span>
+                </div>
+                <div class="d-flex align-items-center mb-2">
+                    <span class="text-success me-2">✅</span>
+                    <span>Automated client communication tools</span>
+                </div>
+                {% if isVenue %}
+                    <div class="d-flex align-items-start bg-success bg-opacity-10 border border-success rounded p-3 mt-3 w-100">
+                        <div class="me-3 fs-3">🏷️</div>
+                        <div>
+                            <strong class="text-success">Exclusive for Venue Owners:</strong><br>
+                            Promote your venue at a special rate:
+                            <span class="text-decoration-line-through text-danger">${{ venuePrice|number_format(2) }}</span>
+                            <span class="fw-bold fs-5 text-dark ms-2">${{ venuePriceDiscount|number_format(2) }}</span> / month
+                            with your active membership.<br>
+                            <small class="text-muted">
+                                (Save ${{ (venuePrice - venuePriceDiscount)|number_format(2) }})
+                            </small>
+                        </div>
+                    </div>
+                {% elseif isVendor %}
+                    <div class="d-flex align-items-start bg-info bg-opacity-10 border border-info rounded p-3 mt-3 w-100">
+                        <div class="me-3 fs-3">🏷️</div>
+                        <div>
+                            <strong class="text-info">Exclusive for Vendors:</strong><br>
+                            Promote your service at a discounted rate:
+                            <span class="text-decoration-line-through text-danger">${{ vendorPrice|number_format(2) }}</span>
+                            <span class="fw-bold fs-5 text-dark ms-2">${{ vendorPriceDiscount|number_format(2) }}</span> / month
+                            with your active membership.<br>
+                            <small class="text-muted">
+                                (Save ${{ (vendorPrice - vendorPriceDiscount)|number_format(2) }})
+                            </small>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </section>
+
+    <div class="row g-4 mt-4 justify-content-center">
+        <div class="col-md-6 col-lg-5">
+            <div class="border p-4 rounded shadow text-center h-100">
+                <h5 class="fw-bold text-muted">Monthly Membership</h5>
+                <h2 class="fw-bold">${{ monthly_price }}</h2>
+                <p class="text-muted">Renews every 30 days</p>
+                <form method="post">
+                    <input type="hidden" name="plan" value="monthly" />
+                    <button class="btn btn-primary w-100" type="submit" onclick="showLoader(this)">Pay ${{ monthly_price }}</button>
+                </form>
+            </div>
+        </div>
+        <div class="col-md-6 col-lg-5">
+            <div class="border p-4 rounded shadow text-center h-100">
+                <h5 class="fw-bold text-muted">Annual Membership</h5>
+                <h2 class="fw-bold">${{ annual_price }}</h2>
+                <p class="text-muted">One-time yearly payment</p>
+                <form method="post">
+                    <input type="hidden" name="plan" value="annual" />
+                    <button class="btn btn-success w-100" type="submit" onclick="showLoader(this)">Pay ${{ annual_price }}</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</main>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function showLoader(button) {
+        button.disabled = true;
+        button.innerHTML = 'Processing...';
+        button.form.submit();
+    }
+</script>
+{% endblock %}

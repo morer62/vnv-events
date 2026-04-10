@@ -1,0 +1,711 @@
+{% extends 'templates/base.admin.twig' %}
+
+{% set show_whatsapp = true %}
+
+{% block body %}
+<main class="gourmet-dashboard-home mt-4 container pb-5">
+
+  <style>
+    :root{
+      --gourmet-primary:#f59e0b;
+      --gourmet-primary-dark:#d97706;
+      --gourmet-accent:#fb923c;
+      --gourmet-cream:#fff8ef;
+      --gourmet-soft:#fff3df;
+      --gourmet-dark:#1f1307;
+      --gourmet-text:#2d241c;
+      --gourmet-muted:#6f6255;
+      --gourmet-border:#ecd9bf;
+      --gourmet-shadow:0 18px 44px rgba(79,43,8,.10);
+      --gourmet-shadow-strong:0 24px 60px rgba(79,43,8,.14);
+      --gourmet-success:#16a34a;
+      --gourmet-info:#0ea5e9;
+    }
+
+    .gourmet-dashboard-home{
+      color:var(--gourmet-text);
+    }
+
+    .g-badge{
+      display:inline-flex;
+      align-items:center;
+      gap:.45rem;
+      border-radius:999px;
+      padding:.55rem .9rem;
+      font-size:.9rem;
+      font-weight:800;
+      background:#fff2db;
+      border:1px solid #f6d8a5;
+      color:#8a5300;
+    }
+
+    .g-hero{
+      position:relative;
+      overflow:hidden;
+      border-radius:28px;
+      padding:2rem 1.8rem;
+      color:#fff;
+      background:
+        radial-gradient(900px 420px at 0% 0%, rgba(245,158,11,.16), transparent 60%),
+        linear-gradient(135deg, #251508 0%, #1f1307 55%, #361a06 100%);
+      box-shadow:0 22px 54px rgba(0,0,0,.16);
+      margin-bottom:1.5rem;
+    }
+
+    .g-hero:after{
+      content:"";
+      position:absolute;
+      right:-70px;
+      top:-70px;
+      width:220px;
+      height:220px;
+      background:radial-gradient(circle, rgba(255,209,138,.16) 0%, rgba(255,209,138,0) 70%);
+      pointer-events:none;
+    }
+
+    .g-hero > *{
+      position:relative;
+      z-index:2;
+    }
+
+    .g-hero-logo{
+      max-width:92px;
+      margin:1rem 0 .9rem;
+      filter:drop-shadow(0 8px 20px rgba(0,0,0,.20));
+    }
+
+    .g-hero h1{
+      font-size:clamp(2rem,4vw,3.05rem);
+      line-height:1.05;
+      font-weight:900;
+      letter-spacing:-1px;
+      margin-bottom:.8rem;
+      max-width:820px;
+    }
+
+    .g-hero h1 .warm{
+      color:#ffd18a;
+    }
+
+    .g-hero p{
+      max-width:760px;
+      color:#f4e4cb;
+      line-height:1.72;
+      font-size:1rem;
+      margin-bottom:1.2rem;
+    }
+
+    .g-hero-actions{
+      display:flex;
+      flex-wrap:wrap;
+      gap:.85rem;
+      margin-top:1rem;
+    }
+
+    .btn-g-main{
+      background:linear-gradient(135deg,var(--gourmet-primary),var(--gourmet-accent));
+      color:#23160a !important;
+      padding:1rem 1.55rem;
+      font-size:1rem;
+      border-radius:999px;
+      text-decoration:none;
+      font-weight:800;
+      display:inline-flex;
+      gap:.55rem;
+      align-items:center;
+      justify-content:center;
+      border:none;
+      box-shadow:0 12px 28px rgba(245,158,11,.28);
+      transition:all .22s ease;
+    }
+
+    .btn-g-main:hover{
+      transform:translateY(-2px);
+      background:linear-gradient(135deg,var(--gourmet-primary-dark),var(--gourmet-accent));
+    }
+
+    .btn-g-light{
+      padding:.92rem 1.25rem;
+      font-size:1rem;
+      border-radius:999px;
+      font-weight:800;
+      border:1.2px solid rgba(255,255,255,.18);
+      color:#fff !important;
+      background:rgba(255,255,255,.08);
+      text-decoration:none;
+      display:inline-flex;
+      align-items:center;
+      gap:.45rem;
+      justify-content:center;
+      backdrop-filter:blur(6px);
+      transition:all .2s ease;
+    }
+
+    .btn-g-light:hover{
+      background:rgba(255,255,255,.14);
+      transform:translateY(-1px);
+    }
+
+    .g-section-head{
+      margin-bottom:1.2rem;
+    }
+
+    .g-title{
+      font-weight:800;
+      font-size:clamp(1.6rem,3vw,2.3rem);
+      line-height:1.12;
+      letter-spacing:-.5px;
+      margin-bottom:.5rem;
+      color:var(--gourmet-dark);
+    }
+
+    .g-title .highlight{
+      color:var(--gourmet-primary-dark);
+    }
+
+    .g-subtitle{
+      color:var(--gourmet-muted);
+      font-size:1rem;
+      line-height:1.75;
+      margin-bottom:0;
+      max-width:760px;
+    }
+
+    .g-card{
+      background:#fff;
+      padding:1.6rem 1.25rem;
+      border-radius:22px;
+      box-shadow:var(--gourmet-shadow);
+      border:1px solid rgba(94,55,15,.06);
+      height:100%;
+      transition:all .22s ease;
+    }
+
+    .g-card:hover{
+      transform:translateY(-4px);
+      box-shadow:0 24px 54px rgba(79,43,8,.12);
+    }
+
+    .g-card i.big-icon{
+      font-size:1.9rem;
+      color:var(--gourmet-primary-dark);
+      margin-bottom:.9rem;
+    }
+
+    .g-card h3{
+      font-size:1.18rem;
+      font-weight:800;
+      margin-bottom:.65rem;
+      color:var(--gourmet-dark);
+    }
+
+    .g-card p{
+      color:var(--gourmet-muted);
+      line-height:1.65;
+      margin-bottom:1rem;
+    }
+
+    .g-link{
+      display:inline-flex;
+      align-items:center;
+      gap:.45rem;
+      font-weight:800;
+      color:#8b4f00;
+      text-decoration:none;
+    }
+
+    .g-link:hover{
+      color:var(--gourmet-primary-dark);
+    }
+
+    .g-feature-grid{
+      display:grid;
+      grid-template-columns:1.15fr .85fr;
+      gap:1rem;
+      margin-bottom:2rem;
+    }
+
+    .g-feature-banner{
+      position:relative;
+      overflow:hidden;
+      background:
+        radial-gradient(800px 260px at 0% 0%, rgba(245,158,11,.12), transparent 60%),
+        linear-gradient(135deg,#fff8ee 0%, #fffdf9 100%);
+      border:1px solid #efd4a9;
+      border-radius:24px;
+      padding:1.5rem;
+      box-shadow:var(--gourmet-shadow);
+      min-height:100%;
+    }
+
+    .g-feature-banner:after{
+      content:"";
+      position:absolute;
+      right:-50px;
+      top:-50px;
+      width:180px;
+      height:180px;
+      background:radial-gradient(circle, rgba(245,158,11,.10) 0%, rgba(245,158,11,0) 72%);
+      pointer-events:none;
+    }
+
+    .g-feature-banner > *{
+      position:relative;
+      z-index:2;
+    }
+
+    .g-feature-label{
+      display:inline-flex;
+      align-items:center;
+      gap:.45rem;
+      padding:.45rem .8rem;
+      border-radius:999px;
+      background:#fff1d6;
+      color:#8b4f00;
+      border:1px solid #f3d39f;
+      font-size:.85rem;
+      font-weight:800;
+      margin-bottom:.85rem;
+    }
+
+    .g-feature-banner h3{
+      font-size:1.55rem;
+      font-weight:900;
+      color:var(--gourmet-dark);
+      margin-bottom:.65rem;
+    }
+
+    .g-feature-banner p{
+      color:var(--gourmet-muted);
+      line-height:1.75;
+      margin-bottom:1rem;
+      max-width:720px;
+    }
+
+    .g-feature-points{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:.75rem;
+      margin-bottom:1rem;
+    }
+
+    .g-feature-point{
+      background:#fff;
+      border:1px solid #edd9bc;
+      border-radius:16px;
+      padding:.9rem 1rem;
+      color:var(--gourmet-text);
+      font-size:.94rem;
+      line-height:1.6;
+    }
+
+    .g-feature-point strong{
+      color:var(--gourmet-dark);
+    }
+
+    .g-feature-actions{
+      display:flex;
+      flex-wrap:wrap;
+      gap:.75rem;
+      margin-top:1rem;
+    }
+
+    .g-wellness-card{
+      position:relative;
+      overflow:hidden;
+      background:linear-gradient(135deg,#251508 0%, #2b1607 55%, #3b1f08 100%);
+      color:#fff;
+      border-radius:24px;
+      padding:1.5rem;
+      box-shadow:var(--gourmet-shadow-strong);
+      min-height:100%;
+    }
+
+    .g-wellness-card:after{
+      content:"";
+      position:absolute;
+      right:-45px;
+      bottom:-45px;
+      width:180px;
+      height:180px;
+      background:radial-gradient(circle, rgba(255,209,138,.14) 0%, rgba(255,209,138,0) 72%);
+      pointer-events:none;
+    }
+
+    .g-wellness-card > *{
+      position:relative;
+      z-index:2;
+    }
+
+    .g-wellness-card .g-feature-label{
+      background:rgba(255,255,255,.10);
+      border-color:rgba(255,255,255,.16);
+      color:#fff;
+    }
+
+    .g-wellness-card h3{
+      font-size:1.45rem;
+      font-weight:900;
+      color:#fff;
+      margin-bottom:.65rem;
+    }
+
+    .g-wellness-card p{
+      color:#f3dfbf;
+      line-height:1.75;
+      margin-bottom:1rem;
+    }
+
+    .g-wellness-list{
+      margin:0 0 1rem;
+      padding-left:1rem;
+      color:#f7e8cf;
+      line-height:1.85;
+    }
+
+    .g-wellness-list li + li{
+      margin-top:.15rem;
+    }
+
+    .g-wellness-link{
+      display:inline-flex;
+      align-items:center;
+      gap:.45rem;
+      font-weight:800;
+      color:#ffd18a;
+      text-decoration:none;
+    }
+
+    .g-wellness-link:hover{
+      color:#fff1c9;
+    }
+
+    .g-final{
+      margin-top:2rem;
+      background:linear-gradient(135deg,#271507 0%, #3a1f08 100%);
+      color:#fff;
+      border-radius:24px;
+      padding:2rem 1.3rem;
+      box-shadow:0 20px 50px rgba(0,0,0,.18);
+      text-align:center;
+    }
+
+    .g-final p{
+      max-width:700px;
+      margin:0 auto 1.2rem;
+      color:#f3dfbf;
+      font-size:1rem;
+      line-height:1.75;
+    }
+
+    @media (max-width: 991px){
+      .g-feature-grid,
+      .g-feature-points{
+        grid-template-columns:1fr;
+      }
+    }
+
+    @media (max-width: 768px){
+      .g-hero{
+        padding:1.4rem 1.05rem;
+        border-radius:22px;
+      }
+
+      .g-card,
+      .g-final,
+      .g-feature-banner,
+      .g-wellness-card{
+        border-radius:20px;
+      }
+
+      .g-hero-actions,
+      .g-feature-actions{
+        flex-direction:column;
+      }
+
+      .btn-g-main,
+      .btn-g-light{
+        width:100%;
+      }
+    }
+  </style>
+
+  <section class="g-hero">
+    <span class="g-badge">
+      <i class="fa-solid fa-bowl-food"></i> VNV Gourmet
+    </span>
+
+    <div>
+      <img src="{{ asset_for('assets/images/planner-hub-logo-positive.png') }}" class="g-hero-logo" alt="VNV Gourmet Logo">
+    </div>
+
+    <h1>
+      <span style="color:#fff">Welcome back{% if user.name is defined and user.name %}, {{ user.name }}{% endif %}.</span>
+      <span class="warm">Your meals, wellness tools and orders are all here.</span>
+    </h1>
+
+    <p>
+      Review your orders, manage your subscription, explore your nutrition guidance, and now build a more human wellness routine with movement, sleep and recovery support.
+    </p>
+
+    <div class="g-hero-actions">
+      <a href="{{ path('panel/store/orders/home') }}" class="btn-g-main">
+        <i class="fa-solid fa-box-open"></i> My Orders
+      </a>
+
+      <a href="{{ path('panel/store/subscriptions/home') }}" class="btn-g-light">
+        <i class="fa-solid fa-repeat"></i> My Subscription
+      </a>
+
+      <a href="{{ path('/meal-plans') }}" class="btn-g-light">
+        <i class="fa-solid fa-cart-shopping"></i> Order Again
+      </a>
+    </div>
+  </section>
+
+  {% set sub = current_subscription ?? null %}
+  <section class="mt-4" style="margin-bottom:.75rem;">
+    <div class="g-section-head">
+      <h2 class="g-title">
+        Subscription <span class="highlight">overview</span>
+      </h2>
+      <p class="g-subtitle">
+        Review your current plan and manage your weekly charges.
+      </p>
+    </div>
+
+    <div class="row g-4">
+      <div class="col-12">
+        <div class="g-card">
+          <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+            <div>
+              <h3 class="mb-2" style="font-size:1.25rem;font-weight:900;color:var(--gourmet-dark);">
+                <i class="fa-solid fa-repeat" style="color:var(--gourmet-primary-dark);margin-right:.4rem;"></i>
+                My Subscription
+              </h3>
+
+              {% if sub %}
+                {% set subStatus = (sub.status ?? '')|upper %}
+                {% set mealsCount = (sub.meals_count ?? 0) %}
+                {% set ppm = (sub.price_per_meal ?? 0) %}
+                {% set weekly = (ppm * mealsCount) %}
+
+                <div class="d-flex flex-wrap gap-2 align-items-center mb-2">
+                  <span class="text-muted">Status:</span>
+                  {% if subStatus == 'ACTIVE' %}
+                    <span class="badge bg-success">ACTIVE</span>
+                  {% elseif subStatus == 'PAUSED' %}
+                    <span class="badge bg-secondary">PAUSED</span>
+                  {% else %}
+                    <span class="badge bg-dark">{{ subStatus ?: 'UNKNOWN' }}</span>
+                  {% endif %}
+                </div>
+
+                <div class="text-muted" style="line-height:1.7;">
+                  Next charge date: <strong style="color:var(--gourmet-dark);">{{ sub.next_charge_date ?: '—' }}</strong><br>
+                  Weekly charge estimate: <strong style="color:var(--gourmet-dark);">${{ weekly|number_format(2, '.', ',') }}</strong>
+                </div>
+              {% else %}
+                <div class="text-muted" style="line-height:1.7;">
+                  You do not have an active subscription yet.
+                </div>
+              {% endif %}
+            </div>
+
+            <div class="d-flex flex-wrap gap-2">
+              {% if sub %}
+                <a href="{{ path('panel/store/subscriptions/home') }}" class="btn btn-outline-dark btn-sm">
+                  View details
+                </a>
+
+                {% if (sub.status ?? '')|upper == 'ACTIVE' %}
+                  <form method="post" class="d-inline">
+                    <input type="hidden" name="action" value="pause_subscription">
+                    <input type="hidden" name="subscription_id" value="{{ sub.id }}">
+                    <button type="submit" class="btn btn-outline-danger btn-sm">Pause</button>
+                  </form>
+                {% elseif (sub.status ?? '')|upper == 'PAUSED' %}
+                  <form method="post" class="d-inline">
+                    <input type="hidden" name="action" value="resume_subscription">
+                    <input type="hidden" name="subscription_id" value="{{ sub.id }}">
+                    <button type="submit" class="btn btn-outline-primary btn-sm">Resume</button>
+                  </form>
+                {% endif %}
+              {% else %}
+                <a href="{{ path('/meal-plans') }}" class="btn btn-outline-primary btn-sm">
+                  Start a subscription
+                </a>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="g-feature-grid">
+    <div class="g-feature-banner">
+      <span class="g-feature-label">
+        <i class="fa-solid fa-heart-pulse"></i> Featured wellness tool
+      </span>
+
+      <h3>Nutrition Advisor</h3>
+      <p>
+        Your personalized nutrition banner is now front and center. Help users estimate calories, protein, hydration and daily food targets in a more practical way, including protein planning with real portions.
+      </p>
+
+      <div class="g-feature-points">
+        <div class="g-feature-point">
+          <strong>Calories & protein</strong><br>
+          Personalized daily targets based on goal and activity.
+        </div>
+        <div class="g-feature-point">
+          <strong>Protein builder</strong><br>
+          Real portions like eggs, chicken, tuna and protein scoops.
+        </div>
+        <div class="g-feature-point">
+          <strong>Hydration & fiber</strong><br>
+          Easier daily guidance with U.S.-friendly measurements.
+        </div>
+        <div class="g-feature-point">
+          <strong>Meal support</strong><br>
+          Connects naturally with your meal plans and store flow.
+        </div>
+      </div>
+
+      <div class="g-feature-actions">
+        <a href="{{ path('panel/store/nutrition-advisor') }}" class="btn-g-main">
+          <i class="fa-solid fa-heart-pulse"></i> Open Nutrition Advisor
+        </a>
+
+        <a href="{{ path('/meal-plans') }}" class="btn-g-light" style="color:#8b4f00 !important; background:#fff4e2; border-color:#f0d8b4;">
+          <i class="fa-solid fa-utensils"></i> View Meal Plans
+        </a>
+      </div>
+    </div>
+
+    <div class="g-wellness-card">
+      <span class="g-feature-label">
+        <i class="fa-solid fa-dumbbell"></i> New tool
+      </span>
+
+      <h3>Wellness Advisor</h3>
+      <p>
+        A more human guide for exercise, sleep, recovery and real life. Great for beginners, busy parents, older adults, people with no gym access, and users who want a practical weekly rhythm.
+      </p>
+
+      <ul class="g-wellness-list">
+        <li>Strength and cardio guidance</li>
+        <li>Walking and no-gym options</li>
+        <li>Sleep and meditation recommendations</li>
+        <li>Supportive guidance for stress, kids, age and routine</li>
+      </ul>
+
+      <a href="{{ path('panel/store/wellness-advisor') }}" class="g-wellness-link">
+        Open Wellness Advisor <i class="fa-solid fa-arrow-right"></i>
+      </a>
+    </div>
+  </section>
+
+  <section>
+    <div class="g-section-head">
+      <h2 class="g-title">
+        Wellness <span class="highlight">tools</span>
+      </h2>
+      <p class="g-subtitle">
+        Practical tools to help users eat better, move better and stay more consistent in real life.
+      </p>
+    </div>
+
+    <div class="row g-4">
+      <div class="col-md-6">
+        <div class="g-card">
+          <i class="fa-solid fa-heart-pulse big-icon"></i>
+          <h3>Nutrition Advisor</h3>
+          <p>Get a personalized food plan with calories, protein, hydration, fiber and practical meal guidance.</p>
+          <a href="{{ path('panel/store/nutrition-advisor') }}" class="g-link">
+            Open nutrition planner <i class="fa-solid fa-arrow-right"></i>
+          </a>
+        </div>
+      </div>
+
+      <div class="col-md-6">
+        <div class="g-card">
+          <i class="fa-solid fa-dumbbell big-icon"></i>
+          <h3>Wellness Advisor</h3>
+          <p>Build a realistic exercise, sleep and recovery plan for gym users, walkers, parents, beginners and older adults.</p>
+          <a href="{{ path('panel/store/wellness-advisor') }}" class="g-link">
+            Open wellness planner <i class="fa-solid fa-arrow-right"></i>
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="mt-4">
+    <div class="g-section-head">
+      <h2 class="g-title">
+        Quick <span class="highlight">access</span>
+      </h2>
+      <p class="g-subtitle">
+        The main areas your customer is most likely to use.
+      </p>
+    </div>
+
+    <div class="row g-4">
+      <div class="col-md-4">
+        <div class="g-card">
+          <i class="fa-solid fa-box-open big-icon"></i>
+          <h3>My Orders</h3>
+          <p>Open your order history and review previous purchases quickly.</p>
+          <a href="{{ path('panel/store/orders/home') }}" class="g-link">
+            Open orders <i class="fa-solid fa-arrow-right"></i>
+          </a>
+        </div>
+      </div>
+
+      <div class="col-md-4">
+        <div class="g-card">
+          <i class="fa-solid fa-repeat big-icon"></i>
+          <h3>Subscription</h3>
+          <p>View your subscription details and manage your plan.</p>
+          <a href="{{ path('panel/store/subscriptions/home') }}" class="g-link">
+            Open subscription <i class="fa-solid fa-arrow-right"></i>
+          </a>
+        </div>
+      </div>
+
+      <div class="col-md-4">
+        <div class="g-card">
+          <i class="fa-solid fa-cart-shopping big-icon"></i>
+          <h3>Order New Meals</h3>
+          <p>Go back to the store and start your next order whenever you are ready.</p>
+          <a href="{{ path('/meal-plans') }}" class="g-link">
+            Go to store <i class="fa-solid fa-arrow-right"></i>
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="g-final">
+    <h2 class="g-title" style="color:#fff;">
+      Ready for your next order?
+    </h2>
+    <p>
+      Choose your meals, support your wellness goals, and keep your week easier with VNV Gourmet.
+    </p>
+
+    <div class="d-flex flex-wrap gap-3 justify-content-center">
+      <a href="{{ path('/meal-plans') }}" class="btn-g-main">
+        <i class="fa-solid fa-bowl-food"></i> Start New Order
+      </a>
+
+      <a href="{{ path('panel/store/wellness-advisor') }}" class="btn-g-light">
+        <i class="fa-solid fa-dumbbell"></i> Explore Wellness
+      </a>
+    </div>
+  </section>
+
+</main>
+{% endblock %}

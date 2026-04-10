@@ -1,0 +1,253 @@
+{% extends "templates/base.admin.twig" %}
+
+{% block body %}
+<style>
+    .cms-wrap{
+        padding: 24px;
+    }
+
+    .cms-header{
+        display:flex;
+        align-items:center;
+        justify-content:space-between;
+        gap:16px;
+        margin-bottom:24px;
+        flex-wrap:wrap;
+    }
+
+    .cms-title{
+        font-size: 2rem;
+        font-weight: 800;
+        color: #111827;
+        margin: 0 0 6px 0;
+    }
+
+    .cms-subtitle{
+        color: #6b7280;
+        font-size: .96rem;
+        margin: 0;
+    }
+
+    .cms-btn{
+        display:inline-flex;
+        align-items:center;
+        justify-content:center;
+        padding: 10px 16px;
+        border-radius: 12px;
+        text-decoration: none;
+        font-weight: 700;
+        font-size: .92rem;
+        transition: .2s ease;
+        border:none;
+        cursor:pointer;
+    }
+
+    .cms-btn-primary{
+        background:#111827;
+        color:#fff;
+    }
+
+    .cms-btn-primary:hover{
+        background:#000;
+        color:#fff;
+    }
+
+    .cms-btn-light{
+        background:#f3f4f6;
+        color:#111827;
+    }
+
+    .cms-btn-light:hover{
+        background:#e5e7eb;
+        color:#111827;
+    }
+
+    .cms-card{
+        background:#fff;
+        border:1px solid #e5e7eb;
+        border-radius:20px;
+        padding:20px;
+        box-shadow:0 10px 30px rgba(0,0,0,.05);
+    }
+
+    .cms-table-wrap{
+        width:100%;
+        overflow:auto;
+    }
+
+    .cms-table{
+        width:100%;
+        border-collapse:collapse;
+        min-width: 860px;
+    }
+
+    .cms-table th{
+        text-align:left;
+        font-size:.85rem;
+        color:#6b7280;
+        font-weight:700;
+        padding:14px 12px;
+        border-bottom:1px solid #e5e7eb;
+        white-space:nowrap;
+    }
+
+    .cms-table td{
+        padding:16px 12px;
+        border-bottom:1px solid #f1f5f9;
+        vertical-align:top;
+        color:#111827;
+        font-size:.95rem;
+    }
+
+    .cms-table tr:last-child td{
+        border-bottom:none;
+    }
+
+    .cms-slug{
+        font-family:monospace;
+        font-size:.92rem;
+        color:#374151;
+        background:#f9fafb;
+        border:1px solid #e5e7eb;
+        border-radius:10px;
+        display:inline-block;
+        padding:4px 8px;
+    }
+
+    .cms-source{
+        max-width:280px;
+        color:#6b7280;
+        line-height:1.5;
+        font-size:.9rem;
+    }
+
+    .cms-badge{
+        display:inline-flex;
+        align-items:center;
+        justify-content:center;
+        padding:6px 10px;
+        border-radius:999px;
+        font-size:.8rem;
+        font-weight:700;
+        white-space:nowrap;
+    }
+
+    .cms-badge.active{
+        background:#ecfdf5;
+        color:#047857;
+    }
+
+    .cms-badge.inactive{
+        background:#fef2f2;
+        color:#b91c1c;
+    }
+
+    .cms-actions{
+        display:flex;
+        gap:10px;
+        flex-wrap:wrap;
+    }
+
+    .cms-empty{
+        padding:28px;
+        text-align:center;
+        color:#6b7280;
+    }
+
+    .cms-empty strong{
+        display:block;
+        color:#111827;
+        font-size:1.05rem;
+        margin-bottom:8px;
+    }
+
+    @media (max-width:768px){
+        .cms-wrap{
+            padding:16px;
+        }
+
+        .cms-title{
+            font-size:1.55rem;
+        }
+    }
+</style>
+
+<div class="cms-wrap">
+    <div class="cms-header">
+        <div>
+            <h1 class="cms-title">Templates</h1>
+            <p class="cms-subtitle">
+                Manage reusable Twig structures for landing pages and public CMS pages.
+            </p>
+        </div>
+
+        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+            <a href="{{ path('panel/cms') }}" class="cms-btn cms-btn-light">← Back to CMS</a>
+            <a href="{{ path('panel/cms/templates/create') }}" class="cms-btn cms-btn-primary">+ New Template</a>
+        </div>
+    </div>
+
+    <div class="cms-card">
+        {% if templates|length > 0 %}
+            <div class="cms-table-wrap">
+                <table class="cms-table">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Slug</th>
+                            <th>Description</th>
+                            <th>Template Source</th>
+                            <th>Status</th>
+                            <th style="width:160px;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in templates %}
+                            <tr>
+                                <td>
+                                    <strong>{{ item.name }}</strong>
+                                </td>
+                                <td>
+                                    <span class="cms-slug">{{ item.slug }}</span>
+                                </td>
+                                <td>
+                                    {{ item.description ?: '—' }}
+                                </td>
+                                <td>
+                                    <div class="cms-source">
+                                        {% if item.template_source %}
+                                            {{ item.template_source|striptags|slice(0, 140) }}{% if item.template_source|length > 140 %}...{% endif %}
+                                        {% else %}
+                                            —
+                                        {% endif %}
+                                    </div>
+                                </td>
+                                <td>
+                                    {% if item.is_active %}
+                                        <span class="cms-badge active">Active</span>
+                                    {% else %}
+                                        <span class="cms-badge inactive">Inactive</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="cms-actions">
+                                        <a href="{{ path('panel/cms/templates/edit') }}?id={{ item.id }}" class="cms-btn cms-btn-light">Edit</a>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="cms-empty">
+                <strong>No templates yet</strong>
+                Create your first reusable Twig template for landing pages.
+                <div style="margin-top:16px;">
+                    <a href="{{ path('panel/cms/templates/create') }}" class="cms-btn cms-btn-primary">+ Create First Template</a>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

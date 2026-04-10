@@ -1,0 +1,1506 @@
+{% extends 'templates/base.admin.twig' %}
+
+{% block body %}
+<main class="wellness-advisor-page mt-4 container pb-5">
+
+  <style>
+    :root{
+      --gourmet-primary:#f59e0b;
+      --gourmet-primary-dark:#d97706;
+      --gourmet-accent:#fb923c;
+      --gourmet-cream:#fff8ef;
+      --gourmet-soft:#fff3df;
+      --gourmet-dark:#1f1307;
+      --gourmet-text:#2d241c;
+      --gourmet-muted:#6f6255;
+      --gourmet-border:#ecd9bf;
+      --gourmet-shadow:0 18px 44px rgba(79,43,8,.10);
+      --gourmet-success:#16a34a;
+      --gourmet-success-bg:#eefbf1;
+      --gourmet-info:#0ea5e9;
+      --gourmet-danger:#dc2626;
+      --gourmet-warning:#b45309;
+      --gourmet-warning-bg:#fff7ed;
+    }
+
+    .wellness-advisor-page{
+      color:var(--gourmet-text);
+    }
+
+    .wa-hero{
+      position:relative;
+      overflow:hidden;
+      border-radius:28px;
+      padding:2rem 1.8rem;
+      color:#fff;
+      background:
+        radial-gradient(900px 420px at 0% 0%, rgba(245,158,11,.16), transparent 60%),
+        linear-gradient(135deg, #251508 0%, #1f1307 55%, #361a06 100%);
+      box-shadow:0 22px 54px rgba(0,0,0,.16);
+      margin-bottom:2rem;
+    }
+
+    .wa-hero:after{
+      content:"";
+      position:absolute;
+      right:-70px;
+      top:-70px;
+      width:220px;
+      height:220px;
+      background:radial-gradient(circle, rgba(255,209,138,.16) 0%, rgba(255,209,138,0) 70%);
+      pointer-events:none;
+    }
+
+    .wa-hero > *{
+      position:relative;
+      z-index:2;
+    }
+
+    .wa-badge{
+      display:inline-flex;
+      align-items:center;
+      gap:.45rem;
+      border-radius:999px;
+      padding:.55rem .9rem;
+      font-size:.9rem;
+      font-weight:800;
+      background:rgba(255,255,255,.08);
+      border:1px solid rgba(255,255,255,.18);
+      color:#fff;
+      margin-bottom:1rem;
+    }
+
+    .wa-hero h1{
+      font-size:clamp(2rem,4vw,3.05rem);
+      line-height:1.05;
+      font-weight:900;
+      letter-spacing:-1px;
+      margin-bottom:.8rem;
+      max-width:900px;
+    }
+
+    .wa-hero h1 .warm{
+      color:#ffd18a;
+    }
+
+    .wa-hero p{
+      max-width:860px;
+      color:#f4e4cb;
+      line-height:1.72;
+      font-size:1rem;
+      margin-bottom:1rem;
+    }
+
+    .wa-layout{
+      display:grid;
+      grid-template-columns:460px 1fr;
+      gap:1.2rem;
+      align-items:start;
+    }
+
+    .wa-card{
+      background:#fff;
+      padding:1.4rem 1.2rem;
+      border-radius:22px;
+      box-shadow:var(--gourmet-shadow);
+      border:1px solid rgba(94,55,15,.06);
+      margin-bottom:1rem;
+    }
+
+    .wa-card h2,
+    .wa-card h3,
+    .wa-card h4{
+      color:var(--gourmet-dark);
+      font-weight:900;
+      margin-bottom:.85rem;
+    }
+
+    .wa-label{
+      display:block;
+      font-weight:800;
+      color:#4d3c28;
+      margin-bottom:.45rem;
+    }
+
+    .wa-field{
+      margin-bottom:1rem;
+    }
+
+    .wa-input,
+    .wa-select,
+    .wa-textarea{
+      width:100%;
+      border:1px solid #e9d7bd;
+      border-radius:14px;
+      padding:.95rem 1rem;
+      background:#fffdfa;
+      color:#2d241c;
+      outline:none;
+    }
+
+    .wa-textarea{
+      min-height:100px;
+      resize:vertical;
+    }
+
+    .wa-input:focus,
+    .wa-select:focus,
+    .wa-textarea:focus{
+      border-color:#f59e0b;
+      box-shadow:0 0 0 4px rgba(245,158,11,.10);
+      background:#fff;
+    }
+
+    .wa-grid-2{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:.85rem;
+    }
+
+    .wa-grid-3{
+      display:grid;
+      grid-template-columns:repeat(3,1fr);
+      gap:.85rem;
+    }
+
+    .wa-submit{
+      width:100%;
+      background:linear-gradient(135deg,var(--gourmet-primary),var(--gourmet-accent));
+      color:#23160a !important;
+      padding:1rem 1.55rem;
+      font-size:1rem;
+      border-radius:999px;
+      text-decoration:none;
+      font-weight:800;
+      display:inline-flex;
+      gap:.55rem;
+      align-items:center;
+      justify-content:center;
+      border:none;
+      box-shadow:0 12px 28px rgba(245,158,11,.28);
+      transition:all .22s ease;
+      cursor:pointer;
+    }
+
+    .wa-submit:hover{
+      transform:translateY(-2px);
+      background:linear-gradient(135deg,var(--gourmet-primary-dark),var(--gourmet-accent));
+    }
+
+    .wa-muted{
+      color:var(--gourmet-muted);
+      line-height:1.7;
+    }
+
+    .wa-disclaimer{
+      border-radius:18px;
+      background:#fff8ee;
+      border:1px solid #f0d8b4;
+      padding:1rem;
+      color:#7a5b35;
+      font-size:.93rem;
+      line-height:1.7;
+      margin-top:1rem;
+    }
+
+    .wa-results-top{
+      display:grid;
+      grid-template-columns:repeat(4,minmax(0,1fr));
+      gap:1rem;
+      margin-bottom:1rem;
+    }
+
+    .wa-stat{
+      background:linear-gradient(135deg,#fff5e6,#fffdf9);
+      border:1px solid #efd4a9;
+      border-radius:20px;
+      padding:1rem;
+      text-align:center;
+    }
+
+    .wa-stat strong{
+      display:block;
+      font-size:1.35rem;
+      color:var(--gourmet-primary-dark);
+      line-height:1.1;
+      margin-bottom:.35rem;
+      font-weight:900;
+    }
+
+    .wa-stat span{
+      color:var(--gourmet-muted);
+      font-weight:800;
+      font-size:.92rem;
+    }
+
+    .wa-tabs{
+      display:flex;
+      flex-wrap:wrap;
+      gap:.6rem;
+      margin-bottom:1rem;
+    }
+
+    .wa-tab-btn{
+      border:none;
+      background:#fff4e2;
+      border:1px solid #f0d8b4;
+      color:#8b4f00;
+      padding:.72rem 1rem;
+      border-radius:999px;
+      font-weight:800;
+      cursor:pointer;
+    }
+
+    .wa-tab-btn.active{
+      background:linear-gradient(135deg,var(--gourmet-primary),var(--gourmet-accent));
+      color:#23160a;
+      border-color:transparent;
+    }
+
+    .wa-tab-panel{
+      display:none;
+    }
+
+    .wa-tab-panel.active{
+      display:block;
+    }
+
+    .wa-tip-list{
+      display:grid;
+      gap:.75rem;
+    }
+
+    .wa-tip{
+      background:#fffdf9;
+      border:1px solid #ead8bf;
+      border-radius:16px;
+      padding:.95rem 1rem;
+      color:var(--gourmet-text);
+      line-height:1.7;
+    }
+
+    .wa-tip strong{
+      color:var(--gourmet-dark);
+    }
+
+    .wa-routine-grid{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:1rem;
+    }
+
+    .wa-routine-box{
+      background:#fffdf9;
+      border:1px solid #ead8bf;
+      border-radius:18px;
+      padding:1rem;
+    }
+
+    .wa-routine-box h4{
+      font-size:1.05rem;
+      font-weight:900;
+      color:var(--gourmet-dark);
+      margin-bottom:.7rem;
+    }
+
+    .wa-routine-box ul{
+      margin:0;
+      padding-left:1rem;
+      color:var(--gourmet-muted);
+      line-height:1.8;
+    }
+
+    .wa-copy-box{
+      background:#fffdf9;
+      border:1px dashed #e4cfae;
+      border-radius:18px;
+      padding:1rem;
+      margin-top:1rem;
+    }
+
+    .wa-copy-output{
+      width:100%;
+      min-height:320px;
+      border:none;
+      outline:none;
+      resize:vertical;
+      background:transparent;
+      color:#3b3128;
+      line-height:1.7;
+    }
+
+    .wa-copy-actions{
+      display:flex;
+      gap:.75rem;
+      flex-wrap:wrap;
+      margin-top:.85rem;
+    }
+
+    .wa-soft-btn{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:.45rem;
+      padding:.9rem 1.1rem;
+      border-radius:999px;
+      font-weight:800;
+      text-decoration:none;
+      background:#fff6e8;
+      color:#8b4f00;
+      border:1px solid #f1d4a3;
+      cursor:pointer;
+    }
+
+    .wa-soft-btn:hover{
+      background:#ffefcf;
+    }
+
+    .wa-main-btn{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:.45rem;
+      padding:.95rem 1.2rem;
+      border-radius:999px;
+      font-weight:800;
+      text-decoration:none;
+      background:linear-gradient(135deg,var(--gourmet-primary),var(--gourmet-accent));
+      color:#23160a !important;
+      border:none;
+      cursor:pointer;
+      box-shadow:0 12px 28px rgba(245,158,11,.28);
+    }
+
+    .wa-success{
+      background:#eefbf1;
+      border:1px solid #bde5c8;
+      color:#166534;
+      border-radius:16px;
+      padding:.85rem 1rem;
+      margin-top:.75rem;
+      display:none;
+    }
+
+    .wa-schedule{
+      display:grid;
+      gap:1rem;
+      margin-top:1rem;
+    }
+
+    .wa-schedule-item{
+      background:#fffdf9;
+      border:1px solid #ead8bf;
+      border-radius:18px;
+      padding:1rem 1rem 1rem 1rem;
+      line-height:1.75;
+    }
+
+    .wa-schedule-item strong{
+      color:var(--gourmet-dark);
+    }
+
+    .wa-day-head{
+      display:flex;
+      justify-content:space-between;
+      gap:1rem;
+      align-items:flex-start;
+      margin-bottom:.7rem;
+      flex-wrap:wrap;
+    }
+
+    .wa-day-title{
+      font-size:1.05rem;
+      font-weight:900;
+      color:var(--gourmet-dark);
+    }
+
+    .wa-day-meta{
+      display:flex;
+      flex-wrap:wrap;
+      gap:.5rem;
+    }
+
+    .wa-chip{
+      display:inline-flex;
+      align-items:center;
+      gap:.35rem;
+      padding:.4rem .7rem;
+      border-radius:999px;
+      background:#fff1d9;
+      color:#8b4f00;
+      border:1px solid #f0d6ab;
+      font-size:.83rem;
+      font-weight:800;
+    }
+
+    .wa-ex-list{
+      margin:0;
+      padding-left:1.1rem;
+      color:var(--gourmet-text);
+    }
+
+    .wa-ex-list li + li{
+      margin-top:.28rem;
+    }
+
+    .wa-sleep-box{
+      background:#fff8ee;
+      border:1px solid #efd2a3;
+      border-radius:18px;
+      padding:1rem;
+      margin-top:1rem;
+      color:#6b4b24;
+      line-height:1.75;
+    }
+
+    .wa-info{
+      margin-top:1rem;
+      background:#f0f9ff;
+      border:1px solid #bae6fd;
+      color:#0c4a6e;
+      border-radius:18px;
+      padding:1rem;
+      line-height:1.7;
+    }
+
+    @media (max-width: 1199px){
+      .wa-layout{
+        grid-template-columns:1fr;
+      }
+    }
+
+    @media (max-width: 991px){
+      .wa-results-top,
+      .wa-routine-grid{
+        grid-template-columns:1fr 1fr;
+      }
+    }
+
+    @media (max-width: 768px){
+      .wa-grid-2,
+      .wa-grid-3,
+      .wa-results-top,
+      .wa-routine-grid{
+        grid-template-columns:1fr;
+      }
+    }
+  </style>
+
+  <section class="wa-hero">
+    <span class="wa-badge">
+      <i class="fa-solid fa-dumbbell"></i> VNV Gourmet Wellness Advisor
+    </span>
+
+    <h1>
+      <span style="color:#fff">Welcome{% if user.name is defined and user.name %}, {{ user.name }}{% endif %}.</span>
+      <span class="warm">Get a real weekly training plan, not just general advice.</span>
+    </h1>
+
+    <p>
+      This planner now gives a more exact coach-style routine: what to do on Monday, Tuesday, Wednesday and beyond, how long to train, what exercises to perform, and what sleep schedule supports your week better.
+    </p>
+  </section>
+
+  <section class="wa-layout">
+    <div>
+      <div class="wa-card">
+        <h2>Build your wellness plan</h2>
+        <p class="wa-muted">
+          Answer honestly and we’ll generate a more precise weekly routine with exact workouts, sleep guidance and a realistic schedule.
+        </p>
+
+        <form id="wellnessAdvisorForm">
+          <div class="wa-grid-2">
+            <div class="wa-field">
+              <label class="wa-label" for="wa_gender">Gender</label>
+              <select id="wa_gender" class="wa-select" required>
+                <option value="">Select</option>
+                <option value="male">Male</option>
+                <option value="female">Female</option>
+                <option value="other">Prefer not to say</option>
+              </select>
+            </div>
+
+            <div class="wa-field">
+              <label class="wa-label" for="wa_age">Age</label>
+              <input id="wa_age" type="number" class="wa-input" min="14" max="100" placeholder="e.g. 42" required>
+            </div>
+          </div>
+
+          <div class="wa-grid-3">
+            <div class="wa-field">
+              <label class="wa-label" for="wa_height_ft">Height (ft)</label>
+              <input id="wa_height_ft" type="number" class="wa-input" min="3" max="8" placeholder="e.g. 5" required>
+            </div>
+
+            <div class="wa-field">
+              <label class="wa-label" for="wa_height_in">Height (in)</label>
+              <input id="wa_height_in" type="number" class="wa-input" min="0" max="11" placeholder="e.g. 7" required>
+            </div>
+
+            <div class="wa-field">
+              <label class="wa-label" for="wa_weight_lb">Weight (lb)</label>
+              <input id="wa_weight_lb" type="number" class="wa-input" min="80" max="550" step="0.1" placeholder="e.g. 165" required>
+            </div>
+          </div>
+
+          <div class="wa-grid-2">
+            <div class="wa-field">
+              <label class="wa-label" for="wa_goal">Main goal</label>
+              <select id="wa_goal" class="wa-select" required>
+                <option value="">Select</option>
+                <option value="fat_loss">Lose fat</option>
+                <option value="maintain">Maintain health</option>
+                <option value="muscle_gain">Gain strength / muscle</option>
+                <option value="recomp">Body recomposition</option>
+                <option value="energy">More energy</option>
+                <option value="longevity">Longevity / healthy aging</option>
+                <option value="returning">Returning after time off</option>
+              </select>
+            </div>
+
+            <div class="wa-field">
+              <label class="wa-label" for="wa_activity">Current activity level</label>
+              <select id="wa_activity" class="wa-select" required>
+                <option value="">Select</option>
+                <option value="none">Almost none</option>
+                <option value="walks">Mostly walking</option>
+                <option value="light">1–2 days/week</option>
+                <option value="moderate">3–4 days/week</option>
+                <option value="active">5+ days/week</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="wa-grid-2">
+            <div class="wa-field">
+              <label class="wa-label" for="wa_training_access">Workout access</label>
+              <select id="wa_training_access" class="wa-select" required>
+                <option value="">Select</option>
+                <option value="none">No gym / no equipment</option>
+                <option value="home_basic">Home, basic equipment</option>
+                <option value="home_full">Home, decent setup</option>
+                <option value="gym">Gym access</option>
+              </select>
+            </div>
+
+            <div class="wa-field">
+              <label class="wa-label" for="wa_time">Time available most days</label>
+              <select id="wa_time" class="wa-select" required>
+                <option value="">Select</option>
+                <option value="10">10–15 min</option>
+                <option value="20">20–30 min</option>
+                <option value="40">35–45 min</option>
+                <option value="60">60+ min</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="wa-grid-2">
+            <div class="wa-field">
+              <label class="wa-label" for="wa_sleep_quality">How are you sleeping lately?</label>
+              <select id="wa_sleep_quality" class="wa-select" required>
+                <option value="">Select</option>
+                <option value="poor">Poor</option>
+                <option value="fair">Fair</option>
+                <option value="good">Good</option>
+              </select>
+            </div>
+
+            <div class="wa-field">
+              <label class="wa-label" for="wa_work_stress">Work / schedule stress</label>
+              <select id="wa_work_stress" class="wa-select" required>
+                <option value="">Select</option>
+                <option value="low">Low</option>
+                <option value="medium">Medium</option>
+                <option value="high">High / demanding</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="wa-grid-2">
+            <div class="wa-field">
+              <label class="wa-label" for="wa_has_kids">Do you have kids depending on your routine?</label>
+              <select id="wa_has_kids" class="wa-select" required>
+                <option value="">Select</option>
+                <option value="no">No</option>
+                <option value="yes">Yes</option>
+              </select>
+            </div>
+
+            <div class="wa-field">
+              <label class="wa-label" for="wa_pregnant">Pregnant / postpartum?</label>
+              <select id="wa_pregnant" class="wa-select" required>
+                <option value="">Select</option>
+                <option value="no">No</option>
+                <option value="pregnant">Pregnant</option>
+                <option value="postpartum">Postpartum</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="wa-grid-2">
+            <div class="wa-field">
+              <label class="wa-label" for="wa_injury">Any injuries or pain limitations?</label>
+              <select id="wa_injury" class="wa-select" required>
+                <option value="">Select</option>
+                <option value="no">No</option>
+                <option value="minor">Minor / manageable</option>
+                <option value="yes">Yes, significant</option>
+              </select>
+            </div>
+
+            <div class="wa-field">
+              <label class="wa-label" for="wa_experience">Training experience</label>
+              <select id="wa_experience" class="wa-select" required>
+                <option value="">Select</option>
+                <option value="beginner">Beginner</option>
+                <option value="returning">Returning</option>
+                <option value="intermediate">Intermediate</option>
+                <option value="advanced">Advanced</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="wa-field">
+            <label class="wa-label" for="wa_notes">Anything else affecting your routine? (optional)</label>
+            <textarea id="wa_notes" class="wa-textarea" placeholder="Examples: shift work, anxiety, low motivation, knee pain, caring for family, very long commute..."></textarea>
+          </div>
+
+          <button type="submit" class="wa-submit">
+            <i class="fa-solid fa-wand-magic-sparkles"></i> Build My Wellness Plan
+          </button>
+        </form>
+
+        <div class="wa-disclaimer">
+          <strong>Friendly note:</strong> this planner is for general wellness and training structure. If you are pregnant, postpartum, have major pain, recent surgery, chest pain, dizziness, uncontrolled blood pressure, diabetes, or a significant injury, use caution and get professional clearance before training hard.
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="wa-card" id="waResultsCard">
+        <div class="wa-results-top">
+          <div class="wa-stat">
+            <strong id="resTrainingDays">—</strong>
+            <span>Strength days</span>
+          </div>
+          <div class="wa-stat">
+            <strong id="resCardioDays">—</strong>
+            <span>Cardio / walking</span>
+          </div>
+          <div class="wa-stat">
+            <strong id="resBedtime">—</strong>
+            <span>Target bedtime</span>
+          </div>
+          <div class="wa-stat">
+            <strong id="resWakeTime">—</strong>
+            <span>Wake-up time</span>
+          </div>
+        </div>
+
+        <div class="wa-tabs">
+          <button type="button" class="wa-tab-btn active" data-tab="overview">Overview</button>
+          <button type="button" class="wa-tab-btn" data-tab="exercise">Exercise Plan</button>
+          <button type="button" class="wa-tab-btn" data-tab="recovery">Sleep & Recovery</button>
+          <button type="button" class="wa-tab-btn" data-tab="schedule">Weekly Schedule</button>
+          <button type="button" class="wa-tab-btn" data-tab="copy">Copy Plan</button>
+        </div>
+
+        <div class="wa-tab-panel active" data-panel="overview">
+          <h3>Coach overview</h3>
+          <div class="wa-tip-list" id="overviewTips">
+            <div class="wa-tip">Fill in your information to generate a full coach-style routine.</div>
+          </div>
+
+          <div class="wa-routine-grid mt-4">
+            <div class="wa-routine-box">
+              <h4>What this planner now gives you</h4>
+              <ul>
+                <li>Exact weekly structure</li>
+                <li>Specific training days</li>
+                <li>Exercises, sets and reps</li>
+                <li>Cardio / walking prescription</li>
+                <li>Bedtime and wake-up targets</li>
+                <li>Recovery and reset habits</li>
+              </ul>
+            </div>
+
+            <div class="wa-routine-box">
+              <h4>Training styles included</h4>
+              <ul>
+                <li>Gym training</li>
+                <li>Home dumbbell / band training</li>
+                <li>No-gym bodyweight routines</li>
+                <li>Walking-based plans</li>
+                <li>Beginner-friendly structure</li>
+                <li>Return-to-training plans</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="wa-info">
+            <strong>Food still matters:</strong> for best results, pair this weekly routine with your nutrition advisor and meal plans so recovery, protein intake and energy match the work you are doing.
+          </div>
+        </div>
+
+        <div class="wa-tab-panel" data-panel="exercise">
+          <h3>Exercise recommendation</h3>
+          <div class="wa-tip-list" id="exerciseTips"></div>
+        </div>
+
+        <div class="wa-tab-panel" data-panel="recovery">
+          <h3>Sleep, recovery and daily rhythm</h3>
+          <div class="wa-tip-list" id="recoveryTips"></div>
+          <div class="wa-sleep-box" id="sleepScheduleBox">
+            Fill in your information to generate a recommended bedtime and wake-up time.
+          </div>
+        </div>
+
+        <div class="wa-tab-panel" data-panel="schedule">
+          <h3>Your weekly training schedule</h3>
+          <div class="wa-schedule" id="weeklySchedule">
+            <div class="wa-schedule-item">Your exact weekly workout plan will appear here after you build the plan.</div>
+          </div>
+        </div>
+
+        <div class="wa-tab-panel" data-panel="copy">
+          <h3>Copy your full wellness plan</h3>
+
+          <div class="wa-copy-box">
+            <textarea id="copyPlanOutput" class="wa-copy-output" readonly>Fill in your information and your plan will appear here.</textarea>
+          </div>
+
+          <div class="wa-copy-actions">
+            <button type="button" class="wa-soft-btn" id="copyPlanBtn">
+              <i class="fa-solid fa-copy"></i> Copy Plan
+            </button>
+
+            <a href="{{ path('/meal-plans') }}" class="wa-main-btn">
+              <i class="fa-solid fa-utensils"></i> Go to Meal Plans
+            </a>
+          </div>
+
+          <div class="wa-success" id="copySuccessBox">
+            Your wellness plan was copied successfully.
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  const form = document.getElementById('wellnessAdvisorForm');
+
+  const resTrainingDays = document.getElementById('resTrainingDays');
+  const resCardioDays = document.getElementById('resCardioDays');
+  const resBedtime = document.getElementById('resBedtime');
+  const resWakeTime = document.getElementById('resWakeTime');
+
+  const overviewTips = document.getElementById('overviewTips');
+  const exerciseTips = document.getElementById('exerciseTips');
+  const recoveryTips = document.getElementById('recoveryTips');
+  const weeklySchedule = document.getElementById('weeklySchedule');
+  const sleepScheduleBox = document.getElementById('sleepScheduleBox');
+  const copyPlanOutput = document.getElementById('copyPlanOutput');
+  const copyPlanBtn = document.getElementById('copyPlanBtn');
+  const copySuccessBox = document.getElementById('copySuccessBox');
+
+  const tabButtons = document.querySelectorAll('.wa-tab-btn');
+  const tabPanels = document.querySelectorAll('.wa-tab-panel');
+
+  tabButtons.forEach(btn => {
+    btn.addEventListener('click', function () {
+      const target = this.dataset.tab;
+      tabButtons.forEach(b => b.classList.remove('active'));
+      tabPanels.forEach(p => p.classList.remove('active'));
+      this.classList.add('active');
+      const panel = document.querySelector(`.wa-tab-panel[data-panel="${target}"]`);
+      if (panel) panel.classList.add('active');
+    });
+  });
+
+  function round(value) {
+    return Math.round(value);
+  }
+
+  function feetInchesToCm(feet, inches) {
+    return ((feet * 12) + inches) * 2.54;
+  }
+
+  function poundsToKg(lb) {
+    return lb * 0.45359237;
+  }
+
+  function formatHeight(ft, inch) {
+    return `${ft}'${inch}"`;
+  }
+
+  function getGoalTitle(goal) {
+    switch (goal) {
+      case 'fat_loss': return 'Fat loss';
+      case 'maintain': return 'General health maintenance';
+      case 'muscle_gain': return 'Strength / muscle gain';
+      case 'recomp': return 'Body recomposition';
+      case 'energy': return 'More energy';
+      case 'longevity': return 'Longevity / healthy aging';
+      case 'returning': return 'Returning after time off';
+      default: return 'General wellness';
+    }
+  }
+
+  function renderTipList(container, items) {
+    container.innerHTML = items.map(item => `<div class="wa-tip">${item}</div>`).join('');
+  }
+
+  function getTrainingDays(data) {
+    let days = 3;
+
+    if (data.activity === 'none') days = 2;
+    if (data.activity === 'walks') days = 3;
+    if (data.activity === 'light') days = 3;
+    if (data.activity === 'moderate') days = 4;
+    if (data.activity === 'active') days = 4;
+
+    if (data.goal === 'muscle_gain' && data.trainingAccess === 'gym' && data.time !== '10') {
+      days = Math.max(days, 4);
+    }
+
+    if (data.time === '10') {
+      days = Math.min(days, 3);
+    }
+
+    if (data.workStress === 'high' || data.sleepQuality === 'poor') {
+      days = Math.min(days, 3);
+    }
+
+    if (data.pregnant !== 'no' || data.injury === 'yes') {
+      days = Math.min(days, 3);
+    }
+
+    if (data.age >= 60 && days < 3) {
+      days = 3;
+    }
+
+    return days;
+  }
+
+  function getCardioDays(data) {
+    if (data.goal === 'fat_loss') return 4;
+    if (data.goal === 'energy') return 4;
+    if (data.goal === 'longevity') return 5;
+    if (data.activity === 'none') return 5;
+    if (data.activity === 'walks') return 5;
+    return 3;
+  }
+
+  function getSessionDurationMinutes(data) {
+    switch (data.time) {
+      case '10': return 15;
+      case '20': return 25;
+      case '40': return 40;
+      case '60': return 60;
+      default: return 30;
+    }
+  }
+
+  function getSleepHoursTarget(data) {
+    if (data.pregnant === 'pregnant' || data.pregnant === 'postpartum') return 8.5;
+    if (data.workStress === 'high' || data.sleepQuality === 'poor') return 8.0;
+    if (data.hasKids === 'yes') return 7.5;
+    if (data.age >= 60) return 7.5;
+    return 7.5;
+  }
+
+  function getWakeTime(data) {
+    if (data.hasKids === 'yes' && data.workStress === 'high') return { hour: 5, minute: 45 };
+    if (data.hasKids === 'yes') return { hour: 6, minute: 0 };
+    if (data.workStress === 'high') return { hour: 6, minute: 0 };
+    if (data.workStress === 'medium') return { hour: 6, minute: 30 };
+    return { hour: 7, minute: 0 };
+  }
+
+  function formatTime(hour, minute) {
+    let suffix = hour >= 12 ? 'PM' : 'AM';
+    let h = hour % 12;
+    if (h === 0) h = 12;
+    return `${h}:${String(minute).padStart(2, '0')} ${suffix}`;
+  }
+
+  function subtractHoursFromTime(timeObj, hoursDecimal) {
+    const totalMinutes = (timeObj.hour * 60) + timeObj.minute;
+    const subtractMinutes = Math.round(hoursDecimal * 60);
+    let result = totalMinutes - subtractMinutes;
+
+    while (result < 0) {
+      result += 24 * 60;
+    }
+
+    const hour = Math.floor(result / 60) % 24;
+    const minute = result % 60;
+
+    return { hour, minute };
+  }
+
+  function getSleepSchedule(data) {
+    const wake = getWakeTime(data);
+    const sleepHours = getSleepHoursTarget(data);
+    const bed = subtractHoursFromTime(wake, sleepHours);
+
+    return {
+      sleepHours,
+      wake,
+      bed,
+      wakeText: formatTime(wake.hour, wake.minute),
+      bedText: formatTime(bed.hour, bed.minute)
+    };
+  }
+
+  function getMeditationTarget(data) {
+    if (data.workStress === 'high' || data.sleepQuality === 'poor') return '10 min';
+    if (data.hasKids === 'yes') return '5–8 min';
+    return '5–10 min';
+  }
+
+  function getRestSeconds(data) {
+    if (data.time === '10') return 20;
+    if (data.time === '20') return 30;
+    if (data.time === '40') return 45;
+    return 60;
+  }
+
+  function getStrengthPrescription(data) {
+    if (data.time === '10') {
+      return { sets: 2, reps: '10–15', core: '30 sec', rest: `${getRestSeconds(data)} sec` };
+    }
+    if (data.time === '20') {
+      return { sets: 3, reps: '8–12', core: '30–40 sec', rest: `${getRestSeconds(data)} sec` };
+    }
+    if (data.time === '40') {
+      return { sets: 3, reps: '8–12', core: '40–45 sec', rest: `${getRestSeconds(data)} sec` };
+    }
+    return { sets: 4, reps: '6–12', core: '45–60 sec', rest: `${getRestSeconds(data)} sec` };
+  }
+
+  function getWarmupText(data) {
+    if (data.time === '10') return '2–3 min brisk march, arm circles, hip openers';
+    if (data.time === '20') return '4 min brisk walk or bike + mobility';
+    if (data.time === '40') return '5–6 min warm-up + dynamic mobility';
+    return '8–10 min warm-up + dynamic mobility + first set lighter';
+  }
+
+  function buildStrengthWorkoutA(data) {
+    const p = getStrengthPrescription(data);
+
+    if (data.trainingAccess === 'none') {
+      return {
+        focus: 'Full Body Strength A',
+        warmup: getWarmupText(data),
+        exercises: [
+          `Chair squat or bodyweight squat — ${p.sets} sets x ${p.reps}`,
+          `Incline push-up on counter or bench — ${p.sets} sets x ${p.reps}`,
+          `Glute bridge — ${p.sets} sets x ${p.reps}`,
+          `Split squat or reverse lunge — ${p.sets} sets x ${p.reps} each side`,
+          `Forearm plank — ${p.sets} sets x ${p.core}`,
+          `Rest ${p.rest} between sets`
+        ]
+      };
+    }
+
+    if (data.trainingAccess === 'home_basic') {
+      return {
+        focus: 'Full Body Strength A',
+        warmup: getWarmupText(data),
+        exercises: [
+          `Goblet squat — ${p.sets} sets x ${p.reps}`,
+          `Dumbbell floor press or push-up — ${p.sets} sets x ${p.reps}`,
+          `One-arm dumbbell row or band row — ${p.sets} sets x ${p.reps} each side`,
+          `Romanian deadlift with dumbbells — ${p.sets} sets x ${p.reps}`,
+          `Dead bug — ${p.sets} sets x ${p.reps} each side`,
+          `Rest ${p.rest} between sets`
+        ]
+      };
+    }
+
+    if (data.trainingAccess === 'home_full') {
+      return {
+        focus: 'Lower Body + Push A',
+        warmup: getWarmupText(data),
+        exercises: [
+          `Goblet squat or front squat — ${p.sets} sets x ${p.reps}`,
+          `Romanian deadlift — ${p.sets} sets x ${p.reps}`,
+          `Dumbbell bench press or push-up — ${p.sets} sets x ${p.reps}`,
+          `Walking lunges — ${p.sets} sets x ${p.reps} each side`,
+          `Plank or hollow hold — ${p.sets} sets x ${p.core}`,
+          `Rest ${p.rest} between sets`
+        ]
+      };
+    }
+
+    return {
+      focus: 'Lower Body + Push A',
+      warmup: getWarmupText(data),
+      exercises: [
+        `Back squat or leg press — ${p.sets} sets x ${p.reps}`,
+        `Romanian deadlift — ${p.sets} sets x ${p.reps}`,
+        `Bench press or dumbbell press — ${p.sets} sets x ${p.reps}`,
+        `Walking lunge — ${p.sets} sets x ${p.reps} each side`,
+        `Cable crunch or plank — ${p.sets} sets x ${p.core}`,
+        `Rest ${p.rest} between sets`
+      ]
+    };
+  }
+
+  function buildStrengthWorkoutB(data) {
+    const p = getStrengthPrescription(data);
+
+    if (data.trainingAccess === 'none') {
+      return {
+        focus: 'Full Body Strength B',
+        warmup: getWarmupText(data),
+        exercises: [
+          `Step-ups on sturdy step or stair — ${p.sets} sets x ${p.reps} each side`,
+          `Wall push-up or incline push-up — ${p.sets} sets x ${p.reps}`,
+          `Hip hinge with backpack — ${p.sets} sets x ${p.reps}`,
+          `Glute bridge march — ${p.sets} sets x ${p.reps} each side`,
+          `Side plank — ${p.sets} sets x ${p.core} each side`,
+          `Rest ${p.rest} between sets`
+        ]
+      };
+    }
+
+    if (data.trainingAccess === 'home_basic') {
+      return {
+        focus: 'Full Body Strength B',
+        warmup: getWarmupText(data),
+        exercises: [
+          `Reverse lunge with dumbbells — ${p.sets} sets x ${p.reps} each side`,
+          `Standing overhead press — ${p.sets} sets x ${p.reps}`,
+          `Band row or dumbbell row — ${p.sets} sets x ${p.reps}`,
+          `Hip thrust or glute bridge loaded — ${p.sets} sets x ${p.reps}`,
+          `Farmer carry or suitcase hold — ${p.sets} sets x 30–45 sec`,
+          `Rest ${p.rest} between sets`
+        ]
+      };
+    }
+
+    if (data.trainingAccess === 'home_full') {
+      return {
+        focus: 'Pull + Lower B',
+        warmup: getWarmupText(data),
+        exercises: [
+          `Split squat — ${p.sets} sets x ${p.reps} each side`,
+          `One-arm row — ${p.sets} sets x ${p.reps} each side`,
+          `Shoulder press — ${p.sets} sets x ${p.reps}`,
+          `Hip thrust or deadlift pattern — ${p.sets} sets x ${p.reps}`,
+          `Pallof press or side plank — ${p.sets} sets x ${p.core}`,
+          `Rest ${p.rest} between sets`
+        ]
+      };
+    }
+
+    return {
+      focus: 'Pull + Lower B',
+      warmup: getWarmupText(data),
+      exercises: [
+        `Deadlift or trap-bar deadlift — ${p.sets} sets x ${p.reps}`,
+        `Lat pulldown or assisted pull-up — ${p.sets} sets x ${p.reps}`,
+        `Shoulder press — ${p.sets} sets x ${p.reps}`,
+        `Bulgarian split squat — ${p.sets} sets x ${p.reps} each side`,
+        `Hanging knee raise or plank — ${p.sets} sets x ${p.core}`,
+        `Rest ${p.rest} between sets`
+      ]
+    };
+  }
+
+  function buildStrengthWorkoutC(data) {
+    const p = getStrengthPrescription(data);
+
+    if (data.trainingAccess === 'none') {
+      return {
+        focus: 'Strength + Conditioning C',
+        warmup: getWarmupText(data),
+        exercises: [
+          `Squat to chair — ${p.sets} sets x ${p.reps}`,
+          `Push-up variation — ${p.sets} sets x ${p.reps}`,
+          `Backpack row or towel row — ${p.sets} sets x ${p.reps}`,
+          `Reverse lunge — ${p.sets} sets x ${p.reps} each side`,
+          `Mountain climber — ${p.sets} sets x 20–30 sec`,
+          `Rest ${p.rest} between sets`
+        ]
+      };
+    }
+
+    if (data.trainingAccess === 'home_basic') {
+      return {
+        focus: 'Full Body C',
+        warmup: getWarmupText(data),
+        exercises: [
+          `Goblet squat — ${p.sets} sets x ${p.reps}`,
+          `Push-up or dumbbell press — ${p.sets} sets x ${p.reps}`,
+          `Romanian deadlift — ${p.sets} sets x ${p.reps}`,
+          `One-arm row — ${p.sets} sets x ${p.reps} each side`,
+          `Loaded carry or plank — ${p.sets} sets x 30–45 sec`,
+          `Rest ${p.rest} between sets`
+        ]
+      };
+    }
+
+    if (data.trainingAccess === 'home_full') {
+      return {
+        focus: 'Full Body C',
+        warmup: getWarmupText(data),
+        exercises: [
+          `Squat variation — ${p.sets} sets x ${p.reps}`,
+          `Bench / floor press — ${p.sets} sets x ${p.reps}`,
+          `Row variation — ${p.sets} sets x ${p.reps}`,
+          `Romanian deadlift — ${p.sets} sets x ${p.reps}`,
+          `Core finisher — ${p.sets} sets x ${p.core}`,
+          `Rest ${p.rest} between sets`
+        ]
+      };
+    }
+
+    return {
+      focus: 'Full Body C',
+      warmup: getWarmupText(data),
+      exercises: [
+        `Leg press or squat variation — ${p.sets} sets x ${p.reps}`,
+        `Incline dumbbell press — ${p.sets} sets x ${p.reps}`,
+        `Seated row — ${p.sets} sets x ${p.reps}`,
+        `Romanian deadlift or hamstring curl — ${p.sets} sets x ${p.reps}`,
+        `Cable anti-rotation press or plank — ${p.sets} sets x ${p.core}`,
+        `Rest ${p.rest} between sets`
+      ]
+    };
+  }
+
+  function buildCardioSession(data, long = false) {
+    const duration = getSessionDurationMinutes(data);
+    let minutes = duration;
+
+    if (long && data.time === '60') minutes = 45;
+    if (long && data.time === '40') minutes = 35;
+    if (long && data.time === '20') minutes = 25;
+    if (long && data.time === '10') minutes = 15;
+
+    let focus = 'Zone 2 cardio / brisk walk';
+    let prescription = `Brisk walk or easy cardio for ${minutes} min. Keep a pace where you can still speak in short sentences.`;
+
+    if (data.goal === 'fat_loss' || data.goal === 'energy') {
+      prescription = `Brisk walk, bike or treadmill for ${minutes} min. Keep effort moderate, not all-out.`;
+    }
+
+    if (data.trainingAccess === 'gym' && data.goal === 'muscle_gain') {
+      prescription = `Low-impact cardio for ${Math.min(minutes, 25)} min to support conditioning without hurting recovery.`;
+    }
+
+    return {
+      focus,
+      warmup: '2–3 min easy pace before building rhythm',
+      exercises: [
+        prescription,
+        `Finish with 5 min easy pace and 3–5 min light stretching`,
+        `Optional: add 5–10 min extra walking later in the day`
+      ]
+    };
+  }
+
+  function buildMobilityRecoverySession(data) {
+    const duration = data.time === '60' ? 25 : data.time === '40' ? 20 : data.time === '20' ? 12 : 8;
+
+    return {
+      focus: 'Mobility + Recovery',
+      warmup: 'Start easy and breathe through each movement',
+      exercises: [
+        `Cat-camel x 8 reps`,
+        `Hip flexor stretch x 30 sec each side`,
+        `Thoracic rotation x 8 reps each side`,
+        `Hamstring stretch x 30 sec each side`,
+        `Child’s pose or breathing reset x 2 min`,
+        `Easy walk for ${duration} min if possible`
+      ]
+    };
+  }
+
+  function getWeeklyPlan(data) {
+    const strengthDays = getTrainingDays(data);
+    const cardioDays = getCardioDays(data);
+    const duration = getSessionDurationMinutes(data);
+
+    const strengthA = buildStrengthWorkoutA(data);
+    const strengthB = buildStrengthWorkoutB(data);
+    const strengthC = buildStrengthWorkoutC(data);
+    const cardio = buildCardioSession(data, false);
+    const longerCardio = buildCardioSession(data, true);
+    const mobility = buildMobilityRecoverySession(data);
+
+    const plan = [];
+
+    if (strengthDays === 2) {
+      plan.push(
+        { day: 'Monday', type: 'Strength', duration: `${duration} min`, ...strengthA },
+        { day: 'Tuesday', type: 'Cardio', duration: `${duration} min`, ...cardio },
+        { day: 'Wednesday', type: 'Recovery', duration: `10–20 min`, ...mobility },
+        { day: 'Thursday', type: 'Strength', duration: `${duration} min`, ...strengthB },
+        { day: 'Friday', type: 'Cardio', duration: `${duration} min`, ...cardio },
+        { day: 'Saturday', type: 'Walk', duration: `${Math.max(20, duration)} min`, ...longerCardio },
+        { day: 'Sunday', type: 'Recovery', duration: `10–20 min`, ...mobility }
+      );
+    } else if (strengthDays === 3) {
+      plan.push(
+        { day: 'Monday', type: 'Strength', duration: `${duration} min`, ...strengthA },
+        { day: 'Tuesday', type: 'Cardio', duration: `${duration} min`, ...cardio },
+        { day: 'Wednesday', type: 'Strength', duration: `${duration} min`, ...strengthB },
+        { day: 'Thursday', type: 'Recovery', duration: `10–20 min`, ...mobility },
+        { day: 'Friday', type: 'Strength', duration: `${duration} min`, ...strengthC },
+        { day: 'Saturday', type: 'Walk', duration: `${Math.max(20, duration)} min`, ...longerCardio },
+        { day: 'Sunday', type: 'Recovery', duration: `10–20 min`, ...mobility }
+      );
+    } else {
+      plan.push(
+        { day: 'Monday', type: 'Strength', duration: `${duration} min`, ...strengthA },
+        { day: 'Tuesday', type: 'Cardio', duration: `${Math.min(duration, 30)} min`, ...cardio },
+        { day: 'Wednesday', type: 'Strength', duration: `${duration} min`, ...strengthB },
+        { day: 'Thursday', type: 'Cardio', duration: `${Math.min(duration, 30)} min`, ...cardio },
+        { day: 'Friday', type: 'Strength', duration: `${duration} min`, ...strengthC },
+        { day: 'Saturday', type: 'Strength', duration: `${duration} min`, ...strengthA },
+        { day: 'Sunday', type: 'Recovery', duration: `15–25 min`, ...mobility }
+      );
+    }
+
+    if (data.goal === 'longevity' && strengthDays < 4) {
+      plan[5] = { day: 'Saturday', type: 'Walk', duration: `${Math.max(25, duration)} min`, ...longerCardio };
+    }
+
+    if (data.sleepQuality === 'poor' || data.workStress === 'high') {
+      plan[3] = { day: 'Thursday', type: 'Recovery', duration: `10–20 min`, ...mobility };
+      if (strengthDays === 4) {
+        plan[5] = { day: 'Saturday', type: 'Walk', duration: `${Math.max(20, duration)} min`, ...longerCardio };
+      }
+    }
+
+    return {
+      strengthDays,
+      cardioDays,
+      days: plan
+    };
+  }
+
+  function buildOverviewTips(data, weeklyPlan, sleepData) {
+    const tips = [];
+
+    tips.push(`Your plan is built for <strong>${getGoalTitle(data.goal)}</strong> with <strong>${data.trainingAccessText}</strong> and about <strong>${data.timeText}</strong> available most days.`);
+    tips.push(`You now have a more exact weekly structure: <strong>${weeklyPlan.strengthDays} strength day(s)</strong>, <strong>${weeklyPlan.cardioDays} cardio / walking day(s)</strong>, and a sleep target built around your current routine.`);
+    tips.push(`Your recommended training style is <strong>${data.trainingStyle}</strong>.`);
+    tips.push(`Your target bedtime is about <strong>${sleepData.bedText}</strong> and your target wake-up time is about <strong>${sleepData.wakeText}</strong>.`);
+    tips.push(`<strong>Food support matters:</strong> if you want this plan to work better, review your meals too. Training, energy and recovery improve when food intake supports the work.`);
+
+    return tips;
+  }
+
+  function buildExerciseTips(data, weeklyPlan) {
+    const tips = [];
+    const duration = getSessionDurationMinutes(data);
+
+    tips.push(`<strong>Strength frequency:</strong> train strength about <strong>${weeklyPlan.strengthDays} day(s) per week</strong>.`);
+    tips.push(`<strong>Cardio / walking:</strong> aim for about <strong>${weeklyPlan.cardioDays} day(s) per week</strong> of walking, cardio or easy movement.`);
+    tips.push(`<strong>Session length:</strong> your main training sessions should usually last about <strong>${duration} minutes</strong>.`);
+    tips.push(`<strong>Progression rule:</strong> when all sets feel manageable, add a few reps first, then a little load, then possibly an extra set later.`);
+    tips.push(`<strong>Effort rule:</strong> finish most working sets feeling like you could still do 1–2 more good reps. Don’t chase failure on every set.`);
+
+    if (data.trainingAccess === 'none') {
+      tips.push(`<strong>No gym plan:</strong> bodyweight can still work. Use slower reps, controlled tempo, pauses, backpacks, stair work and consistent walking.`);
+    }
+
+    if (data.trainingAccess === 'gym') {
+      tips.push(`<strong>Gym plan:</strong> stay with basic movements, good form and repeatable progression instead of changing exercises every week.`);
+    }
+
+    if (data.goal === 'fat_loss') {
+      tips.push(`<strong>Fat loss priority:</strong> don’t try to out-cardio bad recovery. Keep strength training in, walk often, and let nutrition do its share.`);
+    }
+
+    if (data.goal === 'muscle_gain') {
+      tips.push(`<strong>Strength / muscle priority:</strong> protect recovery. Keep cardio supportive, not exhausting.`);
+    }
+
+    return tips;
+  }
+
+  function buildRecoveryTips(data, sleepData) {
+    const tips = [];
+
+    tips.push(`<strong>Sleep target:</strong> aim for about <strong>${sleepData.sleepHours} hours</strong> of sleep per night.`);
+    tips.push(`<strong>Suggested bedtime:</strong> around <strong>${sleepData.bedText}</strong>.`);
+    tips.push(`<strong>Suggested wake-up time:</strong> around <strong>${sleepData.wakeText}</strong>.`);
+    tips.push(`<strong>Daily reset:</strong> aim for about <strong>${getMeditationTarget(data)}</strong> of quiet breathing, meditation, prayer or just intentional stillness.`);
+    tips.push(`<strong>Wind-down rule:</strong> try to reduce bright screens, heavy meals and intense work in the final 45–60 min before bed.`);
+    tips.push(`<strong>Recovery rule:</strong> if sleep has been poor, keep showing up, but reduce intensity before you reduce consistency.`);
+
+    return tips;
+  }
+
+  function renderWeeklySchedule(plan) {
+    weeklySchedule.innerHTML = plan.days.map(day => `
+      <div class="wa-schedule-item">
+        <div class="wa-day-head">
+          <div class="wa-day-title">${day.day} — ${day.focus}</div>
+          <div class="wa-day-meta">
+            <span class="wa-chip"><i class="fa-solid fa-stopwatch"></i> ${day.duration}</span>
+            <span class="wa-chip"><i class="fa-solid fa-layer-group"></i> ${day.type}</span>
+          </div>
+        </div>
+
+        <div style="margin-bottom:.55rem;">
+          <strong>Warm-up:</strong> ${day.warmup}
+        </div>
+
+        <ul class="wa-ex-list">
+          ${day.exercises.map(ex => `<li>${ex}</li>`).join('')}
+        </ul>
+      </div>
+    `).join('');
+  }
+
+  function buildCopyPlan(data, weeklyPlan, sleepData) {
+    const lines = [
+      `My VNV Gourmet Wellness Plan`,
+      ``,
+      `Goal: ${getGoalTitle(data.goal)}`,
+      `Height: ${data.heightText}`,
+      `Weight: ${data.weightLb} lb`,
+      `Activity level: ${data.activityText}`,
+      `Workout access: ${data.trainingAccessText}`,
+      `Training experience: ${data.experienceText}`,
+      `Time available: ${data.timeText}`,
+      `Training style: ${data.trainingStyle}`,
+      ``,
+      `Sleep target: ${sleepData.sleepHours} hours`,
+      `Bedtime target: ${sleepData.bedText}`,
+      `Wake-up target: ${sleepData.wakeText}`,
+      `Daily reset / meditation: ${getMeditationTarget(data)}`,
+      ``,
+      `Weekly plan:`
+    ];
+
+    weeklyPlan.days.forEach(day => {
+      lines.push(``);
+      lines.push(`${day.day} — ${day.focus} (${day.duration})`);
+      lines.push(`Warm-up: ${day.warmup}`);
+      day.exercises.forEach(ex => lines.push(`- ${ex}`));
+    });
+
+    lines.push(``);
+    lines.push(`Food reminder: review your nutrition advisor and meal plans so recovery and protein intake match your training.`);
+    if (data.notes) {
+      lines.push(``);
+      lines.push(`Extra note: ${data.notes}`);
+    }
+
+    return lines.join('\n');
+  }
+
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+    copySuccessBox.style.display = 'none';
+
+    const gender = document.getElementById('wa_gender').value;
+    const age = parseInt(document.getElementById('wa_age').value || '0', 10);
+    const heightFt = parseInt(document.getElementById('wa_height_ft').value || '0', 10);
+    const heightIn = parseInt(document.getElementById('wa_height_in').value || '0', 10);
+    const weightLb = parseFloat(document.getElementById('wa_weight_lb').value || '0');
+    const goal = document.getElementById('wa_goal').value;
+    const activity = document.getElementById('wa_activity').value;
+    const trainingAccess = document.getElementById('wa_training_access').value;
+    const time = document.getElementById('wa_time').value;
+    const sleepQuality = document.getElementById('wa_sleep_quality').value;
+    const workStress = document.getElementById('wa_work_stress').value;
+    const hasKids = document.getElementById('wa_has_kids').value;
+    const pregnant = document.getElementById('wa_pregnant').value;
+    const injury = document.getElementById('wa_injury').value;
+    const experience = document.getElementById('wa_experience').value;
+    const notes = document.getElementById('wa_notes').value.trim();
+
+    if (!gender || !age || !heightFt || heightIn < 0 || !weightLb || !goal || !activity || !trainingAccess || !time || !sleepQuality || !workStress || !hasKids || !pregnant || !injury || !experience) {
+      return;
+    }
+
+    const data = {
+      gender,
+      age,
+      heightFt,
+      heightIn,
+      heightCm: feetInchesToCm(heightFt, heightIn),
+      heightText: formatHeight(heightFt, heightIn),
+      weightLb: round(weightLb),
+      weightKg: poundsToKg(weightLb),
+      goal,
+      activity,
+      trainingAccess,
+      time,
+      sleepQuality,
+      workStress,
+      hasKids,
+      pregnant,
+      injury,
+      experience,
+      notes,
+      activityText: document.querySelector('#wa_activity option:checked').textContent,
+      trainingAccessText: document.querySelector('#wa_training_access option:checked').textContent,
+      timeText: document.querySelector('#wa_time option:checked').textContent,
+      experienceText: document.querySelector('#wa_experience option:checked').textContent
+    };
+
+    data.trainingStyle =
+      trainingAccess === 'gym' ? 'structured gym strength + supportive cardio' :
+      trainingAccess === 'home_full' ? 'structured home strength training' :
+      trainingAccess === 'home_basic' ? 'basic home strength + walking' :
+      'bodyweight strength + walking';
+
+    const weeklyPlan = getWeeklyPlan(data);
+    const sleepData = getSleepSchedule(data);
+
+    resTrainingDays.textContent = `${weeklyPlan.strengthDays} days`;
+    resCardioDays.textContent = `${weeklyPlan.cardioDays} days`;
+    resBedtime.textContent = sleepData.bedText;
+    resWakeTime.textContent = sleepData.wakeText;
+
+    renderTipList(overviewTips, buildOverviewTips(data, weeklyPlan, sleepData));
+    renderTipList(exerciseTips, buildExerciseTips(data, weeklyPlan));
+    renderTipList(recoveryTips, buildRecoveryTips(data, sleepData));
+
+    sleepScheduleBox.innerHTML = `
+      <strong>Recommended sleep schedule</strong><br>
+      Aim to be in bed around <strong>${sleepData.bedText}</strong> and get up around <strong>${sleepData.wakeText}</strong>.<br>
+      This gives you about <strong>${sleepData.sleepHours} hours</strong> of sleep if you are actually asleep close to bedtime.<br>
+      Add <strong>${getMeditationTarget(data)}</strong> of quiet reset time daily, preferably later in the day or before bed.
+    `;
+
+    renderWeeklySchedule(weeklyPlan);
+    copyPlanOutput.value = buildCopyPlan(data, weeklyPlan, sleepData);
+
+    document.getElementById('waResultsCard').scrollIntoView({
+      behavior: 'smooth',
+      block: 'start'
+    });
+  });
+
+  copyPlanBtn.addEventListener('click', async function () {
+    copySuccessBox.style.display = 'none';
+
+    try {
+      await navigator.clipboard.writeText(copyPlanOutput.value);
+      copySuccessBox.style.display = 'block';
+    } catch (e) {
+      copyPlanOutput.select();
+      document.execCommand('copy');
+      copySuccessBox.style.display = 'block';
+    }
+  });
+});
+</script>
+{% endblock %}

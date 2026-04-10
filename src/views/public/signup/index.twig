@@ -1,0 +1,641 @@
+{% extends "templates/base.twig" %}
+
+{% block body %}
+
+<style>
+:root{
+    --gourmet-primary:#f59e0b;
+    --gourmet-primary-dark:#d97706;
+    --gourmet-accent:#fb923c;
+    --gourmet-cream:#fff8ef;
+    --gourmet-soft:#fff3df;
+    --gourmet-dark:#1f1307;
+    --gourmet-dark-2:#2a1808;
+    --gourmet-text:#2d241c;
+    --gourmet-muted:#6f6255;
+    --gourmet-border:#ecd9bf;
+    --gourmet-shadow:0 18px 44px rgba(79,43,8,.10);
+    --gourmet-shadow-strong:0 28px 70px rgba(31,19,7,.16);
+    --gourmet-success:#16a34a;
+}
+
+body{
+    background:
+        radial-gradient(1000px 420px at 0% 0%, rgba(245,158,11,.10), transparent 60%),
+        linear-gradient(180deg,#fffaf4 0%, #fff6ec 100%);
+}
+
+.signup-shell{
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    padding:2rem 0;
+}
+
+.signup-wrap{
+    width:100%;
+}
+
+.signup-grid{
+    display:grid;
+    grid-template-columns: 1fr 560px;
+    gap:1.4rem;
+    align-items:stretch;
+}
+
+.signup-brand{
+    position:relative;
+    overflow:hidden;
+    border-radius:30px;
+    padding:2.1rem 2rem;
+    color:#fff;
+    background:
+        radial-gradient(900px 380px at 0% 0%, rgba(245,158,11,.16), transparent 60%),
+        linear-gradient(135deg, #251508 0%, #1f1307 55%, #361a06 100%);
+    box-shadow:var(--gourmet-shadow-strong);
+    min-height:100%;
+    display:flex;
+    flex-direction:column;
+    justify-content:space-between;
+}
+
+.signup-brand:after{
+    content:"";
+    position:absolute;
+    right:-60px;
+    top:-60px;
+    width:220px;
+    height:220px;
+    background:radial-gradient(circle, rgba(255,209,138,.16) 0%, rgba(255,209,138,0) 72%);
+    pointer-events:none;
+}
+
+.signup-brand > *{
+    position:relative;
+    z-index:2;
+}
+
+.signup-badge{
+    display:inline-flex;
+    align-items:center;
+    gap:.45rem;
+    border-radius:999px;
+    padding:.55rem .9rem;
+    font-size:.88rem;
+    font-weight:800;
+    background:rgba(255,255,255,.10);
+    border:1px solid rgba(255,255,255,.18);
+    color:#fff4e2;
+    margin-bottom:1.2rem;
+}
+
+.signup-logo{
+    max-width:120px;
+    margin-bottom:1.2rem;
+    filter:drop-shadow(0 10px 24px rgba(0,0,0,.18));
+}
+
+.signup-brand h1{
+    font-size:clamp(2rem,4vw,3.3rem);
+    line-height:1.04;
+    font-weight:900;
+    letter-spacing:-1px;
+    margin-bottom:1rem;
+    max-width:700px;
+}
+
+.signup-brand h1 .warm{
+    color:#ffd18a;
+}
+
+.signup-brand p{
+    max-width:720px;
+    color:#f4e4cb;
+    line-height:1.82;
+    font-size:1rem;
+    margin-bottom:1.2rem;
+}
+
+.signup-points{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:.85rem;
+    margin-top:1rem;
+}
+
+.signup-point{
+    background:rgba(255,255,255,.08);
+    border:1px solid rgba(255,255,255,.12);
+    border-radius:18px;
+    padding:1rem;
+    backdrop-filter:blur(6px);
+}
+
+.signup-point i{
+    font-size:1.15rem;
+    color:#ffd18a;
+    margin-bottom:.55rem;
+}
+
+.signup-point strong{
+    display:block;
+    font-size:.98rem;
+    color:#fff;
+    margin-bottom:.2rem;
+}
+
+.signup-point span{
+    display:block;
+    color:#f4e5d0;
+    line-height:1.6;
+    font-size:.93rem;
+}
+
+.signup-note{
+    margin-top:1.3rem;
+    font-size:.95rem;
+    color:#f6e6ce;
+}
+
+.signup-card{
+    background:#fff;
+    border:1px solid rgba(94,55,15,.06);
+    border-radius:28px;
+    box-shadow:var(--gourmet-shadow-strong);
+    overflow:hidden;
+}
+
+.signup-card-top{
+    padding:1.65rem 1.6rem 1rem;
+    border-bottom:1px solid #f2e4d0;
+    background:linear-gradient(180deg,#fffdf9 0%, #fff8ef 100%);
+}
+
+.signup-card-top h2{
+    margin:0 0 .35rem;
+    font-size:1.8rem;
+    font-weight:900;
+    color:var(--gourmet-dark);
+    letter-spacing:-.5px;
+}
+
+.signup-card-top p{
+    margin:0;
+    color:var(--gourmet-muted);
+    line-height:1.7;
+}
+
+.signup-card-body{
+    padding:1.45rem 1.6rem 1.6rem;
+}
+
+.form-label{
+    font-weight:800;
+    color:#4d3c28;
+    margin-bottom:.45rem;
+    font-size:.94rem;
+}
+
+.form-control{
+    border-radius:14px;
+    border:1px solid #e7d6bd;
+    background:#fffdfa;
+    min-height:56px;
+    color:var(--gourmet-text);
+    padding:.95rem 1rem;
+    box-shadow:none !important;
+}
+
+.form-control:focus{
+    border-color:var(--gourmet-primary);
+    background:#fff;
+}
+
+.form-control::placeholder{
+    color:#a29384;
+}
+
+.input-group .form-control{
+    border-right:0;
+    border-top-right-radius:0;
+    border-bottom-right-radius:0;
+}
+
+.input-group .btn{
+    border-left:0;
+    border-top-left-radius:0;
+    border-bottom-left-radius:0;
+    border-color:#e7d6bd;
+    background:#fffdfa;
+    min-width:54px;
+    color:#8b4f00;
+}
+
+.input-group .btn:hover{
+    background:#fff2dc;
+    border-color:#dcc39f;
+    color:#8b4f00;
+}
+
+.input-group .btn:focus{
+    box-shadow:none;
+}
+
+[data-feather]{
+    width:18px;
+    height:18px;
+}
+
+#togglePassword,
+#toggleConfirmPassword{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+}
+
+.form-check-input{
+    margin-top:.2rem;
+    border-color:#d8c2a0;
+}
+
+.form-check-input:checked{
+    background-color:var(--gourmet-primary);
+    border-color:var(--gourmet-primary);
+}
+
+.form-check-label{
+    color:var(--gourmet-muted);
+    line-height:1.65;
+}
+
+.form-check-label a{
+    color:#8b4f00;
+    font-weight:800;
+    text-decoration:none;
+}
+
+.form-check-label a:hover{
+    color:var(--gourmet-primary-dark);
+}
+
+.btn-signup{
+    width:100%;
+    border:none;
+    border-radius:999px;
+    min-height:58px;
+    font-size:1rem;
+    font-weight:900;
+    letter-spacing:.1px;
+    color:#23160a !important;
+    background:linear-gradient(135deg,var(--gourmet-primary),var(--gourmet-accent));
+    box-shadow:0 14px 30px rgba(245,158,11,.28);
+    transition:all .22s ease;
+}
+
+.btn-signup:hover{
+    transform:translateY(-2px);
+    background:linear-gradient(135deg,var(--gourmet-primary-dark),var(--gourmet-accent));
+}
+
+.signup-footer{
+    text-align:center;
+    margin-top:1.2rem;
+    color:var(--gourmet-muted);
+    font-size:.95rem;
+}
+
+.signup-footer a{
+    color:#8b4f00;
+    font-weight:900;
+    text-decoration:none;
+}
+
+.signup-footer a:hover{
+    color:var(--gourmet-primary-dark);
+}
+
+.signup-helper{
+    margin-top:.9rem;
+    text-align:center;
+    color:#8c7d6e;
+    font-size:.88rem;
+}
+
+.signup-social-hidden{
+    display:none !important;
+}
+
+@media (max-width: 1199px){
+    .signup-grid{
+        grid-template-columns:1fr;
+    }
+
+    .signup-brand{
+        padding:1.8rem 1.4rem;
+    }
+}
+
+@media (max-width: 768px){
+    .signup-shell{
+        padding:1.1rem 0;
+    }
+
+    .signup-brand,
+    .signup-card{
+        border-radius:22px;
+    }
+
+    .signup-card-top,
+    .signup-card-body{
+        padding-left:1.1rem;
+        padding-right:1.1rem;
+    }
+
+    .signup-points{
+        grid-template-columns:1fr;
+    }
+}
+
+@media (max-width: 768px){
+    .signup-points,
+    .signup-note{
+        display:none !important;
+    }
+
+    .signup-brand{
+        padding-bottom:1.1rem;
+    }
+
+    .signup-brand h1{
+        margin-bottom:.7rem;
+    }
+
+    .signup-brand p{
+        margin-bottom:0;
+        font-size:.96rem;
+        line-height:1.7;
+    }
+}
+</style>
+
+<main class="signup-shell">
+    <div class="container signup-wrap">
+        <div class="signup-grid">
+
+            <section class="signup-brand">
+                <div>
+                    <span class="signup-badge">
+                        <i class="fa-solid fa-bowl-food"></i> Avomeal
+                    </span>
+
+                    <div>
+                        <img src="{{ asset_for('assets/images/planner-hub-logo-positive.png') }}" class="signup-logo" alt="VNV Gourmet Logo">
+                    </div>
+
+                    <h1>
+                        Create your account and make <span class="warm">better meals part of your routine</span>.
+                    </h1>
+
+                    <div class="signup-points">
+                        <div class="signup-point">
+                            <i class="fa-solid fa-heart-pulse"></i>
+                            <strong>Nutrition tools</strong>
+                            <span>Unlock your personalized Nutrition and Wellness Advisors.</span>
+                        </div>
+
+                        <div class="signup-point">
+                            <i class="fa-solid fa-repeat"></i>
+                            <strong>Weekly consistency</strong>
+                            <span>Reorder faster, track subscriptions, and stay on routine.</span>
+                        </div>
+
+                        <div class="signup-point">
+                            <i class="fa-solid fa-clock"></i>
+                            <strong>Save time</strong>
+                            <span>Less food stress, less guesswork, more structure.</span>
+                        </div>
+
+                        <div class="signup-point">
+                            <i class="fa-solid fa-utensils"></i>
+                            <strong>Real meal plans</strong>
+                            <span>Built for professionals, families, fitness lifestyles, and kids.</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="signup-note">
+                    Created with the same premium mindset behind <strong>VNV Events</strong>, now focused on everyday meals and wellness.
+                </div>
+            </section>
+
+            <section class="signup-card">
+                <div class="signup-card-top">
+                    <h2>Start your account</h2>
+                    <p>
+                        Set up your profile in a minute and unlock your meals, plans, and wellness tools.
+                    </p>
+                </div>
+
+                <div class="signup-card-body">
+
+                    {# Hidden social block preserved, not deleted #}
+                    <section class="d-flex flex-row gap-4 signup-social-hidden">
+                        <div class="text-center mb-3" style="width: 50%">
+                            <a href="{{ googleAuthUrl }}" class="btn btn-outline-secondary w-100 py-3 mb-3 d-flex align-items-center justify-content-center">
+                                <img src="{{ asset_for('assets/images/google-icon.svg') }}" style="width:18px;margin-right:10px;" alt="Google">
+                                Sign up with Google
+                            </a>
+                        </div>
+
+                        <div class="text-center mb-3" style="width: 50%">
+                            <a href="{{ apple_url }}" class="btn btn-outline-secondary w-100 py-3 mb-3 d-flex align-items-center justify-content-center">
+                                <img src="{{ asset_for('assets/images/apple-icon.svg') }}" style="width:18px;margin-right:10px;" alt="Apple">
+                                Sign up with Apple
+                            </a>
+                        </div>
+                    </section>
+
+                    <div class="divider signup-social-hidden">
+                        <span>or</span>
+                    </div>
+
+                    <form method="post">
+                        <input type="hidden" name="level" value="{{ level }}">
+
+                        <div class="row">
+                            <div class="col-12 col-md-6 mb-3">
+                                <label class="form-label">First Name</label>
+                                <input
+                                    class="form-control form-control-lg"
+                                    type="text"
+                                    name="name"
+                                    placeholder="Enter your first name"
+                                    required
+                                />
+                            </div>
+
+                            <div class="col-12 col-md-6 mb-3">
+                                <label class="form-label">Last Name</label>
+                                <input
+                                    class="form-control form-control-lg"
+                                    type="text"
+                                    name="lastname"
+                                    placeholder="Enter your last name"
+                                    required
+                                />
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-12 col-md-6 mb-3">
+                                <label class="form-label">Email</label>
+                                <input
+                                    class="form-control form-control-lg"
+                                    type="email"
+                                    name="email"
+                                    placeholder="Enter your email"
+                                    required
+                                />
+                            </div>
+
+                            <div class="col-12 col-md-6 mb-3">
+                                <label class="form-label">Phone Number</label>
+                                <input
+                                    class="form-control form-control-lg"
+                                    type="text"
+                                    name="phoneNumber"
+                                    data-phone
+                                    placeholder="Enter your phone number"
+                                    value="+1"
+                                    required
+                                />
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-12 col-md-6 mb-3">
+                                <label class="form-label">Password</label>
+                                <div class="input-group">
+                                    <input
+                                        class="form-control form-control-lg"
+                                        type="password"
+                                        name="password"
+                                        id="password"
+                                        placeholder="Create your password"
+                                        required
+                                    />
+                                    <button class="btn btn-outline-secondary" type="button" id="togglePassword">
+                                        <i data-feather="eye" id="eyeIcon"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="col-12 col-md-6 mb-3">
+                                <label class="form-label">Confirm Password</label>
+                                <div class="input-group">
+                                    <input
+                                        class="form-control form-control-lg"
+                                        type="password"
+                                        name="passwordConfirmation"
+                                        id="confirmPassword"
+                                        placeholder="Confirm your password"
+                                        required
+                                    />
+                                    <button class="btn btn-outline-secondary" type="button" id="toggleConfirmPassword">
+                                        <i data-feather="eye" id="eyeIconConfirm"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <div class="form-check">
+                                <input
+                                    class="form-check-input"
+                                    type="checkbox"
+                                    name="terms"
+                                    id="terms"
+                                    required
+                                >
+                                <label class="form-check-label small" for="terms">
+                                    I agree to the
+                                    <a href="{{ path('terms_and_conditions') }}" target="_blank">
+                                        Terms & Conditions
+                                    </a>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-signup btn-lg">
+                                Create My Account
+                            </button>
+                        </div>
+                    </form>
+
+                    <div class="signup-helper">
+                        By signing up, you’re unlocking your meal plans, wellness tools, and a smoother food routine.
+                    </div>
+
+                    <div class="signup-footer">
+                        Already have an account?
+                        <a href="{{ path('login') }}">Log In</a>
+                    </div>
+                </div>
+            </section>
+
+        </div>
+    </div>
+</main>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const togglePassword = document.getElementById('togglePassword');
+    const password = document.getElementById('password');
+    const eyeIcon = document.getElementById('eyeIcon');
+
+    if (togglePassword && password && eyeIcon) {
+        togglePassword.addEventListener('click', function() {
+            const type = password.getAttribute('type') === 'password' ? 'text' : 'password';
+            password.setAttribute('type', type);
+
+            if (type === 'text') {
+                eyeIcon.setAttribute('data-feather', 'eye-off');
+            } else {
+                eyeIcon.setAttribute('data-feather', 'eye');
+            }
+
+            if (typeof feather !== 'undefined') {
+                feather.replace();
+            }
+        });
+    }
+
+    const toggleConfirmPassword = document.getElementById('toggleConfirmPassword');
+    const confirmPassword = document.getElementById('confirmPassword');
+    const eyeIconConfirm = document.getElementById('eyeIconConfirm');
+
+    if (toggleConfirmPassword && confirmPassword && eyeIconConfirm) {
+        toggleConfirmPassword.addEventListener('click', function() {
+            const type = confirmPassword.getAttribute('type') === 'password' ? 'text' : 'password';
+            confirmPassword.setAttribute('type', type);
+
+            if (type === 'text') {
+                eyeIconConfirm.setAttribute('data-feather', 'eye-off');
+            } else {
+                eyeIconConfirm.setAttribute('data-feather', 'eye');
+            }
+
+            if (typeof feather !== 'undefined') {
+                feather.replace();
+            }
+        });
+    }
+
+    if (typeof feather !== 'undefined') {
+        feather.replace();
+    }
+});
+</script>
+
+{% endblock %}

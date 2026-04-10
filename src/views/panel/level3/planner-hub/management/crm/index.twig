@@ -1,0 +1,37 @@
+{% extends 'templates/base.admin.twig' %}
+{% import 'templates/macros.twig' as macros %}
+
+{% block body %}
+<main class="mt-4">
+
+    <h1 class="h3 mb-3">
+        CRM
+    </h1>
+
+    {{ macros.breadcrumb2() }}
+
+    <div class="row row-cols-1 row-cols-md-2 g-4">
+        <!-- Categories -->
+        <div class="col">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center py-4">
+                    <h5 class="card-title mb-2">Categories</h5>
+                    <p class="text-muted small">Manage lead types, statuses, and message categories.</p>
+                    <a href="{{ path('panel/planner-hub/management/crm/categories') }}" class="btn btn-primary mt-2">Go to Categories</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Leads -->
+        <div class="col">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center py-4">
+                    <h5 class="card-title mb-2">Leads</h5>
+                    <p class="text-muted small">View and manage all client inquiries in one place.</p>
+                    <a href="{{ path('panel/planner-hub/management/crm/lead') }}" class="btn btn-primary mt-2">Go to Leads</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+{% endblock %}

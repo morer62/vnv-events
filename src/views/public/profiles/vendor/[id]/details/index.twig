@@ -1,0 +1,569 @@
+{% extends 'templates/base.twig' %}
+{% import 'templates/macros.twig' as macros %}
+ 
+{% block head %}
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+          integrity="sha512-Avb2QiuDEEvB4bZJYdft2mNjVShBftLdPG8FJ0V7irTLQ8Uo0qcPxh4Plq6cZ9Yp9R3SZkqCJzFYnRg4P9L4A=="
+          crossorigin="anonymous" referrerpolicy="no-referrer"/>
+{% endblock %}
+
+{% block title %}
+    {{ service.name }}
+{% endblock %}
+
+{% block meta %}
+    <!-- Open Graph (for Facebook, WhatsApp, Messenger, LinkedIn, etc.) -->
+    <meta property="og:title" content="{{ service.name }}"/>
+    <meta property="og:description" content="{{ service.description | html_to_text | truncate(80) }}"/>
+    <meta property="og:url" content="{{ path('profiles/vendor/' ~ service.id ~ '/details') }}"/>
+    <meta property="og:type" content="website"/>
+    <meta property="og:site_name" content="E-Planner Hub"/>
+
+    <meta name="twitter:card" content="summary_large_image"/>
+    <meta name="twitter:title" content="{{ service.name }}"/>
+    <meta name="twitter:description" content="{{ service.description | html_to_text | truncate(80) }}"/>
+
+    {% if service.photos and (service.photos|length) > 0 %}
+        <meta property="og:image" content="{{ service.photos[0] }}"/>
+        <meta property="og:image:alt" content="{{ service.name }} ~ main image"/>
+        <meta name="twitter:image" content="{{ service.photos[0] }}"/>
+    {% endif %}
+
+{% endblock %}
+
+{% block body %}
+
+    {# Define the icon map for different service categories #}
+    {% set icon_map = {
+        'Catering': 'fa-bowl-food',
+        'Photography': 'fa-camera',
+        'DJ': 'fa-music',
+        'Lighting': 'fa-lightbulb',
+        'Transportation': 'fa-bus',
+        'Florist': 'fa-seedling',
+        'Bar services': 'fa-martini-glass',
+        'Event rentals': 'fa-chair',
+        'Event Planning': 'fa-calendar-check',
+        'Corporate Decor': 'fa-building'
+    } %}
+
+    <div class="vnv-promo-banner">
+        <div class="vnv-promo-content">
+            <p class="vnv-promo-text">Need this <strong>{{ service.category_name }}</strong> for your event?</p>
+            <div class="vnv-promo-actions">
+                <a class="vnv-promo-button"
+                   href="{{ path('search/client_request?profile_cat=vendor&id=' ~ service.id) }}">Get a
+                    Quote</a>
+                <p class="vnv-promo-offer">Contact directly through E-Planner Hub. </p>
+            </div>
+        </div>
+    </div>
+
+    <div class="vnv-detail-wrapper">
+        {% if service %}
+            <h2>{{ service.name|trim }}</h2>
+
+            <div class="vnv-detail-header">
+                <div class="vnv-detail-map">
+                    {% if service.lat and service.lng %}
+                        <iframe src="https://www.google.com/maps?q={{ service.lat }},{{ service.lng }}&output=embed"
+                                width="100%" height="300" style="border:0;" allowfullscreen="" loading="lazy"></iframe>
+                    {% else %}
+                        <div class="map-placeholder">
+                            <i class="fa-solid fa-map-location-dot"></i>
+                            <p>Map not available</p>
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="vnv-detail-info">
+                    <ul class="vnv-detail-list">
+                        {% if service.address %}
+                            <li>
+                                <i class="fa-solid fa-location-dot"></i>
+                                <span>Address</span>
+                                <strong>{{ service.address }}</strong>
+                            </li>
+                        {% endif %}
+
+                        {% if service.category_name %}
+                            <li>
+                                <i class="fa-solid {{ icon_map[service.category_name] ?? 'fa-tags' }}"></i>
+                                <span>Category</span>
+                                <strong>{{ service.category_name }}</strong>
+                            </li>
+                        {% endif %}
+
+                        {% if service.phone_number %}
+                            <li>
+                                <i class="fa-solid fa-phone"></i>
+                                <span>Phone</span>
+                                <strong>
+                                    <a href="tel:{{ service.phone_number }}">{{ service.phone_number }}</a>
+                                </strong>
+                            </li>
+                        {% endif %}
+
+                        {% if service.email %}
+                            <li>
+                                <i class="fa-solid fa-envelope"></i>
+                                <span>Email</span>
+                                <strong>
+                                    <a href="mailto:{{ service.email|trim }}">{{ service.email|trim }}</a>
+                                </strong>
+                            </li>
+                        {% endif %}
+
+                        {% if service.website and service.website != '' %}
+                            <li>
+                                <i class="fa-solid fa-globe"></i>
+                                <span>Website</span>
+                                <strong>
+                                    <a href="{{ (service.website starts with 'http' ? '' : 'http://') ~ service.website|trim }}"
+                                       target="_blank" rel="noopener noreferrer">
+                                        {{ service.website|trim|replace({'http://': '', 'https://': ''}) }}
+                                    </a>
+                                </strong>
+                            </li>
+                        {% endif %}
+
+                        {% set social_links = [] %}
+                        {% if service.instagram and service.instagram != '' and service.instagram != 'Not_available' %}
+                            {% set social_links = social_links|merge([{ url: service.instagram, icon: 'fab fa-instagram' }]) %}
+                        {% endif %}
+                        {% if service.facebook and service.facebook != '' and service.facebook != 'Not_available' %}
+                            {% set social_links = social_links|merge([{ url: service.facebook, icon: 'fab fa-facebook-f' }]) %}
+                        {% endif %}
+                        {% if service.twitter and service.twitter != '' and service.twitter != 'Not_available' %}
+                            {% set social_links = social_links|merge([{ url: service.twitter, icon: 'fab fa-twitter' }]) %}
+                        {% endif %}
+                        {% if service.yelp and service.yelp != '' and service.yelp != 'Not_available' %}
+                            {% set social_links = social_links|merge([{ url: service.yelp, icon: 'fab fa-yelp' }]) %}
+                        {% endif %}
+
+                        {% if (social_links|length) > 0 %}
+                            <li>
+                                <i class="fa-solid fa-share-nodes"></i>
+                                <span>Social</span>
+                                <strong>
+                                    {% for social in social_links %}
+                                        <a href="{{ social.url }}" target="_blank" style="margin-left:10px;">
+                                            <i class="{{ social.icon }}"></i>
+                                        </a>
+                                    {% endfor %}
+                                </strong>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Gallery -->
+            {% if service.photos and (service.photos|length) > 0 %}
+                <div class="vnv-detail-gallery">
+                    {% for photo in service.photos|slice(0, 5) %}
+                        <img src="{{ photo.url ?? photo }}" alt="{{ service.name }} photo {{ loop.index }}"
+                             class="vnv-thumb" onclick="vnvOpenPopup('{{ photo.url ?? photo }}')"/>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            <!-- Description -->
+            {% if service.description %}
+                <div class="vnv-detail-description">{{ service.description|raw }}</div>
+            {% endif %}
+
+            <!-- Events -->
+            <h3>📅 Events</h3>
+            {% if service.events and (service.events|length) > 0 %}
+                <div class="vnv-promotions-grid">
+                    {% for event in service.events %}
+                        <div class="vnv-promotion-card">
+                            <div class="vnv-promo-content">
+                                <h4>{{ event.name }}</h4>
+                                <p>{{ event.description }}</p>
+                                {% if event.start_date %}
+                                    <div class="vnv-promo-dates">
+                                        <i class="fa-solid fa-calendar-days"></i>
+                                        {{ event.start_date|date("M d, Y H:i") }}
+                                    </div>
+                                {% endif %}
+                                {% if event.external_link %}
+                                    <div style="margin-top: 10px;">
+                                        <a href="{{ event.external_link }}" target="_blank" class="vnv-promo-button">View
+                                            Event</a>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p>No events available.</p>
+            {% endif %}
+
+
+            <h3>🎁 Promotions</h3>
+            {% if service.promotions and (service.promotions|length) > 0 %}
+                <div class="vnv-promotions-grid">
+                    {% for promo in service.promotions %}
+                        <div class="vnv-promotion-card">
+                            <div class="vnv-promo-content">
+                                <h4>{{ promo.name }}</h4>
+                                <p>{{ promo.description }}</p>
+                                <div class="vnv-promo-dates">
+                                    <i class="fa-solid fa-calendar-days"></i>
+                                    {{ promo.start_date|date("M d, Y") }}
+                                    &nbsp;–&nbsp;
+                                    {{ promo.end_date|date("M d, Y") }}
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p>No promotions available.</p>
+            {% endif %}
+
+
+
+            <!-- Fullscreen image popup -->
+            <div id="vnv-popup" onclick="this.style.display='none'">
+                <img id="vnv-popup-img"/>
+            </div>
+
+        {% else %}
+            <div class="vnv-not-found">
+                <i class="fa-solid fa-circle-exclamation"></i>
+                <p>The requested service is not available.</p>
+                <a href="/search" class="vnv-btn">Browse Other Services</a>
+            </div>
+        {% endif %}
+    </div>
+
+    <style>
+        .vnv-promo-banner {
+            background-color: #fff;
+            border-bottom: 1px solid #e0e0e0;
+            padding: 15px 0;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .vnv-promo-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 30px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .vnv-promo-text {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            margin: 0;
+        }
+
+        .vnv-promo-actions {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .vnv-promo-button {
+            background-color: #007cba;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 4px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: background-color 0.3s;
+        }
+
+        .vnv-promo-button:hover {
+            background-color: #006ba1;
+        }
+
+        .vnv-promo-offer {
+            margin: 0;
+            color: #666;
+            font-size: 14px;
+        }
+
+        .vnv-terms-link {
+            color: #007cba;
+            text-decoration: none;
+        }
+
+        .vnv-terms-link:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 768px) {
+            .vnv-promo-content {
+                flex-direction: column;
+                align-items: flex-start;
+                padding: 0 15px;
+            }
+
+            .vnv-promo-actions {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+        }
+
+        .vnv-detail-wrapper {
+            padding: 30px;
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .vnv-detail-header {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .vnv-detail-info {
+            flex: 1;
+            min-width: 300px;
+        }
+
+        .vnv-detail-map {
+            flex: 1;
+            min-width: 300px;
+        }
+
+        .map-placeholder {
+            height: 300px;
+            background: #f8f9fa;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            color: #6c757d;
+        }
+
+        .map-placeholder i {
+            font-size: 48px;
+            margin-bottom: 10px;
+        }
+
+        .vnv-detail-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .vnv-detail-list li {
+            display: flex;
+            align-items: center;
+            margin-bottom: 12px;
+            padding: 8px;
+            background: #f9f9f9;
+            border-radius: 6px;
+        }
+
+        .vnv-detail-list li i {
+            width: 20px;
+            margin-right: 10px;
+            color: #333;
+        }
+
+        .vnv-detail-list li span {
+            min-width: 80px;
+            font-weight: 500;
+            margin-right: 10px;
+        }
+
+        .vnv-detail-list li strong {
+            flex: 1;
+        }
+
+        .vnv-detail-list li strong a {
+            color: #007cba;
+            text-decoration: none;
+        }
+
+        .vnv-detail-list li strong a:hover {
+            text-decoration: underline;
+        }
+
+        .vnv-detail-gallery {
+            display: flex;
+            gap: 10px;
+            overflow-x: auto;
+            padding: 10px 0;
+            margin-bottom: 20px;
+        }
+
+        .vnv-thumb {
+            width: 120px;
+            height: 90px;
+            object-fit: cover;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: transform 0.2s;
+            flex-shrink: 0;
+        }
+
+        .vnv-thumb:hover {
+            transform: scale(1.05);
+        }
+
+        .vnv-detail-description {
+            margin: 20px 0;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #007cba;
+        }
+
+        #vnv-popup {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            cursor: pointer;
+        }
+
+        #vnv-popup img {
+            max-width: 90%;
+            max-height: 90%;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+        }
+
+        .vnv-not-found {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .vnv-not-found i {
+            font-size: 48px;
+            margin-bottom: 20px;
+            color: #ccc;
+        }
+
+        .vnv-btn {
+            display: inline-block;
+            background-color: #007cba;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 4px;
+            text-decoration: none;
+            margin-top: 20px;
+        }
+
+        .vnv-btn:hover {
+            background-color: #006ba1;
+        }
+
+        h3 {
+            color: #333;
+            border-bottom: 2px solid #007cba;
+            padding-bottom: 8px;
+            margin-top: 30px;
+            margin-bottom: 15px;
+        }
+
+        .vnv-promotions-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .vnv-promotion-card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            transition: transform 0.2s;
+        }
+
+        .vnv-promotion-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .vnv-promo-image {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            cursor: pointer;
+        }
+
+        .vnv-promo-content {
+            padding: 15px;
+        }
+
+        .vnv-promo-content h4 {
+            margin: 0 0 10px 0;
+            color: #333;
+            font-size: 18px;
+        }
+
+        .vnv-promo-content p {
+            margin: 0 0 10px 0;
+            color: #666;
+            line-height: 1.4;
+        }
+
+        .vnv-promo-dates {
+            margin-top: 10px;
+            color: #007cba;
+            font-weight: 500;
+        }
+
+        .vnv-promo-dates i {
+            margin-right: 5px;
+        }
+
+        @media (max-width: 768px) {
+            .vnv-detail-wrapper {
+                padding: 15px;
+            }
+
+            .vnv-detail-header {
+                flex-direction: column;
+            }
+
+            .vnv-detail-list li {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .vnv-detail-list li span {
+                min-width: auto;
+                margin-bottom: 4px;
+            }
+
+            .vnv-promotions-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+
+    <script>
+        function vnvOpenPopup(url) {
+            const popup = document.getElementById('vnv-popup')
+            const img = document.getElementById('vnv-popup-img')
+            img.src = url
+            popup.style.display = 'flex'
+        }
+    </script>
+{% endblock %}

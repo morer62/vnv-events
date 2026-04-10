@@ -1,0 +1,569 @@
+{% extends "templates/base.twig" %}
+
+{% block body %}
+
+<style>
+.is-invalid { border-color: #dc3545 !important; }
+.invalid-feedback { display:block; color:#dc3545; }
+</style>
+
+<main class="container py-5" style="max-width: 800px">
+
+  <h2 class="text-center mb-4">📨 Request this {{ profile_cat|capitalize }}</h2>
+
+  {% if app.message %}
+    <div class="alert alert-warning text-center">{{ app.message }}</div>
+  {% endif %}
+
+  <!-- Progress Bar -->
+  <div class="mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-2">
+      <span class="badge bg-primary step-indicator active" data-step="1">1. Event Details</span>
+      <span class="badge bg-secondary step-indicator" data-step="2">2. Budget & Type</span>
+      <span class="badge bg-secondary step-indicator" data-step="3">3. Your Information</span>
+    </div>
+    <div class="progress">
+      <div class="progress-bar bg-primary" role="progressbar" style="width: 33%" id="progress-bar"></div>
+    </div>
+  </div>
+
+  <form method="post" class="card shadow p-4" id="stepForm">
+    <input type="hidden" name="profile_cat" value="{{ profile_cat }}">
+    <input type="hidden" name="profile_id" value="{{ profile_id }}">
+
+    <!-- Step 1: Event Details -->
+    <div class="step-content active" data-step="1">
+      <h4 class="mb-3">📅 Event Details</h4>
+      
+      <div class="mb-3">
+        <label class="form-label">Event Date *</label>
+        <input type="date" class="form-control" name="event_date" required>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">Event Time *</label>
+        <input type="time" class="form-control" name="event_time" required>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">Event Duration (hours) *</label>
+        <input type="number" step="0.5" class="form-control" name="event_duration" required min="0.5" max="24">
+        <div class="form-text">How many hours will your event last?</div>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">Number of Guests</label>
+        <input type="number" class="form-control" name="guests" min="1" placeholder="Approximate number">
+      </div>
+
+      <div class="d-grid">
+        <button type="button" class="btn btn-primary btn-lg next-step">Next Step →</button>
+      </div>
+    </div>
+
+    <!-- Step 2: Budget & Type -->
+    <div class="step-content" data-step="2">
+      <h4 class="mb-3">💰 Budget & Event Type</h4>
+      
+      <div class="mb-3">
+        <label class="form-label">Estimated Budget (USD)</label>
+        <input type="number" class="form-control" name="budget" step="0.01" min="0" placeholder="Optional">
+        <div class="form-text">This helps us match you with suitable options</div>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">Type of Event</label>
+        <select class="form-control" name="event_type">
+          <option value="">Select event type (optional)</option>
+          <option value="wedding">Wedding</option>
+          <option value="birthday">Birthday Party</option>
+          <option value="corporate">Corporate Event</option>
+          <option value="anniversary">Anniversary</option>
+          <option value="graduation">Graduation</option>
+          <option value="baby_shower">Baby Shower</option>
+          <option value="other">Other</option>
+        </select>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">Additional Details</label>
+        <textarea class="form-control" name="details" maxlength="240" rows="3" placeholder="Any special requirements or details... (Max 240 characters)"></textarea>
+        <div class="form-text"><span id="char-count">0</span>/240 characters</div>
+      </div>
+
+      <div class="d-flex gap-2">
+        <button type="button" class="btn btn-outline-secondary btn-lg prev-step">← Previous</button>
+        <button type="button" class="btn btn-primary btn-lg next-step flex-fill">Next Step →</button>
+      </div>
+    </div>
+
+    <!-- Step 3: Contact Information -->
+    <div class="step-content" data-step="3">
+      <h4 class="mb-3">👤 Your Information</h4>
+      
+      <div class="mb-3">
+        <label class="form-label">Your Full Name *</label>
+        <input type="text" class="form-control" name="client_name" required placeholder="Enter your full name">
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">Email Address *</label>
+        <input type="email" class="form-control" name="client_email" required placeholder="your.email@example.com">
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">Phone Number</label>
+        <input type="tel" class="form-control" name="client_phone" placeholder="+1 (555) 123-4567">
+        <div class="form-text">We'll use this for quick communication</div>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">Event Address *</label>
+        <input id="autocomplete-event-address" placeholder="Where will the event take place?" class="form-control" name="client_address" data-places required/>
+        <div class="form-text">Please enter the complete address where your event will take place</div>
+      </div>
+
+      <div class="d-flex gap-2">
+        <button type="button" class="btn btn-outline-secondary btn-lg prev-step">← Previous</button>
+        <button type="submit" class="btn btn-success btn-lg flex-fill">📩 Send Request</button>
+      </div>
+    </div>
+  </form>
+
+  <!-- Success Modal -->
+  <div class="modal fade" id="successModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header border-0">
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" onclick="goToHome()"></button>
+        </div>
+        <div class="modal-body text-center py-4">
+          <div class="mb-3">
+            <div class="success-icon">
+              <svg width="80" height="80" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="12" cy="12" r="12" fill="#28a745"/>
+                <path d="M8 12l2 2 4-4" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+          </div>
+          <h4 class="text-success mb-3">Request Sent Successfully! ✅</h4>
+          <p class="mb-4 text-muted">Thank you for your request! We will contact you shortly with more information about your event.</p>
+          
+          <div class="d-flex gap-2 justify-content-center">
+            <button type="button" class="btn btn-outline-secondary" onclick="stayOnPage()">Send Another Request</button>
+            <button type="button" class="btn btn-primary" onclick="goToHome()">Go to Home</button>
+          </div>
+          
+          <div class="mt-3">
+            <small class="text-muted">Redirecting to home in <span id="countdown">10</span> seconds...</small>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<style>
+.step-content {
+  display: none;
+}
+
+.step-content.active {
+  display: block;
+}
+
+.step-indicator {
+  padding: 8px 12px;
+  border-radius: 20px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.step-indicator.active {
+  background-color: #0d6efd !important;
+  transform: scale(1.05);
+}
+
+.step-indicator.completed {
+  background-color: #198754 !important;
+}
+
+.progress {
+  height: 8px;
+  border-radius: 10px;
+}
+
+.progress-bar {
+  transition: width 0.5s ease;
+  border-radius: 10px;
+}
+
+.form-control:focus {
+  border-color: #0d6efd;
+  box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+}
+
+.btn {
+  transition: all 0.2s ease;
+}
+
+.btn:hover {
+  transform: translateY(-1px);
+}
+
+.modal-content {
+  border: none;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.step-content.active {
+  animation: fadeInUp 0.4s ease;
+}
+
+/* Fallback modal styles if Bootstrap isn't loaded */
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 1050;
+  width: 100%;
+  height: 100%;
+  background-color: transparent; /* No dark background */
+  pointer-events: none; /* Allow clicking through background */
+}
+
+.modal.show {
+  display: block !important;
+}
+
+.modal-dialog {
+  position: relative;
+  width: auto;
+  margin: 1.75rem auto;
+  max-width: 500px;
+  pointer-events: auto; /* Modal content can be clicked */
+}
+
+.modal-dialog-centered {
+  display: flex;
+  align-items: center;
+  min-height: calc(100% - 3.5rem);
+}
+
+.modal-content {
+  position: relative;
+  background-color: #fff;
+  border-radius: 0.375rem;
+  pointer-events: auto;
+  padding: 0;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+  border: 2px solid #28a745; /* Green border to make it stand out */
+}
+
+.modal-body {
+  padding: 1rem;
+}
+
+.success-icon {
+  animation: bounceIn 0.6s ease;
+}
+
+/* Success modal positioning - centered */
+#successModal {
+  background-color: transparent !important;
+}
+
+#successModal .modal-dialog {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  margin: 0;
+  width: 450px;
+  max-width: calc(100vw - 40px);
+}
+
+/* Mobile responsive */
+@media (max-width: 576px) {
+  #successModal .modal-dialog {
+    width: calc(100vw - 20px);
+    max-width: none;
+  }
+}
+
+@keyframes bounceIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.3);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.05);
+  }
+  70% {
+    transform: scale(0.9);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  const form = document.getElementById('stepForm');
+  const totalSteps = 3;
+  let currentStep = 1;
+
+  // —— Persistencia (scope por perfil) ——
+  const PERSIST_KEY = `rqForm:{{ profile_cat }}:{{ profile_id }}`;
+
+  function readStore() {
+    try { return JSON.parse(localStorage.getItem(PERSIST_KEY)) || {}; }
+    catch { return {}; }
+  }
+  function writeStore(payload) {
+    const prev = readStore();
+    localStorage.setItem(PERSIST_KEY, JSON.stringify({ ...prev, ...payload, _ts: Date.now() }));
+  }
+  function clearStore() {
+    localStorage.removeItem(PERSIST_KEY);
+  }
+
+  // —— Helpers de formulario ——
+  function getFormData() {
+    const data = {};
+    form.querySelectorAll('input, select, textarea').forEach(el => {
+      if (!el.name) return;
+      if (el.type === 'checkbox') data[el.name] = el.checked;
+      else data[el.name] = el.value;
+    });
+    return data;
+  }
+  function setFormData(values = {}) {
+    form.querySelectorAll('input, select, textarea').forEach(el => {
+      if (!el.name || !(el.name in values)) return;
+      if (el.type === 'checkbox') el.checked = !!values[el.name];
+      else el.value = values[el.name];
+    });
+  }
+
+  // —— Carga inicial desde storage ——
+  const boot = readStore();
+  if (boot.values) setFormData(boot.values);
+  if (boot.step && Number(boot.step) >= 1 && Number(boot.step) <= totalSteps) {
+    currentStep = Number(boot.step);
+  }
+  updateStepDisplay();
+
+  // —— Guardado en tiempo real ——
+  form.addEventListener('input', debounce(() => {
+    writeStore({ values: getFormData() });
+  }, 150));
+  form.addEventListener('change', () => writeStore({ values: getFormData() }));
+
+  // —— Navegación de pasos ——
+  document.querySelectorAll('.next-step').forEach(btn => {
+    btn.addEventListener('click', () => {
+      if (validateCurrentStep()) {
+        if (currentStep < totalSteps) currentStep++;
+        writeStore({ step: currentStep, values: getFormData() });
+        updateStepDisplay();
+      }
+    });
+  });
+  document.querySelectorAll('.prev-step').forEach(btn => {
+    btn.addEventListener('click', () => {
+      if (currentStep > 1) currentStep--;
+      writeStore({ step: currentStep });
+      updateStepDisplay();
+    });
+  });
+
+  // —— Validación suave por paso ——
+  function validateCurrentStep() {
+    const wrapper = form.querySelector(`.step-content[data-step="${currentStep}"]`);
+    const requiredFields = wrapper.querySelectorAll('input[required], select[required], textarea[required]');
+    let isValid = true;
+    let firstInvalid = null;
+
+    requiredFields.forEach(field => {
+      const empty = (field.type === 'checkbox') ? !field.checked : !String(field.value || '').trim();
+      // Remueve estado previo
+      field.classList.remove('is-invalid');
+      removeFeedback(field);
+
+      if (empty) {
+        isValid = false;
+        field.classList.add('is-invalid');
+        addFeedback(field, 'This field is required.');
+        if (!firstInvalid) firstInvalid = field;
+      } else if (!field.checkValidity()) {
+        // Soporte a min/max/type=email, etc.
+        isValid = false;
+        field.classList.add('is-invalid');
+        addFeedback(field, field.validationMessage || 'Please enter a valid value.');
+        if (!firstInvalid) firstInvalid = field;
+      }
+    });
+
+    if (!isValid) {
+      showAlert('Please fix the highlighted fields.', 'danger');
+      // Lleva al primer error
+      firstInvalid?.focus({ preventScroll: true });
+      firstInvalid?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+    return isValid;
+  }
+
+  function addFeedback(field, msg) {
+    // Si ya hay .invalid-feedback hermano, recíclalo
+    let fb = field.parentElement.querySelector('.invalid-feedback');
+    if (!fb) {
+      fb = document.createElement('div');
+      fb.className = 'invalid-feedback';
+      field.parentElement.appendChild(fb);
+    }
+    fb.textContent = msg;
+  }
+  function removeFeedback(field) {
+    const fb = field.parentElement.querySelector('.invalid-feedback');
+    if (fb) fb.remove();
+  }
+
+  function showAlert(message, type = 'info') {
+    document.querySelectorAll('.alert-custom').forEach(a => a.remove());
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `alert alert-${type} alert-dismissible fade show alert-custom`;
+    alertDiv.innerHTML = `
+      ${message}
+      <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    form.parentNode.insertBefore(alertDiv, form);
+    setTimeout(() => alertDiv.remove(), 4000);
+  }
+
+  // —— Actualización de UI por paso ——
+  function updateStepDisplay() {
+    document.querySelectorAll('.step-content').forEach((step, idx) => {
+      step.classList.toggle('active', idx + 1 === currentStep);
+    });
+    document.querySelectorAll('.step-indicator').forEach((indicator, idx) => {
+      const stepNum = idx + 1;
+      indicator.classList.remove('active', 'completed');
+      if (stepNum === currentStep) indicator.classList.add('active');
+      else if (stepNum < currentStep) indicator.classList.add('completed');
+    });
+    const progress = (currentStep / totalSteps) * 100;
+    const bar = document.getElementById('progress-bar');
+    if (bar) bar.style.width = progress + '%';
+  }
+
+  // —— Envío ——
+  form.addEventListener('submit', function (e) {
+    // Valida solo el paso visible; los demás no deben bloquear
+    if (!validateCurrentStep()) {
+      e.preventDefault();
+      return false;
+    }
+    // Guardamos un snapshot por si el server devuelve la vista sin success
+    writeStore({ values: getFormData(), step: currentStep });
+    const submitBtn = form.querySelector('button[type="submit"]');
+    if (submitBtn) {
+      const original = submitBtn.innerHTML;
+      submitBtn.dataset.original = original;
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Sending...';
+    }
+  });
+
+  // —— Success: mostramos modal y limpiamos SOLO al salir ——
+  const urlParams = new URLSearchParams(window.location.search);
+  if (urlParams.get('success') === '1') {
+    // No resetear inputs en caliente: muestra modal primero
+    setTimeout(showSuccessModal, 300);
+  }
+
+  function showSuccessModal() {
+    const modalElement = document.getElementById('successModal');
+    if (!modalElement) return;
+
+    const cleanupAndGoHome = () => {
+      clearStore();
+      window.location.href = '{{ app_url }}';
+    };
+
+    let usingBs = false;
+    if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+      const modal = new bootstrap.Modal(modalElement, { backdrop: false, keyboard: true });
+      usingBs = true;
+      modal.show();
+      // Cierra ⇒ limpia storage
+      modalElement.addEventListener('hidden.bs.modal', clearStore, { once: true });
+    } else {
+      modalElement.style.display = 'block';
+      modalElement.classList.add('show');
+    }
+
+    // Countdown y acciones globales
+    let countdown = 10;
+    const countdownEl = document.getElementById('countdown');
+    const timer = setInterval(() => {
+      countdown--;
+      if (countdownEl) countdownEl.textContent = countdown;
+      if (countdown <= 0) {
+        clearInterval(timer);
+        cleanupAndGoHome();
+      }
+    }, 1000);
+
+    window.countdownTimer = timer;
+
+    // Botones del modal
+    window.goToHome = function () {
+      clearInterval(window.countdownTimer);
+      cleanupAndGoHome();
+    };
+    window.stayOnPage = function () {
+      clearInterval(window.countdownTimer);
+      if (usingBs) {
+        const inst = bootstrap.Modal.getInstance(modalElement);
+        inst?.hide();
+      } else {
+        modalElement.style.display = 'none';
+        modalElement.classList.remove('show');
+      }
+      // Limpia ?success de la URL, pero NO borra el storage (por si quiere enviar otra)
+      const url = new URL(window.location);
+      url.searchParams.delete('success');
+      window.history.replaceState({}, document.title, url.pathname + url.search);
+    };
+  }
+
+  // —— Util: debounce ——
+  function debounce(fn, wait) {
+    let t;
+    return (...args) => {
+      clearTimeout(t);
+      t = setTimeout(() => fn.apply(this, args), wait);
+    };
+  }
+});
+</script>
+
+
+{% endblock %}
+

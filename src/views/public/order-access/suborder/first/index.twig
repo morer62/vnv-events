@@ -1,0 +1,224 @@
+{% extends 'templates/base.twig' %}
+
+{% block styles %}
+<style>
+    .payment-container {
+        max-width: 600px;
+        margin: 0 auto;
+        padding: 2rem;
+    }
+    .payment-card {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        padding: 2rem;
+        margin-bottom: 2rem;
+    }
+    .payment-header {
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+    .payment-amount {
+        font-size: 2.5rem;
+        font-weight: bold;
+        color: #007bff;
+        margin: 1rem 0;
+    }
+    .suborder-badge {
+        background: linear-gradient(45deg, #007bff, #6610f2);
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-weight: bold;
+        display: inline-block;
+        margin-bottom: 1rem;
+    }
+    .payment-form {
+        margin-top: 2rem;
+    }
+    .payment-button {
+        width: 100%;
+        padding: 1rem;
+        font-size: 1.1rem;
+        font-weight: bold;
+        border: none;
+        border-radius: 8px;
+        background: linear-gradient(45deg, #28a745, #20c997);
+        color: white;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    .payment-button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+    }
+    .payment-button:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none;
+    }
+    #payment-request-button {
+        width: 100%;
+        min-height: 48px;
+        display: none;
+    }
+    #payment-request-button > div,
+    #payment-request-button iframe {
+        width: 100%;
+    }
+    .error-message {
+        color: #dc3545;
+        background: #f8d7da;
+        border: 1px solid #f5c6cb;
+        border-radius: 4px;
+        padding: 0.75rem;
+        margin: 1rem 0;
+        display: none;
+    }
+    .success-message {
+        color: #155724;
+        background: #d4edda;
+        border: 1px solid #c3e6cb;
+        border-radius: 4px;
+        padding: 0.75rem;
+        margin: 1rem 0;
+        display: none;
+    }
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="payment-container">
+    <div class="payment-card">
+        <div class="payment-header">
+            <div class="suborder-badge">📋 Sub-Order Payment</div>
+            <h2>💳 First Payment</h2>
+            {% if suborder.status_workflow %}
+            <div class="mb-2">
+                {% if suborder.status_workflow == 'INVOICE_DRAFT' %}
+                    <span class="badge bg-warning text-dark">📝 Pending Signature</span>
+                {% elseif suborder.status_workflow == 'INVOICE_READY' %}
+                    <span class="badge bg-secondary">Signed – Payment Pending</span>
+                {% elseif suborder.status_workflow == 'INVOICE_PARTIAL' %}
+                    <span class="badge bg-info text-dark">Partial Payment</span>
+                {% elseif suborder.status_workflow == 'INVOICE_PAID' %}
+                    <span class="badge bg-success">Fully Paid</span>
+                {% endif %}
+            </div>
+            {% endif %}
+            <div class="payment-amount">${{ first_payment_amount | number_format(2) }}</div>
+            <p class="text-muted">Sub-Order #{{ suborder.id }} - Parent Order VNV-341{{ parentOrder.id }}</p>
+        </div>
+
+        <div class="alert alert-info">
+            <h5>📋 Payment Details</h5>
+            <p><strong>Parent Order:</strong> VNV-341{{ parentOrder.id }}</p>
+            <p><strong>Sub-Order:</strong> #{{ suborder.id }}</p>
+            <p><strong>Event Date:</strong> {{ parentOrder.event_date|date("F j, Y") }}</p>
+            <p><strong>Payment Type:</strong> First Installment ({{ suborder.payment_split_percent_1 }}%)</p>
+        </div>
+
+
+        <form id="payment-form" class="payment-form" method="POST">
+            <input type="hidden" name="token" value="{{ token }}">
+            <input type="hidden" name="customer_token" id="square-customer-token">
+            
+            <div class="mb-3">
+                <label for="customer_email" class="form-label">Your Email</label>
+                <input type="email" name="customer_email" id="customer_email" class="form-control form-control-lg" required>
+            </div>
+            
+            <div class="mb-3">
+                <label for="square-card-container" class="form-label">Card Information</label>
+                <div id="square-card-container" class="border rounded p-3" style="min-height: 150px;"></div>
+                <div id="square-card-errors" class="text-danger mt-2"></div>
+            </div>
+
+            <button type="submit" id="submit-button" class="payment-button">
+                💳 Pay ${{ first_payment_amount | number_format(2) }}
+            </button>
+        </form>
+
+        <div id="success-message" class="success-message">
+            ✅ Payment successful! Redirecting...
+        </div>
+
+        <div class="text-center mt-3">
+            <a href="{{ path('order-access/suborder?token=' ~ token) }}" class="btn btn-outline-secondary">
+                ← Back to Sub-Order
+            </a>
+        </div>
+    </div>
+</div>
+
+{{ processingModal|raw }}
+
+<script type="text/javascript" src="https://{{ square_environment == 'production' ? 'web' : 'sandbox.web' }}.squarecdn.com/v1/square.js"></script>
+{{ processingModalScript|raw }}
+<script>
+    (async function () {
+        try {
+            const squareApplicationId = "{{ square_application_id|e('js') }}";
+            const squareLocationId = "{{ square_location_id|e('js') }}";
+            
+            if (!squareApplicationId || !squareLocationId) {
+                console.error('Square credentials not configured');
+                document.getElementById('square-card-errors').textContent = 'Payment system not configured. Please contact support.';
+                return;
+            }
+
+            const payments = Square.payments(squareApplicationId, squareLocationId);
+            const card = await payments.card();
+            await card.attach('#square-card-container');
+
+            const form = document.getElementById('payment-form');
+            const submitButton = document.getElementById('submit-button');
+            const errorDiv = document.getElementById('square-card-errors');
+            const tokenInput = document.getElementById('square-customer-token');
+            const originalButtonText = submitButton.textContent;
+
+            function setProcessingState(isProcessing) {
+                submitButton.disabled = isProcessing;
+                submitButton.textContent = isProcessing ? '⏳ Processing...' : originalButtonText;
+                if (isProcessing) {
+                    window.VnvProcessingModal.show('orderAccessProcessingModal', {
+                        title: 'Processing payment...',
+                        message: 'We are confirming your payment. Please wait.'
+                    });
+                } else {
+                    window.VnvProcessingModal.hide('orderAccessProcessingModal');
+                }
+            }
+
+            form.addEventListener('submit', async function(event) {
+                event.preventDefault();
+                
+                setProcessingState(true);
+                errorDiv.textContent = '';
+
+                try {
+                    const tokenResult = await card.tokenize();
+                    if (tokenResult.status === 'OK') {
+                        tokenInput.value = tokenResult.token;
+                        form.submit();
+                    } else {
+                        let errorMessage = 'Payment failed. Please try again.';
+                        if (tokenResult.errors && tokenResult.errors.length > 0) {
+                            errorMessage = tokenResult.errors[0].detail || errorMessage;
+                        }
+                        errorDiv.textContent = errorMessage;
+                        setProcessingState(false);
+                    }
+                } catch (error) {
+                    console.error('Square payment error:', error);
+                    errorDiv.textContent = 'An error occurred processing your payment. Please try again.';
+                    setProcessingState(false);
+                }
+            });
+        } catch (error) {
+            console.error('Error initializing Square:', error);
+            document.getElementById('square-card-errors').textContent = 'Unable to load payment form. Please refresh the page.';
+        }
+    })();
+</script>
+{% endblock %}

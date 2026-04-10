@@ -1,0 +1,55 @@
+{% extends 'templates/base.admin.twig' %}
+
+{% block body %}
+    <h1 class="h3 mb-3 text-center">
+        <strong>Create Event</strong> - For Venue: {{ venue.name }}
+    </h1>
+
+    <nav aria-label="breadcrumb" class="text-center">
+        <ol class="breadcrumb justify-content-center">
+            <li class="breadcrumb-item"><a href="{{ path('panel/home') }}">Home</a></li>
+            <li class="breadcrumb-item"><a href="{{ path('panel/venues') }}"> Venues</a></li> 
+            <li class="breadcrumb-item active" aria-current="page">Create</li>
+        </ol>
+    </nav>
+
+    <div class="d-flex justify-content-center align-items-center mt-3">
+        <div class="card shadow-lg p-4 w-50 w-md-75">
+            <div class="card-body">
+                <form method="post" enctype="multipart/form-data">
+                    <div class="mb-3">
+                        <label class="form-label">Event Title</label> 
+                        <input class="form-control" name="name" required type="text"/>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Description</label>
+                        <textarea class="form-control" maxlength="900" name="description" required></textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">External Link (Tickets for dale or personal Website)</label>
+                        <input class="form-control" name="external_link"   type="url"/>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Start Date</label>
+                        <input class="form-control" name="start_date" required type="datetime-local"/>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">End Date</label>
+                        <input class="form-control" name="end_date" required type="datetime-local"/>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Image or Banner</label>
+                        <input class="form-control" name="image" required type="file"/>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100">SAVE</button>
+                </form>
+            </div>
+        </div>
+    </div>
+{% endblock %}

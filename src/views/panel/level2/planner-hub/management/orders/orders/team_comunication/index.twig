@@ -1,0 +1,96 @@
+{% extends 'templates/base.admin.twig' %}
+{% import 'templates/macros.twig' as macros %}
+
+{% block body %}
+<main class="mt-4 container">
+
+  {# Back según convención al listado de órdenes #}
+  <a href="{{ path('panel/planner-hub/management/orders/orders') }}" class="btn btn-outline-secondary mb-3">
+    ← Back to Orders
+  </a>
+
+  <!-- 🔹 Top Highlight Feature -->
+  <section class="p-5 rounded-4 shadow-sm mb-5 text-white" style="background: linear-gradient(135deg, #00b894, #00cec9);">
+    <h2 class="fw-bold mb-2">Team Setup</h2>
+    <p class="fs-5 mb-3">
+      Before inviting or assigning staff, you first need to define <strong>how many people</strong> are required for this event.
+      This number is your starting point and can be adjusted later if needed.
+    </p>
+
+    <div class="d-flex align-items-center gap-3">
+      <button class="btn btn-light btn-lg fw-bold px-4" data-bs-toggle="modal" data-bs-target="#teamNeededModal">
+        Define Team Size
+      </button>
+      <span class="badge bg-dark fs-6">
+        Current: <span id="teamNeededDisplay">{{ order.total_team_needed ?? 1 }}</span> person(s)
+      </span>
+    </div>
+  </section>
+
+  <!-- 🔹 Team Workflow -->
+  <section class="mb-5">
+    <h3 class="fw-bold mb-4">Team Workflow1</h3>
+    <div class="row text-center g-4">
+
+      <div class="col-md-3">
+        <div class="p-5 bg-white rounded-4 shadow-sm h-100">
+          <h4 class="fw-bold mb-2">Step 1: Invite Your Staff</h4>
+          <p class="text-muted fs-6 mb-3">Invite the staff required to execute this order.</p>
+          <a href="{{ path('panel/planner-hub/management/orders/orders/team_comunication/staff') }}?id={{ id }}" class="btn btn-success btn-lg fw-bold px-4">Open</a>
+        </div>
+      </div>
+
+      <div class="col-md-3">
+        <div class="p-5 bg-white rounded-4 shadow-sm h-100">
+          <h4 class="fw-bold mb-2">Step 2: Assign Tasks</h4>
+          <p class="text-muted fs-6 mb-3">Assign tasks to staff who accepted the invitation.</p>
+          <a href="{{ path('panel/planner-hub/management/orders/orders/team_comunication/tasks/') }}?id={{ id }}" class="btn btn-primary btn-lg fw-bold px-4">Open</a>
+        </div>
+      </div>
+
+      <div class="col-md-3">
+        <div class="p-5 bg-white rounded-4 shadow-sm h-100">
+          <h4 class="fw-bold mb-2">Step 3: Event Notes</h4>
+          <p class="text-muted fs-6 mb-3">Add installation times, schedules & special details.</p>
+          <a href="{{ path('panel/planner-hub/management/orders/orders/team_comunication/notes') }}?id={{ id }}" class="btn btn-dark btn-lg fw-bold px-4">Open</a>
+        </div>
+      </div>
+
+      <div class="col-md-3">
+        <div class="p-5 bg-white rounded-4 shadow-sm h-100">
+          <h4 class="fw-bold mb-2">Step 4: Shopping List</h4>
+          <p class="text-muted fs-6 mb-3">List supplies or materials needed for the event.</p>
+          <a href="{{ path('panel/planner-hub/management/orders/orders/team_comunication/shopping') }}?id={{ id }}" class="btn btn-warning btn-lg fw-bold px-4">Open</a>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+</main>
+
+<!-- 🔹 Modal: Update Team Size -->
+<div class="modal fade" id="teamNeededModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      {# Importante: el POST se procesa en ESTE MISMO index.php #}
+      <form id="teamNeededForm" method="POST" action="">
+        <input type="hidden" name="__action" value="update-team-needed">
+        <input type="hidden" name="id" value="{{ id }}">
+        <div class="modal-header">
+          <h5 class="modal-title">Define Team Size</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <label class="form-label">Total Team Needed</label>
+          <input type="number" name="total_team_needed" class="form-control" min="1" value="{{ order.total_team_needed ?? 1 }}">
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div> 
+{% endblock %}

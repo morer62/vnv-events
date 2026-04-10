@@ -1,0 +1,54 @@
+{% extends 'templates/base.admin.twig' %}
+{% import 'templates/macros.twig' as macros %}
+
+{% block body %}
+<main class="mt-4">
+    <h1 class="mb-4">💬 WhatsApp Panel</h1>
+
+    <form method="get" class="mb-4" style="max-width: 400px;">
+        <label for="account_id" class="form-label fw-bold">📱 WhatsApp Account:</label>
+        <select name="account_id" id="account_id" class="form-select" onchange="this.form.submit()">
+            {% for account in accounts %}
+                {% if account.id == selected_id %}
+                    <option value="{{ account.id }}" selected>{{ account.alias }} (Active)</option>
+                {% else %}
+                    <option value="{{ account.id }}">{{ account.alias }}</option>
+                {% endif %}
+            {% endfor %}
+        </select>
+
+    </form>
+
+    <div class="row">
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 shadow-sm text-center">
+                <div class="card-body">
+                    <h5 class="card-title">💬 WhatsApp Messages</h5>
+                    <p class="card-text">View and respond to incoming messages.</p>
+                    <a href="{{ path('panel/whatsapp/messages') }}" class="btn btn-success">Go to Messages</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 shadow-sm text-center">
+                <div class="card-body">
+                    <h5 class="card-title">💬 SMS Messages</h5>
+                    <p class="card-text">View and respond to incoming messages.</p>
+                    <a href="{{ path('panel/whatsapp/sms_messages') }}" class="btn btn-success">Go to Messages</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 shadow-sm text-center">
+                <div class="card-body">
+                    <h5 class="card-title">📇  Contacts</h5>
+                    <p class="card-text">Manage your saved contacts.</p>
+                    <a href="{{ path('panel/whatsapp/contacts') }}" class="btn btn-info">Go to Contacts</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+{% endblock %}

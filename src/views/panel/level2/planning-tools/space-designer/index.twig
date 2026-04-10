@@ -1,0 +1,311 @@
+{% extends 'templates/base.admin.twig' %}
+{% import 'templates/macros.twig' as macros %}
+
+
+
+{% block body %}
+
+<style>
+    .draggable {
+      padding: 8px;
+      margin-bottom: 8px;
+      background: #eee;
+      border: 1px solid #aaa;
+      cursor: grab;
+      border-radius: 4px;
+      text-align: center;
+    }
+
+    .canvas-item {
+      position: absolute;
+      border: 2px dashed #555;
+      background: rgba(0, 128, 255, 0.3);
+      cursor: move;
+      text-align: center;
+      font-size: 12px;
+      padding: 4px;
+      box-sizing: border-box;
+      border-radius: 6px;
+      user-select: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .canvas-item.round {
+      border-radius: 50% !important;
+    }
+
+    .canvas-item.text-block {
+      border: none !important;
+      background: transparent !important;
+      padding: 0 !important;
+      min-width: 80px;
+      min-height: 40px;
+      resize: both;
+      overflow: auto;
+    }
+
+    .canvas-item.text-block textarea {
+      width: 100%;
+      height: 100%;
+      resize: both;
+      border: none;
+      outline: none;
+      background: transparent;
+      font-size: 14px;
+      font-family: sans-serif;
+      padding: 4px;
+      box-sizing: border-box;
+    }
+
+    .vertical-text {
+      writing-mode: vertical-rl;
+      transform: rotate(180deg);
+    }
+
+    #canvas-wrapper {
+      flex: 1;
+      overflow: auto;
+      max-width: 100%;
+      background: #f0f0f0;
+    }
+
+    #canvas {
+      background-image: linear-gradient(#ccc 1px, transparent 1px), linear-gradient(90deg, #ccc 1px, transparent 1px);
+      background-size: 10px 10px;
+      transform-origin: top left;
+      transition: transform 0.2s ease;
+    }
+
+    @media screen and (max-width: 768px) {
+      #event-planner-app > div:nth-child(3) {
+        flex-direction: column;
+      }
+
+      #event-planner-app > div:nth-child(3) > div:first-child {
+        width: 100%;
+        border-right: none;
+        border-bottom: 1px solid #ccc;
+      }
+
+      #canvas-wrapper {
+        min-height: 500px;
+        overflow-x: scroll;
+      }
+    }
+  </style>
+
+
+<main class="mt-4">
+
+<div id="event-planner-app" style="font-family: sans-serif;">
+  <div class="container">
+
+    <h2 class="mb-4 text-center">🪑 Layout Design</h2>
+
+    {{ macros.breadcrumb2() }}
+
+    <div class="row g-4">
+ 
+      
+  <!-- Instruction -->
+  <div style="background: #ffefc5; color: #000; padding: 8px 12px; font-weight: bold;">
+    💡 Left-click to delete items. Text blocks are resizable and editable. Right-click to rotate. Click “Export Design” to download layout.
+  </div>
+
+  <!-- Top Bar -->
+  <div style="background: #111; color: white; padding: 10px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
+    <div><strong>Event Space Planner</strong></div>
+    <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+      <label>Width (ft): <input type="number" id="room-width" value="20" style="width:70px; padding: 5px;"></label>
+      <label>Length (ft): <input type="number" id="room-height" value="20" style="width:70px; padding: 5px;"></label>
+      <button onclick="initRoom()" style="padding: 6px 12px; background: #cc0066; color: #fff;">Set Room Size</button>
+      <button onclick="zoomOut()" style="padding: 6px 10px;">−</button>
+      <button onclick="zoomIn()" style="padding: 6px 10px;">+</button>
+      <button onclick="exportAsImage()" style="padding: 6px 12px; background: #0066cc; color: #fff;">Export Design</button>
+    </div>
+  </div>
+
+  <!-- Main Layout -->
+  <div style="display: flex; flex-direction: row; flex-wrap: wrap; min-height: 600px;">
+    <div style="width: 200px; border-right: 1px solid #ccc; padding: 10px;">
+      <h4>Items</h4>
+      <div class="draggable" data-type="round-table" draggable="true">🪑 Round Table</div>
+      <div class="draggable" data-type="rect-table" draggable="true">📏 Rectangular Table</div>
+      <div class="draggable" data-type="chair" draggable="true">🪑 Chair</div>
+      <div class="draggable" data-type="stage" draggable="true">🎤 Stage</div>
+      <div class="draggable" data-type="cocktail-table" draggable="true">🥂 Cocktail Table</div>
+      <div class="draggable" data-type="bar" draggable="true">🍸 Bar</div>
+      <div class="draggable" data-type="photobooth" draggable="true">📸 Photobooth Area</div>
+      <div class="draggable" data-type="altar" draggable="true">💒 Altar</div>
+      <div class="draggable" data-type="text-block" draggable="true">📝 Text</div>
+    </div>
+    <div id="canvas-wrapper">
+      <div id="canvas" style="position: relative; margin: 20px;"></div>
+    </div>
+  </div>
+    
+
+    </div>
+    </div>
+</main>
+
+<script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const scale = 10;
+      const canvas = document.getElementById('canvas');
+      let currentZoom = 1;
+
+      function initRoom() {
+        const widthFt = parseInt(document.getElementById('room-width').value) || 0;
+        const heightFt = parseInt(document.getElementById('room-height').value) || 0;
+        if (widthFt <= 0 || heightFt <= 0) {
+          alert("Please enter valid room dimensions in feet.");
+          return;
+        }
+        canvas.style.width = (widthFt * scale) + 'px';
+        canvas.style.height = (heightFt * scale) + 'px';
+        canvas.innerHTML = '';
+        updateZoom();
+      }
+
+      function updateZoom() {
+        canvas.style.transform = `scale(${currentZoom})`;
+      }
+
+      window.zoomIn = function () {
+        currentZoom += 0.1;
+        updateZoom();
+      };
+
+      window.zoomOut = function () {
+        currentZoom = Math.max(0.2, currentZoom - 0.1);
+        updateZoom();
+      };
+
+      window.initRoom = initRoom;
+      initRoom();
+
+      document.querySelectorAll('.draggable').forEach(el => {
+        el.addEventListener('dragstart', e => {
+          e.dataTransfer.setData('type', e.target.dataset.type);
+          e.dataTransfer.setData('new', 'true');
+        });
+      });
+
+      canvas.addEventListener('dragover', e => e.preventDefault());
+
+      canvas.addEventListener('drop', e => {
+        e.preventDefault();
+        const type = e.dataTransfer.getData('type');
+        const isNew = e.dataTransfer.getData('new') === 'true';
+        const x = e.offsetX / currentZoom;
+        const y = e.offsetY / currentZoom;
+        if (isNew) {
+          addItem(type, x, y);
+        }
+      });
+
+      function addItem(type, x, y) {
+        let widthFt = 5, heightFt = 5, label = '', isRound = false;
+
+        switch (type) {
+          case 'round-table': widthFt = 5; heightFt = 5; label = 'Round'; isRound = true; break;
+          case 'rect-table': widthFt = 6; heightFt = 3; label = 'Rect'; break;
+          case 'chair': widthFt = 2; heightFt = 2; label = 'Chair'; break;
+          case 'stage': widthFt = 10; heightFt = 4; label = 'Stage'; break;
+          case 'cocktail-table': widthFt = 3; heightFt = 3; label = 'Cocktail'; break;
+          case 'bar': widthFt = 8; heightFt = 3; label = 'Bar'; break;
+          case 'photobooth': widthFt = 6; heightFt = 4; label = 'Photo'; break;
+          case 'altar': widthFt = 8; heightFt = 6; label = 'Altar'; break;
+          case 'text-block': widthFt = 10; heightFt = 4; label = ''; break;
+        }
+
+        const item = document.createElement('div');
+        item.classList.add('canvas-item');
+        if (type === 'text-block') item.classList.add('text-block');
+        if (isRound) item.classList.add('round');
+        item.style.width = (widthFt * scale) + 'px';
+        item.style.height = (heightFt * scale) + 'px';
+        item.style.left = x + 'px';
+        item.style.top = y + 'px';
+        item.setAttribute('draggable', 'true');
+        item.dataset.rotation = "0";
+        item.dataset.originalWidth = widthFt;
+        item.dataset.originalHeight = heightFt;
+        item.dataset.type = type;
+
+        if (type === 'text-block') {
+          const textarea = document.createElement('textarea');
+          textarea.placeholder = "Write here...";
+          item.appendChild(textarea);
+        } else {
+          item.innerText = label;
+        }
+
+        item.addEventListener('click', (e) => {
+          if (item.dataset.type !== 'text-block') {
+            if (confirm("Do you want to delete this item?")) item.remove();
+          }
+        });
+
+        item.addEventListener('contextmenu', (e) => {
+          e.preventDefault();
+
+          let rotation = parseInt(item.dataset.rotation) || 0;
+          rotation = (rotation + 90) % 360;
+          item.dataset.rotation = rotation;
+
+          const oldWidth = item.style.width;
+          item.style.width = item.style.height;
+          item.style.height = oldWidth;
+
+          if (rotation === 90 || rotation === 270) {
+            item.classList.add('vertical-text');
+          } else {
+            item.classList.remove('vertical-text');
+          }
+        });
+
+        item.addEventListener('dragstart', e => {
+          e.dataTransfer.setData('drag-existing', 'true');
+          item.dataset.dragging = 'true';
+          const ghost = item.cloneNode(true);
+          ghost.style.position = 'absolute';
+          ghost.style.top = '-9999px';
+          ghost.style.left = '-9999px';
+          ghost.style.transform = `scale(${currentZoom})`;
+          document.body.appendChild(ghost);
+          e.dataTransfer.setDragImage(ghost, 0, 0);
+          setTimeout(() => ghost.remove(), 0);
+        });
+
+        item.addEventListener('dragend', e => {
+          if (item.dataset.dragging === 'true') {
+            const rect = canvas.getBoundingClientRect();
+            let newX = (e.clientX - rect.left) / currentZoom;
+            let newY = (e.clientY - rect.top) / currentZoom;
+            newX = Math.round(newX / 10) * 10;
+            newY = Math.round(newY / 10) * 10;
+            item.style.left = newX + 'px';
+            item.style.top = newY + 'px';
+            delete item.dataset.dragging;
+          }
+        });
+
+        canvas.appendChild(item);
+      }
+
+      window.exportAsImage = function () {
+        html2canvas(canvas).then(canvasImg => {
+          const link = document.createElement('a');
+          link.download = 'event-layout.png';
+          link.href = canvasImg.toDataURL();
+          link.click();
+        });
+      };
+    });
+  </script>
+{% endblock %}

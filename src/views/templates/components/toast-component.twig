@@ -1,0 +1,15 @@
+{% set positionVertical = alertMessage is not null ? alertMessage.x ? alertMessage.x : 'bottom' : 'bottom' %}
+{% set positionHorizontal = alertMessage is not null ? alertMessage.y ? alertMessage.y : 'end' : 'end' %}
+{% set toastMessage = alertMessage is not null ? alertMessage.message : '' %}
+
+{% set positionHorizontal = isMobileApp ? 'start-50 translate-middle-x' : positionHorizontal ~ '-0' %}
+{% set positionVertical = positionVertical ~ '-0' %}
+
+<div class="position-fixed {{ positionVertical }} {{ positionHorizontal }} p-3" style="z-index: 1080;">
+    <div id="alertToast" class="toast align-items-center text-bg-dark border-0" role="status" aria-live="assertive" aria-atomic="true">
+        <div class="d-flex">
+            <div class="toast-body">{{ toastMessage }}</div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+        </div>
+    </div>
+</div>

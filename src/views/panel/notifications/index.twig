@@ -1,0 +1,179 @@
+{% extends 'templates/base.admin.twig' %}
+
+{% block body %}
+<div class="container-fluid p-0">
+    <div class="row mb-2 mb-xl-3">
+        <div class="col-auto d-none d-sm-block">
+            <h3>🔔 Notifications</h3>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">All System Notifications</h5>
+                </div>
+                <div class="card-body">
+                    {% if notifications is defined and notifications and notifications|length > 0 %}
+                        <div class="list-group">
+                            {% for notification in notifications %}
+                                <div class="list-group-item d-flex justify-content-between align-items-start {% if notification.leido == 0 %}border-start border-primary border-4{% endif %}">
+                                    <div class="ms-2 me-auto">
+                                        <div class="fw-bold {% if notification.leido == 0 %}text-primary{% endif %}">
+                                            {{ notification.mensaje }}
+                                        </div>
+                                        <div class="text-muted small mt-1">
+                                            <i data-feather="clock" class="me-1"></i>
+                                            {{ notification.timestamp|date('M j, Y - g:i A') }}
+                                        </div>
+                                        {% if notification.link %}
+                                            <div class="mt-2">
+                                                <a href="{{ notification.link }}" 
+                                                   class="btn btn-sm btn-outline-primary notification-link" 
+                                                   data-notification-id="{{ notification.id }}"
+                                                   data-notification-read="{{ notification.leido }}">
+                                                    <i data-feather="external-link" class="me-1"></i>
+                                                    View Details
+                                                </a>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="d-flex align-items-center">
+                                        {% if notification.leido == 0 %}
+                                            <span class="badge bg-primary rounded-pill me-2">New</span>
+                                            <button class="btn btn-sm btn-outline-success mark-read-btn" 
+                                                    data-notification-id="{{ notification.id }}">
+                                                <i data-feather="check" class="me-1"></i>
+                                                Mark as Read
+                                            </button>
+                                        {% else %}
+                                            <span class="badge bg-secondary rounded-pill">Read</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i data-feather="bell-off" class="text-muted mb-3" style="width: 48px; height: 48px;"></i>
+                            <h5 class="text-muted">No notifications yet</h5>
+                            <p class="text-muted">You're all caught up! New system notifications will appear here.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const markReadBtns = document.querySelectorAll('.mark-read-btn');
+    const notificationLinks = document.querySelectorAll('.notification-link');
+    
+    markReadBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            const notificationId = this.getAttribute('data-notification-id');
+            markNotificationAsRead(notificationId, this);
+        });
+    });
+    
+    notificationLinks.forEach(link => {
+        link.addEventListener('click', function(e) {
+            const notificationId = this.getAttribute('data-notification-id');
+            const isRead = this.getAttribute('data-notification-read');
+            const href = this.getAttribute('href');
+            
+            if (notificationId && isRead === '0') {
+                e.preventDefault(); // Prevenir navegación inmediata
+                markNotificationAsReadAndRedirect(notificationId, href);
+            }
+            // Si ya está leída (isRead === '1'), navegar normalmente
+        });
+    });
+});
+
+function markNotificationAsRead(notificationId, buttonElement) {
+    console.log('Marking notification as read:', notificationId);
+    
+    fetch('/panel/notifications/mark-read', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ notification_id: notificationId })
+    })
+    .then(response => {
+        console.log('Response status:', response.status);
+        return response.json();
+    })
+    .then(data => {
+        console.log('Response data:', data);
+        if (data.success) {
+            const listItem = buttonElement.closest('.list-group-item');
+            listItem.classList.remove('border-start', 'border-primary', 'border-4');
+            
+            const badge = listItem.querySelector('.badge');
+            badge.className = 'badge bg-secondary rounded-pill me-2';
+            badge.textContent = 'Read';
+            
+            buttonElement.remove();
+            
+            updateHeaderNotificationCount();
+        } else {
+            console.error('Mark as read failed:', data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Error marking notification as read:', error);
+    });
+}
+
+function markNotificationAsReadAndRedirect(notificationId, redirectUrl) {
+    fetch('/panel/notifications/mark-read', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ notification_id: notificationId })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            updateHeaderNotificationCount();
+            
+            // Redirigir después de marcar como leída
+            if (redirectUrl) {
+                window.location.href = redirectUrl;
+            }
+        } else {
+            // Si falla marcar como leída, aún así redirigir
+            if (redirectUrl) {
+                window.location.href = redirectUrl;
+            }
+        }
+    })
+    .catch(error => {
+        console.error('Error marking notification as read:', error);
+        // Si hay error, aún así redirigir
+        if (redirectUrl) {
+            window.location.href = redirectUrl;
+        }
+    });
+}
+
+function updateHeaderNotificationCount() {
+    const indicator = document.querySelector('#alertsDropdown .indicator');
+    if (indicator) {
+        const currentCount = parseInt(indicator.textContent) || 0;
+        if (currentCount > 0) {
+            indicator.textContent = currentCount - 1;
+            if (currentCount - 1 === 0) {
+                indicator.style.display = 'none';
+            }
+        }
+    }
+}
+</script>
+{% endblock %}

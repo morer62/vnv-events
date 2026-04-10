@@ -1,0 +1,480 @@
+{% extends 'templates/base.admin.twig' %}
+
+{% block body %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+        <div>
+            <h1 class="h3 mb-1">Store Orders</h1>
+            <p class="text-muted mb-0">Weekly operations board: approve and assign kitchen/delivery.</p>
+        </div>
+        <a href="{{ path('panel/planner-hub/store/carts/home') }}" class="btn btn-outline-dark">
+            View Abandoned Carts
+        </a>
+    </div>
+
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-2">
+                    <label class="form-label">Week Start</label>
+                    <input type="date" name="week_start" class="form-control" value="{{ filters.week_start }}">
+                </div>
+
+                <div class="col-md-2">
+                    <label class="form-label">Week End</label>
+                    <input type="date" name="week_end" class="form-control" value="{{ filters.week_end }}">
+                </div>
+
+                <div class="col-md-2">
+                    <label class="form-label">Payment Status</label>
+                    <select name="payment_status" class="form-select">
+                        <option value="">All</option>
+                        <option value="PENDING" {% if filters.payment_status == 'PENDING' %}selected{% endif %}>PENDING</option>
+                        <option value="PAID" {% if filters.payment_status == 'PAID' %}selected{% endif %}>PAID</option>
+                        <option value="FAILED" {% if filters.payment_status == 'FAILED' %}selected{% endif %}>FAILED</option>
+                        <option value="REFUNDED" {% if filters.payment_status == 'REFUNDED' %}selected{% endif %}>REFUNDED</option>
+                    </select>
+                </div>
+
+                <div class="col-md-2">
+                    <label class="form-label">Order Status</label>
+                    <select name="status" class="form-select">
+                        <option value="">All</option>
+                        <option value="PROCESSING" {% if filters.status == 'PROCESSING' %}selected{% endif %}>Paid / Preparing</option>
+                        <option value="READY" {% if filters.status == 'READY' %}selected{% endif %}>Sending</option>
+                        <option value="DELIVERED" {% if filters.status == 'DELIVERED' %}selected{% endif %}>Received</option>
+                        <option value="CANCELLED" {% if filters.status == 'CANCELLED' %}selected{% endif %}>Cancelled</option>
+                    </select>
+                </div>
+
+                <div class="col-md-3">
+                    <label class="form-label">Customer Email</label>
+                    <input type="text" name="email" class="form-control" value="{{ filters.email }}" placeholder="Search by email">
+                </div>
+
+                <div class="col-md-1 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary w-100">Filter</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="card shadow-sm border-0">
+        <div class="card-body">
+            {% if orders|length > 0 %}
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead>
+                            <tr>
+                                <th class="text-nowrap">ID</th>
+                                <th class="text-nowrap">Date</th>
+                                <th>Customer</th>
+                                <th>Shipping Address</th>
+                                <th class="text-nowrap">Pricing</th>
+                                <th class="text-nowrap">Coupon</th>
+                                <th class="text-nowrap">Details</th>
+                                <th class="text-end text-nowrap">Meals</th>
+                                <th class="text-end text-nowrap">Total</th>
+                                <th class="text-nowrap">Payment</th>
+                                <th class="text-nowrap">Status</th>
+                                <th class="text-nowrap">Delivery</th>
+                                <th class="text-end text-nowrap">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for o in orders %}
+                                <tr>
+                                    <td class="text-muted">#{{ o.id }}</td>
+                                    <td class="text-muted small text-nowrap">
+                                        {{ o.created_at|date('M j, Y') }}<br>
+                                        <span class="text-muted">{{ o.created_at|date('g:i A') }}</span>
+                                    </td>
+                                    <td>
+                                        <div class="fw-semibold">{{ o.guest_name ?: '—' }}</div>
+                                        <div class="small text-muted">{{ o.guest_email ?: '—' }}</div>
+                                    </td>
+                                    <td class="small">{{ o.shipping_address_display ?: '—' }}</td>
+                                    <td class="text-uppercase small text-muted">
+                                        {{ o.pricing_mode ?: 'PAYG' }}
+                                    </td>
+                                    <td class="small">
+                                        {% if o.coupon_code %}
+                                            <span class="badge bg-info text-dark">{{ o.coupon_code }}</span>
+                                            {% if (o.coupon_discount ?: 0) > 0 %}
+                                                <div class="text-muted mt-1">- ${{ o.coupon_discount|number_format(2, '.', ',') }}</div>
+                                            {% endif %}
+                                        {% else %}
+                                            <span class="text-muted">—</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-center text-md-start">
+                                        <button type="button"
+                                                class="btn btn-sm btn-outline-primary px-3"
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#orderItemsModal"
+                                                data-order-id="{{ o.id }}"
+                                                data-order-date="{{ o.created_at|date('M j, Y g:i A') }}"
+                                                data-order-customer="{{ o.guest_name ?: '—' }}"
+                                                data-order-email="{{ o.guest_email ?: '—' }}"
+                                                data-order-phone="{{ o.guest_phone ?: '—' }}"
+                                                data-order-shipping="{{ o.shipping_address_display ?: '—' }}"
+                                                data-order-status="{{ o.status }}"
+                                                data-order-payment="{{ o.payment_status }}"
+                                                data-order-coupon-code="{{ o.coupon_code ?: '' }}"
+                                                data-order-coupon-discount="{{ (o.coupon_discount ?: 0)|number_format(2, '.', ',') }}"
+                                                data-order-total="{{ o.total|number_format(2, '.', ',') }}"
+                                                data-items="{{ o.items_modal_json|e('html_attr') }}">
+                                            View details
+                                        </button>
+                                    </td>
+                                    <td class="text-end">{{ o.meals_count }}</td>
+                                    <td class="text-end">${{ o.total|number_format(2, '.', ',') }}</td>
+                                    <td>
+                                        <div class="d-flex align-items-center gap-2">
+                                            {% if o.payment_status == 'PAID' %}
+                                                <span class="badge bg-success">PAID</span>
+                                            {% elseif o.payment_status == 'FAILED' %}
+                                                <span class="badge bg-danger">FAILED</span>
+                                            {% elseif o.payment_status == 'REFUNDED' %}
+                                                <span class="badge bg-secondary">REFUNDED</span>
+                                            {% else %}
+                                                <span class="badge bg-warning text-dark">PENDING</span>
+                                            {% endif %}
+                                            <button type="button"
+                                                    class="btn btn-sm btn-outline-secondary"
+                                                    data-bs-toggle="modal"
+                                                    data-bs-target="#editPaymentModal"
+                                                    data-order-id="{{ o.id }}"
+                                                    data-payment-status="{{ o.payment_status }}">
+                                                Edit
+                                            </button>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex align-items-center gap-2">
+                                            {% if o.status == 'PROCESSING' %}
+                                                <span class="badge bg-info text-dark">Paid / Preparing</span>
+                                            {% elseif o.status == 'READY' %}
+                                                <span class="badge bg-warning text-dark">Sending</span>
+                                            {% elseif o.status == 'DELIVERED' %}
+                                                <span class="badge bg-success">Received</span>
+                                            {% elseif o.status == 'CANCELLED' %}
+                                                <span class="badge bg-danger">Cancelled</span>
+                                            {% else %}
+                                                <span class="badge bg-secondary">{{ o.status }}</span>
+                                            {% endif %}
+                                            <button type="button"
+                                                    class="btn btn-sm btn-outline-secondary"
+                                                    data-bs-toggle="modal"
+                                                    data-bs-target="#editStatusModal"
+                                                    data-order-id="{{ o.id }}"
+                                                    data-status="{{ o.status }}">
+                                                Edit
+                                            </button>
+                                        </div>
+                                    </td>
+                                    <td class="small">
+                                        <div>{{ o.delivery_assignee_name ?: '—' }}</div>
+                                        <button type="button"
+                                                class="btn btn-sm btn-outline-secondary mt-1"
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#assignDeliveryModal"
+                                                data-order-id="{{ o.id }}"
+                                                data-delivery-user-id="{{ o.delivery_user_id }}">
+                                            Assign
+                                        </button>
+                                    </td>
+                                    <td class="text-end">
+                                        <a href="{{ path('store/order-access?token=' ~ o.public_token) }}" target="_blank" class="btn btn-sm btn-outline-dark">
+                                            View Public
+                                        </a>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="text-center py-5">
+                    <h5 class="mb-2">No store orders found</h5>
+                    <p class="text-muted mb-0">There are no gourmet store orders matching these filters.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Order details modal -->
+    <div class="modal fade" id="orderItemsModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Order products</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <ul class="nav nav-tabs" role="tablist">
+                        <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#detailsPrep" type="button">Prep</button></li>
+                        <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#detailsDelivery" type="button">Delivery</button></li>
+                        <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#detailsClient" type="button">Client</button></li>
+                    </ul>
+                    <div class="tab-content border border-top-0 p-3">
+                        <div class="tab-pane fade show active" id="detailsPrep">
+                            <div class="small mb-2"><strong>Order #</strong> <span id="orderMetaId">—</span></div>
+                            <div class="small mb-2"><strong>Date</strong> <span id="orderItemsDate"></span></div>
+                            <div class="small mb-2"><strong>Status</strong> <span id="orderMetaStatus"></span></div>
+                            <div class="table-responsive">
+                                <table class="table table-sm align-middle">
+                                    <thead>
+                                    <tr>
+                                        <th>Product</th>
+                                        <th class="text-end">Qty</th>
+                                        <th class="text-end">Unit price</th>
+                                        <th class="text-end">Total</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody id="orderItemsTableBody">
+                                    <tr>
+                                        <td colspan="4" class="text-center text-muted py-3">No products found.</td>
+                                    </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="tab-pane fade" id="detailsDelivery">
+                            <div class="small mb-2"><strong>Shipping address:</strong> <span id="orderMetaShipping">—</span></div>
+                            <div class="small mb-2"><strong>Payment:</strong> <span id="orderMetaPayment">—</span></div>
+                            <div class="small mb-2"><strong>Coupon:</strong> <span id="orderMetaCoupon">—</span></div>
+                            <div class="small mb-2"><strong>Total:</strong> $<span id="orderMetaTotal">0.00</span></div>
+                        </div>
+                        <div class="tab-pane fade" id="detailsClient">
+                            <div class="small mb-2"><strong>Name:</strong> <span id="orderItemsCustomer">—</span></div>
+                            <div class="small mb-2"><strong>Email:</strong> <span id="orderItemsEmail">—</span></div>
+                            <div class="small"><strong>Phone:</strong> <span id="orderMetaPhone">—</span></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="editPaymentModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form method="post">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Update payment status</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <input type="hidden" name="action" value="update_payment_status">
+                        <input type="hidden" name="order_id" id="editPaymentOrderId">
+                        <div class="mb-3">
+                            <label class="form-label">Payment status</label>
+                            <select name="payment_status" id="editPaymentSelect" class="form-select">
+                                <option value="PENDING">PENDING</option>
+                                <option value="PAID">PAID</option>
+                                <option value="FAILED">FAILED</option>
+                                <option value="REFUNDED">REFUNDED</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Save</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="editStatusModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form method="post">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Update order status</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <input type="hidden" name="action" value="update_status">
+                        <input type="hidden" name="order_id" id="editStatusOrderId">
+                        <div class="mb-3">
+                            <label class="form-label">Order status</label>
+                            <select name="status" id="editStatusSelect" class="form-select">
+                                <option value="PROCESSING">Paid / Preparing</option>
+                                <option value="READY">Sending</option>
+                                <option value="DELIVERED">Received</option>
+                                <option value="CANCELLED">Cancelled</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Save</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="assignDeliveryModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form method="post">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Assign delivery</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <input type="hidden" name="action" value="assign_delivery">
+                        <input type="hidden" name="order_id" id="assignDeliveryOrderId">
+                        <div class="mb-0">
+                            <label class="form-label">Delivery user</label>
+                            <select class="form-select" name="delivery_user_id" id="assignDeliveryUserSelect">
+                                <option value="">Unassigned</option>
+                                {% for u in deliveryUsers %}
+                                    <option value="{{ u.id_user }}">{{ (u.name ~ ' ' ~ u.lastname)|trim }}{% if u.email %} ({{ u.email }}){% endif %}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Save</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+    {{ parent() }}
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const modalEl = document.getElementById('orderItemsModal');
+            if (modalEl) {
+                modalEl.addEventListener('show.bs.modal', function (event) {
+                    const button = event.relatedTarget;
+                    if (!button) return;
+
+                    const customer = button.getAttribute('data-order-customer') || '—';
+                    const email = button.getAttribute('data-order-email') || '—';
+                    const phone = button.getAttribute('data-order-phone') || '—';
+                    const date = button.getAttribute('data-order-date') || '';
+                    const orderId = button.getAttribute('data-order-id') || '';
+                    const shipping = button.getAttribute('data-order-shipping') || '—';
+                    const orderStatus = button.getAttribute('data-order-status') || '—';
+                    const payment = button.getAttribute('data-order-payment') || '—';
+                    const couponCode = button.getAttribute('data-order-coupon-code') || '';
+                    const couponDiscount = button.getAttribute('data-order-coupon-discount') || '0.00';
+                    const total = button.getAttribute('data-order-total') || '0.00';
+                    const itemsJson = button.getAttribute('data-items') || '[]';
+                    document.getElementById('orderItemsCustomer').textContent = customer;
+                    document.getElementById('orderItemsEmail').textContent = email;
+                    document.getElementById('orderItemsDate').textContent = date;
+                    document.getElementById('orderMetaPhone').textContent = phone;
+                    document.getElementById('orderMetaId').textContent = orderId;
+                    document.getElementById('orderMetaShipping').textContent = shipping;
+                    document.getElementById('orderMetaStatus').textContent = orderStatus;
+                    document.getElementById('orderMetaPayment').textContent = payment;
+                    document.getElementById('orderMetaCoupon').textContent = couponCode ? (couponCode + ' (-$' + couponDiscount + ')') : '—';
+                    document.getElementById('orderMetaTotal').textContent = total;
+
+                    let items = [];
+                    try {
+                        items = JSON.parse(itemsJson);
+                    } catch (e) {
+                        items = [];
+                    }
+
+                    const tbody = document.getElementById('orderItemsTableBody');
+                    tbody.innerHTML = '';
+
+                    if (!items.length) {
+                        const tr = document.createElement('tr');
+                        const td = document.createElement('td');
+                        td.colSpan = 4;
+                        td.className = 'text-center text-muted py-3';
+                        td.textContent = 'No products found.';
+                        tr.appendChild(td);
+                        tbody.appendChild(tr);
+                        return;
+                    }
+
+                    items.forEach(function (item) {
+                        const tr = document.createElement('tr');
+
+                        const tdName = document.createElement('td');
+                        tdName.textContent = item.name || '—';
+
+                        const tdQty = document.createElement('td');
+                        tdQty.className = 'text-end';
+                        tdQty.textContent = item.quantity ?? 0;
+
+                        const tdUnit = document.createElement('td');
+                        tdUnit.className = 'text-end';
+                        tdUnit.textContent = '$' + Number(item.unit_price ?? 0).toFixed(2);
+
+                        const tdTotal = document.createElement('td');
+                        tdTotal.className = 'text-end';
+                        tdTotal.textContent = '$' + Number(item.line_total ?? 0).toFixed(2);
+
+                        tr.appendChild(tdName);
+                        tr.appendChild(tdQty);
+                        tr.appendChild(tdUnit);
+                        tr.appendChild(tdTotal);
+                        tbody.appendChild(tr);
+                    });
+                });
+            }
+
+            const paymentModal = document.getElementById('editPaymentModal');
+            if (paymentModal) {
+                paymentModal.addEventListener('show.bs.modal', function (event) {
+                    const button = event.relatedTarget;
+                    if (!button) return;
+                    const orderId = button.getAttribute('data-order-id') || '';
+                    const status = button.getAttribute('data-payment-status') || 'PENDING';
+                    const idInput = document.getElementById('editPaymentOrderId');
+                    const select = document.getElementById('editPaymentSelect');
+                    if (idInput) idInput.value = orderId;
+                    if (select) select.value = status || 'PENDING';
+                });
+            }
+
+            const statusModal = document.getElementById('editStatusModal');
+            if (statusModal) {
+                statusModal.addEventListener('show.bs.modal', function (event) {
+                    const button = event.relatedTarget;
+                    if (!button) return;
+                    const orderId = button.getAttribute('data-order-id') || '';
+                    const status = button.getAttribute('data-status') || 'NEW';
+                    const idInput = document.getElementById('editStatusOrderId');
+                    const select = document.getElementById('editStatusSelect');
+                    if (idInput) idInput.value = orderId;
+                    if (select) select.value = status || 'NEW';
+                });
+            }
+
+            const assignDeliveryModal = document.getElementById('assignDeliveryModal');
+            if (assignDeliveryModal) {
+                assignDeliveryModal.addEventListener('show.bs.modal', function (event) {
+                    const button = event.relatedTarget;
+                    if (!button) return;
+                    const orderId = button.getAttribute('data-order-id') || '';
+                    const deliveryId = button.getAttribute('data-delivery-user-id') || '';
+                    const idInput = document.getElementById('assignDeliveryOrderId');
+                    const select = document.getElementById('assignDeliveryUserSelect');
+                    if (idInput) idInput.value = orderId;
+                    if (select) select.value = deliveryId;
+                });
+            }
+
+        });
+    </script>
+{% endblock %}

@@ -1,0 +1,112 @@
+{% extends 'templates/base.admin.twig' %}
+
+{% block style %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/trumbowyg@2.27.3/dist/ui/trumbowyg.min.css">
+{% endblock %}
+
+{% block body %}
+<div>
+    <h1 class="h3 text-center mb-4">Edit Service</h1>
+
+    <!-- Paso 1: Categoría -->
+    <section id="step-1">
+        <label class="form-label">Service Category</label>
+        <select class="form-select mb-3" name="category_id" id="service-category" {{ service.status == 'APPROVED' ? 'disabled' }}>
+            {% for c in categories %}
+                <option value="{{ c.id }}" {{ c.id == service.category_id ? 'selected' : '' }}>{{ c.service_category }}</option>
+            {% endfor %}
+        </select>
+
+        {% if service.status != 'APPROVED' %}
+            <button type="button" class="btn btn-primary w-100" id="to-step-2">Continue</button>
+        {% else %}
+            <input type="hidden" name="category_id" value="{{ service.category_id }}">
+            <button type="button" class="btn btn-primary w-100" id="to-step-2">Continue</button>
+        {% endif %}
+    </section>
+
+    <!-- Paso 2: Datos -->
+    <section id="step-2" style="display:none;">
+        <form method="post" class="card shadow-lg p-4" id="service-form">
+            <input type="hidden" name="category_id" id="final-category" value="{{ service.category_id }}">
+            <div class="row">
+                <div class="col-12 mb-3">
+                    <label class="form-label">Additional categories (optional)</label>
+                    <div class="border rounded p-2" style="max-height: 220px; overflow:auto;">
+                        {% for c in categories %}
+                            {% set isMain = (c.id == service.category_id) %}
+                            {% set isAssigned = (assignedCategoryIds is defined and (c.id in assignedCategoryIds)) %}
+                            {% set checked = (isAssigned and (not isMain)) %}
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="extra_categories[]" value="{{ c.id }}" id="cat-{{ c.id }}" {{ checked ? 'checked' : '' }} {{ isMain ? 'disabled' : '' }}>
+                                <label class="form-check-label {{ isMain ? 'text-muted' : '' }}" for="cat-{{ c.id }}">{{ c.service_category }}{{ isMain ? ' (main)' : '' }}</label>
+                            </div>
+                        {% endfor %}
+                    </div>
+                    <small class="text-muted">Check all that apply. The main category won’t be duplicated.</small>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Profile Name</label>
+                    <input name="name" class="form-control" value="{{ service.name }}" required />
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Phone Number</label>
+                    <input name="phone_number" class="form-control" data-phone value="{{ service.phone_number }}" />
+                </div>
+                <div class="col-12 mb-3">
+                    <label class="form-label">Biography</label>
+                    <textarea class="form-control" name="description" id="description-editor" required>{{ service.description }}</textarea>
+                </div>
+                <div class="col-12 mb-3">
+                    <label class="form-label">Address</label>
+                    <input name="address" data-places class="form-control" value="{{ service.address }}" required />
+                </div>
+                <div class="col-md-6 mb-3"><label>Email</label><input name="email" class="form-control" value="{{ service.email }}" /></div>
+                <div class="col-md-6 mb-3"><label>Website</label><input name="website" class="form-control" value="{{ service.website }}" /></div>
+                <div class="col-md-6 mb-3"><label>Instagram</label><input name="instagram" class="form-control" value="{{ service.instagram }}" /></div>
+                <div class="col-md-6 mb-3"><label>Facebook</label><input name="facebook" class="form-control" value="{{ service.facebook }}" /></div>
+                <div class="col-md-6 mb-3"><label>Twitter</label><input name="twitter" class="form-control" value="{{ service.twitter }}" /></div>
+                <div class="col-md-6 mb-3"><label>Yelp</label><input name="yelp" class="form-control" value="{{ service.yelp }}" /></div>
+
+                <button type="button" class="btn btn-outline-secondary w-100 mb-2" id="back-step-1">Back</button>
+                <button type="submit" class="btn btn-success w-100">Save Changes</button>
+            </div>
+        </form>
+    </section>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/trumbowyg@2.27.3/dist/trumbowyg.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    $('#description-editor').trumbowyg();
+
+    document.getElementById('to-step-2').onclick = () => {
+        const cat = document.getElementById('service-category').value;
+        if (!cat) return alert("Please select a category.");
+        document.getElementById('final-category').value = cat;
+        document.getElementById('step-1').style.display = 'none';
+        document.getElementById('step-2').style.display = 'block';
+    };
+
+    document.getElementById('back-step-1').onclick = () => {
+        document.getElementById('step-1').style.display = 'block';
+        document.getElementById('step-2').style.display = 'none';
+    };
+
+    const addressInput = document.querySelector('[name="address"]');
+    const autocomplete = new google.maps.places.Autocomplete(addressInput, {
+        types: ['address'],
+        componentRestrictions: { country: 'us' }
+    });
+
+    autocomplete.addListener("place_changed", () => {
+        const place = autocomplete.getPlace();
+        addressInput.dataset.lat = place.geometry?.location?.lat() || "";
+        addressInput.dataset.lng = place.geometry?.location?.lng() || "";
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,490 @@
+{% extends 'templates/base.admin.twig' %}
+
+{% block body %}
+  <h1 class="h3 mb-4">💳 Payment Providers Configuration</h1>
+
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <p class="text-muted mb-0">
+      Configure your payment provider credentials (Stripe, Square, PayPal). Only one provider can be active at a time.
+    </p>
+    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addProviderModal">
+      ➕ Add Payment Provider
+    </button>
+  </div>
+
+  {% if providers is empty %}
+    <div class="alert alert-info">
+      <h5 class="alert-heading">💳 No payment provider configured</h5>
+      <p class="mb-2">You don't have any payment providers yet.</p>
+      <p class="mb-0">
+        <strong>Payment provider required.</strong>
+        Click “Add Payment Provider” to create one.
+      </p>
+    </div>
+  {% else %}
+    <div class="table-responsive">
+      <table class="table table-hover align-middle">
+        <thead>
+          <tr>
+            <th>Provider</th>
+            <th>Name</th>
+            <th>Environment</th>
+            <th>Currency</th>
+            <th>Status</th>
+            <th>Last used</th>
+            <th class="text-center">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for provider in providers %}
+            <tr class="{% if provider.is_default %}table-primary{% endif %} {% if provider.is_active %}table-success{% endif %}">
+              <td>
+                <strong>
+                  {% if provider.provider_type == 'stripe' %}💳 Stripe
+                  {% elseif provider.provider_type == 'square' %}🔲 Square
+                  {% elseif provider.provider_type == 'paypal' %}🅿️ PayPal
+                  {% else %}{{ provider.provider_type|upper }}
+                  {% endif %}
+                </strong>
+                {% if provider.is_default %}
+                  <span class="badge bg-primary ms-2">Default</span>
+                {% endif %}
+                {% if provider.is_active %}
+                  <span class="badge bg-success ms-2">Active</span>
+                {% else %}
+                  <span class="badge bg-secondary ms-2">Inactive</span>
+                {% endif %}
+              </td>
+              <td>
+                <div>{{ provider.provider_name }}</div>
+                {% if provider.merchant_email %}
+                  <small class="text-muted">{{ provider.merchant_email }}</small>
+                {% endif %}
+              </td>
+              <td>
+                {% if provider.environment == 'production' %}
+                  <span class="badge bg-success">Production</span>
+                {% else %}
+                  <span class="badge bg-warning">Sandbox</span>
+                {% endif %}
+              </td>
+              <td><strong>{{ provider.currency }}</strong></td>
+              <td>
+                {% if provider.is_verified %}
+                  <span class="badge bg-success">✓ Verified</span>
+                {% else %}
+                  <span class="badge bg-warning">⚠ Not verified</span>
+                {% endif %}
+              </td>
+              <td>
+                {% if provider.last_used_at %}
+                  <small>{{ provider.last_used_at|date('M j, Y g:i A') }}</small>
+                {% else %}
+                  <small class="text-muted">Never</small>
+                {% endif %}
+              </td>
+              <td class="text-center">
+                <div class="btn-group btn-group-sm" role="group">
+                  <button type="button" class="btn btn-outline-info"
+                          data-bs-toggle="modal"
+                          data-bs-target="#testProviderModal"
+                          data-provider-id="{{ provider.id }}"
+                          data-provider-type="{{ provider.provider_type }}"
+                          data-provider-name="{{ provider.provider_name }}"
+                          title="Test credentials">
+                    <i data-feather="check-circle"></i>
+                  </button>
+
+                  {% if not provider.is_default %}
+                    <form method="post" class="d-inline">
+                      <input type="hidden" name="action" value="set_default">
+                      <input type="hidden" name="provider_id" value="{{ provider.id }}">
+                      <button type="submit" class="btn btn-outline-primary" title="Set as default">
+                        <i data-feather="star"></i>
+                      </button>
+                    </form>
+                  {% endif %}
+
+                  <button type="button" class="btn btn-outline-secondary"
+                          data-bs-toggle="modal"
+                          data-bs-target="#editProviderModal"
+                          data-provider-id="{{ provider.id }}"
+                          data-provider-type="{{ provider.provider_type }}"
+                          data-provider-name="{{ provider.provider_name }}"
+                          data-api-key="{{ provider.api_key }}"
+                          data-api-secret="{{ provider.api_secret }}"
+                          data-public-key="{{ provider.public_key }}"
+                          data-webhook-secret="{{ provider.webhook_secret }}"
+                          data-environment="{{ provider.environment }}"
+                          data-currency="{{ provider.currency }}"
+                          data-merchant-email="{{ provider.merchant_email }}"
+                          data-location-id="{{ provider.location_id }}"
+                          title="Edit">
+                    <i data-feather="edit"></i>
+                  </button>
+
+                  {% if provider.is_active %}
+                    <form method="post" class="d-inline">
+                      <input type="hidden" name="action" value="deactivate">
+                      <input type="hidden" name="provider_id" value="{{ provider.id }}">
+                      <button type="submit" class="btn btn-outline-warning" title="Deactivate">
+                        <i data-feather="pause"></i>
+                      </button>
+                    </form>
+                  {% else %}
+                    <form method="post" class="d-inline">
+                      <input type="hidden" name="action" value="activate">
+                      <input type="hidden" name="provider_id" value="{{ provider.id }}">
+                      <button type="submit" class="btn btn-outline-success" title="Activate">
+                        <i data-feather="play"></i>
+                      </button>
+                    </form>
+                  {% endif %}
+
+                  {% if not provider.is_default %}
+                    <button type="button" class="btn btn-outline-danger"
+                            onclick="confirmDelete({{ provider.id }}, '{{ provider.provider_name|e('js') }}')"
+                            title="Delete">
+                      <i data-feather="trash-2"></i>
+                    </button>
+                  {% endif %}
+                </div>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% endif %}
+
+  <form method="post" id="deleteForm" class="d-none">
+    <input type="hidden" name="action" value="delete">
+    <input type="hidden" name="provider_id" id="deleteProviderId">
+  </form>
+{% endblock %}
+
+{% block aside %}
+  <!-- Test Provider Modal -->
+  <div class="modal fade" id="testProviderModal" tabindex="-1" data-bs-backdrop="static">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <form method="post">
+          <input type="hidden" name="action" value="test">
+          <input type="hidden" name="provider_id" id="test_provider_id">
+
+          <div class="modal-header">
+            <h5 class="modal-title">✅ Test payment provider</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+
+          <div class="modal-body">
+            <div class="alert alert-info mb-0">
+              This will test the saved credentials for <strong id="test_provider_name">provider</strong>.
+              <div class="mt-2"><small class="text-muted">If it passes, it will be marked as Verified.</small></div>
+            </div>
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+            <button type="submit" class="btn btn-info">Run test</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add Provider Modal -->
+  <div class="modal fade" id="addProviderModal" tabindex="-1" data-bs-backdrop="static">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <form method="post">
+          <input type="hidden" name="action" value="add">
+
+          <div class="modal-header">
+            <h5 class="modal-title">➕ Add Payment Provider</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+
+          <div class="modal-body">
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label class="form-label">Provider type <span class="text-danger">*</span></label>
+                <select name="provider_type" id="add_provider_type" class="form-select" required>
+                  <option value="stripe">Stripe</option>
+                  <option value="square">Square</option>
+                  <option value="paypal">PayPal</option>
+                </select>
+              </div>
+              <div class="col-md-6 mb-3">
+                <label class="form-label">Configuration name <span class="text-danger">*</span></label>
+                <input type="text" name="provider_name" class="form-control" placeholder="e.g. Main" required>
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label class="form-label">Environment</label>
+                <select name="environment" class="form-select">
+                  <option value="sandbox">Sandbox</option>
+                  <option value="production">Production</option>
+                </select>
+              </div>
+              <div class="col-md-6 mb-3">
+                <label class="form-label">Currency</label>
+                <input type="text" name="currency" class="form-control" value="USD">
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="col-md-6 mb-3" data-provider-field="api_key">
+                <label class="form-label">
+                  API key / Access token <span class="text-danger js-required js-required-api-key d-none">*</span>
+                </label>
+                <input type="text" name="api_key" class="form-control" autocomplete="off">
+                <div class="form-text js-hint-api-key"></div>
+              </div>
+              <div class="col-md-6 mb-3" data-provider-field="public_key">
+                <label class="form-label">
+                  Public key / App ID <span class="text-danger js-required js-required-public-key d-none">*</span>
+                </label>
+                <input type="text" name="public_key" class="form-control" autocomplete="off">
+                <div class="form-text js-hint-public-key"></div>
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="col-md-6 mb-3" data-provider-field="api_secret">
+                <label class="form-label">API secret</label>
+                <input type="text" name="api_secret" class="form-control" autocomplete="off">
+              </div>
+              <div class="col-md-6 mb-3" data-provider-field="webhook_secret">
+                <label class="form-label">Webhook secret</label>
+                <input type="text" name="webhook_secret" class="form-control" autocomplete="off">
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="col-md-6 mb-3" data-provider-field="merchant_email">
+                <label class="form-label">
+                  Merchant email (PayPal) <span class="text-danger js-required js-required-merchant-email d-none">*</span>
+                </label>
+                <input type="email" name="merchant_email" class="form-control" autocomplete="off">
+              </div>
+              <div class="col-md-6 mb-3" data-provider-field="location_id">
+                <label class="form-label">
+                  Location ID (Square) <span class="text-danger js-required js-required-location-id d-none">*</span>
+                </label>
+                <input type="text" name="location_id" class="form-control" autocomplete="off">
+                <div class="form-text">Tip: Square Dashboard → Locations.</div>
+              </div>
+            </div>
+
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" name="is_active" id="add_is_active" value="1">
+              <label class="form-check-label" for="add_is_active">Set as active</label>
+            </div>
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+            <button type="submit" class="btn btn-primary">Save</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit Provider Modal -->
+  <div class="modal fade" id="editProviderModal" tabindex="-1" data-bs-backdrop="static">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <form method="post" id="editProviderForm">
+          <input type="hidden" name="action" value="edit">
+          <input type="hidden" name="provider_id" id="edit_provider_id" value="">
+
+          <div class="modal-header">
+            <h5 class="modal-title">✏️ Edit Payment Provider</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+
+          <div class="modal-body">
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label class="form-label">Provider type <span class="text-danger">*</span></label>
+                <select name="provider_type" id="edit_provider_type" class="form-select" required>
+                  <option value="stripe">Stripe</option>
+                  <option value="square">Square</option>
+                  <option value="paypal">PayPal</option>
+                </select>
+              </div>
+              <div class="col-md-6 mb-3">
+                <label class="form-label">Configuration name <span class="text-danger">*</span></label>
+                <input type="text" name="provider_name" id="edit_provider_name" class="form-control" required>
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label class="form-label">Environment</label>
+                <select name="environment" id="edit_environment" class="form-select">
+                  <option value="sandbox">Sandbox</option>
+                  <option value="production">Production</option>
+                </select>
+              </div>
+              <div class="col-md-6 mb-3">
+                <label class="form-label">Currency</label>
+                <input type="text" name="currency" id="edit_currency" class="form-control">
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="col-md-6 mb-3" data-provider-field="api_key">
+                <label class="form-label">
+                  API key / Access token <span class="text-danger js-required js-required-api-key d-none">*</span>
+                </label>
+                <input type="text" name="api_key" id="edit_api_key" class="form-control" autocomplete="off">
+                <div class="form-text js-hint-api-key"></div>
+              </div>
+              <div class="col-md-6 mb-3" data-provider-field="public_key">
+                <label class="form-label">
+                  Public key / App ID <span class="text-danger js-required js-required-public-key d-none">*</span>
+                </label>
+                <input type="text" name="public_key" id="edit_public_key" class="form-control" autocomplete="off">
+                <div class="form-text js-hint-public-key"></div>
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="col-md-6 mb-3" data-provider-field="api_secret">
+                <label class="form-label">API secret</label>
+                <input type="text" name="api_secret" id="edit_api_secret" class="form-control" autocomplete="off">
+              </div>
+              <div class="col-md-6 mb-3" data-provider-field="webhook_secret">
+                <label class="form-label">Webhook secret</label>
+                <input type="text" name="webhook_secret" id="edit_webhook_secret" class="form-control" autocomplete="off">
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="col-md-6 mb-3" data-provider-field="merchant_email">
+                <label class="form-label">
+                  Merchant email (PayPal) <span class="text-danger js-required js-required-merchant-email d-none">*</span>
+                </label>
+                <input type="email" name="merchant_email" id="edit_merchant_email" class="form-control" autocomplete="off">
+              </div>
+              <div class="col-md-6 mb-3" data-provider-field="location_id">
+                <label class="form-label">
+                  Location ID (Square) <span class="text-danger js-required js-required-location-id d-none">*</span>
+                </label>
+                <input type="text" name="location_id" id="edit_location_id" class="form-control" autocomplete="off">
+                <div class="form-text">Tip: Square Dashboard → Locations.</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+            <button type="submit" class="btn btn-primary">Save changes</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+{% endblock %}
+
+{% block scripts %}
+  <script>
+    function applyProviderFields(container, providerType) {
+      const type = (providerType || '').toLowerCase();
+      const show = new Set();
+      const required = new Set();
+      const hints = { api_key: '', public_key: '' };
+
+      if (type === 'stripe') {
+        show.add('api_key'); show.add('public_key'); show.add('webhook_secret');
+        required.add('api_key'); required.add('public_key');
+        hints.api_key = 'Stripe Secret Key (sk_...)';
+        hints.public_key = 'Stripe Publishable Key (pk_...)';
+      } else if (type === 'square') {
+        show.add('api_key'); show.add('public_key'); show.add('location_id'); show.add('webhook_secret');
+        required.add('api_key'); required.add('public_key'); required.add('location_id');
+        hints.api_key = 'Square Access Token';
+        hints.public_key = 'Square Application ID';
+      } else if (type === 'paypal') {
+        show.add('merchant_email');
+        required.add('merchant_email');
+      } else {
+        ['api_key','public_key','api_secret','webhook_secret','merchant_email','location_id'].forEach(k => show.add(k));
+      }
+
+      container.querySelectorAll('[data-provider-field]').forEach(el => {
+        const key = el.getAttribute('data-provider-field');
+        el.classList.toggle('d-none', !show.has(key));
+      });
+
+      container.querySelector('.js-required-api-key')?.classList.toggle('d-none', !required.has('api_key'));
+      container.querySelector('.js-required-public-key')?.classList.toggle('d-none', !required.has('public_key'));
+      container.querySelector('.js-required-location-id')?.classList.toggle('d-none', !required.has('location_id'));
+      container.querySelector('.js-required-merchant-email')?.classList.toggle('d-none', !required.has('merchant_email'));
+
+      const hintApiKey = container.querySelector('.js-hint-api-key');
+      if (hintApiKey) hintApiKey.textContent = hints.api_key || '';
+      const hintPublicKey = container.querySelector('.js-hint-public-key');
+      if (hintPublicKey) hintPublicKey.textContent = hints.public_key || '';
+    }
+
+    function confirmDelete(id, name) {
+      if (confirm('Delete payment provider "' + name + '"?')) {
+        document.getElementById('deleteProviderId').value = id;
+        document.getElementById('deleteForm').submit();
+      }
+    }
+
+    const addModal = document.getElementById('addProviderModal');
+    if (addModal) {
+      const select = document.getElementById('add_provider_type');
+      const sync = () => applyProviderFields(addModal, select?.value);
+      select?.addEventListener('change', sync);
+      addModal.addEventListener('shown.bs.modal', sync);
+    }
+
+    const editModal = document.getElementById('editProviderModal');
+    if (editModal) {
+      editModal.addEventListener('show.bs.modal', function (event) {
+        const btn = event.relatedTarget;
+        if (!btn) return;
+        document.getElementById('edit_provider_id').value = btn.getAttribute('data-provider-id') || '';
+        document.getElementById('edit_provider_type').value = btn.getAttribute('data-provider-type') || 'stripe';
+        document.getElementById('edit_provider_name').value = btn.getAttribute('data-provider-name') || '';
+        document.getElementById('edit_api_key').value = btn.getAttribute('data-api-key') || '';
+        document.getElementById('edit_api_secret').value = btn.getAttribute('data-api-secret') || '';
+        document.getElementById('edit_public_key').value = btn.getAttribute('data-public-key') || '';
+        document.getElementById('edit_webhook_secret').value = btn.getAttribute('data-webhook-secret') || '';
+        document.getElementById('edit_environment').value = btn.getAttribute('data-environment') || 'sandbox';
+        document.getElementById('edit_currency').value = btn.getAttribute('data-currency') || 'USD';
+        document.getElementById('edit_merchant_email').value = btn.getAttribute('data-merchant-email') || '';
+        document.getElementById('edit_location_id').value = btn.getAttribute('data-location-id') || '';
+
+        applyProviderFields(editModal, document.getElementById('edit_provider_type')?.value);
+      });
+
+      const select = document.getElementById('edit_provider_type');
+      const sync = () => applyProviderFields(editModal, select?.value);
+      select?.addEventListener('change', sync);
+    }
+
+    const testModal = document.getElementById('testProviderModal');
+    if (testModal) {
+      testModal.addEventListener('show.bs.modal', function (event) {
+        const btn = event.relatedTarget;
+        if (!btn) return;
+        const id = btn.getAttribute('data-provider-id') || '';
+        const name = btn.getAttribute('data-provider-name') || 'provider';
+        const type = btn.getAttribute('data-provider-type') || '';
+        document.getElementById('test_provider_id').value = id;
+        document.getElementById('test_provider_name').textContent = name + (type ? (' (' + type + ')') : '');
+      });
+    }
+  </script>
+{% endblock %}
+

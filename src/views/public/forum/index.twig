@@ -1,0 +1,646 @@
+{% extends "templates/base.twig" %}
+
+{% block styles %}
+<style>
+.forum-header {
+    background: #6366f1;
+    color: white;
+    padding: 3.5rem 0;
+    margin-bottom: 2.5rem;
+    box-shadow: 0 8px 16px rgba(99, 102, 241, 0.2);
+    position: relative;
+    overflow: hidden;
+}
+.forum-header::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -10%;
+    width: 400px;
+    height: 400px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+}
+.forum-header::after {
+    content: '';
+    position: absolute;
+    bottom: -30%;
+    left: -5%;
+    width: 300px;
+    height: 300px;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 50%;
+}
+.forum-header > .container {
+    position: relative;
+    z-index: 1;
+}
+.forum-header h1 {
+    color: white;
+    font-weight: 800;
+    font-size: 2.25rem;
+    letter-spacing: -0.5px;
+}
+.forum-header p {
+    color: rgba(255,255,255,0.95);
+    font-size: 1.1rem;
+}
+.category-sidebar {
+    background: #ffffff;
+    border-radius: 16px;
+    padding: 1.75rem;
+    position: sticky;
+    top: 20px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    border: 1px solid #e5e7eb;
+}
+.category-sidebar h5 {
+    color: #111827;
+    font-weight: 800;
+    font-size: 1.25rem;
+    margin-bottom: 1.25rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 2px solid #f3f4f6;
+}
+.category-item {
+    display: flex;
+    align-items: center;
+    padding: 1rem 1.125rem;
+    margin-bottom: 0.625rem;
+    border-radius: 12px;
+    text-decoration: none;
+    color: #374151;
+    transition: all 0.25s;
+    background: #f9fafb;
+    border: 2px solid transparent;
+}
+.category-item:hover {
+    background: #f3f4f6;
+    border-color: #6366f1;
+    transform: translateX(4px);
+    box-shadow: 0 2px 8px rgba(99, 102, 241, 0.15);
+}
+.category-item.active {
+    background: #6366f1;
+    border-color: #6366f1;
+    color: white;
+    font-weight: 600;
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+}
+.category-item.active .text-muted {
+    color: rgba(255, 255, 255, 0.8) !important;
+}
+.category-icon {
+    font-size: 1.5rem;
+    margin-right: 0.75rem;
+}
+.topic-card {
+    background: #ffffff;
+    border: 2px solid #e5e7eb;
+    border-radius: 16px;
+    padding: 0;
+    margin-bottom: 1.25rem;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    text-decoration: none;
+    display: block;
+    color: inherit;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+.topic-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 5px;
+    height: 100%;
+    background: #6366f1;
+    transform: translateX(-5px);
+    transition: transform 0.3s;
+    z-index: 1;
+}
+.topic-card:hover {
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.12);
+    border-color: #6366f1;
+    transform: translateY(-4px);
+}
+.topic-card:hover::before {
+    transform: translateX(0);
+}
+.topic-card-content {
+    padding: 1.5rem;
+    display: flex;
+    gap: 1.25rem;
+}
+.topic-image-container {
+    flex-shrink: 0;
+    width: 180px;
+    height: 120px;
+    border-radius: 12px;
+    overflow: hidden;
+    background: #f3f4f6;
+    position: relative;
+}
+.topic-image-container img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s;
+}
+.topic-card:hover .topic-image-container img {
+    transform: scale(1.05);
+}
+.topic-image-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: rgba(0, 0, 0, 0.6);
+    color: white;
+    padding: 0.375rem 0.75rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+}
+.topic-content-wrapper {
+    flex: 1;
+    min-width: 0;
+}
+.topic-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #111827;
+    margin-bottom: 0.625rem;
+    line-height: 1.4;
+}
+.topic-card:hover .topic-title {
+    color: #6366f1;
+}
+.topic-excerpt {
+    color: #6b7280;
+    font-size: 0.9375rem;
+    line-height: 1.65;
+    margin-bottom: 1rem;
+}
+.topic-meta {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    font-size: 0.875rem;
+    color: #6b7280;
+}
+.topic-meta i {
+    width: 16px;
+    height: 16px;
+}
+.topic-meta strong {
+    color: #374151;
+    font-weight: 600;
+}
+.badge-category {
+    display: inline-block;
+    padding: 0.375rem 0.875rem;
+    border-radius: 8px;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    border: none;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+.stats-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #4b5563;
+    font-size: 0.875rem;
+    background: #f3f4f6;
+    padding: 0.5rem 0.875rem;
+    border-radius: 10px;
+    font-weight: 600;
+    border: 1px solid #e5e7eb;
+}
+.stats-badge strong {
+    color: #111827;
+    font-weight: 700;
+}
+.stats-badge i {
+    color: #6366f1;
+    width: 16px;
+    height: 16px;
+}
+.filter-tabs {
+    display: flex;
+    gap: 0.75rem;
+    margin-bottom: 2rem;
+    background: #f9fafb;
+    border-radius: 12px;
+    padding: 0.5rem;
+    border: 1px solid #e5e7eb;
+}
+.filter-tab {
+    padding: 0.75rem 1.5rem;
+    border: none;
+    background: transparent;
+    color: #6b7280;
+    font-weight: 600;
+    cursor: pointer;
+    border-radius: 10px;
+    transition: all 0.25s;
+    font-size: 0.875rem;
+    text-decoration: none;
+    display: inline-block;
+}
+.filter-tab:hover {
+    background: #ffffff;
+    color: #6366f1;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    text-decoration: none;
+}
+.filter-tab.active {
+    background: #6366f1;
+    color: white;
+    box-shadow: 0 4px 8px rgba(99, 102, 241, 0.3);
+    text-decoration: none;
+}
+.btn-primary-custom {
+    background: #6366f1;
+    color: white;
+    border: none;
+    padding: 0.75rem 1.75rem;
+    border-radius: 10px;
+    font-weight: 600;
+    transition: all 0.3s;
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+}
+.btn-primary-custom:hover {
+    background: #4f46e5;
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(99, 102, 241, 0.5);
+}
+.btn-outline-custom {
+    background: rgba(255,255,255,0.95);
+    color: #6366f1;
+    border: 2px solid rgba(255,255,255,0.8);
+    padding: 0.75rem 1.75rem;
+    border-radius: 10px;
+    font-weight: 600;
+    transition: all 0.3s;
+}
+.btn-outline-custom:hover {
+    background: white;
+    color: #4f46e5;
+    border-color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+.stats-card {
+    background: linear-gradient(135deg, #fef3c7 0%, #ddd6fe 100%);
+    border-radius: 12px;
+    padding: 1.25rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+.stats-inner {
+    background: white;
+    border-radius: 8px;
+    border: 2px solid white;
+}
+.pinned-badge {
+    background: #fef3c7;
+    color: #92400e;
+    border: 2px solid #fcd34d;
+    padding: 0.5rem 0.875rem;
+    border-radius: 8px;
+    font-size: 0.8125rem;
+    font-weight: 700;
+    box-shadow: 0 2px 6px rgba(252, 211, 77, 0.4);
+}
+.pagination {
+    gap: 0.5rem;
+}
+.pagination .page-item {
+    margin: 0;
+}
+.pagination .page-link {
+    border: 2px solid #e5e7eb;
+    border-radius: 10px;
+    padding: 0.625rem 1rem;
+    color: #6b7280;
+    font-weight: 600;
+    font-size: 0.875rem;
+    background: #ffffff;
+    transition: all 0.25s;
+    min-width: 44px;
+    text-align: center;
+}
+.pagination .page-link:hover {
+    background: #f3f4f6;
+    border-color: #6366f1;
+    color: #6366f1;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(99, 102, 241, 0.2);
+}
+.pagination .page-item.active .page-link {
+    background: #6366f1;
+    border-color: #6366f1;
+    color: white;
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+}
+.pagination .page-item.disabled .page-link {
+    background: #f9fafb;
+    border-color: #e5e7eb;
+    color: #9ca3af;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+@media (max-width: 768px) {
+    .topic-image-container {
+        width: 100%;
+        height: 200px;
+    }
+    .topic-card-content {
+        flex-direction: column;
+        gap: 1rem;
+    }
+    .filter-tabs {
+        flex-wrap: wrap;
+    }
+    .filter-tab {
+        flex: 1;
+        min-width: calc(50% - 0.375rem);
+        padding: 0.625rem 1rem;
+        font-size: 0.8125rem;
+    }
+    .topic-meta {
+        font-size: 0.8125rem;
+    }
+    .stats-badge {
+        padding: 0.375rem 0.625rem;
+        font-size: 0.8125rem;
+    }
+}
+</style>
+{% endblock %}
+
+{% block body %}
+<!-- Header -->
+<div class="forum-header">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h1 class="h2 fw-bold mb-2">💬 Community Forum</h1>
+                <p class="mb-0">Connect with event professionals worldwide</p>
+            </div>
+            <div class="col-md-4 text-md-end mt-3 mt-md-0">
+                {% if user %}
+                    {% if user.level == 1 %}
+                        <a href="{{ path('panel/forum/create') }}" class="btn btn-primary-custom">
+                            <i data-feather="plus"></i> New Topic
+                        </a>
+                    {% endif %}
+                {% else %}
+                    <a href="{{ path('signup') }}" class="btn btn-primary-custom me-2">Join</a>
+                    <a href="{{ path('login') }}" class="btn btn-outline-custom">Sign In</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Main Content -->
+<div class="container my-4">
+    <div class="row">
+        <!-- Main Forum Content -->
+        <div class="col-lg-8">
+            <!-- Filter Tabs -->
+            <div class="filter-tabs">
+                <a href="{{ path('forum') }}{% if selectedCategory %}?category={{ selectedCategory.id }}&filter=recent{% else %}?filter=recent{% endif %}" 
+                   class="filter-tab {% if currentFilter == 'recent' or not currentFilter %}active{% endif %}">
+                    Recent discussions
+                </a>
+                <a href="{{ path('forum') }}{% if selectedCategory %}?category={{ selectedCategory.id }}&filter=comments{% else %}?filter=comments{% endif %}" 
+                   class="filter-tab {% if currentFilter == 'comments' %}active{% endif %}">
+                    Recent comments
+                </a>
+                <a href="{{ path('forum') }}{% if selectedCategory %}?category={{ selectedCategory.id }}&filter=popular{% else %}?filter=popular{% endif %}" 
+                   class="filter-tab {% if currentFilter == 'popular' %}active{% endif %}">
+                    Most popular
+                </a>
+                <a href="{{ path('forum') }}{% if selectedCategory %}?category={{ selectedCategory.id }}&filter=views{% else %}?filter=views{% endif %}" 
+                   class="filter-tab {% if currentFilter == 'views' %}active{% endif %}">
+                    Most views
+                </a>
+            </div>
+
+            <!-- Topics List -->
+            {% if topics %}
+                {% for topic in topics %}
+                <a href="{{ path('forum/topic') }}?id={{ topic.id }}" class="topic-card">
+                    <div class="topic-card-content">
+                        {% if topic.first_image %}
+                        <div class="topic-image-container">
+                            <img src="{{ topic.first_image.file_path }}" alt="{{ topic.title }}" loading="lazy">
+                            {% if topic.images_count > 1 %}
+                            <div class="topic-image-overlay">
+                                <i data-feather="image" style="width: 14px; height: 14px;"></i>
+                                +{{ topic.images_count - 1 }} more
+                            </div>
+                            {% endif %}
+                        </div>
+                        {% endif %}
+                        <div class="topic-content-wrapper">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <div class="flex-grow-1">
+                                    <div class="mb-2">
+                                        {% if topic.is_pinned %}
+                                            <span class="pinned-badge me-2">📌 Pinned</span>
+                                        {% endif %}
+                                        <h3 class="topic-title d-inline">{{ topic.title }}</h3>
+                                    </div>
+                                    <p class="topic-excerpt">
+                                        {{ topic.content|striptags|slice(0, 150) }}{% if topic.content|length > 150 %}...{% endif %}
+                                    </p>
+                                </div>
+                                <div class="text-end ms-3" style="min-width: 100px; flex-shrink: 0;">
+                                    <div class="d-flex flex-column gap-2">
+                                        <span class="stats-badge">
+                                            <i data-feather="message-circle"></i>
+                                            <strong>{{ topic.replies_count }}</strong>
+                                        </span>
+                                        <span class="stats-badge">
+                                            <i data-feather="eye"></i>
+                                            {{ topic.views_count }}
+                                        </span>
+                                        <span class="stats-badge">
+                                            <i data-feather="heart"></i>
+                                            {{ topic.likes_count }}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="topic-meta">
+                                <span class="d-flex align-items-center">
+                                    <i data-feather="user" style="width: 14px; height: 14px;"></i>
+                                    <strong class="ms-1">{{ topic.user_name }}</strong>
+                                </span>
+                                <span class="mx-2" style="color: #d1d5db;">•</span>
+                                <span class="d-flex align-items-center">
+                                    <span class="badge-category" style="background-color: {{ topic.category_color }}; color: white; border-color: {{ topic.category_color }};">
+                                        {{ topic.category_name }}
+                                    </span>
+                                </span>
+                                <span class="mx-2" style="color: #d1d5db;">•</span>
+                                <span>{{ topic.created_at|date('M d, Y') }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+                {% endfor %}
+
+                <!-- Pagination -->
+                {% if totalPages > 1 %}
+                <nav class="mt-5 mb-4">
+                    <ul class="pagination justify-content-center flex-wrap">
+                        {% if currentPage > 1 %}
+                        <li class="page-item">
+                            <a class="page-link" href="?{% if selectedCategory %}category={{ selectedCategory.id }}&{% endif %}{% if currentFilter and currentFilter != 'recent' %}filter={{ currentFilter }}&{% endif %}page={{ currentPage - 1 }}">
+                                <i data-feather="chevron-left" style="width: 16px; height: 16px;"></i> Previous
+                            </a>
+                        </li>
+                        {% endif %}
+                        
+                        {% set startPage = max(1, currentPage - 2) %}
+                        {% set endPage = min(totalPages, currentPage + 2) %}
+                        
+                        {% if startPage > 1 %}
+                        <li class="page-item">
+                            <a class="page-link" href="?{% if selectedCategory %}category={{ selectedCategory.id }}&{% endif %}{% if currentFilter and currentFilter != 'recent' %}filter={{ currentFilter }}&{% endif %}page=1">1</a>
+                        </li>
+                        {% if startPage > 2 %}
+                        <li class="page-item disabled">
+                            <span class="page-link">...</span>
+                        </li>
+                        {% endif %}
+                        {% endif %}
+                        
+                        {% for page in startPage..endPage %}
+                            {% if page == currentPage %}
+                            <li class="page-item active">
+                                <span class="page-link">{{ page }}</span>
+                            </li>
+                            {% else %}
+                            <li class="page-item">
+                                <a class="page-link" href="?{% if selectedCategory %}category={{ selectedCategory.id }}&{% endif %}{% if currentFilter and currentFilter != 'recent' %}filter={{ currentFilter }}&{% endif %}page={{ page }}">{{ page }}</a>
+                            </li>
+                            {% endif %}
+                        {% endfor %}
+                        
+                        {% if endPage < totalPages %}
+                        {% if endPage < totalPages - 1 %}
+                        <li class="page-item disabled">
+                            <span class="page-link">...</span>
+                        </li>
+                        {% endif %}
+                        <li class="page-item">
+                            <a class="page-link" href="?{% if selectedCategory %}category={{ selectedCategory.id }}&{% endif %}{% if currentFilter and currentFilter != 'recent' %}filter={{ currentFilter }}&{% endif %}page={{ totalPages }}">{{ totalPages }}</a>
+                        </li>
+                        {% endif %}
+                        
+                        {% if currentPage < totalPages %}
+                        <li class="page-item">
+                            <a class="page-link" href="?{% if selectedCategory %}category={{ selectedCategory.id }}&{% endif %}{% if currentFilter and currentFilter != 'recent' %}filter={{ currentFilter }}&{% endif %}page={{ currentPage + 1 }}">
+                                Next <i data-feather="chevron-right" style="width: 16px; height: 16px;"></i>
+                            </a>
+                        </li>
+                        {% endif %}
+                    </ul>
+                    <div class="text-center mt-3">
+                        <small class="text-muted">Page {{ currentPage }} of {{ totalPages }}</small>
+                    </div>
+                </nav>
+                {% endif %}
+            {% else %}
+                <div class="text-center py-5">
+                    <i data-feather="message-square" style="width: 64px; height: 64px;" class="text-muted mb-3"></i>
+                    <h4 class="text-muted">No topics yet</h4>
+                    <p class="text-muted">Be the first to start a discussion!</p>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <div class="category-sidebar">
+                <h5 class="fw-bold mb-3">Categories</h5>
+                
+                <a href="{{ path('forum') }}" class="category-item {% if not selectedCategory %}active{% endif %}">
+                    <span class="category-icon">📁</span>
+                    <div class="flex-grow-1">
+                        <div class="fw-bold">All Categories</div>
+                        <small class="text-muted">View all topics</small>
+                    </div>
+                </a>
+
+                {% for category in categories %}
+                <a href="{{ path('forum') }}?category={{ category.id }}" class="category-item {% if selectedCategory and selectedCategory.id == category.id %}active{% endif %}">
+                    <span class="category-icon">{{ category.icon|default('📁') }}</span>
+                    <div class="flex-grow-1">
+                        <div class="fw-bold">{{ category.name }}</div>
+                        <small class="text-muted">{{ category.topics_count|default(0) }} topics</small>
+                    </div>
+                </a>
+                {% endfor %}
+            </div>
+
+            <!-- Forum Stats -->
+            <div class="stats-card mt-4">
+                <h6 class="fw-bold mb-3" style="color: #111827;">📊 Forum Activity</h6>
+                <div class="row g-3 text-center">
+                    <div class="col-6">
+                        <div class="stats-inner p-3">
+                            {% set total_topics = 0 %}
+                            {% for cat in categories %}
+                                {% set total_topics = total_topics + (cat.topics_count|default(0)) %}
+                            {% endfor %}
+                            <div class="h4 fw-bold mb-0" style="background: linear-gradient(135deg, #6366f1, #8b5cf6); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">{{ total_topics }}</div>
+                            <small style="color: #6b7280; font-weight: 600;">Topics</small>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="stats-inner p-3">
+                            {% set total_replies = 0 %}
+                            {% for cat in categories %}
+                                {% set total_replies = total_replies + (cat.replies_count|default(0)) %}
+                            {% endfor %}
+                            <div class="h4 fw-bold mb-0" style="background: linear-gradient(135deg, #10b981, #06b6d4); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">{{ total_replies }}</div>
+                            <small style="color: #6b7280; font-weight: 600;">Replies</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Links -->
+            {% if not user %}
+            <div class="stats-card mt-4 text-center">
+                <h6 class="fw-bold mb-2" style="color: #111827;">Join Our Community</h6>
+                <p class="small mb-3" style="color: #6b7280;">Connect with thousands of event professionals</p>
+                <a href="{{ path('signup') }}" class="btn btn-primary-custom w-100 mb-2">Sign Up</a>
+                <a href="{{ path('login') }}" class="btn btn-outline-custom w-100">Log In</a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Inicializar iconos de Feather
+    if (typeof feather !== 'undefined') {
+        feather.replace();
+    }
+</script>
+{% endblock %}

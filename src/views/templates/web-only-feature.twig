@@ -1,0 +1,59 @@
+{% extends 'templates/base.admin.twig' %}
+
+{% block body %}
+<div class="container-fluid py-4">
+    {% set defaultGradient = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' %}
+    {% set defaultIcon = icon|default('🌐') %}
+    {% set defaultWebsiteUrl = websiteUrl|default(env.APP_URL|default('https://ophyra.com')) %}
+    {% set shouldShowWebLink = showWebLink is defined ? showWebLink : true %}
+    
+    <div class="alert border-0 shadow-lg mb-4" style="background: {{ gradient|default(defaultGradient) }};">
+        <div class="d-flex align-items-start">
+            <div class="text-white flex-grow-1">
+                <h4 class="mb-3 fw-bold text-white">{{ title }}</h4>
+                
+                {% if message %}
+                    <p class="mb-3 fs-5">{{ message }}</p>
+                {% endif %}
+                
+                {% if messages %}
+                    <ul class="mb-3 fs-6">
+                        {% for msg in messages %}
+                            <li class="mb-2">{{ msg }}</li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+                
+                {% if shouldShowWebLink %}
+                    <div class="mt-4 p-3 rounded" style="background: rgba(255,255,255,0.1);">
+                        <p class="mb-2 fw-bold">
+                            <i class="bi bi-globe"></i> Please visit our website:
+                        </p>
+                        <a href="{{ defaultWebsiteUrl }}" 
+                           target="_blank" 
+                           class="text-white text-decoration-underline fw-bold d-inline-block" 
+                           style="font-size: 1.2rem;">
+                            {{ defaultWebsiteUrl|replace({'https://': '', 'http://': ''}) }}
+                        </a>
+                        <p class="mb-0 mt-3 opacity-75" style="font-size: 0.9rem;">
+                            <em>This configuration must be completed through our website for security reasons.</em>
+                        </p>
+                    </div>
+                {% else %}
+                    <div class="mt-4 p-3 rounded" style="background: rgba(255,255,255,0.1);">
+                        <p class="mb-0 mt-3 opacity-75" style="font-size: 0.9rem;">
+                            <em>This configuration must be completed through our website for security reasons.</em>
+                        </p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    {% block additional_content %}
+    {% endblock %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+{% endblock %}

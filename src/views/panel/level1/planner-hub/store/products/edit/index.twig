@@ -1,0 +1,401 @@
+{% extends 'templates/base.admin.twig' %}
+
+{% block style %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/trumbowyg@2.27.3/dist/ui/trumbowyg.min.css">
+<style>
+    .store-attribute-box {
+        border: 1px solid #e5e7eb;
+        border-radius: 12px;
+        padding: 14px;
+        background: #fff;
+        height: 100%;
+    }
+
+    .store-attribute-box h6 {
+        margin-bottom: 12px;
+    }
+
+    .store-preview-image {
+        width: 110px;
+        height: 110px;
+        object-fit: cover;
+        border-radius: 12px;
+        border: 1px solid #dee2e6;
+        margin-top: 10px;
+    }
+
+    .store-current-image {
+        width: 120px;
+        height: 120px;
+        object-fit: cover;
+        border-radius: 12px;
+        border: 1px solid #dee2e6;
+        background: #fff;
+    }
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+        <div>
+            <h1 class="h3 mb-1">Edit Store Product</h1>
+            <p class="text-muted mb-0">Update your product information.</p>
+        </div>
+        <a  href="{{ path('panel/planner-hub/store/products/home') }}"  class="btn btn-outline-secondary">
+            ← Back to Products
+        </a>
+
+        
+    </div>
+
+    <form method="post" enctype="multipart/form-data" class="card shadow-sm border-0">
+        <input type="hidden" name="id" value="{{ product.id }}">
+
+        <div class="card-body p-4">
+            <div class="row">
+                <div class="col-12">
+                    <h5 class="mb-3">Basic Information</h5>
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Product Name</label>
+                    <input type="text" name="name" class="form-control" required value="{{ product.name }}">
+                </div>
+
+                <div class="col-md-3 mb-3">
+                    <label class="form-label">SKU</label>
+                    <input type="text" name="sku" class="form-control" value="{{ product.sku }}">
+                </div>
+
+                <div class="col-md-3 mb-3">
+                    <label class="form-label">Status</label>
+                    <select name="status" class="form-select">
+                        <option value="ACTIVE" {% if product.status == 'ACTIVE' %}selected{% endif %}>ACTIVE</option>
+                        <option value="INACTIVE" {% if product.status == 'INACTIVE' %}selected{% endif %}>INACTIVE</option>
+                        <option value="DRAFT" {% if product.status == 'DRAFT' %}selected{% endif %}>DRAFT</option>
+                    </select>
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Short Description</label>
+                    <input type="text" name="short_description" class="form-control" value="{{ product.short_description }}">
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Main Image</label>
+                    <input type="file" name="main_image" class="form-control" accept="image/*" id="main-image-input">
+
+                    <div class="d-flex align-items-center gap-3 flex-wrap mt-2">
+                        {% if product.main_image %}
+                            <img src="{{ product.main_image }}" id="current-image" class="store-current-image" alt="{{ product.name }}">
+                        {% else %}
+                            <div id="current-image" class="store-current-image d-flex align-items-center justify-content-center text-muted">
+                                No image
+                            </div>
+                        {% endif %}
+                        <img id="main-image-preview" class="store-preview-image" alt="Preview" style="display:none;">
+                    </div>
+                </div>
+
+                <div class="col-12 mb-3">
+                    <label class="form-label">Full Description</label>
+                    <textarea name="description" id="description-editor" class="form-control" rows="6" required>{{ product.description }}</textarea>
+                </div>
+
+                <div class="col-12 mt-2">
+                    <h5 class="mb-3">Pricing & Inventory</h5>
+                </div>
+
+                <div class="col-md-3 mb-3">
+                    <label class="form-label">Price</label>
+                    <input type="number" step="0.01" min="0.01" name="price" class="form-control" required value="{{ product.price }}">
+                </div>
+
+                <div class="col-md-3 mb-3">
+                    <label class="form-label">Promo Price</label>
+                    <input type="number" step="0.01" min="0" name="promo_price" class="form-control" value="{{ product.promo_price }}">
+                </div>
+
+                <div class="col-md-2 mb-3">
+                    <label class="form-label">Stock</label>
+                    <input type="number" min="0" name="stock_quantity" class="form-control" value="{{ product.stock_quantity }}" required>
+                </div>
+
+                <div class="col-md-2 mb-3">
+                    <label class="form-label">Min Qty</label>
+                    <input type="number" min="1" name="min_purchase_qty" class="form-control" value="{{ product.min_purchase_qty }}" required>
+                </div>
+
+                <div class="col-md-2 mb-3">
+                    <label class="form-label">Max Qty</label>
+                    <input type="number" min="1" name="max_purchase_qty" class="form-control" value="{{ product.max_purchase_qty }}">
+                </div>
+
+                <div class="col-md-3 mb-3">
+                    <div class="form-check mt-4 pt-2">
+                        <input class="form-check-input" type="checkbox" name="is_public" id="is_public" {% if product.is_public %}checked{% endif %}>
+                        <label class="form-check-label" for="is_public">
+                            Public product
+                        </label>
+                    </div>
+                </div>
+
+                <div class="col-md-3 mb-3">
+                    <div class="form-check mt-4 pt-2">
+                        <input class="form-check-input" type="checkbox" name="is_featured" id="is_featured" {% if product.is_featured %}checked{% endif %}>
+                        <label class="form-check-label" for="is_featured">
+                            Featured product
+                        </label>
+                    </div>
+                </div>
+
+                <div class="col-12 mt-2">
+                    <h5 class="mb-3">Categories</h5>
+                </div>
+
+                <div class="col-12 mb-4">
+                    <div class="row">
+                        {% for c in categories %}
+                            <div class="col-md-4 mb-2">
+                                <div class="form-check border rounded p-3">
+                                    <input class="form-check-input" type="checkbox" name="category_ids[]" value="{{ c.id }}" id="cat-{{ c.id }}"
+                                        {% if c.id in selected_category_ids %}checked{% endif %}>
+                                    <label class="form-check-label ms-1" for="cat-{{ c.id }}">
+                                        <strong>{{ c.name }}</strong>
+                                        {% if c.description %}
+                                            <div class="small text-muted">{{ c.description }}</div>
+                                        {% endif %}
+                                    </label>
+                                </div>
+                            </div>
+                        {% else %}
+                            <div class="col-12">
+                                <div class="alert alert-warning mb-0">No active categories available yet.</div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div class="col-12 mt-2">
+                    <h5 class="mb-3">Attributes</h5>
+                </div>
+
+                <div class="col-12 mb-4">
+                    <div class="row">
+                        {% for attribute in attributes %}
+                            <div class="col-lg-4 col-md-6 mb-3">
+                                <div class="store-attribute-box">
+                                    <h6>{{ attribute.name }}</h6>
+
+                                    {% if attribute.values|length > 0 %}
+                                        {% for value in attribute.values %}
+                                            <div class="form-check mb-2">
+                                                <input
+                                                    class="form-check-input"
+                                                    type="checkbox"
+                                                    name="attribute_values[{{ attribute.id }}][]"
+                                                    value="{{ value.id }}"
+                                                    id="attr-{{ attribute.id }}-value-{{ value.id }}"
+                                                    {% if value.id in selected_value_ids %}checked{% endif %}
+                                                >
+                                                <label class="form-check-label" for="attr-{{ attribute.id }}-value-{{ value.id }}">
+                                                    {{ value.value }}
+                                                </label>
+                                            </div>
+                                        {% endfor %}
+                                    {% else %}
+                                        <p class="text-muted small mb-0">No values available for this attribute.</p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        {% else %}
+                            <div class="col-12">
+                                <div class="alert alert-warning mb-0">No active attributes available yet.</div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+
+                <div class="col-12 mt-2">
+    <h5 class="mb-3">Recommended For</h5>
+</div>
+
+<div class="col-md-6 mb-4">
+    <div class="store-attribute-box">
+        <h6>Audience Type</h6>
+
+        <div class="form-check mb-2">
+            <input class="form-check-input" type="checkbox" name="audiences[]" value="professional" id="aud-professional"
+                {% if 'professional' in selected_audiences %}checked{% endif %}>
+            <label class="form-check-label" for="aud-professional">
+                Busy Professional
+            </label>
+        </div>
+
+        <div class="form-check mb-2">
+            <input class="form-check-input" type="checkbox" name="audiences[]" value="healthy_active" id="aud-healthy-active"
+                {% if 'healthy_active' in selected_audiences %}checked{% endif %}>
+            <label class="form-check-label" for="aud-healthy-active">
+                Healthy / Active Lifestyle
+            </label>
+        </div>
+
+        <div class="form-check mb-2">
+            <input class="form-check-input" type="checkbox" name="audiences[]" value="family_kids" id="aud-family-kids"
+                {% if 'family_kids' in selected_audiences %}checked{% endif %}>
+            <label class="form-check-label" for="aud-family-kids">
+                Family / Kids
+            </label>
+        </div>
+
+        <div class="form-check mb-0">
+            <input class="form-check-input" type="checkbox" name="audiences[]" value="corporate" id="aud-corporate"
+                {% if 'corporate' in selected_audiences %}checked{% endif %}>
+            <label class="form-check-label" for="aud-corporate">
+                Corporate
+            </label>
+        </div>
+    </div>
+</div>
+
+<div class="col-md-6 mb-4">
+    <div class="store-attribute-box">
+        <h6>Meal Style</h6>
+
+        <div class="form-check mb-2">
+            <input class="form-check-input" type="checkbox" name="meal_styles[]" value="balanced" id="style-balanced"
+                {% if 'balanced' in selected_meal_styles %}checked{% endif %}>
+            <label class="form-check-label" for="style-balanced">
+                Balanced Meals
+            </label>
+        </div>
+
+        <div class="form-check mb-2">
+            <input class="form-check-input" type="checkbox" name="meal_styles[]" value="vegetarian" id="style-vegetarian"
+                {% if 'vegetarian' in selected_meal_styles %}checked{% endif %}>
+            <label class="form-check-label" for="style-vegetarian">
+                Vegetarian
+            </label>
+        </div>
+
+        <div class="form-check mb-2">
+            <input class="form-check-input" type="checkbox" name="meal_styles[]" value="family_friendly" id="style-family-friendly"
+                {% if 'family_friendly' in selected_meal_styles %}checked{% endif %}>
+            <label class="form-check-label" for="style-family-friendly">
+                Family-Friendly
+            </label>
+        </div>
+
+        <div class="form-check mb-2">
+            <input class="form-check-input" type="checkbox" name="meal_styles[]" value="protein_focused" id="style-protein-focused"
+                {% if 'protein_focused' in selected_meal_styles %}checked{% endif %}>
+            <label class="form-check-label" for="style-protein-focused">
+                Protein-Focused
+            </label>
+        </div>
+
+        <div class="form-check mb-0">
+            <input class="form-check-input" type="checkbox" name="meal_styles[]" value="corporate_lunch" id="style-corporate-lunch"
+                {% if 'corporate_lunch' in selected_meal_styles %}checked{% endif %}>
+            <label class="form-check-label" for="style-corporate-lunch">
+                Corporate Lunch
+            </label>
+        </div>
+    </div>
+</div>
+
+                <div class="col-12 mt-2">
+                    <h5 class="mb-3">Nutrition Information (Optional)</h5>
+                </div>
+
+                <div class="col-md-3 mb-3">
+                    <label class="form-label">Calories</label>
+                    <input type="number" min="0" name="calories" class="form-control" value="{{ nutrition.calories }}">
+                </div>
+
+                <div class="col-md-3 mb-3">
+                    <label class="form-label">Protein</label>
+                    <input type="number" step="0.01" min="0" name="protein" class="form-control" value="{{ nutrition.protein }}">
+                </div>
+
+                <div class="col-md-3 mb-3">
+                    <label class="form-label">Carbohydrates</label>
+                    <input type="number" step="0.01" min="0" name="carbohydrates" class="form-control" value="{{ nutrition.carbohydrates }}">
+                </div>
+
+                <div class="col-md-3 mb-3">
+                    <label class="form-label">Fat</label>
+                    <input type="number" step="0.01" min="0" name="fat" class="form-control" value="{{ nutrition.fat }}">
+                </div>
+
+                <div class="col-md-3 mb-3">
+                    <label class="form-label">Fiber</label>
+                    <input type="number" step="0.01" min="0" name="fiber" class="form-control" value="{{ nutrition.fiber }}">
+                </div>
+
+                <div class="col-md-3 mb-3">
+                    <label class="form-label">Sugar</label>
+                    <input type="number" step="0.01" min="0" name="sugar" class="form-control" value="{{ nutrition.sugar }}">
+                </div>
+
+                <div class="col-md-3 mb-3">
+                    <label class="form-label">Sodium</label>
+                    <input type="number" step="0.01" min="0" name="sodium" class="form-control" value="{{ nutrition.sodium }}">
+                </div>
+
+                <div class="col-md-3 mb-3">
+                    <label class="form-label">Serving Size</label>
+                    <input type="text" name="serving_size" class="form-control" value="{{ nutrition.serving_size }}">
+                </div>
+
+                <div class="col-12 mb-3">
+                    <label class="form-label">Ingredients</label>
+                    <textarea name="ingredients" class="form-control" rows="3">{{ nutrition.ingredients }}</textarea>
+                </div>
+            </div>
+
+            <div class="d-flex gap-2 flex-wrap mt-3">
+                <button type="submit" class="btn btn-success">
+                    Update Product
+                </button>
+                <a href="/panel/planner-hub/store/products/home" class="btn btn-outline-secondary">
+                    Cancel
+                </a>
+            </div>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/trumbowyg@2.27.3/dist/trumbowyg.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    $('#description-editor').trumbowyg();
+
+    const input = document.getElementById('main-image-input');
+    const preview = document.getElementById('main-image-preview');
+
+    if (input) {
+        input.addEventListener('change', function (e) {
+            const file = e.target.files && e.target.files[0];
+            if (!file) {
+                preview.style.display = 'none';
+                preview.src = '';
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function (event) {
+                preview.src = event.target.result;
+                preview.style.display = 'block';
+            };
+            reader.readAsDataURL(file);
+        });
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,570 @@
+{% extends 'templates/base.admin.twig' %}
+{% import 'templates/macros.twig' as macros %}
+
+{% block style %}
+<style>
+    .nav-tabs .nav-link {
+        border: none;
+        border-bottom: 3px solid transparent;
+        color: #6c757d;
+        font-weight: 500;
+        padding: 0.75rem 1.5rem;
+        transition: all 0.3s ease;
+    }
+    
+    .nav-tabs .nav-link:hover {
+        border-color: #dee2e6;
+        color: #495057;
+    }
+    
+    .nav-tabs .nav-link.active {
+        border-bottom-color: #0d6efd;
+        color: #0d6efd;
+        background-color: transparent;
+    }
+    
+    .feather-sm {
+        width: 16px;
+        height: 16px;
+    }
+    
+    .table-secondary {
+        background-color: #f8f9fa !important;
+    }
+    
+    .btn-archive-no-interested {
+        background-color: #fff3cd;
+        border-color: #ffc107;
+        color: #856404;
+    }
+    
+    .btn-archive-no-interested:hover {
+        background-color: #ffeaa7;
+        border-color: #ffb300;
+        color: #6d5200;
+    }
+    
+    .tab-content {
+        padding-top: 1rem;
+    }
+</style>
+{% endblock %}
+
+{% block body %}
+<h1 class="h3 mb-3">
+    <i class="align-middle" data-feather="users"></i>
+    CRM Leads
+</h1>
+
+{{ macros.breadcrumb2() }}
+
+{% if session_message is defined and session_message %}
+<div class="alert alert-danger alert-dismissible fade show mb-3" role="alert">
+    <h6 class="alert-heading">{{ session_message.title ?? 'Error' }}</h6>
+    <div style="white-space: pre-line;">{{ session_message.message }}</div>
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+</div>
+{% endif %}
+
+<div class="mb-3 d-flex flex-column flex-sm-row gap-2">
+    <a href="{{ path('panel/planner-hub/management/crm/lead/create') }}" class="btn btn-primary w-100">
+        <i class="align-middle" data-feather="plus"></i> Add New Lead
+    </a>
+    <a href="?export=1&name={{ filter_name }}&email={{ filter_email }}&status={{ filter_status }}&archived={{ filter_archived }}" class="btn btn-outline-success w-100">
+        📤 Export Leads
+    </a>
+    <form method="post" enctype="multipart/form-data" class="d-inline w-100">
+        <label class="btn btn-outline-primary mb-0 w-100">
+            📥 Import CSV
+            <input type="file" name="csv_file" accept=".csv" hidden onchange="this.form.submit()">
+        </label>
+    </form>
+    <a href="?export_template=1" class="btn btn-outline-secondary d-none d-sm-inline-block w-100">
+        🧾 Download Template
+    </a>
+</div>
+
+<div class="alert alert-info mb-3">
+    <h6 class="alert-heading">📋 CSV Import/Export Information</h6>
+    <p class="mb-2"><strong>CSV format includes:</strong></p>
+    <ul class="mb-0 small">
+        <li><strong>Required:</strong> Name, Email, Phone, Address, Status, Category</li>
+        <li><strong>Optional:</strong> Language, Comments</li>
+        <li><strong>Language options:</strong> english, spanish, portuguese, french, other</li>
+        <li><strong>Comments:</strong> Maximum 240 characters</li>
+    </ul>
+</div>
+
+<div class="card">
+    <div class="card-body">
+
+         
+
+        
+        <!-- Sistema de Pestañas -->
+        <ul class="nav nav-tabs mb-4" id="leadsTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link {{ filter_archived == 'NO' ? 'active' : '' }}" 
+                        id="active-tab" 
+                        data-bs-toggle="tab" 
+                        data-bs-target="#active-leads" 
+                        type="button" 
+                        role="tab" 
+                        aria-controls="active-leads" 
+                        aria-selected="{{ filter_archived == 'NO' ? 'true' : 'false' }}">
+                    <i data-feather="users" class="feather-sm me-1"></i>
+                Active Leads
+                <span class="badge bg-primary ms-1">{{ active_leads_count }}</span>
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link {{ filter_archived == 'YES' ? 'active' : '' }}" 
+                        id="archived-tab" 
+                        data-bs-toggle="tab" 
+                        data-bs-target="#archived-leads" 
+                        type="button" 
+                        role="tab" 
+                        aria-controls="archived-leads" 
+                        aria-selected="{{ filter_archived == 'YES' ? 'true' : 'false' }}">
+                                     <i data-feather="archive" class="feather-sm me-1"></i>
+                Archived Leads
+                <span class="badge bg-secondary ms-1">{{ archived_leads_count }}</span>
+                </button>
+            </li>
+        </ul>
+
+        <!-- Contenido de las Pestañas -->
+        <div class="tab-content" id="leadsTabsContent">
+            <!-- Pestaña de Leads Activos -->
+            <div class="tab-pane fade {{ filter_archived == 'NO' ? 'show active' : '' }}" 
+                 id="active-leads" 
+                 role="tabpanel" 
+                 aria-labelledby="active-tab">
+                
+                <form method="get" class="row g-2 mb-4">
+                    <input type="hidden" name="archived" value="NO">
+                    <div class="col-md-3">
+                        <input type="text" name="name" class="form-control" placeholder="Search by name" value="{{ filter_name }}">
+                    </div>
+                    <div class="col-md-3">
+                        <input type="text" name="email" class="form-control" placeholder="Search by email" value="{{ filter_email }}">
+                    </div>
+                    <div class="col-md-3">
+                        <select name="status" class="form-select">
+                            <option value="all">All Statuses</option>
+                            {% for status in statuses %}
+                                <option value="{{ status.id }}" {{ filter_status == status.id ? 'selected' : '' }}>{{ status.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <button class="btn btn-dark w-100" type="submit">🔎 Filter</button>
+                    </div>
+                </form>
+                
+        <div class="text-end mb-3">
+            <a href="?archived=NO" class="btn btn-outline-secondary btn-sm">Clear Filters</a>
+        </div>
+
+        <div class="mb-3" id="bulkActionsContainer" style="display: none;">
+            <div class="d-flex align-items-center gap-2">
+                <span class="text-muted" id="selectedCount">0 leads selected</span>
+                <button type="button" class="btn btn-warning btn-sm" id="bulkArchiveBtn" onclick="bulkArchive()">
+                    📁 Archive Selected
+                </button>
+                <button type="button" class="btn btn-outline-secondary btn-sm" onclick="clearSelection()">
+                    Clear Selection
+                </button>
+            </div>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-bordered text-center align-middle" style="min-width: 992px;">
+                <thead>
+                    <tr>
+                        <th style="width: 40px;">
+                            <input type="checkbox" class="form-check-input" id="selectAll" onchange="toggleSelectAll()">
+                        </th>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Status</th>
+                        <th>Assigned To</th>
+                        <th>Language</th>
+                        <th>Comments</th>
+                        <th>Actions</th>
+                        <th>Archive</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if leads|length > 0 %}
+                        {% for lead in leads %}
+                            <tr>
+                            <td style="width: 40px;">
+                                <input type="checkbox" class="form-check-input lead-checkbox" value="{{ lead.id }}" onchange="updateSelection()">
+                            </td>
+                            <td  style="min-width: 200px;">{{ lead.name }}</td>
+                            <td  style="min-width: 100px;">{{ lead.email }}</td>
+                            <td  style="min-width: 200px;">
+                                {% for status in statuses %}
+                                    {% if status.id == lead.id_status %}
+                                        {{ status.name }}
+                                    {% endif %}
+                                {% endfor %}
+                            </td>
+                            <td  style="min-width: 100px;">
+                                {% if team_users|length > 0 %}
+                                    <form method="post" class="d-flex align-items-center gap-2">
+                                        <input type="hidden" name="action" value="assign_user">
+                                        <input type="hidden" name="lead_id" value="{{ lead.id }}">
+                                        <select name="user_id" class="form-select form-select-sm" style="min-width: 200px;" onchange="this.form.submit()">
+                                            {% for member in team_users %}
+                                                <option value="{{ member.id }}" {% if lead.id_user == member.id %}selected{% endif %}>
+                                                    {{ member.name }} ({{ member.email }})
+                                                </option>
+                                            {% endfor %}
+                                            <option value="{{ lead.id_owner }}" {% if lead.id_user == lead.id_owner %}selected{% endif %}>Unassigned</option>
+                                        </select>
+                                    </form>
+                                {% else %}
+                                    {% if lead.id_user == lead.id_owner %}
+                                        <span class="badge bg-secondary">Unassigned</span>
+                                    {% else %}
+                                        <span class="badge bg-info">
+                                            {% if users[lead.id_user] is defined %}
+                                                {{ users[lead.id_user].name }}<br>
+                                                {{ users[lead.id_user].email }}
+                                            {% else %}
+                                                User #{{ lead.id_user }}
+                                            {% endif %}
+                                        </span>
+                                    {% endif %}
+                                {% endif %}
+                            </td>
+
+                            <td  style="min-width: 100px;">
+                                {{ (lead.languaje ?? 'english')|capitalize }}
+                                {% if lead.archived == 'YES' %}
+                                    <span class="badge bg-dark ms-1">Archived</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-start" style="max-width: 260px;">
+                                <div class="text-truncate" title="{{ lead.comments }}">{{ lead.comments }}</div>
+                            </td>
+
+                            <td>
+                                <div class="btn-group">
+                                    {% if session_level in [1, 2, 3] or session_user.id == lead.id_user %}
+                                        <a href="{{ path('panel/planner-hub/management/crm/lead/edit?id=' ~ lead.id) }}" class="btn btn-sm btn-outline-warning" title="Edit">✏️</a>
+                                        <a href="{{ path('panel/planner-hub/management/crm/lead/history?id=' ~ lead.id) }}" class="btn btn-sm btn-outline-secondary" title="History">📜</a>
+                                        
+
+                                        
+                                        <form method="post" class="d-inline">
+                                            <input type="hidden" name="id" value="{{ lead.id }}">
+                                            <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Are you sure?')" title="Delete">🗑️</button>
+                                        </form>
+                                    {% else %}
+                                        <button type="button" onclick="alert('⚠️ You must unassign this lead before making changes.')" class="btn btn-sm btn-outline-warning">✏️</button>
+                                        <button type="button" onclick="alert('⚠️ You must unassign this lead before making changes.')" class="btn btn-sm btn-outline-secondary">📜</button>
+                                        <button type="button" onclick="alert('⚠️ You must unassign this lead before making changes.')" class="btn btn-sm btn-outline-danger">🗑️</button>
+                                    {% endif %}
+                                </div>
+                            </td>
+
+                            <td>
+                                {% if lead.archived == 'YES' %}
+                                    <span class="badge bg-secondary">YES</span>
+                                {% else %}
+                                    {% if session_level in [1,2,3] %}
+                                        <form method="post" class="d-inline">
+                                            <input type="hidden" name="action" value="archive_lead">
+                                            <input type="hidden" name="id" value="{{ lead.id }}">
+                                            <button type="submit" class="btn btn-sm btn-outline-dark" onclick="return confirm('Archive this lead?')" title="Archive">Archive</button>
+                                        </form>
+                                    {% else %}
+                                        <button type="button" class="btn btn-sm btn-outline-dark" disabled title="Archive">Archive</button>
+                                    {% endif %}
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="9" class="text-muted">No active leads found.</td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Pestaña de Leads Archivados -->
+            <div class="tab-pane fade {{ filter_archived == 'YES' ? 'show active' : '' }}" 
+                 id="archived-leads" 
+                 role="tabpanel" 
+                 aria-labelledby="archived-tab">
+                
+                <form method="get" class="row g-2 mb-4">
+                    <input type="hidden" name="archived" value="YES">
+                    <div class="col-md-3">
+                        <input type="text" name="name" class="form-control" placeholder="Search by name" value="{{ filter_name }}">
+                    </div>
+                    <div class="col-md-3">
+                        <input type="text" name="email" class="form-control" placeholder="Search by email" value="{{ filter_email }}">
+                    </div>
+                    <div class="col-md-3">
+                        <select name="status" class="form-select">
+                            <option value="all">All Statuses</option>
+                            {% for status in statuses %}
+                                <option value="{{ status.id }}" {{ filter_status == status.id ? 'selected' : '' }}>{{ status.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <button class="btn btn-dark w-100" type="submit">🔎 Filter</button>
+                    </div>
+                </form>
+                
+        <div class="text-end mb-3">
+            <a href="?archived=YES" class="btn btn-outline-secondary btn-sm">Clear Filters</a>
+        </div>
+
+        <div class="mb-3" id="bulkActionsArchivedContainer" style="display: none;">
+            <div class="d-flex align-items-center gap-2">
+                        <span class="text-muted" id="selectedArchivedCount">0 leads selected</span>
+                        <button type="button" class="btn btn-danger btn-sm" id="bulkDeleteBtn" onclick="bulkDelete()">
+                            🗑️ Delete Selected
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="clearArchivedSelection()">
+                            Clear Selection
+                        </button>
+                    </div>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table table-bordered text-center align-middle" style="min-width: 992px;">
+                        <thead>
+                            <tr>
+                                <th style="width: 40px;">
+                                    <input type="checkbox" class="form-check-input" id="selectAllArchived" onchange="toggleSelectAllArchived()">
+                                </th>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Status</th>
+                                <th>Assigned To</th>
+                                <th>Language</th>
+                                <th>Comments</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                    {% if leads|length > 0 %}
+                        {% for lead in leads %}
+                            <tr class="table-secondary">
+                                    <td style="width: 40px;">
+                                        <input type="checkbox" class="form-check-input archived-lead-checkbox" value="{{ lead.id }}" onchange="updateArchivedSelection()">
+                                    </td>
+                                    <td style="min-width: 200px;">{{ lead.name }}</td>
+                                    <td style="min-width: 100px;">{{ lead.email }}</td>
+                                    <td style="min-width: 200px;">
+                                        {% for status in statuses %}
+                                            {% if status.id == lead.id_status %}
+                                                {{ status.name }}
+                                            {% endif %}
+                                        {% endfor %}
+                                    </td>
+                                    <td style="min-width: 100px;">
+                                        {% if lead.id_user == lead.id_owner %}
+                                            <span class="badge bg-secondary">Unassigned</span>
+                                        {% else %}
+                                            <span class="badge bg-info">
+                                                {{ users[lead.id_user].name }}<br>
+                                                {{ users[lead.id_user].email }}
+                                            </span>
+                                        {% endif %}
+                                    </td>
+                                    <td style="min-width: 100px;">
+                                        {{ (lead.languaje ?? 'english')|capitalize }}
+                                        <span class="badge bg-dark ms-1">Archived</span>
+                                    </td>
+                                    <td class="text-start" style="max-width: 260px;">
+                                        <div class="text-truncate" title="{{ lead.comments }}">{{ lead.comments }}</div>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group">
+                                            {% if session_level in [1, 2, 3] %}
+                                                <form method="post" class="d-inline me-1">
+                                                    <input type="hidden" name="action" value="unarchive_lead">
+                                                    <input type="hidden" name="id" value="{{ lead.id }}">
+                                                    <button type="submit" class="btn btn-sm btn-outline-success" onclick="return confirm('Unarchive this lead?')" title="Unarchive">
+                                                        <i data-feather="refresh-cw" class="feather-sm"></i> Unarchive
+                                                    </button>
+                                                </form>
+                                                <form method="post" class="d-inline">
+                                                    <input type="hidden" name="action" value="delete_archived_lead">
+                                                    <input type="hidden" name="id" value="{{ lead.id }}">
+                                                    <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('⚠️ This will permanently delete this archived lead. Are you sure?')" title="Delete Permanently">
+                                                        <i data-feather="trash-2" class="feather-sm"></i> Delete
+                                                    </button>
+                                                </form>
+                                            {% else %}
+                                                <button type="button" class="btn btn-sm btn-outline-secondary" disabled title="No permission">No Actions</button>
+                                            {% endif %}
+                                        </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="8" class="text-muted">No archived leads found.</td>
+                        </tr>
+                    {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript para manejo de pestañas y selección múltiple -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const tabs = document.querySelectorAll('[data-bs-toggle="tab"]');
+    
+    tabs.forEach(tab => {
+        tab.addEventListener('click', function (event) {
+            event.preventDefault();
+            const target = event.target;
+            const isArchived = target.id === 'archived-tab';
+            
+            const url = new URL(window.location);
+            url.searchParams.set('archived', isArchived ? 'YES' : 'NO');
+            window.location.href = url.toString();
+        });
+    });
+});
+
+// Funciones para leads activos
+function toggleSelectAll() {
+    const selectAll = document.getElementById('selectAll');
+    const checkboxes = document.querySelectorAll('.lead-checkbox');
+    
+    checkboxes.forEach(checkbox => {
+        checkbox.checked = selectAll.checked;
+    });
+    
+    updateSelection();
+}
+
+function updateSelection() {
+    const checkboxes = document.querySelectorAll('.lead-checkbox:checked');
+    const container = document.getElementById('bulkActionsContainer');
+    const count = document.getElementById('selectedCount');
+    
+    count.textContent = checkboxes.length + ' lead' + (checkboxes.length !== 1 ? 's' : '') + ' selected';
+    container.style.display = checkboxes.length > 0 ? 'block' : 'none';
+}
+
+function clearSelection() {
+    const selectAll = document.getElementById('selectAll');
+    const checkboxes = document.querySelectorAll('.lead-checkbox');
+    
+    selectAll.checked = false;
+    checkboxes.forEach(checkbox => {
+        checkbox.checked = false;
+    });
+    
+    updateSelection();
+}
+
+function bulkArchive() {
+    const checkboxes = document.querySelectorAll('.lead-checkbox:checked');
+    if (checkboxes.length === 0) return;
+    
+    if (confirm('Are you sure you want to archive ' + checkboxes.length + ' selected lead(s)?')) {
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = window.location.href;
+        
+        const actionInput = document.createElement('input');
+        actionInput.type = 'hidden';
+        actionInput.name = 'action';
+        actionInput.value = 'bulk_archive';
+        form.appendChild(actionInput);
+        
+        checkboxes.forEach(checkbox => {
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'lead_ids[]';
+            input.value = checkbox.value;
+            form.appendChild(input);
+        });
+        
+        document.body.appendChild(form);
+        form.submit();
+    }
+}
+
+// Funciones para leads archivados
+function toggleSelectAllArchived() {
+    const selectAll = document.getElementById('selectAllArchived');
+    const checkboxes = document.querySelectorAll('.archived-lead-checkbox');
+    
+    checkboxes.forEach(checkbox => {
+        checkbox.checked = selectAll.checked;
+    });
+    
+    updateArchivedSelection();
+}
+
+function updateArchivedSelection() {
+    const checkboxes = document.querySelectorAll('.archived-lead-checkbox:checked');
+    const container = document.getElementById('bulkActionsArchivedContainer');
+    const count = document.getElementById('selectedArchivedCount');
+    
+    count.textContent = checkboxes.length + ' lead' + (checkboxes.length !== 1 ? 's' : '') + ' selected';
+    container.style.display = checkboxes.length > 0 ? 'block' : 'none';
+}
+
+function clearArchivedSelection() {
+    const selectAll = document.getElementById('selectAllArchived');
+    const checkboxes = document.querySelectorAll('.archived-lead-checkbox');
+    
+    selectAll.checked = false;
+    checkboxes.forEach(checkbox => {
+        checkbox.checked = false;
+    });
+    
+    updateArchivedSelection();
+}
+
+function bulkDelete() {
+    const checkboxes = document.querySelectorAll('.archived-lead-checkbox:checked');
+    if (checkboxes.length === 0) return;
+    
+    if (confirm('⚠️ This will permanently delete ' + checkboxes.length + ' selected archived lead(s). Are you sure?')) {
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = window.location.href;
+        
+        const actionInput = document.createElement('input');
+        actionInput.type = 'hidden';
+        actionInput.name = 'action';
+        actionInput.value = 'bulk_delete_archived';
+        form.appendChild(actionInput);
+        
+        checkboxes.forEach(checkbox => {
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'lead_ids[]';
+            input.value = checkbox.value;
+            form.appendChild(input);
+        });
+        
+        document.body.appendChild(form);
+        form.submit();
+    }
+}
+</script>
+{% endblock %}

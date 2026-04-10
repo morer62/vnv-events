@@ -1,0 +1,439 @@
+{% extends 'templates/base.admin.twig' %}
+{% import 'templates/macros.twig' as macros %}
+
+{% block body %}
+<h2 class="mb-4">📅 Past Orders</h2>
+{{ macros.breadcrumb2() }}
+
+<div class="d-flex justify-content-between mb-3">
+    <div class="d-flex gap-2">
+        <a class="btn btn-outline-primary" href="{{ path('panel/planner-hub/management/orders/orders/archived') }}">
+            📦 Archived Orders
+        </a>
+        <a class="btn btn-dark" href="{{ path('panel/planner-hub/management/orders/orders/create') }}">
+            <i data-feather="plus"></i>
+            Create new estimate	
+        </a>
+    </div>
+    <a class="btn btn-outline-secondary" href="{{ path('panel/planner-hub/management/orders/orders') }}">
+        <i data-feather="arrow-left"></i>
+        Back to Current Orders
+    </a>
+</div>
+
+<section class="card">
+    <div class="card-body">
+
+        <form method="get" class="row mb-4">
+            <div class="col-md-3">
+                <label class="form-label">Start Date</label>
+                <input type="date" name="start_date" value="{{ app.request.get('start_date') }}" class="form-control">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">End Date</label>
+                <input type="date" name="end_date" value="{{ app.request.get('end_date') }}" class="form-control">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Client Name or Email</label>
+                <input type="text" name="search" value="{{ app.request.get('search') }}" class="form-control" placeholder="Name or Email">
+            </div>
+            <div class="col-md-3 d-flex align-items-end gap-2">
+                <button type="submit" class="btn btn-primary flex-fill">🔍 Filter</button>
+                <a href="{{ path('panel/planner-hub/management/orders/orders/previous') }}" class="btn btn-outline-secondary">Clear filters</a>
+            </div>
+        </form>
+
+        <!-- Información de paginación -->
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <div>
+                <span class="text-muted">
+                    Showing {{ ((currentPage - 1) * perPage) + 1 }} to {{ min(currentPage * perPage, totalOrders) }} of {{ totalOrders }} past orders
+                </span>
+            </div>
+            <div>
+                <span class="badge bg-secondary">Page {{ currentPage }} of {{ totalPages }}</span>
+            </div>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-striped table-bordered align-middle text-center" style="min-width: 900px;">
+                <thead class="table-dark">
+                    <tr>
+                        <th>ID</th>
+                        <th>Contract Link</th>
+                        <th>Client</th>
+                        <th>Event Date</th>
+                        <th>Status</th>
+                        <th>Start - End</th>
+                        <th>Address</th>
+                        <th>Payments Received</th>
+                        <th>Sub-Order</th>
+                        <th>Basic Actions</th>
+                        <th>Team Communication</th>
+                        <th>Payment Plan</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for order in orders %}
+                        <tr>
+                            <!-- ID -->
+                            <td style="min-width: 200px;">
+                                vnv-341{{ order.id }}<br>
+                                <small>Created: {{ order.created_at|date("Y-m-d H:i") }}</small>
+                            </td>
+                            <!-- Contract Link -->
+                            <td style="min-width: 220px;">
+                                {% set token = order.contract_token ?? '' %}
+                                {% if token %}
+                                    <button type="button" class="btn btn-outline-primary btn-sm mb-1" onclick="copyPaymentLink('{{ path('/order-access?token=' ~ token) }}')">📋 Copy Link</button><br>
+                                    <a href="{{ path('/order-access?token=' ~ token) }}" target="_blank" class="btn btn-outline-secondary btn-sm">🌐 View Details</a><br>
+                                    <small class="text-muted">Copy or open payment link</small>
+                                {% else %}
+                                    <span class="text-muted">No token</span>
+                                {% endif %}
+                            </td>
+                            <!-- Client -->
+                            <td style="min-width: 220px; text-align: left;">
+                                {% set found = false %}
+                                {% for client in clients %}
+                                    {% if client.id == order.id_client %}
+                                        <small>
+                                            <b>{{ client.name }} {{ client.lastname }}</b>
+                                        </small><br>
+                                        <small>{{ client.email }}</small><br>
+                                        <small>{{ client.phone }}</small>
+                                        {% set found = true %}
+                                    {% endif %}
+                                {% endfor %}
+
+                                {% if not found %}
+                                    <small class="text-muted">Unknown client (ID: {{ order.id_client }})</small>
+                                {% endif %}
+                            </td>
+                            <!-- Event Date -->
+                            <td style="min-width: 200px;">{{ order.event_date|date("l, M j - Y") }}</td>
+                            <!-- Status -->
+                            <td style="min-width: 200px;">
+                                {% set wf = order._has_suborders ? order._effective_workflow : order.status_workflow %}
+                                <span class="badge bg-secondary">
+                                    {% if wf == 'INVOICE_DRAFT' %}
+                                        Signature Pending
+                                    {% elseif wf == 'INVOICE_READY' %}
+                                        Signed – Payment Pending
+                                    {% elseif wf == 'INVOICE_PARTIAL' %}
+                                        First Payment Completed
+                                    {% elseif wf == 'INVOICE_PAID' %}
+                                        Fully Paid
+                                    {% elseif wf == 'INVOICE_EXPIRED' %}
+                                        Expired
+                                    {% else %}
+                                        {{ wf }}
+                                    {% endif %}
+                                </span>
+                                
+                                {% if order._status_info and order._status_info|length > 0 %}
+                                    <br>
+                                    <small class="text-muted d-block mt-2" style="font-size: 0.85rem; line-height: 1.4;">
+                                        {% for info in order._status_info %}
+                                            {{ info }}{% if not loop.last %}<br>{% endif %}
+                                        {% endfor %}
+                                    </small>
+                                {% endif %}
+                                
+                                <br><br>
+
+                                <div class="btn-group" role="group">
+                                    <a href="{{ path('/panel/planner-hub/management/orders/orders/status') }}?id={{ order.id }}" class="btn btn-sm btn-warning">🛠 Manage Status</a>
+                                    <button type="button" class="btn btn-sm btn-info" onclick="openEmailModal({{ order.id }}, '{{ order.id_client }}', '{{ order.status_workflow }}')">📧 Email</button>
+                                </div>
+                                
+                                {% if order.status_workflow != 'INVOICE_DRAFT' and wf != 'INVOICE_PAID' %}
+                                    <br>
+                                    <button type="button" class="btn btn-sm btn-success mt-2" onclick="openAddAdvanceModal({{ order.id }}, '{{ order.status_workflow }}')">
+                                        💵 Add Advance
+                                    </button>
+                                {% endif %}
+                            </td>
+                            <!-- Start - End -->
+                            <td style="min-width: 200px;">{{ order.start_time|date("g:i A") }} to {{ order.end_time|date("g:i A") }}</td>
+                            <!-- Address -->
+                            <td style="min-width: 200px;">{{ order.address }}</td>
+                            <!-- Payments Received -->
+                            <td style="min-width: 230px;">
+                                <div class="btn-group" role="group">
+                                    <a href="{{ path('/panel/planner-hub/management/orders/orders/payments') }}?id={{ order.id }}" class="btn btn-sm btn-primary">✏️ Payments</a>
+                                </div>
+                            </td>
+                            <!-- Sub-Order -->
+                            <td style="min-width: 200px;">
+                                {% if order._has_suborders %}
+                                    <a href="{{ path('/panel/planner-hub/management/orders/orders/suborders') }}?id={{ order.id }}" class="btn btn-sm btn-outline-info">
+                                        📋 View Sub-Orders
+                                    </a>
+                                {% else %}
+                                    <small class="text-muted">No sub-orders</small>
+                                {% endif %}
+                            </td>
+                            <!-- Basic Actions -->
+                            <td style="min-width: 230px;">
+                                <div class="btn-group" role="group">
+                                    <a href="{{ path('/panel/planner-hub/management/orders/orders/files') }}?id={{ order.id }}" class="btn btn-sm btn-secondary">📁 Files</a>
+                                    <a href="{{ path('/panel/planner-hub/management/orders/orders/print') }}?id={{ order.id }}" class="btn btn-sm btn-dark">🖨 Print</a>
+                                </div>
+                            </td>
+                            <!-- Team Communication -->
+                            <td style="min-width: 180px;">
+                                <a href="{{ path('/panel/planner-hub/management/orders/orders/team_comunication/') }}?id={{ order.id }}" class="btn btn-sm btn-outline-dark">
+                                    👥 Manage your Staff
+                                </a>
+                            </td>
+                            <!-- Payment Plan -->
+                            <td>
+                                {% if order.payment_split_type == 1 %}
+                                    <span class="text-success">💳 100%</span>
+                                {% elseif order.payment_split_type == 2 %}
+                                    <span class="text-primary">💳 {{ order.payment_split_percent_1 }} / {{ order.payment_split_percent_2 }}</span>
+                                {% else %}
+                                    <span class="text-muted">N/A</span>
+                                {% endif %}
+                            </td>
+                            <!-- Delete -->
+                            <td>
+                                <form method="post" style="display:inline;" onsubmit="return confirm('Are you sure you want to archive this order? It will be moved to archived orders.');">
+                                    <input type="hidden" name="archive_order_id" value="{{ order.id }}">
+                                    <button type="submit" class="btn btn-sm btn-outline-warning">📦 Archive</button>
+                                </form>
+                            </td>
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <td colspan="13" class="text-center text-muted py-4">
+                                <h5>📋 No previous orders found</h5>
+                                <p class="mb-0">Previous orders will appear here</p>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Controles de paginación -->
+        {% if totalPages > 1 %}
+        <nav aria-label="Pagination" class="mt-4">
+            <ul class="pagination justify-content-center">
+                <!-- Botón Previous -->
+                {% if currentPage > 1 %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ currentPage - 1 }}{% if app.request.get('search') %}&search={{ app.request.get('search') }}{% endif %}{% if app.request.get('start_date') %}&start_date={{ app.request.get('start_date') }}{% endif %}{% if app.request.get('end_date') %}&end_date={{ app.request.get('end_date') }}{% endif %}">Previous</a>
+                    </li>
+                {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link">Previous</span>
+                    </li>
+                {% endif %}
+
+                <!-- Números de página -->
+                {% set startPage = max(1, currentPage - 2) %}
+                {% set endPage = min(totalPages, currentPage + 2) %}
+                
+                {% if startPage > 1 %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page=1{% if app.request.get('search') %}&search={{ app.request.get('search') }}{% endif %}{% if app.request.get('start_date') %}&start_date={{ app.request.get('start_date') }}{% endif %}{% if app.request.get('end_date') %}&end_date={{ app.request.get('end_date') }}{% endif %}">1</a>
+                    </li>
+                    {% if startPage > 2 %}
+                        <li class="page-item disabled">
+                            <span class="page-link">...</span>
+                        </li>
+                    {% endif %}
+                {% endif %}
+
+                {% for page in startPage..endPage %}
+                    <li class="page-item {% if page == currentPage %}active{% endif %}">
+                        <a class="page-link" href="?page={{ page }}{% if app.request.get('search') %}&search={{ app.request.get('search') }}{% endif %}{% if app.request.get('start_date') %}&start_date={{ app.request.get('start_date') }}{% endif %}{% if app.request.get('end_date') %}&end_date={{ app.request.get('end_date') }}{% endif %}">{{ page }}</a>
+                    </li>
+                {% endfor %}
+
+                {% if endPage < totalPages %}
+                    {% if endPage < totalPages - 1 %}
+                        <li class="page-item disabled">
+                            <span class="page-link">...</span>
+                        </li>
+                    {% endif %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ totalPages }}{% if app.request.get('search') %}&search={{ app.request.get('search') }}{% endif %}{% if app.request.get('start_date') %}&start_date={{ app.request.get('start_date') }}{% endif %}{% if app.request.get('end_date') %}&end_date={{ app.request.get('end_date') }}{% endif %}">{{ totalPages }}</a>
+                    </li>
+                {% endif %}
+
+                <!-- Botón Next -->
+                {% if currentPage < totalPages %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ currentPage + 1 }}{% if app.request.get('search') %}&search={{ app.request.get('search') }}{% endif %}{% if app.request.get('start_date') %}&start_date={{ app.request.get('start_date') }}{% endif %}{% if app.request.get('end_date') %}&end_date={{ app.request.get('end_date') }}{% endif %}">Next</a>
+                    </li>
+                {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link">Next</span>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+
+    </div>
+</section>
+
+<!-- Add Advance Modal -->
+<div class="modal fade" id="addAdvanceModal" tabindex="-1" aria-labelledby="addAdvanceModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="post" id="addAdvanceForm">
+                <input type="hidden" name="action" value="add_manual_advance">
+                <input type="hidden" name="order_id" id="advanceOrderId">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addAdvanceModalLabel">💵 Add Manual Advance</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="advanceAmount" class="form-label">Amount <span class="text-danger">*</span></label>
+                        <input type="number" step="0.01" min="0.01" class="form-control" id="advanceAmount" name="advance_amount" required>
+                        <small class="text-muted">Remaining balance: $<span id="remainingBalance">0.00</span></small>
+                    </div>
+                    <div class="mb-3">
+                        <label for="advanceNote" class="form-label">Note (optional)</label>
+                        <textarea class="form-control" id="advanceNote" name="note" rows="3" placeholder="Add a note about this advance..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-success">💾 Add Advance</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    async function copyPaymentLink(originalUrl) {
+        try {
+            const button = event.target;
+            const originalText = button.innerHTML;
+            
+            button.innerHTML = '⏳ Copying...';
+            button.disabled = true;
+            
+            await navigator.clipboard.writeText(originalUrl);
+            
+            button.innerHTML = '✅ Copied!';
+            button.classList.remove('btn-outline-primary', 'btn-outline-success');
+            button.classList.add('btn-success');
+            
+            setTimeout(() => {
+                button.innerHTML = originalText;
+                button.classList.remove('btn-success');
+                button.classList.add(originalText.includes('Payment') ? 'btn-outline-primary' : 'btn-outline-success');
+                button.disabled = false;
+            }, 2000);
+            
+            showToast('Link copied to clipboard!', 'success');
+        } catch (error) {
+            console.error('Error copying link:', error);
+            
+            const button = event.target;
+            button.innerHTML = '❌ Error';
+            button.classList.remove('btn-outline-primary', 'btn-outline-success');
+            button.classList.add('btn-danger');
+            
+            setTimeout(() => {
+                button.innerHTML = originalText;
+                button.classList.remove('btn-danger');
+                button.classList.add(originalText.includes('Payment') ? 'btn-outline-primary' : 'btn-outline-success');
+                button.disabled = false;
+            }, 2000);
+            
+            showToast('Error copying link. Please try again.', 'error');
+        }
+    }
+    
+    function showToast(message, type = 'info') {
+        const toastContainer = document.getElementById('toast-container') || createToastContainer();
+        
+        const toast = document.createElement('div');
+        toast.className = `toast align-items-center text-white bg-${type === 'success' ? 'success' : type === 'error' ? 'danger' : 'info'} border-0`;
+        toast.setAttribute('role', 'alert');
+        toast.setAttribute('aria-live', 'assertive');
+        toast.setAttribute('aria-atomic', 'true');
+        
+        toast.innerHTML = `
+            <div class="d-flex">
+                <div class="toast-body">
+                    ${message}
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+        `;
+        
+        toastContainer.appendChild(toast);
+        
+        const bsToast = new bootstrap.Toast(toast);
+        bsToast.show();
+        
+        toast.addEventListener('hidden.bs.toast', () => {
+            toast.remove();
+        });
+    }
+    
+    function createToastContainer() {
+        const container = document.createElement('div');
+        container.id = 'toast-container';
+        container.className = 'toast-container position-fixed top-0 end-0 p-3';
+        container.style.zIndex = '9999';
+        document.body.appendChild(container);
+        return container;
+    }
+
+    function openEmailModal(orderId, clientId, statusWorkflow) {
+        alert('Email functionality not available in previous orders view');
+    }
+
+    async function openAddAdvanceModal(orderId, statusWorkflow) {
+        document.getElementById('advanceOrderId').value = orderId;
+        document.getElementById('advanceAmount').value = '';
+        document.getElementById('advanceNote').value = '';
+        document.getElementById('remainingBalance').textContent = '0.00';
+        
+        const url = '{{ path('/panel/planner-hub/management/orders/orders/get-order-balance') }}?id=' + orderId;
+        console.log('Fetching balance from:', url);
+        
+        try {
+            const response = await fetch(url);
+            console.log('Response status:', response.status);
+            
+            if (!response.ok) {
+                throw new Error('HTTP error! status: ' + response.status);
+            }
+            
+            const data = await response.json();
+            console.log('Balance data:', data);
+            
+            if (data.success) {
+                const remaining = parseFloat(data.remaining_balance || 0);
+                document.getElementById('remainingBalance').textContent = remaining.toFixed(2);
+                document.getElementById('advanceAmount').setAttribute('max', remaining);
+                console.log('Remaining balance set to:', remaining);
+            } else {
+                console.error('Error from server:', data.error);
+                document.getElementById('remainingBalance').textContent = 'Error';
+            }
+        } catch (error) {
+            console.error('Error fetching balance:', error);
+            document.getElementById('remainingBalance').textContent = 'Error';
+        }
+        
+        const modal = new bootstrap.Modal(document.getElementById('addAdvanceModal'));
+        modal.show();
+    }
+</script>
+{% endblock %}

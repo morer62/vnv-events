@@ -1,0 +1,50 @@
+{% extends 'templates/base.admin.twig' %}
+{% import 'templates/macros.twig' as macros %}
+
+{% block body %}
+    <h1 class="h3 mb-4">🧾 Payroll Payment Details</h1>
+    {{ macros.breadcrumb2() }}
+
+    <a href="{{ path('panel/planner-hub/management/payroll/paid') }}" class="btn btn-sm btn-light mb-3">← Back to Payroll History</a>
+
+    <div class="table-responsive">
+        <table class="table table-bordered text-center align-middle" style="min-width: 700px;">
+            <thead>
+                <tr>
+                    <th>Employee</th>
+                    <th>Start Time</th>
+                    <th>End Time</th>
+                    <th>Total Hours</th>
+                     <th>Notes</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for h in hours %}
+                    <tr>
+                        <td style="min-width: 200px;">{{ h.email }}</td> 
+                        <td  style="min-width: 200px;">
+                            {{ h.start_time|date_modify("+0 seconds")|date("l, M d, Y h:i A")  }}
+                        </span></td>
+                        <td  style="min-width: 200px;">
+                            {{ h.end_time|date_modify("+0 seconds")|date("l, M d, Y h:i A")  }}
+                        </td> 
+ 
+                        <td style="min-width: 200px;" >{{ h.total_hours }}</td>
+                                 <td style="min-width: 200px;" >{{ h.notes }}</td>
+                    </tr>
+                {% else %}
+                    <tr>
+                        <td colspan="4" class="text-muted">No hours linked to this payment.</td>
+                    </tr>
+                {% endfor %}
+
+                {% if hours %}
+                    <tr>
+                        <td colspan="3" class="text-end fw-bold">Total</td>
+                        <td class="fw-bold">{{ total }}</td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+{% endblock %}

@@ -1,0 +1,31 @@
+{% extends 'templates/base.admin.twig' %}
+{% import 'templates/macros.twig' as macros %}
+
+{% block body %}
+    <main class="d-flex flex-column align-items-center">
+        <div class="card shadow-lg p-4 w-100">
+            <div class="card-body">
+
+                <h1 class="h3 mb-3 text-center">AI Voice Generator with Custom Pauses</h1>
+
+                {{ macros.breadcrumb2() }}
+
+                <form method="post" class="w-100">
+                    {{ macros.csrf() }}
+
+                    <div class="mb-3">
+                        <label for="textInput" class="form-label">Paste your text with pause tags:</label>
+                        <textarea id="textInput" name="textInput" class="form-control" rows="10">{{ originalText is defined ? originalText : '' }}</textarea>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100">Generate Voice</button>
+                </form>
+
+                {% if audioGenerated %}
+                    <a href="{{ asset_for(audioPath) }}" download class="btn btn-primary w-100 mt-3">⬇️ Download Voice</a>
+                {% endif %}
+
+            </div>
+        </div>
+    </main>
+{% endblock %}

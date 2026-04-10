@@ -1,0 +1,336 @@
+{% extends 'templates/base.twig' %}
+
+{% block styles %}
+	<style>
+		.summary-box {
+			background: #fff;
+			border-radius: 8px;
+			padding: 2rem;
+			border: 1px solid #ddd;
+			margin-bottom: 2rem;
+		}
+		.summary-box h4 {
+			margin-bottom: 1rem;
+		}
+		.summary-box table td {
+			padding: 0.35rem 0;
+		}
+		.service-table {
+			margin-top: 2rem;
+			border-collapse: collapse;
+			width: 100%;
+		}
+		.service-table th,
+		.service-table td {
+			padding: 0.6rem;
+			border: 1px solid #ccc;
+		}
+		.service-table th {
+			background: #f3f3f3;
+		}
+		.signature-box {
+			border: 1px solid #ccc;
+			min-height: 150px;
+			padding: 1rem;
+			text-align: center;
+			font-family: 'Great Vibes', cursive;
+			font-size: 2rem;
+			color: #333;
+			background: #fff;
+		}
+		.badge {
+			font-size: 0.75rem;
+			padding: 0.25rem 0.5rem;
+			border-radius: 0.375rem;
+		}
+		.bg-warning {
+			background-color: #ffc107;
+		}
+		.text-dark {
+			color: #212529;
+		}
+		.ms-1 {
+			margin-left: 0.25rem;
+		}
+		.suborder-badge {
+			background: linear-gradient(45deg, #007bff, #6610f2);
+			color: white;
+			padding: 0.5rem 1rem;
+			border-radius: 20px;
+			font-weight: bold;
+			display: inline-block;
+			margin-bottom: 1rem;
+		}
+	</style>
+	<link href="https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap" rel="stylesheet">
+{% endblock %}
+
+{% block body %}
+	<main class="container mt-5">
+		<div class="suborder-badge">📋 Sub-Order Payment</div>
+		<h2 class="mb-4">📄 Sign & Pay Sub-Order</h2>
+
+		<div class="summary-box">
+			<h4>📋 Parent Order Information</h4>
+			<table>
+				<tr>
+					<td><strong>Parent Order ID:</strong></td>
+					<td>VNV-341{{ parentOrder.id }}</td>
+				</tr>
+				<tr>
+					<td><strong>Sub-Order ID:</strong></td>
+					<td>Sub-{{ suborder.id }}</td>
+				</tr>
+				<tr>
+					<td><strong>Status:</strong></td>
+					<td>
+						<span class="badge 
+							{% if current_status == 'INVOICE_DRAFT' %}bg-warning
+							{% elseif current_status == 'INVOICE_READY' %}bg-info
+							{% elseif current_status == 'INVOICE_PARTIAL' %}bg-primary
+							{% elseif current_status == 'INVOICE_PAID' %}bg-success
+							{% elseif current_status == 'INVOICE_EXPIRED' %}bg-danger
+							{% else %}bg-secondary{% endif %}">
+							{% if current_status == 'INVOICE_DRAFT' %}
+								📝 Signature Pending
+							{% elseif current_status == 'INVOICE_READY' %}
+								✍️ Signed - Payment Pending
+							{% elseif current_status == 'INVOICE_PARTIAL' %}
+								💳 First Payment Completed
+							{% elseif current_status == 'INVOICE_PAID' %}
+								✅ Fully Paid
+							{% elseif current_status == 'INVOICE_EXPIRED' %}
+								⏰ Expired
+							{% else %}
+								{{ current_status }}
+							{% endif %}
+						</span>
+					</td>
+				</tr>
+				<tr>
+					<td><strong>Event Date:</strong></td>
+					<td>{{ parentOrder.event_date|date("F j, Y") }}</td>
+				</tr>
+				<tr>
+					<td><strong>Time:</strong></td>
+					<td>{{ parentOrder.start_time|date("g:i A") }} to {{ parentOrder.end_time|date("g:i A") }}</td>
+				</tr>
+				<tr>
+					<td><strong>Location:</strong></td>
+					<td>{{ parentOrder.address }}</td>
+				</tr>
+				<tr>
+					<td><strong>Sub-Order Created:</strong></td>
+					<td>{{ suborder.created_at|date("M j, Y g:i A") }}</td>
+				</tr>
+			</table>
+			<div class="mt-2">
+				<a href="{{ path('order-access?token=' ~ parent_order_token) }}" class="btn btn-outline-primary btn-sm">← Back to Main Order</a>
+			</div>
+		</div>
+
+		<div class="summary-box">
+			<h4>🛠️ Sub-Order Services</h4>
+			<div class="table-scroll-wrapper">
+				<table class="service-table" style="text-align:center">
+					<thead>
+						<tr>
+							<th>Service</th>
+							<th>Qty</th>
+							<th>Unit Price</th>
+							<th>Subtotal</th>
+						</tr>
+					</thead>
+					<tbody>
+						{% for item in services %}
+							<tr>
+								<td>{{ item.name }}</td>
+								<td>{{ item.qty }}</td>
+								<td>${{ item.unit_price | number_format(2) }}</td>
+								<td>${{ item.subtotal | number_format(2) }}</td>
+							</tr>
+							{% if item.note %}
+								<tr>
+									<td colspan="4">
+										<em>Note: {{ item.note }}</em>
+									</td>
+								</tr>
+							{% endif %}
+						{% endfor %}
+					</tbody>
+				</table>
+			</div>
+
+			<div style="max-width:400px">
+				<table class="table">
+					<tr>
+						<td><strong>Subtotal:</strong></td>
+						<td>${{ subtotal | number_format(2) }}</td>
+					</tr>
+					{% if discount is defined and discount > 0 %}
+					<tr>
+						<td><strong>Discount{% if discount_type == 'percent' %} ({{ discount_value | number_format(2) }}%){% endif %}:</strong></td>
+						<td>- ${{ discount | number_format(2) }}</td>
+					</tr>
+					{% endif %}
+					{% if advances_total is defined and advances_total > 0 %}
+					<tr>
+						<td><strong>Advances:</strong></td>
+						<td>- ${{ advances_total | number_format(2) }}</td>
+					</tr>
+					{% endif %}
+					<tr>
+						<td><strong>Tax & Processing Fee ({{ suborder.tax_percertance | number_format(2) }}%):</strong></td>
+						<td>${{ tax | number_format(2) }}</td>
+					</tr>
+					<tr>
+						<td><strong>Total Amount:</strong></td>
+						<td><strong>${{ total | number_format(2) }}</strong></td>
+					</tr>
+				</table>
+
+				<div class="mt-3">
+					{% if payment_type == 'split' %}
+						<p><strong>1st Payment:</strong> ${{ first_payment_amount | number_format(2) }}</p>
+						<p><strong>2nd Payment:</strong> ${{ second_payment_original | number_format(2) }}</p>
+					{% else %}
+						<p><strong>Full Payment:</strong> ${{ total | number_format(2) }}</p>
+					{% endif %}
+				</div>
+			</div>
+		</div>
+
+		{% if not hasSigned %}
+			<form method="POST" enctype="multipart/form-data" id="suborderContractForm">
+				<input type="hidden" name="token" value="{{ token }}">
+				<!-- Capturar hora local del usuario para firma -->
+				<input type="hidden" name="user_local_timestamp" id="userLocalTimestamp">
+
+				<div class="mb-4">
+					<label class="form-label">Contract Summary</label>
+					<p class="form-control-plaintext">
+						This sub-order is an additional service for your existing event. By signing below, you agree to the terms and conditions of the parent order.
+					</p>
+				</div>
+
+				<div class="mb-3">
+					<label class="form-label">Upload Signature Image (Optional)</label>
+					<input type="file" name="signature_image" accept="image/*" class="form-control">
+				</div>
+
+				<div class="mb-3 text-center text-muted">OR</div>
+
+				<div class="mb-3">
+					<label class="form-label">Typed Initials (will be converted to signature)</label>
+					<input type="text" name="typed_initials" id="typed_initials" class="form-control" maxlength="20" oninput="renderSignature()">
+				</div>
+
+				<div class="signature-box border p-3 mt-2" id="signatureBox">Your Signature</div>
+
+				<button type="submit" class="btn btn-success w-100 mt-4" id="signButton">✅ Submit & Sign</button><br><br><br>
+			</form>
+		{% else %}
+			<div class="alert alert-success">✅ Contract has been signed. You may proceed to payment.</div>
+
+			{% if not isSquareReady %}
+				<div class="alert alert-warning text-center">
+					<strong>⚠️ Payment Unavailable:</strong> Payments are currently unavailable. Please contact your service provider to complete the payment process.
+				</div>
+			{% else %}
+				{% if payment_type == "split" and paymentStatus == "pending_first" %}
+					<a href="{{ path('order-access/suborder/first/', { token: token }) }}" class="btn btn-primary w-100 payment-button">
+						💳 Pay First Installment ({{ first_payment_amount | number_format(2) }})
+					</a>
+				{% elseif payment_type == "split" and paymentStatus == "pending_second" %}
+					<a href="{{ path('order-access/suborder/second/', { token: token }) }}" class="btn btn-primary w-100 payment-button">
+						💳 Pay Remaining Balance ({{ second_payment_amount | number_format(2) }})
+					</a>
+				{% elseif payment_type == "one" and paymentStatus == "pending_first" %}
+					<a href="{{ path('order-access/suborder/full/', { token: token }) }}" class="btn btn-primary w-100 payment-button">
+						💳 Pay Full Amount ({{ total | number_format(2) }})
+					</a>
+				{% else %}
+					<div class="alert alert-info mt-3">✅ All payments completed.</div>
+				{% endif %}
+				{% if total > 0 and paymentStatus != 'complete' %}
+
+				{% endif %}
+			{% endif %}
+		{% endif %}
+	</main>
+	<br>
+	<br>
+	<br>
+	<br>
+
+	{{ processingModal|raw }}
+{% endblock %}
+
+{% block scripts %}
+	{{ processingModalScript|raw }}
+	<script>
+		function renderSignature() {
+			const initials = document.getElementById("typed_initials").value;
+			const box = document.getElementById("signatureBox");
+			box.textContent = initials || "Your Signature";
+		}
+
+		// Prevenir clics múltiples en botones
+		document.addEventListener('DOMContentLoaded', function() {
+			// Para el formulario de firma
+			const form = document.getElementById('suborderContractForm');
+			if (form) {
+				form.addEventListener('submit', function(e) {
+					const submitButton = form.querySelector('button[type="submit"]');
+					if (submitButton && !submitButton.disabled) {
+						submitButton.disabled = true;
+						submitButton.innerHTML = '⏳ Processing...';
+						submitButton.style.opacity = '0.6';
+
+						window.VnvProcessingModal.show('orderAccessProcessingModal', {
+							title: 'Signing contract...',
+							message: 'We are saving your signature. Please wait.'
+						});
+					}
+				});
+			}
+			
+			// Para los botones de pago
+			const paymentButtons = document.querySelectorAll('a.payment-button');
+			paymentButtons.forEach(button => {
+				button.addEventListener('click', function(e) {
+					if (this.disabled) {
+						e.preventDefault();
+						return false;
+					}
+					
+					this.disabled = true;
+					this.innerHTML = '⏳ Processing...';
+					this.style.opacity = '0.6';
+
+					window.VnvProcessingModal.show('orderAccessProcessingModal', {
+						title: 'Preparing payment...',
+						message: 'We are redirecting you to the payment gateway.'
+					});
+				});
+			});
+		});
+
+		// Capturar hora local del usuario al cargar la página
+		document.addEventListener('DOMContentLoaded', function() {
+			const now = new Date();
+			const timestamp = now.getFullYear() + '-' + 
+				String(now.getMonth() + 1).padStart(2, '0') + '-' + 
+				String(now.getDate()).padStart(2, '0') + ' ' + 
+				String(now.getHours()).padStart(2, '0') + ':' + 
+				String(now.getMinutes()).padStart(2, '0') + ':' + 
+				String(now.getSeconds()).padStart(2, '0');
+			
+			const timestampField = document.getElementById('userLocalTimestamp');
+			if (timestampField) {
+				timestampField.value = timestamp;
+				console.log('Suborder contract signing - User local timestamp captured:', timestamp);
+			}
+		});
+	</script>
+{% endblock %}

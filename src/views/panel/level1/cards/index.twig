@@ -1,0 +1,116 @@
+{% extends 'templates/base.admin.twig' %}
+
+{% block body %}
+<h1 class="h3 mb-4">💳 My Cards</h1>
+
+<a href="{{ path('panel/billing') }}" class="btn btn-outline-primary mb-4">
+    🧾 Update Billing Information
+</a>
+
+<div class="row">
+    <div class="col-md-6">
+        <form id="card-form">
+            <div class="card">
+                <div class="card-body">
+                    <div id="card-element" class="form-control mb-3 py-3"></div>
+                    <div id="card-errors" class="text-danger mb-2"></div>
+                    <button class="btn btn-dark w-100" id="submit-card" type="submit">
+                        Add Card
+                    </button>
+                    <div id="loading-text" class="text-center text-muted mt-2" style="display:none;">
+                        Processing card, please wait...
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <div class="col-md-6">
+        <h5>💼 Saved Cards</h5>
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>Brand</th>
+                    <th>Last 4</th>
+                    <th>Exp</th>
+                    <th>Main</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for card in cards %}
+                    <tr>
+                        <td>{{ card.brand }}</td>
+                        <td>**** **** **** {{ card.last4 }}</td>
+                        <td>{{ card.exp }}</td>
+                        <td>{% if card.main_card == 'yes' %}✅{% endif %}</td>
+                        <td>
+                            {% if card.main_card != 'yes' %}
+                                <form method="post" class="d-inline">
+                                    <input type="hidden" name="set_main" value="{{ card.id }}">
+                                    <button type="submit" class="btn btn-sm btn-outline-success">Make Main</button>
+                                </form>
+                            {% endif %}
+                            <form method="post" class="d-inline">
+                                <input type="hidden" name="delete_card" value="{{ card.id }}">
+                                <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
+                            </form>
+                        </td>
+                    </tr>
+                {% else %}
+                    <tr><td colspan="5" class="text-center">No cards saved.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://js.stripe.com/v3/"></script>
+<script>
+    const stripe = Stripe("{{ stripe_key }}");
+    const elements = stripe.elements();
+    const card = elements.create("card");
+    card.mount("#card-element");
+
+    document.getElementById("card-form").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const submitBtn = document.getElementById("submit-card");
+        const loadingText = document.getElementById("loading-text");
+        submitBtn.disabled = true;
+        loadingText.style.display = "block";
+
+        const { token, error } = await stripe.createToken(card);
+        if (error) {
+            document.getElementById("card-errors").textContent = error.message;
+            submitBtn.disabled = false;
+            loadingText.style.display = "none";
+        } else {
+            const cardInfo = {
+                brand: token.card.brand,
+                last4: token.card.last4,
+                exp: token.card.exp_month + "/" + token.card.exp_year
+            };
+
+            const formData = new FormData();
+            formData.append("token", token.id);
+            formData.append("card_info", JSON.stringify(cardInfo));
+
+            const res = await fetch(location.href, {
+                method: "POST",
+                body: formData
+            });
+
+            const result = await res.json();
+            if (result.success) {
+                window.location.reload();
+            } else {
+                document.getElementById("card-errors").textContent = result.message || "Something went wrong.";
+                submitBtn.disabled = false;
+                loadingText.style.display = "none";
+            }
+        }
+    });
+</script>
+{% endblock %}

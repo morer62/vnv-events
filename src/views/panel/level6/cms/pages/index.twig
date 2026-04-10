@@ -1,0 +1,275 @@
+{% extends "templates/base.admin.twig" %}
+
+{% block body %}
+<style>
+    .cms-wrap{
+        padding:24px;
+    }
+
+    .cms-header{
+        display:flex;
+        align-items:center;
+        justify-content:space-between;
+        gap:16px;
+        margin-bottom:24px;
+        flex-wrap:wrap;
+    }
+
+    .cms-title{
+        font-size:2rem;
+        font-weight:800;
+        color:#111827;
+        margin:0 0 6px 0;
+    }
+
+    .cms-subtitle{
+        color:#6b7280;
+        font-size:.96rem;
+        margin:0;
+    }
+
+    .cms-btn{
+        display:inline-flex;
+        align-items:center;
+        justify-content:center;
+        padding:10px 16px;
+        border-radius:12px;
+        text-decoration:none;
+        font-weight:700;
+        font-size:.92rem;
+        transition:.2s ease;
+        border:none;
+        cursor:pointer;
+    }
+
+    .cms-btn-primary{
+        background:#111827;
+        color:#fff;
+    }
+
+    .cms-btn-primary:hover{
+        background:#000;
+        color:#fff;
+    }
+
+    .cms-btn-light{
+        background:#f3f4f6;
+        color:#111827;
+    }
+
+    .cms-btn-light:hover{
+        background:#e5e7eb;
+        color:#111827;
+    }
+
+    .cms-card{
+        background:#fff;
+        border:1px solid #e5e7eb;
+        border-radius:20px;
+        padding:20px;
+        box-shadow:0 10px 30px rgba(0,0,0,.05);
+    }
+
+    .cms-table-wrap{
+        width:100%;
+        overflow:auto;
+    }
+
+    .cms-table{
+        width:100%;
+        border-collapse:collapse;
+        min-width:1100px;
+    }
+
+    .cms-table th{
+        text-align:left;
+        font-size:.85rem;
+        color:#6b7280;
+        font-weight:700;
+        padding:14px 12px;
+        border-bottom:1px solid #e5e7eb;
+        white-space:nowrap;
+    }
+
+    .cms-table td{
+        padding:16px 12px;
+        border-bottom:1px solid #f1f5f9;
+        vertical-align:top;
+        color:#111827;
+        font-size:.95rem;
+    }
+
+    .cms-table tr:last-child td{
+        border-bottom:none;
+    }
+
+    .cms-slug{
+        font-family:monospace;
+        font-size:.92rem;
+        color:#374151;
+        background:#f9fafb;
+        border:1px solid #e5e7eb;
+        border-radius:10px;
+        display:inline-block;
+        padding:4px 8px;
+    }
+
+    .cms-path{
+        font-family:monospace;
+        font-size:.88rem;
+        color:#1f2937;
+        background:#f9fafb;
+        border:1px solid #e5e7eb;
+        border-radius:10px;
+        display:inline-block;
+        padding:5px 8px;
+        word-break:break-all;
+    }
+
+    .cms-badge{
+        display:inline-flex;
+        align-items:center;
+        justify-content:center;
+        padding:6px 10px;
+        border-radius:999px;
+        font-size:.8rem;
+        font-weight:700;
+        white-space:nowrap;
+    }
+
+    .cms-badge.published{
+        background:#ecfdf5;
+        color:#047857;
+    }
+
+    .cms-badge.draft{
+        background:#fff7ed;
+        color:#c2410c;
+    }
+
+    .cms-muted{
+        color:#6b7280;
+    }
+
+    .cms-actions{
+        display:flex;
+        gap:10px;
+        flex-wrap:wrap;
+    }
+
+    .cms-empty{
+        padding:28px;
+        text-align:center;
+        color:#6b7280;
+    }
+
+    .cms-empty strong{
+        display:block;
+        color:#111827;
+        font-size:1.05rem;
+        margin-bottom:8px;
+    }
+
+    @media (max-width:768px){
+        .cms-wrap{
+            padding:16px;
+        }
+
+        .cms-title{
+            font-size:1.55rem;
+        }
+    }
+</style>
+
+<div class="cms-wrap">
+    <div class="cms-header">
+        <div>
+            <h1 class="cms-title">Pages</h1>
+            <p class="cms-subtitle">
+                Manage your CMS pages, assign categories and templates, and prepare them for publishing.
+            </p>
+        </div>
+
+        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+            <a href="{{ path('panel/cms') }}" class="cms-btn cms-btn-light">← Back to CMS</a>
+            <a href="{{ path('panel/cms/pages/create') }}" class="cms-btn cms-btn-primary">+ New Page</a>
+        </div>
+    </div>
+
+    <div class="cms-card">
+        {% if pages|length > 0 %}
+            <div class="cms-table-wrap">
+                <table class="cms-table">
+                    <thead>
+                        <tr>
+                            <th>Title</th>
+                            <th>Category</th>
+                            <th>Template</th>
+                            <th>Slug</th>
+                            <th>Status</th>
+                            <th>Published Path</th>
+                            <th style="width:160px;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in pages %}
+                            <tr>
+                                <td>
+                                    <strong>{{ item.title }}</strong>
+                                    {% if item.short_description %}
+                                        <div class="cms-muted" style="margin-top:6px;">
+                                            {{ item.short_description|slice(0, 90) }}{% if item.short_description|length > 90 %}...{% endif %}
+                                        </div>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <strong>{{ item.category_name }}</strong><br>
+                                    <span class="cms-muted">{{ item.category_slug }}</span>
+                                </td>
+                                <td>
+                                    {% if item.template_name %}
+                                        <strong>{{ item.template_name }}</strong><br>
+                                        <span class="cms-muted">{{ item.template_slug }}</span>
+                                    {% else %}
+                                        <span class="cms-muted">—</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <span class="cms-slug">{{ item.slug }}</span>
+                                </td>
+                                <td>
+                                    {% if item.status == 'PUBLISHED' %}
+                                        <span class="cms-badge published">Published</span>
+                                    {% else %}
+                                        <span class="cms-badge draft">Draft</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if item.published_path %}
+                                        <span class="cms-path">{{ item.published_path }}</span>
+                                    {% else %}
+                                        <span class="cms-muted">—</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="cms-actions">
+                                        <a href="{{ path('panel/cms/pages/edit') }}?id={{ item.id }}" class="cms-btn cms-btn-light">Edit</a>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="cms-empty">
+                <strong>No pages yet</strong>
+                Create your first CMS page and assign it to a category.
+                <div style="margin-top:16px;">
+                    <a href="{{ path('panel/cms/pages/create') }}" class="cms-btn cms-btn-primary">+ Create First Page</a>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

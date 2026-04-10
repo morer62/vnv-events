@@ -1,0 +1,368 @@
+{% extends 'templates/base.admin.twig' %}
+
+{% block body %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+        <div>
+            <h1 class="h3 mb-1">Coupons Store</h1>
+            <p class="text-muted mb-0">Manage discounts for store purchases.</p>
+        </div>
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createCouponModal">
+            Create Coupon
+        </button>
+    </div>
+
+    <div class="card shadow-sm border-0">
+        <div class="card-body">
+            {% if coupons|length > 0 %}
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Code</th>
+                                <th>Scope</th>
+                                <th>Discount</th>
+                                <th>Mode</th>
+                                <th>Rules</th>
+                                <th>Status</th>
+                                <th>Max total</th>
+                                <th>Schedule</th>
+                                <th class="text-end">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for c in coupons %}
+                                <tr>
+                                    <td>#{{ c.id }}</td>
+                                    <td><strong>{{ c.code }}</strong></td>
+                                    <td>
+                                        {% if c.scope == 'GLOBAL' %}
+                                            <span class="badge bg-info text-dark">GLOBAL</span>
+                                        {% else %}
+                                            <span class="badge bg-primary">CUSTOMER</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if c.discount_type == 'PERCENT' %}
+                                            {{ c.discount_value|number_format(2, '.', ',') }}%
+                                        {% else %}
+                                            ${{ c.discount_value|number_format(2, '.', ',') }}
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if (c.purchase_mode ?: 'PAYG') == 'SUBSCRIPTION' %}
+                                            <span class="badge bg-success">SUBSCRIPTION</span>
+                                        {% else %}
+                                            <span class="badge bg-warning text-dark">PAYG</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div class="small">Min: ${{ c.min_order_total|number_format(2, '.', ',') }}</div>
+                                        {% if (c.purchase_mode ?: 'PAYG') == 'PAYG' %}
+                                            <div class="small">Total limit: {{ c.max_total_uses == 0 ? 'Unlimited' : c.max_total_uses }}</div>
+                                            <div class="small">Per customer: {{ c.max_uses_per_customer == 0 ? 'Unlimited' : c.max_uses_per_customer }}</div>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if c.status == 'ACTIVE' %}
+                                            <span class="badge bg-success">ACTIVE</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">INACTIVE</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ c.total_uses }} / {{ c.max_total_uses == 0 ? '∞' : c.max_total_uses }}</td>
+                                    <td class="small">
+                                        <div>Start: {{ c.starts_at ?: 'No start date' }}</div>
+                                        <div>End: {{ c.expires_at ?: 'No expiration' }}</div>
+                                    </td>
+                                    <td class="text-end">
+                                        <button
+                                            type="button"
+                                            class="btn btn-sm btn-outline-primary"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#manageCouponModal{{ c.id }}"
+                                        >
+                                            Manage
+                                        </button>
+                                        <form method="post" class="d-inline ms-1">
+                                            <input type="hidden" name="action" value="toggle_status">
+                                            <input type="hidden" name="id" value="{{ c.id }}">
+                                            <button class="btn btn-sm btn-outline-dark" type="submit">
+                                                {% if c.status == 'ACTIVE' %}Disable{% else %}Enable{% endif %}
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="text-center py-5">
+                    <h5 class="mb-2">No coupons yet</h5>
+                    <p class="text-muted mb-0">Create your first coupon to start promotions.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<datalist id="clientsList">
+    {% for client in clients %}
+        <option value="{{ client.email }}">{{ (client.name ~ ' ' ~ client.lastname)|trim }} - {{ client.email }}</option>
+    {% endfor %}
+</datalist>
+
+{% for c in coupons %}
+<div class="modal fade" id="manageCouponModal{{ c.id }}" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Manage Coupon #{{ c.id }} ({{ c.code }})</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="small text-muted mb-3">
+                    Current usage: {{ c.total_uses }} / {{ c.max_total_uses == 0 ? 'Unlimited' : c.max_total_uses }}
+                </div>
+                <form method="post" class="row g-2 mb-3">
+                    <input type="hidden" name="action" value="update">
+                    <input type="hidden" name="id" value="{{ c.id }}">
+                    <div class="col-md-3">
+                        <label class="form-label small mb-1">Code</label>
+                        <input class="form-control" name="code" value="{{ c.code }}" required placeholder="Code">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label small mb-1">Scope</label>
+                        <select class="form-select" name="scope">
+                            <option value="GLOBAL" {% if c.scope == 'GLOBAL' %}selected{% endif %}>GLOBAL (all customers)</option>
+                            <option value="CUSTOMER" {% if c.scope == 'CUSTOMER' %}selected{% endif %}>CUSTOMER (assigned only)</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label small mb-1">Purchase mode</label>
+                        <select class="form-select js-edit-purchase-mode" name="purchase_mode">
+                            <option value="SUBSCRIPTION" {% if (c.purchase_mode ?: 'PAYG') == 'SUBSCRIPTION' %}selected{% endif %}>SUBSCRIPTION</option>
+                            <option value="PAYG" {% if (c.purchase_mode ?: 'PAYG') == 'PAYG' %}selected{% endif %}>PAYG (one-time)</option>
+                        </select>
+                        <div class="form-text small mt-1">SUBSCRIPTION: discount applies every renewal while coupon is valid. PAYG: one-time at checkout.</div>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label small mb-1">Discount type</label>
+                        <select class="form-select" name="discount_type">
+                            <option value="PERCENT" {% if c.discount_type == 'PERCENT' %}selected{% endif %}>PERCENT (%)</option>
+                            <option value="FIXED" {% if c.discount_type == 'FIXED' %}selected{% endif %}>FIXED ($)</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label small mb-1">Discount value</label>
+                        <input class="form-control" type="number" min="0.01" step="0.01" name="discount_value" value="{{ c.discount_value }}">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label small mb-1">Minimum order ($)</label>
+                        <input class="form-control" type="number" min="0" step="0.01" name="min_order_total" value="{{ c.min_order_total }}">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label small mb-1">Starts at</label>
+                        <input class="form-control" type="datetime-local" name="starts_at" value="{{ c.starts_at ? c.starts_at|date('Y-m-d\\TH:i') : '' }}">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label small mb-1">Expires at</label>
+                        <input class="form-control" type="datetime-local" name="expires_at" value="{{ c.expires_at ? c.expires_at|date('Y-m-d\\TH:i') : '' }}">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label small mb-1">Status</label>
+                        <select class="form-select" name="status">
+                            <option value="ACTIVE" {% if c.status == 'ACTIVE' %}selected{% endif %}>ACTIVE</option>
+                            <option value="INACTIVE" {% if c.status == 'INACTIVE' %}selected{% endif %}>INACTIVE</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4 js-payg-field-edit">
+                        <label class="form-label small mb-1">Max total (coupons issued)</label>
+                        <input class="form-control" type="number" min="0" step="1" name="max_total_uses" value="{{ c.max_total_uses }}">
+                        <div class="form-text small mt-1">0 = unlimited</div>
+                    </div>
+                    <div class="col-md-4 js-payg-field-edit">
+                        <label class="form-label small mb-1">Max uses per customer</label>
+                        <input class="form-control" type="number" min="0" step="1" name="max_uses_per_customer" value="{{ c.max_uses_per_customer }}">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label small mb-1">Assign customer on save (optional)</label>
+                        <input class="form-control" name="assigned_customer_email" list="clientsList" placeholder="Search customer by name/email">
+                    </div>
+                    <div class="col-12 text-end">
+                        <button class="btn btn-primary" type="submit">Save</button>
+                    </div>
+                </form>
+
+                {% if c.scope == 'CUSTOMER' %}
+                    <div class="border-top pt-3">
+                        <h6 class="mb-2">Allowed Customers</h6>
+                        <form method="post" class="row g-2 mb-2">
+                            <input type="hidden" name="action" value="assign_customer">
+                            <input type="hidden" name="id" value="{{ c.id }}">
+                            <div class="col-md-8">
+                                <input class="form-control" name="customer_email" type="email" list="clientsList" placeholder="Search customer by name/email to allow" required>
+                            </div>
+                            <div class="col-md-4">
+                                <button class="btn btn-outline-primary w-100" type="submit">Assign Customer</button>
+                            </div>
+                        </form>
+                        <div class="d-flex flex-wrap gap-2">
+                            {% for a in c.customers %}
+                                <form method="post" class="d-inline">
+                                    <input type="hidden" name="action" value="remove_customer">
+                                    <input type="hidden" name="assignment_id" value="{{ a.id }}">
+                                    <button class="btn btn-sm btn-outline-danger" type="submit" title="Remove customer">{{ a.email }} x</button>
+                                </form>
+                            {% else %}
+                                <span class="text-muted small">No assigned customers.</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
+
+<div class="modal fade" id="createCouponModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <form method="post" class="p-0">
+                <input type="hidden" name="action" value="create">
+                <div class="modal-header">
+                    <h5 class="modal-title">Create coupon</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row g-2">
+                        <div class="col-md-4">
+                            <label class="form-label small mb-1">Code</label>
+                            <input class="form-control" name="code" placeholder="e.g. WELCOME10" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small mb-1">Coupon scope</label>
+                            <select class="form-select js-create-scope" name="scope">
+                                <option value="GLOBAL">GLOBAL (all customers)</option>
+                                <option value="CUSTOMER">CUSTOMER (assigned only)</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small mb-1">Purchase mode</label>
+                            <select class="form-select js-create-purchase-mode" name="purchase_mode">
+                                <option value="SUBSCRIPTION">SUBSCRIPTION</option>
+                                <option value="PAYG" selected>PAYG (one-time)</option>
+                            </select>
+                            <div class="form-text small mt-1">SUBSCRIPTION: discount on every renewal. PAYG: one-time at checkout.</div>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small mb-1">Discount type</label>
+                            <select class="form-select" name="discount_type">
+                                <option value="PERCENT">PERCENT (%)</option>
+                                <option value="FIXED">FIXED ($)</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small mb-1">Discount value</label>
+                            <input class="form-control" name="discount_value" type="number" min="0.01" step="0.01" placeholder="e.g. 10" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small mb-1">Minimum order ($)</label>
+                            <input class="form-control" name="min_order_total" type="number" min="0" step="0.01" placeholder="e.g. 25">
+                        </div>
+                        <div class="col-md-4 js-customer-field-create" style="display:none;">
+                            <label class="form-label small mb-1">Assign customer (optional)</label>
+                            <input class="form-control" name="assigned_customer_email" list="clientsList" placeholder="Search customer by name/email">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small mb-1">Starts at (optional)</label>
+                            <input class="form-control" name="starts_at" type="datetime-local">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small mb-1">Expires at (optional)</label>
+                            <input class="form-control" name="expires_at" type="datetime-local">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small mb-1">Status</label>
+                            <select class="form-select" name="status">
+                                <option value="ACTIVE">ACTIVE</option>
+                                <option value="INACTIVE">INACTIVE</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 js-payg-field-create">
+                            <label class="form-label small mb-1">Max total uses</label>
+                            <input class="form-control" name="max_total_uses" type="number" min="0" step="1" value="0">
+                            <div class="form-text small mt-1">0 = unlimited</div>
+                        </div>
+                        <div class="col-md-6 js-payg-field-create">
+                            <label class="form-label small mb-1">Max uses per customer</label>
+                            <input class="form-control" name="max_uses_per_customer" type="number" min="0" step="1" value="0">
+                            <div class="form-text small mt-1">0 = unlimited</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-primary" type="submit">Create</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ parent() }}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const createScope = document.querySelector('.js-create-scope');
+    const createCustomerField = document.querySelector('.js-customer-field-create');
+    if (createScope && createCustomerField) {
+        const toggleCreate = () => {
+            createCustomerField.style.display = createScope.value === 'CUSTOMER' ? '' : 'none';
+        };
+        createScope.addEventListener('change', toggleCreate);
+        toggleCreate();
+    }
+
+    const createPurchaseMode = document.querySelector('.js-create-purchase-mode');
+    if (createPurchaseMode) {
+        const paygFieldsCreate = document.querySelectorAll('.js-payg-field-create');
+        const togglePaygCreate = () => {
+            const show = createPurchaseMode.value === 'PAYG';
+            paygFieldsCreate.forEach(el => { el.style.display = show ? '' : 'none'; });
+        };
+        createPurchaseMode.addEventListener('change', togglePaygCreate);
+        togglePaygCreate();
+    }
+
+    const editScopeSelects = document.querySelectorAll('form select[name="scope"]');
+    editScopeSelects.forEach((select) => {
+        const form = select.closest('form');
+        if (!form || form.querySelector('input[name="action"]')?.value !== 'update') return;
+        const customerField = form.querySelector('.js-customer-field-edit');
+        if (!customerField) return;
+        const toggleEdit = () => {
+            customerField.style.display = select.value === 'CUSTOMER' ? '' : 'none';
+        };
+        select.addEventListener('change', toggleEdit);
+        toggleEdit();
+    });
+
+    document.querySelectorAll('.js-edit-purchase-mode').forEach((select) => {
+        const form = select.closest('form');
+        if (!form) return;
+        const paygFields = form.querySelectorAll('.js-payg-field-edit');
+        const togglePaygEdit = () => {
+            const show = select.value === 'PAYG';
+            paygFields.forEach(el => { el.style.display = show ? '' : 'none'; });
+        };
+        select.addEventListener('change', togglePaygEdit);
+        togglePaygEdit();
+    });
+});
+</script>
+{% endblock %}
+

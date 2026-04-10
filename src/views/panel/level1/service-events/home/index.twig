@@ -1,0 +1,63 @@
+{% extends 'templates/base.admin.twig' %}
+
+{% block body %}
+<main class="container-fluid h-100 d-flex flex-column justify-content-center p-3">
+    <h1 class="h3 mb-3 text-center">Service Events</h1>
+
+    <nav aria-label="breadcrumb" class="text-center">
+        <ol class="breadcrumb justify-content-center">
+            <li class="breadcrumb-item"><a href="{{ path('panel/home') }}">Home</a></li>
+            <li class="breadcrumb-item"><a href="{{ path('panel/service/home') }}">My Services</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Events</li>
+        </ol>
+    </nav>
+
+    <section class="card w-100 shadow-lg">
+        <div class="card-body">
+            <a class="btn btn-secondary mb-3" href="{{ path('panel/service-events/create?service=' ~ service.id) }}">Add Event</a>
+
+            <div class="table-responsive">
+                <table class="table table-striped table-hover table-bordered text-center" style="min-width: 1000px; table-layout: fixed;">
+                    <thead>
+                        <tr>
+                            <th>Id</th>
+                            <th>Name or Description</th>
+                            <th>Start Date</th>
+                            <th>End Date</th>
+                            <th>Image</th>
+                            <th>Service Name</th>
+                            <th>Edit</th>
+                            <th>Delete</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {% for element in data %}
+                            <tr>
+                                <td>{{ element.id }}</td>
+                                <td>{{ element.name }}</td>
+                                <td>{{ element.start_date }}</td>
+                                <td>{{ element.end_date }}</td>
+                                <td>
+                                    <img src="{{ element.image }}" class="img-thumbnail" width="100px" alt="service-image-{{ element.id }}">
+                                </td>
+                                <td>{{ service.name }}</td>
+                                <td>
+                                    <a href="{{ path('panel/service-events/edit?id=' ~ element.id ~ "&service=" ~ element.service_id) }}">Edit</a>
+                                </td>
+                                <td>
+                                    <form method="post" form-delete>
+                                        <input type="hidden" name="action" value="delete" />
+                                        <input type="hidden" name="id" value="{{ element.id }}">
+                                        <button type="submit" class="btn btn-danger">Delete</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+</main>
+{% endblock %}

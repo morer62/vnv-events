@@ -1,0 +1,335 @@
+{% extends 'templates/base.admin.twig' %}
+
+{% block body %}
+<main class="container mt-4 pb-5">
+
+  <style>
+    :root{
+      --gourmet-primary:#f59e0b;
+      --gourmet-primary-dark:#d97706;
+      --gourmet-accent:#fb923c;
+      --gourmet-dark:#1f1307;
+      --gourmet-text:#2d241c;
+      --gourmet-muted:#6f6255;
+      --gourmet-border:#ecd9bf;
+      --gourmet-shadow:0 18px 44px rgba(79,43,8,.10);
+    }
+
+    .d-hero{
+      border-radius:28px;
+      padding:2rem 1.5rem;
+      color:#fff;
+      background:
+        radial-gradient(900px 420px at 0% 0%, rgba(245,158,11,.16), transparent 60%),
+        linear-gradient(135deg, #251508 0%, #1f1307 55%, #361a06 100%);
+      box-shadow:0 22px 54px rgba(0,0,0,.16);
+      margin-bottom:1.6rem;
+    }
+
+    .d-badge{
+      display:inline-flex;
+      align-items:center;
+      gap:.45rem;
+      padding:.55rem .9rem;
+      border-radius:999px;
+      font-size:.9rem;
+      font-weight:800;
+      background:rgba(255,255,255,.08);
+      border:1px solid rgba(255,255,255,.15);
+      color:#fff;
+      margin-bottom:1rem;
+    }
+
+    .d-hero h1{
+      font-size:clamp(2rem,4vw,3rem);
+      line-height:1.05;
+      font-weight:900;
+      margin-bottom:.8rem;
+      letter-spacing:-1px;
+    }
+
+    .d-hero p{
+      max-width:840px;
+      color:#f4e4cb;
+      line-height:1.72;
+      margin-bottom:0;
+    }
+
+    .d-grid{
+      display:grid;
+      grid-template-columns:repeat(3,minmax(0,1fr));
+      gap:1rem;
+      margin-bottom:1.4rem;
+    }
+
+    .d-card{
+      background:#fff;
+      border:1px solid rgba(94,55,15,.06);
+      border-radius:22px;
+      box-shadow:var(--gourmet-shadow);
+      padding:1.4rem 1.2rem;
+      height:100%;
+    }
+
+    .d-card i{
+      font-size:1.9rem;
+      color:var(--gourmet-primary-dark);
+      margin-bottom:.8rem;
+    }
+
+    .d-card h3{
+      font-size:1.16rem;
+      font-weight:800;
+      color:var(--gourmet-dark);
+      margin-bottom:.5rem;
+    }
+
+    .d-card p{
+      color:var(--gourmet-muted);
+      line-height:1.7;
+      margin-bottom:0;
+    }
+
+    .d-stage{
+      background:linear-gradient(135deg,#fff5e6, #fffdf9);
+      border:1px solid #efd4a9;
+      border-radius:22px;
+      padding:1.2rem;
+      margin-bottom:1.2rem;
+    }
+
+    .d-stage h2{
+      font-size:1.25rem;
+      font-weight:900;
+      color:var(--gourmet-dark);
+      margin-bottom:.8rem;
+    }
+
+    .d-stage p{
+      color:var(--gourmet-muted);
+      line-height:1.75;
+      margin-bottom:0;
+    }
+
+    .d-checklist{
+      display:grid;
+      gap:.75rem;
+      margin-top:1rem;
+    }
+
+    .d-check{
+      background:#fff;
+      border:1px solid #ecd9bf;
+      border-radius:16px;
+      padding:.95rem 1rem;
+      color:var(--gourmet-text);
+    }
+
+    .d-actions{
+      display:flex;
+      flex-wrap:wrap;
+      gap:.85rem;
+      margin-top:1rem;
+    }
+
+    .btn-d-main{
+      background:linear-gradient(135deg,var(--gourmet-primary),var(--gourmet-accent));
+      color:#23160a !important;
+      padding:1rem 1.35rem;
+      font-size:1rem;
+      border-radius:999px;
+      text-decoration:none;
+      font-weight:800;
+      display:inline-flex;
+      gap:.55rem;
+      align-items:center;
+      justify-content:center;
+      border:none;
+      box-shadow:0 12px 28px rgba(245,158,11,.28);
+    }
+
+    .btn-d-soft{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:.45rem;
+      padding:.92rem 1.15rem;
+      border-radius:999px;
+      font-weight:800;
+      text-decoration:none;
+      background:#fff6e8;
+      color:#8b4f00;
+      border:1px solid #f1d4a3;
+    }
+
+    @media (max-width: 991px){
+      .d-grid{
+        grid-template-columns:1fr;
+      }
+    }
+  </style>
+
+  <section class="d-hero">
+    <span class="d-badge">
+      <i class="fa-solid fa-truck-fast"></i> Delivery Flow
+    </span>
+
+    <h1>Delivery Orders Board</h1>
+
+    <p>Prioritized for operations: assigned queue first, then bulk sending and delivery proof. {% if currentInstitution %}<br><strong>Institution:</strong> {{ currentInstitution.company_name }}{% endif %}</p>
+  </section>
+
+  <section class="d-stage">
+    <h2>Quick summary</h2>
+    <p><strong>Assigned orders:</strong> {{ orders|length }} · <strong>Role:</strong> {{ storeTeamRole|default('general')|upper }}</p>
+  </section>
+
+  <div class="d-actions">
+    <a href="{{ path('panel/planner-hub/team/store/orders/home') }}" class="btn-d-main">
+      <i class="fa-solid fa-box-open"></i> Back to Store Orders
+    </a>
+
+    <a href="{{ path('panel/planner-hub/team/store/kitchen/home') }}" class="btn-d-soft">
+      <i class="fa-solid fa-kitchen-set"></i> Go to Kitchen
+    </a>
+  </div>
+
+  <section class="card mt-4">
+    <div class="card-body">
+      <h5 class="mb-3">Assigned Delivery Queue (Priority)</h5>
+      {% if orders|length > 0 %}
+        <form method="post">
+          <input type="hidden" name="action" value="mark_sending_bulk">
+          <div class="table-responsive">
+            <table class="table table-hover align-middle">
+              <thead>
+                <tr>
+                  <th style="width:40px;"><input type="checkbox" id="selectAllDelivery"></th>
+                  <th>Order</th>
+                  <th>Client</th>
+                  <th>Shipping Address</th>
+                  <th>Coupon</th>
+                  <th>Status</th>
+                  <th>Code</th>
+                  <th class="text-end">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for o in orders %}
+                  <tr>
+                    <td>
+                      {% if o.status != 'DELIVERED' %}
+                        <input type="checkbox" name="order_ids[]" value="{{ o.id }}">
+                      {% endif %}
+                    </td>
+                    <td>#{{ o.id }}</td>
+                    <td>
+                      <div>{{ o.guest_name ?: '—' }}</div>
+                      <small class="text-muted">{{ o.guest_email ?: '—' }}</small>
+                    </td>
+                    <td class="small">{{ o.shipping_address_display ?: '—' }}</td>
+                    <td class="small">
+                      {% if o.coupon_code %}
+                        <span class="badge bg-info text-dark">{{ o.coupon_code }}</span>
+                        {% if (o.coupon_discount ?: 0) > 0 %}
+                          <div class="text-muted mt-1">- ${{ o.coupon_discount|number_format(2, '.', ',') }}</div>
+                        {% endif %}
+                      {% else %}
+                        <span class="text-muted">—</span>
+                      {% endif %}
+                    </td>
+                    <td>
+                      {% if o.status == 'PROCESSING' %}
+                        <span class="badge bg-info text-dark">PAID / PREPARING</span>
+                      {% elseif o.status == 'READY' %}
+                        <span class="badge bg-warning text-dark">SENDING</span>
+                      {% elseif o.status == 'DELIVERED' %}
+                        <span class="badge bg-success">DELIVERED</span>
+                      {% else %}
+                        <span class="badge bg-secondary">{{ o.status }}</span>
+                      {% endif %}
+                    </td>
+                    <td>
+                      <code>DLV-{{ o.id }}</code>
+                      {% if o.coupon_code %}
+                        <div class="small text-muted">CPN: {{ o.coupon_code }}</div>
+                      {% endif %}
+                    </td>
+                    <td class="text-end">
+                      {% if o.status != 'DELIVERED' %}
+                        <button type="button" class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#deliveredModal"
+                                data-order-id="{{ o.id }}" data-client="{{ o.guest_name ?: '—' }}">Deliver</button>
+                      {% else %}
+                        <span class="text-muted small">Completed</span>
+                      {% endif %}
+                    </td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          <button type="submit" class="btn btn-primary">Mark selected as SENDING</button>
+        </form>
+      {% else %}
+        <p class="text-muted mb-0">No assigned delivery orders.</p>
+      {% endif %}
+    </div>
+  </section>
+
+  <div class="modal fade" id="deliveredModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <form method="post" enctype="multipart/form-data">
+          <div class="modal-header">
+            <h5 class="modal-title">Mark as delivered</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <input type="hidden" name="action" value="mark_delivered">
+            <input type="hidden" name="order_id" id="deliveredOrderId">
+            <div class="small mb-2"><strong>Client:</strong> <span id="deliveredClientName"></span></div>
+            <div class="mb-3">
+              <label class="form-label">Delivery photo (proof)</label>
+              <input class="form-control" type="file" name="delivery_photo" accept="image/*" required>
+            </div>
+            <div class="mb-0">
+              <label class="form-label">Notes (optional)</label>
+              <textarea class="form-control" name="delivery_notes" rows="3"></textarea>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="submit" class="btn btn-success">Confirm delivered</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+</main>
+{% endblock %}
+
+{% block scripts %}
+  {{ parent() }}
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const selectAll = document.getElementById('selectAllDelivery');
+      if (selectAll) {
+        selectAll.addEventListener('change', function () {
+          document.querySelectorAll('input[name="order_ids[]"]').forEach(function (cb) {
+            cb.checked = selectAll.checked;
+          });
+        });
+      }
+
+      const deliveredModal = document.getElementById('deliveredModal');
+      if (deliveredModal) {
+        deliveredModal.addEventListener('show.bs.modal', function (event) {
+          const button = event.relatedTarget;
+          if (!button) return;
+          document.getElementById('deliveredOrderId').value = button.getAttribute('data-order-id') || '';
+          document.getElementById('deliveredClientName').textContent = button.getAttribute('data-client') || '—';
+        });
+      }
+    });
+  </script>
+{% endblock %}

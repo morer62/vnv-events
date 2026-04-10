@@ -1,0 +1,110 @@
+{% extends 'templates/base.admin.twig' %}
+{% import 'templates/macros.twig' as macros %}
+
+{% block body %}
+<main class="mt-4">
+    <div class="container">
+        <h1 class="h3">💵 Tips Management</h1>
+        {{ macros.breadcrumb2() }}
+        <p class="text-muted">Configure tip percentages for orders</p>
+        
+        <div class="mb-3">
+            <a href="{{ path('panel/planner-hub/management/orders') }}" class="btn btn-secondary">
+                <i data-feather="arrow-left"></i> Back to Orders
+            </a>
+        </div>
+
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">Add New Tip</h5>
+        </div>
+        <div class="card-body">
+            <form method="POST">
+                <input type="hidden" name="action" value="create">
+                <div class="row align-items-end">
+                    <div class="col-md-3">
+                        <label class="form-label">Tip Percentage</label>
+                        <div class="input-group">
+                            <input type="number" name="percentage" class="form-control" step="0.01" min="0.01" max="100" required>
+                            <span class="input-group-text">%</span>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i data-feather="plus-circle"></i> Add Tip
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h5 class="mb-0">Available Tips</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Percentage</th>
+                            <th>Status</th>
+                            <th>Created</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for tip in tips %}
+                        <tr>
+                            <td>{{ tip.id }}</td>
+                            <td>
+                                <strong>{{ tip.percentage }}%</strong>
+                            </td>
+                            <td>
+                                {% if tip.is_active == 1 %}
+                                    <span class="badge bg-success">Active</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">Inactive</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ tip.created_at|date('M d, Y') }}</td>
+                            <td>
+                                <form method="POST" style="display: inline;" onsubmit="return confirm('Are you sure?');">
+                                    <input type="hidden" name="action" value="toggle">
+                                    <input type="hidden" name="id" value="{{ tip.id }}">
+                                    <input type="hidden" name="current_status" value="{{ tip.is_active }}">
+                                    <button type="submit" class="btn btn-sm btn-outline-warning">
+                                        {% if tip.is_active == 1 %}
+                                            <i data-feather="pause-circle"></i> Deactivate
+                                        {% else %}
+                                            <i data-feather="play-circle"></i> Activate
+                                        {% endif %}
+                                    </button>
+                                </form>
+                                
+                                <form method="POST" style="display: inline;" onsubmit="return confirm('Delete this tip? This cannot be undone.');">
+                                    <input type="hidden" name="action" value="delete">
+                                    <input type="hidden" name="id" value="{{ tip.id }}">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger">
+                                        <i data-feather="trash-2"></i> Delete
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="5" class="text-center text-muted">
+                                No tips configured yet. Add one above.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    </div>
+</main>
+{% endblock %}

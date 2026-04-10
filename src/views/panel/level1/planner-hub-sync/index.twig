@@ -1,0 +1,30 @@
+{% extends 'templates/base.admin.twig' %}
+
+{% block body %}
+<main class="container py-5">
+    <h1 class="text-center mb-4">🔄 Sync Planner Hub (Level 1 ➝ 2 & 3)</h1>
+
+    <div class="card mx-auto" style="max-width: 480px;">
+        <div class="card-body text-center">
+            {% if not authorized %}
+                <form method="post">
+                    <label for="password" class="form-label">Enter password to sync</label>
+                    <input type="password" name="password" id="password" class="form-control mb-3" required>
+                    <button class="btn btn-primary">🔐 Unlock and Sync</button>
+                </form>
+            {% else %}
+                <h5>✅ Access granted.</h5>
+                {% if synced %}
+                    <p class="text-success">{{ message }}</p>
+                {% else %}
+                    <p class="text-danger">{{ message }}</p>
+                {% endif %}
+            {% endif %}
+
+            {% if message and not authorized %}
+                <p class="text-danger mt-3">{{ message }}</p>
+            {% endif %}
+        </div>
+    </div>
+</main>
+{% endblock %}
