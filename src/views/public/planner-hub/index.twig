@@ -1,1657 +1,1337 @@
 {% extends "templates/base.twig" %}
 
+{# 
+    VNV EVENTS - POLISHED VERSION + SERVICES PARALLAX + INSTAGRAM SECTION
+#}
+
 {% set show_whatsapp = true %}
 
 {% block styles %}
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@200;300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,700;0,900;1,700;1,900&display=swap" rel="stylesheet">
 
 <style>
-:root{
-    --av-primary:#8fbc2e;
-    --av-primary-dark:#6a9616;
-    --av-accent:#f59e0b;
-    --av-accent-dark:#d97706;
-    --av-cream:#fffdf3;
-    --av-soft:#f7f6ea;
-    --av-soft-2:#f2f0dd;
-    --av-text:#223018;
-    --av-muted:#657255;
-    --av-border:#dfe6bf;
-    --av-shadow:0 18px 44px rgba(66,84,25,.12);
-    --av-shadow-strong:0 24px 58px rgba(54,70,18,.18);
-    --av-dark:#17210f;
-}
-
-body{
-    background:linear-gradient(180deg,#fffef8 0%, #f8f7ec 100%);
-    color:var(--av-text);
-}
-
-.section{
-    padding:5rem 0;
-    position:relative;
-}
-
-.section-alt{
-    background:linear-gradient(180deg,#f9f7ea 0%, #f3f1dd 100%);
-}
-
-.container-narrow{
-    max-width:1180px;
-    margin:0 auto;
-    padding:0 1rem;
-}
-
-.badge-pill{
-    display:inline-flex;
-    align-items:center;
-    gap:.5rem;
-    padding:.55rem .95rem;
-    border-radius:999px;
-    font-weight:800;
-    font-size:.92rem;
-    border:1px solid rgba(255,255,255,.18);
-    backdrop-filter:blur(8px);
-}
-
-.badge-light{
-    background:rgba(255,255,255,.16);
-    color:#fff;
-}
-
-.g-title{
-    font-size:clamp(2rem,4vw,3.25rem);
-    line-height:1.06;
-    font-weight:900;
-    color:var(--av-dark);
-    letter-spacing:-1px;
-    margin-bottom:1rem;
-}
-
-.g-title .highlight{
-    color:var(--av-primary-dark);
-}
-
-.g-subtitle{
-    max-width:850px;
-    margin:0 auto;
-    color:var(--av-muted);
-    font-size:1.07rem;
-    line-height:1.8;
-}
-
-.btn-main{
-    background:linear-gradient(135deg,var(--av-accent),#ffb11f);
-    color:#2a2007 !important;
-    padding:1rem 1.45rem;
-    border-radius:999px;
-    text-decoration:none;
-    font-weight:900;
-    display:inline-flex;
-    align-items:center;
-    justify-content:center;
-    gap:.6rem;
-    border:none;
-    box-shadow:0 16px 34px rgba(245,158,11,.28);
-    transition:all .22s ease;
-}
-
-.btn-main:hover{
-    transform:translateY(-2px);
-    color:#2a2007 !important;
-}
-
-.btn-glass{
-    background:rgba(255,255,255,.10);
-    color:#fff !important;
-    padding:1rem 1.35rem;
-    border-radius:999px;
-    text-decoration:none;
-    font-weight:800;
-    display:inline-flex;
-    align-items:center;
-    justify-content:center;
-    gap:.55rem;
-    border:1px solid rgba(255,255,255,.18);
-    backdrop-filter:blur(8px);
-    transition:all .22s ease;
-}
-
-.btn-glass:hover{
-    transform:translateY(-2px);
-    color:#fff !important;
-}
-
-.btn-soft{
-    background:#fff;
-    color:var(--av-dark) !important;
-    padding:1rem 1.35rem;
-    border-radius:999px;
-    text-decoration:none;
-    font-weight:800;
-    display:inline-flex;
-    align-items:center;
-    justify-content:center;
-    gap:.55rem;
-    border:1px solid #e8eacb;
-    box-shadow:0 10px 26px rgba(76,95,31,.08);
-}
-
-.hero{
-    min-height:100vh;
-    position:relative;
-    overflow:hidden;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    color:#fff;
-    text-align:center;
-    background:#19220f;
-}
-
-.hero-video-bg{
-    position:absolute;
-    inset:0;
-    width:100%;
-    height:100%;
-    object-fit:cover;
-    z-index:0;
-}
-
-.hero-overlay{
-    position:absolute;
-    inset:0;
-    background:
-        linear-gradient(180deg, rgba(10,16,7,.45) 0%, rgba(14,22,8,.56) 40%, rgba(18,24,10,.70) 100%),
-        radial-gradient(circle at 20% 20%, rgba(146,188,46,.22), transparent 28%),
-        radial-gradient(circle at 80% 25%, rgba(245,158,11,.18), transparent 24%);
-    z-index:1;
-}
-
-.hero-content{
-    position:relative;
-    z-index:3;
-    width:100%;
-    max-width:1260px;
-    padding:2.3rem 1rem 4rem;
-}
-
-.hero-logo{
-    max-width:235px;
-    width:100%;
-    filter:drop-shadow(0 8px 22px rgba(0,0,0,.22));
-}
-
-.hero h1{
-    font-size:clamp(2.5rem,5.6vw,5.1rem);
-    line-height:1.02;
-    letter-spacing:-1.2px;
-    font-weight:900;
-    margin:1rem auto 1rem;
-    max-width:980px;
-    text-shadow:0 12px 30px rgba(0,0,0,.25);
-}
-
-.hero h1 .warm{
-    color:#d8f372;
-}
-
-.hero-lead{
-    max-width:900px;
-    margin:0 auto;
-    font-size:1.14rem;
-    line-height:1.85;
-    color:#f2f8df;
-    text-shadow:0 2px 10px rgba(0,0,0,.18);
-}
-
-.hero-cta-row{
-    display:flex;
-    flex-wrap:wrap;
-    justify-content:center;
-    gap:.9rem;
-    margin-top:2rem;
-}
-
-.hero-micro{
-    margin-top:1rem;
-    color:#eef7d3;
-    font-size:.96rem;
-}
-
-.hero-mini-grid{
-    margin-top:2.2rem;
-}
-
-.hero-mini-card{
-    background:rgba(255,255,255,.10);
-    border:1px solid rgba(255,255,255,.14);
-    border-radius:22px;
-    padding:1.15rem 1rem;
-    text-align:left;
-    height:100%;
-    backdrop-filter:blur(7px);
-    box-shadow:0 14px 34px rgba(0,0,0,.16);
-}
-
-.hero-mini-card i{
-    color:#d8f372;
-    font-size:1.3rem;
-    margin-bottom:.7rem;
-}
-
-.hero-mini-card strong{
-    display:block;
-    color:#fff;
-    margin-bottom:.25rem;
-    font-size:1rem;
-}
-
-.hero-mini-card span{
-    color:#f3f8e5;
-    line-height:1.6;
-    font-size:.95rem;
-}
-
-.mascot-hero-left{
-    position:absolute;
-    left:0;
-    bottom:0;
-    width:min(27vw, 310px);
-    z-index:2;
-    pointer-events:none;
-    filter:drop-shadow(0 16px 32px rgba(0,0,0,.20));
-}
-
-.mascot-hero-right{
-    position:absolute;
-    right:0;
-    bottom:0;
-    width:min(34vw, 400px);
-    z-index:2;
-    pointer-events:none;
-    filter:drop-shadow(0 18px 34px rgba(0,0,0,.20));
-}
-
-.value-ribbon{
-    margin-top:-2.2rem;
-    position:relative;
-    z-index:5;
-}
-
-.value-grid{
-    background:#fff;
-    border:1px solid #e7ebca;
-    border-radius:28px;
-    box-shadow:var(--av-shadow);
-    overflow:hidden;
-}
-
-.value-box{
-    padding:1.35rem 1rem;
-    text-align:center;
-    height:100%;
-    background:linear-gradient(180deg,#fffef7 0%, #f9f8ee 100%);
-    border-right:1px solid #edf0d9;
-}
-
-.value-box:last-child{
-    border-right:none;
-}
-
-.value-box strong{
-    display:block;
-    font-size:1.55rem;
-    color:var(--av-primary-dark);
-    margin-bottom:.2rem;
-    font-weight:900;
-}
-
-.value-box span{
-    color:var(--av-muted);
-    line-height:1.55;
-    font-weight:700;
-}
-
-.story-card{
-    background:#fff;
-    border:1px solid #e6ebc8;
-    border-radius:28px;
-    box-shadow:var(--av-shadow);
-    padding:2rem 1.5rem;
-    position:relative;
-    overflow:hidden;
-}
-
-.story-points{
-    display:grid;
-    gap:1rem;
-    margin-top:1.4rem;
-}
-
-.story-point{
-    display:flex;
-    gap:.85rem;
-    align-items:flex-start;
-    padding:1rem 1rem;
-    border:1px solid #edf0da;
-    border-radius:18px;
-    background:linear-gradient(180deg,#fffef8 0%, #faf9f0 100%);
-}
-
-.story-point i{
-    color:var(--av-primary-dark);
-    font-size:1rem;
-    margin-top:.2rem;
-}
-
-.story-point strong{
-    display:block;
-    color:var(--av-dark);
-    margin-bottom:.18rem;
-}
+:root {
+    --vnv-primary: #5EC6C4;
+    --vnv-primary-dark: #4aa8a6;
+    --vnv-gold: #c5a059;
+    --vnv-gold-gradient: linear-gradient(135deg, #bf953f 0%, #fcf6ba 45%, #b38728 100%);
+    --vnv-dark-deep: #0a0c0c;
+    --vnv-dark-soft: #161a1b;
+    --vnv-dark-card: #1c2223;
+    --vnv-light: #ffffff;
+    --vnv-marble: #f4f7f8;
+    --vnv-text-main: #2d3436;
+    --vnv-text-dark: #11181a;
+    --vnv-text-light: #f1f2f6;
+    --vnv-text-muted: rgba(255, 255, 255, 0.72);
+    --vnv-text-muted-soft: rgba(255, 255, 255, 0.62);
+    --vnv-shadow-lg: 0 40px 100px rgba(0,0,0,0.18);
+    --vnv-glow: 0 0 40px rgba(94, 198, 196, 0.2);
+    --vnv-border: rgba(255, 255, 255, 0.06);
+}
 
-.story-point span{
-    color:var(--av-muted);
-    line-height:1.65;
-}
-
-.plan-card{
-    display:flex;
-    flex-direction:column;
-    height:100%;
-    background:#fff;
-    border:2px solid #dfe6bf;
-    border-radius:30px;
-    overflow:hidden;
-    box-shadow:var(--av-shadow);
-    position:relative;
-}
-
-.plan-card.featured{
-    border-color:var(--av-primary);
-    transform:translateY(-6px);
-    box-shadow:var(--av-shadow-strong);
-}
-
-.plan-head{
-    background:linear-gradient(180deg,#fbf8d9 0%, #f2efc7 100%);
-    padding:1.5rem 1.5rem 1.35rem;
-    border-bottom:1px solid #e7ebc8;
-}
-
-.plan-head .label{
-    display:inline-flex;
-    align-items:center;
-    padding:.45rem .8rem;
-    border-radius:999px;
-    background:#fff;
-    color:var(--av-primary-dark);
-    font-size:.84rem;
-    font-weight:900;
-    border:1px solid #dde8ab;
-    margin-bottom:.9rem;
-}
-
-.plan-head h3{
-    font-size:1.1rem;
-    font-weight:900;
-    color:var(--av-dark);
-    margin-bottom:.5rem;
-}
-
-.plan-head p{
-    margin:0;
-    color:var(--av-muted);
-    line-height:1.7;
-    font-size:.96rem;
-}
-
-.plan-body{
-    display:flex;
-    flex-direction:column;
-    padding:1.6rem 1.5rem 1.8rem;
-    flex:1;
-    min-height:480px;
-    position:relative;
-}
-
-.plan-price{
-    font-size:3rem;
-    font-weight:900;
-    color:var(--av-primary-dark);
-    line-height:1;
-    margin-bottom:.5rem;
-}
-
-.plan-price small{
-    font-size:1rem;
-    color:var(--av-muted);
-    font-weight:800;
-}
+html { scroll-behavior: smooth; }
+
+body {
+    background-color: var(--vnv-dark-deep);
+    color: var(--vnv-text-light);
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    line-height: 1.8;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+}
+
+h1, h2, h3, h4, .luxury-font {
+    font-family: 'Playfair Display', serif;
+}
+
+.text-gold {
+    background: var(--vnv-gold-gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-weight: 700;
+}
+
+.text-vnv { color: var(--vnv-primary) !important; }
+.text-vnv-muted { color: rgba(94, 198, 196, 0.82) !important; }
+.border-vnv { border-color: var(--vnv-primary) !important; }
+.letter-spacing-lg { letter-spacing: 5px; }
+
+.vnv-btn {
+    padding: 22px 50px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    transition: all 0.6s cubic-bezier(0.165, 0.84, 0.44, 1);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    text-decoration: none;
+    border: none;
+    cursor: pointer;
+    font-size: 0.8rem;
+    position: relative;
+    z-index: 1;
+    border-radius: 999px;
+}
+
+.btn-gold-vnv {
+    background: var(--vnv-gold-gradient);
+    color: #000 !important;
+}
 
-.plan-note{
-    color:var(--av-muted);
-    line-height:1.7;
-    margin-bottom:1rem;
-    font-size:1.02rem;
+.btn-gold-vnv:hover {
+    transform: translateY(-5px) scale(1.02);
+    box-shadow: 0 20px 40px rgba(197, 160, 89, 0.3);
 }
 
-.plan-list{
-    list-style:none;
-    padding:0;
-    margin:0 0 1.2rem;
-    display:grid;
-    gap:.7rem;
-}
-
-.plan-list li{
-    padding:.85rem 0;
-    border-bottom:1px dashed #dce6b4;
-    color:#45543b;
-    font-size:1.02rem;
-    line-height:1.55;
+.btn-outline-vnv {
+    border: 2px solid var(--vnv-primary);
+    color: var(--vnv-primary) !important;
+    background: transparent;
 }
 
-.plan-list li::before{
-    content:"✓";
-    color:#22a64f;
-    font-weight:900;
-    margin-right:.8rem;
+.btn-outline-vnv:hover {
+    background: var(--vnv-primary);
+    color: white !important;
 }
 
-.plan-card .btn-main,
-.plan-card .btn-soft{
-    margin-top:auto;
-    width:100%;
-    justify-content:center;
-    text-align:center;
-    min-height:58px;
+.btn-ghost-white {
+    border: 1px solid rgba(255,255,255,0.2);
+    color: white !important;
+    background: transparent;
 }
-
-.mascot-card-large{
-    position:absolute;
-    right:18px;
-    bottom:16px;
-    width:110px;
-    opacity:.96;
-    pointer-events:none;
-}
-
-.mascot-side-left{
-    position:absolute;
-    left:-18px;
-    bottom:-18px;
-    width:170px;
-    opacity:.96;
-    pointer-events:none;
-}
-
-.mascot-side-right{
-    position:absolute;
-    right:-22px;
-    top:-18px;
-    width:150px;
-    opacity:.95;
-    pointer-events:none;
-}
-
-.feature-grid{
-    margin-top:2rem;
-}
-
-.feature-card{
-    height:100%;
-    background:#fff;
-    border:1px solid #e4eac2;
-    border-radius:24px;
-    padding:1.4rem 1.2rem;
-    box-shadow:0 12px 28px rgba(76,95,31,.08);
-}
 
-.feature-card i{
-    width:52px;
-    height:52px;
-    border-radius:16px;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    background:linear-gradient(135deg,#edf7c8,#fff0cf);
-    color:var(--av-primary-dark);
-    font-size:1.2rem;
-    margin-bottom:.95rem;
+.btn-ghost-white:hover {
+    background: white;
+    color: black !important;
 }
 
-.feature-card h4{
-    font-size:1.08rem;
-    font-weight:900;
-    color:var(--av-dark);
-    margin-bottom:.45rem;
+.section-vnv {
+    padding: 160px 0;
+    position: relative;
 }
 
-.feature-card p{
-    margin:0;
-    color:var(--av-muted);
-    line-height:1.75;
+.section-light {
+    background-color: var(--vnv-marble);
+    color: var(--vnv-text-dark);
+    border-radius: 140px 0 0 0;
+    margin-top: -100px;
+    z-index: 10;
 }
 
-.cta-shell{
-    position:relative;
-    background:linear-gradient(135deg,#213112 0%, #2a4014 48%, #435f15 100%);
-    border-radius:32px;
-    padding:3rem 1.3rem;
-    color:#fff;
-    overflow:hidden;
-    box-shadow:0 26px 60px rgba(38,54,13,.22);
+.vnv-hero-master {
+    min-height: 100vh;
+    display: flex;
+    background: #ffffff;
+    position: relative;
+    z-index: 1;
 }
 
-.cta-shell h2{
-    color:#fff;
-    margin-bottom:1rem;
+.hero-split-container {
+    display: flex;
+    width: 100%;
+    min-height: 100vh;
 }
 
-.cta-shell p{
-    max-width:780px;
-    margin:0 auto 1.3rem;
-    color:#eef7d5;
-    line-height:1.85;
-    font-size:1.06rem;
+.hero-info-pane {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 0 8%;
+    background: white;
+    z-index: 100;
 }
 
-.cta-mascot-left{
-    position:absolute;
-    left:24px;
-    bottom:-6px;
-    width:180px;
-    opacity:.97;
-    pointer-events:none;
+.hero-visual-pane {
+    flex: 1.3;
+    position: relative;
+    clip-path: polygon(15% 0, 100% 0, 100% 100%, 0% 100%);
+    background: #000;
+}
+
+.hero-video-src {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    filter: brightness(0.9);
 }
 
-.cta-mascot-right{
-    position:absolute;
-    right:18px;
-    top:18px;
-    width:135px;
-    opacity:.95;
-    pointer-events:none;
-}
-
-.footer-link-row{
-    display:flex;
-    flex-wrap:wrap;
-    gap:.8rem;
-    justify-content:center;
-    align-items:center;
-    margin-top:1.4rem;
-}
-
-.spm-popup{
-    position:fixed;
-    right:18px;
-    bottom:18px;
-    width:min(420px, calc(100vw - 22px));
-    z-index:99;
-    background:linear-gradient(180deg,#fffef8 0%, #fbfaef 100%);
-    border:1px solid #e4e8c4;
-    border-radius:24px;
-    box-shadow:0 24px 54px rgba(56,73,18,.18);
-    overflow:hidden;
-}
-
-.spm-popup.hidden{
-    display:none;
-}
-
-.spm-top{
-    padding:1rem 1rem .9rem;
-    background:linear-gradient(180deg,#f7f6d5 0%, #f1efc5 100%);
-    border-bottom:1px solid #e8ebca;
-}
-
-.spm-top h4{
-    margin:0;
-    font-size:1.1rem;
-    font-weight:900;
-    color:var(--av-dark);
-}
-
-.spm-body{
-    padding:1rem;
-}
-
-.spm-body p{
-    color:var(--av-muted);
-    line-height:1.7;
-    margin-bottom:.9rem;
-}
-
-.spm-chips{
-    display:flex;
-    flex-wrap:wrap;
-    gap:.45rem;
-    margin-bottom:.95rem;
-}
-
-.spm-chip{
-    display:inline-flex;
-    align-items:center;
-    padding:.45rem .72rem;
-    border-radius:999px;
-    background:#fff;
-    border:1px solid #e2e8bf;
-    color:var(--av-primary-dark);
-    font-size:.83rem;
-    font-weight:900;
-}
-
-.spm-actions{
-    display:flex;
-    gap:.65rem;
-    flex-wrap:wrap;
-}
-
-.spm-close{
-    position:absolute;
-    top:10px;
-    right:12px;
-    width:34px;
-    height:34px;
-    border:none;
-    border-radius:50%;
-    background:#fff;
-    color:#56604b;
-    font-size:1rem;
-    box-shadow:0 8px 18px rgba(0,0,0,.08);
-}
-
-@media (max-width: 1199px){
-    .mascot-hero-left{
-        width:min(23vw,240px);
+.hero-info-pane h1 {
+    font-size: clamp(3rem, 6.5vw, 5.5rem);
+    font-weight: 900;
+    color: #1a1f20;
+    line-height: 1.08;
+    margin-bottom: 35px;
+}
+
+.hero-tagline {
+    color: var(--vnv-primary);
+    font-weight: 800;
+    letter-spacing: 4px;
+    display: block;
+    margin-bottom: 20px;
+    text-transform: uppercase;
+}
+
+.hero-description {
+    max-width: 550px;
+    color: #5d6668;
+}
+
+.metric-strip-vnv {
+    background: var(--vnv-dark-deep);
+    padding: 100px 0;
+    border-bottom: 1px solid var(--vnv-border);
+}
+
+.metric-val {
+    font-size: 4.5rem;
+    font-weight: 900;
+    color: var(--vnv-primary);
+    line-height: 1;
+}
+
+.metric-label {
+    letter-spacing: 5px;
+    font-weight: 700;
+    opacity: 0.5;
+    font-size: 0.7rem;
+    margin-top: 15px;
+}
+
+/* SERVICES + PARALLAX VIDEO */
+.section-services-vnv {
+    background-color: var(--vnv-dark-deep);
+    padding: 160px 0;
+    position: relative;
+    overflow: hidden;
+    isolation: isolate;
+}
+
+.services-bg-video-wrap {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+}
+
+.services-bg-video {
+    width: 100%;
+    height: 120%;
+    object-fit: cover;
+    object-position: center center;
+    opacity: 0.15;
+    filter: blur(2px) saturate(0.8);
+    transform: translateY(-6%);
+}
+
+.services-bg-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+        to bottom,
+        rgba(10,12,12,0.25),
+        rgba(10,12,12,0.28),
+        rgba(10,12,12,0.25)
+    );
+}
+
+.vnv-service-grid-card {
+    background: rgba(28, 34, 35, 0.82);
+    backdrop-filter: blur(6px);
+    border-radius: 28px;
+    padding: 60px 45px;
+    height: 100%;
+    border: 1px solid rgba(197, 160, 89, 0.08);
+    transition: all 0.6s cubic-bezier(0.165, 0.84, 0.44, 1);
+    position: relative;
+    overflow: hidden;
+    z-index: 2;
+}
+
+.vnv-service-grid-card:hover {
+    transform: translateY(-15px);
+    border-color: var(--vnv-gold);
+    box-shadow: 0 40px 80px rgba(0,0,0,0.5);
+}
+
+.service-icon-box {
+    width: 60px;
+    height: 60px;
+    background: rgba(197, 160, 89, 0.1);
+    border-radius: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--vnv-gold);
+    font-size: 1.6rem;
+    margin-bottom: 35px;
+}
+
+.service-num-floating {
+    position: absolute;
+    top: 40px;
+    right: 45px;
+    font-family: 'Playfair Display', serif;
+    font-size: 2.5rem;
+    font-weight: 900; 
+    color: rgba(197, 160, 89, 0.48);
+}
+
+.vnv-service-grid-card h3 {
+    font-size: 2rem;
+    font-weight: 700;
+    color: white;
+    margin-bottom: 25px;
+}
+
+.vnv-service-grid-card p {
+    color: var(--vnv-text-muted);
+    font-size: 1.05rem;
+    margin-bottom: 40px;
+}
+
+.vnv-link-gold {
+    color: var(--vnv-gold) !important;
+    font-weight: 800;
+    letter-spacing: 2px;
+    font-size: 0.85rem;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    transition: 0.4s;
+}
+
+.vnv-link-gold:hover {
+    gap: 20px;
+    color: white !important;
+}
+
+/* WHY CHOOSE US COMPOSITION */
+.choose-visual-composition{
+    position: relative;
+    width: 560px;
+    max-width: 100%;
+    height: 620px;
+    margin: 0 auto;
+}
+
+.choose-main-frame{
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 500px;
+    height: 500px;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 18px solid #3a3a3a;
+    box-shadow: 0 40px 100px rgba(0,0,0,0.18);
+    background: #fff;
+}
+
+.choose-main-frame::after{
+    content: "";
+    position: absolute;
+    inset: 18px;
+    border-radius: 50%;
+    border: 1px solid rgba(255,255,255,0.18);
+    pointer-events: none;
+}
+
+.choose-img-main,
+.choose-img-secondary{
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    display: block;
+}
+
+.choose-secondary-frame{
+    position: absolute;
+    right: 0;
+    bottom: 10px;
+    width: 240px;
+    height: 300px;
+    border-radius: 34px;
+    overflow: hidden;
+    border: 12px solid #ffffff;
+    box-shadow: 0 28px 70px rgba(0,0,0,0.18);
+    background: #fff;
+}
+
+.choose-secondary-frame::before{
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, rgba(0,0,0,0.12), transparent 40%);
+    pointer-events: none;
+    z-index: 1;
+}
+
+.check-vnv {
+    font-size: 1.8rem;
+    color: var(--vnv-primary);
+    margin-top: 5px;
+}
+
+.section-ophyra-vnv {
+    background: var(--vnv-dark-soft);
+    padding: 160px 0;
+}
+
+.ophyra-ui-console {
+    background: #000;
+    border-radius: 35px;
+    padding: 80px;
+    border: 1px solid var(--vnv-border);
+    box-shadow: var(--vnv-glow);
+    position: relative;
+    overflow: hidden;
+}
+
+.ophyra-ui-console::before {
+    content: "";
+    position: absolute;
+    top: -120px;
+    right: -80px;
+    width: 280px;
+    height: 280px;
+    background: radial-gradient(circle, rgba(94, 198, 196, 0.18) 0%, transparent 70%);
+    pointer-events: none;
+}
+
+.section-podcast-vnv {
+    background: white;
+    padding: 160px 0;
+    border-radius: 0 140px 0 0;
+}
+
+.podcast-glow-frame {
+    background: white;
+    padding: 25px;
+    border: 1px solid #eee;
+    box-shadow: 40px 40px 0px var(--vnv-primary);
+    border-radius: 16px;
+}
+
+/* INSTAGRAM SECTION */
+.section-instagram-vnv {
+    background: #0d1011;
+    padding: 160px 0;
+    position: relative;
+    overflow: hidden;
+}
+
+.section-instagram-vnv::before {
+    content: "";
+    position: absolute;
+    top: -120px;
+    left: -120px;
+    width: 320px;
+    height: 320px;
+    background: radial-gradient(circle, rgba(94,198,196,0.14) 0%, transparent 70%);
+    pointer-events: none;
+}
+
+.ig-modern-card {
+    position: relative;
+    overflow: hidden;
+    border-radius: 28px;
+    background: #151a1b;
+    border: 1px solid rgba(255,255,255,0.06);
+    aspect-ratio: 1 / 1;
+    display: block;
+    transition: transform .45s ease, box-shadow .45s ease, border-color .45s ease;
+}
+
+.ig-modern-card img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform .7s ease, opacity .4s ease;
+}
+
+.ig-modern-card::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, rgba(0,0,0,.52), rgba(0,0,0,.06));
+}
+
+.ig-modern-card:hover {
+    transform: translateY(-8px);
+    border-color: rgba(94,198,196,0.35);
+    box-shadow: 0 30px 60px rgba(0,0,0,0.35);
+}
+
+.ig-modern-card:hover img {
+    transform: scale(1.06);
+}
+
+.ig-modern-badge {
+    position: absolute;
+    right: 18px;
+    bottom: 18px;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255,255,255,.12);
+    color: #fff;
+    z-index: 2;
+    backdrop-filter: blur(8px);
+}
+
+.ig-modern-caption {
+    position: absolute;
+    left: 18px;
+    right: 70px;
+    bottom: 16px;
+    z-index: 2;
+    color: #fff;
+    font-size: 0.92rem;
+    font-weight: 600;
+    line-height: 1.35;
+}
+
+.section-plan-vnv {
+    padding: 140px 0;
+    background: var(--vnv-dark-deep);
+}
+
+.plan-vnv-card {
+    background: linear-gradient(145deg, #161a1b 0%, #0d0f0f 100%);
+    border-radius: 45px;
+    padding: 100px 80px;
+    border: 1px solid var(--vnv-border);
+    position: relative;
+    overflow: hidden;
+}
+
+.plan-vnv-card::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    right: 10%;
+    width: 400px;
+    height: 400px;
+    transform: translateY(-50%);
+    background: radial-gradient(circle, rgba(94, 198, 196, 0.08) 0%, transparent 70%);
+    pointer-events: none;
+}
+
+.plan-vnv-card p {
+    color: var(--vnv-text-muted-soft);
+}
+
+.vnv-badge-request {
+    background: rgba(94, 198, 196, 0.1);
+    color: var(--vnv-primary);
+    padding: 10px 25px;
+    border-radius: 50px;
+    font-size: 0.75rem;
+    font-weight: 800;
+    letter-spacing: 2px;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 40px;
+    text-transform: uppercase;
+}
+
+.vnv-footer-bento {
+    background: var(--vnv-dark-deep);
+    padding-bottom: 80px;
+}
+
+.bento-foot-card {
+    background: var(--vnv-dark-card);
+    border-radius: 30px;
+    padding: 60px;
+    height: 100%;
+    border: 1px solid var(--vnv-border);
+}
+
+.bento-foot-card p {
+    color: var(--vnv-text-muted-soft);
+}
+
+.contact-line {
+    display: flex;
+    gap: 25px;
+    margin-bottom: 30px;
+    align-items: flex-start;
+}
+
+.contact-line i {
+    color: var(--vnv-primary);
+    font-size: 1.3rem;
+    margin-top: 5px;
+}
+
+.vnv-btn-fixed{
+    min-width: 240px;
+    text-align: center;
+    white-space: normal;
+    line-height: 1.35;
+    padding: 20px 28px;
+}
+
+@keyframes rotateSlow {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+@media (max-width: 1199px) {
+    .vnv-btn { padding: 18px 34px; }
+    .ophyra-ui-console,
+    .plan-vnv-card { padding: 60px 45px; }
+}
+
+@media (max-width: 991px) {
+    .vnv-hero-master,
+    .hero-split-container {
+        flex-direction: column;
+        min-height: auto;
     }
 
-    .mascot-hero-right{
-        width:min(28vw,300px);
+    .hero-info-pane {
+        padding: 100px 30px 70px;
+        text-align: center;
     }
+
+    .hero-description {
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .hero-visual-pane {
+        height: 45vh;
+        clip-path: none;
+    }
+
+    .choose-visual-composition{
+        width: 340px;
+        height: 430px;
+    }
+
+    .choose-main-frame{
+        width: 300px;
+        height: 300px;
+        border-width: 12px;
+    }
+
+    .choose-secondary-frame{
+        width: 150px;
+        height: 190px;
+        border-width: 8px;
+        border-radius: 22px;
+        right: 0;
+        bottom: 0;
+    }
+
+    .plan-vnv-card,
+    .ophyra-ui-console {
+        padding: 50px 30px;
+        text-align: center;
+    }
+
+    .section-services-vnv,
+    .section-light,
+    .section-podcast-vnv {
+        border-radius: 0;
+    }
+
+    .podcast-glow-frame {
+        box-shadow: 20px 20px 0px var(--vnv-primary);
+    }
+
+    .metric-val {
+        font-size: 3rem;
+    }
+
+    .services-bg-video {
+        height: 100%;
+        transform: none;
+        filter: blur(1px) saturate(0.8);
+    }
+
+    .vnv-btn-fixed{
+        min-width: 100%;
+    }
+}
+
+@media (max-width: 575px) {
+    .section-vnv,
+    .section-services-vnv,
+    .section-ophyra-vnv,
+    .section-podcast-vnv,
+    .section-instagram-vnv,
+    .section-plan-vnv {
+        padding: 100px 0;
+    }
+
+    .hero-info-pane h1 {
+        font-size: 2.7rem;
+    }
+
+    .vnv-btn {
+        width: 100%;
+        padding: 18px 24px;
+        letter-spacing: 2px;
+    }
+
+    .vnv-service-grid-card,
+    .bento-foot-card {
+        padding: 40px 28px;
+    }
+
+    .service-num-floating {
+        top: 24px;
+        right: 24px;
+        font-size: 2rem;
+    }
+
+    .ig-modern-caption {
+        font-size: 0.82rem;
+        left: 14px;
+        right: 62px;
+        bottom: 14px;
+    }
+
+    .ig-modern-badge {
+        right: 14px;
+        bottom: 14px;
+        width: 40px;
+        height: 40px;
+    }
+
+    .vnv-app-download-panel{
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+    padding-left: 20px;
+}
+
+.vnv-app-download-eyebrow{
+    display: inline-block;
+    margin-bottom: 14px;
+    font-size: 0.78rem;
+    font-weight: 800;
+    letter-spacing: 3px;
+    color: var(--vnv-primary);
+    text-transform: uppercase;
+}
+
+.vnv-app-download-panel h3{
+    color: #fff;
+    font-size: clamp(2rem, 2.8vw, 3rem);
+    line-height: 1.05;
+    margin: 0 0 14px;
+}
+
+.vnv-app-download-panel p{
+    max-width: 420px;
+    color: rgba(255,255,255,0.68);
+    margin: 0 0 24px;
+    font-size: 1.02rem;
+}
+
+.vnv-app-download-badges{
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    width: 100%;
+    max-width: 320px;
+}
+
+.vnv-app-download-badges a{
+    display: block;
+    transition: transform .25s ease, opacity .25s ease;
+}
+
+.vnv-app-download-badges a:hover{
+    transform: translateY(-2px);
+    opacity: .96;
+}
+
+.vnv-app-download-badges img{
+    width: 100%;
+    height: auto;
+    display: block;
+    border-radius: 14px;
+}
+
+.vnv-app-download-links{
+    margin-top: 24px;
+}
+
+
+}
+
+
+.vnv-app-download-panel{
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+    padding-left: 24px;
+}
+
+.vnv-app-download-eyebrow{
+    display: inline-block;
+    margin-bottom: 14px;
+    font-size: 0.78rem;
+    font-weight: 800;
+    letter-spacing: 3px;
+    color: var(--vnv-primary);
+    text-transform: uppercase;
+}
+
+.vnv-app-download-panel h3{
+    color: #fff;
+    font-size: clamp(2rem, 2.8vw, 3rem);
+    line-height: 1.05;
+    margin: 0 0 14px;
+}
+
+.vnv-app-download-panel p{
+    max-width: 420px;
+    color: rgba(255,255,255,0.68);
+    margin: 0 0 24px;
+    font-size: 1.02rem;
+}
+
+.vnv-app-download-badges{
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    width: 280px;
+    max-width: 280px;
+}
+
+.vnv-app-download-badges a{
+    display: block;
+    transition: transform .25s ease, opacity .25s ease;
+}
+
+.vnv-app-download-badges a:hover{
+    transform: translateY(-2px);
+    opacity: .96;
+}
+
+.vnv-app-download-badges img{
+    width: 100%;
+    height: auto;
+    display: block;
+    border-radius: 18px;
 }
 
 @media (max-width: 991px){
-    .hero{
-        min-height:auto;
-        padding:6rem 0 4rem;
+    .vnv-app-download-panel{
+    padding-left: 0;
+    margin-top: 34px;
+    align-items: center;
+    text-align: center;
     }
 
-    .mascot-hero-left,
-    .mascot-hero-right{
-        display:none;
+    .vnv-app-download-panel p{
+        max-width: 100%;
     }
 
-    .value-box{
-        border-right:none;
-        border-bottom:1px solid #edf0d9;
-    }
-
-    .value-box:last-child{
-        border-bottom:none;
-    }
-
-    .plan-card.featured{
-        transform:none;
-    }
-
-    .plan-body{
-        min-height:auto;
-    }
-
-    .mascot-side-left,
-    .mascot-side-right,
-    .cta-mascot-left,
-    .cta-mascot-right{
-        display:none;
-    }
-}
-
-@media (max-width: 768px){
-    .section{
-        padding:4rem 0;
-    }
-
-    .hero-content{
-        padding:1.8rem 1rem 3rem;
-    }
-
-    .hero h1{
-        font-size:2.4rem;
-    }
-
-    .hero-lead{
-        font-size:1rem;
-    }
-
-    .hero-cta-row{
-        flex-direction:column;
-    }
-
-    .hero-cta-row .btn-main,
-    .hero-cta-row .btn-glass,
-    .footer-link-row .btn-main,
-    .footer-link-row .btn-glass{
-        width:100%;
-    }
-
-    .plan-card .btn-main,
-    .plan-card .btn-soft{
-        width:100%;
-        white-space:normal;
-        line-height:1.3;
-        padding:1rem 1rem;
-    }
-
-    .spm-popup{
-        right:10px;
-        left:10px;
-        width:auto;
-        bottom:10px;
-    }
-}
-
-@media (max-width: 768px){
-    footer .container-narrow > div{
-        flex-direction:column;
-        text-align:center;
+    .vnv-app-download-badges{
+        max-width: 320px;
     }
 }
 
 
-.wellness-shell{
-    position:relative;
-    background:linear-gradient(135deg,#fffef7 0%, #f7f5e7 48%, #eef4d7 100%);
-    border:1px solid #e2e8c3;
-    border-radius:36px;
-    padding:2.8rem 2.2rem;
-    overflow:hidden;
-    box-shadow:var(--av-shadow);
+.vnv-studio-card{
+    background: linear-gradient(145deg, #161a1b 0%, #0d0f0f 100%);
+    border-radius: 30px;
+    padding: 50px;
+    border: 1px solid rgba(255,255,255,0.06);
+    box-shadow: 0 20px 60px rgba(0,0,0,0.35);
 }
 
-.wellness-badge{
-    display:inline-flex;
-    align-items:center;
-    gap:.5rem;
-    padding:.55rem .95rem;
-    border-radius:999px;
-    background:#fff;
-    color:var(--av-primary-dark);
-    border:1px solid #dfe6bf;
-    font-size:.9rem;
-    font-weight:900;
-    margin-bottom:1rem;
+.vnv-studio-card h3{
+    font-size: 1.8rem;
+    font-weight: 800;
 }
 
-.wellness-shell h3{
-    font-size:clamp(2rem,3.5vw,3rem);
-    line-height:1.08;
-    font-weight:900;
-    color:var(--av-dark);
-    letter-spacing:-1px;
-    margin-bottom:1rem;
-    max-width:720px;
+.vnv-studio-card p{
+    color: rgba(255,255,255,0.7);
+    margin-bottom: 20px;
 }
 
-.wellness-shell p{
-    color:var(--av-muted);
-    line-height:1.9;
-    font-size:1.06rem;
-    margin-bottom:1.2rem;
-    max-width:760px;
+.vnv-studio-info{
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    color: #fff;
+    font-weight: 600;
+    margin-bottom: 25px;
 }
 
-.wellness-list{
-    list-style:none;
-    padding:0;
-    margin:1.3rem 0 1.6rem;
-    display:grid;
-    gap:.9rem;
-    max-width:760px;
+.vnv-studio-info i{
+    color: var(--vnv-primary);
 }
 
-.wellness-list li{
-    display:flex;
-    gap:.8rem;
-    align-items:flex-start;
-    color:var(--av-text);
-    font-weight:700;
-    line-height:1.7;
-    background:rgba(255,255,255,.78);
-    border:1px solid #e4eac5;
-    padding:1rem 1rem;
-    border-radius:18px;
-    box-shadow:0 10px 24px rgba(76,95,31,.06);
+.vnv-studio-actions{
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
 }
 
-.wellness-list li i{
-    color:var(--av-primary-dark);
-    margin-top:.2rem;
-    font-size:1rem;
-}
-
-.wellness-side-card{
-    position:relative;
-    background:linear-gradient(180deg,#ffffff 0%, #f8f7ee 100%);
-    border:1px solid #e4eac5;
-    border-radius:28px;
-    padding:1.4rem 1.2rem;
-    box-shadow:0 14px 30px rgba(76,95,31,.08);
-    height:100%;
-    z-index:2;
-}
-
-.wellness-side-card i{
-    width:54px;
-    height:54px;
-    border-radius:16px;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    background:linear-gradient(135deg,#edf7c8,#fff0cf);
-    color:var(--av-primary-dark);
-    font-size:1.2rem;
-    margin-bottom:.9rem;
-}
-
-.wellness-side-card h4{
-    font-size:1.08rem;
-    font-weight:900;
-    color:var(--av-dark);
-    margin-bottom:.45rem;
-}
-
-.wellness-side-card p{
-    margin:0;
-    color:var(--av-muted);
-    line-height:1.75;
-    font-size:.98rem;
-}
-
-.wellness-mascot{
-    position:absolute;
-    right:-20px;
-    bottom:-18px;
-    width:min(34vw, 420px);
-    max-width:420px;
-    z-index:1;
-    pointer-events:none;
-    opacity:.98;
-    filter:drop-shadow(0 18px 36px rgba(56,73,18,.16));
-}
-
-.wellness-glow{
-    position:absolute;
-    right:40px;
-    bottom:20px;
-    width:300px;
-    height:300px;
-    border-radius:50%;
-    background:radial-gradient(circle, rgba(143,188,46,.18) 0%, rgba(143,188,46,0) 70%);
-    z-index:0;
-    pointer-events:none;
-}
-
-@media (max-width: 991px){
-    .wellness-shell{
-        padding:2rem 1.3rem 2.2rem;
-    }
-
-    .wellness-mascot{
-        position:relative;
-        right:auto;
-        bottom:auto;
-        display:block;
-        width:min(78vw, 340px);
-        margin:1.5rem auto 0;
-    }
-
-    .wellness-glow{
-        display:none;
-    }
-
-    .wellness-shell h3,
-    .wellness-shell p,
-    .wellness-list{
-        max-width:none;
-    }
-}
-
-
-.wellness-shell{
-    position:relative;
-    background:linear-gradient(135deg,#fffef7 0%, #f7f5e7 48%, #eef4d7 100%);
-    border:1px solid #e2e8c3;
-    border-radius:36px;
-    padding:2.8rem 2.2rem;
-    overflow:hidden;
-    box-shadow:var(--av-shadow);
-}
-
-.wellness-badge{
-    display:inline-flex;
-    align-items:center;
-    gap:.5rem;
-    padding:.55rem .95rem;
-    border-radius:999px;
-    background:#fff;
-    color:var(--av-primary-dark);
-    border:1px solid #dfe6bf;
-    font-size:.9rem;
-    font-weight:900;
-    margin-bottom:1rem;
-}
-
-.wellness-shell h3{
-    font-size:clamp(2rem,3.5vw,3rem);
-    line-height:1.08;
-    font-weight:900;
-    color:var(--av-dark);
-    letter-spacing:-1px;
-    margin-bottom:1rem;
-    max-width:720px;
-}
-
-.wellness-shell p{
-    color:var(--av-muted);
-    line-height:1.9;
-    font-size:1.06rem;
-    margin-bottom:1.2rem;
-    max-width:760px;
-}
-
-.wellness-list{
-    list-style:none;
-    padding:0;
-    margin:1.3rem 0 1.6rem;
-    display:grid;
-    gap:.9rem;
-    max-width:760px;
-}
-
-.wellness-list li{
-    display:flex;
-    gap:.8rem;
-    align-items:flex-start;
-    color:var(--av-text);
-    font-weight:700;
-    line-height:1.7;
-    background:rgba(255,255,255,.88);
-    border:1px solid #e4eac5;
-    padding:1rem 1rem;
-    border-radius:18px;
-    box-shadow:0 10px 24px rgba(76,95,31,.06);
-}
-
-.wellness-list li i{
-    color:var(--av-primary-dark);
-    margin-top:.2rem;
-    font-size:1rem;
-}
-
-.wellness-right-column{
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    justify-content:flex-start;
-    gap:1rem;
-}
-
-.wellness-mascot-box{
-    width:100%;
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    min-height:340px;
-    padding:0 0 .5rem;
-}
-
-.wellness-mascot-main{
-    width:min(100%, 420px);
-    max-width:420px;
-    display:block;
-    filter:drop-shadow(0 24px 40px rgba(56,73,18,.16));
-}
-
-.wellness-side-card{
-    position:relative;
-    background:linear-gradient(180deg,#ffffff 0%, #f8f7ee 100%);
-    border:1px solid #e4eac5;
-    border-radius:28px;
-    padding:1.4rem 1.2rem;
-    box-shadow:0 14px 30px rgba(76,95,31,.08);
-    height:100%;
-}
-
-.wellness-side-card i{
-    width:54px;
-    height:54px;
-    border-radius:16px;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    background:linear-gradient(135deg,#edf7c8,#fff0cf);
-    color:var(--av-primary-dark);
-    font-size:1.2rem;
-    margin-bottom:.9rem;
-}
-
-.wellness-side-card h4{
-    font-size:1.08rem;
-    font-weight:900;
-    color:var(--av-dark);
-    margin-bottom:.45rem;
-}
-
-.wellness-side-card p{
-    margin:0;
-    color:var(--av-muted);
-    line-height:1.75;
-    font-size:.98rem;
-}
-
-@media (max-width: 991px){
-    .wellness-shell{
-        padding:2rem 1.3rem 2.2rem;
-    }
-
-    .wellness-shell h3,
-    .wellness-shell p,
-    .wellness-list{
-        max-width:none;
-    }
-
-    .wellness-mascot-box{
-        min-height:auto;
-        padding:.5rem 0 0;
-    }
-
-    .wellness-mascot-main{
-        width:min(82vw, 340px);
-    }
-}
-
-.wellness-shell{
-    background:linear-gradient(135deg,#fffef7 0%, #f7f5e7 48%, #eef4d7 100%);
-    border:1px solid #e2e8c3;
-    border-radius:36px;
-    padding:2.8rem 2.2rem;
-    box-shadow:var(--av-shadow);
-}
-
-.wellness-badge{
-    display:inline-flex;
-    align-items:center;
-    gap:.5rem;
-    padding:.55rem .95rem;
-    border-radius:999px;
-    background:#fff;
-    color:var(--av-primary-dark);
-    border:1px solid #dfe6bf;
-    font-size:.9rem;
-    font-weight:900;
-    margin-bottom:1rem;
-}
-
-.wellness-shell h3{
-    font-size:clamp(2rem,3.5vw,3rem);
-    line-height:1.08;
-    font-weight:900;
-    color:var(--av-dark);
-    letter-spacing:-1px;
-    margin-bottom:1rem;
-}
-
-.wellness-shell p{
-    color:var(--av-muted);
-    line-height:1.9;
-    font-size:1.06rem;
-    margin-bottom:1.2rem;
-}
-
-.wellness-list{
-    list-style:none;
-    padding:0;
-    margin:1.3rem 0 1.6rem;
-    display:grid;
-    gap:.9rem;
-}
-
-.wellness-list li{
-    display:flex;
-    gap:.8rem;
-    align-items:flex-start;
-    color:var(--av-text);
-    font-weight:700;
-    line-height:1.7;
-    background:rgba(255,255,255,.88);
-    border:1px solid #e4eac5;
-    padding:1rem 1rem;
-    border-radius:18px;
-    box-shadow:0 10px 24px rgba(76,95,31,.06);
-}
-
-.wellness-list li i{
-    color:var(--av-primary-dark);
-    margin-top:.2rem;
-    font-size:1rem;
-}
-
-.wellness-mascot-main{
-    width:min(100%, 460px);
-    max-width:460px;
-    display:block;
-    margin:0 auto;
-    filter:drop-shadow(0 22px 40px rgba(56,73,18,.16));
-}
-
-@media (max-width: 991px){
-    .wellness-shell{
-        padding:2rem 1.3rem 2.2rem;
-    }
-
-    .wellness-mascot-main{
-        width:min(82vw, 320px);
-        margin-top:1rem;
-    }
-}
 </style>
 {% endblock %}
 
 {% block body %}
 
-<section class="hero">
-    <video class="hero-video-bg" autoplay muted loop playsinline preload="auto">
-        <source src="{{ asset_for('assets/video/intro.mp4') }}" type="video/mp4">
-    </video>
-    <div class="hero-overlay"></div>
+{% include "templates/layout/publicHeaderVnv.html.twig" %}
 
-    {% if mascot_path_2 is defined %}
-        <img src="{{ mascot_path_2 }}" alt="Avomeal mascot" class="mascot-hero-left">
-    {% endif %}
-    {% if mascot_path_10 is defined %}
-        <img src="{{ mascot_path_10 }}" alt="Avomeal mascot" class="mascot-hero-right">
-    {% endif %}
-
-    <div class="hero-content">
-        <div>
-            <span class="badge-pill badge-light">
-                <i class="fa-solid fa-location-dot"></i> South Florida meal prep · Free delivery
-            </span>
-        </div>
-
-        <img src="{{ asset_for('assets/images/planner-hub-logo-positive.png') }}" class="hero-logo" alt="Avomeal logo">
-
-        <h1>
-            Chef-prepared <span class="warm">meal prep</span> for South Florida, delivered free and built for real weekly routines.
-        </h1>
-
-        <p class="hero-lead">
-            Start with <strong>5 meals for $75 per week</strong>, then add more anytime at <strong>$15 each</strong>.
-            Membership stays flexible, so clients can pause or resume whenever they want without feeling locked in.
-        </p>
-
-        <div class="hero-cta-row">
-            <a href="{{ path('/meal-plans') }}" class="btn-main">
-                <i class="fa-solid fa-bowl-food"></i> Start your meal plan
-            </a>
-
-            <a href="{{ path('login') }}" class="btn-glass">
-                <i class="fa-solid fa-right-to-bracket"></i> Login
-            </a>
-
-            <a href="https://vnvevents.com/vnv-gourmet/" target="_blank" rel="noopener" class="btn-glass">
-                <i class="fa-solid fa-utensils"></i> Event catering
-            </a>
-
-            <a href="tel:+13052045427" class="btn-glass">
-                <i class="fa-solid fa-phone"></i> Call now
-            </a>
-        </div>
-
-        <p class="hero-micro">
-            Free delivery in South Florida · Weekly meal prep · Pause or resume anytime
-        </p>
-
-        <div class="row g-3 justify-content-center hero-mini-grid">
-            <div class="col-md-4 col-12">
-                <div class="hero-mini-card">
-                    <i class="fa-solid fa-truck"></i>
-                    <strong>Free delivery</strong>
-                    <span>Weekly meal prep delivered across South Florida so the routine feels easier from the first week.</span>
-                </div>
-            </div>
-            <div class="col-md-4 col-12">
-                <div class="hero-mini-card">
-                    <i class="fa-solid fa-calendar-check"></i>
-                    <strong>Start with 5 meals for $75/week</strong>
-                    <span>Clear starting point, no confusing two-price structure, and additional meals at $15 each.</span>
-                </div>
-            </div>
-            <div class="col-md-4 col-12">
-                <div class="hero-mini-card">
-                    <i class="fa-solid fa-repeat"></i>
-                    <strong>Flexible membership</strong>
-                    <span>Turn it on, turn it off, pause, resume, and keep control without long-term pressure.</span>
-                </div>
-            </div>
-        </div>
-    </div>
-</section>
-
-<section class="value-ribbon">
-    <div class="container-narrow">
-        <div class="value-grid">
-            <div class="row g-0">
-                <div class="col-md-3 col-6">
-                    <div class="value-box">
-                        <strong>Start with $75</strong>
-                        <span>5 meals per week</span>
-                    </div>
-                </div>
-                <div class="col-md-3 col-6">
-                    <div class="value-box">
-                        <strong>$15</strong>
-                        <span>Each additional meal</span>
-                    </div>
-                </div>
-                <div class="col-md-3 col-6">
-                    <div class="value-box">
-                        <strong>Free delivery</strong>
-                        <span>South Florida coverage</span>
-                    </div>
-                </div>
-                <div class="col-md-3 col-6">
-                    <div class="value-box">
-                        <strong>Flexible</strong>
-                        <span>Pause or resume anytime</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</section>
-
-<section class="section">
-    <div class="container-narrow">
-        <div class="story-card">
-            {% if mascot_path_7 is defined %}
-                <img src="{{ mascot_path_7 }}" alt="Avomeal mascot" class="mascot-side-right">
-            {% endif %}
-
-            <h2 class="g-title text-center">
-                A clearer offer makes <span class="highlight">the decision easier</span>
-            </h2>
-            <p class="g-subtitle text-center">
-                Avomeal is no longer trying to say too many things at once. This page is focused on meal prep for South Florida, with free delivery and a simpler weekly structure.
+<section class="vnv-hero-master">
+    <div class="hero-split-container">
+        <div class="hero-info-pane animate__animated animate__fadeIn">
+            <span class="hero-tagline"><br>VNV EVENTS</span>
+            <h1>Full-Service Luxury Event Planning & <span class="text-gold">Catering Studio in South Florida</span></h1>
+            <p class="fs-5 mb-5 hero-description">
+               From Luxurious weddings to high-end corporate events
             </p>
+            <div class="d-flex flex-wrap gap-4 justify-content-center justify-content-lg-start">
+                <a href="tel:+13052045427" class="vnv-btn btn-gold-vnv">CALL (305) 204-5427</a>
+                <a href="#services" class="vnv-btn btn-outline-vnv">Our Services</a>
+            </div><br><br>
+        </div>
 
-            <div class="story-points">
-                <div class="story-point">
-                    <i class="fa-solid fa-circle-check"></i>
-                    <div>
-                        <strong>Start simple</strong>
-                        <span>Clients begin with 5 chef-prepared meals for $75 per week, which is easier to understand and easier to commit to.</span>
-                    </div>
-                </div>
+        <div class="hero-visual-pane">
+            <video class="hero-video-src" autoplay muted loop playsinline preload="auto">
+                <source src="{{ asset_for('assets/video/intro_vnv.mp4') }}" type="video/mp4">
+            </video>
+        </div>
+    </div>
+</section>
 
-                <div class="story-point">
-                    <i class="fa-solid fa-circle-check"></i>
-                    <div>
-                        <strong>Scale up naturally</strong>
-                        <span>Need more than 5? Additional meals are $15 each, so clients can grow their weekly plan without confusion.</span>
-                    </div>
-                </div>
-
-                <div class="story-point">
-                    <i class="fa-solid fa-circle-check"></i>
-                    <div>
-                        <strong>Keep flexibility</strong>
-                        <span>Membership can be paused or resumed anytime, which feels friendlier and removes pressure from the buying decision.</span>
-                    </div>
-                </div>
-
-                <div class="story-point">
-                    <i class="fa-solid fa-circle-check"></i>
-                    <div>
-                        <strong>Keep catering separate</strong>
-                        <span>Event catering still exists, but it belongs on its own path so this homepage can focus fully on meal prep.</span>
-                    </div>
-                </div>
+<section class="metric-strip-vnv text-center">
+    <div class="container">
+        <div class="row g-5">
+            <div class="col-6 col-lg-3">
+                <h3 class="metric-val">5+</h3>
+                <p class="metric-label">YEARS OF EXPERIENCE</p>
+            </div>
+            <div class="col-6 col-lg-3">
+                <h3 class="metric-val">200+</h3>
+                <p class="metric-label">EVENTS PER YEAR</p>
+            </div>
+            <div class="col-6 col-lg-3">
+                <h3 class="metric-val">FULL</h3>
+                <p class="metric-label">SERVICE SUPPORT</p>
+            </div>
+            <div class="col-6 col-lg-3">
+                <h3 class="metric-val">MODERN</h3>
+                <p class="metric-label">CLIENT EXPERIENCE</p>
             </div>
         </div>
     </div>
 </section>
 
-<section class="section section-alt">
-    <div class="container-narrow text-center">
-        <h2 class="g-title">
-            Built for people who want <span class="highlight">consistency without stress</span>
-        </h2>
-        <p class="g-subtitle">
-            The business is now centered around meal prep, recurring weekly buyers, and a cleaner delivery promise across South Florida.
-        </p>
-
-        <div class="row g-4 feature-grid">
-            <div class="col-md-3 col-sm-6">
-                <div class="feature-card">
-                    <i class="fa-solid fa-box-open"></i>
-                    <h4>Chef-prepared meals</h4>
-                    <p>Ready-to-go meals that save cooking time and reduce takeout dependence during the week.</p>
-                </div>
-            </div>
-            <div class="col-md-3 col-sm-6">
-                <div class="feature-card">
-                    <i class="fa-solid fa-leaf"></i>
-                    <h4>Routine-friendly</h4>
-                    <p>Designed to make healthy eating easier for busy people, parents, professionals, and active clients.</p>
-                </div>
-            </div>
-            <div class="col-md-3 col-sm-6">
-                <div class="feature-card">
-                    <i class="fa-solid fa-route"></i>
-                    <h4>South Florida delivery</h4>
-                    <p>Free delivery keeps the weekly plan simple and removes the friction that usually kills consistency.</p>
-                </div>
-            </div>
-            <div class="col-md-3 col-sm-6">
-                <div class="feature-card">
-                    <i class="fa-solid fa-sliders"></i>
-                    <h4>Flexible membership</h4>
-                    <p>People can turn membership on or off without feeling trapped in a rigid subscription model.</p>
-                </div>
-            </div>
-        </div>
+<section class="section-services-vnv" id="services">
+    <div class="services-bg-video-wrap">
+        <video class="services-bg-video" autoplay muted loop playsinline preload="auto">
+            <source src="{{ asset_for('assets/video/intro.mp4') }}" type="video/mp4">
+        </video>
+        <div class="services-bg-overlay"></div>
     </div>
-</section>
 
-
-<section class="section">
-    <div class="container-narrow">
-        <div class="wellness-shell">
-            <div class="row align-items-center g-4">
-                <div class="col-lg-7">
-                    <span class="wellness-badge">
-                        <i class="fa-solid fa-heart-pulse"></i> Free Wellness Tools
-                    </span>
-
-                    <h3>Start smarter before you even order</h3>
-
-                    <p>
-                        Before anyone buys a meal plan, Avomeal gives them something actually useful:
-                        <strong>free wellness tools</strong> that help estimate calories, protein, hydration, workout rhythm,
-                        recovery habits, and daily structure in a way that feels practical and real.
-                    </p>
-
-                    <ul class="wellness-list">
-                        <li>
-                            <i class="fa-solid fa-circle-check"></i>
-                            <span>Understand calorie and protein needs without random internet guesswork</span>
-                        </li>
-                        <li>
-                            <i class="fa-solid fa-circle-check"></i>
-                            <span>Get practical guidance around hydration, training rhythm, and routine consistency</span>
-                        </li>
-                        <li>
-                            <i class="fa-solid fa-circle-check"></i>
-                            <span>Turn “I should eat better” into a clearer, more realistic starting point</span>
-                        </li>
-                    </ul>
-
-                    <a href="{{ path('/free-wellness-tools') }}" class="btn-main">
-                        <i class="fa-solid fa-calculator"></i> Explore free tools
-                    </a>
-                </div>
-
-                <div class="col-lg-5 text-center">
-                    <img src="{{ asset_for('assets/images/mascot/9.png') }}" alt="Avomeal mascot" class="wellness-mascot-main">
-                </div>
-            </div>
-        </div>
-    </div>
-</section>
-
-<section class="section" id="plans">
-    <div class="container-narrow">
-        <h2 class="g-title text-center">
-            A cleaner path to <span class="highlight">weekly meal prep</span>
-        </h2>
-        <p class="g-subtitle text-center">
-            Avomeal is focused on meal prep for South Florida. Membership is flexible, delivery is included, and event catering stays available through a separate link.
-        </p>
-
-        <div class="row g-4 justify-content-center mt-4">
-            <div class="col-md-4">
-                <div class="plan-card">
-                    <div class="plan-head">
-                        <span class="label">How it starts</span>
-                        <h3>Weekly Meal Plan</h3>
-                        <p>Simple structure for clients who want better weekly food support.</p>
-                    </div>
-                    <div class="plan-body">
-                        <div class="plan-price"> Price Start at $75 <small>/ week </small></div>
-                        <p class="plan-note">Includes 5 chef-prepared meals with free South Florida delivery.</p>
-                        <ul class="plan-list">
-                            <li>Easy entry point for first-time buyers</li>
-                            <li>Perfect for building a consistent routine</li>
-                            <li>Simple pricing that feels easy to trust</li>
-                            <li>$15 adittional Meal</li>
-                        </ul>
-                        <a href="{{ path('/meal-plans') }}" class="btn-main">Start with 5 meals</a>
-
-                        {% if mascot_path_1 is defined %}
-                            <img src="{{ mascot_path_1 }}" alt="Avomeal mascot" class="mascot-card-large">
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-md-4">
-                <div class="plan-card featured">
-                    <div class="plan-head">
-                        <span class="label">Flexible membership</span>
-                        <h3>Pause or Resume Anytime</h3>
-                        <p>Keep the convenience without feeling trapped.</p>
-                    </div>
-                    <div class="plan-body">
-                        <div class="plan-price">Flexible <small>membership</small></div>
-                        <p class="plan-note">Turn it on or off whenever you want, with no hard long-term pressure.</p>
-                        <ul class="plan-list">
-                            <li>Great for repeat weekly buyers</li>
-                            <li>Better planning for both client and kitchen</li>
-                            <li>Easy to reactivate when needed</li>
-                            <li>Works with the same clean weekly pricing</li>
-                        </ul>
-                        <a href="{{ path('/meal-plans') }}" class="btn-main">Choose membership</a>
-
-                        {% if mascot_path_6 is defined %}
-                            <img src="{{ mascot_path_6 }}" alt="Avomeal mascot" class="mascot-card-large" style="width:115px;">
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-md-4">
-                <div class="plan-card">
-                    <div class="plan-head">
-                        <span class="label">Need events instead?</span>
-                        <h3>Event Catering</h3>
-                        <p>For stations, trays, corporate events, and private occasions.</p>
-                    </div>
-                    <div class="plan-body">
-                        <div class="plan-price">Visit <small>VNV Events</small></div>
-                        <p class="plan-note">Separate service for event catering and larger food experiences beyond meal prep.</p>
-                        <ul class="plan-list">
-                            <li>Corporate events and activations</li>
-                            <li>Private events and celebrations</li>
-                            <li>Stations, trays, and premium setups</li>
-                            <li>Handled outside the Avomeal ordering flow</li>
-                        </ul>
-                        <a href="https://vnvevents.com" target="_blank" rel="noopener" class="btn-soft">Go to catering</a>
-
-                        {% if mascot_path_10 is defined %}
-                            <img src="{{ mascot_path_10 }}" alt="Avomeal mascot" class="mascot-card-large" style="width:105px;">
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</section>
-
- 
-
-<section class="section">
-    <div class="container-narrow">
-        <div class="cta-shell text-center">
-            {% if mascot_path_9 is defined %}
-                <img src="{{ mascot_path_9 }}" alt="Avomeal mascot" class="cta-mascot-left">
-            {% endif %}
-            {% if mascot_path_4 is defined %}
-                <img src="{{ mascot_path_4 }}" alt="Avomeal mascot" class="cta-mascot-right">
-            {% endif %}
-
-            <h2 class="g-title">
-                South Florida meal prep made simpler
-            </h2>
-            <p>
-                Start with 5 meals for $75 per week, enjoy free delivery, and keep the flexibility to pause or resume your membership whenever you want.
-            </p>
-
-            <div class="footer-link-row">
-                <a href="{{ path('/meal-plans') }}" class="btn-main">
-                    <i class="fa-solid fa-bowl-food"></i> Start your order
-                </a>
-                <a href="https://vnvevents.com" target="_blank" rel="noopener" class="btn-glass">
-                    <i class="fa-solid fa-utensils"></i> Event catering
-                </a>
-            </div>
-        </div>
-    </div>
-</section>
-
-
-<section class="section section-alt" id="testimonials">
-    <div class="container-narrow">
-        <div class="text-center mb-5">
-            <h2 class="g-title">
-                Why clients keep coming <span class="highlight">back every week</span>
-            </h2>
-            <p class="g-subtitle">
-                Real-life convenience, better routine, and meals that actually feel worth ordering again.
-            </p>
+    <div class="container position-relative" style="z-index:2;">
+        <div class="text-center mb-5 pb-5">
+            <h2 class="display-2 fw-black text-white">Our <span class="text-vnv">Services</span></h2>
+            <p class="text-vnv-muted fs-4">A modern event house combining planning, production, media and hospitality.</p>
         </div>
 
         <div class="row g-4">
-            <div class="col-lg-4 col-md-6">
-                <div class="feature-card h-100">
-                    <p style="font-size:1.02rem; line-height:1.9; color:var(--av-text); margin-bottom:1.2rem;">
-                        “Honestly, this saved my weekdays. I was skipping meals or ordering takeout all the time, and now I already know lunch is handled. It made eating better feel realistic.”
-                    </p>
-                    <h4 style="margin-bottom:.2rem;">Melissa R.</h4>
-                    <p style="margin:0; color:var(--av-muted);">Busy Professional · Sunrise</p>
+            <div class="col-md-4">
+                <div class="vnv-service-grid-card">
+                    <span class="service-num-floating">01</span>
+                    <div class="service-icon-box"><i class="fa-solid fa-calendar-check"></i></div>
+                    <h3>Planner & Coordinator</h3>
+                    <p>Refined event planning and event-day coordination for weddings, social events and corporate functions.</p>
+                    <a href="#" data-vnv-open-request class="vnv-link-gold">REQUEST SERVICE →</a>
                 </div>
             </div>
 
-            <div class="col-lg-4 col-md-6">
-                <div class="feature-card h-100">
-                    <p style="font-size:1.02rem; line-height:1.9; color:var(--av-text); margin-bottom:1.2rem;">
-                        “What I liked most was the consistency. The meals are convenient, the portions make sense, and it actually helped us stop spending so much on random food during the week.”
-                    </p>
-                    <h4 style="margin-bottom:.2rem;">Daniel &amp; Sofia M.</h4>
-                    <p style="margin:0; color:var(--av-muted);">Family Order · Weston</p>
+            <div class="col-md-4">
+                <div class="vnv-service-grid-card">
+                    <span class="service-num-floating">02</span>
+                    <div class="service-icon-box"><i class="fa-solid fa-utensils"></i></div>
+                    <h3>Catering & Bartender</h3>
+                    <p>Gourmet food experiences, staffed service, drink planning and polished presentation for intimate or large events.</p>
+                    <a href="#planning" class="vnv-link-gold">REQUEST SERVICE →</a>
                 </div>
             </div>
 
-            <div class="col-lg-4 col-md-6">
-                <div class="feature-card h-100">
-                    <p style="font-size:1.02rem; line-height:1.9; color:var(--av-text); margin-bottom:1.2rem;">
-                        “I’ve tried meal prep before, but this felt more personal and much less generic. The food tastes fresh, delivery is easy, and the whole thing fits my routine without stress.”
-                    </p>
-                    <h4 style="margin-bottom:.2rem;">Jason T.</h4>
-                    <p style="margin:0; color:var(--av-muted);">Fitness-Focused Client · Pembroke Pines</p>
+            <div class="col-md-4">
+                <div class="vnv-service-grid-card">
+                    <span class="service-num-floating">03</span>
+                    <div class="service-icon-box"><i class="fa-solid fa-seedling"></i></div>
+                    <h3>Décor & Floral Design</h3>
+                    <p>Floral arrangements, statement pieces and space styling designed to create a memorable visual impact.</p>
+                    <a href="#planning" class="vnv-link-gold">REQUEST SERVICE →</a>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="vnv-service-grid-card">
+                    <span class="service-num-floating">04</span>
+                    <div class="service-icon-box"><i class="fa-solid fa-music"></i></div>
+                    <h3>DJ Services</h3>
+                    <p>Music direction and energy led by professionals with years of experience shaping celebrations and dance floors.</p>
+                    <a href="#planning" class="vnv-link-gold">REQUEST SERVICE →</a>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="vnv-service-grid-card">
+                    <span class="service-num-floating">05</span>
+                    <div class="service-icon-box"><i class="fa-solid fa-camera"></i></div>
+                    <h3>Photo, Video & Booth</h3>
+                    <p>Photography, videography and interactive experiences that preserve the atmosphere and story of your event.</p>
+                    <a href="#planning" class="vnv-link-gold">REQUEST SERVICE →</a>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="vnv-service-grid-card">
+                    <span class="service-num-floating">06</span>
+                    <div class="service-icon-box"><i class="fa-solid fa-users-gear"></i></div>
+                    <h3>Event Staffing</h3>
+                    <p>Professional support for setup, logistics and guest-facing operations when order and reliability matter most.</p>
+                    <a href="#planning" class="vnv-link-gold">REQUEST SERVICE →</a>
                 </div>
             </div>
         </div>
     </div>
 </section>
 
-<div class="spm-popup" id="spmPopup">
-    <button type="button" class="spm-close" id="spmCloseBtn">
-        <i class="fa-solid fa-xmark"></i>
-    </button>
+<section class="section-vnv section-light" id="why-vnv">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6 mb-5 mb-lg-0 text-center">
+                <div class="choose-visual-composition">
+                    <div class="choose-main-frame">
+                        <img src="{{ asset_for('assets/images/choose-us-team.jpg') }}" alt="VNV planning team" class="choose-img-main">
+                    </div>
 
-    <div class="spm-top">
-        <h4>Start your weekly meal plan</h4>
-    </div>
-
-    <div class="spm-body">
-        <p>
-            Build your Avomeal routine with chef-prepared meals, free South Florida delivery, and a structure that stays easy to maintain week after week.
-        </p>
-
-        <div class="spm-chips">
-            <span class="spm-chip">Start with $75 / week</span>
-            <span class="spm-chip">5 chef-prepared meals</span>
-            <span class="spm-chip">Free South Florida delivery</span>
-            <span class="spm-chip">$15 Each additional meal</span>
-        </div>
-
-        <div class="spm-actions">
-            <a href="{{ path('/meal-plans') }}" class="btn-main" style="flex:1;">
-                <i class="fa-solid fa-bowl-food"></i> Start now
-            </a>
-        </div>
-    </div>
-</div>
-
-
-<footer style="background:#11180b; color:#dbe7c3; padding:1.1rem 0; border-top:1px solid rgba(255,255,255,.08);">
-    <div class="container-narrow">
-        <div style="display:flex; justify-content:space-between; align-items:center; gap:1rem; flex-wrap:wrap;">
-            <div style="color:#aebd8d; font-size:.95rem;">
-                © {{ "now"|date("Y") }} Avomeal By VNV Events. All rights reserved.
+                    <div class="choose-secondary-frame">
+                        <img src="{{ asset_for('assets/images/choose-us-secondary.jpg') }}" alt="VNV guest experience" class="choose-img-secondary">
+                    </div>
+                </div>
             </div>
 
-            <div style="font-size:.95rem; color:#dbe7c3;">
-                Created by
-                <a href="https://vnvevents.com" target="_blank" rel="noopener" style="color:#d8f372; text-decoration:none; font-weight:800;">
-                    VNV Events
-                </a>
-                ·
-                <a href="https://www.instagram.com/avo_meal" target="_blank" rel="noopener" style="color:#ffcc66; text-decoration:none; font-weight:800;">
-                    @avo_meal
-                </a>
+            <div class="col-lg-6">
+                <span class="text-vnv fw-bold mb-3 d-block letter-spacing-lg">WHY CLIENTS CHOOSE VNV</span>
+                <h2 class="display-3 fw-black mb-5" style="color:var(--vnv-text-dark)">A more personal,<br>more complete experience.</h2>
+
+                <div class="mb-5 d-flex gap-4">
+                    <i class="fa-solid fa-circle-check check-vnv"></i>
+                    <div>
+                        <h4 class="fw-bold mb-2">Everything is connected under one vision.</h4>
+                        <p class="text-muted">Planning, production, hospitality and media work together so your event feels cohesive, elevated and easier to manage.</p>
+                    </div>
+                </div>
+
+                <div class="mb-5 d-flex gap-4">
+                    <i class="fa-solid fa-circle-check check-vnv"></i>
+                    <div>
+                        <h4 class="fw-bold mb-2">You get high-touch service with modern structure.</h4>
+                        <p class="text-muted">We combine personalized guidance with organized workflows, clear communication and a more polished client journey.</p>
+                    </div>
+                </div>
+
+                <div class="mb-5 d-flex gap-4">
+                    <i class="fa-solid fa-circle-check check-vnv"></i>
+                    <div>
+                        <h4 class="fw-bold mb-2">Best relation between price and quality.</h4>
+                        <p class="text-muted">Our experts will focus on providing the best list of prices in the market while keeping the highest quality standards.</p>
+                    </div>
+                </div>
+
+
             </div>
         </div>
     </div>
-</footer>
+</section>
+
+<section class="section-ophyra-vnv">
+    <div class="container">
+        <div class="ophyra-ui-console">
+            <div class="row align-items-center">
+                <div class="col-lg-7">
+                    <span class="text-vnv fw-bold mb-3 d-block letter-spacing-lg">DIGITAL ECOSYSTEM</span>
+                    <h2 class="display-3 fw-black text-white mb-4">A smarter client experience with <span class="text-vnv">VNV Core.</span></h2>
+                    <p class="fs-5 opacity-75 mb-5">
+                        As a VNV client, you gain access to a modern command center to review updates, manage requests and keep your event process more organized.
+                    </p>
+
+                    <div class="row g-4 mb-5">
+                        <div class="col-md-6">
+                            <div class="d-flex gap-3">
+                                <i class="fa-solid fa-shield-halved text-vnv fs-3"></i>
+                                <div>
+                                    <h6 class="text-white mb-1">Secure Payments</h6>
+                                    <p class="small opacity-50 mb-0">A cleaner and more transparent process.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="d-flex gap-3">
+                                <i class="fa-solid fa-clock-rotate-left text-vnv fs-3"></i>
+                                <div>
+                                    <h6 class="text-white mb-1">Live Updates</h6>
+                                    <p class="small opacity-50 mb-0">A better overview of your event journey.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <a href="{{ path('login') }}" class="vnv-btn btn-gold-vnv">Access Client Portal</a>
+                </div>
+
+                <div class="col-lg-5">
+                    <div class="vnv-app-download-panel">
+                        <span class="vnv-app-download-eyebrow">MOBILE ACCESS</span>
+                        <h3>Take VNV with you.</h3>
+                        <p>
+                            Access tools, event orders, music sessions and your client portal from anywhere.
+                        </p>
+
+                        <div class="vnv-app-download-badges">
+                            <a href="https://play.google.com/store/apps/details?id=com.vnvevents.eplannerhub" target="_blank" rel="noopener">
+                                <img src="{{ asset_for('assets/images/google-play-store-badge.png') }}" alt="Get it on Google Play">
+                            </a>
+
+                            <a href="https://apps.apple.com/us/app/vnv-events/id6747983836" target="_blank" rel="noopener">
+                                <img src="{{ asset_for('assets/images/download-on-the-app-store-apple-logo.png') }}" alt="Download on the App Store">
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="section-podcast-vnv" id="podcast">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-5">
+                <h2 class="display-3 fw-black mb-4" style="color:var(--vnv-text-dark)">Retro Glam <br><span class="text-vnv">Sessions</span></h2>
+                <p class="fs-5 text-muted mb-5">Culture, music and style conversations designed to inspire the mood behind unforgettable events.</p>
+
+                <div class="p-4 bg-light border-start border-5 border-vnv mb-5">
+                    <p class="m-0 fst-italic text-dark fw-bold">“Where nostalgia meets elegance.”</p>
+                </div>
+            </div>
+
+            <div class="col-lg-7">
+                <div class="podcast-glow-frame">
+                    <iframe src="https://widget.spreaker.com/player?show_id=5869072&theme=light&playlist=show&playlist-continuous=true&chapters-image=true" width="100%" height="450" frameborder="0"></iframe>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="section-instagram-vnv" id="instagram-feed">
+    <div class="container position-relative" style="z-index:2;">
+        <div class="row align-items-center">
+
+            <!-- LEFT -->
+            <div class="col-lg-6">
+                <span class="text-vnv fw-bold d-block mb-3 letter-spacing-lg">PORTFOLIO & SOCIAL</span>
+
+                <h2 class="display-3 fw-black text-white mb-3">
+                    See our work on <span class="text-vnv">@vnv_events</span>
+                </h2>
+
+                <p class="fs-5 mb-4" style="color:rgba(255,255,255,0.65);">
+                    Explore real events, behind-the-scenes moments and design details.
+                    Get inspired by what we create across South Florida.
+                </p>
+
+                <a href="https://www.instagram.com/vnv_events/" target="_blank" class="vnv-btn btn-outline-vnv">
+                    View Instagram Portfolio
+                </a>
+            </div>
+
+            <!-- RIGHT -->
+            <div class="col-lg-6 mt-5 mt-lg-0">
+                <div class="vnv-studio-card">
+
+                    <span class="vnv-badge-request">Visit Our Studio</span>
+
+                    <h3 class="text-white mb-3">Experience VNV in person.</h3>
+
+                    <p>
+                        Visit our VNV Studio in Sunrise, FL to explore event concepts,
+                        test food options and design your event in a fully immersive way.
+                    </p>
+
+                    <div class="vnv-studio-info">
+                        <i class="fa-solid fa-location-dot"></i>
+                        <span>10258 NW 47th St, Sunrise, FL 33351</span>
+                    </div>
+
+                    <div class="vnv-studio-actions">
+                        <a href="https://maps.google.com/?q=10258+NW+47th+St+Sunrise+FL+33351" target="_blank" class="vnv-btn btn-ghost-white">
+                            Get Directions
+                        </a>
+
+                        <a href="#" data-vnv-open-request class="vnv-btn btn-gold-vnv">
+                            Book a Tasting
+                        </a>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+<section class="section-plan-vnv" id="upcoming-events">
+    <div class="container">
+        <div class="plan-vnv-card animate__animated animate__fadeInUp">
+            <div class="row align-items-center">
+                <div class="col-lg-7">
+                    <span class="vnv-badge-request">Upcoming Events</span>
+                    <h2 class="display-3 fw-bold text-white mb-4">We design experiences<br>people remember.</h2>
+                    <p class="fs-5 mb-5">
+                        Discover upcoming VNV productions, immersive concepts and community-driven experiences across South Florida.
+                        Explore what’s next, view event details and secure your tickets before they sell out.
+                    </p>
+                </div>
+
+                <div class="col-lg-5 text-center text-lg-end">
+                    <div class="d-flex flex-column flex-lg-row gap-3 justify-content-end">
+                        <a href="/vnv-events-productions" class="vnv-btn btn-gold-vnv vnv-btn-fixed">
+                            View Events <i class="fa-solid fa-arrow-right ms-2"></i>
+                        </a>
+                        <a href="/vnv-events-productions" class="vnv-btn btn-ghost-white vnv-btn-fixed">
+                            Get Tickets
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+{% include "templates/components/publicEventRequestModal.html.twig" with {
+    request_form_action: "/api/public/event-request"
+} %}
+
+{% include "templates/layout/publicFooterVnv.html.twig" %}
+
 {% endblock %}
 
 {% block scripts %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+
 <script>
-document.addEventListener('DOMContentLoaded', function () {
-    const popup = document.getElementById('spmPopup');
-    const closeBtn = document.getElementById('spmCloseBtn');
-    const storageKey = 'avomeal_popup_closed_v1';
+if (typeof gsap !== 'undefined' && typeof ScrollTrigger !== 'undefined') {
+    gsap.registerPlugin(ScrollTrigger);
 
-    if (popup && !localStorage.getItem(storageKey)) {
-        setTimeout(() => {
-            popup.classList.remove('hidden');
-        }, 1600);
-    }
+    gsap.utils.toArray('.vnv-service-grid-card').forEach(card => {
+        gsap.from(card, {
+            scrollTrigger: {
+                trigger: card,
+                start: "top 85%"
+            },
+            y: 60,
+            opacity: 0,
+            duration: 1.1,
+            ease: "power4.out"
+        });
+    });
 
-    if (closeBtn) {
-        closeBtn.addEventListener('click', function () {
-            if (popup) {
-                popup.classList.add('hidden');
+    gsap.from(".choose-visual-composition", {
+        scrollTrigger: {
+            trigger: ".choose-visual-composition",
+            start: "top 80%"
+        },
+        scale: 0.8,
+        opacity: 0,
+        duration: 1.4,
+        ease: "expo.out"
+    });
+
+    gsap.from(".plan-vnv-card", {
+        scrollTrigger: {
+            trigger: ".plan-vnv-card",
+            start: "top 85%"
+        },
+        y: 40,
+        opacity: 0,
+        duration: 1.1,
+        ease: "power3.out"
+    });
+
+    gsap.utils.toArray('.ig-modern-card').forEach((card, index) => {
+        gsap.from(card, {
+            scrollTrigger: {
+                trigger: card,
+                start: "top 90%"
+            },
+            y: 40,
+            opacity: 0,
+            duration: 0.9,
+            delay: index * 0.05,
+            ease: "power3.out"
+        });
+    });
+
+    if (window.innerWidth > 991) {
+        gsap.to('.services-bg-video', {
+            yPercent: 12,
+            ease: 'none',
+            scrollTrigger: {
+                trigger: '#services',
+                start: 'top bottom',
+                end: 'bottom top',
+                scrub: true
             }
-            localStorage.setItem(storageKey, '1');
         });
     }
+}
+
+document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+    anchor.addEventListener('click', function (e) {
+        const target = this.getAttribute('href');
+        if (!target || target === '#') return;
+
+        const el = document.querySelector(target);
+        if (!el) return;
+
+        e.preventDefault();
+        el.scrollIntoView({
+            behavior: 'smooth',
+            block: 'start'
+        });
+    });
 });
 </script>
 {% endblock %}

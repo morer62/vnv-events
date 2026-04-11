@@ -1,0 +1,824 @@
+{% set request_form_action = request_form_action|default('/api/public/event-request') %}
+
+<div class="vnv-request-modal" id="vnvRequestModal" aria-hidden="true">
+    <div class="vnv-request-modal__backdrop" data-vnv-request-close></div>
+
+    <div class="vnv-request-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="vnvRequestModalTitle">
+        <button type="button" class="vnv-request-modal__close" data-vnv-request-close aria-label="Close">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+
+        <div class="vnv-request-modal__brand">Plan your event</div>
+
+        <form
+            id="vnvRequestForm"
+            class="vnv-request-modal__form"
+            method="post"
+            action="{{ request_form_action }}"
+        >
+            <input type="hidden" name="selected_services" id="vnvSelectedServicesInput">
+            <input type="hidden" name="form_source" value="public_home_modal">
+
+            <div class="vnv-request-modal__head">
+                <h2 id="vnvRequestModalTitle">Plan your event in seconds</h2>
+                <p>Send us the essentials in 4 quick steps.</p>
+            </div>
+
+            <div class="vnv-request-progress">
+                <span class="is-active" data-vnv-step-dot="1"></span>
+                <span data-vnv-step-dot="2"></span>
+                <span data-vnv-step-dot="3"></span>
+                <span data-vnv-step-dot="4"></span>
+            </div>
+
+            {# STEP 1 #}
+            <section class="vnv-request-step is-active" data-vnv-step="1">
+                <div class="vnv-request-panel">
+                    <h3>1) Where is your event?</h3>
+
+                    <div class="vnv-request-grid vnv-request-grid--location">
+                        <div>
+                            <label class="vnv-request-label" for="vnv_event_address">Full address</label>
+                            <input
+                                id="vnv_event_address"
+                                name="event_address"
+                                type="text"
+                                class="vnv-request-input"
+                                placeholder="e.g., 123 Main St, Miami, FL"
+                                required
+                            >
+                        </div>
+
+                        <div class="vnv-request-map-preview" id="vnvRequestMapPreview">
+                            <div class="vnv-request-map-preview__icon">
+                                <i class="fa-solid fa-location-dot"></i>
+                            </div>
+                            <strong>Location preview</strong>
+                            <p>Enter the venue address and we’ll use it to prepare your request.</p>
+                            <small id="vnvRequestAddressMirror">No address entered yet.</small>
+                        </div>
+                    </div>
+
+                    <div class="vnv-request-actions vnv-request-actions--end">
+                        <button type="button" class="vnv-request-btn vnv-request-btn--primary" data-vnv-next>
+                            Next
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            {# STEP 2 #}
+            <section class="vnv-request-step" data-vnv-step="2">
+                <div class="vnv-request-panel">
+                    <h3>2) What services do you need?</h3>
+
+                    <div class="vnv-request-service-group">
+                        <h4>Primary Services</h4>
+                        <div class="vnv-request-pill-list">
+                            <button type="button" class="vnv-request-pill" data-service="Event Planner">Event Planner</button>
+                            <button type="button" class="vnv-request-pill" data-service="Event Coordinator">Event Coordinator</button>
+                            <button type="button" class="vnv-request-pill" data-service="Venue Rental">Venue Rental</button>
+                            <button type="button" class="vnv-request-pill" data-service="DJ Services">DJ Services</button>
+                            <button type="button" class="vnv-request-pill" data-service="Flower Decorations & Arrangements">Flower Decorations & Arrangements</button>
+                            <button type="button" class="vnv-request-pill" data-service="Wedding Arches">Wedding Arches</button>
+                            <button type="button" class="vnv-request-pill" data-service="Balloon Decorations">Balloon Decorations</button>
+                            <button type="button" class="vnv-request-pill" data-service="Photo Booth">Photo Booth</button>
+                        </div>
+                    </div>
+
+                    <div class="vnv-request-service-group">
+                        <h4>Catering</h4>
+                        <div class="vnv-request-pill-list">
+                            <button type="button" class="vnv-request-pill" data-service="Appetizers">Appetizers</button>
+                            <button type="button" class="vnv-request-pill" data-service="Brunch Stations">Brunch Stations</button>
+                            <button type="button" class="vnv-request-pill" data-service="Crepes Station">Crepes Station</button>
+                            <button type="button" class="vnv-request-pill" data-service="Desserts">Desserts</button>
+                            <button type="button" class="vnv-request-pill" data-service="Entrées & Sides">Entrées & Sides</button>
+                            <button type="button" class="vnv-request-pill" data-service="Paella Station">Paella Station</button>
+                            <button type="button" class="vnv-request-pill" data-service="Pasta Station">Pasta Station</button>
+                            <button type="button" class="vnv-request-pill" data-service="Pizza Station">Pizza Station</button>
+                            <button type="button" class="vnv-request-pill" data-service="Salad Station">Salad Station</button>
+                            <button type="button" class="vnv-request-pill" data-service="Taco Station">Taco Station</button>
+                            <button type="button" class="vnv-request-pill" data-service="Sushi Boat Packages">Sushi Boat Packages</button>
+                            <button type="button" class="vnv-request-pill" data-service="Professional Servers">Professional Servers</button>
+                            <button type="button" class="vnv-request-pill" data-service="Bartenders">Bartenders</button>
+                        </div>
+                    </div>
+
+                    <div class="vnv-request-service-group">
+                        <h4>Rentals</h4>
+                        <div class="vnv-request-pill-list">
+                            <button type="button" class="vnv-request-pill" data-service="Tents">Tents</button>
+                            <button type="button" class="vnv-request-pill" data-service="Chairs">Chairs</button>
+                            <button type="button" class="vnv-request-pill" data-service="Tables">Tables</button>
+                            <button type="button" class="vnv-request-pill" data-service="Linens & Chargers">Linens & Chargers</button>
+                            <button type="button" class="vnv-request-pill" data-service="Dance Floor">Dance Floor</button>
+                            <button type="button" class="vnv-request-pill" data-service="Chandeliers">Chandeliers</button>
+                            <button type="button" class="vnv-request-pill" data-service="Coolers">Coolers</button>
+                        </div>
+                    </div>
+
+                    <div class="vnv-request-service-group">
+                        <h4>Décor, Lighting & Effects</h4>
+                        <div class="vnv-request-pill-list">
+                            <button type="button" class="vnv-request-pill" data-service="Backdrops & Draping">Backdrops & Draping</button>
+                            <button type="button" class="vnv-request-pill" data-service="Balloon Décor">Balloon Décor</button>
+                            <button type="button" class="vnv-request-pill" data-service="Welcome Boards & Seating Charts">Welcome Boards & Seating Charts</button>
+                            <button type="button" class="vnv-request-pill" data-service="Monogram Projection">Monogram Projection</button>
+                            <button type="button" class="vnv-request-pill" data-service="Uplighting">Uplighting</button>
+                            <button type="button" class="vnv-request-pill" data-service="Cold Sparks / CO₂ / Confetti Cannons">Cold Sparks / CO₂ / Confetti Cannons</button>
+                        </div>
+                    </div>
+
+                    <div class="vnv-request-service-group">
+                        <h4>Photo & Video</h4>
+                        <div class="vnv-request-pill-list">
+                            <button type="button" class="vnv-request-pill" data-service="Photography">Photography</button>
+                            <button type="button" class="vnv-request-pill" data-service="Videography & Drone">Videography & Drone</button>
+                        </div>
+                    </div>
+
+                    <div class="vnv-request-selected" id="vnvSelectedServicesPreview">
+                        No services selected yet.
+                    </div>
+
+                    <div class="vnv-request-actions">
+                        <button type="button" class="vnv-request-btn vnv-request-btn--ghost" data-vnv-prev>
+                            Back
+                        </button>
+                        <button type="button" class="vnv-request-btn vnv-request-btn--primary" data-vnv-next>
+                            Next
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            {# STEP 3 #}
+            <section class="vnv-request-step" data-vnv-step="3">
+                <div class="vnv-request-panel">
+                    <h3>3) Event details & contact</h3>
+
+                    <div class="vnv-request-grid vnv-request-grid--two">
+                        <div>
+                            <label class="vnv-request-label" for="vnv_event_date">Date</label>
+                            <input id="vnv_event_date" name="event_date" type="date" class="vnv-request-input" required>
+                        </div>
+
+                        <div>
+                            <label class="vnv-request-label" for="vnv_event_time">Time</label>
+                            <input id="vnv_event_time" name="event_time" type="time" class="vnv-request-input" required>
+                        </div>
+
+                        <div>
+                            <label class="vnv-request-label" for="vnv_guest_count">Guest count</label>
+                            <input id="vnv_guest_count" name="guest_count" type="number" min="1" class="vnv-request-input" placeholder="e.g., 120">
+                        </div>
+
+                        <div>
+                            <label class="vnv-request-label" for="vnv_full_name">Full name</label>
+                            <input id="vnv_full_name" name="full_name" type="text" class="vnv-request-input" required>
+                        </div>
+
+                        <div>
+                            <label class="vnv-request-label" for="vnv_email">Email</label>
+                            <input id="vnv_email" name="email" type="email" class="vnv-request-input" required>
+                        </div>
+
+                        <div>
+                            <label class="vnv-request-label" for="vnv_phone">Phone</label>
+                            <input id="vnv_phone" name="phone" type="text" class="vnv-request-input" placeholder="(xxx) xxx-xxxx" required>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="vnv-request-label" for="vnv_details">Details (optional)</label>
+                        <textarea
+                            id="vnv_details"
+                            name="details"
+                            rows="5"
+                            class="vnv-request-textarea"
+                            placeholder="Tell us any details like theme, timing, venue rules, special ideas, or any promo you saw."
+                        ></textarea>
+                    </div>
+
+                    <div class="vnv-request-actions">
+                        <button type="button" class="vnv-request-btn vnv-request-btn--ghost" data-vnv-prev>
+                            Back
+                        </button>
+                        <button type="button" class="vnv-request-btn vnv-request-btn--primary" data-vnv-next>
+                            Next
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            {# STEP 4 #}
+            <section class="vnv-request-step" data-vnv-step="4">
+                <div class="vnv-request-panel">
+                    <h3>4) One more thing before we send it</h3>
+
+                    <div class="vnv-request-step4-copy">
+                        <p>
+                            We don’t just coordinate services — we design full experiences.
+                            If you’d like, you can also visit us for a <strong>complimentary tasting</strong>
+                            or explore your event idea in a more immersive way through our <strong>360° studio experience</strong>.
+                        </p>
+                    </div>
+
+                    <div class="vnv-request-offers">
+                        <div class="vnv-request-offer-card">
+                            <div class="vnv-request-offer-icon">
+                                <i class="fa-solid fa-utensils"></i>
+                            </div>
+                            <h4>Complimentary Tasting</h4>
+                            <p>Visit us and experience the flavor, style and hospitality behind our event concepts.</p>
+                        </div>
+
+                        <div class="vnv-request-offer-card">
+                            <div class="vnv-request-offer-icon">
+                                <i class="fa-solid fa-vr-cardboard"></i>
+                            </div>
+                            <h4>360° Studio Experience</h4>
+                            <p>Preview ideas, demos and production direction in our studio for a more complete vision.</p>
+                        </div>
+                    </div>
+
+                    <div class="vnv-request-summary">
+                        <div>
+                            <small>Selected services</small>
+                            <strong id="vnvSummaryServices">No services selected yet.</strong>
+                        </div>
+                        <div>
+                            <small>Event address</small>
+                            <strong id="vnvSummaryAddress">Not provided yet.</strong>
+                        </div>
+                    </div>
+
+                    <div class="vnv-request-actions">
+                        <button type="button" class="vnv-request-btn vnv-request-btn--ghost" data-vnv-prev>
+                            Back
+                        </button>
+                        <button type="submit" class="vnv-request-btn vnv-request-btn--primary">
+                            Send Request
+                        </button>
+                    </div>
+                </div>
+            </section>
+        </form>
+    </div>
+</div>
+
+<style>
+.vnv-request-modal{
+    position: fixed;
+    inset: 0;
+    z-index: 3000;
+    display: none;
+}
+
+.vnv-request-modal.is-open{
+    display: block;
+}
+
+.vnv-request-modal__backdrop{
+    position: absolute;
+    inset: 0;
+    background: rgba(3, 7, 15, 0.72);
+    backdrop-filter: blur(8px);
+}
+
+.vnv-request-modal__dialog{
+    position: relative;
+    width: min(1180px, calc(100% - 32px));
+    max-height: calc(100vh - 24px);
+    margin: 12px auto;
+    overflow-y: auto;
+    border-radius: 22px;
+    background: linear-gradient(180deg, #040814 0%, #08101d 100%);
+    border: 1px solid rgba(94, 198, 196, 0.18);
+    box-shadow: 0 30px 90px rgba(0,0,0,0.45);
+    padding: 28px 28px 34px;
+    color: #fff;
+}
+
+.vnv-request-modal__brand{
+    font-size: 1rem;
+    font-weight: 900;
+    color: #ffffff;
+    margin-bottom: 18px;
+}
+
+.vnv-request-modal__close{
+    position: absolute;
+    top: 18px;
+    right: 18px;
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    border: 1px solid rgba(255,255,255,0.18);
+    background: #d93672;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    cursor: pointer;
+}
+
+.vnv-request-modal__head{
+    text-align: center;
+    margin-bottom: 18px;
+}
+
+.vnv-request-modal__head h2{
+    font-size: clamp(2rem, 4vw, 3.4rem);
+    font-weight: 800;
+    margin: 0 0 8px;
+    color: #fff;
+}
+
+.vnv-request-modal__head p{
+    margin: 0;
+    color: rgba(255,255,255,0.72);
+    font-size: 1.08rem;
+}
+
+.vnv-request-progress{
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin: 0 0 28px;
+}
+
+.vnv-request-progress span{
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.18);
+    transition: .25s ease;
+}
+
+.vnv-request-progress span.is-active{
+    background: #33c3c0;
+    box-shadow: 0 0 0 6px rgba(51,195,192,0.14);
+}
+
+.vnv-request-step{
+    display: none;
+}
+
+.vnv-request-step.is-active{
+    display: block;
+}
+
+.vnv-request-panel{
+    background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.02));
+    border-radius: 20px;
+    padding: 22px;
+    border: 1px solid rgba(255,255,255,0.05);
+}
+
+.vnv-request-panel h3{
+    margin: 0 0 20px;
+    font-size: clamp(1.7rem, 3vw, 2.5rem);
+    font-weight: 800;
+    color: #fff;
+}
+
+.vnv-request-grid{
+    display: grid;
+    gap: 16px;
+}
+
+.vnv-request-grid--location{
+    grid-template-columns: 1fr 1fr;
+    align-items: start;
+}
+
+.vnv-request-grid--two{
+    grid-template-columns: 1fr 1fr;
+}
+
+.vnv-request-label{
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 700;
+    color: #e8edf8;
+}
+
+.vnv-request-input,
+.vnv-request-textarea{
+    width: 100%;
+    border-radius: 14px;
+    border: 1px solid rgba(94, 198, 196, 0.16);
+    background: rgba(3, 10, 20, 0.9);
+    color: #fff;
+    padding: 14px 16px;
+    outline: none;
+    transition: .2s ease;
+}
+
+.vnv-request-input::placeholder,
+.vnv-request-textarea::placeholder{
+    color: rgba(255,255,255,0.35);
+}
+
+.vnv-request-input:focus,
+.vnv-request-textarea:focus{
+    border-color: rgba(94, 198, 196, 0.45);
+    box-shadow: 0 0 0 4px rgba(94,198,196,0.08);
+}
+
+.vnv-request-map-preview{
+    min-height: 260px;
+    border-radius: 18px;
+    border: 1px solid rgba(94, 198, 196, 0.14);
+    background: linear-gradient(180deg, rgba(94,198,196,0.12), rgba(255,255,255,0.03));
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 24px;
+    gap: 10px;
+}
+
+.vnv-request-map-preview__icon{
+    width: 52px;
+    height: 52px;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(94,198,196,0.14);
+    color: #5EC6C4;
+    font-size: 1.3rem;
+}
+
+.vnv-request-map-preview strong{
+    font-size: 1.2rem;
+}
+
+.vnv-request-map-preview p,
+.vnv-request-map-preview small{
+    margin: 0;
+    color: rgba(255,255,255,0.72);
+}
+
+.vnv-request-service-group{
+    margin-bottom: 22px;
+}
+
+.vnv-request-service-group h4{
+    margin: 0 0 10px;
+    font-size: 1.25rem;
+    color: #dce7ff;
+    font-weight: 800;
+}
+
+.vnv-request-pill-list{
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.vnv-request-pill{
+    border: 1px solid rgba(94, 198, 196, 0.18);
+    background: rgba(3, 10, 20, 0.78);
+    color: #fff;
+    border-radius: 999px;
+    padding: 10px 14px;
+    font-weight: 700;
+    line-height: 1.2;
+    cursor: pointer;
+    transition: .2s ease;
+}
+
+.vnv-request-pill:hover,
+.vnv-request-pill.is-active{
+    background: #0f2330;
+    border-color: #33c3c0;
+    color: #fff;
+    box-shadow: 0 8px 18px rgba(0,0,0,0.18);
+}
+
+.vnv-request-selected{
+    margin-top: 8px;
+    padding: 14px 16px;
+    border-radius: 14px;
+    background: rgba(255,255,255,0.03);
+    color: rgba(255,255,255,0.72);
+    border: 1px solid rgba(255,255,255,0.05);
+}
+
+.vnv-request-step4-copy{
+    margin-bottom: 18px;
+}
+
+.vnv-request-step4-copy p{
+    margin: 0;
+    color: rgba(255,255,255,0.78);
+    font-size: 1.05rem;
+}
+
+.vnv-request-offers{
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+    margin-bottom: 20px;
+}
+
+.vnv-request-offer-card{
+    border-radius: 18px;
+    padding: 20px;
+    background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));
+    border: 1px solid rgba(255,255,255,0.05);
+}
+
+.vnv-request-offer-icon{
+    width: 54px;
+    height: 54px;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(197,160,89,0.12);
+    color: #d8b768;
+    font-size: 1.35rem;
+    margin-bottom: 12px;
+}
+
+.vnv-request-offer-card h4{
+    margin: 0 0 8px;
+    font-size: 1.15rem;
+    color: #fff;
+    font-weight: 800;
+}
+
+.vnv-request-offer-card p{
+    margin: 0;
+    color: rgba(255,255,255,0.68);
+}
+
+.vnv-request-summary{
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 18px;
+}
+
+.vnv-request-summary > div{
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.05);
+    border-radius: 16px;
+    padding: 16px;
+}
+
+.vnv-request-summary small{
+    display: block;
+    margin-bottom: 6px;
+    color: rgba(255,255,255,0.46);
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    font-size: 0.74rem;
+}
+
+.vnv-request-summary strong{
+    color: #fff;
+    font-size: 1rem;
+    line-height: 1.4;
+}
+
+.vnv-request-actions{
+    margin-top: 22px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+}
+
+.vnv-request-actions--end{
+    justify-content: flex-end;
+}
+
+.vnv-request-btn{
+    border: none;
+    border-radius: 14px;
+    padding: 14px 24px;
+    font-weight: 900;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: .2s ease;
+}
+
+.vnv-request-btn--primary{
+    background: #33c3c0;
+    color: #041019;
+}
+
+.vnv-request-btn--primary:hover{
+    transform: translateY(-1px);
+    filter: brightness(1.04);
+}
+
+.vnv-request-btn--ghost{
+    background: rgba(255,255,255,0.06);
+    color: #fff;
+    border: 1px solid rgba(255,255,255,0.08);
+}
+
+.vnv-request-btn--ghost:hover{
+    background: rgba(255,255,255,0.1);
+}
+
+body.vnv-request-lock{
+    overflow: hidden;
+}
+
+@media (max-width: 991px){
+    .vnv-request-modal__dialog{
+        width: min(100% - 18px, 100%);
+        padding: 20px 16px 24px;
+    }
+
+    .vnv-request-grid--location,
+    .vnv-request-grid--two,
+    .vnv-request-offers,
+    .vnv-request-summary{
+        grid-template-columns: 1fr;
+    }
+
+    .vnv-request-panel{
+        padding: 18px 16px;
+    }
+
+    .vnv-request-actions{
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .vnv-request-btn{
+        width: 100%;
+    }
+}
+</style>
+
+<script>
+(function () {
+    const modal = document.getElementById('vnvRequestModal');
+    const form = document.getElementById('vnvRequestForm');
+    if (!modal || !form) return;
+
+    const openers = document.querySelectorAll('[data-vnv-open-request]');
+    const closers = modal.querySelectorAll('[data-vnv-request-close]');
+    const steps = Array.from(modal.querySelectorAll('[data-vnv-step]'));
+    const dots = Array.from(modal.querySelectorAll('[data-vnv-step-dot]'));
+    const nextButtons = modal.querySelectorAll('[data-vnv-next]');
+    const prevButtons = modal.querySelectorAll('[data-vnv-prev]');
+    const serviceButtons = modal.querySelectorAll('.vnv-request-pill');
+    const selectedServicesInput = document.getElementById('vnvSelectedServicesInput');
+    const selectedServicesPreview = document.getElementById('vnvSelectedServicesPreview');
+    const summaryServices = document.getElementById('vnvSummaryServices');
+    const summaryAddress = document.getElementById('vnvSummaryAddress');
+    const addressMirror = document.getElementById('vnvRequestAddressMirror');
+    const addressInput = document.getElementById('vnv_event_address');
+
+    let currentStep = 1;
+    const selectedServices = new Set();
+
+    function openModal() {
+        modal.classList.add('is-open');
+        modal.setAttribute('aria-hidden', 'false');
+        document.body.classList.add('vnv-request-lock');
+    }
+
+    function closeModal() {
+        modal.classList.remove('is-open');
+        modal.setAttribute('aria-hidden', 'true');
+        document.body.classList.remove('vnv-request-lock');
+    }
+
+    function goToStep(step) {
+        currentStep = step;
+        steps.forEach((el, index) => {
+            el.classList.toggle('is-active', index + 1 === step);
+        });
+        dots.forEach((dot, index) => {
+            dot.classList.toggle('is-active', index + 1 === step);
+        });
+        if (step === 4) {
+            updateSummary();
+        }
+    }
+
+    function updateSelectedServices() {
+        const items = Array.from(selectedServices);
+        selectedServicesInput.value = JSON.stringify(items);
+
+        if (!items.length) {
+            selectedServicesPreview.textContent = 'No services selected yet.';
+            summaryServices.textContent = 'No services selected yet.';
+            return;
+        }
+
+        const text = items.join(', ');
+        selectedServicesPreview.textContent = text;
+        summaryServices.textContent = text;
+    }
+
+    function updateSummary() {
+        const address = addressInput.value.trim();
+        summaryAddress.textContent = address || 'Not provided yet.';
+        updateSelectedServices();
+    }
+
+    function validateStep(step) {
+        if (step === 1) {
+            if (!addressInput.value.trim()) {
+                addressInput.focus();
+                return false;
+            }
+        }
+
+        if (step === 2) {
+            if (!selectedServices.size) {
+                selectedServicesPreview.textContent = 'Please select at least one service.';
+                selectedServicesPreview.style.color = '#ffb9b9';
+                return false;
+            } else {
+                selectedServicesPreview.style.color = 'rgba(255,255,255,0.72)';
+            }
+        }
+
+        if (step === 3) {
+            const requiredIds = ['vnv_event_date', 'vnv_event_time', 'vnv_full_name', 'vnv_email', 'vnv_phone'];
+            for (const id of requiredIds) {
+                const field = document.getElementById(id);
+                if (field && !field.value.trim()) {
+                    field.focus();
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
+
+    openers.forEach(btn => {
+        btn.addEventListener('click', function (e) {
+            e.preventDefault();
+            openModal();
+        });
+    });
+
+    closers.forEach(btn => {
+        btn.addEventListener('click', closeModal);
+    });
+
+    modal.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') closeModal();
+    });
+
+    nextButtons.forEach(btn => {
+        btn.addEventListener('click', function () {
+            if (!validateStep(currentStep)) return;
+            if (currentStep < 4) goToStep(currentStep + 1);
+        });
+    });
+
+    prevButtons.forEach(btn => {
+        btn.addEventListener('click', function () {
+            if (currentStep > 1) goToStep(currentStep - 1);
+        });
+    });
+
+    serviceButtons.forEach(btn => {
+        btn.addEventListener('click', function () {
+            const value = this.getAttribute('data-service');
+            if (!value) return;
+
+            if (selectedServices.has(value)) {
+                selectedServices.delete(value);
+                this.classList.remove('is-active');
+            } else {
+                selectedServices.add(value);
+                this.classList.add('is-active');
+            }
+
+            updateSelectedServices();
+        });
+    });
+
+    if (addressInput && addressMirror) {
+        addressInput.addEventListener('input', function () {
+            const value = this.value.trim();
+            addressMirror.textContent = value || 'No address entered yet.';
+        });
+    }
+
+    form.addEventListener('submit', function () {
+        updateSummary();
+    });
+
+    goToStep(1);
+})();
+</script>

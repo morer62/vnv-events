@@ -3,7 +3,6 @@
 use App\Repositories\StoreProductsAudiencesRepository;
 use App\Utils\Router;
 use App\Utils\TemplateResponse;
-
 $router = new Router();
 
 $router->get(function () {
