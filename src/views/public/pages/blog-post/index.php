@@ -17,9 +17,11 @@ $routesRepository->db = $db;
 $blogCategoriesRepository = new BlogCategoriesRepository();
 $blogCategoriesRepository->db = $db;
 
-$url = $_GET['url'] ?? '';
+// Normalizar URL
+$url = trim($_GET['url'] ?? '', '/');
 $normalizedRoute = $routesRepository->normalizeRoute($url);
 
+// Buscar ruta
 $route = $routesRepository->getByRoute($normalizedRoute, 'en');
 
 if (!$route) {
@@ -28,26 +30,21 @@ if (!$route) {
     exit;
 }
 
+// Obtener contenido
 $post = $contentsRepository->getOneWithTemplate((int)$route->id_content);
 
-if (!$post) {
+if (
+    !$post ||
+    ($post->type ?? '') !== 'post' ||
+    ($post->status ?? '') !== 'PUBLISHED' ||
+    ($post->language ?? 'en') !== 'en'
+) {
     http_response_code(404);
     echo "Post not found";
     exit;
 }
 
-if (($post->type ?? '') !== 'post') {
-    http_response_code(404);
-    echo "Post not found";
-    exit;
-}
-
-if (($post->status ?? '') !== 'PUBLISHED') {
-    http_response_code(404);
-    echo "Post not found";
-    exit;
-}
-
+// Parsear JSON
 $contentJson = [];
 if (!empty($post->content_json)) {
     $decoded = json_decode($post->content_json, true);
@@ -56,14 +53,20 @@ if (!empty($post->content_json)) {
     }
 }
 
+// Categoría
 $category = null;
 if (!empty($post->id_blog_category)) {
     $category = $blogCategoriesRepository->getOne([
         'id' => (int)$post->id_blog_category
     ]);
+
+    if ($category && $category->status !== 'ACTIVE') {
+        $category = null;
+    }
 }
 
-TemplateResponse::render(__DIR__ . "/index.twig", [
+// Render
+return TemplateResponse::render(__DIR__ . "/index.twig", [
     "post" => $post,
     "route" => $route,
     "category" => $category,

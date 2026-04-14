@@ -8,38 +8,51 @@ class CmsTemplatesRepository extends BaseRepository
 
     protected array $fields = [
         'id',
+        'id_owner',
         'name',
-        'slug',
+        'template_key',
         'description',
-        'template_source',
-        'is_active',
+        'type',
+        'preview_html',
+        'template_structure_json',
+        'status',
         'created_at',
         'updated_at',
     ];
 
     public function getActive(): array
     {
-        $this->db->query("SELECT * FROM `{$this->table}` WHERE `is_active` = 1 ORDER BY `name` ASC");
-        return $this->db->fetchAll();
+        $this->db->query("
+            SELECT *
+            FROM `{$this->table}`
+            WHERE `status` = 'ACTIVE'
+            ORDER BY `name` ASC
+        ");
+
+        return $this->db->fetchAll() ?: [];
     }
 
-    public function getBySlug(string $slug): ?object
+    public function getByTemplateKey(string $templateKey): ?object
     {
         return $this->getOne([
-            'slug' => $slug
+            'template_key' => $templateKey
         ]);
     }
 
-    public function slugExists(string $slug, int $excludeId = 0): bool
+    public function templateKeyExists(string $templateKey, int $excludeId = 0): bool
     {
-        $query = "SELECT COUNT(*) as total FROM `{$this->table}` WHERE `slug` = :slug";
+        $query = "
+            SELECT COUNT(*) as total
+            FROM `{$this->table}`
+            WHERE `template_key` = :template_key
+        ";
 
         if ($excludeId > 0) {
             $query .= " AND `id` != :exclude_id";
         }
 
         $this->db->query($query);
-        $this->db->bind(':slug', $slug);
+        $this->db->bind(':template_key', $templateKey);
 
         if ($excludeId > 0) {
             $this->db->bind(':exclude_id', $excludeId);
@@ -48,5 +61,32 @@ class CmsTemplatesRepository extends BaseRepository
         $result = $this->db->fetchOne();
 
         return $result && (int)$result->total > 0;
+    }
+
+
+    public function getAllForPanel(): array
+    {
+        $this->db->query("
+            SELECT *
+            FROM `{$this->table}`
+            ORDER BY `created_at` DESC, `id` DESC
+        ");
+
+        return $this->db->fetchAll() ?: [];
+    }
+
+    public function getByType(string $type): array
+    {
+        $this->db->query("
+            SELECT *
+            FROM `{$this->table}`
+            WHERE `type` = :type
+            AND `status` = 'ACTIVE'
+            ORDER BY `name` ASC
+        ");
+
+        $this->db->bind(':type', $type);
+
+        return $this->db->fetchAll() ?: [];
     }
 }

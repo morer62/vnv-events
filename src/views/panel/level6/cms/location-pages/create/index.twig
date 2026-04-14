@@ -158,7 +158,7 @@
             </div>
 
             <div class="col-12 d-flex gap-2">
-                <a href="/panel/level6/cms/location-pages" class="btn btn-outline-secondary">Back</a>
+                <a href="{{ path('panel/cms/location-pages') }}" class="btn btn-outline-secondary">Back</a>
                 <button type="submit" class="btn btn-success">Create Page</button>
             </div>
         </div>
@@ -170,25 +170,27 @@
 <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/trumbowyg@2.27.3/dist/trumbowyg.min.js"></script>
 <script>
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', function () {
     $('#content-editor').trumbowyg();
 
     const titleInput = document.querySelector('[name="title"]');
     const slugInput = document.querySelector('[name="slug"]');
 
-    titleInput.addEventListener('input', () => {
-        if (slugInput.dataset.edited === '1') return;
+    if (titleInput && slugInput) {
+        titleInput.addEventListener('input', function () {
+            if (slugInput.dataset.edited === '1') return;
 
-        slugInput.value = titleInput.value
-            .toLowerCase()
-            .trim()
-            .replace(/[^a-z0-9]+/g, '-')
-            .replace(/^-+|-+$/g, '');
-    });
+            slugInput.value = titleInput.value
+                .toLowerCase()
+                .trim()
+                .replace(/[^a-z0-9]+/g, '-')
+                .replace(/^-+|-+$/g, '');
+        });
 
-    slugInput.addEventListener('input', () => {
-        slugInput.dataset.edited = '1';
-    });
+        slugInput.addEventListener('input', function () {
+            slugInput.dataset.edited = '1';
+        });
+    }
 });
 </script>
 {% endblock %}

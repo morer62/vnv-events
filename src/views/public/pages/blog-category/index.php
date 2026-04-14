@@ -1,7 +1,6 @@
 <?php
 
 use App\Repositories\BlogCategoriesRepository;
-use App\Repositories\CmsContentsRepository;
 use App\Repositories\Connection;
 use App\Utils\TemplateResponse;
 
@@ -10,12 +9,9 @@ $db = new Connection();
 $blogCategoriesRepository = new BlogCategoriesRepository();
 $blogCategoriesRepository->db = $db;
 
-$contentsRepository = new CmsContentsRepository();
-$contentsRepository->db = $db;
-
-// URL: /category/blog/{slug}
-$url = $_GET['url'] ?? '';
-$parts = explode('/', trim($url, '/'));
+// URL esperada: /category/blog/{slug}
+$url = trim($_GET['url'] ?? '', '/');
+$parts = $url !== '' ? explode('/', $url) : [];
 
 $slug = $parts[2] ?? null;
 
@@ -28,27 +24,35 @@ if (!$slug) {
 // Buscar categoría
 $category = $blogCategoriesRepository->getBySlug($slug);
 
-if (!$category || $category->status !== 'ACTIVE') {
+if (!$category || ($category->status ?? null) !== 'ACTIVE') {
     http_response_code(404);
     echo "Category not found";
     exit;
 }
 
-// Buscar posts de esa categoría
+// Buscar posts publicados de esa categoría con su ruta principal
 $db->query("
-    SELECT c.*
+    SELECT 
+        c.*,
+        r.route AS main_route
     FROM cms_contents c
+    LEFT JOIN cms_routes r 
+        ON r.id_content = c.id
+       AND r.is_main = 1
+       AND r.language = c.language
+       AND r.status = 'ACTIVE'
     WHERE c.type = 'post'
-    AND c.status = 'PUBLISHED'
-    AND c.id_blog_category = :cat
-    ORDER BY c.published_at DESC
+      AND c.status = 'PUBLISHED'
+      AND c.language = 'en'
+      AND c.id_blog_category = :cat
+    ORDER BY c.published_at DESC, c.id DESC
 ");
 
 $db->bind(':cat', (int)$category->id);
 
 $posts = $db->fetchAll() ?: [];
 
-TemplateResponse::render(__DIR__ . "/index.twig", [
+return TemplateResponse::render(__DIR__ . "/index.twig", [
     "category" => $category,
-    "posts" => $posts,
+    "posts"    => $posts,
 ]);

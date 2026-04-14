@@ -10,6 +10,7 @@ class CmsContentsRepository extends BaseRepository
         'id',
         'id_owner',
         'id_template',
+        'id_blog_category',
         'type',
         'title',
         'slug',
@@ -36,7 +37,11 @@ class CmsContentsRepository extends BaseRepository
     public function getAllByType(string $type, string $language = 'en'): array
     {
         $query = "
-            SELECT c.*, t.name AS template_name, t.slug AS template_slug
+            SELECT 
+                c.*,
+                t.name AS template_name,
+                t.template_key,
+                t.type AS template_type
             FROM `{$this->table}` c
             LEFT JOIN `cms_templates` t ON t.id = c.id_template
             WHERE c.type = :type
@@ -54,7 +59,13 @@ class CmsContentsRepository extends BaseRepository
     public function getOneWithTemplate(int $id): ?object
     {
         $query = "
-            SELECT c.*, t.name AS template_name, t.slug AS template_slug, t.template_source AS base_template_source
+            SELECT 
+                c.*,
+                t.name AS template_name,
+                t.template_key,
+                t.type AS template_type,
+                t.preview_html,
+                t.template_structure_json
             FROM `{$this->table}` c
             LEFT JOIN `cms_templates` t ON t.id = c.id_template
             WHERE c.id = :id
@@ -71,7 +82,11 @@ class CmsContentsRepository extends BaseRepository
     public function getBySlugTypeAndLanguage(string $slug, string $type = 'page', string $language = 'en'): ?object
     {
         $query = "
-            SELECT c.*, t.name AS template_name, t.slug AS template_slug
+            SELECT 
+                c.*,
+                t.name AS template_name,
+                t.template_key,
+                t.type AS template_type
             FROM `{$this->table}` c
             LEFT JOIN `cms_templates` t ON t.id = c.id_template
             WHERE c.slug = :slug
@@ -92,7 +107,11 @@ class CmsContentsRepository extends BaseRepository
     public function getPublishedByType(string $type, string $language = 'en'): array
     {
         $query = "
-            SELECT c.*, t.name AS template_name, t.slug AS template_slug
+            SELECT 
+                c.*,
+                t.name AS template_name,
+                t.template_key,
+                t.type AS template_type
             FROM `{$this->table}` c
             LEFT JOIN `cms_templates` t ON t.id = c.id_template
             WHERE c.type = :type
@@ -147,7 +166,11 @@ class CmsContentsRepository extends BaseRepository
     public function getHomepage(string $language = 'en'): ?object
     {
         $query = "
-            SELECT c.*, t.name AS template_name, t.slug AS template_slug
+            SELECT 
+                c.*,
+                t.name AS template_name,
+                t.template_key,
+                t.type AS template_type
             FROM `{$this->table}` c
             LEFT JOIN `cms_templates` t ON t.id = c.id_template
             WHERE c.is_homepage = 1
@@ -160,5 +183,43 @@ class CmsContentsRepository extends BaseRepository
 
         $result = $this->db->fetchOne();
         return $result ?: null;
+    }
+
+    public function countByType(string $type, string $language = 'en'): int
+    {
+        $query = "
+            SELECT COUNT(*) AS total
+            FROM `{$this->table}`
+            WHERE `type` = :type
+              AND `language` = :language
+        ";
+
+        $this->db->query($query);
+        $this->db->bind(':type', $type);
+        $this->db->bind(':language', $language);
+
+        $result = $this->db->fetchOne();
+
+        return $result ? (int)$result->total : 0;
+    }
+
+    public function countByTypeAndStatus(string $type, string $status, string $language = 'en'): int
+    {
+        $query = "
+            SELECT COUNT(*) AS total
+            FROM `{$this->table}`
+            WHERE `type` = :type
+              AND `status` = :status
+              AND `language` = :language
+        ";
+
+        $this->db->query($query);
+        $this->db->bind(':type', $type);
+        $this->db->bind(':status', $status);
+        $this->db->bind(':language', $language);
+
+        $result = $this->db->fetchOne();
+
+        return $result ? (int)$result->total : 0;
     }
 }

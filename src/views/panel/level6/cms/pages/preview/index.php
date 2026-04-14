@@ -1,6 +1,6 @@
 <?php
 
-use App\Repositories\CmsPagesRepository;
+use App\Repositories\CmsContentsRepository;
 use App\Repositories\Connection;
 use App\Utils\Router;
 use App\Utils\TemplateResponse;
@@ -17,19 +17,24 @@ $router->get(function () {
 
     $db = new Connection();
 
-    $pagesRepository = new CmsPagesRepository();
-    $pagesRepository->db = $db;
+    $contentsRepository = new CmsContentsRepository();
+    $contentsRepository->db = $db;
 
-    $page = $pagesRepository->getOneWithCategoryAndTemplate($id);
+    $page = $contentsRepository->getOneWithTemplate($id);
 
     if (!$page) {
         echo "Page not found.";
         exit;
     }
 
+    if (($page->type ?? '') !== 'page' && ($page->type ?? '') !== 'post') {
+        echo "Invalid content type for preview.";
+        exit;
+    }
+
     return TemplateResponse::render(__DIR__ . "/index.twig", [
-        "title" => "Preview CMS Page",
-        "page" => $page,
+        "title" => "Preview CMS Content",
+        "page"  => $page,
     ]);
 });
 

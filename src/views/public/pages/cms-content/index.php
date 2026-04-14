@@ -13,9 +13,11 @@ $contentsRepository->db = $db;
 $routesRepository = new CmsRoutesRepository();
 $routesRepository->db = $db;
 
-$url = $_GET['url'] ?? '';
+// Normalizar URL
+$url = trim($_GET['url'] ?? '', '/');
 $normalizedRoute = $routesRepository->normalizeRoute($url);
 
+// Buscar ruta
 $route = $routesRepository->getByRoute($normalizedRoute, 'en');
 
 if (!$route) {
@@ -24,26 +26,21 @@ if (!$route) {
     exit;
 }
 
+// Obtener contenido
 $content = $contentsRepository->getOneWithTemplate((int)$route->id_content);
 
-if (!$content) {
+if (
+    !$content ||
+    ($content->type ?? '') !== 'page' ||
+    ($content->status ?? '') !== 'PUBLISHED' ||
+    ($content->language ?? 'en') !== 'en'
+) {
     http_response_code(404);
     echo "Page not found";
     exit;
 }
 
-if (($content->type ?? '') !== 'page') {
-    http_response_code(404);
-    echo "Page not found";
-    exit;
-}
-
-if (($content->status ?? '') !== 'PUBLISHED') {
-    http_response_code(404);
-    echo "Page not found";
-    exit;
-}
-
+// Parsear JSON
 $contentJson = [];
 if (!empty($content->content_json)) {
     $decoded = json_decode($content->content_json, true);
@@ -52,7 +49,8 @@ if (!empty($content->content_json)) {
     }
 }
 
-TemplateResponse::render(__DIR__ . "/index.twig", [
+// Render
+return TemplateResponse::render(__DIR__ . "/index.twig", [
     "page" => $content,
     "route" => $route,
     "content_json" => $contentJson,

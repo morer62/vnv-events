@@ -17,18 +17,29 @@ $router->get(function () {
     $routesRepository = new CmsRoutesRepository();
     $routesRepository->db = $db;
 
+    // ✅ QUERY CORREGIDA (SIN t.slug)
     $db->query("
-        SELECT c.*, t.name AS template_name, t.slug AS template_slug, bc.name AS blog_category_name, bc.slug AS blog_category_slug
+        SELECT 
+            c.*,
+            t.name AS template_name,
+            t.template_key,
+            bc.name AS blog_category_name,
+            bc.slug AS blog_category_slug
         FROM cms_contents c
         LEFT JOIN cms_templates t ON t.id = c.id_template
         LEFT JOIN blog_categories bc ON bc.id = c.id_blog_category
-        WHERE c.type = 'post' AND c.language = 'en'
+        WHERE c.type = 'post' 
+          AND c.language = 'en'
         ORDER BY c.id DESC
     ");
+
     $posts = $db->fetchAll() ?: [];
 
     foreach ($posts as $post) {
-        $post->main_route = $routesRepository->getMainRouteByContent((int)$post->id, $post->language ?? 'en');
+        $post->main_route = $routesRepository->getMainRouteByContent(
+            (int)$post->id,
+            $post->language ?? 'en'
+        );
     }
 
     return TemplateResponse::render(__DIR__ . "/index.twig", [

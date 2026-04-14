@@ -7,7 +7,7 @@
             <h1 class="h3 mb-1">Location Pages</h1>
             <p class="text-muted mb-0">Manage dynamic city/location pages for the public website.</p>
         </div>
-        <a href="/panel/level6/cms/location-pages/create" class="btn btn-dark">
+        <a href="{{ path('panel/cms/location-pages/create') }}" class="btn btn-dark">
             + Create New Page
         </a>
     </div>
@@ -58,11 +58,11 @@
                                     <td>{{ p.published_at ?: '-' }}</td>
                                     <td class="text-end">
                                         <div class="d-flex justify-content-end gap-2 flex-wrap">
-                                            <a href="/{{ p.slug }}" target="_blank" class="btn btn-sm btn-outline-dark">
+                                            <a href="{{ path(p.slug) }}" target="_blank" class="btn btn-sm btn-outline-dark">
                                                 View
                                             </a>
 
-                                            <a href="/panel/level6/cms/location-pages/edit?id={{ p.id }}" class="btn btn-sm btn-primary">
+                                            <a href="{{ path('panel/cms/location-pages/edit') }}?id={{ p.id }}" class="btn btn-sm btn-primary">
                                                 Edit
                                             </a>
 

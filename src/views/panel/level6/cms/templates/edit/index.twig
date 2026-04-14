@@ -1,0 +1,30 @@
+{% extends "templates/base.admin.twig" %}
+
+{% block body %}
+<div class="container py-4">
+    <h2>Edit Template</h2>
+
+    <form method="post">
+        <input type="hidden" name="id" value="{{ template.id }}">
+
+        <input name="name" value="{{ template.name }}" class="form-control mb-3">
+        <input name="template_key" value="{{ template.template_key }}" class="form-control mb-3">
+
+        <select name="type" class="form-control mb-3">
+            <option value="page" {{ template.type == 'page' ? 'selected' }}>Page</option>
+            <option value="post" {{ template.type == 'post' ? 'selected' }}>Post</option>
+            <option value="location" {{ template.type == 'location' ? 'selected' }}>Location</option>
+        </select>
+
+        <textarea name="template_structure_json" class="form-control mb-3" rows="6">
+{{ template.template_structure_json }}
+        </textarea>
+
+        <textarea name="preview_html" class="form-control mb-3" rows="4">
+{{ template.preview_html }}
+        </textarea>
+
+        <button class="btn btn-success">Save</button>
+    </form>
+</div>
+{% endblock %}

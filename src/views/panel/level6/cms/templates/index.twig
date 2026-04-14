@@ -1,0 +1,47 @@
+{% extends "templates/base.admin.twig" %}
+
+{% block body %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between mb-4">
+        <h2>Templates</h2>
+        <a href="{{ path('panel/cms/templates/create') }}" class="btn btn-dark">
+            + New Template
+        </a>
+    </div>
+
+    {% if templates is empty %}
+        <p>No templates found.</p>
+    {% else %}
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Key</th>
+                    <th>Type</th>
+                    <th>Status</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for t in templates %}
+                    <tr>
+                        <td>{{ t.name }}</td>
+                        <td><code>{{ t.template_key }}</code></td>
+                        <td>{{ t.type }}</td>
+                        <td>{{ t.status }}</td>
+                        <td class="text-end">
+                            <a href="{{ path('panel/cms/templates/edit') }}?id={{ t.id }}" class="btn btn-sm btn-primary">Edit</a>
+
+                            <form method="post" class="d-inline">
+                                <input type="hidden" name="id" value="{{ t.id }}">
+                                <input type="hidden" name="action" value="delete">
+                                <button class="btn btn-sm btn-danger">Delete</button>
+                            </form>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% endif %}
+</div>
+{% endblock %}

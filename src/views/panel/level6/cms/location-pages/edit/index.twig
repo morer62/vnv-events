@@ -6,9 +6,9 @@
 
 {% block body %}
 <div class="container py-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
         <h1 class="h3 mb-0">Edit Location Page</h1>
-        <a href="/{{ page.slug }}" target="_blank" class="btn btn-outline-dark">View Public Page</a>
+        <a href="{{ path(page.slug) }}" target="_blank" class="btn btn-outline-dark">View Public Page</a>
     </div>
 
     <form method="post" class="card shadow-lg border-0 p-4">
@@ -164,7 +164,7 @@
             </div>
 
             <div class="col-12 d-flex gap-2 flex-wrap">
-                <a href="/panel/level6/cms/location-pages" class="btn btn-outline-secondary">Back</a>
+                <a href="{{ path('panel/cms/location-pages') }}" class="btn btn-outline-secondary">Back</a>
                 <button type="submit" class="btn btn-success">Save Changes</button>
             </div>
         </div>
@@ -176,7 +176,7 @@
 <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/trumbowyg@2.27.3/dist/trumbowyg.min.js"></script>
 <script>
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', function () {
     $('#content-editor').trumbowyg();
 });
 </script>

@@ -12,19 +12,22 @@ $router->get(function () {
     $repo = new LocationPagesRepository();
     $id = (int)($_GET['id'] ?? 0);
 
-    if (!$id) {
+    if ($id <= 0) {
         MessageUtil::setMessage("Invalid page ID.");
-        LocationUtils::redirectInternal("panel/level6/cms/location-pages");
+        LocationUtils::redirectInternal("panel/cms/location-pages");
     }
 
-    $page = $repo->getOne(['id' => $id]);
+    $page = $repo->getOne([
+        'id' => $id
+    ]);
 
     if (!$page) {
         MessageUtil::setMessage("Location page not found.");
-        LocationUtils::redirectInternal("panel/level6/cms/location-pages");
+        LocationUtils::redirectInternal("panel/cms/location-pages");
     }
 
     return TemplateResponse::render(__DIR__ . "/index.twig", [
+        "title" => "Edit Location Page",
         "page" => $page
     ]);
 });
@@ -34,16 +37,18 @@ $router->post(function () {
 
     $id = (int)($_POST['id'] ?? 0);
 
-    if (!$id) {
+    if ($id <= 0) {
         MessageUtil::setMessage("Invalid page ID.");
-        LocationUtils::redirectInternal("panel/level6/cms/location-pages");
+        LocationUtils::redirectInternal("panel/cms/location-pages");
     }
 
-    $page = $repo->getOne(['id' => $id]);
+    $page = $repo->getOne([
+        'id' => $id
+    ]);
 
     if (!$page) {
         MessageUtil::setMessage("Location page not found.");
-        LocationUtils::redirectInternal("panel/level6/cms/location-pages");
+        LocationUtils::redirectInternal("panel/cms/location-pages");
     }
 
     $title = trim($_POST['title'] ?? '');
@@ -62,6 +67,7 @@ $router->post(function () {
     $heroImage = trim($_POST['hero_image'] ?? '');
     $faqJson = trim($_POST['faq_json'] ?? '');
     $dynamicBlocksJson = trim($_POST['dynamic_blocks_json'] ?? '');
+    $schemaJson = trim($_POST['schema_json'] ?? '');
     $metaTitle = trim($_POST['meta_title'] ?? '');
     $metaDescription = trim($_POST['meta_description'] ?? '');
     $metaKeywords = trim($_POST['meta_keywords'] ?? '');
@@ -69,15 +75,14 @@ $router->post(function () {
     $ogDescription = trim($_POST['og_description'] ?? '');
     $ogImage = trim($_POST['og_image'] ?? '');
     $canonicalUrl = trim($_POST['canonical_url'] ?? '');
-    $schemaJson = trim($_POST['schema_json'] ?? '');
     $customCss = trim($_POST['custom_css'] ?? '');
     $customJs = trim($_POST['custom_js'] ?? '');
-    $status = trim($_POST['status'] ?? 'DRAFT');
+    $status = strtoupper(trim($_POST['status'] ?? 'DRAFT'));
     $isIndexable = isset($_POST['is_indexable']) ? 1 : 0;
 
     if ($title === '' || $slug === '') {
         MessageUtil::setMessage("Title and slug are required.");
-        LocationUtils::redirectInternal("panel/level6/cms/location-pages/edit?id=" . $id);
+        LocationUtils::redirectInternal("panel/cms/location-pages/edit?id=" . $id);
     }
 
     $slug = preg_replace('/[^a-z0-9\-]/', '-', $slug);
@@ -86,27 +91,31 @@ $router->post(function () {
 
     if ($slug === '') {
         MessageUtil::setMessage("Invalid slug.");
-        LocationUtils::redirectInternal("panel/level6/cms/location-pages/edit?id=" . $id);
+        LocationUtils::redirectInternal("panel/cms/location-pages/edit?id=" . $id);
     }
 
     if ($repo->slugExists($slug, $id)) {
         MessageUtil::setMessage("That slug already exists.");
-        LocationUtils::redirectInternal("panel/level6/cms/location-pages/edit?id=" . $id);
+        LocationUtils::redirectInternal("panel/cms/location-pages/edit?id=" . $id);
     }
 
     if ($faqJson !== '' && json_decode($faqJson, true) === null) {
         MessageUtil::setMessage("FAQ JSON is invalid.");
-        LocationUtils::redirectInternal("panel/level6/cms/location-pages/edit?id=" . $id);
+        LocationUtils::redirectInternal("panel/cms/location-pages/edit?id=" . $id);
     }
 
     if ($dynamicBlocksJson !== '' && json_decode($dynamicBlocksJson, true) === null) {
         MessageUtil::setMessage("Dynamic Blocks JSON is invalid.");
-        LocationUtils::redirectInternal("panel/level6/cms/location-pages/edit?id=" . $id);
+        LocationUtils::redirectInternal("panel/cms/location-pages/edit?id=" . $id);
     }
 
     if ($schemaJson !== '' && json_decode($schemaJson, true) === null) {
         MessageUtil::setMessage("Schema JSON is invalid.");
-        LocationUtils::redirectInternal("panel/level6/cms/location-pages/edit?id=" . $id);
+        LocationUtils::redirectInternal("panel/cms/location-pages/edit?id=" . $id);
+    }
+
+    if (!in_array($status, ['DRAFT', 'PUBLISHED'], true)) {
+        $status = 'DRAFT';
     }
 
     $currentPublishedAt = $page->published_at ?? null;
@@ -114,6 +123,10 @@ $router->post(function () {
 
     if ($status === 'PUBLISHED' && empty($currentPublishedAt)) {
         $newPublishedAt = date('Y-m-d H:i:s');
+    }
+
+    if ($status === 'DRAFT') {
+        $newPublishedAt = null;
     }
 
     $repo->update([
@@ -146,10 +159,16 @@ $router->post(function () {
         'is_indexable' => $isIndexable,
         'status' => $status,
         'published_at' => $newPublishedAt,
-    ], ['id' => $id]);
+    ], [
+        'id' => $id
+    ]);
 
     MessageUtil::setMessage("Location page updated successfully.");
-    LocationUtils::redirectInternal("panel/level6/cms/location-pages/edit?id=" . $id);
+    LocationUtils::redirectInternal("panel/cms/location-pages/edit?id=" . $id);
 });
 
-$router->run();
+try {
+    $router->run();
+} catch (Exception $e) {
+    echo $e->getMessage();
+}
