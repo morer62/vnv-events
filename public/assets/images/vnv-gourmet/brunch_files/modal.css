@@ -1,0 +1,154 @@
+/* ==============================
+   VNV Modal — core styles
+   ============================== */
+
+/* Overlay container */
+.vnv-modal[hidden]{ display:none !important; }
+.vnv-modal{
+  position: fixed;
+  inset: 0;
+  z-index: 2147483647; /* por encima de todo */
+}
+
+/* Fondo oscurecido */
+.vnv-modal__overlay{
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,.55);
+  backdrop-filter: saturate(120%) blur(2px);
+  z-index: 1;
+}
+
+/* Caja del modal */
+.vnv-modal__dialog{
+  position: relative;
+  width: min(960px, 92vw);
+  max-height: 92vh;
+  margin: 4vh auto;           /* centra horizontal */
+  background: #0f1115;
+  color: #e8eef7;
+  border-radius: 16px;
+  box-shadow: 0 20px 60px rgba(0,0,0,.4);
+  border: 1px solid #222a36;
+  overflow: auto;
+  box-sizing: border-box;
+  z-index: 2;
+}
+
+/* Fuerza centrado por si el theme flota algo */
+.vnv-modal__dialog{
+  margin-left: auto !important;
+  margin-right: auto !important;
+  float: none !important;
+  clear: none !important;
+}
+
+/* Encabezado y contenido */
+.vnv-modal__title{
+  margin: 14px 20px 0;
+  font-size: 22px;
+  font-weight: 800;
+  color: #e8eef7;
+}
+.vnv-modal__content{
+  padding: 10px 20px 20px;  /* compacto pero cómodo */
+}
+
+/* Botón cerrar */
+
+
+/* Google Places dropdown SIEMPRE arriba del modal */
+.pac-container{ z-index: 2147483648 !important; }
+
+/* Adaptaciones del formulario dentro del modal */
+#vnv-msef{ box-shadow:none; margin:0; }
+.vnv-map{ width:100%; height:280px; border-radius:12px; background:#0e1218; border:1px solid #222a36; }
+@media (min-width: 900px){ .vnv-map{ height:320px; } }
+
+/* (Opcional) Ocultar algunos widgets flotantes mientras el modal esté abierto */
+.vnv-modal-open #wh-widget-send-button,
+.vnv-modal-open .tawk-min-container{ display:none !important; }
+
+/* iOS/Android: que el modal scrollee hasta el fondo real del viewport */
+.vnv-modal__dialog{
+  -webkit-overflow-scrolling: touch;
+  max-height: 96svh;                 /* small viewport height */
+}
+@supports (height: 100dvh){
+  .vnv-modal__dialog{ max-height: 96dvh; }   /* navegadores nuevos */
+}
+
+/* Más espacio al fondo + respeta safe area (notch/barras) */
+.vnv-modal__content{
+  padding-bottom: calc(24px + env(safe-area-inset-bottom));
+}
+
+/* Mantén los botones siempre visibles al hacer scroll */
+.vnv-modal__content .vnv-actions{
+  position: sticky;
+  bottom: calc(12px + env(safe-area-inset-bottom));
+  z-index: 3;
+  padding-top: 12px;
+  /* degradado suave para separar los campos del área de botones */
+  background: linear-gradient(
+    to bottom,
+    rgba(15,17,21,0) 0%,
+    rgba(15,17,21,.85) 60%,
+    rgba(15,17,21,.98) 100%
+  );
+}
+
+
+/* Mientras el modal esté abierto, esconde widgets flotantes que suelen invadir el viewport */
+.vnv-modal-open #wh-widget-send-button,
+.vnv-modal-open .ht-ctc-chat,
+.vnv-modal-open .joinchat,
+.vnv-modal-open .joinchat__button,
+.vnv-modal-open .floating-whatsapp,
+.vnv-modal-open .wa__btn_popup,
+.vnv-modal-open .getbutton-widget,
+.vnv-modal-open [class*="whatsapp"],
+.vnv-modal-open a[href*="wa.me"],
+.vnv-modal-open a[href*="api.whatsapp.com"]{
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+.vnv-modal__close{
+  position: absolute;
+  right: 12px;
+  top: 12px;
+
+  width: 32px;
+  height: 32px;
+
+  background: #d23b6b;
+  border: none;
+  border-radius: 50%;
+  color: white;
+
+  font-size: 20px;
+  line-height: 1;            /* evita desalineación vertical */
+  font-weight: 700;          /* la X se ve más limpia */
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  box-shadow: 0 2px 6px rgba(0,0,0,.25);
+  cursor: pointer;
+  transition: background .2s, transform .15s;
+}
+
+.vnv-modal__close:hover{
+  background: #bb2d5a;
+  transform: scale(1.07);
+}
+
+
+/* Asegura que el modal siga por encima de todo */
+.vnv-modal{ z-index: 2147483647 !important; isolation:isolate; }
+.vnv-modal__overlay{ z-index: 1; }
+.vnv-modal__dialog{ z-index: 2; }
+
+

@@ -1,0 +1,668 @@
+{% extends "templates/base.twig" %}
+
+{% block body %}
+
+<style>
+:root{
+    --vnv-primary:#5EC6C4;
+    --vnv-primary-dark:#49acab;
+    --vnv-gold:#c5a059;
+    --vnv-gold-gradient:linear-gradient(135deg,#bf953f 0%,#fcf6ba 45%,#b38728 100%);
+    --vnv-dark:#0a0c0c;
+    --vnv-dark-soft:#111617;
+    --vnv-dark-card:#151b1c;
+    --vnv-text:#122022;
+    --vnv-text-muted:#637275;
+    --vnv-light:#ffffff;
+    --vnv-surface:#f7f9fa;
+    --vnv-border:#dde7e8;
+    --vnv-shadow:0 18px 44px rgba(0,0,0,.10);
+    --vnv-shadow-strong:0 28px 70px rgba(10,12,12,.18);
+}
+
+body{
+    background:
+        radial-gradient(900px 420px at 0% 0%, rgba(94,198,196,.10), transparent 60%),
+        radial-gradient(800px 380px at 100% 100%, rgba(197,160,89,.08), transparent 60%),
+        linear-gradient(180deg,#f6f9f9 0%, #eef4f4 100%);
+}
+
+.signup-shell{
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    padding:2rem 0;
+}
+
+.signup-wrap{
+    width:100%;
+}
+
+.signup-grid{
+    display:grid;
+    grid-template-columns: 1fr 580px;
+    gap:1.4rem;
+    align-items:stretch;
+}
+
+.signup-brand{
+    position:relative;
+    overflow:hidden;
+    border-radius:30px;
+    padding:2.2rem 2rem;
+    color:#fff;
+    background:
+        radial-gradient(900px 380px at 0% 0%, rgba(94,198,196,.16), transparent 60%),
+        radial-gradient(400px 220px at 100% 0%, rgba(197,160,89,.12), transparent 72%),
+        linear-gradient(135deg, #0a0c0c 0%, #101516 55%, #182021 100%);
+    box-shadow:var(--vnv-shadow-strong);
+    min-height:100%;
+    display:flex;
+    flex-direction:column;
+    justify-content:space-between;
+}
+
+.signup-brand:after{
+    content:"";
+    position:absolute;
+    right:-60px;
+    top:-60px;
+    width:220px;
+    height:220px;
+    background:radial-gradient(circle, rgba(255,255,255,.08) 0%, rgba(255,255,255,0) 72%);
+    pointer-events:none;
+}
+
+.signup-brand > *{
+    position:relative;
+    z-index:2;
+}
+
+.signup-badge{
+    display:inline-flex;
+    align-items:center;
+    gap:.45rem;
+    border-radius:999px;
+    padding:.55rem .9rem;
+    font-size:.82rem;
+    font-weight:800;
+    background:rgba(255,255,255,.08);
+    border:1px solid rgba(255,255,255,.14);
+    color:#dff7f6;
+    margin-bottom:1.2rem;
+    text-transform:uppercase;
+    letter-spacing:1.5px;
+}
+
+.signup-logo{
+    max-width:140px;
+    margin-bottom:1.2rem;
+    filter:drop-shadow(0 10px 24px rgba(0,0,0,.18));
+}
+
+.signup-brand h1{
+    font-size:clamp(2rem,4vw,3.4rem);
+    line-height:1.04;
+    font-weight:900;
+    letter-spacing:-1px;
+    margin-bottom:1rem;
+    max-width:700px;
+    font-family:'Playfair Display', serif;
+}
+
+.signup-brand h1 .warm{
+    background:var(--vnv-gold-gradient);
+    -webkit-background-clip:text;
+    -webkit-text-fill-color:transparent;
+}
+
+.signup-brand p{
+    max-width:720px;
+    color:rgba(255,255,255,.78);
+    line-height:1.82;
+    font-size:1rem;
+    margin-bottom:1.2rem;
+}
+
+.signup-points{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:.85rem;
+    margin-top:1rem;
+}
+
+.signup-point{
+    background:rgba(255,255,255,.06);
+    border:1px solid rgba(255,255,255,.10);
+    border-radius:18px;
+    padding:1rem;
+    backdrop-filter:blur(6px);
+}
+
+.signup-point i{
+    font-size:1.15rem;
+    color:var(--vnv-gold);
+    margin-bottom:.55rem;
+}
+
+.signup-point strong{
+    display:block;
+    font-size:.98rem;
+    color:#fff;
+    margin-bottom:.2rem;
+}
+
+.signup-point span{
+    display:block;
+    color:rgba(255,255,255,.76);
+    line-height:1.6;
+    font-size:.93rem;
+}
+
+.signup-note{
+    margin-top:1.3rem;
+    font-size:.95rem;
+    color:rgba(255,255,255,.76);
+}
+
+.signup-note strong{
+    color:#fff;
+}
+
+.signup-card{
+    background:#fff;
+    border:1px solid rgba(17,24,26,.05);
+    border-radius:28px;
+    box-shadow:var(--vnv-shadow-strong);
+    overflow:hidden;
+}
+
+.signup-card-top{
+    padding:1.7rem 1.6rem 1rem;
+    border-bottom:1px solid #edf2f2;
+    background:linear-gradient(180deg,#ffffff 0%, #f7fafb 100%);
+}
+
+.signup-card-top h2{
+    margin:0 0 .35rem;
+    font-size:1.8rem;
+    font-weight:900;
+    color:var(--vnv-text);
+    letter-spacing:-.5px;
+}
+
+.signup-card-top p{
+    margin:0;
+    color:var(--vnv-text-muted);
+    line-height:1.7;
+}
+
+.signup-card-body{
+    padding:1.45rem 1.6rem 1.6rem;
+}
+
+.form-label{
+    font-weight:800;
+    color:#294043;
+    margin-bottom:.45rem;
+    font-size:.92rem;
+    text-transform:uppercase;
+    letter-spacing:.8px;
+}
+
+.form-control{
+    border-radius:14px;
+    border:1px solid var(--vnv-border);
+    background:#fbfdfd;
+    min-height:56px;
+    color:var(--vnv-text);
+    padding:.95rem 1rem;
+    box-shadow:none !important;
+}
+
+.form-control:focus{
+    border-color:var(--vnv-primary);
+    background:#fff;
+}
+
+.form-control::placeholder{
+    color:#9aa9ac;
+}
+
+.input-group .form-control{
+    border-right:0;
+    border-top-right-radius:0;
+    border-bottom-right-radius:0;
+}
+
+.input-group .btn{
+    border-left:0;
+    border-top-left-radius:0;
+    border-bottom-left-radius:0;
+    border-color:var(--vnv-border);
+    background:#fbfdfd;
+    min-width:54px;
+    color:#3e5b5f;
+}
+
+.input-group .btn:hover{
+    background:#f2f8f8;
+    border-color:#cfe1e3;
+    color:#234346;
+}
+
+.input-group .btn:focus{
+    box-shadow:none;
+}
+
+[data-feather]{
+    width:18px;
+    height:18px;
+}
+
+#togglePassword,
+#toggleConfirmPassword{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+}
+
+.form-check-input{
+    margin-top:.2rem;
+    border-color:#c8d6d8;
+}
+
+.form-check-input:checked{
+    background-color:var(--vnv-primary);
+    border-color:var(--vnv-primary);
+}
+
+.form-check-label{
+    color:var(--vnv-text-muted);
+    line-height:1.65;
+}
+
+.form-check-label a{
+    color:#1d6264;
+    font-weight:800;
+    text-decoration:none;
+}
+
+.form-check-label a:hover{
+    color:var(--vnv-primary-dark);
+}
+
+.btn-signup{
+    width:100%;
+    border:none;
+    border-radius:999px;
+    min-height:58px;
+    font-size:1rem;
+    font-weight:900;
+    letter-spacing:.2px;
+    color:#071011 !important;
+    background:linear-gradient(135deg,#79d8d6 0%, #5EC6C4 45%, #9ad7d5 100%);
+    box-shadow:0 14px 30px rgba(94,198,196,.28);
+    transition:all .22s ease;
+}
+
+.btn-signup:hover{
+    transform:translateY(-2px);
+    background:linear-gradient(135deg,#67d0ce 0%, #52bbb8 45%, #87d1cf 100%);
+}
+
+.signup-footer{
+    text-align:center;
+    margin-top:1.2rem;
+    color:var(--vnv-text-muted);
+    font-size:.95rem;
+}
+
+.signup-footer a{
+    color:#1d6264;
+    font-weight:900;
+    text-decoration:none;
+}
+
+.signup-footer a:hover{
+    color:var(--vnv-primary-dark);
+}
+
+.signup-helper{
+    margin-top:.9rem;
+    text-align:center;
+    color:#7d8d90;
+    font-size:.88rem;
+}
+
+.signup-social-hidden{
+    display:none !important;
+}
+
+@media (max-width: 1199px){
+    .signup-grid{
+        grid-template-columns:1fr;
+    }
+
+    .signup-brand{
+        padding:1.8rem 1.4rem;
+    }
+}
+
+@media (max-width: 768px){
+    .signup-shell{
+        padding:1.1rem 0;
+    }
+
+    .signup-brand,
+    .signup-card{
+        border-radius:22px;
+    }
+
+    .signup-card-top,
+    .signup-card-body{
+        padding-left:1.1rem;
+        padding-right:1.1rem;
+    }
+
+    .signup-points{
+        grid-template-columns:1fr;
+    }
+}
+
+@media (max-width: 768px){
+    .signup-points,
+    .signup-note{
+        display:none !important;
+    }
+
+    .signup-brand{
+        padding-bottom:1.1rem;
+    }
+
+    .signup-brand h1{
+        margin-bottom:.7rem;
+    }
+
+    .signup-brand p{
+        margin-bottom:0;
+        font-size:.96rem;
+        line-height:1.7;
+    }
+}
+</style>
+
+<main class="signup-shell">
+    <div class="container signup-wrap">
+        <div class="signup-grid">
+
+            <section class="signup-brand">
+                <div>
+                    <span class="signup-badge">
+                        <i class="fa-solid fa-sparkles"></i> VNV Events
+                    </span>
+
+                    <div>
+                        <img src="{{ asset_for('assets/images/logo-negative.png') }}" class="signup-logo" alt="VNV Events Logo">
+                    </div>
+
+                    <h1>
+                        Create your account and start planning with a more <span class="warm">organized VNV experience</span>.
+                    </h1>
+
+                    <p>
+                        Set up your account to access event updates, request services, manage details, communicate with the team and keep your planning process moving in one place.
+                    </p>
+
+                    <div class="signup-points">
+                        <div class="signup-point">
+                            <i class="fa-solid fa-calendar-check"></i>
+                            <strong>Better event visibility</strong>
+                            <span>Keep track of your requests, planning steps and event-related activity more easily.</span>
+                        </div>
+
+                        <div class="signup-point">
+                            <i class="fa-solid fa-comments"></i>
+                            <strong>Smoother communication</strong>
+                            <span>Stay connected with the VNV team and keep conversations tied to your event flow.</span>
+                        </div>
+
+                        <div class="signup-point">
+                            <i class="fa-solid fa-file-signature"></i>
+                            <strong>Client-ready tools</strong>
+                            <span>Access the information, links and account tools that make planning more practical.</span>
+                        </div>
+
+                        <div class="signup-point">
+                            <i class="fa-solid fa-star"></i>
+                            <strong>One premium experience</strong>
+                            <span>Built to support celebrations, productions and client coordination with more clarity.</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="signup-note">
+                    Create your profile to begin a more connected planning experience with <strong>VNV Events</strong>.
+                </div>
+            </section>
+
+            <section class="signup-card">
+                <div class="signup-card-top">
+                    <h2>Create your account</h2>
+                    <p>
+                        Fill in your details below to get started and access your VNV Events account.
+                    </p>
+                </div>
+
+                <div class="signup-card-body">
+
+                    <section class="d-flex flex-row gap-4 signup-social-hidden">
+                        <div class="text-center mb-3" style="width: 50%">
+                            <a href="{{ googleAuthUrl }}" class="btn btn-outline-secondary w-100 py-3 mb-3 d-flex align-items-center justify-content-center">
+                                <img src="{{ asset_for('assets/images/google-icon.svg') }}" style="width:18px;margin-right:10px;" alt="Google">
+                                Sign up with Google
+                            </a>
+                        </div>
+
+                        <div class="text-center mb-3" style="width: 50%">
+                            <a href="{{ apple_url }}" class="btn btn-outline-secondary w-100 py-3 mb-3 d-flex align-items-center justify-content-center">
+                                <img src="{{ asset_for('assets/images/apple-icon.svg') }}" style="width:18px;margin-right:10px;" alt="Apple">
+                                Sign up with Apple
+                            </a>
+                        </div>
+                    </section>
+
+                    <div class="divider signup-social-hidden">
+                        <span>or</span>
+                    </div>
+
+                    <form method="post">
+                        <input type="hidden" name="level" value="{{ level }}">
+
+                        <div class="row">
+                            <div class="col-12 col-md-6 mb-3">
+                                <label class="form-label">First Name</label>
+                                <input
+                                    class="form-control form-control-lg"
+                                    type="text"
+                                    name="name"
+                                    placeholder="Enter your first name"
+                                    required
+                                />
+                            </div>
+
+                            <div class="col-12 col-md-6 mb-3">
+                                <label class="form-label">Last Name</label>
+                                <input
+                                    class="form-control form-control-lg"
+                                    type="text"
+                                    name="lastname"
+                                    placeholder="Enter your last name"
+                                    required
+                                />
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-12 col-md-6 mb-3">
+                                <label class="form-label">Email Address</label>
+                                <input
+                                    class="form-control form-control-lg"
+                                    type="email"
+                                    name="email"
+                                    placeholder="Enter your email"
+                                    required
+                                />
+                            </div>
+
+                            <div class="col-12 col-md-6 mb-3">
+                                <label class="form-label">Phone Number</label>
+                                <input
+                                    class="form-control form-control-lg"
+                                    type="text"
+                                    name="phoneNumber"
+                                    data-phone
+                                    placeholder="Enter your phone number"
+                                    value="+1"
+                                    required
+                                />
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-12 col-md-6 mb-3">
+                                <label class="form-label">Password</label>
+                                <div class="input-group">
+                                    <input
+                                        class="form-control form-control-lg"
+                                        type="password"
+                                        name="password"
+                                        id="password"
+                                        placeholder="Create your password"
+                                        required
+                                    />
+                                    <button class="btn btn-outline-secondary" type="button" id="togglePassword">
+                                        <i data-feather="eye" id="eyeIcon"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="col-12 col-md-6 mb-3">
+                                <label class="form-label">Confirm Password</label>
+                                <div class="input-group">
+                                    <input
+                                        class="form-control form-control-lg"
+                                        type="password"
+                                        name="passwordConfirmation"
+                                        id="confirmPassword"
+                                        placeholder="Confirm your password"
+                                        required
+                                    />
+                                    <button class="btn btn-outline-secondary" type="button" id="toggleConfirmPassword">
+                                        <i data-feather="eye" id="eyeIconConfirm"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <div class="form-check">
+                                <input
+                                    class="form-check-input"
+                                    type="checkbox"
+                                    name="terms"
+                                    id="terms"
+                                    required
+                                >
+                                <label class="form-check-label small" for="terms">
+                                    I agree to the
+                                    <a href="{{ path('terms_and_conditions') }}" target="_blank">
+                                        Terms & Conditions
+                                    </a>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-signup btn-lg" id="signupBtn">
+                                Create My Account
+                            </button>
+                        </div>
+                    </form>
+
+                    <div class="signup-helper">
+                        By creating an account, you’ll be able to manage your event-related information in one place.
+                    </div>
+
+                    <div class="signup-footer">
+                        Already have an account?
+                        <a href="{{ path('login') }}">Log In</a>
+                    </div>
+                </div>
+            </section>
+
+        </div>
+    </div>
+</main>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const togglePassword = document.getElementById('togglePassword');
+    const password = document.getElementById('password');
+    const eyeIcon = document.getElementById('eyeIcon');
+
+    if (togglePassword && password && eyeIcon) {
+        togglePassword.addEventListener('click', function() {
+            const type = password.getAttribute('type') === 'password' ? 'text' : 'password';
+            password.setAttribute('type', type);
+
+            if (type === 'text') {
+                eyeIcon.setAttribute('data-feather', 'eye-off');
+            } else {
+                eyeIcon.setAttribute('data-feather', 'eye');
+            }
+
+            if (typeof feather !== 'undefined') {
+                feather.replace();
+            }
+        });
+    }
+
+    const toggleConfirmPassword = document.getElementById('toggleConfirmPassword');
+    const confirmPassword = document.getElementById('confirmPassword');
+    const eyeIconConfirm = document.getElementById('eyeIconConfirm');
+
+    if (toggleConfirmPassword && confirmPassword && eyeIconConfirm) {
+        toggleConfirmPassword.addEventListener('click', function() {
+            const type = confirmPassword.getAttribute('type') === 'password' ? 'text' : 'password';
+            confirmPassword.setAttribute('type', type);
+
+            if (type === 'text') {
+                eyeIconConfirm.setAttribute('data-feather', 'eye-off');
+            } else {
+                eyeIconConfirm.setAttribute('data-feather', 'eye');
+            }
+
+            if (typeof feather !== 'undefined') {
+                feather.replace();
+            }
+        });
+    }
+
+    const form = document.querySelector('form');
+    const signupBtn = document.getElementById('signupBtn');
+
+    if (form && signupBtn) {
+        form.addEventListener('submit', function() {
+            signupBtn.disabled = true;
+            signupBtn.innerHTML = 'Creating Account...';
+        });
+    }
+
+    if (typeof feather !== 'undefined') {
+        feather.replace();
+    }
+});
+</script>
+
+{% endblock %}

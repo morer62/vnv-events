@@ -1,0 +1,1033 @@
+{% extends "templates/base.twig" %}
+
+{% set show_whatsapp = true %}
+
+{% block styles %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@200;300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,700;0,900;1,700;1,900&display=swap" rel="stylesheet">
+
+<style>
+:root{
+    --vnv-primary:#5EC6C4;
+    --vnv-primary-dark:#4aa8a6;
+    --vnv-gold:#c5a059;
+    --vnv-gold-gradient:linear-gradient(135deg,#bf953f 0%,#fcf6ba 45%,#b38728 100%);
+    --vnv-dark-deep:#0a0c0c;
+    --vnv-dark-soft:#141818;
+    --vnv-dark-card:#1b2021;
+    --vnv-light:#ffffff;
+    --vnv-marble:#f4f7f8;
+    --vnv-text-dark:#11181a;
+    --vnv-text-light:#f3f5f6;
+    --vnv-text-muted:rgba(255,255,255,.72);
+    --vnv-text-muted-soft:rgba(255,255,255,.58);
+    --vnv-border:rgba(255,255,255,.08);
+    --vnv-shadow:0 25px 70px rgba(0,0,0,.14);
+}
+
+html { scroll-behavior:smooth; }
+
+body{
+    background:var(--vnv-dark-deep);
+    color:var(--vnv-text-light);
+    font-family:'Plus Jakarta Sans',sans-serif;
+    line-height:1.8;
+    -webkit-font-smoothing:antialiased;
+    overflow-x:hidden;
+}
+
+h1,h2,h3,h4,h5,.luxury-font{
+    font-family:'Playfair Display',serif;
+}
+
+.text-vnv{ color:var(--vnv-primary)!important; }
+
+.text-gold{
+    background:var(--vnv-gold-gradient);
+    -webkit-background-clip:text;
+    -webkit-text-fill-color:transparent;
+}
+
+.vnv-btn{
+    padding:18px 30px;
+    font-weight:800;
+    text-transform:uppercase;
+    letter-spacing:2px;
+    transition:all .35s ease;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    gap:10px;
+    text-decoration:none;
+    border:none;
+    cursor:pointer;
+    font-size:.78rem;
+    border-radius:999px;
+}
+
+.btn-gold-vnv{
+    background:var(--vnv-gold-gradient);
+    color:#000!important;
+}
+.btn-gold-vnv:hover{
+    transform:translateY(-3px);
+    box-shadow:0 20px 40px rgba(197,160,89,.22);
+}
+
+.btn-outline-vnv{
+    border:2px solid var(--vnv-primary);
+    color:var(--vnv-primary)!important;
+    background:transparent;
+}
+.btn-outline-vnv:hover{
+    background:var(--vnv-primary);
+    color:#fff!important;
+}
+
+.btn-ghost-white{
+    border:1px solid rgba(255,255,255,.18);
+    color:#fff!important;
+    background:transparent;
+}
+.btn-ghost-white:hover{
+    background:#fff;
+    color:#000!important;
+}
+
+.section-vnv{
+    padding:120px 0;
+    position:relative;
+}
+
+.vnv-badge{
+    display:inline-flex;
+    align-items:center;
+    gap:10px;
+    padding:10px 18px;
+    border-radius:999px;
+    background:rgba(94,198,196,.1);
+    color:var(--vnv-primary);
+    font-size:.74rem;
+    letter-spacing:2px;
+    font-weight:800;
+    text-transform:uppercase;
+}
+
+.hero-tool{
+    position:relative;
+    min-height:82vh;
+    display:flex;
+    align-items:center;
+    overflow:hidden;
+    background:
+        linear-gradient(90deg, rgba(10,12,12,.90) 0%, rgba(10,12,12,.66) 44%, rgba(10,12,12,.38) 100%),
+        url('{{ asset_for('assets/images/tool-space-planner-hero.jpg') }}') center/cover no-repeat;
+}
+
+.hero-tool::after{
+    content:"";
+    position:absolute;
+    inset:0;
+    background:
+        radial-gradient(circle at top right, rgba(94,198,196,.16), transparent 28%),
+        radial-gradient(circle at bottom left, rgba(197,160,89,.10), transparent 24%);
+    pointer-events:none;
+}
+
+.hero-tool-inner{
+    position:relative;
+    z-index:2;
+    width:100%;
+}
+
+.hero-tool h1{
+    font-size:clamp(3rem,6vw,5.4rem);
+    line-height:1.02;
+    margin:20px 0 28px;
+    max-width:980px;
+}
+
+.hero-tool p.hero-copy{
+    font-size:1.08rem;
+    color:var(--vnv-text-muted);
+    max-width:780px;
+    margin-bottom:22px;
+}
+
+.hero-cta-row{
+    display:flex;
+    flex-wrap:wrap;
+    gap:16px;
+    margin-top:24px;
+}
+
+.section-white{
+    background:var(--vnv-marble);
+    color:var(--vnv-text-dark);
+}
+
+.tool-shell{
+    background:linear-gradient(145deg, #151a1b 0%, #0c0f10 100%);
+    border-radius:34px;
+    border:1px solid rgba(255,255,255,.06);
+    box-shadow:0 26px 80px rgba(0,0,0,.22);
+    overflow:hidden;
+}
+
+.tool-topbar{
+    padding:18px 22px;
+    background:#0c0f10;
+    border-bottom:1px solid rgba(255,255,255,.06);
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:16px;
+    flex-wrap:wrap;
+}
+
+.tool-topbar-left{
+    display:flex;
+    align-items:center;
+    gap:14px;
+}
+
+.tool-topbar-icon{
+    width:46px;
+    height:46px;
+    border-radius:14px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:rgba(94,198,196,.12);
+    color:var(--vnv-primary);
+    font-size:1.15rem;
+}
+
+.tool-topbar-title{
+    color:#fff;
+    font-weight:800;
+    font-size:1rem;
+    line-height:1.2;
+}
+
+.tool-topbar-sub{
+    color:var(--vnv-text-muted-soft);
+    font-size:.8rem;
+    font-weight:700;
+}
+
+.tool-topbar-note{
+    color:rgba(255,255,255,.62);
+    font-size:.88rem;
+    font-weight:700;
+}
+
+.tool-body{
+    padding:28px;
+}
+
+.tool-grid{
+    display:grid;
+    grid-template-columns: 420px 1fr;
+    gap:24px;
+    align-items:start;
+}
+
+.tool-panel{
+    background:#f7f9fa;
+    border:1px solid rgba(17,24,26,.08);
+    border-radius:26px;
+    padding:22px;
+    box-shadow:0 18px 50px rgba(0,0,0,.06);
+    color:#122022;
+}
+
+.tool-panel h3{
+    font-family:'Plus Jakarta Sans',sans-serif;
+    margin:0 0 18px;
+    font-size:1.05rem;
+    font-weight:800;
+    color:#122022;
+    letter-spacing:.3px;
+}
+
+.tool-field{
+    margin-bottom:16px;
+}
+
+.tool-field label{
+    display:block;
+    font-size:.84rem;
+    font-weight:800;
+    color:#2c3a3d;
+    margin-bottom:8px;
+    text-transform:uppercase;
+    letter-spacing:1px;
+}
+
+.tool-field input,
+.tool-field select{
+    width:100%;
+    border:1px solid rgba(17,24,26,.12);
+    background:#fff;
+    border-radius:14px;
+    outline:none;
+    padding:14px 14px;
+    font-size:1rem;
+    color:#122022;
+    font-family:'Plus Jakarta Sans',sans-serif;
+}
+
+.tool-inline-2{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:14px;
+}
+
+.tool-inline-3{
+    display:grid;
+    grid-template-columns:1fr 1fr 1fr;
+    gap:14px;
+}
+
+.tool-actions{
+    display:flex;
+    gap:12px;
+    flex-wrap:wrap;
+    margin-top:10px;
+}
+
+.tool-btn{
+    border:none;
+    outline:none;
+    cursor:pointer;
+    border-radius:14px;
+    padding:14px 16px;
+    font-weight:800;
+    font-size:.88rem;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    gap:10px;
+    transition:all .25s ease;
+}
+
+.tool-btn.primary{
+    background:linear-gradient(135deg, #c0006b 0%, #e00087 100%);
+    color:#fff;
+}
+
+.tool-btn.secondary{
+    background:#11181a;
+    color:#fff;
+}
+
+.tool-btn.accent{
+    background:rgba(94,198,196,.12);
+    color:#133133;
+}
+
+.tool-btn:hover{
+    transform:translateY(-2px);
+}
+
+.tool-helper{
+    margin-top:16px;
+    background:#fff;
+    border:1px solid rgba(17,24,26,.08);
+    border-radius:18px;
+    padding:16px;
+    font-size:.92rem;
+    color:#4e5c5f;
+    line-height:1.65;
+}
+
+.tool-results{
+    display:grid;
+    gap:22px;
+}
+
+.result-card{
+    background:linear-gradient(145deg, rgba(28,34,35,0.96) 0%, rgba(15,18,19,0.98) 100%);
+    border:1px solid rgba(255,255,255,.06);
+    border-radius:26px;
+    padding:24px;
+    box-shadow:0 24px 60px rgba(0,0,0,.18);
+}
+
+.result-card h3{
+    font-size:1.45rem;
+    color:#fff;
+    margin:0 0 14px;
+}
+
+.result-card p{
+    color:var(--vnv-text-muted);
+    margin:0 0 14px;
+}
+
+.result-grid{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:14px;
+    margin-top:14px;
+}
+
+.result-stat{
+    background:rgba(255,255,255,.04);
+    border:1px solid rgba(255,255,255,.06);
+    border-radius:18px;
+    padding:16px 14px;
+}
+
+.result-stat-label{
+    color:rgba(255,255,255,.58);
+    font-size:.72rem;
+    font-weight:800;
+    text-transform:uppercase;
+    letter-spacing:1.4px;
+    margin-bottom:6px;
+}
+
+.result-stat-value{
+    color:#fff;
+    font-size:1.32rem;
+    font-weight:800;
+    line-height:1.2;
+}
+
+.ingredient-grid{
+    display:grid;
+    grid-template-columns:repeat(2,1fr);
+    gap:14px;
+    margin-top:14px;
+}
+
+.ingredient-card{
+    background:rgba(255,255,255,.04);
+    border:1px solid rgba(255,255,255,.06);
+    border-radius:18px;
+    padding:16px 14px;
+}
+
+.ingredient-card h4{
+    font-family:'Plus Jakarta Sans',sans-serif;
+    color:#fff;
+    margin:0 0 8px;
+    font-size:1rem;
+    font-weight:800;
+}
+
+.ingredient-card p{
+    margin:0;
+    color:var(--vnv-text-muted);
+    font-size:.92rem;
+    line-height:1.6;
+}
+
+.muted-note{
+    margin-top:16px;
+    color:rgba(255,255,255,.52);
+    font-size:.84rem;
+    line-height:1.6;
+}
+
+.empty-state{
+    min-height:420px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+    padding:30px;
+    background:linear-gradient(145deg, rgba(28,34,35,0.96) 0%, rgba(15,18,19,0.98) 100%);
+    border:1px solid rgba(255,255,255,.06);
+    border-radius:26px;
+    color:var(--vnv-text-muted);
+}
+
+.empty-state-inner{
+    max-width:420px;
+}
+
+.empty-state-icon{
+    width:72px;
+    height:72px;
+    margin:0 auto 18px;
+    border-radius:22px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:rgba(94,198,196,.10);
+    color:var(--vnv-primary);
+    font-size:1.5rem;
+}
+
+@media (max-width: 1199px){
+    .tool-grid{
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 767px){
+    .section-vnv{
+        padding:90px 0;
+    }
+
+    .hero-tool h1{
+        font-size:2.7rem;
+    }
+
+    .vnv-btn{
+        width:100%;
+        padding:18px 24px;
+        letter-spacing:2px;
+    }
+
+    .hero-cta-row{
+        flex-direction:column;
+    }
+
+    .tool-body{
+        padding:16px;
+    }
+
+    .tool-inline-2,
+    .tool-inline-3,
+    .result-grid,
+    .ingredient-grid{
+        grid-template-columns:1fr;
+    }
+
+    .tool-panel,
+    .result-card{
+        padding:18px;
+    }
+}
+
+.tool-bento-card{
+    display:flex;
+    flex-direction:column;
+    justify-content:space-between;
+    gap:18px;
+    min-height:220px;
+    padding:22px;
+    border-radius:24px;
+    background:linear-gradient(145deg, rgba(28,34,35,0.96) 0%, rgba(15,18,19,0.98) 100%);
+    border:1px solid rgba(255,255,255,.06);
+    box-shadow:0 24px 60px rgba(0,0,0,.18);
+    text-decoration:none;
+    color:#fff !important;
+    transition:all .28s ease;
+}
+
+.tool-bento-card:hover{
+    transform:translateY(-4px);
+    border-color:rgba(94,198,196,.24);
+    box-shadow:0 28px 70px rgba(0,0,0,.24);
+    text-decoration:none;
+}
+
+.tool-bento-card.small{
+    min-height:200px;
+}
+
+.tool-bento-top{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    margin-bottom:16px;
+}
+
+.tool-bento-icon{
+    width:52px;
+    height:52px;
+    border-radius:16px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:rgba(94,198,196,.12);
+    color:#5EC6C4;
+    font-size:1.2rem;
+    flex-shrink:0;
+}
+
+.tool-bento-badge{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    padding:8px 14px;
+    border-radius:999px;
+    background:rgba(94,198,196,.10);
+    color:#5EC6C4;
+    font-size:.72rem;
+    font-weight:800;
+    text-transform:uppercase;
+    letter-spacing:1.2px;
+    white-space:nowrap;
+}
+
+.tool-bento-card h3{
+    margin:0 0 10px;
+    color:#fff !important;
+    font-size:1.4rem;
+    line-height:1.15;
+}
+
+.tool-bento-card p{
+    margin:0;
+    color:rgba(255,255,255,.72) !important;
+    font-size:.96rem;
+    line-height:1.65;
+}
+
+.tool-bento-footer{
+    margin-top:auto;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:14px;
+    padding-top:8px;
+    color:#fff;
+    font-weight:800;
+    font-size:.9rem;
+}
+
+.tool-bento-arrow{
+    width:40px;
+    height:40px;
+    border-radius:999px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:rgba(255,255,255,.06);
+    color:#fff;
+    transition:all .25s ease;
+}
+
+.tool-bento-card:hover .tool-bento-arrow{
+    background:#5EC6C4;
+    color:#0a0c0c;
+}
+
+.tool-bento-card,
+.tool-bento-card:visited,
+.tool-bento-card:hover,
+.tool-bento-card:active{
+    text-decoration:none !important;
+    color:#fff !important;
+}
+
+.tool-bento-card h3,
+.tool-bento-card p,
+.tool-bento-card span,
+.tool-bento-card i{
+    text-decoration:none !important;
+}
+
+@media (max-width: 767px){
+    .tool-bento-card{
+        min-height:auto;
+        padding:18px;
+        border-radius:20px;
+    }
+
+    .tool-bento-card h3{
+        font-size:1.2rem;
+    }
+
+    .tool-bento-card p{
+        font-size:.92rem;
+    }
+}
+</style>
+{% endblock %}
+
+{% block body %}
+
+{% include "templates/layout/publicHeaderVnv.html.twig" %}
+
+
+<section class="hero-tool">
+    <div class="container hero-tool-inner">
+        <span class="vnv-badge">Free Drink Planning Tool</span>
+
+        <h1>Cocktail Guide & <span class="text-gold">Calculator for Events</span></h1>
+
+        <p class="hero-copy">
+            Estimate cocktail ingredients, bottle counts, garnishes and ice for weddings, private parties, corporate events and celebrations. Use this calculator to plan your bar with more confidence before service begins.
+        </p>
+
+        <div class="hero-cta-row">
+            <a href="#cocktail-tool" class="vnv-btn btn-gold-vnv">Use the Calculator</a>
+            <a href="#" data-vnv-open-request class="vnv-btn btn-outline-vnv">Need Bartender Help?</a>
+        </div>
+    </div>
+</section>
+
+<section class="section-vnv section-white" id="cocktail-tool">
+    <div class="container">
+        <div class="tool-shell">
+            <div class="tool-topbar">
+                <div class="tool-topbar-left">
+                    <div class="tool-topbar-icon"><i class="fa-solid fa-martini-glass-citrus"></i></div>
+                    <div>
+                        <div class="tool-topbar-title">Cocktail Calculator for Events</div>
+                        <div class="tool-topbar-sub">Estimate ingredients, bottles, ice and garnish</div>
+                    </div>
+                </div>
+
+                <div class="tool-topbar-note">
+                    Better for weddings, private parties, corporate events and venue bar planning
+                </div>
+            </div>
+
+            <div class="tool-body">
+                <div class="tool-grid">
+                    <div class="tool-panel">
+                        <h3>Plan Your Cocktail Service</h3>
+
+                        <div class="tool-field">
+                            <label for="cocktail-search">Search cocktail</label>
+                            <input type="text" id="cocktail-search" placeholder="Start typing a cocktail name">
+                        </div>
+
+                        <div class="tool-field">
+                            <label for="cocktail">Choose cocktail</label>
+                            <select id="cocktail">
+                                <option value="">-- Select a cocktail --</option>
+                            </select>
+                        </div>
+
+                        <div class="tool-inline-2">
+                            <div class="tool-field">
+                                <label for="event-type">Event type</label>
+                                <select id="event-type">
+                                    <option value="casual">Casual Party</option>
+                                    <option value="wedding">Wedding</option>
+                                    <option value="corporate">Corporate Event</option>
+                                    <option value="premium">Premium Bar Experience</option>
+                                </select>
+                            </div>
+
+                            <div class="tool-field">
+                                <label for="drinkers">Guests drinking cocktails</label>
+                                <input type="number" id="drinkers" min="1" placeholder="e.g. 60">
+                            </div>
+                        </div>
+
+                        <div class="tool-inline-3">
+                            <div class="tool-field">
+                                <label for="servings-per-guest">Servings per guest</label>
+                                <input type="number" id="servings-per-guest" min="1" step="0.5" value="2">
+                            </div>
+
+                            <div class="tool-field">
+                                <label for="buffer">Safety buffer</label>
+                                <select id="buffer">
+                                    <option value="0">0%</option>
+                                    <option value="10" selected>10%</option>
+                                    <option value="15">15%</option>
+                                    <option value="20">20%</option>
+                                </select>
+                            </div>
+
+                            <div class="tool-field">
+                                <label for="bottle-size">Bottle size</label>
+                                <select id="bottle-size">
+                                    <option value="750" selected>750 ml</option>
+                                    <option value="1000">1 Liter</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="tool-actions">
+                            <button type="button" class="tool-btn primary" id="calculate-btn">
+                                <i class="fa-solid fa-calculator"></i>
+                                Calculate
+                            </button>
+
+                            <button type="button" class="tool-btn secondary" id="reset-btn">
+                                <i class="fa-solid fa-rotate-left"></i>
+                                Reset
+                            </button>
+                        </div>
+
+                        <div class="tool-helper">
+                            This works best when you already know roughly how many guests will drink cocktails. For mixed bars, calculate signature cocktails here and estimate wine, beer and spirits separately.
+                        </div>
+                    </div>
+
+                    <div class="tool-results" id="tool-results">
+                        <div class="empty-state">
+                            <div class="empty-state-inner">
+                                <div class="empty-state-icon"><i class="fa-solid fa-glass-water"></i></div>
+                                <h3 style="font-size:1.7rem; color:#fff; margin-bottom:10px;">Your cocktail estimate will appear here</h3>
+                                <p style="margin:0;">
+                                    Choose a cocktail, enter your guest count and calculate the shopping list for ingredients, bottles, ice and garnish.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            
+
+<a href="{{ path('bar-calculator-for-parties-and-venues') }}" class="tool-bento-card small">
+    <div>
+        <div class="tool-bento-top">
+            <div class="tool-bento-icon"><i class="fa-solid fa-martini-glass-citrus"></i></div>
+            <span class="tool-bento-badge">Staffing</span>
+        </div>
+
+        <h3>Bartender &amp; Server Calculator</h3>
+        <p>
+            Estimate how many bartenders, servers, barbacks and bar stations you may need based on guest count, bar type and food service style.
+        </p>
+    </div>
+
+    <div class="tool-bento-footer">
+        <span>Open Calculator</span>
+        <div class="tool-bento-arrow"><i class="fa-solid fa-arrow-right"></i></div>
+    </div>
+</a>
+
+</div>
+        </div>
+    </div>
+</section>
+
+{% include "templates/components/publicEventRequestModal.html.twig" with {
+    request_form_action: "/api/public/event-request"
+} %}
+
+{% include "templates/layout/publicFooterVnv.html.twig" %}
+
+{% endblock %}
+
+{% block scripts %}
+<script type="application/ld+json">
+{
+  "@context":"https://schema.org",
+  "@type":"WebApplication",
+  "name":"Cocktail Guide and Calculator for Events",
+  "applicationCategory":"BusinessApplication",
+  "operatingSystem":"Web",
+  "description":"A free web-based cocktail calculator for events that estimates ingredients, bottles, garnish and ice for cocktail service.",
+  "offers":{
+    "@type":"Offer",
+    "price":"0",
+    "priceCurrency":"USD"
+  }
+}
+</script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const cocktails = {
+        "Margarita": { ingredients: { tequila: 50, tripleSec: 25, limeJuice: 25 }, description: "50ml tequila, 25ml triple sec, 25ml lime juice.", extras: { lime: 0.25, ice: 100 } },
+        "Mojito": { ingredients: { whiteRum: 50, limeJuice: 25, sugar: 10, sodaWater: 100 }, description: "50ml white rum, 25ml lime juice, sugar and soda water.", extras: { mint: 5, lime: 0.25, ice: 150 } },
+        "Moscow Mule": { ingredients: { vodka: 50, limeJuice: 25, gingerBeer: 100 }, description: "50ml vodka, 25ml lime juice, topped with ginger beer.", extras: { lime: 0.25, ice: 150 } },
+        "Old Fashioned": { ingredients: { whiskey: 60, sugar: 5, bitters: 2 }, description: "60ml whiskey, sugar and bitters.", extras: { orange: 0.25, ice: 100 } },
+        "Manhattan": { ingredients: { whiskey: 50, vermouth: 20, bitters: 2 }, description: "50ml whiskey, 20ml sweet vermouth, bitters.", extras: { cherry: 1, ice: 100 } },
+        "Whiskey Sour": { ingredients: { whiskey: 50, lemonJuice: 25, sugar: 15 }, description: "50ml whiskey, 25ml lemon juice, sugar syrup.", extras: { lemon: 0.25, ice: 100 } },
+        "Daiquiri": { ingredients: { whiteRum: 50, limeJuice: 25, sugar: 15 }, description: "50ml white rum, 25ml lime juice, sugar syrup.", extras: { lime: 0.25, ice: 100 } },
+        "Piña Colada": { ingredients: { whiteRum: 50, coconutCream: 30, pineappleJuice: 60 }, description: "Rum, coconut cream and pineapple juice.", extras: { pineapple: 0.25, ice: 200 } },
+        "Cosmopolitan": { ingredients: { vodka: 45, tripleSec: 15, cranberryJuice: 30, limeJuice: 15 }, description: "Vodka, triple sec, cranberry juice and lime juice.", extras: { lime: 0.25, ice: 100 } },
+        "Tequila Sunrise": { ingredients: { tequila: 50, orangeJuice: 100, grenadine: 10 }, description: "Tequila, orange juice and grenadine.", extras: { orange: 0.25, ice: 150 } },
+        "Aperol Spritz": { ingredients: { aperol: 60, prosecco: 90, sodaWater: 30 }, description: "Aperol, prosecco and soda water.", extras: { orange: 0.25, ice: 150 } },
+        "Espresso Martini": { ingredients: { vodka: 50, coffeeLiqueur: 25, espresso: 25 }, description: "Vodka, coffee liqueur and espresso.", extras: { coffeeBeans: 3, ice: 100 } },
+        "Caipirinha": { ingredients: { cachaca: 50, lime: 0.5, sugar: 10 }, description: "Cachaça, lime and sugar.", extras: { ice: 150 } },
+        "Cuba Libre": { ingredients: { rum: 50, cola: 100, limeJuice: 10 }, description: "Rum, lime and cola.", extras: { lime: 0.25, ice: 150 } },
+        "Dark 'n' Stormy": { ingredients: { darkRum: 50, gingerBeer: 100, limeJuice: 15 }, description: "Dark rum, ginger beer and lime.", extras: { lime: 0.25, ice: 150 } },
+        "French 75": { ingredients: { gin: 30, lemonJuice: 15, sugar: 10, champagne: 60 }, description: "Gin, lemon, sugar and champagne.", extras: { lemon: 0.25, ice: 0 } },
+        "Gin Fizz": { ingredients: { gin: 50, lemonJuice: 25, sugar: 15, sodaWater: 100 }, description: "Gin, lemon, sugar and soda water.", extras: { lemon: 0.25, ice: 100 } },
+        "Long Island Iced Tea": { ingredients: { vodka: 15, gin: 15, rum: 15, tequila: 15, tripleSec: 15, lemonJuice: 25, cola: 60 }, description: "A multi-spirit cocktail with cola finish.", extras: { lemon: 0.25, ice: 200 } },
+        "Mai Tai": { ingredients: { whiteRum: 30, darkRum: 30, limeJuice: 15, tripleSec: 15, orgeat: 10 }, description: "Rum, lime, orange liqueur and orgeat.", extras: { lime: 0.25, ice: 200 } },
+        "Margarita Pitcher Style": { ingredients: { tequila: 45, tripleSec: 20, limeJuice: 30 }, description: "A service-friendly margarita format for events.", extras: { lime: 0.25, ice: 100 } },
+        "Negroni": { ingredients: { gin: 30, vermouth: 30, campari: 30 }, description: "Gin, sweet vermouth and Campari.", extras: { orange: 0.25, ice: 100 } },
+        "Paloma": { ingredients: { tequila: 50, limeJuice: 15, grapefruitSoda: 100 }, description: "Tequila, lime and grapefruit soda.", extras: { lime: 0.25, ice: 150 } },
+        "Rum Punch": { ingredients: { rum: 45, orangeJuice: 60, pineappleJuice: 60, grenadine: 15 }, description: "Rum with tropical juices and grenadine.", extras: { orange: 0.25, pineapple: 0.25, ice: 200 } },
+        "Sea Breeze": { ingredients: { vodka: 50, cranberryJuice: 100, grapefruitJuice: 50 }, description: "Vodka, cranberry juice and grapefruit juice.", extras: { ice: 150 } },
+        "Sex on the Beach": { ingredients: { vodka: 40, peachSchnapps: 20, orangeJuice: 50, cranberryJuice: 50 }, description: "Vodka, peach schnapps and juices.", extras: { orange: 0.25, ice: 150 } },
+        "Tom Collins": { ingredients: { gin: 50, lemonJuice: 25, sugar: 15, sodaWater: 100 }, description: "Gin, lemon, sugar and soda water.", extras: { lemon: 0.25, ice: 150 } }
+    };
+
+    const cocktailSelect = document.getElementById('cocktail');
+    const cocktailSearch = document.getElementById('cocktail-search');
+    const eventType = document.getElementById('event-type');
+    const drinkers = document.getElementById('drinkers');
+    const servingsPerGuest = document.getElementById('servings-per-guest');
+    const buffer = document.getElementById('buffer');
+    const bottleSize = document.getElementById('bottle-size');
+    const calculateBtn = document.getElementById('calculate-btn');
+    const resetBtn = document.getElementById('reset-btn');
+    const resultsWrap = document.getElementById('tool-results');
+
+    function populateCocktails(filter = '') {
+        const currentValue = cocktailSelect.value;
+        cocktailSelect.innerHTML = '<option value="">-- Select a cocktail --</option>';
+
+        Object.keys(cocktails)
+            .filter(name => name.toLowerCase().includes(filter.toLowerCase()))
+            .sort((a, b) => a.localeCompare(b))
+            .forEach(name => {
+                const option = document.createElement('option');
+                option.value = name;
+                option.textContent = name;
+                cocktailSelect.appendChild(option);
+            });
+
+        if ([...cocktailSelect.options].some(opt => opt.value === currentValue)) {
+            cocktailSelect.value = currentValue;
+        }
+    }
+
+    function formatName(key) {
+        return key
+            .replace(/([A-Z])/g, ' $1')
+            .replace(/^./, str => str.toUpperCase())
+            .replace(/\bml\b/gi, 'ml')
+            .trim();
+    }
+
+    function getEventMultiplier(type) {
+        switch (type) {
+            case 'wedding': return 1.15;
+            case 'corporate': return 0.9;
+            case 'premium': return 1.3;
+            case 'casual':
+            default: return 1;
+        }
+    }
+
+    function renderEmpty() {
+        resultsWrap.innerHTML = `
+            <div class="empty-state">
+                <div class="empty-state-inner">
+                    <div class="empty-state-icon"><i class="fa-solid fa-glass-water"></i></div>
+                    <h3 style="font-size:1.7rem; color:#fff; margin-bottom:10px;">Your cocktail estimate will appear here</h3>
+                    <p style="margin:0;">
+                        Choose a cocktail, enter your guest count and calculate the shopping list for ingredients, bottles, ice and garnish.
+                    </p>
+                </div>
+            </div>
+        `;
+    }
+
+    function calculateNeeds() {
+        const selected = cocktailSelect.value;
+        const guestCount = parseFloat(drinkers.value || '0');
+        const servings = parseFloat(servingsPerGuest.value || '0');
+        const bufferPercent = parseFloat(buffer.value || '0');
+        const chosenBottleSize = parseFloat(bottleSize.value || '750');
+        const eventMultiplier = getEventMultiplier(eventType.value);
+
+        if (!selected || guestCount <= 0 || servings <= 0) {
+            renderEmpty();
+            return;
+        }
+
+        const cocktail = cocktails[selected];
+        const adjustedServings = guestCount * servings * eventMultiplier * (1 + (bufferPercent / 100));
+
+        let ingredientHtml = '';
+        let extraHtml = '';
+
+        Object.keys(cocktail.ingredients).forEach(key => {
+            const totalMl = cocktail.ingredients[key] * adjustedServings;
+            const bottles = totalMl / chosenBottleSize;
+            const liters = totalMl / 1000;
+
+            ingredientHtml += `
+                <div class="ingredient-card">
+                    <h4>${formatName(key)}</h4>
+                    <p>${liters.toFixed(2)} liters total</p>
+                    <p>${bottles.toFixed(1)} bottle(s) of ${chosenBottleSize} ml</p>
+                </div>
+            `;
+        });
+
+        Object.keys(cocktail.extras || {}).forEach(key => {
+            const total = cocktail.extras[key] * adjustedServings;
+            let line = '';
+
+            if (key === 'ice') {
+                line = `${(total / 1000).toFixed(1)} kg of ice`;
+            } else if (typeof total === 'number') {
+                line = `${total.toFixed(1)} total`;
+            } else {
+                line = String(total);
+            }
+
+            extraHtml += `
+                <div class="ingredient-card">
+                    <h4>${formatName(key)}</h4>
+                    <p>${line}</p>
+                </div>
+            `;
+        });
+
+        resultsWrap.innerHTML = `
+            <div class="result-card">
+                <h3>${selected}</h3>
+                <p>${cocktail.description}</p>
+
+                <div class="result-grid">
+                    <div class="result-stat">
+                        <div class="result-stat-label">Guests Drinking</div>
+                        <div class="result-stat-value">${guestCount}</div>
+                    </div>
+                    <div class="result-stat">
+                        <div class="result-stat-label">Estimated Servings</div>
+                        <div class="result-stat-value">${adjustedServings.toFixed(0)}</div>
+                    </div>
+                    <div class="result-stat">
+                        <div class="result-stat-label">Event Style</div>
+                        <div class="result-stat-value" style="font-size:1rem;">${eventType.options[eventType.selectedIndex].text}</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="result-card">
+                <h3>Ingredient Shopping List</h3>
+                <div class="ingredient-grid">
+                    ${ingredientHtml}
+                </div>
+            </div>
+
+            <div class="result-card">
+                <h3>Ice, Garnish & Extras</h3>
+                <div class="ingredient-grid">
+                    ${extraHtml || '<div class="ingredient-card"><h4>No extra items</h4><p>This cocktail does not currently include garnish or ice extras in the calculator.</p></div>'}
+                </div>
+
+                <div class="muted-note">
+                    Tip: this estimate is best used as a planning guide. Final beverage needs can vary depending on weather, event duration, bar menu variety and whether guests are also drinking wine, beer or spirits.
+                </div>
+            </div>
+        `;
+    }
+
+    cocktailSearch.addEventListener('input', function() {
+        populateCocktails(this.value);
+    });
+
+    calculateBtn.addEventListener('click', calculateNeeds);
+
+    resetBtn.addEventListener('click', function() {
+        cocktailSearch.value = '';
+        drinkers.value = '';
+        servingsPerGuest.value = '2';
+        buffer.value = '10';
+        bottleSize.value = '750';
+        eventType.value = 'casual';
+        populateCocktails('');
+        cocktailSelect.value = '';
+        renderEmpty();
+    });
+
+    populateCocktails('');
+    renderEmpty();
+});
+</script>
+{% endblock %}

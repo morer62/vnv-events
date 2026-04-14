@@ -1,0 +1,194 @@
+(function(){
+  function init(){
+    const form = document.getElementById('vnv-msef-form');
+    if(!form) return false;
+
+    const steps   = Array.from(form.querySelectorAll('.vnv-step'));
+    const nexts   = Array.from(form.querySelectorAll('.vnv-next'));
+    const prevs   = Array.from(form.querySelectorAll('.vnv-prev'));
+    const success = document.getElementById('vnv-msef-success');
+    const phone   = document.getElementById('vnv-phone');
+
+    let current = 0;
+    function show(i){ steps.forEach((s,idx)=>{ s.hidden = idx!==i; }); current = i; try{ window.scrollTo({ top: document.getElementById('vnv-msef').offsetTop - 20, behavior: 'smooth' }); }catch(e){} }
+
+    // --- move details to STEP 3 and update copy ---
+    const $ = (id)=>document.getElementById(id);
+    const fields = { location: $('vnv-location'), date: $('vnv-date'), time: $('vnv-time'), guests: $('vnv-guests'), name: $('vnv-name'), email: $('vnv-email'), phone: $('vnv-phone'), other: $('vnv-other') };
+
+    // Update address label/placeholder
+    const locLabel = form.querySelector('label[for="vnv-location"]');
+    if(locLabel) locLabel.textContent = 'Full address';
+    if(fields.location) fields.location.placeholder = 'e.g., 123 Main St, Miami, FL';
+
+    // Relocate details block from step 2 to step 3
+    const detailsWrap = fields.other && fields.other.closest('.vnv-other');
+    const step3 = form.querySelector('.vnv-step[data-step="3"]');
+    const grid3 = step3 && step3.querySelector('.vnv-grid');
+    if(detailsWrap && step3 && grid3){
+      const lab = detailsWrap.querySelector('label[for="vnv-other"]');
+      if(lab) lab.textContent = 'Details (optional)';
+      if(fields.other){
+        fields.other.placeholder = 'Tell us any details (themes, schedules, venue rules), and mention any promo you saw and want to apply.';
+        fields.other.removeAttribute('required');
+      }
+      grid3.insertAdjacentElement('afterend', detailsWrap);
+    }
+
+    // --- inline error helpers ---
+    function showError(el, msg){
+      if(!el) return;
+      el.classList.add('is-invalid');
+      el.setAttribute('aria-invalid','true');
+      let err = el.parentElement.querySelector('.vnv-error');
+      if(!err){ err = document.createElement('div'); err.className='vnv-error'; el.parentElement.appendChild(err); }
+      err.textContent = msg;
+    }
+    function clearError(el){
+      if(!el) return;
+      el.classList.remove('is-invalid');
+      el.removeAttribute('aria-invalid');
+      const err = el.parentElement.querySelector('.vnv-error');
+      if(err) err.textContent = '';
+    }
+    ['location','date','time','guests','name','email','phone','other'].forEach(k=>{
+      if(fields[k]){
+        fields[k].addEventListener('input', ()=> clearError(fields[k]));
+        fields[k].addEventListener('blur',  ()=> { if(fields[k].value) clearError(fields[k]); });
+      }
+    });
+
+    function validate(i){
+      let ok = true;
+      const emailRe = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
+      const phoneRe = /^\(\d{3}\) \d{3}-\d{4}$/;
+      if(i===0){
+        if(!fields.location || !fields.location.value.trim()){
+          showError(fields.location,'Full address is required.'); ok=false;
+        }
+      } else if(i===2){
+        if(!fields.date || !fields.date.value){ showError(fields.date,'Date is required.'); ok=false; }
+        if(!fields.time || !fields.time.value){ showError(fields.time,'Time is required.'); ok=false; }
+        if(!fields.guests || Number(fields.guests.value) < 1){ showError(fields.guests,'Guest count must be at least 1.'); ok=false; }
+        if(!fields.name || !fields.name.value.trim()){ showError(fields.name,'Full name is required.'); ok=false; }
+        if(!fields.email || !emailRe.test(fields.email.value.trim())){ showError(fields.email,'Enter a valid email.'); ok=false; }
+        if(!fields.phone || !phoneRe.test(fields.phone.value.trim())){ showError(fields.phone,'Phone must be (xxx) xxx-xxxx.'); ok=false; }
+      }
+      return ok;
+    }
+
+    nexts.forEach(btn=>btn.addEventListener('click', ()=>{ if(validate(current)) show(Math.min(current+1, steps.length-1)); }));
+    prevs.forEach(btn=>btn.addEventListener('click', ()=> show(Math.max(current-1,0))));
+    show(0);
+
+    // Phone mask (xxx) xxx-xxxx
+    if (phone){
+      phone.addEventListener('input', (e)=>{
+        let v = e.target.value.replace(/\D/g,'').slice(0,10);
+        let out = v;
+        if(v.length>6) out = `(${v.slice(0,3)}) ${v.slice(3,6)}-${v.slice(6)}`;
+        else if(v.length>3) out = `(${v.slice(0,3)}) ${v.slice(3)}`;
+        else if(v.length>0) out = `(${v}`;
+        e.target.value = out;
+      });
+    }
+
+    // Submit via AJAX
+    form.addEventListener('submit', async (e)=>{
+      e.preventDefault();
+      const allOk = validate(0) & validate(2); // evaluate both
+      if(!allOk) return;
+      const fd = new FormData(form);
+      if(!fd.get('action')) fd.set('action', (window.VNV_MSEF && VNV_MSEF.action) || 'vnv_msef_submit');
+      if(!fd.get('nonce'))  fd.set('nonce',  (window.VNV_MSEF && VNV_MSEF.nonce)  || '');
+      const ajax = (window.VNV_MSEF && VNV_MSEF.ajax_url) || (window.ajaxurl || '/wp-admin/admin-ajax.php');
+
+      try{
+        const res  = await fetch(ajax, { method:'POST', body: fd });
+        const json = await res.json();
+        if(json && json.success){
+          form.hidden = true;
+          if(success){ success.hidden = false; }
+        } else {
+          // If backend returns field-level errors, show them inline
+          if(json && json.data && json.data.fields){
+            const map = {location:'vnv-location', date:'vnv-date', time:'vnv-time', guests:'vnv-guests', name:'vnv-name', email:'vnv-email', phone:'vnv-phone'};
+            Object.keys(json.data.fields).forEach(k=>{
+              const el = document.getElementById(map[k]||k);
+              if(el) showError(el, json.data.fields[k]);
+            });
+          }
+          alert((json && json.data && json.data.message) ? json.data.message : 'There was an error sending your request.');
+        }
+      }catch(err){
+        alert('Network error. Please try again.');
+      }
+    });
+
+    // --- Google Maps / Places ---
+    function bootMaps(){
+      const input = document.getElementById('vnv-location');
+      if(!input || typeof google === 'undefined' || !google.maps) return;
+      const mapEl = document.getElementById('vnv-map');
+      const latEl = document.getElementById('vnv-lat');
+      const lngEl = document.getElementById('vnv-lng');
+      const center = { lat: 26.1004, lng: -80.3998 }; // Weston, FL default
+      const map = new google.maps.Map(mapEl, { center, zoom: 11, disableDefaultUI:true });
+      const marker = new google.maps.Marker({ map, position:center, draggable:false });
+      const ac = new google.maps.places.Autocomplete(input, { types:['address'], fields:['formatted_address','geometry'] });
+      ac.addListener('place_changed', ()=>{
+        const place = ac.getPlace();
+        if(!place.geometry) return;
+        const loc = place.geometry.location;
+        const p = { lat: loc.lat(), lng: loc.lng() };
+        map.setCenter(p); map.setZoom(12); marker.setPosition(p);
+        if(latEl) latEl.value = p.lat;
+        if(lngEl) lngEl.value = p.lng;
+      });
+      input.addEventListener('change', ()=>{
+        if(!input.value) return;
+        const geocoder = new google.maps.Geocoder();
+        geocoder.geocode({ address: input.value }, (results, status)=>{
+          if(status === 'OK' && results[0]){
+            const ll = results[0].geometry.location;
+            const p = { lat: ll.lat(), lng: ll.lng() };
+            map.setCenter(p); map.setZoom(12); marker.setPosition(p);
+            if(latEl) latEl.value = p.lat;
+            if(lngEl) lngEl.value = p.lng;
+          }
+        });
+      });
+    }
+
+    // Load Maps only once
+    if(window.VNV_MSEF && VNV_MSEF.gmaps_key){
+      if(typeof google === 'object' && google.maps){
+        bootMaps();
+      } else if(!document.getElementById('vnv-maps-loader')){
+        const s = document.createElement('script');
+        s.id = 'vnv-maps-loader';
+        s.src = `https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(VNV_MSEF.gmaps_key)}&libraries=places`;
+        s.async = true; s.defer = true; s.onload = bootMaps; document.head.appendChild(s);
+      }
+    }
+
+    ['vnv-date','vnv-time'].forEach(id=>{
+        const el = document.getElementById(id);
+        if(!el) return;
+        el.addEventListener('click', ()=> el.showPicker && el.showPicker());
+        el.addEventListener('keydown', (e)=> {
+            if((e.key === 'Enter' || e.key === ' ') && el.showPicker){
+            e.preventDefault(); el.showPicker();
+            }
+        });
+        });
+
+
+    return true;
+  }
+
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', init);
+  } else { init(); }
+  document.addEventListener('click', (e)=>{ const btn = e.target.closest && e.target.closest('.vnv-open-modal'); if(btn){ setTimeout(init, 60); } });
+})();

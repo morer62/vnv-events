@@ -1,0 +1,1295 @@
+{% extends "templates/base.twig" %}
+
+{% set show_whatsapp = true %}
+
+{% block styles %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@200;300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,700;0,900;1,700;1,900&display=swap" rel="stylesheet">
+
+<style>
+:root{
+    --vnv-primary:#5EC6C4;
+    --vnv-primary-dark:#4aa8a6;
+    --vnv-gold:#c5a059;
+    --vnv-gold-gradient:linear-gradient(135deg,#bf953f 0%,#fcf6ba 45%,#b38728 100%);
+    --vnv-dark-deep:#0a0c0c;
+    --vnv-dark-soft:#141818;
+    --vnv-dark-card:#1b2021;
+    --vnv-light:#ffffff;
+    --vnv-marble:#f4f7f8;
+    --vnv-text-dark:#11181a;
+    --vnv-text-light:#f3f5f6;
+    --vnv-text-muted:rgba(255,255,255,.72);
+    --vnv-text-muted-soft:rgba(255,255,255,.58);
+    --vnv-border:rgba(255,255,255,.08);
+    --vnv-shadow:0 25px 70px rgba(0,0,0,.14);
+    --success:#26c281;
+    --warning:#f4b740;
+    --danger:#ff5f6d;
+}
+
+html { scroll-behavior:smooth; }
+
+body{
+    background:var(--vnv-dark-deep);
+    color:var(--vnv-text-light);
+    font-family:'Plus Jakarta Sans',sans-serif;
+    line-height:1.8;
+    -webkit-font-smoothing:antialiased;
+    overflow-x:hidden;
+}
+
+h1,h2,h3,h4,h5,.luxury-font{
+    font-family:'Playfair Display',serif;
+}
+
+.text-vnv{ color:var(--vnv-primary)!important; }
+
+.text-gold{
+    background:var(--vnv-gold-gradient);
+    -webkit-background-clip:text;
+    -webkit-text-fill-color:transparent;
+}
+
+.vnv-btn{
+    padding:18px 30px;
+    font-weight:800;
+    text-transform:uppercase;
+    letter-spacing:2px;
+    transition:all .35s ease;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    gap:10px;
+    text-decoration:none;
+    border:none;
+    cursor:pointer;
+    font-size:.78rem;
+    border-radius:999px;
+}
+
+.btn-gold-vnv{
+    background:var(--vnv-gold-gradient);
+    color:#000!important;
+}
+.btn-gold-vnv:hover{
+    transform:translateY(-3px);
+    box-shadow:0 20px 40px rgba(197,160,89,.22);
+}
+
+.btn-outline-vnv{
+    border:2px solid var(--vnv-primary);
+    color:var(--vnv-primary)!important;
+    background:transparent;
+}
+.btn-outline-vnv:hover{
+    background:var(--vnv-primary);
+    color:#fff!important;
+}
+
+.section-vnv{
+    padding:120px 0;
+    position:relative;
+}
+
+.vnv-badge{
+    display:inline-flex;
+    align-items:center;
+    gap:10px;
+    padding:10px 18px;
+    border-radius:999px;
+    background:rgba(94,198,196,.1);
+    color:var(--vnv-primary);
+    font-size:.74rem;
+    letter-spacing:2px;
+    font-weight:800;
+    text-transform:uppercase;
+}
+
+.hero-tool{
+    position:relative;
+    min-height:82vh;
+    display:flex;
+    align-items:center;
+    overflow:hidden;
+    background:
+        linear-gradient(90deg, rgba(10,12,12,.90) 0%, rgba(10,12,12,.66) 44%, rgba(10,12,12,.38) 100%),
+        url('{{ asset_for('assets/images/tool-space-calculator-hero.jpg') }}') center/cover no-repeat;
+}
+
+.hero-tool::after{
+    content:"";
+    position:absolute;
+    inset:0;
+    background:
+        radial-gradient(circle at top right, rgba(94,198,196,.16), transparent 28%),
+        radial-gradient(circle at bottom left, rgba(197,160,89,.10), transparent 24%);
+    pointer-events:none;
+}
+
+.hero-tool-inner{
+    position:relative;
+    z-index:2;
+    width:100%;
+}
+
+.hero-tool h1{
+    font-size:clamp(3rem,6vw,5.4rem);
+    line-height:1.02;
+    margin:20px 0 28px;
+    max-width:980px;
+}
+
+.hero-tool p.hero-copy{
+    font-size:1.08rem;
+    color:var(--vnv-text-muted);
+    max-width:820px;
+    margin-bottom:22px;
+}
+
+.hero-cta-row{
+    display:flex;
+    flex-wrap:wrap;
+    gap:16px;
+    margin-top:24px;
+}
+
+.section-white{
+    background:var(--vnv-marble);
+    color:var(--vnv-text-dark);
+}
+
+.tool-shell{
+    background:linear-gradient(145deg, #151a1b 0%, #0c0f10 100%);
+    border-radius:34px;
+    border:1px solid rgba(255,255,255,.06);
+    box-shadow:0 26px 80px rgba(0,0,0,.22);
+    overflow:hidden;
+}
+
+.tool-topbar{
+    padding:18px 22px;
+    background:#0c0f10;
+    border-bottom:1px solid rgba(255,255,255,.06);
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:16px;
+    flex-wrap:wrap;
+}
+
+.tool-topbar-left{
+    display:flex;
+    align-items:center;
+    gap:14px;
+}
+
+.tool-topbar-icon{
+    width:46px;
+    height:46px;
+    border-radius:14px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:rgba(94,198,196,.12);
+    color:var(--vnv-primary);
+    font-size:1.15rem;
+}
+
+.tool-topbar-title{
+    color:#fff;
+    font-weight:800;
+    font-size:1rem;
+    line-height:1.2;
+}
+
+.tool-topbar-sub{
+    color:var(--vnv-text-muted-soft);
+    font-size:.8rem;
+    font-weight:700;
+}
+
+.tool-topbar-note{
+    color:rgba(255,255,255,.62);
+    font-size:.88rem;
+    font-weight:700;
+}
+
+.tool-body{
+    padding:28px;
+}
+
+.tool-grid{
+    display:grid;
+    grid-template-columns: 460px 1fr;
+    gap:24px;
+    align-items:start;
+}
+
+.tool-panel{
+    background:#f7f9fa;
+    border:1px solid rgba(17,24,26,.08);
+    border-radius:26px;
+    padding:22px;
+    box-shadow:0 18px 50px rgba(0,0,0,.06);
+    color:#122022;
+}
+
+.tool-panel h3{
+    font-family:'Plus Jakarta Sans',sans-serif;
+    margin:0 0 18px;
+    font-size:1.05rem;
+    font-weight:800;
+    color:#122022;
+    letter-spacing:.3px;
+}
+
+.tool-field{
+    margin-bottom:16px;
+}
+
+.tool-field label{
+    display:block;
+    font-size:.84rem;
+    font-weight:800;
+    color:#2c3a3d;
+    margin-bottom:8px;
+    text-transform:uppercase;
+    letter-spacing:1px;
+}
+
+.tool-field input,
+.tool-field select{
+    width:100%;
+    border:1px solid rgba(17,24,26,.12);
+    background:#fff;
+    border-radius:14px;
+    outline:none;
+    padding:14px 14px;
+    font-size:1rem;
+    color:#122022;
+    font-family:'Plus Jakarta Sans',sans-serif;
+}
+
+.tool-inline-2{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:14px;
+}
+
+.tool-inline-3{
+    display:grid;
+    grid-template-columns:1fr 1fr 1fr;
+    gap:14px;
+}
+
+.option-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:12px;
+    margin-top:6px;
+}
+
+.option-pill{
+    position:relative;
+    display:flex;
+    align-items:flex-start;
+    gap:10px;
+    padding:14px 14px;
+    border:1px solid rgba(17,24,26,.10);
+    background:#fff;
+    border-radius:16px;
+    cursor:pointer;
+    transition:all .22s ease;
+}
+
+.option-pill:hover{
+    transform:translateY(-1px);
+    box-shadow:0 10px 28px rgba(0,0,0,.05);
+}
+
+.option-pill input{
+    margin-top:3px;
+    transform:scale(1.1);
+}
+
+.option-pill strong{
+    display:block;
+    font-size:.9rem;
+    color:#122022;
+    line-height:1.2;
+}
+
+.option-pill span{
+    display:block;
+    font-size:.78rem;
+    color:#58686b;
+    line-height:1.4;
+    margin-top:4px;
+}
+
+.tool-actions{
+    display:flex;
+    gap:12px;
+    flex-wrap:wrap;
+    margin-top:10px;
+}
+
+.tool-btn{
+    border:none;
+    outline:none;
+    cursor:pointer;
+    border-radius:14px;
+    padding:14px 16px;
+    font-weight:800;
+    font-size:.88rem;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    gap:10px;
+    transition:all .25s ease;
+}
+
+.tool-btn.primary{
+    background:linear-gradient(135deg, #c0006b 0%, #e00087 100%);
+    color:#fff;
+}
+
+.tool-btn.secondary{
+    background:#11181a;
+    color:#fff;
+}
+
+.tool-btn:hover{
+    transform:translateY(-2px);
+}
+
+.tool-helper{
+    margin-top:16px;
+    background:#fff;
+    border:1px solid rgba(17,24,26,.08);
+    border-radius:18px;
+    padding:16px;
+    font-size:.92rem;
+    color:#4e5c5f;
+    line-height:1.65;
+}
+
+.tool-results{
+    display:grid;
+    gap:22px;
+}
+
+.result-card{
+    background:linear-gradient(145deg, rgba(28,34,35,0.96) 0%, rgba(15,18,19,0.98) 100%);
+    border:1px solid rgba(255,255,255,.06);
+    border-radius:26px;
+    padding:24px;
+    box-shadow:0 24px 60px rgba(0,0,0,.18);
+}
+
+.result-card h3{
+    font-size:1.45rem;
+    color:#fff;
+    margin:0 0 14px;
+}
+
+.result-card p{
+    color:var(--vnv-text-muted);
+    margin:0 0 14px;
+}
+
+.result-grid{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:14px;
+    margin-top:14px;
+}
+
+.result-stat{
+    background:rgba(255,255,255,.04);
+    border:1px solid rgba(255,255,255,.06);
+    border-radius:18px;
+    padding:16px 14px;
+}
+
+.result-stat-label{
+    color:rgba(255,255,255,.58);
+    font-size:.72rem;
+    font-weight:800;
+    text-transform:uppercase;
+    letter-spacing:1.4px;
+    margin-bottom:6px;
+}
+
+.result-stat-value{
+    color:#fff;
+    font-size:1.32rem;
+    font-weight:800;
+    line-height:1.2;
+}
+
+.breakdown-grid{
+    display:grid;
+    grid-template-columns:repeat(2,1fr);
+    gap:14px;
+    margin-top:14px;
+}
+
+.breakdown-card{
+    background:rgba(255,255,255,.04);
+    border:1px solid rgba(255,255,255,.06);
+    border-radius:18px;
+    padding:16px 14px;
+}
+
+.breakdown-card h4{
+    font-family:'Plus Jakarta Sans',sans-serif;
+    color:#fff;
+    margin:0 0 8px;
+    font-size:1rem;
+    font-weight:800;
+}
+
+.breakdown-card p{
+    margin:0;
+    color:var(--vnv-text-muted);
+    font-size:.92rem;
+    line-height:1.6;
+}
+
+.total-highlight{
+    margin-top:18px;
+    background:linear-gradient(135deg, rgba(197,160,89,.16) 0%, rgba(94,198,196,.12) 100%);
+    border:1px solid rgba(197,160,89,.22);
+    border-radius:22px;
+    padding:18px;
+}
+
+.total-highlight .label{
+    color:rgba(255,255,255,.64);
+    font-size:.76rem;
+    font-weight:800;
+    text-transform:uppercase;
+    letter-spacing:1.5px;
+    margin-bottom:6px;
+}
+
+.total-highlight .value{
+    color:#fff;
+    font-size:2.1rem;
+    font-weight:900;
+    line-height:1.1;
+}
+
+.alert-box{
+    margin-top:16px;
+    border-radius:18px;
+    padding:16px;
+    font-size:.95rem;
+    line-height:1.65;
+    border:1px solid transparent;
+}
+
+.alert-box.safe{
+    background:rgba(38,194,129,.12);
+    border-color:rgba(38,194,129,.22);
+    color:#d8fff0;
+}
+
+.alert-box.warn{
+    background:rgba(244,183,64,.12);
+    border-color:rgba(244,183,64,.22);
+    color:#fff4d8;
+}
+
+.alert-box.danger{
+    background:rgba(255,95,109,.12);
+    border-color:rgba(255,95,109,.22);
+    color:#ffe1e4;
+}
+
+.muted-note{
+    margin-top:16px;
+    color:rgba(255,255,255,.52);
+    font-size:.84rem;
+    line-height:1.6;
+}
+
+.empty-state{
+    min-height:420px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+    padding:30px;
+    background:linear-gradient(145deg, rgba(28,34,35,0.96) 0%, rgba(15,18,19,0.98) 100%);
+    border:1px solid rgba(255,255,255,.06);
+    border-radius:26px;
+    color:var(--vnv-text-muted);
+}
+
+.empty-state-inner{
+    max-width:420px;
+}
+
+.empty-state-icon{
+    width:72px;
+    height:72px;
+    margin:0 auto 18px;
+    border-radius:22px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:rgba(94,198,196,.10);
+    color:var(--vnv-primary);
+    font-size:1.5rem;
+}
+
+@media (max-width: 1199px){
+    .tool-grid{
+        grid-template-columns:1fr;
+    }
+}
+
+@media (max-width: 767px){
+    .section-vnv{
+        padding:90px 0;
+    }
+
+    .hero-tool h1{
+        font-size:2.7rem;
+    }
+
+    .vnv-btn{
+        width:100%;
+        padding:18px 24px;
+        letter-spacing:2px;
+    }
+
+    .hero-cta-row{
+        flex-direction:column;
+    }
+
+    .tool-body{
+        padding:16px;
+    }
+
+    .tool-inline-2,
+    .tool-inline-3,
+    .option-grid,
+    .result-grid,
+    .breakdown-grid{
+        grid-template-columns:1fr;
+    }
+
+    .tool-panel,
+    .result-card{
+        padding:18px;
+    }
+}
+</style>
+{% endblock %}
+
+{% block body %}
+
+{% include "templates/layout/publicHeaderVnv.html.twig" %}
+
+<section class="hero-tool">
+    <div class="container hero-tool-inner">
+        <span class="vnv-badge">Free Event Planning Tool</span>
+
+        <h1>Event Space <span class="text-gold">Calculator</span></h1>
+
+        <p class="hero-copy">
+            Estimate how much room you realistically need for weddings, birthday parties, corporate events, cocktail receptions and private celebrations. Get a cleaner baseline before you book a venue that feels too tight once tables, bar, DJ and dancing are added.
+        </p>
+
+        <div class="hero-cta-row">
+            <a href="#space-tool" class="vnv-btn btn-gold-vnv">Use the Calculator</a>
+            <a href="#" data-vnv-open-request class="vnv-btn btn-outline-vnv">Need Help Choosing a Venue?</a>
+        </div>
+    </div>
+</section>
+
+<section class="section-vnv section-white" id="space-tool">
+    <div class="container">
+        <div class="tool-shell">
+            <div class="tool-topbar">
+                <div class="tool-topbar-left">
+                    <div class="tool-topbar-icon"><i class="fa-solid fa-ruler-combined"></i></div>
+                    <div>
+                        <div class="tool-topbar-title">Party & Event Space Requirement Calculator</div>
+                        <div class="tool-topbar-sub">A more realistic space estimate for South Florida-style events</div>
+                    </div>
+                </div>
+
+                <div class="tool-topbar-note">
+                    Better for receptions, private parties, social events and flexible venue planning
+                </div>
+            </div>
+
+            <div class="tool-body">
+                <div class="tool-grid">
+                    <div class="tool-panel">
+                        <h3>Estimate Your Space Requirement</h3>
+
+                        <div class="tool-inline-2">
+                            <div class="tool-field">
+                                <label for="guest-count">Number of guests</label>
+                                <input type="number" id="guest-count" min="1" step="1" placeholder="e.g. 120">
+                            </div>
+
+                            <div class="tool-field">
+                                <label for="event-style">Event style</label>
+                                <select id="event-style">
+                                    <option value="wedding" selected>Wedding Reception</option>
+                                    <option value="birthday">Birthday / Social Event</option>
+                                    <option value="corporate">Corporate Event</option>
+                                    <option value="cocktail">Cocktail Reception</option>
+                                    <option value="ceremony">Ceremony / Presentation</option>
+                                    <option value="school">School / Youth Event</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="tool-inline-3">
+                            <div class="tool-field">
+                                <label for="layout-type">Primary layout</label>
+                                <select id="layout-type">
+                                    <option value="rounds" selected>Round Tables Dinner</option>
+                                    <option value="rectangular">Rectangular Tables Dinner</option>
+                                    <option value="theater">Theater Seating</option>
+                                    <option value="classroom">Classroom Seating</option>
+                                    <option value="cocktail">Standing Cocktail</option>
+                                    <option value="mixed">Mixed Layout</option>
+                                </select>
+                            </div>
+
+                            <div class="tool-field">
+                                <label for="venue-type">Venue type</label>
+                                <select id="venue-type">
+                                    <option value="indoor" selected>Indoor</option>
+                                    <option value="outdoor">Outdoor</option>
+                                    <option value="hybrid">Indoor + Outdoor</option>
+                                </select>
+                            </div>
+
+                            <div class="tool-field">
+                                <label for="comfort-level">Comfort level</label>
+                                <select id="comfort-level">
+                                    <option value="efficient">Efficient Fit</option>
+                                    <option value="balanced" selected>Balanced</option>
+                                    <option value="spacious">Spacious</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="tool-field">
+                            <label>Additional areas to include</label>
+                            <div class="option-grid">
+                                <label class="option-pill">
+                                    <input type="checkbox" id="dance-floor" checked>
+                                    <div>
+                                        <strong>Dance Floor</strong>
+                                        <span>Add room for dancing and guest circulation.</span>
+                                    </div>
+                                </label>
+
+                                <label class="option-pill">
+                                    <input type="checkbox" id="food-area" checked>
+                                    <div>
+                                        <strong>Buffet / Catering Area</strong>
+                                        <span>Useful for buffet service, stations or back-and-forth traffic.</span>
+                                    </div>
+                                </label>
+
+                                <label class="option-pill">
+                                    <input type="checkbox" id="bar-area" checked>
+                                    <div>
+                                        <strong>Bar Area</strong>
+                                        <span>Extra room for bartenders, queues and cocktail mingling.</span>
+                                    </div>
+                                </label>
+
+                                <label class="option-pill">
+                                    <input type="checkbox" id="dj-area" checked>
+                                    <div>
+                                        <strong>DJ / Entertainment Area</strong>
+                                        <span>Allow room for DJ booth, speakers or a compact performance setup.</span>
+                                    </div>
+                                </label>
+
+                                <label class="option-pill">
+                                    <input type="checkbox" id="stage-area">
+                                    <div>
+                                        <strong>Stage / Presentation Area</strong>
+                                        <span>Helpful for live music, formal program or head table focal area.</span>
+                                    </div>
+                                </label>
+
+                                <label class="option-pill">
+                                    <input type="checkbox" id="lounge-area">
+                                    <div>
+                                        <strong>Lounge / Photo / Decor Space</strong>
+                                        <span>For lounge seating, statement décor, photo booth or visual breathing room.</span>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="tool-actions">
+                            <button type="button" class="tool-btn primary" id="calculate-btn">
+                                <i class="fa-solid fa-calculator"></i>
+                                Calculate
+                            </button>
+
+                            <button type="button" class="tool-btn secondary" id="reset-btn">
+                                <i class="fa-solid fa-rotate-left"></i>
+                                Reset
+                            </button>
+                        </div>
+
+                        <div class="tool-helper">
+                            This version is intentionally more conservative than simple “square feet per person” charts. In real events, tables, décor, service stations, dance floor, DJ setup and circulation often make a room feel much smaller than it looked during the tour.
+                        </div>
+                    </div>
+
+                    <div class="tool-results" id="tool-results">
+                        <div class="empty-state">
+                            <div class="empty-state-inner">
+                                <div class="empty-state-icon"><i class="fa-solid fa-people-group"></i></div>
+                                <h3 style="font-size:1.7rem; color:#fff; margin-bottom:10px;">Your recommended venue size will appear here</h3>
+                                <p style="margin:0;">
+                                    Enter your guest count, event style and layout to estimate how much space you should really plan for.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+{% include "templates/components/publicEventRequestModal.html.twig" with {
+    request_form_action: "/api/public/event-request"
+} %}
+
+{% include "templates/layout/publicFooterVnv.html.twig" %}
+
+{% endblock %}
+
+{% block scripts %}
+<script type="application/ld+json">
+{
+  "@context":"https://schema.org",
+  "@type":"WebApplication",
+  "name":"Event Space Calculator",
+  "applicationCategory":"BusinessApplication",
+  "operatingSystem":"Web",
+  "description":"A free web-based event space calculator that estimates venue size requirements for weddings, parties, corporate events and receptions.",
+  "offers":{
+    "@type":"Offer",
+    "price":"0",
+    "priceCurrency":"USD"
+  }
+}
+</script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const guestCount = document.getElementById('guest-count');
+    const eventStyle = document.getElementById('event-style');
+    const layoutType = document.getElementById('layout-type');
+    const venueType = document.getElementById('venue-type');
+    const comfortLevel = document.getElementById('comfort-level');
+
+    const danceFloor = document.getElementById('dance-floor');
+    const foodArea = document.getElementById('food-area');
+    const barArea = document.getElementById('bar-area');
+    const djArea = document.getElementById('dj-area');
+    const stageArea = document.getElementById('stage-area');
+    const loungeArea = document.getElementById('lounge-area');
+
+    const calculateBtn = document.getElementById('calculate-btn');
+    const resetBtn = document.getElementById('reset-btn');
+    const resultsWrap = document.getElementById('tool-results');
+
+    const layoutPresets = {
+        rounds: {
+            label: 'Round Tables Dinner',
+            min: 11,
+            rec: 12,
+            max: 14
+        },
+        rectangular: {
+            label: 'Rectangular Tables Dinner',
+            min: 9,
+            rec: 10,
+            max: 12
+        },
+        theater: {
+            label: 'Theater Seating',
+            min: 6,
+            rec: 7,
+            max: 8
+        },
+        classroom: {
+            label: 'Classroom Seating',
+            min: 14,
+            rec: 16,
+            max: 18
+        },
+        cocktail: {
+            label: 'Standing Cocktail',
+            min: 14,
+            rec: 18,
+            max: 24
+        },
+        mixed: {
+            label: 'Mixed Layout',
+            min: 11,
+            rec: 14,
+            max: 18
+        }
+    };
+
+    const addonRules = {
+        danceFloor: {
+            id: danceFloor,
+            label: 'Dance Floor',
+            perGuest: 3.5,
+            minFlat: 120
+        },
+        foodArea: {
+            id: foodArea,
+            label: 'Buffet / Catering Area',
+            perGuest: 1.8,
+            minFlat: 80
+        },
+        barArea: {
+            id: barArea,
+            label: 'Bar Area',
+            perGuest: 1.2,
+            minFlat: 60
+        },
+        djArea: {
+            id: djArea,
+            label: 'DJ / Entertainment Area',
+            perGuest: 0,
+            minFlat: 70
+        },
+        stageArea: {
+            id: stageArea,
+            label: 'Stage / Presentation Area',
+            perGuest: 0,
+            minFlat: 120
+        },
+        loungeArea: {
+            id: loungeArea,
+            label: 'Lounge / Photo / Decor Space',
+            perGuest: 1.4,
+            minFlat: 70
+        }
+    };
+
+    const eventDefaults = {
+        wedding: {
+            layout: 'rounds',
+            venue: 'indoor',
+            comfort: 'balanced',
+            dance: true,
+            food: true,
+            bar: true,
+            dj: true,
+            stage: false,
+            lounge: true
+        },
+        birthday: {
+            layout: 'mixed',
+            venue: 'indoor',
+            comfort: 'balanced',
+            dance: true,
+            food: true,
+            bar: true,
+            dj: true,
+            stage: false,
+            lounge: false
+        },
+        corporate: {
+            layout: 'mixed',
+            venue: 'indoor',
+            comfort: 'balanced',
+            dance: false,
+            food: true,
+            bar: true,
+            dj: false,
+            stage: true,
+            lounge: false
+        },
+        cocktail: {
+            layout: 'cocktail',
+            venue: 'indoor',
+            comfort: 'balanced',
+            dance: false,
+            food: true,
+            bar: true,
+            dj: false,
+            stage: false,
+            lounge: true
+        },
+        ceremony: {
+            layout: 'theater',
+            venue: 'indoor',
+            comfort: 'efficient',
+            dance: false,
+            food: false,
+            bar: false,
+            dj: false,
+            stage: true,
+            lounge: false
+        },
+        school: {
+            layout: 'mixed',
+            venue: 'indoor',
+            comfort: 'balanced',
+            dance: true,
+            food: false,
+            bar: false,
+            dj: true,
+            stage: true,
+            lounge: false
+        }
+    };
+
+    function renderEmpty() {
+        resultsWrap.innerHTML = `
+            <div class="empty-state">
+                <div class="empty-state-inner">
+                    <div class="empty-state-icon"><i class="fa-solid fa-people-group"></i></div>
+                    <h3 style="font-size:1.7rem; color:#fff; margin-bottom:10px;">Your recommended venue size will appear here</h3>
+                    <p style="margin:0;">
+                        Enter your guest count and event setup to see a realistic space recommendation.
+                    </p>
+                </div>
+            </div>
+        `;
+    }
+
+    function formatNumber(value) {
+        return new Intl.NumberFormat('en-US').format(Math.round(value));
+    }
+
+    function getComfortMultiplier(type) {
+        switch (type) {
+            case 'efficient':
+                return 0.92;
+            case 'spacious':
+                return 1.14;
+            default:
+                return 1.00;
+        }
+    }
+
+    function getVenueMultiplier(type) {
+        switch (type) {
+            case 'outdoor':
+                return 1.08;
+            case 'hybrid':
+                return 1.03;
+            default:
+                return 1.00;
+        }
+    }
+
+    function getEventMultiplier(type) {
+        switch (type) {
+            case 'wedding':
+                return 1.08;
+            case 'birthday':
+                return 1.02;
+            case 'corporate':
+                return 1.00;
+            case 'cocktail':
+                return 1.06;
+            case 'ceremony':
+                return 0.96;
+            case 'school':
+                return 1.06;
+            default:
+                return 1.00;
+        }
+    }
+
+    function getSelectedBaseRange() {
+        return layoutPresets[layoutType.value];
+    }
+
+    function calculateAddonSpace(guests) {
+        let total = 0;
+        let list = [];
+
+        Object.values(addonRules).forEach(rule => {
+            if (rule.id.checked) {
+                const amount = Math.max(rule.minFlat, guests * rule.perGuest);
+                total += amount;
+                list.push({
+                    label: rule.label,
+                    space: amount
+                });
+            }
+        });
+
+        return { total, list };
+    }
+
+    function getRoomFeeling(totalSqFt, guests) {
+            const ratio = totalSqFt / guests;
+
+            if (ratio <= 9) {
+                return {
+                    type: 'danger',
+                    title: 'Tight fit',
+                    copy: 'This can feel compressed once tables, décor and service are installed. It may still work, but layout efficiency becomes critical.'
+                };
+            }
+
+            if (ratio <= 13) {
+                return {
+                    type: 'warn',
+                    title: 'Usable but not generous',
+                    copy: 'This is workable for many events, especially if the layout is efficient and décor is controlled.'
+                };
+            }
+
+            if (ratio <= 18) {
+                return {
+                    type: 'safe',
+                    title: 'Comfortable planning range',
+                    copy: 'This usually feels balanced for social events and gives you better breathing room for circulation and setup.'
+                };
+            }
+
+            if (ratio <= 22) {
+                return {
+                    type: 'safe',
+                    title: 'Comfortable to spacious',
+                    copy: 'This should feel open and flexible for most events, while still staying grounded in real-world layout needs.'
+                };
+            }
+
+            return {
+                type: 'safe',
+                title: 'Very spacious',
+                copy: 'This gives strong flexibility for décor, premium circulation and a more open guest experience.'
+            };
+        }
+
+    function getCapacityEstimate(totalSqFt) {
+        const theater = Math.floor(totalSqFt / 7);
+        const classroom = Math.floor(totalSqFt / 16);
+        const rounds = Math.floor(totalSqFt / 12);
+        const cocktail = Math.floor(totalSqFt / 18);
+
+        return { theater, classroom, rounds, cocktail };
+    }
+
+    function getPlanningNotes(guests, totalSqFt) {
+        const notes = [];
+
+        if (guests >= 120) {
+            notes.push('For larger guest counts, room shape matters almost as much as total square footage. Long narrow rooms usually feel more restricted than open rectangular ones.');
+        }
+
+        if (danceFloor.checked) {
+            notes.push('If dancing is important, avoid choosing a venue that only works on paper. Dance floor, DJ setup and guest flow can quickly eat into dining space.');
+        }
+
+        if (foodArea.checked || barArea.checked) {
+            notes.push('Buffet lines, action stations and bar traffic require real circulation width. That is one of the main reasons rooms feel smaller during the actual event.');
+        }
+
+        if (venueType.value === 'outdoor') {
+            notes.push('Outdoor events usually need more spread because furniture placement, service paths and weather contingency areas are less compact.');
+        }
+
+        if (totalSqFt < guests * 10) {
+            notes.push('At this size, every add-on matters. Consider reducing oversized décor pieces, lounge sets or stage footprint if the venue is fixed.');
+        }
+
+        if (notes.length === 0) {
+            notes.push('This estimate should work well as a planning baseline, but you still want to confirm actual usable floor area with the venue and not just the total advertised square footage.');
+        }
+
+        return notes;
+    }
+
+    function calculateEstimate() {
+        const guests = parseFloat(guestCount.value || '0');
+
+        if (guests <= 0) {
+            renderEmpty();
+            return;
+        }
+
+        const base = getSelectedBaseRange();
+        const comfortMultiplier = getComfortMultiplier(comfortLevel.value);
+        const venueMultiplier = getVenueMultiplier(venueType.value);
+        const eventMultiplier = getEventMultiplier(eventStyle.value);
+        const addons = calculateAddonSpace(guests);
+
+        const minBase = guests * base.min * venueMultiplier * eventMultiplier;
+        const recBase = guests * base.rec * venueMultiplier * eventMultiplier;
+        const maxBase = guests * base.max * venueMultiplier * eventMultiplier;
+
+        const efficientTotal = (minBase + addons.total) * 0.96 * comfortMultiplier;
+        const recommendedTotal = (recBase + addons.total) * comfortMultiplier;
+        const spaciousTotal = (maxBase + addons.total) * 1.02 * comfortMultiplier;
+
+        const chosenTotal = recommendedTotal;
+        const roomFeeling = getRoomFeeling(chosenTotal, guests);
+        const capacity = getCapacityEstimate(chosenTotal);
+        const notes = getPlanningNotes(guests, chosenTotal);
+
+        const summaryLine = [
+            eventStyle.options[eventStyle.selectedIndex].text,
+            layoutType.options[layoutType.selectedIndex].text,
+            venueType.options[venueType.selectedIndex].text,
+            comfortLevel.options[comfortLevel.selectedIndex].text
+        ].join(' · ');
+
+        const addonHtml = addons.list.length
+            ? addons.list.map(item => `
+                <div class="breakdown-card">
+                    <h4>${item.label}</h4>
+                    <p><strong>${formatNumber(item.space)} sq ft</strong> added to account for this area.</p>
+                </div>
+            `).join('')
+            : `
+                <div class="breakdown-card">
+                    <h4>No Add-On Areas Selected</h4>
+                    <p>Your estimate is based on the core guest layout only.</p>
+                </div>
+            `;
+
+        const notesHtml = notes.map(note => `<p style="margin:0 0 12px;">${note}</p>`).join('');
+
+        resultsWrap.innerHTML = `
+            <div class="result-card">
+                <h3>Recommended Venue Size</h3>
+                <p>${summaryLine}</p>
+
+                <div class="result-grid">
+                    <div class="result-stat">
+                        <div class="result-stat-label">Efficient Fit</div>
+                        <div class="result-stat-value">${formatNumber(efficientTotal)} sq ft</div>
+                    </div>
+                    <div class="result-stat">
+                        <div class="result-stat-label">Recommended</div>
+                        <div class="result-stat-value">${formatNumber(recommendedTotal)} sq ft</div>
+                    </div>
+                    <div class="result-stat">
+                        <div class="result-stat-label">Spacious</div>
+                        <div class="result-stat-value">${formatNumber(spaciousTotal)} sq ft</div>
+                    </div>
+                </div>
+
+                <div class="total-highlight">
+                    <div class="label">Best planning target</div>
+                    <div class="value">${formatNumber(recommendedTotal)} sq ft</div>
+                </div>
+            </div>
+
+            <div class="result-card">
+                <h3>Base Layout + Add-Ons</h3>
+
+                <div class="breakdown-grid">
+                    <div class="breakdown-card">
+                        <h4>Base Layout Allowance</h4>
+                        <p><strong>${layoutType.options[layoutType.selectedIndex].text}</strong> was used as the core layout driver for your calculation.</p>
+                    </div>
+
+                    <div class="breakdown-card">
+                        <h4>Additional Area Added</h4>
+                        <p><strong>${formatNumber(addons.total)} sq ft</strong> total added for support zones, entertainment or guest movement.</p>
+                    </div>
+                </div>
+
+                <div class="breakdown-grid">
+                    ${addonHtml}
+                </div>
+            </div>
+
+            <div class="result-card">
+                <h3>How That Room Will Feel</h3>
+
+                <div class="alert-box ${roomFeeling.type}">
+                    <strong>${roomFeeling.title}.</strong> ${roomFeeling.copy}
+                </div>
+
+                <div class="breakdown-grid">
+                    <div class="breakdown-card">
+                        <h4>Approx. Capacity as Round Tables</h4>
+                        <p>${formatNumber(capacity.rounds)} guests</p>
+                    </div>
+
+                    <div class="breakdown-card">
+                        <h4>Approx. Capacity as Theater</h4>
+                        <p>${formatNumber(capacity.theater)} guests</p>
+                    </div>
+
+                    <div class="breakdown-card">
+                        <h4>Approx. Capacity as Classroom</h4>
+                        <p>${formatNumber(capacity.classroom)} guests</p>
+                    </div>
+
+                    <div class="breakdown-card">
+                        <h4>Approx. Capacity as Cocktail</h4>
+                        <p>${formatNumber(capacity.cocktail)} guests</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="result-card">
+                <h3>Planner Notes</h3>
+                ${notesHtml}
+
+                <div class="muted-note">
+                    This is a planning guide, not a fire-code document. Always confirm the venue’s usable floor plan, built-in furniture, service stations, dance floor restrictions and emergency egress requirements before booking.
+                </div>
+            </div>
+        `;
+    }
+
+    function applyEventDefaults() {
+        const preset = eventDefaults[eventStyle.value];
+
+        layoutType.value = preset.layout;
+        venueType.value = preset.venue;
+        comfortLevel.value = preset.comfort;
+
+        danceFloor.checked = preset.dance;
+        foodArea.checked = preset.food;
+        barArea.checked = preset.bar;
+        djArea.checked = preset.dj;
+        stageArea.checked = preset.stage;
+        loungeArea.checked = preset.lounge;
+    }
+
+    eventStyle.addEventListener('change', applyEventDefaults);
+
+    calculateBtn.addEventListener('click', calculateEstimate);
+
+    resetBtn.addEventListener('click', function () {
+        guestCount.value = '';
+        eventStyle.value = 'wedding';
+        applyEventDefaults();
+        renderEmpty();
+    });
+
+    applyEventDefaults();
+    renderEmpty();
+});
+</script>
+{% endblock %}

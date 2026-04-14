@@ -1,0 +1,423 @@
+{% extends "templates/base.twig" %}
+
+{% block styles %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Playfair+Display:wght@700;800;900&display=swap" rel="stylesheet">
+
+<style>
+:root{
+    --vnv-primary:#5EC6C4;
+    --vnv-primary-dark:#49acab;
+    --vnv-gold:#c5a059;
+    --vnv-gold-gradient:linear-gradient(135deg,#bf953f 0%,#fcf6ba 45%,#b38728 100%);
+    --vnv-dark:#0a0c0c;
+    --vnv-dark-soft:#111617;
+    --vnv-dark-card:#151b1c;
+    --vnv-border:rgba(255,255,255,.08);
+    --vnv-text-light:#f4f7f8;
+    --vnv-text-muted:rgba(255,255,255,.68);
+    --vnv-text-dark:#122022;
+    --vnv-surface:#f7f9fa;
+}
+
+body{
+    background:
+        radial-gradient(circle at top left, rgba(94,198,196,.12), transparent 26%),
+        radial-gradient(circle at bottom right, rgba(197,160,89,.10), transparent 24%),
+        linear-gradient(135deg, #090b0b 0%, #101516 100%);
+    font-family:'Plus Jakarta Sans',sans-serif;
+    color:var(--vnv-text-light);
+    overflow-x:hidden;
+}
+
+.vnv-auth-wrap{
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    padding:48px 0;
+    position:relative;
+}
+
+.vnv-auth-panel{
+    position:relative;
+    z-index:2;
+}
+
+.vnv-auth-brand{
+    margin-bottom:24px;
+}
+
+.vnv-auth-brand img{
+    width:220px;
+    max-width:100%;
+}
+
+.vnv-auth-copy{
+    margin-bottom:26px;
+}
+
+.vnv-auth-kicker{
+    display:inline-flex;
+    align-items:center;
+    gap:10px;
+    padding:10px 16px;
+    border-radius:999px;
+    background:rgba(94,198,196,.10);
+    color:var(--vnv-primary);
+    font-size:.75rem;
+    font-weight:800;
+    letter-spacing:1.8px;
+    text-transform:uppercase;
+    margin-bottom:18px;
+}
+
+.vnv-auth-copy h1{
+    font-family:'Playfair Display',serif;
+    font-size:clamp(2.3rem,4vw,3.7rem);
+    line-height:1.02;
+    margin:0 0 14px;
+    color:#fff;
+}
+
+.vnv-auth-copy p{
+    color:var(--vnv-text-muted);
+    font-size:1rem;
+    line-height:1.8;
+    margin:0;
+    max-width:560px;
+}
+
+.vnv-auth-card{
+    background:rgba(255,255,255,.96);
+    border:1px solid rgba(255,255,255,.08);
+    border-radius:28px;
+    box-shadow:0 30px 80px rgba(0,0,0,.24);
+    overflow:hidden;
+}
+
+.vnv-auth-card-inner{
+    padding:30px;
+}
+
+.vnv-auth-card-title{
+    color:var(--vnv-text-dark);
+    font-size:1.35rem;
+    font-weight:800;
+    margin:0 0 8px;
+}
+
+.vnv-auth-card-sub{
+    color:#607174;
+    font-size:.96rem;
+    line-height:1.7;
+    margin-bottom:24px;
+}
+
+.vnv-form-label{
+    display:block;
+    color:#243538;
+    font-size:.83rem;
+    font-weight:800;
+    margin-bottom:8px;
+    text-transform:uppercase;
+    letter-spacing:1px;
+}
+
+.vnv-form-control{
+    width:100%;
+    border:1px solid rgba(17,24,26,.12);
+    background:#fff;
+    border-radius:16px;
+    padding:16px 16px;
+    font-size:1rem;
+    color:#122022;
+    outline:none;
+    transition:all .22s ease;
+    box-shadow:none;
+}
+
+.vnv-form-control:focus{
+    border-color:rgba(94,198,196,.55);
+    box-shadow:0 0 0 4px rgba(94,198,196,.12);
+}
+
+.vnv-btn{
+    width:100%;
+    border:none;
+    border-radius:16px;
+    padding:16px 18px;
+    font-size:.92rem;
+    font-weight:800;
+    letter-spacing:1.2px;
+    text-transform:uppercase;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    gap:10px;
+    transition:all .25s ease;
+    cursor:pointer;
+    text-decoration:none;
+}
+
+.vnv-btn-primary{
+    background:linear-gradient(135deg, #0f1516 0%, #1b2324 100%);
+    color:#fff;
+}
+
+.vnv-btn-primary:hover{
+    transform:translateY(-2px);
+    box-shadow:0 18px 36px rgba(0,0,0,.14);
+    color:#fff;
+}
+
+.vnv-auth-links{
+    margin-top:18px;
+    text-align:center;
+}
+
+.vnv-auth-links a{
+    color:#1e5e60;
+    font-weight:700;
+    text-decoration:none;
+}
+
+.vnv-auth-links a:hover{
+    color:#0f8d8b;
+}
+
+.vnv-auth-footer{
+    margin-top:18px;
+    text-align:center;
+    color:var(--vnv-text-muted);
+    font-size:.94rem;
+}
+
+.vnv-auth-footer a{
+    color:var(--vnv-primary);
+    font-weight:700;
+    text-decoration:none;
+}
+
+.vnv-side-note{
+    background:rgba(255,255,255,.04);
+    border:1px solid rgba(255,255,255,.08);
+    border-radius:24px;
+    padding:24px;
+    margin-top:24px;
+}
+
+.vnv-side-note-title{
+    color:#fff;
+    font-weight:800;
+    margin-bottom:8px;
+    font-size:1rem;
+}
+
+.vnv-side-note p{
+    color:var(--vnv-text-muted);
+    margin:0;
+    line-height:1.75;
+    font-size:.95rem;
+}
+
+.vnv-side-note i{
+    color:var(--vnv-gold);
+    margin-right:8px;
+}
+
+.modal-content{
+    border:none;
+    border-radius:24px;
+    overflow:hidden;
+    box-shadow:0 24px 70px rgba(0,0,0,.22);
+}
+
+.modal-header{
+    padding:20px 24px 10px;
+}
+
+.modal-body{
+    padding:10px 24px 28px;
+}
+
+.modal-title{
+    color:#122022;
+    font-weight:800;
+}
+
+@media (max-width: 991px){
+    .vnv-auth-wrap{
+        padding:28px 0;
+    }
+
+    .vnv-auth-card-inner{
+        padding:22px;
+    }
+
+    .vnv-auth-copy h1{
+        font-size:2.4rem;
+    }
+}
+</style>
+{% endblock %}
+
+{% block body %}
+
+<main class="vnv-auth-wrap">
+    <div class="container">
+        <div class="row align-items-center justify-content-center g-4">
+            <div class="col-lg-6 col-xl-6">
+                <div class="vnv-auth-panel">
+                    <div class="vnv-auth-brand">
+                        <img src="{{ asset_for('assets/images/logo-negative.png') }}" alt="VNV Events">
+                    </div>
+
+                    <div class="vnv-auth-copy">
+                        <span class="vnv-auth-kicker">
+                            <i class="fa-solid fa-lock"></i>
+                            Account Access
+                        </span>
+
+                        <h1>Reset your password</h1>
+
+                        <p>
+                            Enter the email associated with your VNV Events account and we’ll send you a secure link to reset your password and regain access to your dashboard.
+                        </p>
+                    </div>
+
+                    <div class="vnv-side-note">
+                        <div class="vnv-side-note-title">
+                            <i class="fa-solid fa-shield-heart"></i>
+                            Secure account recovery
+                        </div>
+                        <p>
+                            For security reasons, password reset links are time-sensitive. If your email is connected to a social sign-in such as Google or Apple, you may need to log in using that original method.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-sm-11 col-md-9 col-lg-6 col-xl-5">
+                <div class="vnv-auth-card">
+                    <div class="vnv-auth-card-inner">
+                        <h2 class="vnv-auth-card-title">Forgot your password?</h2>
+                        <div class="vnv-auth-card-sub">
+                            No problem. Submit your email below and we’ll send your reset instructions.
+                        </div>
+
+                        <form method="post" id="forgotForm">
+                            <div class="mb-3">
+                                <label class="vnv-form-label">Email Address</label>
+                                <input
+                                    class="vnv-form-control"
+                                    type="email"
+                                    name="email"
+                                    placeholder="Enter your email"
+                                    required
+                                />
+                            </div>
+
+                            <div class="mt-4">
+                                <button type="submit" id="submitBtn" class="vnv-btn vnv-btn-primary">
+                                    <i class="fa-solid fa-paper-plane"></i>
+                                    Send Reset Link
+                                </button>
+                            </div>
+                        </form>
+
+                        <div class="vnv-auth-links">
+                            <a href="{{ path('login') }}">Back to sign in</a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="vnv-auth-footer">
+                    Don’t have an account? <a href="{{ path('signup') }}">Create one here</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<div class="modal fade" id="socialAccountModal" tabindex="-1" aria-labelledby="socialAccountModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-0">
+                <h5 class="modal-title text-center w-100" id="socialAccountModalLabel">
+                    {% if social_account_type == 'google' %}
+                        <img src="{{ asset_for('assets/images/google-icon.svg') }}" width="40" height="40" class="me-2">
+                        Google Account Detected
+                    {% elseif social_account_type == 'apple' %}
+                        <img src="{{ asset_for('assets/images/apple-icon.svg') }}" width="40" height="40" class="me-2">
+                        Apple Account Detected
+                    {% else %}
+                        <i class="fas fa-user-circle text-primary me-2"></i>
+                        Social Account Detected
+                    {% endif %}
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <div class="modal-body text-center py-4">
+                <div class="mb-3">
+                    {% if social_account_type == 'google' %}
+                        <img src="{{ asset_for('assets/images/google-icon.svg') }}" width="60" height="60" class="mb-3">
+                    {% elseif social_account_type == 'apple' %}
+                        <img src="{{ asset_for('assets/images/apple-icon.svg') }}" width="60" height="60" class="mb-3">
+                    {% else %}
+                        <i class="fas fa-user-circle text-primary" style="font-size:4rem;"></i>
+                    {% endif %}
+                </div>
+
+                <h6 class="mb-3" style="font-weight:800; color:#122022;">
+                    {% if social_account_type == 'google' %}
+                        This email is registered with Google
+                    {% elseif social_account_type == 'apple' %}
+                        This email is registered with Apple
+                    {% else %}
+                        This email is registered with a social account
+                    {% endif %}
+                </h6>
+
+                <p class="text-muted mb-4">
+                    {% if social_account_type == 'google' %}
+                        Password recovery is not available for Google accounts. Please sign in using Google or contact support if you need help accessing your account.
+                    {% elseif social_account_type == 'apple' %}
+                        Password recovery is not available for Apple accounts. Please sign in using Apple or contact support if you need help accessing your account.
+                    {% else %}
+                        Password recovery is not available for social sign-ins. Please use the original login method or contact support for assistance.
+                    {% endif %}
+                </p>
+
+                <div class="d-grid gap-2">
+                    <a href="{{ path('login') }}" class="btn btn-dark">
+                        <i class="fas fa-sign-in-alt me-2"></i>
+                        Sign in
+                    </a>
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                        Close
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const form = document.getElementById("forgotForm");
+    const btn = document.getElementById("submitBtn");
+
+    form.addEventListener("submit", function () {
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Sending...';
+    });
+
+    {% if show_social_modal %}
+        const modal = new bootstrap.Modal(document.getElementById('socialAccountModal'));
+        modal.show();
+    {% endif %}
+});
+</script>
+
+{% endblock %}

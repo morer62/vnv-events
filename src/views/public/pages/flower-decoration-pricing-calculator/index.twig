@@ -1,0 +1,1116 @@
+{% extends "templates/base.twig" %}
+
+{% set show_whatsapp = true %}
+
+{% block styles %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@200;300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,700;0,900;1,700;1,900&display=swap" rel="stylesheet">
+
+<style>
+:root{
+    --vnv-primary:#5EC6C4;
+    --vnv-primary-dark:#4aa8a6;
+    --vnv-gold:#c5a059;
+    --vnv-gold-gradient:linear-gradient(135deg,#bf953f 0%,#fcf6ba 45%,#b38728 100%);
+    --vnv-dark-deep:#0a0c0c;
+    --vnv-dark-soft:#141818;
+    --vnv-dark-card:#1b2021;
+    --vnv-light:#ffffff;
+    --vnv-marble:#f4f7f8;
+    --vnv-text-dark:#11181a;
+    --vnv-text-light:#f3f5f6;
+    --vnv-text-muted:rgba(255,255,255,.72);
+    --vnv-text-muted-soft:rgba(255,255,255,.58);
+    --vnv-border:rgba(255,255,255,.08);
+    --vnv-shadow:0 25px 70px rgba(0,0,0,.14);
+}
+
+html { scroll-behavior:smooth; }
+
+body{
+    background:var(--vnv-dark-deep);
+    color:var(--vnv-text-light);
+    font-family:'Plus Jakarta Sans',sans-serif;
+    line-height:1.8;
+    -webkit-font-smoothing:antialiased;
+    overflow-x:hidden;
+}
+
+h1,h2,h3,h4,h5,.luxury-font{
+    font-family:'Playfair Display',serif;
+}
+
+.text-vnv{ color:var(--vnv-primary)!important; }
+
+.text-gold{
+    background:var(--vnv-gold-gradient);
+    -webkit-background-clip:text;
+    -webkit-text-fill-color:transparent;
+}
+
+.vnv-btn{
+    padding:18px 30px;
+    font-weight:800;
+    text-transform:uppercase;
+    letter-spacing:2px;
+    transition:all .35s ease;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    gap:10px;
+    text-decoration:none;
+    border:none;
+    cursor:pointer;
+    font-size:.78rem;
+    border-radius:999px;
+}
+
+.btn-gold-vnv{
+    background:var(--vnv-gold-gradient);
+    color:#000!important;
+}
+.btn-gold-vnv:hover{
+    transform:translateY(-3px);
+    box-shadow:0 20px 40px rgba(197,160,89,.22);
+}
+
+.btn-outline-vnv{
+    border:2px solid var(--vnv-primary);
+    color:var(--vnv-primary)!important;
+    background:transparent;
+}
+.btn-outline-vnv:hover{
+    background:var(--vnv-primary);
+    color:#fff!important;
+}
+
+.section-vnv{
+    padding:120px 0;
+    position:relative;
+}
+
+.vnv-badge{
+    display:inline-flex;
+    align-items:center;
+    gap:10px;
+    padding:10px 18px;
+    border-radius:999px;
+    background:rgba(94,198,196,.1);
+    color:var(--vnv-primary);
+    font-size:.74rem;
+    letter-spacing:2px;
+    font-weight:800;
+    text-transform:uppercase;
+}
+
+.hero-tool{
+    position:relative;
+    min-height:82vh;
+    display:flex;
+    align-items:center;
+    overflow:hidden;
+    background:
+        linear-gradient(90deg, rgba(10,12,12,.90) 0%, rgba(10,12,12,.66) 44%, rgba(10,12,12,.38) 100%),
+        url('{{ asset_for('assets/images/tool-flower-calculator-hero.jpg') }}') center/cover no-repeat;
+}
+
+.hero-tool::after{
+    content:"";
+    position:absolute;
+    inset:0;
+    background:
+        radial-gradient(circle at top right, rgba(94,198,196,.16), transparent 28%),
+        radial-gradient(circle at bottom left, rgba(197,160,89,.10), transparent 24%);
+    pointer-events:none;
+}
+
+.hero-tool-inner{
+    position:relative;
+    z-index:2;
+    width:100%;
+}
+
+.hero-tool h1{
+    font-size:clamp(3rem,6vw,5.4rem);
+    line-height:1.02;
+    margin:20px 0 28px;
+    max-width:980px;
+}
+
+.hero-tool p.hero-copy{
+    font-size:1.08rem;
+    color:var(--vnv-text-muted);
+    max-width:780px;
+    margin-bottom:22px;
+}
+
+.hero-cta-row{
+    display:flex;
+    flex-wrap:wrap;
+    gap:16px;
+    margin-top:24px;
+}
+
+.section-white{
+    background:var(--vnv-marble);
+    color:var(--vnv-text-dark);
+}
+
+.tool-shell{
+    background:linear-gradient(145deg, #151a1b 0%, #0c0f10 100%);
+    border-radius:34px;
+    border:1px solid rgba(255,255,255,.06);
+    box-shadow:0 26px 80px rgba(0,0,0,.22);
+    overflow:hidden;
+}
+
+.tool-topbar{
+    padding:18px 22px;
+    background:#0c0f10;
+    border-bottom:1px solid rgba(255,255,255,.06);
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:16px;
+    flex-wrap:wrap;
+}
+
+.tool-topbar-left{
+    display:flex;
+    align-items:center;
+    gap:14px;
+}
+
+.tool-topbar-icon{
+    width:46px;
+    height:46px;
+    border-radius:14px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:rgba(94,198,196,.12);
+    color:var(--vnv-primary);
+    font-size:1.15rem;
+}
+
+.tool-topbar-title{
+    color:#fff;
+    font-weight:800;
+    font-size:1rem;
+    line-height:1.2;
+}
+
+.tool-topbar-sub{
+    color:var(--vnv-text-muted-soft);
+    font-size:.8rem;
+    font-weight:700;
+}
+
+.tool-topbar-note{
+    color:rgba(255,255,255,.62);
+    font-size:.88rem;
+    font-weight:700;
+}
+
+.tool-body{
+    padding:28px;
+}
+
+.tool-grid{
+    display:grid;
+    grid-template-columns: 440px 1fr;
+    gap:24px;
+    align-items:start;
+}
+
+.tool-panel{
+    background:#f7f9fa;
+    border:1px solid rgba(17,24,26,.08);
+    border-radius:26px;
+    padding:22px;
+    box-shadow:0 18px 50px rgba(0,0,0,.06);
+    color:#122022;
+}
+
+.tool-panel h3{
+    font-family:'Plus Jakarta Sans',sans-serif;
+    margin:0 0 18px;
+    font-size:1.05rem;
+    font-weight:800;
+    color:#122022;
+    letter-spacing:.3px;
+}
+
+.tool-field{
+    margin-bottom:16px;
+}
+
+.tool-field label{
+    display:block;
+    font-size:.84rem;
+    font-weight:800;
+    color:#2c3a3d;
+    margin-bottom:8px;
+    text-transform:uppercase;
+    letter-spacing:1px;
+}
+
+.tool-field input,
+.tool-field select{
+    width:100%;
+    border:1px solid rgba(17,24,26,.12);
+    background:#fff;
+    border-radius:14px;
+    outline:none;
+    padding:14px 14px;
+    font-size:1rem;
+    color:#122022;
+    font-family:'Plus Jakarta Sans',sans-serif;
+}
+
+.tool-inline-2{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:14px;
+}
+
+.tool-inline-3{
+    display:grid;
+    grid-template-columns:1fr 1fr 1fr;
+    gap:14px;
+}
+
+.tool-actions{
+    display:flex;
+    gap:12px;
+    flex-wrap:wrap;
+    margin-top:10px;
+}
+
+.tool-btn{
+    border:none;
+    outline:none;
+    cursor:pointer;
+    border-radius:14px;
+    padding:14px 16px;
+    font-weight:800;
+    font-size:.88rem;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    gap:10px;
+    transition:all .25s ease;
+}
+
+.tool-btn.primary{
+    background:linear-gradient(135deg, #c0006b 0%, #e00087 100%);
+    color:#fff;
+}
+
+.tool-btn.secondary{
+    background:#11181a;
+    color:#fff;
+}
+
+.tool-btn.accent{
+    background:rgba(94,198,196,.12);
+    color:#133133;
+}
+
+.tool-btn:hover{
+    transform:translateY(-2px);
+}
+
+.tool-helper{
+    margin-top:16px;
+    background:#fff;
+    border:1px solid rgba(17,24,26,.08);
+    border-radius:18px;
+    padding:16px;
+    font-size:.92rem;
+    color:#4e5c5f;
+    line-height:1.65;
+}
+
+.tool-results{
+    display:grid;
+    gap:22px;
+}
+
+.result-card{
+    background:linear-gradient(145deg, rgba(28,34,35,0.96) 0%, rgba(15,18,19,0.98) 100%);
+    border:1px solid rgba(255,255,255,.06);
+    border-radius:26px;
+    padding:24px;
+    box-shadow:0 24px 60px rgba(0,0,0,.18);
+}
+
+.result-card h3{
+    font-size:1.45rem;
+    color:#fff;
+    margin:0 0 14px;
+}
+
+.result-card p{
+    color:var(--vnv-text-muted);
+    margin:0 0 14px;
+}
+
+.result-grid{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:14px;
+    margin-top:14px;
+}
+
+.result-stat{
+    background:rgba(255,255,255,.04);
+    border:1px solid rgba(255,255,255,.06);
+    border-radius:18px;
+    padding:16px 14px;
+}
+
+.result-stat-label{
+    color:rgba(255,255,255,.58);
+    font-size:.72rem;
+    font-weight:800;
+    text-transform:uppercase;
+    letter-spacing:1.4px;
+    margin-bottom:6px;
+}
+
+.result-stat-value{
+    color:#fff;
+    font-size:1.32rem;
+    font-weight:800;
+    line-height:1.2;
+}
+
+.breakdown-grid{
+    display:grid;
+    grid-template-columns:repeat(2,1fr);
+    gap:14px;
+    margin-top:14px;
+}
+
+.breakdown-card{
+    background:rgba(255,255,255,.04);
+    border:1px solid rgba(255,255,255,.06);
+    border-radius:18px;
+    padding:16px 14px;
+}
+
+.breakdown-card h4{
+    font-family:'Plus Jakarta Sans',sans-serif;
+    color:#fff;
+    margin:0 0 8px;
+    font-size:1rem;
+    font-weight:800;
+}
+
+.breakdown-card p{
+    margin:0;
+    color:var(--vnv-text-muted);
+    font-size:.92rem;
+    line-height:1.6;
+}
+
+.total-highlight{
+    margin-top:18px;
+    background:linear-gradient(135deg, rgba(197,160,89,.16) 0%, rgba(94,198,196,.12) 100%);
+    border:1px solid rgba(197,160,89,.22);
+    border-radius:22px;
+    padding:18px;
+}
+
+.total-highlight .label{
+    color:rgba(255,255,255,.64);
+    font-size:.76rem;
+    font-weight:800;
+    text-transform:uppercase;
+    letter-spacing:1.5px;
+    margin-bottom:6px;
+}
+
+.total-highlight .value{
+    color:#fff;
+    font-size:2.1rem;
+    font-weight:900;
+    line-height:1.1;
+}
+
+.muted-note{
+    margin-top:16px;
+    color:rgba(255,255,255,.52);
+    font-size:.84rem;
+    line-height:1.6;
+}
+
+.empty-state{
+    min-height:420px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+    padding:30px;
+    background:linear-gradient(145deg, rgba(28,34,35,0.96) 0%, rgba(15,18,19,0.98) 100%);
+    border:1px solid rgba(255,255,255,.06);
+    border-radius:26px;
+    color:var(--vnv-text-muted);
+}
+
+.empty-state-inner{
+    max-width:420px;
+}
+
+.empty-state-icon{
+    width:72px;
+    height:72px;
+    margin:0 auto 18px;
+    border-radius:22px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:rgba(94,198,196,.10);
+    color:var(--vnv-primary);
+    font-size:1.5rem;
+}
+
+@media (max-width: 1199px){
+    .tool-grid{
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 767px){
+    .section-vnv{
+        padding:90px 0;
+    }
+
+    .hero-tool h1{
+        font-size:2.7rem;
+    }
+
+    .vnv-btn{
+        width:100%;
+        padding:18px 24px;
+        letter-spacing:2px;
+    }
+
+    .hero-cta-row{
+        flex-direction:column;
+    }
+
+    .tool-body{
+        padding:16px;
+    }
+
+    .tool-inline-2,
+    .tool-inline-3,
+    .result-grid,
+    .breakdown-grid{
+        grid-template-columns:1fr;
+    }
+
+    .tool-panel,
+    .result-card{
+        padding:18px;
+    }
+}
+</style>
+{% endblock %}
+
+{% block body %}
+
+{% include "templates/layout/publicHeaderVnv.html.twig" %}
+
+<section class="hero-tool">
+    <div class="container hero-tool-inner">
+        <span class="vnv-badge">Free Floral Planning Tool</span>
+
+        <h1>Flower Decoration <span class="text-gold">Pricing Calculator</span></h1>
+
+        <p class="hero-copy">
+            Estimate floral décor pricing for weddings, corporate events, quinceañeras, baby showers and private celebrations. Use this calculator to build a smarter flower budget with materials, labor, setup and service costs in one place.
+        </p>
+
+        <div class="hero-cta-row">
+            <a href="#flower-tool" class="vnv-btn btn-gold-vnv">Use the Calculator</a>
+            <a href="#" data-vnv-open-request class="vnv-btn btn-outline-vnv">Need a Floral Quote?</a>
+        </div>
+    </div>
+</section>
+
+<section class="section-vnv section-white" id="flower-tool">
+    <div class="container">
+        <div class="tool-shell">
+            <div class="tool-topbar">
+                <div class="tool-topbar-left">
+                    <div class="tool-topbar-icon"><i class="fa-solid fa-seedling"></i></div>
+                    <div>
+                        <div class="tool-topbar-title">Flower Decoration Pricing Calculator</div>
+                        <div class="tool-topbar-sub">Estimate product, labor, setup, delivery and suggested sell price</div>
+                    </div>
+                </div>
+
+                <div class="tool-topbar-note">
+                    Better for South Florida weddings, social events and premium floral installs
+                </div>
+            </div>
+
+            <div class="tool-body">
+                <div class="tool-grid">
+                    <div class="tool-panel">
+                        <h3>Build Your Floral Estimate</h3>
+
+                        <div class="tool-inline-2">
+                            <div class="tool-field">
+                                <label for="arrangement-type">Arrangement type</label>
+                                <select id="arrangement-type">
+                                    <option value="bridalBouquet">Bridal Bouquet</option>
+                                    <option value="bridesmaidBouquet">Bridesmaid Bouquet</option>
+                                    <option value="lowCenterpiece" selected>Low Centerpiece</option>
+                                    <option value="elevatedCenterpiece">Elevated Centerpiece</option>
+                                    <option value="aisleMarker">Ceremony Aisle Marker</option>
+                                    <option value="archAccent">Arch Floral Accent</option>
+                                    <option value="sweetheartTable">Sweetheart Table Floral</option>
+                                    <option value="entryInstall">Entry Floral Install</option>
+                                    <option value="custom">Custom Piece</option>
+                                </select>
+                            </div>
+
+                            <div class="tool-field">
+                                <label for="design-tier">Flower tier / style</label>
+                                <select id="design-tier">
+                                    <option value="budget">Budget / Simple</option>
+                                    <option value="classic" selected>Classic</option>
+                                    <option value="luxury">Luxury</option>
+                                    <option value="premium">Premium Statement</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="tool-inline-2">
+                            <div class="tool-field">
+                                <label for="quantity">How many pieces?</label>
+                                <input type="number" id="quantity" min="1" step="1" value="1">
+                            </div>
+
+                            <div class="tool-field">
+                                <label for="custom-stems">Custom stems per piece</label>
+                                <input type="number" id="custom-stems" min="0" step="1" placeholder="Optional override">
+                            </div>
+                        </div>
+
+                        <div class="tool-inline-3">
+                            <div class="tool-field">
+                                <label for="flower-mix">Main flower mix</label>
+                                <select id="flower-mix">
+                                    <option value="carnation">Carnation Mix</option>
+                                    <option value="rose" selected>Rose / Standard Mix</option>
+                                    <option value="hydrangea">Hydrangea Mix</option>
+                                    <option value="orchid">Orchid Mix</option>
+                                    <option value="peony">Peony / Premium Bloom</option>
+                                    <option value="custom">Custom Stem Cost</option>
+                                </select>
+                            </div>
+
+                            <div class="tool-field">
+                                <label for="custom-stem-cost">Custom cost per stem</label>
+                                <input type="number" id="custom-stem-cost" min="0" step="0.01" placeholder="Optional">
+                            </div>
+
+                            <div class="tool-field">
+                                <label for="greenery-fillers-cost">Greenery & fillers per piece</label>
+                                <input type="number" id="greenery-fillers-cost" min="0" step="0.01" value="18">
+                            </div>
+                        </div>
+
+                        <div class="tool-inline-2">
+                            <div class="tool-field">
+                                <label for="labor-hours">Design + setup hours</label>
+                                <input type="number" id="labor-hours" min="0" step="0.25" value="2.5">
+                            </div>
+
+                            <div class="tool-field">
+                                <label for="hourly-rate">Loaded labor rate / hour</label>
+                                <input type="number" id="hourly-rate" min="0" step="0.01" value="48">
+                            </div>
+                        </div>
+
+                        <div class="tool-inline-3">
+                            <div class="tool-field">
+                                <label for="vase-mechanics-cost">Vase / mechanics total</label>
+                                <input type="number" id="vase-mechanics-cost" min="0" step="0.01" value="25">
+                            </div>
+
+                            <div class="tool-field">
+                                <label for="delivery-cost">Delivery / transport</label>
+                                <input type="number" id="delivery-cost" min="0" step="0.01" value="95">
+                            </div>
+
+                            <div class="tool-field">
+                                <label for="strike-cost">Breakdown / pickup</label>
+                                <input type="number" id="strike-cost" min="0" step="0.01" value="0">
+                            </div>
+                        </div>
+
+                        <div class="tool-inline-3">
+                            <div class="tool-field">
+                                <label for="waste-buffer">Flower buffer</label>
+                                <select id="waste-buffer">
+                                    <option value="8">8%</option>
+                                    <option value="10" selected>10%</option>
+                                    <option value="12">12%</option>
+                                    <option value="15">15%</option>
+                                    <option value="20">20%</option>
+                                </select>
+                            </div>
+
+                            <div class="tool-field">
+                                <label for="service-fee">Service / sourcing fee</label>
+                                <select id="service-fee">
+                                    <option value="8">8%</option>
+                                    <option value="10" selected>10%</option>
+                                    <option value="12">12%</option>
+                                    <option value="15">15%</option>
+                                </select>
+                            </div>
+
+                            <div class="tool-field">
+                                <label for="profit-margin">Target profit margin</label>
+                                <select id="profit-margin">
+                                    <option value="20">20%</option>
+                                    <option value="25">25%</option>
+                                    <option value="30" selected>30%</option>
+                                    <option value="35">35%</option>
+                                    <option value="40">40%</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="tool-actions">
+                            <button type="button" class="tool-btn primary" id="calculate-btn">
+                                <i class="fa-solid fa-calculator"></i>
+                                Calculate
+                            </button>
+
+                            <button type="button" class="tool-btn secondary" id="reset-btn">
+                                <i class="fa-solid fa-rotate-left"></i>
+                                Reset
+                            </button>
+                        </div>
+
+                        <div class="tool-helper">
+                            This calculator works best as a planning guide for floral proposals. It is especially useful when you need a fast baseline before creating a custom quote for centerpieces, bouquets, ceremony florals or larger installations.
+                        </div>
+                    </div>
+
+                    <div class="tool-results" id="tool-results">
+                        <div class="empty-state">
+                            <div class="empty-state-inner">
+                                <div class="empty-state-icon"><i class="fa-solid fa-flower-tulip"></i></div>
+                                <h3 style="font-size:1.7rem; color:#fff; margin-bottom:10px;">Your floral estimate will appear here</h3>
+                                <p style="margin:0;">
+                                    Choose the floral style, arrangement type, quantity and labor inputs to generate a realistic pricing breakdown.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+{% include "templates/components/publicEventRequestModal.html.twig" with {
+    request_form_action: "/api/public/event-request"
+} %}
+
+{% include "templates/layout/publicFooterVnv.html.twig" %}
+
+{% endblock %}
+
+{% block scripts %}
+<script type="application/ld+json">
+{
+  "@context":"https://schema.org",
+  "@type":"WebApplication",
+  "name":"Flower Decoration Pricing Calculator",
+  "applicationCategory":"BusinessApplication",
+  "operatingSystem":"Web",
+  "description":"A free web-based flower decoration pricing calculator for weddings and events that estimates flower costs, labor, delivery, setup and suggested pricing.",
+  "offers":{
+    "@type":"Offer",
+    "price":"0",
+    "priceCurrency":"USD"
+  }
+}
+</script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const arrangementType = document.getElementById('arrangement-type');
+    const designTier = document.getElementById('design-tier');
+    const quantity = document.getElementById('quantity');
+    const customStems = document.getElementById('custom-stems');
+    const flowerMix = document.getElementById('flower-mix');
+    const customStemCost = document.getElementById('custom-stem-cost');
+    const greeneryFillersCost = document.getElementById('greenery-fillers-cost');
+    const laborHours = document.getElementById('labor-hours');
+    const hourlyRate = document.getElementById('hourly-rate');
+    const vaseMechanicsCost = document.getElementById('vase-mechanics-cost');
+    const deliveryCost = document.getElementById('delivery-cost');
+    const strikeCost = document.getElementById('strike-cost');
+    const wasteBuffer = document.getElementById('waste-buffer');
+    const serviceFee = document.getElementById('service-fee');
+    const profitMargin = document.getElementById('profit-margin');
+    const calculateBtn = document.getElementById('calculate-btn');
+    const resetBtn = document.getElementById('reset-btn');
+    const resultsWrap = document.getElementById('tool-results');
+
+    const arrangementPresets = {
+        bridalBouquet: {
+            label: 'Bridal Bouquet',
+            stems: { budget: 18, classic: 24, luxury: 32, premium: 42 },
+            labor: { budget: 1.0, classic: 1.5, luxury: 2.0, premium: 2.75 },
+            mechanics: 18
+        },
+        bridesmaidBouquet: {
+            label: 'Bridesmaid Bouquet',
+            stems: { budget: 10, classic: 14, luxury: 18, premium: 24 },
+            labor: { budget: 0.5, classic: 0.75, luxury: 1.0, premium: 1.25 },
+            mechanics: 10
+        },
+        lowCenterpiece: {
+            label: 'Low Centerpiece',
+            stems: { budget: 16, classic: 22, luxury: 30, premium: 38 },
+            labor: { budget: 0.55, classic: 0.85, luxury: 1.2, premium: 1.6 },
+            mechanics: 20
+        },
+        elevatedCenterpiece: {
+            label: 'Elevated Centerpiece',
+            stems: { budget: 24, classic: 34, luxury: 46, premium: 58 },
+            labor: { budget: 1.0, classic: 1.4, luxury: 1.9, premium: 2.5 },
+            mechanics: 55
+        },
+        aisleMarker: {
+            label: 'Ceremony Aisle Marker',
+            stems: { budget: 10, classic: 16, luxury: 22, premium: 30 },
+            labor: { budget: 0.4, classic: 0.65, luxury: 0.9, premium: 1.2 },
+            mechanics: 12
+        },
+        archAccent: {
+            label: 'Arch Floral Accent',
+            stems: { budget: 45, classic: 70, luxury: 95, premium: 130 },
+            labor: { budget: 2.5, classic: 3.75, luxury: 5.25, premium: 7.0 },
+            mechanics: 85
+        },
+        sweetheartTable: {
+            label: 'Sweetheart Table Floral',
+            stems: { budget: 26, classic: 40, luxury: 55, premium: 78 },
+            labor: { budget: 1.4, classic: 2.0, luxury: 2.8, premium: 3.8 },
+            mechanics: 40
+        },
+        entryInstall: {
+            label: 'Entry Floral Install',
+            stems: { budget: 55, classic: 85, luxury: 120, premium: 165 },
+            labor: { budget: 3.0, classic: 4.5, luxury: 6.5, premium: 8.5 },
+            mechanics: 95
+        },
+        custom: {
+            label: 'Custom Piece',
+            stems: { budget: 24, classic: 36, luxury: 50, premium: 70 },
+            labor: { budget: 1.25, classic: 2.0, luxury: 3.0, premium: 4.0 },
+            mechanics: 30
+        }
+    };
+
+    const flowerPricing = {
+        carnation: { label: 'Carnation Mix', stemCost: 1.90 },
+        rose: { label: 'Rose / Standard Mix', stemCost: 3.35 },
+        hydrangea: { label: 'Hydrangea Mix', stemCost: 8.40 },
+        orchid: { label: 'Orchid Mix', stemCost: 9.75 },
+        peony: { label: 'Peony / Premium Bloom', stemCost: 15.25 },
+        custom: { label: 'Custom Stem Cost', stemCost: 0 }
+    };
+
+    function money(value) {
+        return new Intl.NumberFormat('en-US', {
+            style: 'currency',
+            currency: 'USD'
+        }).format(value || 0);
+    }
+
+    function renderEmpty() {
+        resultsWrap.innerHTML = `
+            <div class="empty-state">
+                <div class="empty-state-inner">
+                    <div class="empty-state-icon"><i class="fa-solid fa-flower-tulip"></i></div>
+                    <h3 style="font-size:1.7rem; color:#fff; margin-bottom:10px;">Your floral estimate will appear here</h3>
+                    <p style="margin:0;">
+                        Choose the floral style, arrangement type, quantity and labor inputs to generate a realistic pricing breakdown.
+                    </p>
+                </div>
+            </div>
+        `;
+    }
+
+    function getStemCount() {
+        const arrangement = arrangementPresets[arrangementType.value];
+        const tier = designTier.value;
+        const manualOverride = parseFloat(customStems.value || '0');
+
+        if (manualOverride > 0) {
+            return manualOverride;
+        }
+
+        return arrangement.stems[tier] || 0;
+    }
+
+    function getLaborHoursBase() {
+        const arrangement = arrangementPresets[arrangementType.value];
+        const tier = designTier.value;
+        return arrangement.labor[tier] || 0;
+    }
+
+    function getMechanicsBase() {
+        const arrangement = arrangementPresets[arrangementType.value];
+        return arrangement.mechanics || 0;
+    }
+
+    function getStemCost() {
+        if (flowerMix.value === 'custom') {
+            return parseFloat(customStemCost.value || '0');
+        }
+        return flowerPricing[flowerMix.value]?.stemCost || 0;
+    }
+
+    function calculateEstimate() {
+        const qty = parseFloat(quantity.value || '0');
+        const stemCountPerPiece = getStemCount();
+        const stemCost = getStemCost();
+        const greenCostPerPiece = parseFloat(greeneryFillersCost.value || '0');
+        const manualLaborHours = parseFloat(laborHours.value || '0');
+        const ratePerHour = parseFloat(hourlyRate.value || '0');
+        const mechanicsInput = parseFloat(vaseMechanicsCost.value || '0');
+        const delivery = parseFloat(deliveryCost.value || '0');
+        const strike = parseFloat(strikeCost.value || '0');
+        const wastePercent = parseFloat(wasteBuffer.value || '0') / 100;
+        const servicePercent = parseFloat(serviceFee.value || '0') / 100;
+        const marginPercent = parseFloat(profitMargin.value || '0') / 100;
+
+        if (qty <= 0 || stemCountPerPiece <= 0 || stemCost <= 0) {
+            renderEmpty();
+            return;
+        }
+
+        const arrangementLabel = arrangementPresets[arrangementType.value].label;
+        const flowerLabel = flowerPricing[flowerMix.value]?.label || 'Custom Stem Cost';
+
+        const totalStems = qty * stemCountPerPiece;
+        const flowerProductBase = totalStems * stemCost;
+        const flowerWasteAmount = flowerProductBase * wastePercent;
+        const flowerProductWithWaste = flowerProductBase + flowerWasteAmount;
+
+        const greeneryTotal = qty * greenCostPerPiece;
+
+        const mechanicsBase = getMechanicsBase();
+        const mechanicsTotal = mechanicsInput > 0 ? mechanicsInput : (qty * mechanicsBase);
+
+        const laborPreset = qty * getLaborHoursBase();
+        const effectiveLaborHours = Math.max(manualLaborHours, laborPreset);
+        const laborTotal = effectiveLaborHours * ratePerHour;
+
+        const subtotalBeforeService = flowerProductWithWaste + greeneryTotal + mechanicsTotal + laborTotal + delivery + strike;
+        const serviceFeeAmount = subtotalBeforeService * servicePercent;
+        const totalHardCost = subtotalBeforeService + serviceFeeAmount;
+        const suggestedSellPrice = totalHardCost / (1 - marginPercent);
+        const premiumSellPrice = suggestedSellPrice * 1.12;
+
+        const perPieceCost = suggestedSellPrice / qty;
+
+        resultsWrap.innerHTML = `
+            <div class="result-card">
+                <h3>${arrangementLabel}</h3>
+                <p>${flowerLabel} · ${designTier.options[designTier.selectedIndex].text} · ${qty} piece(s)</p>
+
+                <div class="result-grid">
+                    <div class="result-stat">
+                        <div class="result-stat-label">Pieces</div>
+                        <div class="result-stat-value">${qty}</div>
+                    </div>
+                    <div class="result-stat">
+                        <div class="result-stat-label">Estimated Stems</div>
+                        <div class="result-stat-value">${totalStems.toFixed(0)}</div>
+                    </div>
+                    <div class="result-stat">
+                        <div class="result-stat-label">Cost Per Piece</div>
+                        <div class="result-stat-value">${money(perPieceCost)}</div>
+                    </div>
+                </div>
+
+                <div class="total-highlight">
+                    <div class="label">Suggested Client Price</div>
+                    <div class="value">${money(suggestedSellPrice)}</div>
+                </div>
+            </div>
+
+            <div class="result-card">
+                <h3>Cost Breakdown</h3>
+
+                <div class="breakdown-grid">
+                    <div class="breakdown-card">
+                        <h4>Fresh Flowers</h4>
+                        <p>${money(flowerProductBase)} base flower product</p>
+                        <p>${money(flowerWasteAmount)} waste / damage / sourcing buffer</p>
+                    </div>
+
+                    <div class="breakdown-card">
+                        <h4>Greenery & Fillers</h4>
+                        <p>${money(greeneryTotal)} for support flowers, texture and fullness</p>
+                    </div>
+
+                    <div class="breakdown-card">
+                        <h4>Vases & Mechanics</h4>
+                        <p>${money(mechanicsTotal)} for vases, floral foam, tape, pins, wiring and support materials</p>
+                    </div>
+
+                    <div class="breakdown-card">
+                        <h4>Labor</h4>
+                        <p>${effectiveLaborHours.toFixed(2)} hour(s) × ${money(ratePerHour)}</p>
+                        <p>${money(laborTotal)} total design and setup labor</p>
+                    </div>
+
+                    <div class="breakdown-card">
+                        <h4>Transport & Service</h4>
+                        <p>${money(delivery)} delivery / transportation</p>
+                        <p>${money(strike)} breakdown / pickup</p>
+                    </div>
+
+                    <div class="breakdown-card">
+                        <h4>Sourcing / Admin Fee</h4>
+                        <p>${money(serviceFeeAmount)} added for procurement, handling and coordination</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="result-card">
+                <h3>Pricing Summary</h3>
+
+                <div class="breakdown-grid">
+                    <div class="breakdown-card">
+                        <h4>Hard Cost Total</h4>
+                        <p>${money(totalHardCost)}</p>
+                    </div>
+
+                    <div class="breakdown-card">
+                        <h4>Suggested Sell Price</h4>
+                        <p>${money(suggestedSellPrice)}</p>
+                    </div>
+
+                    <div class="breakdown-card">
+                        <h4>Premium Presentation Price</h4>
+                        <p>${money(premiumSellPrice)}</p>
+                    </div>
+
+                    <div class="breakdown-card">
+                        <h4>Margin Target</h4>
+                        <p>${(marginPercent * 100).toFixed(0)}%</p>
+                    </div>
+                </div>
+
+                <div class="muted-note">
+                    Tip: use the Suggested Client Price as your solid baseline and the Premium Presentation Price when the event requires cleaner styling, upgraded blooms, more color control, more logistics, or a stronger design presentation.
+                </div>
+            </div>
+        `;
+    }
+
+    function applyPresetDefaults() {
+        const arrangement = arrangementPresets[arrangementType.value];
+        const tier = designTier.value;
+
+        if (!customStems.value) {
+            customStems.value = '';
+        }
+
+        if (arrangementType.value === 'bridalBouquet') {
+            quantity.value = quantity.value || 1;
+            greeneryFillersCost.value = 20;
+            laborHours.value = Math.max(parseFloat(laborHours.value || '0'), arrangement.labor[tier]).toFixed(2);
+            vaseMechanicsCost.value = 18;
+            deliveryCost.value = 45;
+        } else if (arrangementType.value === 'bridesmaidBouquet') {
+            greeneryFillersCost.value = 10;
+            laborHours.value = Math.max(parseFloat(laborHours.value || '0'), arrangement.labor[tier]).toFixed(2);
+            vaseMechanicsCost.value = 10;
+            deliveryCost.value = 35;
+        } else if (arrangementType.value === 'lowCenterpiece') {
+            greeneryFillersCost.value = 18;
+            laborHours.value = Math.max(parseFloat(laborHours.value || '0'), arrangement.labor[tier] * Math.max(parseFloat(quantity.value || '1'), 1)).toFixed(2);
+            vaseMechanicsCost.value = 25;
+            deliveryCost.value = 95;
+        } else if (arrangementType.value === 'elevatedCenterpiece') {
+            greeneryFillersCost.value = 26;
+            laborHours.value = Math.max(parseFloat(laborHours.value || '0'), arrangement.labor[tier] * Math.max(parseFloat(quantity.value || '1'), 1)).toFixed(2);
+            vaseMechanicsCost.value = 65;
+            deliveryCost.value = 135;
+        } else if (arrangementType.value === 'archAccent') {
+            greeneryFillersCost.value = 65;
+            laborHours.value = Math.max(parseFloat(laborHours.value || '0'), arrangement.labor[tier]).toFixed(2);
+            vaseMechanicsCost.value = 95;
+            deliveryCost.value = 165;
+        } else if (arrangementType.value === 'entryInstall') {
+            greeneryFillersCost.value = 80;
+            laborHours.value = Math.max(parseFloat(laborHours.value || '0'), arrangement.labor[tier]).toFixed(2);
+            vaseMechanicsCost.value = 110;
+            deliveryCost.value = 185;
+        } else if (arrangementType.value === 'sweetheartTable') {
+            greeneryFillersCost.value = 32;
+            laborHours.value = Math.max(parseFloat(laborHours.value || '0'), arrangement.labor[tier]).toFixed(2);
+            vaseMechanicsCost.value = 45;
+            deliveryCost.value = 95;
+        } else if (arrangementType.value === 'aisleMarker') {
+            greeneryFillersCost.value = 9;
+            laborHours.value = Math.max(parseFloat(laborHours.value || '0'), arrangement.labor[tier] * Math.max(parseFloat(quantity.value || '1'), 1)).toFixed(2);
+            vaseMechanicsCost.value = 12;
+            deliveryCost.value = 55;
+        } else {
+            greeneryFillersCost.value = 20;
+            laborHours.value = Math.max(parseFloat(laborHours.value || '0'), arrangement.labor[tier]).toFixed(2);
+            vaseMechanicsCost.value = 30;
+            deliveryCost.value = 85;
+        }
+    }
+
+    arrangementType.addEventListener('change', applyPresetDefaults);
+    designTier.addEventListener('change', applyPresetDefaults);
+    quantity.addEventListener('change', applyPresetDefaults);
+
+    calculateBtn.addEventListener('click', calculateEstimate);
+
+    resetBtn.addEventListener('click', function () {
+        arrangementType.value = 'lowCenterpiece';
+        designTier.value = 'classic';
+        quantity.value = 1;
+        customStems.value = '';
+        flowerMix.value = 'rose';
+        customStemCost.value = '';
+        greeneryFillersCost.value = 18;
+        laborHours.value = 2.5;
+        hourlyRate.value = 48;
+        vaseMechanicsCost.value = 25;
+        deliveryCost.value = 95;
+        strikeCost.value = 0;
+        wasteBuffer.value = 10;
+        serviceFee.value = 10;
+        profitMargin.value = 30;
+        renderEmpty();
+    });
+
+    applyPresetDefaults();
+    renderEmpty();
+});
+</script>
+{% endblock %}

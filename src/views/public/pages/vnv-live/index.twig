@@ -1,0 +1,980 @@
+{% extends "templates/base.twig" %}
+
+{% set show_whatsapp = true %}
+
+{% block styles %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@200;300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,700;0,900;1,700;1,900&display=swap" rel="stylesheet">
+
+<style>
+:root {
+    --vnv-primary: #5EC6C4;
+    --vnv-primary-dark: #4aa8a6;
+    --vnv-gold: #c5a059;
+    --vnv-gold-gradient: linear-gradient(135deg, #bf953f 0%, #fcf6ba 45%, #b38728 100%);
+    --vnv-dark-deep: #0a0c0c;
+    --vnv-dark-soft: #141818;
+    --vnv-dark-card: #1b2021;
+    --vnv-light: #ffffff;
+    --vnv-marble: #f4f7f8;
+    --vnv-text-main: #2d3436;
+    --vnv-text-dark: #11181a;
+    --vnv-text-light: #f3f5f6;
+    --vnv-text-muted: rgba(255,255,255,.74);
+    --vnv-text-muted-soft: rgba(255,255,255,.60);
+    --vnv-border: rgba(255,255,255,.08);
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+    background: var(--vnv-dark-deep);
+    color: var(--vnv-text-light);
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    line-height: 1.8;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+}
+
+h1, h2, h3, h4, h5, .luxury-font {
+    font-family: 'Playfair Display', serif;
+}
+
+.text-vnv { color: var(--vnv-primary) !important; }
+.text-gold {
+    background: var(--vnv-gold-gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+.letter-spacing-lg { letter-spacing: 4px; }
+
+.vnv-btn {
+    padding: 18px 30px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    transition: all .35s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    text-decoration: none;
+    border: none;
+    cursor: pointer;
+    font-size: .78rem;
+    border-radius: 999px;
+}
+
+.btn-gold-vnv {
+    background: var(--vnv-gold-gradient);
+    color: #000 !important;
+}
+.btn-gold-vnv:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 20px 40px rgba(197,160,89,.22);
+}
+.btn-outline-vnv {
+    border: 2px solid var(--vnv-primary);
+    color: var(--vnv-primary) !important;
+    background: transparent;
+}
+.btn-outline-vnv:hover {
+    background: var(--vnv-primary);
+    color: #fff !important;
+}
+.btn-ghost-white {
+    border: 1px solid rgba(255,255,255,.18);
+    color: #fff !important;
+    background: transparent;
+}
+.btn-ghost-white:hover {
+    background: #fff;
+    color: #000 !important;
+}
+
+.section-vnv {
+    padding: 120px 0;
+    position: relative;
+}
+
+.vnv-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 18px;
+    border-radius: 999px;
+    background: rgba(94,198,196,.1);
+    color: var(--vnv-primary);
+    font-size: .74rem;
+    letter-spacing: 2px;
+    font-weight: 800;
+    text-transform: uppercase;
+}
+
+.hero-live {
+    position: relative;
+    min-height: 92vh;
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+    background:
+        linear-gradient(90deg, rgba(10,12,12,.88) 0%, rgba(10,12,12,.68) 42%, rgba(10,12,12,.42) 100%),
+        url('{{ asset_for('assets/images/dj1.jpg') }}') center/cover no-repeat;
+}
+
+.hero-live::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+        radial-gradient(circle at top right, rgba(94,198,196,.16), transparent 28%),
+        radial-gradient(circle at bottom left, rgba(197,160,89,.10), transparent 24%);
+    pointer-events: none;
+}
+
+.hero-live-inner {
+    position: relative;
+    z-index: 2;
+    width: 100%;
+}
+
+.hero-live h1 {
+    font-size: clamp(3rem, 6vw, 5.4rem);
+    line-height: 1.02;
+    margin: 20px 0 28px;
+    max-width: 920px;
+}
+
+.hero-live p.hero-copy {
+    font-size: 1.08rem;
+    color: var(--vnv-text-muted);
+    max-width: 760px;
+    margin-bottom: 34px;
+}
+
+.hero-cta-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-top: 20px;
+}
+
+.section-white {
+    background: var(--vnv-marble);
+    color: var(--vnv-text-dark);
+}
+
+.section-dark {
+    background: var(--vnv-dark-deep);
+    color: var(--vnv-text-light);
+}
+
+.section-heading {
+    max-width: 920px;
+    margin-bottom: 55px;
+}
+.section-heading h2 {
+    font-size: clamp(2.2rem, 4vw, 4.2rem);
+    line-height: 1.04;
+    margin: 16px 0 18px;
+}
+.section-heading p {
+    font-size: 1.05rem;
+    margin: 0;
+}
+.section-white .section-heading p {
+    color: #566164;
+}
+.section-dark .section-heading p {
+    color: var(--vnv-text-muted);
+}
+
+.intro-wrap {
+    display: grid;
+    grid-template-columns: 1.05fr .95fr;
+    gap: 40px;
+    align-items: center;
+}
+
+.intro-image-card {
+    border-radius: 30px;
+    overflow: hidden;
+    box-shadow: 0 25px 70px rgba(0,0,0,.10);
+    border: 1px solid rgba(17,24,26,.08);
+    background: #fff;
+}
+
+.intro-image-card img {
+    width: 100%;
+    min-height: 420px;
+    object-fit: cover;
+    display: block;
+}
+
+.intro-panel {
+    background: #fff;
+    border: 1px solid rgba(17,24,26,.08);
+    border-radius: 30px;
+    padding: 40px;
+    box-shadow: 0 25px 70px rgba(0,0,0,.08);
+}
+
+.intro-panel h3 {
+    font-size: 2rem;
+    color: var(--vnv-text-dark);
+    margin-bottom: 20px;
+}
+
+.intro-panel p,
+.intro-panel li {
+    color: #4f5b5f;
+}
+
+.intro-panel ul {
+    list-style: none;
+    padding: 0;
+    margin: 25px 0 0;
+}
+.intro-panel ul li {
+    position: relative;
+    padding-left: 22px;
+    margin-bottom: 10px;
+}
+.intro-panel ul li::before {
+    content: "";
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--vnv-gold);
+    position: absolute;
+    left: 0;
+    top: 12px;
+}
+
+.services-bg-video-wrap {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+}
+
+.services-bg-video {
+    width: 100%;
+    height: 120%;
+    object-fit: cover;
+    object-position: center center;
+    opacity: 0.12;
+    filter: blur(2px) saturate(0.8);
+    transform: translateY(-6%);
+}
+
+.services-bg-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+        to bottom,
+        rgba(10,12,12,0.25),
+        rgba(10,12,12,0.30),
+        rgba(10,12,12,0.25)
+    );
+}
+
+.package-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+}
+
+.package-card {
+    background: rgba(28, 34, 35, 0.82);
+    backdrop-filter: blur(6px);
+    border-radius: 28px;
+    padding: 42px 34px;
+    border: 1px solid rgba(197, 160, 89, 0.08);
+    height: 100%;
+    position: relative;
+    z-index: 2;
+}
+
+.package-card h3 {
+    color: #fff;
+    font-size: 1.8rem;
+    margin-bottom: 10px;
+}
+.package-card p,
+.package-card li {
+    color: var(--vnv-text-muted);
+}
+.package-price {
+    font-size: 2.5rem;
+    font-weight: 900;
+    color: var(--vnv-primary);
+    line-height: 1;
+    margin-bottom: 18px;
+}
+.package-meta {
+    color: rgba(255,255,255,.6);
+    font-size: .95rem;
+    margin-bottom: 22px;
+}
+.package-card ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+.package-card ul li {
+    position: relative;
+    padding-left: 22px;
+    margin-bottom: 10px;
+}
+.package-card ul li::before {
+    content: "";
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--vnv-gold);
+    position: absolute;
+    left: 0;
+    top: 12px;
+}
+
+.music-wrap {
+    display: grid;
+    grid-template-columns: .95fr 1.05fr;
+    gap: 40px;
+    align-items: stretch;
+}
+
+.music-image-stack {
+    display: grid;
+    gap: 24px;
+}
+
+.music-image-stack img {
+    width: 100%;
+    border-radius: 26px;
+    object-fit: cover;
+    display: block;
+    box-shadow: 0 20px 60px rgba(0,0,0,.10);
+    border: 1px solid rgba(17,24,26,.08);
+}
+
+.music-image-stack img:first-child,
+.music-image-stack img:last-child {
+    min-height: 260px;
+    max-height: 260px;
+}
+
+.music-panel {
+    background: #fff;
+    border: 1px solid rgba(17,24,26,.08);
+    border-radius: 30px;
+    padding: 42px;
+    box-shadow: 0 25px 70px rgba(0,0,0,.08);
+}
+
+.music-panel h3 {
+    font-size: 2rem;
+    color: var(--vnv-text-dark);
+    margin-bottom: 18px;
+}
+
+.music-panel p,
+.music-panel li {
+    color: #4f5b5f;
+}
+
+.music-list {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px 26px;
+    list-style: none;
+    padding: 0;
+    margin: 28px 0 0;
+}
+.music-list li {
+    position: relative;
+    padding-left: 22px;
+}
+.music-list li::before {
+    content: "";
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--vnv-primary);
+    position: absolute;
+    left: 0;
+    top: 12px;
+}
+
+.addon-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+}
+
+.addon-card {
+    background: #fff;
+    border: 1px solid rgba(17,24,26,.08);
+    border-radius: 30px;
+    padding: 34px 30px;
+    box-shadow: 0 20px 60px rgba(0,0,0,.08);
+    height: 100%;
+}
+
+.addon-card h3 {
+    color: var(--vnv-text-dark);
+    font-size: 1.6rem;
+    margin-bottom: 10px;
+}
+.addon-card p {
+    color: #4f5b5f;
+}
+.addon-price {
+    display: inline-block;
+    margin-top: 10px;
+    color: var(--vnv-primary);
+    font-weight: 800;
+}
+
+.video-placeholder-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+}
+
+.video-placeholder {
+    background: rgba(255,255,255,.04);
+    border: 1px dashed rgba(255,255,255,.20);
+    border-radius: 24px;
+    min-height: 220px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 24px;
+    color: rgba(255,255,255,.62);
+}
+
+.instagram-block {
+    position: relative;
+    overflow: hidden;
+}
+
+.instagram-block::before {
+    content: "";
+    position: absolute;
+    top: -120px;
+    left: -120px;
+    width: 320px;
+    height: 320px;
+    background: radial-gradient(circle, rgba(94,198,196,0.14) 0%, transparent 70%);
+    pointer-events: none;
+}
+
+.vnv-studio-card {
+    background: linear-gradient(145deg, #161a1b 0%, #0d0f0f 100%);
+    border-radius: 30px;
+    padding: 50px;
+    border: 1px solid rgba(255,255,255,0.06);
+    box-shadow: 0 20px 60px rgba(0,0,0,0.35);
+}
+
+.vnv-studio-card h3 {
+    font-size: 1.8rem;
+    font-weight: 800;
+}
+
+.vnv-studio-card p {
+    color: rgba(255,255,255,0.7);
+    margin-bottom: 20px;
+}
+
+.vnv-studio-info {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    color: #fff;
+    font-weight: 600;
+    margin-bottom: 25px;
+}
+
+.vnv-studio-info i {
+    color: var(--vnv-primary);
+}
+
+.vnv-studio-actions {
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.instagram-gallery-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 18px;
+}
+
+.instagram-gallery-grid img {
+    width: 100%;
+    height: 220px;
+    object-fit: cover;
+    border-radius: 22px;
+    display: block;
+    border: 1px solid rgba(255,255,255,.08);
+}
+
+.final-cta-card {
+    background: linear-gradient(145deg, #161a1b 0%, #0d0f0f 100%);
+    border-radius: 45px;
+    padding: 90px 70px;
+    border: 1px solid rgba(255,255,255,.06);
+    position: relative;
+    overflow: hidden;
+}
+
+.final-cta-card::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    right: 10%;
+    width: 360px;
+    height: 360px;
+    transform: translateY(-50%);
+    background: radial-gradient(circle, rgba(94, 198, 196, 0.08) 0%, transparent 70%);
+    pointer-events: none;
+}
+
+.final-cta-card p {
+    color: var(--vnv-text-muted-soft);
+}
+
+.vnv-btn-fixed {
+    min-width: 240px;
+    text-align: center;
+    white-space: normal;
+    line-height: 1.35;
+    padding: 20px 28px;
+}
+
+@media (max-width: 1199px) {
+    .package-grid,
+    .addon-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+    .final-cta-card {
+        padding: 60px 45px;
+    }
+}
+
+@media (max-width: 991px) {
+    .intro-wrap,
+    .music-wrap {
+        grid-template-columns: 1fr;
+    }
+
+    .package-grid,
+    .addon-grid,
+    .video-placeholder-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .music-list {
+        grid-template-columns: 1fr;
+    }
+
+    .intro-panel,
+    .music-panel,
+    .vnv-studio-card {
+        padding: 32px 28px;
+    }
+
+    .final-cta-card {
+        padding: 50px 30px;
+        text-align: center;
+    }
+
+    .vnv-btn-fixed {
+        min-width: 100%;
+    }
+
+    .services-bg-video {
+        height: 100%;
+        transform: none;
+        filter: blur(1px) saturate(0.8);
+    }
+}
+
+@media (max-width: 767px) {
+    .section-vnv {
+        padding: 90px 0;
+    }
+
+    .hero-live h1 {
+        font-size: 2.7rem;
+    }
+
+    .vnv-btn {
+        width: 100%;
+        padding: 18px 24px;
+        letter-spacing: 2px;
+    }
+
+    .hero-cta-row {
+        flex-direction: column;
+    }
+
+    .instagram-gallery-grid img {
+        height: 150px;
+    }
+}
+</style>
+{% endblock %}
+
+{% block body %}
+
+{% include "templates/layout/publicHeaderVnv.html.twig" %}
+
+<section class="hero-live">
+    <div class="container hero-live-inner">
+        <span class="vnv-badge">VNV Sound</span>
+
+        <h1>DJ Services & <span class="text-gold">Live Music</span> in South Florida</h1>
+
+        <p class="hero-copy">
+            VNV Live is designed for clients who want more than someone pressing play. The goal is to create the right musical atmosphere for the type of gathering, the size of the room and the people in it. :contentReference[oaicite:3]{index=3}
+        </p>
+
+        <p class="hero-copy">
+            Whether the event is intimate, elegant, community-driven or high energy, we shape the sound, pacing and crowd experience around the moment. :contentReference[oaicite:4]{index=4}
+        </p>
+
+        <div class="hero-cta-row">
+            <a href="tel:+13052045427" class="vnv-btn btn-gold-vnv">Call Now (305) 204-5427</a>
+            <a href="#dj-packages" class="vnv-btn btn-outline-vnv">View Packages</a>
+        </div>
+    </div>
+</section>
+
+<section class="section-vnv section-white">
+    <div class="container">
+        <div class="intro-wrap">
+            <div class="intro-image-card">
+                <img src="{{ asset_for('assets/images/dj2.jpg') }}" alt="DJ setup by VNV Events">
+            </div>
+
+            <div class="intro-panel">
+                <span class="vnv-badge">The Right Atmosphere</span>
+                <h3>Music changes how the entire event feels.</h3>
+                <p>
+                    The current page positions VNV Live as a service that creates the perfect musical atmosphere for all types of gatherings, from beach parties to private galas. :contentReference[oaicite:5]{index=5}
+                </p>
+                <p>
+                    That means the role of the DJ is not just technical. It is about reading the room, supporting key moments, keeping the pace right and making the event feel more connected from start to finish.
+                </p>
+
+                <ul>
+                    <li>Professional DJ service for different event styles</li>
+                    <li>Sound systems scaled to guest count</li>
+                    <li>Microphones for speeches and presentations</li>
+                    <li>Lighting and atmosphere support when needed</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="section-vnv section-dark" id="dj-packages">
+    <div class="services-bg-video-wrap">
+        <video class="services-bg-video" autoplay muted loop playsinline preload="auto">
+            <source src="{{ asset_for('assets/video/intro.mp4') }}" type="video/mp4">
+        </video>
+        <div class="services-bg-overlay"></div>
+    </div>
+
+    <div class="container position-relative" style="z-index:2;">
+        <div class="text-center mb-5 pb-5 section-heading">
+            <span class="vnv-badge">Prices & Packages</span>
+            <h2 class="text-white">DJ Packages for <span class="text-vnv">South Florida Events</span></h2>
+            <p>
+                These are the current published DJ packages on your live music page. :contentReference[oaicite:6]{index=6}
+            </p>
+        </div>
+
+        <div class="package-grid">
+            <div class="package-card">
+                <h3>Social and Corporate Gathering</h3>
+                <div class="package-price">$750</div>
+                <div class="package-meta">3 Hours of Service · Additional Hour $250</div>
+                <ul>
+                    <li>High-quality sound system for up to 75 people</li>
+                    <li>Optional sound-activated LED lighting</li>
+                    <li>2 wireless microphones for speeches and presentations</li>
+                    <li>Professional DJ for social and corporate events</li>
+                </ul>
+            </div>
+
+            <div class="package-card">
+                <h3>Deluxe Ceremony Experience</h3>
+                <div class="package-price">$1,250</div>
+                <div class="package-meta">4 Hours of Service · Additional Hour $250</div>
+                <ul>
+                    <li>High-quality sound system for up to 150 guests</li>
+                    <li>Additional ceremony sound system available upon request</li>
+                    <li>Ideal for weddings, quinceañeras, Bar/Bat Mitzvahs and ceremonies</li>
+                    <li>Experienced MC and tailored musical ambiance</li>
+                </ul>
+            </div>
+
+            <div class="package-card">
+                <h3>Community and Neighborhood Party</h3>
+                <div class="package-price">$1,500</div>
+                <div class="package-meta">4 Hours of Service · Additional Hour $250</div>
+                <ul>
+                    <li>Sound system for up to 300 attendees</li>
+                    <li>Full lighting package with four sound-activated lights and one laser</li>
+                    <li>Two wireless microphones and two wired microphones</li>
+                    <li>Professional DJ / MC for large and outdoor events</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="section-vnv section-white">
+    <div class="container">
+        <div class="music-wrap">
+            <div class="music-image-stack">
+                <img src="{{ asset_for('assets/images/dj3.jpg') }}" alt="Event music by VNV Live">
+                <img src="{{ asset_for('assets/images/dj4.jpg') }}" alt="DJ performance by VNV Live">
+            </div>
+
+            <div class="music-panel">
+                <span class="vnv-badge">Our Music Selection</span>
+                <h3>Different audiences need different energy.</h3>
+
+                <p>
+                    Your current page highlights a broad music range so clients can understand the versatility of the DJs before hiring. It specifically mentions Latin rhythms, Indian melodies, Jewish harmonies, African American beats, rock and pop classics, Top 40 / Miami sound, Afrobeat and Caribbean music. :contentReference[oaicite:7]{index=7}
+                </p>
+
+                <ul class="music-list">
+                    <li>Latin Rhythms</li>
+                    <li>Indian Melodies</li>
+                    <li>Jewish Harmonies</li>
+                    <li>African American Beats</li>
+                    <li>Rock and Pop Classics</li>
+                    <li>Dance Floor Hits</li>
+                    <li>Afrobeat</li>
+                    <li>Caribbean Vibes</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="section-vnv section-dark">
+    <div class="container">
+        <div class="section-heading">
+            <span class="vnv-badge">Music Samples</span>
+            <h2 class="text-white">Listen Before You <span class="text-vnv">Book</span></h2>
+            <p>
+                Your page says you always recommend listening to your DJ before hiring and that a small list of work is shown below. I could not extract the individual YouTube embeds from the page source, so I left this block ready for your video links. :contentReference[oaicite:8]{index=8}
+            </p>
+        </div>
+
+        <div class="video-placeholder-grid">
+            <div class="video-placeholder">
+                <iframe width="560" height="315" src="https://www.youtube.com/embed/WNU_klTaL7s?si=M0oclR8uc_oRTxkb" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+            </div>
+            <div class="video-placeholder">
+                <iframe width="560" height="315" src="https://www.youtube.com/embed/dv7swjnMlRI?si=ZcxQAZGKadPfyMHF" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+            </div>
+            <div class="video-placeholder">
+                <iframe width="560" height="315" src="https://www.youtube.com/embed/S8NKwgJwmUA?si=DDHHSZqnmIlvu1OT" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+            </div>
+            <div class="video-placeholder">
+                <iframe width="560" height="315" src="https://www.youtube.com/embed/JS-ozhodZxQ?si=7J4D5n2iqzihw5zZ" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+            </div>
+
+            <div class="video-placeholder">
+                <iframe width="560" height="315" src="https://www.youtube.com/embed/AujDPMbjj08?si=JU7MU57XjNgURTd1" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+            </div>
+            <div class="video-placeholder">
+                <iframe width="560" height="315" src="https://www.youtube.com/embed/qR6W63JCdHA?si=CfdsF12ATLcnEGQZ" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="section-vnv section-white">
+    <div class="container">
+        <div class="section-heading">
+            <span class="vnv-badge">Event Add-ons</span>
+            <h2>Enhance the <span class="text-vnv">Experience</span></h2>
+            <p>
+                Your current page offers production add-ons including cold sparks, CO2 cannons, confetti cannons, dancing on the clouds, monogram projection, LED screens, stage lighting, custom dance floors and live band sound systems. :contentReference[oaicite:9]{index=9}
+            </p>
+        </div>
+
+        <div class="addon-grid">
+            <div class="addon-card">
+                <h3>Cold Sparks</h3>
+                <p>Dazzling spark effect for entrances, first dances or big event moments.</p>
+                <span class="addon-price">Starting at $250</span>
+            </div>
+
+            <div class="addon-card">
+                <h3>CO2 Cannons</h3>
+                <p>Quick high-impact bursts for dancing, entrances and energetic moments.</p>
+                <span class="addon-price">Starting at $150</span>
+            </div>
+
+            <div class="addon-card">
+                <h3>Confetti Cannons</h3>
+                <p>A strong visual effect that fills the space in seconds.</p>
+                <span class="addon-price">Starting at $300</span>
+            </div>
+
+            <div class="addon-card">
+                <h3>Dancing On The Clouds</h3>
+                <p>Low-lying fog effect for a dramatic and elegant atmosphere.</p>
+                <span class="addon-price">Starting at $450</span>
+            </div>
+
+            <div class="addon-card">
+                <h3>Monogram Projection</h3>
+                <p>Custom projection on floors, walls or backdrops for personalization.</p>
+                <span class="addon-price">Starting at $125</span>
+            </div>
+
+            <div class="addon-card">
+                <h3>LED Screens & Lighting</h3>
+                <p>Visual support for stages, presentations and large-scale event ambiance.</p>
+                <span class="addon-price">Ask for pricing</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="section-vnv section-dark instagram-block">
+    <div class="container position-relative" style="z-index:2;">
+        <div class="row align-items-center g-5">
+            <div class="col-lg-6">
+                <span class="text-vnv fw-bold d-block mb-3 letter-spacing-lg">PORTFOLIO & SOCIAL</span>
+
+                <h2 class="display-3 fw-black text-white mb-3">
+                    See our work on <span class="text-vnv">@vnv_events</span>
+                </h2>
+
+                <p class="fs-5 mb-4" style="color:rgba(255,255,255,0.65);">
+                    Explore live moments, dance floor energy, sound setups and event highlights from VNV Events.
+                </p>
+
+                <a href="https://www.instagram.com/vnv_events/" target="_blank" class="vnv-btn btn-outline-vnv">
+                    View Instagram
+                </a>
+
+                <div class="instagram-gallery-grid mt-4">
+                    <img src="{{ asset_for('assets/images/dj1.jpg') }}" alt="DJ gallery 1">
+                    <img src="{{ asset_for('assets/images/dj2.jpg') }}" alt="DJ gallery 2">
+                    <img src="{{ asset_for('assets/images/dj3.jpg') }}" alt="DJ gallery 3">
+                    <img src="{{ asset_for('assets/images/dj4.jpg') }}" alt="DJ gallery 4">
+                </div>
+            </div>
+
+            <div class="col-lg-6">
+                <div class="vnv-studio-card">
+                    <span class="vnv-badge">Visit Our Studio</span>
+
+                    <h3 class="text-white mb-3">Plan the sound and atmosphere in person.</h3>
+
+                    <p>
+                        Visit our VNV Studio in Sunrise, FL to discuss your event style, the type of crowd, the atmosphere you want to create and the add-ons that best fit the experience.
+                    </p>
+
+                    <div class="vnv-studio-info">
+                        <i class="fa-solid fa-location-dot"></i>
+                        <span>10258 NW 47th St, Sunrise, FL 33351</span>
+                    </div>
+
+                    <div class="vnv-studio-actions">
+                        <a href="https://maps.google.com/?q=10258+NW+47th+St+Sunrise+FL+33351" target="_blank" class="vnv-btn btn-ghost-white">
+                            Get Directions
+                        </a>
+
+                        <a href="#" data-vnv-open-request class="vnv-btn btn-gold-vnv">
+                            Book a Meeting
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="section-vnv section-white">
+    <div class="container">
+        <div class="final-cta-card">
+            <div class="row align-items-center">
+                <div class="col-lg-7">
+                    <span class="vnv-badge">Live Sound</span>
+                    <h2 class="display-3 fw-bold text-white mb-4">Create the right energy for the people in the room.</h2>
+                    <p class="fs-5 mb-5">
+                        Whether your event needs elegance, celebration or full dance floor momentum, VNV Live can help shape the atmosphere with the right DJ setup, music direction and event enhancements.
+                    </p>
+                </div>
+
+                <div class="col-lg-5 text-center text-lg-end">
+                    <div class="d-flex flex-column flex-lg-row gap-3 justify-content-end">
+                        <a href="tel:+13052045427" class="vnv-btn btn-gold-vnv vnv-btn-fixed">Call Now</a>
+                        <a href="#" class="vnv-btn btn-ghost-white vnv-btn-fixed">Request Proposal</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+{% include "templates/components/publicEventRequestModal.html.twig" with {
+    request_form_action: "/api/public/event-request"
+} %}
+
+{% include "templates/layout/publicFooterVnv.html.twig" %}
+
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+
+<script>
+if (typeof gsap !== 'undefined' && typeof ScrollTrigger !== 'undefined') {
+    gsap.registerPlugin(ScrollTrigger);
+
+    gsap.from(".intro-image-card, .intro-panel, .package-card, .music-image-stack, .music-panel, .addon-card, .vnv-studio-card, .final-cta-card", {
+        scrollTrigger: {
+            trigger: ".intro-image-card",
+            start: "top 82%"
+        },
+        y: 35,
+        opacity: 0,
+        duration: 1,
+        ease: "power3.out"
+    });
+
+    if (window.innerWidth > 991) {
+        gsap.to('.services-bg-video', {
+            yPercent: 12,
+            ease: 'none',
+            scrollTrigger: {
+                trigger: '#dj-packages',
+                start: 'top bottom',
+                end: 'bottom top',
+                scrub: true
+            }
+        });
+    }
+}
+</script>
+{% endblock %}

@@ -1,0 +1,677 @@
+{% extends "templates/base.twig" %}
+
+{% set show_whatsapp = true %}
+
+{% block styles %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@200;300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,700;0,900;1,700;1,900&display=swap" rel="stylesheet">
+
+<style>
+:root{
+    --vnv-primary:#5EC6C4;
+    --vnv-primary-dark:#4aa8a6;
+    --vnv-gold:#c5a059;
+    --vnv-gold-gradient:linear-gradient(135deg,#bf953f 0%,#fcf6ba 45%,#b38728 100%);
+    --vnv-dark-deep:#0a0c0c;
+    --vnv-dark-soft:#141818;
+    --vnv-dark-card:#151b1c;
+    --vnv-light:#ffffff;
+    --vnv-marble:#f4f7f8;
+    --vnv-text-dark:#11181a;
+    --vnv-text-light:#f3f5f6;
+    --vnv-text-muted:rgba(255,255,255,.72);
+    --vnv-border:rgba(255,255,255,.08);
+    --vnv-shadow:0 25px 70px rgba(0,0,0,.14);
+}
+
+body{
+    background:var(--vnv-dark-deep);
+    color:var(--vnv-text-light);
+    font-family:'Plus Jakarta Sans',sans-serif;
+    line-height:1.8;
+    -webkit-font-smoothing:antialiased;
+    overflow-x:hidden;
+}
+
+h1,h2,h3,h4,h5,.luxury-font{
+    font-family:'Playfair Display',serif;
+}
+
+.text-vnv{ color:var(--vnv-primary)!important; }
+
+.text-gold{
+    background:var(--vnv-gold-gradient);
+    -webkit-background-clip:text;
+    -webkit-text-fill-color:transparent;
+}
+
+.section-vnv{
+    padding:110px 0;
+    position:relative;
+}
+
+.vnv-badge{
+    display:inline-flex;
+    align-items:center;
+    gap:10px;
+    padding:10px 18px;
+    border-radius:999px;
+    background:rgba(94,198,196,.1);
+    color:var(--vnv-primary);
+    font-size:.74rem;
+    letter-spacing:2px;
+    font-weight:800;
+    text-transform:uppercase;
+}
+
+.vnv-btn{
+    padding:18px 30px;
+    font-weight:800;
+    text-transform:uppercase;
+    letter-spacing:2px;
+    transition:all .35s ease;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    gap:10px;
+    text-decoration:none;
+    border:none;
+    cursor:pointer;
+    font-size:.78rem;
+    border-radius:999px;
+}
+
+.btn-gold-vnv{
+    background:var(--vnv-gold-gradient);
+    color:#000!important;
+}
+.btn-gold-vnv:hover{
+    transform:translateY(-3px);
+    box-shadow:0 20px 40px rgba(197,160,89,.22);
+}
+
+.btn-outline-vnv{
+    border:2px solid var(--vnv-primary);
+    color:var(--vnv-primary)!important;
+    background:transparent;
+}
+.btn-outline-vnv:hover{
+    background:var(--vnv-primary);
+    color:#fff!important;
+}
+
+.hero-service-areas{
+    position:relative;
+    min-height:72vh;
+    display:flex;
+    align-items:center;
+    overflow:hidden;
+    background:
+        linear-gradient(90deg, rgba(10,12,12,.90) 0%, rgba(10,12,12,.70) 44%, rgba(10,12,12,.42) 100%),
+        url('{{ asset_for('assets/images/service-areas-hero.jpg') }}') center/cover no-repeat;
+}
+
+.hero-service-areas::after{
+    content:"";
+    position:absolute;
+    inset:0;
+    background:
+        radial-gradient(circle at top right, rgba(94,198,196,.14), transparent 28%),
+        radial-gradient(circle at bottom left, rgba(197,160,89,.10), transparent 24%);
+    pointer-events:none;
+}
+
+.hero-service-areas-inner{
+    position:relative;
+    z-index:2;
+    width:100%;
+}
+
+.hero-service-areas h1{
+    font-size:clamp(3rem,6vw,5.3rem);
+    line-height:1.02;
+    margin:20px 0 24px;
+    max-width:980px;
+}
+
+.hero-service-areas p{
+    font-size:1.08rem;
+    color:var(--vnv-text-muted);
+    max-width:820px;
+    margin-bottom:18px;
+}
+
+.hero-service-areas-actions{
+    display:flex;
+    flex-wrap:wrap;
+    gap:16px;
+    margin-top:24px;
+}
+
+.section-white{
+    background:var(--vnv-marble);
+    color:var(--vnv-text-dark);
+}
+
+.service-areas-intro{
+    text-align:center;
+    max-width:980px;
+    margin:0 auto 50px;
+}
+
+.service-areas-intro h2{
+    font-size:clamp(2.2rem,4vw,3.5rem);
+    line-height:1.06;
+    margin:18px 0 18px;
+    color:#101819;
+}
+
+.service-areas-intro p{
+    color:#5b676b;
+    font-size:1.02rem;
+    margin:0 auto;
+    max-width:780px;
+}
+
+.service-areas-grid{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:24px;
+}
+
+.county-card{
+    background:linear-gradient(145deg, #141a1b 0%, #0c1011 100%);
+    border:1px solid rgba(255,255,255,.06);
+    border-radius:28px;
+    padding:26px;
+    box-shadow:0 24px 60px rgba(0,0,0,.16);
+    color:#fff;
+}
+
+.county-card-header{
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+    gap:14px;
+    margin-bottom:18px;
+}
+
+.county-card-icon{
+    width:54px;
+    height:54px;
+    border-radius:18px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:rgba(94,198,196,.12);
+    color:var(--vnv-primary);
+    font-size:1.2rem;
+    flex-shrink:0;
+}
+
+.county-card h3{
+    font-size:1.8rem;
+    margin:0 0 6px;
+    color:#fff;
+    line-height:1.08;
+}
+
+.county-card-sub{
+    color:rgba(255,255,255,.60);
+    font-size:.86rem;
+    font-weight:700;
+    text-transform:uppercase;
+    letter-spacing:1.5px;
+}
+
+.county-card p{
+    color:rgba(255,255,255,.72);
+    margin:0 0 18px;
+    font-size:.95rem;
+    line-height:1.7;
+}
+
+.location-cloud{
+    display:flex;
+    flex-wrap:wrap;
+    gap:10px;
+}
+
+.location-pill{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    padding:10px 14px;
+    border-radius:999px;
+    background:rgba(255,255,255,.05);
+    border:1px solid rgba(255,255,255,.07);
+    color:#fff !important;
+    text-decoration:none !important;
+    font-size:.88rem;
+    line-height:1.2;
+    transition:all .25s ease;
+}
+
+.location-pill:hover{
+    transform:translateY(-2px);
+    border-color:rgba(94,198,196,.34);
+    background:rgba(94,198,196,.12);
+    color:#5EC6C4 !important;
+}
+
+.service-areas-cta{
+    margin-top:42px;
+    display:flex;
+    justify-content:center;
+    gap:16px;
+    flex-wrap:wrap;
+}
+
+.quick-jump-wrap{
+    margin-top:34px;
+    padding:18px 20px;
+    background:#fff;
+    border:1px solid rgba(17,24,26,.08);
+    border-radius:22px;
+    box-shadow:0 16px 40px rgba(0,0,0,.05);
+}
+
+.quick-jump-title{
+    margin:0 0 10px;
+    color:#122022;
+    font-weight:800;
+    font-size:.9rem;
+    text-transform:uppercase;
+    letter-spacing:1.6px;
+}
+
+.quick-jump-links{
+    display:flex;
+    flex-wrap:wrap;
+    gap:10px;
+}
+
+.quick-jump-links a{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    padding:10px 14px;
+    border-radius:999px;
+    background:rgba(94,198,196,.10);
+    color:#1d5151;
+    text-decoration:none;
+    font-weight:800;
+    font-size:.86rem;
+}
+
+.quick-jump-links a:hover{
+    background:#5EC6C4;
+    color:#0a0c0c;
+}
+
+@media (max-width: 1199px){
+    .service-areas-grid{
+        grid-template-columns:1fr;
+    }
+}
+
+@media (max-width: 767px){
+    .section-vnv{
+        padding:90px 0;
+    }
+
+    .hero-service-areas h1{
+        font-size:2.7rem;
+    }
+
+    .hero-service-areas-actions{
+        flex-direction:column;
+    }
+
+    .vnv-btn{
+        width:100%;
+    }
+
+    .county-card{
+        padding:20px;
+        border-radius:22px;
+    }
+
+    .county-card h3{
+        font-size:1.45rem;
+    }
+}
+</style>
+{% endblock %}
+
+{% block body %}
+
+{% include "templates/layout/publicHeaderVnv.html.twig" %}
+
+<section class="hero-service-areas">
+    <div class="container hero-service-areas-inner">
+        <span class="vnv-badge">South Florida Coverage</span>
+
+        <h1>Service Areas Across <span class="text-gold">South Florida</span></h1>
+
+        <p>
+            Explore the cities and communities where VNV Events provides planning, catering, décor, staffing, music, photo, video and event production support across Miami-Dade, Broward and Palm Beach County.
+        </p>
+
+        <div class="hero-service-areas-actions">
+            <a href="#service-areas-list" class="vnv-btn btn-gold-vnv">Browse Locations</a>
+            <a href="#" data-vnv-open-request class="vnv-btn btn-outline-vnv">Request Event Guidance</a>
+        </div>
+    </div>
+</section>
+
+<section class="section-vnv section-white" id="service-areas-list">
+    <div class="container">
+        <div class="service-areas-intro">
+            <span class="vnv-badge">Service Areas</span>
+            <h2>We serve events throughout <span class="text-vnv">Miami-Dade, Broward and Palm Beach County</span></h2>
+            <p>
+                From private celebrations and corporate functions to weddings, branding activations and full-service event support, our team is available across a wide range of South Florida cities and neighborhoods.
+            </p>
+
+            <div class="quick-jump-wrap">
+                <div class="quick-jump-title">Jump by county</div>
+                <div class="quick-jump-links">
+                    <a href="#miami-dade-county">Miami-Dade County</a>
+                    <a href="#broward-county">Broward County</a>
+                    <a href="#palm-beach-county">Palm Beach County</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="service-areas-grid">
+
+            <div class="county-card" id="miami-dade-county">
+                <div class="county-card-header">
+                    <div>
+                        <div class="county-card-sub">South Florida Coverage</div>
+                        <h3>Miami-Dade County</h3>
+                    </div>
+                    <div class="county-card-icon"><i class="fa-solid fa-city"></i></div>
+                </div>
+
+                <p>
+                    Coverage throughout major cities, waterfront communities and residential neighborhoods across Miami-Dade County.
+                </p>
+
+                <div class="location-cloud">
+                    <a href="{{ path('alameda') }}" class="location-pill">Alameda</a>
+                    <a href="{{ path('allapattah') }}" class="location-pill">Allapattah</a>
+                    <a href="{{ path('andover') }}" class="location-pill">Andover</a>
+                    <a href="{{ path('atlantic-heights') }}" class="location-pill">Atlantic Heights</a>
+                    <a href="{{ path('aventura') }}" class="location-pill">Aventura</a>
+                    <a href="{{ path('bal-harbour') }}" class="location-pill">Bal Harbour</a>
+                    <a href="{{ path('bay-harbor-islands') }}" class="location-pill">Bay Harbor Islands</a>
+                    <a href="{{ path('biscayne-park') }}" class="location-pill">Biscayne Park</a>
+                    <a href="{{ path('brownsville') }}" class="location-pill">Brownsville</a>
+                    <a href="{{ path('buena-vista') }}" class="location-pill">Buena Vista</a>
+                    <a href="{{ path('bunche-park') }}" class="location-pill">Bunche Park</a>
+                    <a href="{{ path('carol-city') }}" class="location-pill">Carol City</a>
+                    <a href="{{ path('coconut-grove') }}" class="location-pill">Coconut Grove</a>
+                    <a href="{{ path('coral-gables') }}" class="location-pill">Coral Gables</a>
+                    <a href="{{ path('coral-terrace') }}" class="location-pill">Coral Terrace</a>
+                    <a href="{{ path('country-club') }}" class="location-pill">Country Club</a>
+                    <a href="{{ path('country-walk') }}" class="location-pill">Country Walk</a>
+                    <a href="{{ path('cutler-bay') }}" class="location-pill">Cutler Bay</a>
+                    <a href="{{ path('cutler-ridge') }}" class="location-pill">Cutler Ridge</a>
+                    <a href="{{ path('cutler') }}" class="location-pill">Cutler</a>
+                    <a href="{{ path('doral') }}" class="location-pill">Doral</a>
+                    <a href="{{ path('east-perrine') }}" class="location-pill">East Perrine</a>
+                    <a href="{{ path('eastern-shores') }}" class="location-pill">Eastern Shores</a>
+                    <a href="{{ path('edison-center') }}" class="location-pill">Edison Center</a>
+                    <a href="{{ path('el-portal') }}" class="location-pill">El Portal</a>
+                    <a href="{{ path('fisher-island') }}" class="location-pill">Fisher Island</a>
+                    <a href="{{ path('florida-city') }}" class="location-pill">Florida City</a>
+                    <a href="{{ path('fountainebleau') }}" class="location-pill">Fountainebleau</a>
+                    <a href="{{ path('gables-by-the-sea') }}" class="location-pill">Gables by the Sea</a>
+                    <a href="{{ path('gables-estates') }}" class="location-pill">Gables Estates</a>
+                    <a href="{{ path('gladeview') }}" class="location-pill">Gladeview</a>
+                    <a href="{{ path('glenvar-heights') }}" class="location-pill">Glenvar Heights</a>
+                    <a href="{{ path('golden-beach') }}" class="location-pill">Golden Beach</a>
+                    <a href="{{ path('golden-glades') }}" class="location-pill">Golden Glades</a>
+                    <a href="{{ path('goulds') }}" class="location-pill">Goulds</a>
+                    <a href="{{ path('hialeah') }}" class="location-pill">Hialeah</a>
+                    <a href="{{ path('hialeah-gardens') }}" class="location-pill">Hialeah Gardens</a>
+                    <a href="{{ path('homestead') }}" class="location-pill">Homestead</a>
+                    <a href="{{ path('indian-creek-village') }}" class="location-pill">Indian Creek Village</a>
+                    <a href="{{ path('islandia') }}" class="location-pill">Islandia</a>
+                    <a href="{{ path('ives-estates') }}" class="location-pill">Ives Estates</a>
+                    <a href="{{ path('kendale-lakes') }}" class="location-pill">Kendale Lakes</a>
+                    <a href="{{ path('kendall') }}" class="location-pill">Kendall</a>
+                    <a href="{{ path('key-biscayne') }}" class="location-pill">Key Biscayne</a>
+                    <a href="{{ path('keystone-islands') }}" class="location-pill">Keystone Islands</a>
+                    <a href="{{ path('lake-lucerne') }}" class="location-pill">Lake Lucerne</a>
+                    <a href="{{ path('lakes-by-the-bay') }}" class="location-pill">Lakes by the Bay</a>
+                    <a href="{{ path('leisure-city') }}" class="location-pill">Leisure City</a>
+                    <a href="{{ path('lemon-city') }}" class="location-pill">Lemon City</a>
+                    <a href="{{ path('liberty-square') }}" class="location-pill">Liberty Square</a>
+                    <a href="{{ path('lindgren-acres') }}" class="location-pill">Lindgren Acres</a>
+                    <a href="{{ path('little-river') }}" class="location-pill">Little River</a>
+                    <a href="{{ path('ludlam') }}" class="location-pill">Ludlam</a>
+                    <a href="{{ path('medley') }}" class="location-pill">Medley</a>
+                    <a href="{{ path('miami') }}" class="location-pill">Miami</a>
+                    <a href="{{ path('miami-beach') }}" class="location-pill">Miami Beach</a>
+                    <a href="{{ path('miami-gardens') }}" class="location-pill">Miami Gardens</a>
+                    <a href="{{ path('miami-lakes') }}" class="location-pill">Miami Lakes</a>
+                    <a href="{{ path('miami-shores') }}" class="location-pill">Miami Shores</a>
+                    <a href="{{ path('miami-springs') }}" class="location-pill">Miami Springs</a>
+                    <a href="{{ path('naranja') }}" class="location-pill">Naranja</a>
+                    <a href="{{ path('norland') }}" class="location-pill">Norland</a>
+                    <a href="{{ path('north-bay-village') }}" class="location-pill">North Bay Village</a>
+                    <a href="{{ path('north-miami') }}" class="location-pill">North Miami</a>
+                    <a href="{{ path('north-miami-beach') }}" class="location-pill">North Miami Beach</a>
+                    <a href="{{ path('ojus') }}" class="location-pill">Ojus</a>
+                    <a href="{{ path('olympia-heights') }}" class="location-pill">Olympia Heights</a>
+                    <a href="{{ path('opa-locka') }}" class="location-pill">Opa-locka</a>
+                    <a href="{{ path('palm-springs-estates') }}" class="location-pill">Palm Springs Estates</a>
+                    <a href="{{ path('palmetto-bay') }}" class="location-pill">Palmetto Bay</a>
+                    <a href="{{ path('palmetto-estates') }}" class="location-pill">Palmetto Estates</a>
+                    <a href="{{ path('perrine') }}" class="location-pill">Perrine</a>
+                    <a href="{{ path('pinecrest') }}" class="location-pill">Pinecrest</a>
+                    <a href="{{ path('pinewood') }}" class="location-pill">Pinewood</a>
+                    <a href="{{ path('princeton') }}" class="location-pill">Princeton</a>
+                    <a href="{{ path('richmond-heights') }}" class="location-pill">Richmond Heights</a>
+                    <a href="{{ path('san-souci-estates') }}" class="location-pill">San Souci Estates</a>
+                    <a href="{{ path('scott-lake') }}" class="location-pill">Scott Lake</a>
+                    <a href="{{ path('shenandoah') }}" class="location-pill">Shenandoah</a>
+                    <a href="{{ path('south-miami') }}" class="location-pill">South Miami</a>
+                    <a href="{{ path('sunny-isles-beach') }}" class="location-pill">Sunny Isles Beach</a>
+                    <a href="{{ path('sunset') }}" class="location-pill">Sunset</a>
+                    <a href="{{ path('surfside') }}" class="location-pill">Surfside</a>
+                    <a href="{{ path('sweetwater') }}" class="location-pill">Sweetwater</a>
+                    <a href="{{ path('tamiami') }}" class="location-pill">Tamiami</a>
+                    <a href="{{ path('the-crossings') }}" class="location-pill">The Crossings</a>
+                    <a href="{{ path('the-hammocks') }}" class="location-pill">The Hammocks</a>
+                    <a href="{{ path('three-lakes') }}" class="location-pill">Three Lakes</a>
+                    <a href="{{ path('university-park') }}" class="location-pill">University Park</a>
+                    <a href="{{ path('virginia-gardens') }}" class="location-pill">Virginia Gardens</a>
+                    <a href="{{ path('west-little-river') }}" class="location-pill">West Little River</a>
+                    <a href="{{ path('west-miami') }}" class="location-pill">West Miami</a>
+                    <a href="{{ path('west-perrine') }}" class="location-pill">West Perrine</a>
+                    <a href="{{ path('westchester') }}" class="location-pill">Westchester</a>
+                    <a href="{{ path('westview') }}" class="location-pill">Westview</a>
+                    <a href="{{ path('westwood-lake') }}" class="location-pill">Westwood Lake</a>
+                </div>
+            </div>
+
+            <div class="county-card" id="broward-county">
+                <div class="county-card-header">
+                    <div>
+                        <div class="county-card-sub">South Florida Coverage</div>
+                        <h3>Broward County</h3>
+                    </div>
+                    <div class="county-card-icon"><i class="fa-solid fa-map-location-dot"></i></div>
+                </div>
+
+                <p>
+                    Coverage across Broward’s residential neighborhoods, beachside cities, family communities and event-friendly destinations.
+                </p>
+
+                <div class="location-cloud">
+                    <a href="{{ path('arlington-park') }}" class="location-pill">Arlington Park</a>
+                    <a href="{{ path('bonnie-loch') }}" class="location-pill">Bonnie Loch</a>
+                    <a href="{{ path('boulevard-gardens') }}" class="location-pill">Boulevard Gardens</a>
+                    <a href="{{ path('broadview') }}" class="location-pill">Broadview</a>
+                    <a href="{{ path('broadview-park') }}" class="location-pill">Broadview Park</a>
+                    <a href="{{ path('broward-estates') }}" class="location-pill">Broward Estates</a>
+                    <a href="{{ path('browardale') }}" class="location-pill">Browardale</a>
+                    <a href="{{ path('carver-ranches') }}" class="location-pill">Carver Ranches</a>
+                    <a href="{{ path('coconut-creek') }}" class="location-pill">Coconut Creek</a>
+                    <a href="{{ path('cooper-city') }}" class="location-pill">Cooper City</a>
+                    <a href="{{ path('coral-estates') }}" class="location-pill">Coral Estates</a>
+                    <a href="{{ path('coral-springs') }}" class="location-pill">Coral Springs</a>
+                    <a href="{{ path('coral-woods') }}" class="location-pill">Coral Woods</a>
+                    <a href="{{ path('crystal-lake') }}" class="location-pill">Crystal Lake</a>
+                    <a href="{{ path('dania-beach') }}" class="location-pill">Dania Beach</a>
+                    <a href="{{ path('davie') }}" class="location-pill">Davie</a>
+                    <a href="{{ path('deerfield-beach') }}" class="location-pill">Deerfield Beach</a>
+                    <a href="{{ path('fair-gate') }}" class="location-pill">Fair Gate</a>
+                    <a href="{{ path('fort-lauderdale') }}" class="location-pill">Fort Lauderdale</a>
+                    <a href="{{ path('franklin-park') }}" class="location-pill">Franklin Park</a>
+                    <a href="{{ path('golden-isles') }}" class="location-pill">Golden Isles</a>
+                    <a href="{{ path('hacienda-village') }}" class="location-pill">Hacienda Village</a>
+                    <a href="{{ path('hallandale-beach') }}" class="location-pill">Hallandale Beach</a>
+                    <a href="{{ path('hillsboro-beach') }}" class="location-pill">Hillsboro Beach</a>
+                    <a href="{{ path('hillsboro-pines') }}" class="location-pill">Hillsboro Pines</a>
+                    <a href="{{ path('hillsboro-ranches') }}" class="location-pill">Hillsboro Ranches</a>
+                    <a href="{{ path('hollywood') }}" class="location-pill">Hollywood</a>
+                    <a href="{{ path('hollywood-beach-gardens') }}" class="location-pill">Hollywood Beach Gardens</a>
+                    <a href="{{ path('hollywood-ridge-farms') }}" class="location-pill">Hollywood Ridge Farms</a>
+                    <a href="{{ path('jenada-isles') }}" class="location-pill">Jenada Isles</a>
+                    <a href="{{ path('kendall-green') }}" class="location-pill">Kendall Green</a>
+                    <a href="{{ path('lake-forest') }}" class="location-pill">Lake Forest</a>
+                    <a href="{{ path('lauderdale-lakes') }}" class="location-pill">Lauderdale Lakes</a>
+                    <a href="{{ path('lauderdale-by-the-sea') }}" class="location-pill">Lauderdale-by-the-Sea</a>
+                    <a href="{{ path('lauderhill') }}" class="location-pill">Lauderhill</a>
+                    <a href="{{ path('lazy-lake') }}" class="location-pill">Lazy Lake</a>
+                    <a href="{{ path('leisureville') }}" class="location-pill">Leisureville</a>
+                    <a href="{{ path('lighthouse-point') }}" class="location-pill">Lighthouse Point</a>
+                    <a href="{{ path('loch-lomond') }}" class="location-pill">Loch Lomond</a>
+                    <a href="{{ path('margate') }}" class="location-pill">Margate</a>
+                    <a href="{{ path('melrose-park') }}" class="location-pill">Melrose Park</a>
+                    <a href="{{ path('miami-gardens') }}" class="location-pill">Miami Gardens</a>
+                    <a href="{{ path('miramar') }}" class="location-pill">Miramar</a>
+                    <a href="{{ path('north-andrews-gardens') }}" class="location-pill">North Andrews Gardens</a>
+                    <a href="{{ path('north-lauderdale') }}" class="location-pill">North Lauderdale</a>
+                    <a href="{{ path('oak-point') }}" class="location-pill">Oak Point</a>
+                    <a href="{{ path('oakland-park') }}" class="location-pill">Oakland Park</a>
+                    <a href="{{ path('palm-aire') }}" class="location-pill">Palm Aire</a>
+                    <a href="{{ path('parkland') }}" class="location-pill">Parkland</a>
+                    <a href="{{ path('pembroke-park') }}" class="location-pill">Pembroke Park</a>
+                    <a href="{{ path('pembroke-pines') }}" class="location-pill">Pembroke Pines</a>
+                    <a href="{{ path('pine-island-ridge') }}" class="location-pill">Pine Island Ridge</a>
+                    <a href="{{ path('plantation') }}" class="location-pill">Plantation</a>
+                    <a href="{{ path('playland-estates') }}" class="location-pill">Playland Estates</a>
+                    <a href="{{ path('playland-village') }}" class="location-pill">Playland Village</a>
+                    <a href="{{ path('pompano-beach') }}" class="location-pill">Pompano Beach</a>
+                    <a href="{{ path('pompano-estates') }}" class="location-pill">Pompano Estates</a>
+                    <a href="{{ path('pompano-park') }}" class="location-pill">Pompano Park</a>
+                    <a href="{{ path('port-everglades') }}" class="location-pill">Port Everglades</a>
+                    <a href="{{ path('ravenswood-estates') }}" class="location-pill">Ravenswood Estates</a>
+                    <a href="{{ path('riverland') }}" class="location-pill">Riverland</a>
+                    <a href="{{ path('rock-island') }}" class="location-pill">Rock Island</a>
+                    <a href="{{ path('ro-len-lake-gardens') }}" class="location-pill">Ro-Len Lake Gardens</a>
+                    <a href="{{ path('rolling-oaks') }}" class="location-pill">Rolling Oaks</a>
+                    <a href="{{ path('roosevelt-gardens') }}" class="location-pill">Roosevelt Gardens</a>
+                    <a href="{{ path('royal-palm') }}" class="location-pill">Royal Palm</a>
+                    <a href="{{ path('saint-george') }}" class="location-pill">Saint George</a>
+                    <a href="{{ path('sea-ranch-lakes') }}" class="location-pill">Sea Ranch Lakes</a>
+                    <a href="{{ path('silver-shores') }}" class="location-pill">Silver Shores</a>
+                    <a href="{{ path('southwest-ranches') }}" class="location-pill">Southwest Ranches</a>
+                    <a href="{{ path('sunrise') }}" class="location-pill">Sunrise</a>
+                    <a href="{{ path('sunrise-key') }}" class="location-pill">Sunrise Key</a>
+                    <a href="{{ path('sunshine-acres') }}" class="location-pill">Sunshine Acres</a>
+                    <a href="{{ path('sunshine-park') }}" class="location-pill">Sunshine Park</a>
+                    <a href="{{ path('sunshine-ranches') }}" class="location-pill">Sunshine Ranches</a>
+                    <a href="{{ path('tamarac') }}" class="location-pill">Tamarac</a>
+                    <a href="{{ path('tedder') }}" class="location-pill">Tedder</a>
+                    <a href="{{ path('terra-mar') }}" class="location-pill">Terra Mar</a>
+                    <a href="{{ path('twin-lakes') }}" class="location-pill">Twin Lakes</a>
+                    <a href="{{ path('utopia') }}" class="location-pill">Utopia</a>
+                    <a href="{{ path('village-park') }}" class="location-pill">Village Park</a>
+                    <a href="{{ path('washington-park') }}" class="location-pill">Washington Park</a>
+                    <a href="{{ path('west-hollywood') }}" class="location-pill">West Hollywood</a>
+                    <a href="{{ path('west-park') }}" class="location-pill">West Park</a>
+                    <a href="{{ path('weston') }}" class="location-pill">Weston</a>
+                    <a href="{{ path('wilton-manors') }}" class="location-pill">Wilton Manors</a>
+                    <a href="{{ path('woodsetter-north') }}" class="location-pill">Woodsetter North</a>
+                </div>
+            </div>
+
+            <div class="county-card" id="palm-beach-county">
+                <div class="county-card-header">
+                    <div>
+                        <div class="county-card-sub">South Florida Coverage</div>
+                        <h3>Palm Beach County</h3>
+                    </div>
+                    <div class="county-card-icon"><i class="fa-solid fa-umbrella-beach"></i></div>
+                </div>
+
+                <p>
+                    Coverage from coastal communities and country clubs to private estates, family neighborhoods and city event venues across Palm Beach County.
+                </p>
+
+                <div class="location-cloud">
+                    <a href="{{ path('atlantis') }}" class="location-pill">Atlantis</a>
+                    <a href="{{ path('belle-glade') }}" class="location-pill">Belle Glade</a>
+                    <a href="{{ path('boca-raton') }}" class="location-pill">Boca Raton</a>
+                    <a href="{{ path('boynton-beach') }}" class="location-pill">Boynton Beach</a>
+                    <a href="{{ path('briny-breezes') }}" class="location-pill">Briny Breezes</a>
+                    <a href="{{ path('cloud-lake') }}" class="location-pill">Cloud Lake</a>
+                    <a href="{{ path('delray-beach') }}" class="location-pill">Delray Beach</a>
+                    <a href="{{ path('glen-ridge') }}" class="location-pill">Glen Ridge</a>
+                    <a href="{{ path('golf') }}" class="location-pill">Golf</a>
+                    <a href="{{ path('greenacres') }}" class="location-pill">Greenacres</a>
+                    <a href="{{ path('gulf-stream') }}" class="location-pill">Gulf Stream</a>
+                    <a href="{{ path('haverhill') }}" class="location-pill">Haverhill</a>
+                    <a href="{{ path('highland-beach') }}" class="location-pill">Highland Beach</a>
+                    <a href="{{ path('hypoluxo') }}" class="location-pill">Hypoluxo</a>
+                    <a href="{{ path('juno-beach') }}" class="location-pill">Juno Beach</a>
+                    <a href="{{ path('jupiter') }}" class="location-pill">Jupiter</a>
+                    <a href="{{ path('jupiter-inlet-colony') }}" class="location-pill">Jupiter Inlet Colony</a>
+                    <a href="{{ path('lake-clarke-shores') }}" class="location-pill">Lake Clarke Shores</a>
+                    <a href="{{ path('lake-park') }}" class="location-pill">Lake Park</a>
+                    <a href="{{ path('lake-worth') }}" class="location-pill">Lake Worth</a>
+                    <a href="{{ path('lantana') }}" class="location-pill">Lantana</a>
+                    <a href="{{ path('loxahatchee-groves') }}" class="location-pill">Loxahatchee Groves</a>
+                    <a href="{{ path('manalapan') }}" class="location-pill">Manalapan</a>
+                    <a href="{{ path('mangonia-park') }}" class="location-pill">Mangonia Park</a>
+                    <a href="{{ path('north-palm-beach') }}" class="location-pill">North Palm Beach</a>
+                    <a href="{{ path('ocean-ridge') }}" class="location-pill">Ocean Ridge</a>
+                    <a href="{{ path('pahokee') }}" class="location-pill">Pahokee</a>
+                    <a href="{{ path('palm-beach') }}" class="location-pill">Palm Beach</a>
+                    <a href="{{ path('palm-beach-gardens') }}" class="location-pill">Palm Beach Gardens</a>
+                    <a href="{{ path('palm-beach-shores') }}" class="location-pill">Palm Beach Shores</a>
+                    <a href="{{ path('palm-springs') }}" class="location-pill">Palm Springs</a>
+                    <a href="{{ path('riviera-beach') }}" class="location-pill">Riviera Beach</a>
+                    <a href="{{ path('royal-palm-beach') }}" class="location-pill">Royal Palm Beach</a>
+                    <a href="{{ path('south-bay') }}" class="location-pill">South Bay</a>
+                    <a href="{{ path('south-palm-beach') }}" class="location-pill">South Palm Beach</a>
+                    <a href="{{ path('tequesta') }}" class="location-pill">Tequesta</a>
+                    <a href="{{ path('wellington') }}" class="location-pill">Wellington</a>
+                    <a href="{{ path('westlake') }}" class="location-pill">Westlake</a>
+                    <a href="{{ path('west-palm-beach') }}" class="location-pill">West Palm Beach</a>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="service-areas-cta">
+            <a href="#services" class="vnv-btn btn-outline-vnv">Explore Services</a>
+            <a href="#" data-vnv-open-request class="vnv-btn btn-gold-vnv">Request Event Guidance</a>
+        </div>
+    </div>
+</section>
+
+{% include "templates/components/publicEventRequestModal.html.twig" with {
+    request_form_action: "/api/public/event-request"
+} %}
+
+{% include "templates/layout/publicFooterVnv.html.twig" %}
+
+{% endblock %}

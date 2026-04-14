@@ -1,0 +1,1164 @@
+{% extends "templates/base.twig" %}
+
+{% set show_whatsapp = true %}
+
+{% block styles %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@200;300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,700;0,900;1,700;1,900&display=swap" rel="stylesheet">
+
+<style>
+:root{
+    --vnv-primary:#5EC6C4;
+    --vnv-primary-dark:#4aa8a6;
+    --vnv-gold:#c5a059;
+    --vnv-gold-gradient:linear-gradient(135deg,#bf953f 0%,#fcf6ba 45%,#b38728 100%);
+    --vnv-dark-deep:#0a0c0c;
+    --vnv-dark-soft:#141818;
+    --vnv-dark-card:#1b2021;
+    --vnv-light:#ffffff;
+    --vnv-marble:#f4f7f8;
+    --vnv-text-dark:#11181a;
+    --vnv-text-light:#f3f5f6;
+    --vnv-text-muted:rgba(255,255,255,.72);
+    --vnv-text-muted-soft:rgba(255,255,255,.58);
+    --vnv-border:rgba(255,255,255,.08);
+    --vnv-shadow:0 25px 70px rgba(0,0,0,.14);
+    --success:#26c281;
+    --warning:#f4b740;
+    --danger:#ff5f6d;
+}
+
+html { scroll-behavior:smooth; }
+
+body{
+    background:var(--vnv-dark-deep);
+    color:var(--vnv-text-light);
+    font-family:'Plus Jakarta Sans',sans-serif;
+    line-height:1.8;
+    -webkit-font-smoothing:antialiased;
+    overflow-x:hidden;
+}
+
+h1,h2,h3,h4,h5,.luxury-font{
+    font-family:'Playfair Display',serif;
+}
+
+.text-vnv{ color:var(--vnv-primary)!important; }
+
+.text-gold{
+    background:var(--vnv-gold-gradient);
+    -webkit-background-clip:text;
+    -webkit-text-fill-color:transparent;
+}
+
+.vnv-btn{
+    padding:18px 30px;
+    font-weight:800;
+    text-transform:uppercase;
+    letter-spacing:2px;
+    transition:all .35s ease;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    gap:10px;
+    text-decoration:none;
+    border:none;
+    cursor:pointer;
+    font-size:.78rem;
+    border-radius:999px;
+}
+
+.btn-gold-vnv{
+    background:var(--vnv-gold-gradient);
+    color:#000!important;
+}
+.btn-gold-vnv:hover{
+    transform:translateY(-3px);
+    box-shadow:0 20px 40px rgba(197,160,89,.22);
+}
+
+.btn-outline-vnv{
+    border:2px solid var(--vnv-primary);
+    color:var(--vnv-primary)!important;
+    background:transparent;
+}
+.btn-outline-vnv:hover{
+    background:var(--vnv-primary);
+    color:#fff!important;
+}
+
+.section-vnv{
+    padding:120px 0;
+    position:relative;
+}
+
+.vnv-badge{
+    display:inline-flex;
+    align-items:center;
+    gap:10px;
+    padding:10px 18px;
+    border-radius:999px;
+    background:rgba(94,198,196,.1);
+    color:var(--vnv-primary);
+    font-size:.74rem;
+    letter-spacing:2px;
+    font-weight:800;
+    text-transform:uppercase;
+}
+
+.hero-tool{
+    position:relative;
+    min-height:82vh;
+    display:flex;
+    align-items:center;
+    overflow:hidden;
+    background:
+        linear-gradient(90deg, rgba(10,12,12,.90) 0%, rgba(10,12,12,.66) 44%, rgba(10,12,12,.38) 100%),
+        url('{{ asset_for('assets/images/tool-sound-calculator-hero.jpg') }}') center/cover no-repeat;
+}
+
+.hero-tool::after{
+    content:"";
+    position:absolute;
+    inset:0;
+    background:
+        radial-gradient(circle at top right, rgba(94,198,196,.16), transparent 28%),
+        radial-gradient(circle at bottom left, rgba(197,160,89,.10), transparent 24%);
+    pointer-events:none;
+}
+
+.hero-tool-inner{
+    position:relative;
+    z-index:2;
+    width:100%;
+}
+
+.hero-tool h1{
+    font-size:clamp(3rem,6vw,5.4rem);
+    line-height:1.02;
+    margin:20px 0 28px;
+    max-width:980px;
+}
+
+.hero-tool p.hero-copy{
+    font-size:1.08rem;
+    color:var(--vnv-text-muted);
+    max-width:780px;
+    margin-bottom:22px;
+}
+
+.hero-cta-row{
+    display:flex;
+    flex-wrap:wrap;
+    gap:16px;
+    margin-top:24px;
+}
+
+.section-white{
+    background:var(--vnv-marble);
+    color:var(--vnv-text-dark);
+}
+
+.tool-shell{
+    background:linear-gradient(145deg, #151a1b 0%, #0c0f10 100%);
+    border-radius:34px;
+    border:1px solid rgba(255,255,255,.06);
+    box-shadow:0 26px 80px rgba(0,0,0,.22);
+    overflow:hidden;
+}
+
+.tool-topbar{
+    padding:18px 22px;
+    background:#0c0f10;
+    border-bottom:1px solid rgba(255,255,255,.06);
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:16px;
+    flex-wrap:wrap;
+}
+
+.tool-topbar-left{
+    display:flex;
+    align-items:center;
+    gap:14px;
+}
+
+.tool-topbar-icon{
+    width:46px;
+    height:46px;
+    border-radius:14px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:rgba(94,198,196,.12);
+    color:var(--vnv-primary);
+    font-size:1.15rem;
+}
+
+.tool-topbar-title{
+    color:#fff;
+    font-weight:800;
+    font-size:1rem;
+    line-height:1.2;
+}
+
+.tool-topbar-sub{
+    color:var(--vnv-text-muted-soft);
+    font-size:.8rem;
+    font-weight:700;
+}
+
+.tool-topbar-note{
+    color:rgba(255,255,255,.62);
+    font-size:.88rem;
+    font-weight:700;
+}
+
+.tool-body{
+    padding:28px;
+}
+
+.tool-grid{
+    display:grid;
+    grid-template-columns: 440px 1fr;
+    gap:24px;
+    align-items:start;
+}
+
+.tool-panel{
+    background:#f7f9fa;
+    border:1px solid rgba(17,24,26,.08);
+    border-radius:26px;
+    padding:22px;
+    box-shadow:0 18px 50px rgba(0,0,0,.06);
+    color:#122022;
+}
+
+.tool-panel h3{
+    font-family:'Plus Jakarta Sans',sans-serif;
+    margin:0 0 18px;
+    font-size:1.05rem;
+    font-weight:800;
+    color:#122022;
+    letter-spacing:.3px;
+}
+
+.tool-field{
+    margin-bottom:16px;
+}
+
+.tool-field label{
+    display:block;
+    font-size:.84rem;
+    font-weight:800;
+    color:#2c3a3d;
+    margin-bottom:8px;
+    text-transform:uppercase;
+    letter-spacing:1px;
+}
+
+.tool-field input,
+.tool-field select{
+    width:100%;
+    border:1px solid rgba(17,24,26,.12);
+    background:#fff;
+    border-radius:14px;
+    outline:none;
+    padding:14px 14px;
+    font-size:1rem;
+    color:#122022;
+    font-family:'Plus Jakarta Sans',sans-serif;
+}
+
+.tool-inline-2{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:14px;
+}
+
+.tool-inline-3{
+    display:grid;
+    grid-template-columns:1fr 1fr 1fr;
+    gap:14px;
+}
+
+.tool-actions{
+    display:flex;
+    gap:12px;
+    flex-wrap:wrap;
+    margin-top:10px;
+}
+
+.tool-btn{
+    border:none;
+    outline:none;
+    cursor:pointer;
+    border-radius:14px;
+    padding:14px 16px;
+    font-weight:800;
+    font-size:.88rem;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    gap:10px;
+    transition:all .25s ease;
+}
+
+.tool-btn.primary{
+    background:linear-gradient(135deg, #c0006b 0%, #e00087 100%);
+    color:#fff;
+}
+
+.tool-btn.secondary{
+    background:#11181a;
+    color:#fff;
+}
+
+.tool-btn:hover{
+    transform:translateY(-2px);
+}
+
+.tool-helper{
+    margin-top:16px;
+    background:#fff;
+    border:1px solid rgba(17,24,26,.08);
+    border-radius:18px;
+    padding:16px;
+    font-size:.92rem;
+    color:#4e5c5f;
+    line-height:1.65;
+}
+
+.tool-results{
+    display:grid;
+    gap:22px;
+}
+
+.result-card{
+    background:linear-gradient(145deg, rgba(28,34,35,0.96) 0%, rgba(15,18,19,0.98) 100%);
+    border:1px solid rgba(255,255,255,.06);
+    border-radius:26px;
+    padding:24px;
+    box-shadow:0 24px 60px rgba(0,0,0,.18);
+}
+
+.result-card h3{
+    font-size:1.45rem;
+    color:#fff;
+    margin:0 0 14px;
+}
+
+.result-card p{
+    color:var(--vnv-text-muted);
+    margin:0 0 14px;
+}
+
+.result-grid{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:14px;
+    margin-top:14px;
+}
+
+.result-stat{
+    background:rgba(255,255,255,.04);
+    border:1px solid rgba(255,255,255,.06);
+    border-radius:18px;
+    padding:16px 14px;
+}
+
+.result-stat-label{
+    color:rgba(255,255,255,.58);
+    font-size:.72rem;
+    font-weight:800;
+    text-transform:uppercase;
+    letter-spacing:1.4px;
+    margin-bottom:6px;
+}
+
+.result-stat-value{
+    color:#fff;
+    font-size:1.32rem;
+    font-weight:800;
+    line-height:1.2;
+}
+
+.breakdown-grid{
+    display:grid;
+    grid-template-columns:repeat(2,1fr);
+    gap:14px;
+    margin-top:14px;
+}
+
+.breakdown-card{
+    background:rgba(255,255,255,.04);
+    border:1px solid rgba(255,255,255,.06);
+    border-radius:18px;
+    padding:16px 14px;
+}
+
+.breakdown-card h4{
+    font-family:'Plus Jakarta Sans',sans-serif;
+    color:#fff;
+    margin:0 0 8px;
+    font-size:1rem;
+    font-weight:800;
+}
+
+.breakdown-card p{
+    margin:0;
+    color:var(--vnv-text-muted);
+    font-size:.92rem;
+    line-height:1.6;
+}
+
+.total-highlight{
+    margin-top:18px;
+    background:linear-gradient(135deg, rgba(197,160,89,.16) 0%, rgba(94,198,196,.12) 100%);
+    border:1px solid rgba(197,160,89,.22);
+    border-radius:22px;
+    padding:18px;
+}
+
+.total-highlight .label{
+    color:rgba(255,255,255,.64);
+    font-size:.76rem;
+    font-weight:800;
+    text-transform:uppercase;
+    letter-spacing:1.5px;
+    margin-bottom:6px;
+}
+
+.total-highlight .value{
+    color:#fff;
+    font-size:2.1rem;
+    font-weight:900;
+    line-height:1.1;
+}
+
+.alert-box{
+    margin-top:16px;
+    border-radius:18px;
+    padding:16px;
+    font-size:.95rem;
+    line-height:1.65;
+    border:1px solid transparent;
+}
+
+.alert-box.safe{
+    background:rgba(38,194,129,.12);
+    border-color:rgba(38,194,129,.22);
+    color:#d8fff0;
+}
+
+.alert-box.warn{
+    background:rgba(244,183,64,.12);
+    border-color:rgba(244,183,64,.22);
+    color:#fff4d8;
+}
+
+.alert-box.danger{
+    background:rgba(255,95,109,.12);
+    border-color:rgba(255,95,109,.22);
+    color:#ffe1e4;
+}
+
+.muted-note{
+    margin-top:16px;
+    color:rgba(255,255,255,.52);
+    font-size:.84rem;
+    line-height:1.6;
+}
+
+.empty-state{
+    min-height:420px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+    padding:30px;
+    background:linear-gradient(145deg, rgba(28,34,35,0.96) 0%, rgba(15,18,19,0.98) 100%);
+    border:1px solid rgba(255,255,255,.06);
+    border-radius:26px;
+    color:var(--vnv-text-muted);
+}
+
+.empty-state-inner{
+    max-width:420px;
+}
+
+.empty-state-icon{
+    width:72px;
+    height:72px;
+    margin:0 auto 18px;
+    border-radius:22px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:rgba(94,198,196,.10);
+    color:var(--vnv-primary);
+    font-size:1.5rem;
+}
+
+@media (max-width: 1199px){
+    .tool-grid{
+        grid-template-columns:1fr;
+    }
+}
+
+@media (max-width: 767px){
+    .section-vnv{
+        padding:90px 0;
+    }
+
+    .hero-tool h1{
+        font-size:2.7rem;
+    }
+
+    .vnv-btn{
+        width:100%;
+        padding:18px 24px;
+        letter-spacing:2px;
+    }
+
+    .hero-cta-row{
+        flex-direction:column;
+    }
+
+    .tool-body{
+        padding:16px;
+    }
+
+    .tool-inline-2,
+    .tool-inline-3,
+    .result-grid,
+    .breakdown-grid{
+        grid-template-columns:1fr;
+    }
+
+    .tool-panel,
+    .result-card{
+        padding:18px;
+    }
+}
+</style>
+{% endblock %}
+
+{% block body %}
+
+{% include "templates/layout/publicHeaderVnv.html.twig" %}
+
+<section class="hero-tool">
+    <div class="container hero-tool-inner">
+        <span class="vnv-badge">Free DJ Planning Tool</span>
+
+        <h1>DJ Sound System <span class="text-gold">Power Calculator</span></h1>
+
+        <p class="hero-copy">
+            Estimate RMS power, peak power, subwoofer count and audience sound pressure level for weddings, private parties, school events and corporate celebrations. Plan the sound system more intelligently without crossing into unnecessarily aggressive listening levels.
+        </p>
+
+        <div class="hero-cta-row">
+            <a href="#sound-tool" class="vnv-btn btn-gold-vnv">Use the Calculator</a>
+            <a href="#" data-vnv-open-request class="vnv-btn btn-outline-vnv">Need DJ & Audio Help?</a>
+        </div>
+    </div>
+</section>
+
+<section class="section-vnv section-white" id="sound-tool">
+    <div class="container">
+        <div class="tool-shell">
+            <div class="tool-topbar">
+                <div class="tool-topbar-left">
+                    <div class="tool-topbar-icon"><i class="fa-solid fa-volume-high"></i></div>
+                    <div>
+                        <div class="tool-topbar-title">DJ Sound System Coverage Calculator</div>
+                        <div class="tool-topbar-sub">Estimate how many speakers and subwoofers you actually need</div>
+                    </div>
+                </div>
+
+                <div class="tool-topbar-note">
+                    Better for weddings, private parties, school dances and outdoor celebrations
+                </div>
+            </div>
+
+            <div class="tool-body">
+                <div class="tool-grid">
+                    <div class="tool-panel">
+                        <h3>Plan Your Audio Coverage</h3>
+
+                        <div class="tool-inline-2">
+                            <div class="tool-field">
+                                <label for="guest-count">Number of guests</label>
+                                <input type="number" id="guest-count" min="1" step="1" placeholder="e.g. 120">
+                            </div>
+
+                            <div class="tool-field">
+                                <label for="event-type">Event type</label>
+                                <select id="event-type">
+                                    <option value="ceremony">Ceremony / Speech</option>
+                                    <option value="cocktail">Cocktail / Background</option>
+                                    <option value="wedding" selected>Wedding Reception</option>
+                                    <option value="corporate">Corporate Party</option>
+                                    <option value="school">School Dance / Prom</option>
+                                    <option value="dance">Dance Party</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="tool-inline-3">
+                            <div class="tool-field">
+                                <label for="venue-type">Venue type</label>
+                                <select id="venue-type">
+                                    <option value="indoor" selected>Indoor</option>
+                                    <option value="outdoor">Outdoor</option>
+                                </select>
+                            </div>
+
+                            <div class="tool-field">
+                                <label for="coverage-area">Coverage area (sq ft)</label>
+                                <input type="number" id="coverage-area" min="100" step="50" value="900">
+                            </div>
+
+                            <div class="tool-field">
+                                <label for="bass-focus">Bass emphasis</label>
+                                <select id="bass-focus">
+                                    <option value="low">Low</option>
+                                    <option value="medium" selected>Moderate</option>
+                                    <option value="high">High</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="tool-inline-2">
+                            <div class="tool-field">
+                                <label for="coverage-priority">Coverage priority</label>
+                                <select id="coverage-priority">
+                                    <option value="balanced" selected>Balanced coverage</option>
+                                    <option value="speech">Speech clarity</option>
+                                    <option value="dance">Dance floor energy</option>
+                                </select>
+                            </div>
+
+                            <div class="tool-field">
+                                <label for="speaker-tier">Recommended system tier</label>
+                                <select id="speaker-tier">
+                                    <option value="standard" selected>Standard Event PA</option>
+                                    <option value="premium">Premium Event PA</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="tool-actions">
+                            <button type="button" class="tool-btn primary" id="calculate-btn">
+                                <i class="fa-solid fa-calculator"></i>
+                                Calculate
+                            </button>
+
+                            <button type="button" class="tool-btn secondary" id="reset-btn">
+                                <i class="fa-solid fa-rotate-left"></i>
+                                Reset
+                            </button>
+                        </div>
+
+                        <div class="tool-helper">
+                            This calculator estimates how many top speakers and subwoofers are typically needed for the selected event style, along with a practical sound level target that feels strong without becoming unnecessarily harsh.
+                        </div>
+                    </div>
+
+                    <div class="tool-results" id="tool-results">
+                        <div class="empty-state">
+                            <div class="empty-state-inner">
+                                <div class="empty-state-icon"><i class="fa-solid fa-wave-square"></i></div>
+                                <h3 style="font-size:1.7rem; color:#fff; margin-bottom:10px;">Your sound system recommendation will appear here</h3>
+                                <p style="margin:0;">
+                                    Enter your guest count and event type to estimate the right sound system for your event.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% include "templates/components/publicEventRequestModal.html.twig" with {
+    request_form_action: "/api/public/event-request"
+} %}
+
+{% include "templates/layout/publicFooterVnv.html.twig" %}
+
+{% endblock %}
+
+{% block scripts %}
+<script type="application/ld+json">
+{
+  "@context":"https://schema.org",
+  "@type":"WebApplication",
+  "name":"DJ Sound System Power Calculator",
+  "applicationCategory":"BusinessApplication",
+  "operatingSystem":"Web",
+  "description":"A free web-based DJ sound calculator that estimates RMS power, peak power, subwoofers and audience SPL for events.",
+  "offers":{
+    "@type":"Offer",
+    "price":"0",
+    "priceCurrency":"USD"
+  }
+}
+</script>
+
+ <script>
+document.addEventListener('DOMContentLoaded', function () {
+    const guestCount = document.getElementById('guest-count');
+    const eventType = document.getElementById('event-type');
+    const venueType = document.getElementById('venue-type');
+    const coverageArea = document.getElementById('coverage-area');
+    const bassFocus = document.getElementById('bass-focus');
+    const coveragePriority = document.getElementById('coverage-priority');
+    const speakerTier = document.getElementById('speaker-tier');
+    const calculateBtn = document.getElementById('calculate-btn');
+    const resetBtn = document.getElementById('reset-btn');
+    const resultsWrap = document.getElementById('tool-results');
+
+    const eventPresets = {
+        ceremony: {
+            label: 'Ceremony / Speech',
+            db: [74, 82],
+            dbMax: 86,
+            guestsPerTopIndoor: 70,
+            guestsPerTopOutdoor: 52
+        },
+        cocktail: {
+            label: 'Cocktail / Background',
+            db: [78, 86],
+            dbMax: 88,
+            guestsPerTopIndoor: 62,
+            guestsPerTopOutdoor: 46
+        },
+        wedding: {
+            label: 'Wedding Reception',
+            db: [88, 94],
+            dbMax: 96,
+            guestsPerTopIndoor: 52,
+            guestsPerTopOutdoor: 38
+        },
+        corporate: {
+            label: 'Corporate Party',
+            db: [86, 93],
+            dbMax: 95,
+            guestsPerTopIndoor: 54,
+            guestsPerTopOutdoor: 40
+        },
+        school: {
+            label: 'School Dance / Prom',
+            db: [91, 97],
+            dbMax: 99,
+            guestsPerTopIndoor: 45,
+            guestsPerTopOutdoor: 32
+        },
+        dance: {
+            label: 'Dance Party',
+            db: [93, 98],
+            dbMax: 100,
+            guestsPerTopIndoor: 42,
+            guestsPerTopOutdoor: 30
+        }
+    };
+
+    function renderEmpty() {
+        resultsWrap.innerHTML = `
+            <div class="empty-state">
+                <div class="empty-state-inner">
+                    <div class="empty-state-icon"><i class="fa-solid fa-wave-square"></i></div>
+                    <h3 style="font-size:1.7rem; color:#fff; margin-bottom:10px;">Your sound system recommendation will appear here</h3>
+                    <p style="margin:0;">
+                        Enter your guest count, event type and venue conditions to see practical audio setup options.
+                    </p>
+                </div>
+            </div>
+        `;
+    }
+
+    function formatDbRange(min, max) {
+        return `${Math.round(min)}–${Math.round(max)} dB`;
+    }
+
+    function getAreaFactor(area) {
+        if (area <= 400) return 0.88;
+        if (area <= 800) return 1.00;
+        if (area <= 1200) return 1.12;
+        if (area <= 1800) return 1.24;
+        if (area <= 2600) return 1.38;
+        return 1.55;
+    }
+
+    function getPriorityLabel() {
+        return coveragePriority.options[coveragePriority.selectedIndex].text;
+    }
+
+    function getBassLabel() {
+        return bassFocus.options[bassFocus.selectedIndex].text;
+    }
+
+    function getTierLabel() {
+        return speakerTier.options[speakerTier.selectedIndex].text;
+    }
+
+    function getAdjustedDbRange(baseMin, baseMax, baseLimit) {
+        let minDb = baseMin;
+        let maxDb = baseMax;
+        let limitDb = baseLimit;
+
+        if (venueType.value === 'outdoor') {
+            minDb += 2;
+            maxDb += 2;
+            limitDb += 2;
+        }
+
+        if (bassFocus.value === 'low') {
+            minDb -= 1;
+            maxDb -= 1;
+        } else if (bassFocus.value === 'high') {
+            minDb += 1;
+            maxDb += 1;
+        }
+
+        if (coveragePriority.value === 'speech') {
+            minDb -= 2;
+            maxDb -= 2;
+        } else if (coveragePriority.value === 'dance') {
+            minDb += 1;
+            maxDb += 1;
+        }
+
+        return {
+            minDb,
+            maxDb,
+            limitDb,
+            targetDb: Math.round((minDb + maxDb) / 2)
+        };
+    }
+
+    function getTopCount(guests, areaFactor, eventConfig) {
+        const baseGuestsPerTop = venueType.value === 'outdoor'
+            ? eventConfig.guestsPerTopOutdoor
+            : eventConfig.guestsPerTopIndoor;
+
+        let adjustment = areaFactor;
+
+        if (coveragePriority.value === 'speech') adjustment *= 0.92;
+        if (coveragePriority.value === 'dance') adjustment *= 1.10;
+        if (bassFocus.value === 'high') adjustment *= 1.08;
+
+        let guestsPerTopEffective = baseGuestsPerTop / adjustment;
+
+        let tops = Math.ceil(guests / guestsPerTopEffective);
+
+        if (tops < 2) tops = 2;
+        if (venueType.value === 'outdoor' && tops % 2 !== 0) tops += 1;
+
+        return tops;
+    }
+
+    function needsHeavyBassEvent() {
+        return ['school', 'dance'].includes(eventType.value);
+    }
+
+    function isSmallSpeechStyleEvent(guests) {
+        return (
+            coveragePriority.value === 'speech' ||
+            eventType.value === 'ceremony' ||
+            (guests <= 50 && bassFocus.value !== 'high')
+        );
+    }
+
+    function getSubPlan(guests, area) {
+        const heavyBass = needsHeavyBassEvent();
+        const smallSpeech = isSmallSpeechStyleEvent(guests);
+        const outdoor = venueType.value === 'outdoor';
+        const highBass = bassFocus.value === 'high';
+        const mediumBass = bassFocus.value === 'medium';
+
+        if (smallSpeech) {
+            return {
+                planA: {
+                    title: 'Plan A · Simple and clean',
+                    tops: '2 x 15" powered speakers',
+                    subs: 'No subwoofer needed',
+                    note: 'Best for speech clarity, small receptions, ceremonies, cocktails, and lighter music.'
+                },
+                planB: {
+                    title: 'Plan B · More fullness without going overboard',
+                    tops: '2 x 12" powered speakers',
+                    subs: '1 x 15" powered subwoofer',
+                    note: 'Adds a little more warmth and low-end while keeping the setup compact.'
+                }
+            };
+        }
+
+        if (eventType.value === 'cocktail') {
+            return {
+                planA: {
+                    title: 'Plan A · Light background setup',
+                    tops: '2 x 12" powered speakers',
+                    subs: 'No subwoofer needed',
+                    note: 'Enough for background music and announcements in most cocktail-style events.'
+                },
+                planB: {
+                    title: 'Plan B · Fuller lounge sound',
+                    tops: '2 x 12" powered speakers',
+                    subs: '1 x 15" powered subwoofer',
+                    note: 'Useful if you want the music to feel richer without turning it into a dance-floor setup.'
+                }
+            };
+        }
+
+        if (heavyBass || highBass || outdoor || guests > 120 || area > 1500) {
+            const manyGuests = guests > 180 || area > 2200;
+
+            return {
+                planA: {
+                    title: 'Plan A · Strong dance-floor setup',
+                    tops: manyGuests ? '4 x 12" powered speakers' : '2 x 12" powered speakers',
+                    subs: manyGuests ? '2 x 18" powered subwoofers minimum' : '2 x 18" powered subwoofers',
+                    note: 'Recommended when energy, bass impact and wider coverage matter.'
+                },
+                planB: {
+                    title: 'Plan B · Bigger and more forgiving',
+                    tops: manyGuests ? '4 x 15" powered speakers or 2 mains + 2 fills' : '2 x 15" powered speakers',
+                    subs: manyGuests ? '4 x 18" powered subwoofers' : '2 x 18" powered subwoofers with more headroom',
+                    note: 'Better when you want stronger low-end, more headroom, or cleaner performance at higher volume.'
+                }
+            };
+        }
+
+        if (mediumBass || eventType.value === 'wedding' || eventType.value === 'corporate') {
+            return {
+                planA: {
+                    title: 'Plan A · Balanced event setup',
+                    tops: '2 x 15" powered speakers',
+                    subs: 'No subwoofer required',
+                    note: 'Works well for smaller weddings and corporate events when you want a simpler setup.'
+                },
+                planB: {
+                    title: 'Plan B · Better dance-floor experience',
+                    tops: '2 x 12" powered speakers',
+                    subs: guests <= 80 ? '1 x 15" powered subwoofer' : '2 x 15" powered subwoofers',
+                    note: 'Usually the better choice when dancing matters and you want fuller low-end.'
+                }
+            };
+        }
+
+        return {
+            planA: {
+                title: 'Plan A · Standard setup',
+                tops: '2 x 12" powered speakers',
+                subs: 'No subwoofer needed',
+                note: 'Good for straightforward event coverage.'
+            },
+            planB: {
+                title: 'Plan B · Fuller sound option',
+                tops: '2 x 12" powered speakers',
+                subs: '1 x 15" powered subwoofer',
+                note: 'A simple upgrade when you want more body in the music.'
+            }
+        };
+    }
+
+    function getCoverageNote(topCount) {
+        if (topCount <= 2) {
+            return 'A standard left-right speaker layout will usually cover this event well.';
+        }
+        if (topCount <= 4) {
+            return 'A wider layout or added fill speakers may help coverage feel more even.';
+        }
+        return 'This size benefits from distributed coverage instead of blasting everything from one front pair.';
+    }
+
+    function getUseLessNote(eventKey) {
+        if (eventKey === 'ceremony' || eventKey === 'cocktail') {
+            return 'Using less may still work, but voice clarity and even coverage can suffer in the back of the room.';
+        }
+        return 'Using less may make the dance floor feel weak, uneven or lacking energy.';
+    }
+
+    function getUseMoreNote(eventKey) {
+        if (eventKey === 'ceremony' || eventKey === 'cocktail') {
+            return 'Using more equipment than needed can make the room feel unnecessarily loud or visually crowded.';
+        }
+        return 'Using more can help with coverage and headroom, but too much can make the room harsh if not tuned properly.';
+    }
+
+    function calculateEstimate() {
+        const guests = parseFloat(guestCount.value || '0');
+        const area = parseFloat(coverageArea.value || '0');
+
+        if (guests <= 0 || area <= 0) {
+            renderEmpty();
+            return;
+        }
+
+        const eventConfig = eventPresets[eventType.value];
+        const areaFactor = getAreaFactor(area);
+        const topCount = getTopCount(guests, areaFactor, eventConfig);
+        const dbGuide = getAdjustedDbRange(eventConfig.db[0], eventConfig.db[1], eventConfig.dbMax);
+        const plans = getSubPlan(guests, area);
+
+        const summaryLine = [
+            venueType.options[venueType.selectedIndex].text,
+            `${getBassLabel()} bass emphasis`,
+            getPriorityLabel(),
+            getTierLabel()
+        ].join(' · ');
+
+        resultsWrap.innerHTML = `
+            <div class="result-card">
+                <h3>${eventConfig.label}</h3>
+                <p>${summaryLine}</p>
+
+                <div class="result-grid">
+                    <div class="result-stat">
+                        <div class="result-stat-label">Recommended Range</div>
+                        <div class="result-stat-value">${formatDbRange(dbGuide.minDb, dbGuide.maxDb)}</div>
+                    </div>
+                    <div class="result-stat">
+                        <div class="result-stat-label">Target Level</div>
+                        <div class="result-stat-value">${dbGuide.targetDb} dB</div>
+                    </div>
+                    <div class="result-stat">
+                        <div class="result-stat-label">Max Suggested</div>
+                        <div class="result-stat-value">${Math.round(dbGuide.limitDb)} dB</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="result-card">
+                <h3>Recommended Coverage</h3>
+
+                <div class="breakdown-grid">
+                    <div class="breakdown-card">
+                        <h4>Top Speakers Needed</h4>
+                        <p><strong>${topCount}</strong> top speaker(s) recommended as a coverage baseline.</p>
+                    </div>
+
+                    <div class="breakdown-card">
+                        <h4>Coverage Strategy</h4>
+                        <p>${getCoverageNote(topCount)}</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="result-card">
+                <h3>System Options</h3>
+
+                <div class="breakdown-grid">
+                    <div class="breakdown-card">
+                        <h4>${plans.planA.title}</h4>
+                        <p><strong>Tops:</strong> ${plans.planA.tops}</p>
+                        <p><strong>Subs:</strong> ${plans.planA.subs}</p>
+                        <p>${plans.planA.note}</p>
+                    </div>
+
+                    <div class="breakdown-card">
+                        <h4>${plans.planB.title}</h4>
+                        <p><strong>Tops:</strong> ${plans.planB.tops}</p>
+                        <p><strong>Subs:</strong> ${plans.planB.subs}</p>
+                        <p>${plans.planB.note}</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="result-card">
+                <h3>What This Means</h3>
+
+                <div class="breakdown-grid">
+                    <div class="breakdown-card">
+                        <h4>Recommended Working Level</h4>
+                        <p>Try to keep the event mostly around <strong>${dbGuide.targetDb} dB</strong> and usually within <strong>${formatDbRange(dbGuide.minDb, dbGuide.maxDb)}</strong>.</p>
+                    </div>
+
+                    <div class="breakdown-card">
+                        <h4>Upper Practical Limit</h4>
+                        <p>Try not to live above <strong>${Math.round(dbGuide.limitDb)} dB</strong> for long periods unless the event specifically calls for that kind of energy.</p>
+                    </div>
+
+                    <div class="breakdown-card">
+                        <h4>If You Use Less</h4>
+                        <p>${getUseLessNote(eventType.value)}</p>
+                    </div>
+
+                    <div class="breakdown-card">
+                        <h4>If You Use More</h4>
+                        <p>${getUseMoreNote(eventType.value)}</p>
+                    </div>
+                </div>
+
+                <div class="muted-note">
+                    This is a practical planning guide. Final sound quality still depends on speaker quality, placement, room shape, DSP, limiter settings and tuning.
+                </div>
+            </div>
+        `;
+    }
+
+    function applyPresetDefaults() {
+        switch (eventType.value) {
+            case 'ceremony':
+                coverageArea.value = 500;
+                bassFocus.value = 'low';
+                coveragePriority.value = 'speech';
+                speakerTier.value = 'standard';
+                break;
+            case 'cocktail':
+                coverageArea.value = 700;
+                bassFocus.value = 'low';
+                coveragePriority.value = 'balanced';
+                speakerTier.value = 'standard';
+                break;
+            case 'wedding':
+                coverageArea.value = 900;
+                bassFocus.value = 'medium';
+                coveragePriority.value = 'balanced';
+                speakerTier.value = 'standard';
+                break;
+            case 'corporate':
+                coverageArea.value = 1000;
+                bassFocus.value = 'medium';
+                coveragePriority.value = 'balanced';
+                speakerTier.value = 'standard';
+                break;
+            case 'school':
+                coverageArea.value = 1400;
+                bassFocus.value = 'high';
+                coveragePriority.value = 'dance';
+                speakerTier.value = 'premium';
+                break;
+            case 'dance':
+                coverageArea.value = 1600;
+                bassFocus.value = 'high';
+                coveragePriority.value = 'dance';
+                speakerTier.value = 'premium';
+                break;
+        }
+    }
+
+    eventType.addEventListener('change', applyPresetDefaults);
+
+    calculateBtn.addEventListener('click', calculateEstimate);
+
+    resetBtn.addEventListener('click', function () {
+        guestCount.value = '';
+        eventType.value = 'wedding';
+        venueType.value = 'indoor';
+        coverageArea.value = 900;
+        bassFocus.value = 'medium';
+        coveragePriority.value = 'balanced';
+        speakerTier.value = 'standard';
+        renderEmpty();
+    });
+
+    applyPresetDefaults();
+    renderEmpty();
+});
+</script>
+{% endblock %}

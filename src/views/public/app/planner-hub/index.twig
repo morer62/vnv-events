@@ -1,0 +1,2098 @@
+{% extends "templates/base.twig" %}
+
+{# 
+    VNV EVENTS - POLISHED VERSION + SERVICES PARALLAX + INSTAGRAM SECTION
+#}
+
+{% set show_whatsapp = true %}
+
+{% block styles %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@200;300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,700;0,900;1,700;1,900&display=swap" rel="stylesheet">
+
+<style>
+:root {
+    --vnv-primary: #5EC6C4;
+    --vnv-primary-dark: #4aa8a6;
+    --vnv-gold: #c5a059;
+    --vnv-gold-gradient: linear-gradient(135deg, #bf953f 0%, #fcf6ba 45%, #b38728 100%);
+    --vnv-dark-deep: #0a0c0c;
+    --vnv-dark-soft: #161a1b;
+    --vnv-dark-card: #1c2223;
+    --vnv-light: #ffffff;
+    --vnv-marble: #f4f7f8;
+    --vnv-text-main: #2d3436;
+    --vnv-text-dark: #11181a;
+    --vnv-text-light: #f1f2f6;
+    --vnv-text-muted: rgba(255, 255, 255, 0.72);
+    --vnv-text-muted-soft: rgba(255, 255, 255, 0.62);
+    --vnv-shadow-lg: 0 40px 100px rgba(0,0,0,0.18);
+    --vnv-glow: 0 0 40px rgba(94, 198, 196, 0.2);
+    --vnv-border: rgba(255, 255, 255, 0.06);
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+    background-color: var(--vnv-dark-deep);
+    color: var(--vnv-text-light);
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    line-height: 1.8;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+}
+
+h1, h2, h3, h4, .luxury-font {
+    font-family: 'Playfair Display', serif;
+}
+
+.text-gold {
+    background: var(--vnv-gold-gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-weight: 700;
+}
+
+.text-vnv { color: var(--vnv-primary) !important; }
+.text-vnv-muted { color: rgba(94, 198, 196, 0.82) !important; }
+.border-vnv { border-color: var(--vnv-primary) !important; }
+.letter-spacing-lg { letter-spacing: 5px; }
+
+.vnv-btn {
+    padding: 22px 50px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    transition: all 0.6s cubic-bezier(0.165, 0.84, 0.44, 1);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    text-decoration: none;
+    border: none;
+    cursor: pointer;
+    font-size: 0.8rem;
+    position: relative;
+    z-index: 1;
+    border-radius: 999px;
+}
+
+.btn-gold-vnv {
+    background: var(--vnv-gold-gradient);
+    color: #000 !important;
+}
+
+.btn-gold-vnv:hover {
+    transform: translateY(-5px) scale(1.02);
+    box-shadow: 0 20px 40px rgba(197, 160, 89, 0.3);
+}
+
+.btn-outline-vnv {
+    border: 2px solid var(--vnv-primary);
+    color: var(--vnv-primary) !important;
+    background: transparent;
+}
+
+.btn-outline-vnv:hover {
+    background: var(--vnv-primary);
+    color: white !important;
+}
+
+.btn-ghost-white {
+    border: 1px solid rgba(255,255,255,0.2);
+    color: white !important;
+    background: transparent;
+}
+
+.btn-ghost-white:hover {
+    background: white;
+    color: black !important;
+}
+
+.section-vnv {
+    padding: 160px 0;
+    position: relative;
+}
+
+.section-light {
+    background-color: var(--vnv-marble);
+    color: var(--vnv-text-dark);
+    border-radius: 140px 0 0 0;
+    margin-top: -100px;
+    z-index: 10;
+}
+
+.vnv-hero-master {
+    min-height: 100vh;
+    display: flex;
+    background: #ffffff;
+    position: relative;
+    z-index: 1;
+}
+
+.hero-split-container {
+    display: flex;
+    width: 100%;
+    min-height: 100vh;
+}
+
+.hero-info-pane {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 0 8%;
+    background: white;
+    z-index: 100;
+}
+
+.hero-visual-pane {
+    flex: 1.3;
+    position: relative;
+    clip-path: polygon(15% 0, 100% 0, 100% 100%, 0% 100%);
+    background: #000;
+}
+
+.hero-video-src {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    filter: brightness(0.9);
+}
+
+.hero-info-pane h1 {
+    font-size: clamp(3rem, 6.5vw, 5.5rem);
+    font-weight: 900;
+    color: #1a1f20;
+    line-height: 1.08;
+    margin-bottom: 35px;
+}
+
+.hero-tagline {
+    color: var(--vnv-primary);
+    font-weight: 800;
+    letter-spacing: 4px;
+    display: block;
+    margin-bottom: 20px;
+    text-transform: uppercase;
+}
+
+.hero-description {
+    max-width: 550px;
+    color: #5d6668;
+}
+
+.metric-strip-vnv {
+    background: var(--vnv-dark-deep);
+    padding: 100px 0;
+    border-bottom: 1px solid var(--vnv-border);
+}
+
+
+.metric-val {
+    font-size: 4.5rem;
+    font-weight: 900;
+    color: var(--vnv-primary);
+    line-height: 1;
+}
+
+.metric-label {
+    letter-spacing: 5px;
+    font-weight: 700;
+    opacity: 0.5;
+    font-size: 0.7rem;
+    margin-top: 15px;
+}
+
+/* SERVICES + PARALLAX VIDEO */
+.section-services-vnv {
+    background-color: var(--vnv-dark-deep);
+    padding: 160px 0;
+    position: relative;
+    overflow: hidden;
+    isolation: isolate;
+}
+
+.services-bg-video-wrap {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+}
+
+.services-bg-video {
+    width: 100%;
+    height: 120%;
+    object-fit: cover;
+    object-position: center center;
+    opacity: 0.60;
+    filter: blur(2px) saturate(0.8);
+    transform: translateY(-6%);
+}
+
+.services-bg-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+        to bottom,
+        rgba(10,12,12,0.25),
+        rgba(10,12,12,0.28),
+        rgba(10,12,12,0.25)
+    );
+}
+
+.vnv-service-grid-card {
+    background: rgba(28, 34, 35, 0.82);
+    backdrop-filter: blur(6px);
+    border-radius: 28px;
+    padding: 60px 45px;
+    height: 100%;
+    border: 1px solid rgba(197, 160, 89, 0.08);
+    transition: all 0.6s cubic-bezier(0.165, 0.84, 0.44, 1);
+    position: relative;
+    overflow: hidden;
+    z-index: 2;
+}
+
+.vnv-service-grid-card:hover {
+    transform: translateY(-15px);
+    border-color: var(--vnv-gold);
+    box-shadow: 0 40px 80px rgba(0,0,0,0.5);
+}
+
+.service-icon-box {
+    width: 60px;
+    height: 60px;
+    background: rgba(197, 160, 89, 0.1);
+    border-radius: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--vnv-gold);
+    font-size: 1.6rem;
+    margin-bottom: 35px;
+}
+
+.service-num-floating {
+    position: absolute;
+    top: 40px;
+    right: 45px;
+    font-family: 'Playfair Display', serif;
+    font-size: 2.5rem;
+    font-weight: 900; 
+    color: rgba(197, 160, 89, 0.48);
+}
+
+.vnv-service-grid-card h3 {
+    font-size: 2rem;
+    font-weight: 700;
+    color: white;
+    margin-bottom: 25px;
+}
+
+.vnv-service-grid-card p {
+    color: var(--vnv-text-muted);
+    font-size: 1.05rem;
+    margin-bottom: 40px;
+}
+
+.vnv-link-gold {
+    color: var(--vnv-gold) !important;
+    font-weight: 800;
+    letter-spacing: 2px;
+    font-size: 0.85rem;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    transition: 0.4s;
+}
+
+.vnv-link-gold:hover {
+    gap: 20px;
+    color: white !important;
+}
+
+/* WHY CHOOSE US COMPOSITION */
+.choose-visual-composition{
+    position: relative;
+    width: 560px;
+    max-width: 100%;
+    height: 620px;
+    margin: 0 auto;
+}
+
+.choose-main-frame{
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 500px;
+    height: 500px;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 18px solid #3a3a3a;
+    box-shadow: 0 40px 100px rgba(0,0,0,0.18);
+    background: #fff;
+}
+
+.choose-main-frame::after{
+    content: "";
+    position: absolute;
+    inset: 18px;
+    border-radius: 50%;
+    border: 1px solid rgba(255,255,255,0.18);
+    pointer-events: none;
+}
+
+.choose-img-main,
+.choose-img-secondary{
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    display: block;
+}
+
+.choose-secondary-frame{
+    position: absolute;
+    right: 0;
+    bottom: 10px;
+    width: 240px;
+    height: 300px;
+    border-radius: 34px;
+    overflow: hidden;
+    border: 12px solid #ffffff;
+    box-shadow: 0 28px 70px rgba(0,0,0,0.18);
+    background: #fff;
+}
+
+.choose-secondary-frame::before{
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, rgba(0,0,0,0.12), transparent 40%);
+    pointer-events: none;
+    z-index: 1;
+}
+
+.check-vnv {
+    font-size: 1.8rem;
+    color: var(--vnv-primary);
+    margin-top: 5px;
+}
+
+.section-ophyra-vnv {
+    background: var(--vnv-dark-soft);
+    padding: 160px 0;
+}
+
+.ophyra-ui-console {
+    background: #000;
+    border-radius: 35px;
+    padding: 80px;
+    border: 1px solid var(--vnv-border);
+    box-shadow: var(--vnv-glow);
+    position: relative;
+    overflow: hidden;
+}
+
+.ophyra-ui-console::before {
+    content: "";
+    position: absolute;
+    top: -120px;
+    right: -80px;
+    width: 280px;
+    height: 280px;
+    background: radial-gradient(circle, rgba(94, 198, 196, 0.18) 0%, transparent 70%);
+    pointer-events: none;
+}
+
+.section-podcast-vnv {
+    background: white;
+    padding: 160px 0;
+    border-radius: 0 140px 0 0;
+}
+
+.podcast-glow-frame {
+    background: white;
+    padding: 25px;
+    border: 1px solid #eee;
+    box-shadow: 40px 40px 0px var(--vnv-primary);
+    border-radius: 16px;
+}
+
+/* INSTAGRAM SECTION */
+.section-instagram-vnv {
+    background: #0d1011;
+    padding: 160px 0;
+    position: relative;
+    overflow: hidden;
+}
+
+.section-instagram-vnv::before {
+    content: "";
+    position: absolute;
+    top: -120px;
+    left: -120px;
+    width: 320px;
+    height: 320px;
+    background: radial-gradient(circle, rgba(94,198,196,0.14) 0%, transparent 70%);
+    pointer-events: none;
+}
+
+.ig-modern-card {
+    position: relative;
+    overflow: hidden;
+    border-radius: 28px;
+    background: #151a1b;
+    border: 1px solid rgba(255,255,255,0.06);
+    aspect-ratio: 1 / 1;
+    display: block;
+    transition: transform .45s ease, box-shadow .45s ease, border-color .45s ease;
+}
+
+.ig-modern-card img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform .7s ease, opacity .4s ease;
+}
+
+.ig-modern-card::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, rgba(0,0,0,.52), rgba(0,0,0,.06));
+}
+
+.ig-modern-card:hover {
+    transform: translateY(-8px);
+    border-color: rgba(94,198,196,0.35);
+    box-shadow: 0 30px 60px rgba(0,0,0,0.35);
+}
+
+.ig-modern-card:hover img {
+    transform: scale(1.06);
+}
+
+.ig-modern-badge {
+    position: absolute;
+    right: 18px;
+    bottom: 18px;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255,255,255,.12);
+    color: #fff;
+    z-index: 2;
+    backdrop-filter: blur(8px);
+}
+
+.ig-modern-caption {
+    position: absolute;
+    left: 18px;
+    right: 70px;
+    bottom: 16px;
+    z-index: 2;
+    color: #fff;
+    font-size: 0.92rem;
+    font-weight: 600;
+    line-height: 1.35;
+}
+
+.section-plan-vnv {
+    padding: 140px 0;
+    background: var(--vnv-dark-deep);
+}
+
+.plan-vnv-card {
+    background: linear-gradient(145deg, #161a1b 0%, #0d0f0f 100%);
+    border-radius: 45px;
+    padding: 100px 80px;
+    border: 1px solid var(--vnv-border);
+    position: relative;
+    overflow: hidden;
+}
+
+.plan-vnv-card::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    right: 10%;
+    width: 400px;
+    height: 400px;
+    transform: translateY(-50%);
+    background: radial-gradient(circle, rgba(94, 198, 196, 0.08) 0%, transparent 70%);
+    pointer-events: none;
+}
+
+.plan-vnv-card p {
+    color: var(--vnv-text-muted-soft);
+}
+
+.vnv-badge-request {
+    background: rgba(94, 198, 196, 0.1);
+    color: var(--vnv-primary);
+    padding: 10px 25px;
+    border-radius: 50px;
+    font-size: 0.75rem;
+    font-weight: 800;
+    letter-spacing: 2px;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 40px;
+    text-transform: uppercase;
+}
+
+.vnv-footer-bento {
+    background: var(--vnv-dark-deep);
+    padding-bottom: 80px;
+}
+
+.bento-foot-card {
+    background: var(--vnv-dark-card);
+    border-radius: 30px;
+    padding: 60px;
+    height: 100%;
+    border: 1px solid var(--vnv-border);
+}
+
+.bento-foot-card p {
+    color: var(--vnv-text-muted-soft);
+}
+
+.contact-line {
+    display: flex;
+    gap: 25px;
+    margin-bottom: 30px;
+    align-items: flex-start;
+}
+
+.contact-line i {
+    color: var(--vnv-primary);
+    font-size: 1.3rem;
+    margin-top: 5px;
+}
+
+.vnv-btn-fixed{
+    min-width: 240px;
+    text-align: center;
+    white-space: normal;
+    line-height: 1.35;
+    padding: 20px 28px;
+}
+
+@keyframes rotateSlow {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+@media (max-width: 1199px) {
+    .vnv-btn { padding: 18px 34px; }
+    .ophyra-ui-console,
+    .plan-vnv-card { padding: 60px 45px; }
+}
+
+@media (max-width: 991px) {
+    .vnv-hero-master,
+    .hero-split-container {
+        flex-direction: column;
+        min-height: auto;
+    }
+
+    .hero-info-pane {
+        padding: 100px 30px 70px;
+        text-align: center;
+    }
+
+    .hero-description {
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .hero-visual-pane {
+        height: 45vh;
+        clip-path: none;
+    }
+
+    .choose-visual-composition{
+        width: 340px;
+        height: 430px;
+    }
+
+    .choose-main-frame{
+        width: 300px;
+        height: 300px;
+        border-width: 12px;
+    }
+
+    .choose-secondary-frame{
+        width: 150px;
+        height: 190px;
+        border-width: 8px;
+        border-radius: 22px;
+        right: 0;
+        bottom: 0;
+    }
+
+    .plan-vnv-card,
+    .ophyra-ui-console {
+        padding: 50px 30px;
+        text-align: center;
+    }
+
+    .section-services-vnv,
+    .section-light,
+    .section-podcast-vnv {
+        border-radius: 0;
+    }
+
+    .podcast-glow-frame {
+        box-shadow: 20px 20px 0px var(--vnv-primary);
+    }
+
+    .metric-val {
+        font-size: 3rem;
+    }
+
+    .services-bg-video {
+        height: 100%;
+        transform: none;
+        filter: blur(1px) saturate(0.8);
+    }
+
+    .vnv-btn-fixed{
+        min-width: 100%;
+    }
+}
+
+@media (max-width: 575px) {
+    .section-vnv,
+    .section-services-vnv,
+    .section-ophyra-vnv,
+    .section-podcast-vnv,
+    .section-instagram-vnv,
+    .section-plan-vnv {
+        padding: 100px 0;
+    }
+
+    .hero-info-pane h1 {
+        font-size: 2.7rem;
+    }
+
+    .vnv-btn {
+        width: 100%;
+        padding: 18px 24px;
+        letter-spacing: 2px;
+    }
+
+    .vnv-service-grid-card,
+    .bento-foot-card {
+        padding: 40px 28px;
+    }
+
+    .service-num-floating {
+        top: 24px;
+        right: 24px;
+        font-size: 2rem;
+    }
+
+    .ig-modern-caption {
+        font-size: 0.82rem;
+        left: 14px;
+        right: 62px;
+        bottom: 14px;
+    }
+
+    .ig-modern-badge {
+        right: 14px;
+        bottom: 14px;
+        width: 40px;
+        height: 40px;
+    }
+
+    .vnv-app-download-panel{
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+    padding-left: 20px;
+}
+
+.vnv-app-download-eyebrow{
+    display: inline-block;
+    margin-bottom: 14px;
+    font-size: 0.78rem;
+    font-weight: 800;
+    letter-spacing: 3px;
+    color: var(--vnv-primary);
+    text-transform: uppercase;
+}
+
+.vnv-app-download-panel h3{
+    color: #fff;
+    font-size: clamp(2rem, 2.8vw, 3rem);
+    line-height: 1.05;
+    margin: 0 0 14px;
+}
+
+.vnv-app-download-panel p{
+    max-width: 420px;
+    color: rgba(255,255,255,0.68);
+    margin: 0 0 24px;
+    font-size: 1.02rem;
+}
+
+.vnv-app-download-badges{
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    width: 100%;
+    max-width: 320px;
+}
+
+.vnv-app-download-badges a{
+    display: block;
+    transition: transform .25s ease, opacity .25s ease;
+}
+
+.vnv-app-download-badges a:hover{
+    transform: translateY(-2px);
+    opacity: .96;
+}
+
+.vnv-app-download-badges img{
+    width: 100%;
+    height: auto;
+    display: block;
+    border-radius: 14px;
+}
+
+.vnv-app-download-links{
+    margin-top: 24px;
+}
+
+
+}
+
+
+.vnv-app-download-panel{
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+    padding-left: 24px;
+}
+
+.vnv-app-download-eyebrow{
+    display: inline-block;
+    margin-bottom: 14px;
+    font-size: 0.78rem;
+    font-weight: 800;
+    letter-spacing: 3px;
+    color: var(--vnv-primary);
+    text-transform: uppercase;
+}
+
+.vnv-app-download-panel h3{
+    color: #fff;
+    font-size: clamp(2rem, 2.8vw, 3rem);
+    line-height: 1.05;
+    margin: 0 0 14px;
+}
+
+.vnv-app-download-panel p{
+    max-width: 420px;
+    color: rgba(255,255,255,0.68);
+    margin: 0 0 24px;
+    font-size: 1.02rem;
+}
+
+.vnv-app-download-badges{
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    width: 280px;
+    max-width: 280px;
+}
+
+.vnv-app-download-badges a{
+    display: block;
+    transition: transform .25s ease, opacity .25s ease;
+}
+
+.vnv-app-download-badges a:hover{
+    transform: translateY(-2px);
+    opacity: .96;
+}
+
+.vnv-app-download-badges img{
+    width: 100%;
+    height: auto;
+    display: block;
+    border-radius: 18px;
+}
+
+@media (max-width: 991px){
+    .vnv-app-download-panel{
+    padding-left: 0;
+    margin-top: 34px;
+    align-items: center;
+    text-align: center;
+    }
+
+    .vnv-app-download-panel p{
+        max-width: 100%;
+    }
+
+    .vnv-app-download-badges{
+        max-width: 320px;
+    }
+}
+
+
+.vnv-studio-card{
+    background: linear-gradient(145deg, #161a1b 0%, #0d0f0f 100%);
+    border-radius: 30px;
+    padding: 50px;
+    border: 1px solid rgba(255,255,255,0.06);
+    box-shadow: 0 20px 60px rgba(0,0,0,0.35);
+}
+
+.vnv-studio-card h3{
+    font-size: 1.8rem;
+    font-weight: 800;
+}
+
+.vnv-studio-card p{
+    color: rgba(255,255,255,0.7);
+    margin-bottom: 20px;
+}
+
+.vnv-studio-info{
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    color: #fff;
+    font-weight: 600;
+    margin-bottom: 25px;
+}
+
+.vnv-studio-info i{
+    color: var(--vnv-primary);
+}
+
+.vnv-studio-actions{
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+/* DIGITAL TOOLS BENTO */
+.section-tools-bento{
+    background:
+        radial-gradient(circle at top right, rgba(94,198,196,0.10), transparent 24%),
+        linear-gradient(180deg, #0b0d0e 0%, #111516 100%);
+    padding: 145px 0;
+    position: relative;
+    overflow: hidden;
+    border-top: 1px solid rgba(255,255,255,0.04);
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+}
+
+.section-tools-bento::before{
+    content:"";
+    position:absolute;
+    left:-120px;
+    bottom:-120px;
+    width:340px;
+    height:340px;
+    background: radial-gradient(circle, rgba(197,160,89,0.12) 0%, transparent 70%);
+    pointer-events:none;
+}
+
+.tools-bento-heading{
+    max-width: 920px;
+    margin-bottom: 52px;
+}
+
+.tools-bento-eyebrow{
+    display:inline-flex;
+    align-items:center;
+    gap:10px;
+    padding:10px 18px;
+    border-radius:999px;
+    background: rgba(94,198,196,.10);
+    color: var(--vnv-primary);
+    font-size: .74rem;
+    letter-spacing: 2px;
+    font-weight: 800;
+    text-transform: uppercase;
+    margin-bottom: 22px;
+}
+
+.tools-bento-heading h2{
+    font-size: clamp(2.3rem, 4.2vw, 4.4rem);
+    line-height: 1.03;
+    color:#fff;
+    margin-bottom: 18px;
+    max-width: 780px;
+}
+
+.tools-bento-heading p{
+    color: rgba(255,255,255,.68);
+    font-size: 1.05rem;
+    margin:0;
+    max-width: 760px;
+}
+
+.tools-bento-layout{
+    display:grid;
+    grid-template-columns: 1.2fr .9fr .9fr;
+    gap: 22px;
+    align-items: stretch;
+}
+
+.tools-bento-col{
+    display:grid;
+    gap:22px;
+}
+
+.tool-bento-card{
+    display:flex;
+    flex-direction:column;
+    justify-content:space-between;
+    background: linear-gradient(145deg, rgba(28,34,35,0.96) 0%, rgba(15,18,19,0.98) 100%);
+    border: 1px solid rgba(255,255,255,.06);
+    border-radius: 30px;
+    padding: 28px 26px;
+    box-shadow: 0 24px 60px rgba(0,0,0,.24);
+    text-decoration:none;
+    transition: transform .35s ease, border-color .35s ease, box-shadow .35s ease;
+    position: relative;
+    overflow: hidden;
+    min-height: 220px;
+}
+
+.tool-bento-card::after{
+    content:"";
+    position:absolute;
+    inset:0;
+    background: linear-gradient(180deg, rgba(255,255,255,.03), transparent 34%);
+    pointer-events:none;
+}
+
+.tool-bento-card:hover{
+    transform: translateY(-8px);
+    border-color: rgba(94,198,196,.34);
+    box-shadow: 0 34px 80px rgba(0,0,0,.32);
+}
+
+.tool-bento-card.featured{
+    min-height: 470px;
+    padding: 34px 32px;
+}
+
+.tool-bento-card.medium{
+    min-height: 224px;
+}
+
+.tool-bento-card.small{
+    min-height: 180px;
+}
+
+.tool-bento-top{
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+    gap:14px;
+    margin-bottom: 18px;
+}
+
+.tool-bento-icon{
+    width:64px;
+    height:64px;
+    border-radius:18px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background: rgba(197,160,89,.10);
+    color: var(--vnv-gold);
+    font-size:1.4rem;
+    flex:0 0 auto;
+}
+
+.tool-bento-card.small .tool-bento-icon{
+    width:52px;
+    height:52px;
+    border-radius:15px;
+    font-size:1.15rem;
+}
+
+.tool-bento-badge{
+    display:inline-flex;
+    padding:7px 12px;
+    border-radius:999px;
+    background: rgba(255,255,255,.05);
+    color: rgba(255,255,255,.62);
+    font-size:.67rem;
+    font-weight:800;
+    letter-spacing:1.5px;
+    text-transform:uppercase;
+    white-space:nowrap;
+}
+
+.tool-bento-card h3{
+    font-size:1.55rem;
+    line-height:1.15;
+    color:#fff;
+    margin-bottom:12px;
+    max-width: 95%;
+}
+
+.tool-bento-card.small h3{
+    font-size:1.08rem;
+    line-height:1.2;
+    max-width: 100%;
+    margin-bottom: 10px;
+}
+
+.tool-bento-card p{
+    color: rgba(255,255,255,.68);
+    font-size: .96rem;
+    line-height: 1.65;
+    margin: 0 0 22px;
+    max-width: 95%;
+}
+
+.tool-bento-card.small p{
+    font-size: .88rem;
+    line-height: 1.55;
+    margin-bottom: 16px;
+}
+
+.tool-bento-footer{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:14px;
+    margin-top:auto;
+}
+
+.tool-bento-footer span{
+    color: var(--vnv-primary);
+    font-size:.78rem;
+    font-weight:800;
+    letter-spacing:1.6px;
+    text-transform:uppercase;
+}
+
+.tool-bento-arrow{
+    width:42px;
+    height:42px;
+    border-radius:50%;
+    border:1px solid rgba(255,255,255,.12);
+    color:#fff;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    transition: all .28s ease;
+    flex:0 0 auto;
+}
+
+.tool-bento-card:hover .tool-bento-arrow{
+    background: var(--vnv-primary);
+    border-color: var(--vnv-primary);
+    transform: translateX(4px);
+}
+
+.tools-bento-bottom{
+    margin-top: 30px;
+    display:flex;
+    gap:16px;
+    flex-wrap:wrap;
+    justify-content:center;
+}
+
+@media (max-width: 1199px){
+    .tools-bento-layout{
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+@media (max-width: 991px){
+    .tools-bento-layout{
+        grid-template-columns: 1fr;
+    }
+
+    .tool-bento-card.featured,
+    .tool-bento-card.medium,
+    .tool-bento-card.small{
+        min-height: auto;
+    }
+}
+
+@media (max-width: 575px){
+    .section-tools-bento{
+        padding: 105px 0;
+    }
+}
+
+<style>
+.section-podcast-vnv{
+    position:relative;
+    padding:110px 0;
+    background:
+        radial-gradient(circle at top left, rgba(94,198,196,.10), transparent 26%),
+        radial-gradient(circle at bottom right, rgba(197,160,89,.10), transparent 24%),
+        #f7f8f9;
+    overflow:hidden;
+}
+
+.vnv-section-kicker{
+    display:inline-flex;
+    align-items:center;
+    gap:10px;
+    padding:10px 18px;
+    border-radius:999px;
+    background:rgba(94,198,196,.12);
+    color:var(--vnv-primary);
+    font-size:.78rem;
+    font-weight:800;
+    letter-spacing:1.8px;
+    text-transform:uppercase;
+    margin-bottom:20px;
+}
+
+.vnv-media-intro-card{
+    display:flex;
+    align-items:flex-start;
+    gap:16px;
+    padding:20px;
+    border-radius:22px;
+    background:#fff;
+    border:1px solid rgba(17,24,26,.08);
+    box-shadow:0 16px 40px rgba(0,0,0,.05);
+}
+
+.vnv-media-intro-icon{
+    width:56px;
+    height:56px;
+    min-width:56px;
+    border-radius:18px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:rgba(94,198,196,.12);
+    color:var(--vnv-primary);
+    font-size:1.2rem;
+}
+
+.vnv-media-intro-card h4{
+    font-size:1.05rem;
+    font-weight:800;
+    color:var(--vnv-text-dark);
+}
+
+.vnv-media-intro-card p{
+    color:#5d676b;
+    line-height:1.7;
+}
+
+.vnv-media-mini-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:14px;
+}
+
+.vnv-media-mini-card{
+    background:#fff;
+    border:1px solid rgba(17,24,26,.08);
+    border-radius:20px;
+    padding:18px;
+    box-shadow:0 14px 34px rgba(0,0,0,.04);
+}
+
+.vnv-media-mini-label{
+    font-size:.78rem;
+    font-weight:800;
+    text-transform:uppercase;
+    letter-spacing:1.5px;
+    color:var(--vnv-primary);
+    margin-bottom:8px;
+}
+
+.vnv-media-mini-card p{
+    color:#5d676b;
+    font-size:.95rem;
+    line-height:1.7;
+}
+
+.vnv-media-stack{
+    display:grid;
+    gap:22px;
+}
+
+.vnv-media-card{
+    background:linear-gradient(145deg, #101516 0%, #161c1d 100%);
+    border:1px solid rgba(255,255,255,.08);
+    border-radius:28px;
+    padding:22px;
+    box-shadow:0 25px 70px rgba(0,0,0,.18);
+}
+
+.vnv-media-card-header{
+    margin-bottom:16px;
+}
+
+.vnv-media-card h3{
+    color:#fff;
+    font-size:1.45rem;
+    line-height:1.15;
+}
+
+.vnv-media-card p{
+    color:rgba(255,255,255,.72);
+    line-height:1.7;
+}
+
+.vnv-media-pill{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    padding:8px 14px;
+    border-radius:999px;
+    background:rgba(94,198,196,.12);
+    color:var(--vnv-primary);
+    font-size:.72rem;
+    font-weight:800;
+    text-transform:uppercase;
+    letter-spacing:1.3px;
+    margin-bottom:12px;
+}
+
+.vnv-media-pill.alt{
+    background:rgba(197,160,89,.14);
+    color:var(--vnv-gold);
+}
+
+.vnv-embed-frame,
+.vnv-audio-frame{
+    overflow:hidden;
+    border-radius:22px;
+    background:#000;
+    border:1px solid rgba(255,255,255,.06);
+}
+
+.vnv-embed-frame iframe,
+.vnv-audio-frame iframe{
+    width:100%;
+    display:block;
+}
+
+@media (max-width: 991px){
+    .section-podcast-vnv{
+        padding:85px 0;
+    }
+
+    .vnv-media-mini-grid{
+        grid-template-columns:1fr;
+    }
+}
+
+.metric-strip-vnv .row > div{
+    display:flex;
+    justify-content:center;
+}
+
+.metric-strip-vnv .col-6.col-lg-3{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+}
+
+.metric-logo-block{
+    min-height: 180px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+}
+
+.metric-logo-vnv{
+    width: min(280px, 82%);
+    max-width: 280px;
+    height: auto;
+    display:block;
+    margin: 0 auto 14px;
+    opacity: .98;
+}
+
+.metric-label-logo{
+    max-width: 260px;
+    margin-top: 0;
+    letter-spacing: 4px;
+}
+
+@media (max-width: 991px){
+    .metric-logo-block{
+        min-height: 150px;
+    }
+
+    .metric-logo-vnv{
+        width: min(220px, 88%);
+        max-width: 220px;
+        margin-bottom: 10px;
+    }
+
+    .metric-label-logo{
+        letter-spacing: 3px;
+        font-size: 0.64rem;
+    }
+}
+
+.hero-page-chip{
+    display:inline-flex;
+    align-items:center;
+    gap:10px;
+    padding:12px 22px;
+    border-radius:999px;
+    border:2px solid rgba(94, 198, 196, 0.9);
+    color:var(--vnv-primary);
+    background:rgba(255,255,255,0.72);
+    backdrop-filter:blur(8px);
+    -webkit-backdrop-filter:blur(8px);
+    font-size:.8rem;
+    font-weight:800;
+    letter-spacing:3px;
+    text-transform:uppercase;
+    margin-bottom:26px;
+    box-shadow:0 10px 30px rgba(94,198,196,.08);
+}
+
+ 
+.vnv-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 18px;
+    border-radius: 999px;
+    background: rgba(94,198,196,.1);
+    color: var(--vnv-primary);
+    font-size: .74rem;
+    letter-spacing: 2px;
+    font-weight: 800;
+    text-transform: uppercase;
+}
+</style>
+{% endblock %}
+
+{% block body %}
+
+{% include "templates/layout/publicHeaderVnv.html.twig" %}
+
+<section class="vnv-hero-master">
+    <div class="hero-split-container">
+        <div class="hero-info-pane animate__animated animate__fadeIn">
+            <span class="vnv-badge"> Welcome to VNV Event </span>
+            <h1>Full-Service Luxury Event Planning & <span class="text-gold">Catering Studio in South Florida</span></h1>
+            <p class="fs-5 mb-5 hero-description">
+               The Event you imagine come to life
+            </p>
+            <div class="d-flex flex-wrap gap-4 justify-content-center justify-content-lg-start">
+                <a href="tel:+13052045427" class="vnv-btn btn-gold-vnv">CALL (305)204-5427</a>
+                <a href="{{ path('login') }}" class="vnv-btn btn-outline-vnv">Login</a>
+            </div><br><br>
+        </div>
+
+        <div class="hero-visual-pane">
+            <video class="hero-video-src" autoplay muted loop playsinline preload="auto">
+                <source src="{{ asset_for('assets/video/intro_vnv.mp4') }}" type="video/mp4">
+            </video>
+        </div>
+    </div>
+</section>
+
+<section class="metric-strip-vnv text-center">
+    <div class="container">
+        <div class="row g-5">
+            <div class="col-6 col-lg-3">
+                <h3 class="metric-val">5+</h3>
+                <p class="metric-label">YEARS OF EXPERIENCE</p>
+            </div>
+            <div class="col-6 col-lg-3">
+                <h3 class="metric-val">200+</h3>
+                <p class="metric-label">EVENTS PER YEAR</p>
+            </div>
+            <div class="col-6 col-lg-3">
+                <h3 class="metric-val">FULL</h3>
+                <p class="metric-label">SERVICE SUPPORT</p>
+            </div>
+            <div class="col-6 col-lg-3">
+                <div class="metric-logo-block">
+                    <img class="metric-logo-vnv" src="{{ asset_for('assets/images/planner-hub-logo-positive.png') }}" alt="VNV Events">
+                     
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="section-services-vnv" id="services">
+    <div class="services-bg-video-wrap">
+        <video class="services-bg-video" autoplay muted loop playsinline preload="auto">
+            <source src="{{ asset_for('assets/video/intro.mp4') }}" type="video/mp4">
+        </video>
+        <div class="services-bg-overlay"></div>
+    </div>
+
+    <div class="container position-relative" style="z-index:2;">
+        <div class="text-center mb-5 pb-5">
+            <h2 class="display-2 fw-black text-white">Our <span class="text-vnv">Services</span></h2>
+            <p class="text-vnv-muted fs-4">A modern event house combining planning, production, design, entertainment and hospitality.</p>
+        </div>
+
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="vnv-service-grid-card">
+                    <span class="service-num-floating">01</span>
+                    <div class="service-icon-box"><i class="fa-solid fa-calendar-check"></i></div>
+                    <h3>Planner & Coordinator</h3>
+                    <p>Refined event planning and event-day coordination for weddings, social events and corporate functions.</p>
+                    <a href="{{ path('event-planners') }}" class="vnv-link-gold">REQUEST SERVICE →</a>
+                </div>
+            </div> 
+
+            <div class="col-md-4">
+                <div class="vnv-service-grid-card">
+                    <span class="service-num-floating">02</span>
+                    <div class="service-icon-box"><i class="fa-solid fa-utensils"></i></div>
+                    <h3>Catering & Bartender</h3>
+                    <p>Gourmet food experiences, staffed service, drink planning and polished presentation for intimate or large events.</p>
+                    <a href="{{ path('vnv-gourmet') }}" class="vnv-link-gold">REQUEST SERVICE →</a>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="vnv-service-grid-card">
+                    <span class="service-num-floating">03</span>
+                    <div class="service-icon-box"><i class="fa-solid fa-seedling"></i></div>
+                    <h3>Décor & Floral Design</h3>
+                    <p>Floral arrangements, statement pieces and space styling designed to create a memorable visual impact.</p>
+                    <a href="{{ path('vnv-deco-flowers') }}" class="vnv-link-gold">REQUEST SERVICE →</a>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="vnv-service-grid-card">
+                    <span class="service-num-floating">04</span>
+                    <div class="service-icon-box"><i class="fa-solid fa-music"></i></div>
+                    <h3>DJ Services</h3>
+                    <p>Music direction and energy led by professionals with years of experience shaping celebrations and dance floors.</p>
+                    <a href="{{ path('vnv-live') }}" class="vnv-link-gold">REQUEST SERVICE →</a>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="vnv-service-grid-card">
+                    <span class="service-num-floating">05</span>
+                    <div class="service-icon-box"><i class="fa-solid fa-camera-retro"></i></div>
+                    <h3>Photography & Videography</h3>
+                    <p>Photography and videography services that preserve the atmosphere, details and story behind every event.</p>
+                    <a href="{{ path('photo-booth-rental-video-photography-services-in-south-florida') }}" class="vnv-link-gold">REQUEST SERVICE →</a>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="vnv-service-grid-card">
+                    <span class="service-num-floating">06</span>
+                    <div class="service-icon-box"><i class="fa-solid fa-box-open"></i></div>
+                    <h3>Rentals</h3>
+                    <p>Tables, chairs, linens, tents and essential event pieces selected to support both aesthetics and functionality.</p>
+                    <a href="{{ path('party-tents-and-event-rental-services-in-south-florida') }}" class="vnv-link-gold">REQUEST SERVICE →</a>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="vnv-service-grid-card">
+                    <span class="service-num-floating">07</span>
+                    <div class="service-icon-box"><i class="fa-solid fa-gears"></i></div>
+                    <h3>Event Production</h3>
+                    <p>Setup, logistics, flow and behind-the-scenes execution designed to keep every moving part organized and on time.</p>
+                    <a href="{{ path('event-production') }}" class="vnv-link-gold">REQUEST SERVICE →</a>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="vnv-service-grid-card">
+                    <span class="service-num-floating">08</span>
+                    <div class="service-icon-box"><i class="fa-solid fa-user-group"></i></div>
+                    <h3>Event Staffing</h3>
+                    <p>Professional support for setup, service and guest-facing operations when order, reliability and presentation matter most.</p>
+                    <a href="{{ path('event-staffing/') }}" class="vnv-link-gold">REQUEST SERVICE →</a>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="vnv-service-grid-card">
+                    <span class="service-num-floating">09</span>
+                    <div class="service-icon-box"><i class="fa-solid fa-briefcase"></i></div>
+                    <h3>Corporate Events</h3>
+                    <p>Whether it be a holiday party, fundraiser, marketing event, celebration, seminar, off-site meeting or shopping event.</p>
+                    <a href="{{ path('corporate-events') }}" class="vnv-link-gold">REQUEST SERVICE →</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="section-tools-bento" id="planning-tools">
+    <div class="container position-relative" style="z-index:2;">
+        
+        <div class="tools-bento-heading">
+            <span class="tools-bento-eyebrow">
+                <i class="fa-solid fa-sparkles"></i>
+                Digital Planning Tools
+            </span>
+
+            <h2>Free tools that make <span class="text-vnv">event planning easier</span></h2>
+
+            <p>
+                Explore interactive calculators and planning utilities built to help with drinks, budgets, layouts, food counts, décor, sound, staffing and media decisions before you even request a proposal.
+            </p>
+        </div>
+
+        {# 🔥 FEATURED HORIZONTAL CARD #}
+        <a href="{{ path('cocktail-guide-and-calculator-for-events') }}" class="tool-bento-card featured-horizontal">
+            <div class="featured-horizontal-inner">
+
+                <div class="featured-horizontal-left">
+                    <div class="tool-bento-top">
+                        <div class="tool-bento-icon">
+                            <i class="fa-solid fa-martini-glass-citrus"></i>
+                        </div>
+                        <span class="tool-bento-badge">Featured Tool</span>
+                    </div>
+
+                    <h3>Cocktail Guide & Drink Calculator</h3>
+
+                    <p>
+                        Estimate drinks more confidently based on guest count, service style and the type of bar experience you want to create. A perfect starting point for private parties, weddings and corporate events.
+                    </p>
+
+                    <div class="tool-bento-footer">
+                        <span>Drink Estimates</span>
+                    </div>
+                </div>
+
+                <div class="featured-horizontal-right">
+                    <div class="tool-bento-arrow">
+                        <i class="fa-solid fa-arrow-right"></i>
+                    </div>
+                </div>
+
+            </div>
+        </a>
+<br>
+        {# 🔥 GRID NORMAL #}
+        <div class="tools-bento-layout">
+
+            {# LEFT #}
+            <div class="tools-bento-col">
+                <a href="{{ path('event-budget-calculator') }}" class="tool-bento-card medium">
+                    <div>
+                        <div class="tool-bento-top">
+                            <div class="tool-bento-icon"><i class="fa-solid fa-wallet"></i></div>
+                            <span class="tool-bento-badge">Budgeting</span>
+                        </div>
+                        <h3>Event Budget Calculator</h3>
+                        <p>Build a stronger starting point and understand how venue, décor, food, media and rentals affect the total budget.</p>
+                    </div>
+                    <div class="tool-bento-footer">
+                        <span>Budget Clarity</span>
+                        <div class="tool-bento-arrow"><i class="fa-solid fa-arrow-right"></i></div>
+                    </div>
+                </a>
+
+                <a href="{{ path('balloon-decoration-pricing-calculator') }}" class="tool-bento-card small">
+                    <div>
+                        <div class="tool-bento-top">
+                            <div class="tool-bento-icon"><i class="fa-solid fa-cloud"></i></div>
+                            <span class="tool-bento-badge">Décor</span>
+                        </div>
+                        <h3>Balloon Pricing Calculator</h3>
+                        <p>Estimate balloon installation pricing faster.</p>
+                    </div>
+                    <div class="tool-bento-footer">
+                        <span>Quick Pricing</span>
+                        <div class="tool-bento-arrow"><i class="fa-solid fa-arrow-right"></i></div>
+                    </div>
+                </a>
+            </div>
+
+            {# CENTER #}
+            <div class="tools-bento-col">
+                <a href="{{ path('party-size-and-space-calculator') }}" class="tool-bento-card medium">
+                    <div>
+                        <div class="tool-bento-top">
+                            <div class="tool-bento-icon"><i class="fa-solid fa-people-group"></i></div>
+                            <span class="tool-bento-badge">Capacity</span>
+                        </div>
+                        <h3>Party Size & Space Calculator</h3>
+                        <p>Compare guest count against usable space so the event feels comfortable instead of crowded.</p>
+                    </div>
+                    <div class="tool-bento-footer">
+                        <span>Capacity Check</span>
+                        <div class="tool-bento-arrow"><i class="fa-solid fa-arrow-right"></i></div>
+                    </div>
+                </a>
+
+                <a href="{{ path('flower-decoration-pricing-calculator') }}" class="tool-bento-card small">
+                    <div>
+                        <div class="tool-bento-top">
+                            <div class="tool-bento-icon"><i class="fa-solid fa-seedling"></i></div>
+                            <span class="tool-bento-badge">Floral</span>
+                        </div>
+                        <h3>Flower Pricing Calculator</h3>
+                        <p>Understand floral cost ranges more clearly.</p>
+                    </div>
+                    <div class="tool-bento-footer">
+                        <span>Floral Budgeting</span>
+                        <div class="tool-bento-arrow"><i class="fa-solid fa-arrow-right"></i></div>
+                    </div>
+                </a>
+            </div>
+
+            {# RIGHT #}
+            <div class="tools-bento-col">
+                <a href="{{ path('dj-sound-system-requirements-calculator') }}" class="tool-bento-card medium">
+                    <div>
+                        <div class="tool-bento-top">
+                            <div class="tool-bento-icon"><i class="fa-solid fa-volume-high"></i></div>
+                            <span class="tool-bento-badge">Entertainment</span>
+                        </div>
+                        <h3>DJ Sound Calculator</h3>
+                        <p>Estimate the right sound setup for your crowd.</p>
+                    </div>
+                    <div class="tool-bento-footer">
+                        <span>Audio Planning</span>
+                        <div class="tool-bento-arrow"><i class="fa-solid fa-arrow-right"></i></div>
+                    </div>
+                </a>
+
+                <a href="{{ path('finger-food-appetizer-and-meal-event-calculator') }}" class="tool-bento-card small">
+                    <div>
+                        <div class="tool-bento-top">
+                            <div class="tool-bento-icon"><i class="fa-solid fa-cheese"></i></div>
+                            <span class="tool-bento-badge">Catering</span>
+                        </div>
+                        <h3>Appetizer & Meal Calculator</h3>
+                        <p>Plan food portions more intelligently.</p>
+                    </div>
+                    <div class="tool-bento-footer">
+                        <span>Food Planning</span>
+                        <div class="tool-bento-arrow"><i class="fa-solid fa-arrow-right"></i></div>
+                    </div>
+                </a>
+            </div>
+
+        </div>
+
+    </div>
+</section>
+
+<section class="section-vnv section-light" id="why-vnv">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6 mb-5 mb-lg-0 text-center">
+                <div class="choose-visual-composition">
+                    <div class="choose-main-frame">
+                        <img src="{{ asset_for('assets/images/choose-us-team.jpg') }}" alt="VNV planning team" class="choose-img-main">
+                    </div>
+
+                    <div class="choose-secondary-frame">
+                        <img src="{{ asset_for('assets/images/choose-us-secondary.jpg') }}" alt="VNV guest experience" class="choose-img-secondary">
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-6">
+                <span class="text-vnv fw-bold mb-3 d-block letter-spacing-lg">WHY CLIENTS CHOOSE VNV</span>
+                <h2 class="display-3 fw-black mb-5" style="color:var(--vnv-text-dark)">A more personal,<br>more complete experience.</h2>
+
+                <div class="mb-5 d-flex gap-4">
+                    <i class="fa-solid fa-circle-check check-vnv"></i>
+                    <div>
+                        <h4 class="fw-bold mb-2">Everything is connected under one vision.</h4>
+                        <p class="text-muted">Planning, production, hospitality and media work together so your event feels cohesive, elevated and easier to manage.</p>
+                    </div>
+                </div>
+
+                <div class="mb-5 d-flex gap-4">
+                    <i class="fa-solid fa-circle-check check-vnv"></i>
+                    <div>
+                        <h4 class="fw-bold mb-2">You get high-touch service with modern structure.</h4>
+                        <p class="text-muted">We combine personalized guidance with organized workflows, clear communication and a more polished client journey.</p>
+                    </div>
+                </div>
+
+                <div class="mb-5 d-flex gap-4">
+                    <i class="fa-solid fa-circle-check check-vnv"></i>
+                    <div>
+                        <h4 class="fw-bold mb-2">Best relation between price and quality.</h4>
+                        <p class="text-muted">Our experts will focus on providing the best list of prices in the market while keeping the highest quality standards.</p>
+                    </div>
+                </div>
+
+
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="section-ophyra-vnv">
+    <div class="container">
+        <div class="ophyra-ui-console">
+            <div class="row align-items-center">
+                <div class="col-lg-7">
+                    <span class="text-vnv fw-bold mb-3 d-block letter-spacing-lg">DIGITAL ECOSYSTEM</span>
+                    <h2 class="display-3 fw-black text-white mb-4">A smarter client experience with <span class="text-vnv">VNV Core.</span></h2>
+                    <p class="fs-5 opacity-75 mb-5">
+                        As a VNV client, you gain access to a modern command center to review updates, manage requests and keep your event process more organized.
+                    </p>
+
+                    <div class="row g-4 mb-5">
+                        <div class="col-md-6">
+                            <div class="d-flex gap-3">
+                                <i class="fa-solid fa-shield-halved text-vnv fs-3"></i>
+                                <div>
+                                    <h6 class="text-white mb-1">Secure Payments</h6>
+                                    <p class="small opacity-50 mb-0">A cleaner and more transparent process.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="d-flex gap-3">
+                                <i class="fa-solid fa-clock-rotate-left text-vnv fs-3"></i>
+                                <div>
+                                    <h6 class="text-white mb-1">Live Updates</h6>
+                                    <p class="small opacity-50 mb-0">A better overview of your event journey.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <a href="{{ path('login') }}" class="vnv-btn btn-gold-vnv">Access Client Portal</a>
+                </div>
+
+                <div class="col-lg-5">
+                    <div class="vnv-app-download-panel">
+                        <span class="vnv-app-download-eyebrow">MOBILE ACCESS</span>
+                        <h3>Take VNV with you.</h3>
+                        <p>
+                            Access tools, event orders, music sessions and your client portal from anywhere.
+                        </p>
+
+                        <div class="vnv-app-download-badges">
+                            <a href="https://play.google.com/store/apps/details?id=com.vnvevents.eplannerhub" target="_blank" rel="noopener">
+                                <img src="{{ asset_for('assets/images/google-play-store-badge.png') }}" alt="Get it on Google Play">
+                            </a>
+
+                            <a href="https://apps.apple.com/us/app/vnv-events/id6747983836" target="_blank" rel="noopener">
+                                <img src="{{ asset_for('assets/images/download-on-the-app-store-apple-logo.png') }}" alt="Download on the App Store">
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="section-podcast-vnv" id="podcast">
+    <div class="container">
+        <div class="row align-items-center g-5">
+            <div class="col-lg-5">
+                <span class="vnv-section-kicker">Listen & Watch</span>
+
+                <h2 class="display-3 fw-black mb-4" style="color:var(--vnv-text-dark); line-height:1.02;">
+                    VNV <span class="text-vnv">Sessions</span><br>
+                    & Podcast
+                </h2>
+
+                <p class="fs-5 text-muted mb-4">
+                    Explore two sides of the VNV experience: curated DJ sessions by <strong>DJ Jonny in the Mix</strong> and podcast-style content with practical ideas, inspiration and event insight.
+                </p>
+
+                <div class="vnv-media-intro-card mb-4">
+                    <div class="vnv-media-intro-icon">
+                        <i class="fa-solid fa-headphones"></i>
+                    </div>
+                    <div>
+                        <h4 class="mb-2">Music for the mood. Conversations for the planning.</h4>
+                        <p class="m-0">
+                            The sessions are built to set the tone. The podcast is built to share ideas, guidance and creative direction behind memorable events.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="vnv-media-mini-grid">
+                    <div class="vnv-media-mini-card">
+                        <div class="vnv-media-mini-label">VNV Sessions</div>
+                        <p class="m-0">
+                            Open-format mixes, live energy, stylish sound and curated vibes for events, workouts, drives or inspiration.
+                        </p>
+                    </div>
+
+                    <div class="vnv-media-mini-card">
+                        <div class="vnv-media-mini-label">Podcast</div>
+                        <p class="m-0">
+                            Tips, ideas and conversations around events, creativity, production and the guest experience.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-7">
+                <div class="vnv-media-stack">
+                    <div class="vnv-media-card">
+                        <div class="vnv-media-card-header">
+                            <div>
+                                <span class="vnv-media-pill">Music Sessions</span>
+                                <h3 class="mb-1">VNV Sessions by DJ Jonny in the Mix</h3>
+                                <p class="m-0">
+                                    A curated playlist of mixes designed to bring energy, rhythm and atmosphere to any setting.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="vnv-embed-frame ratio ratio-16x9">
+                            <iframe
+                                src="https://www.youtube.com/embed?listType=playlist&list=PL8hdMpm11FxmEz_1IrnoN3DpbOoMHtFkP"
+                                title="VNV Sessions Playlist"
+                                frameborder="0"
+                                index=3
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                                allowfullscreen>
+                            </iframe>
+
+                             
+                        </div>
+                    </div>
+
+                    <div class="vnv-media-card">
+                        <div class="vnv-media-card-header">
+                            <div>
+                                <span class="vnv-media-pill alt">Podcast</span>
+                                <h3 class="mb-1">Event Ideas, Tips & Creative Conversations</h3>
+                                <p class="m-0">
+                                    Listen to practical content created to help clients, creatives and event lovers think through the details that shape a great experience.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="vnv-audio-frame">
+                            <iframe
+                                src="https://widget.spreaker.com/player?show_id=5869072&theme=light&playlist=show&playlist-continuous=true&chapters-image=true"
+                                width="100%"
+                                height="420"
+                                frameborder="0">
+                            </iframe>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="section-instagram-vnv" id="instagram-feed">
+    <div class="container position-relative" style="z-index:2;">
+        <div class="row align-items-center">
+
+            <!-- LEFT -->
+            <div class="col-lg-6">
+                <span class="text-vnv fw-bold d-block mb-3 letter-spacing-lg">PORTFOLIO & SOCIAL</span>
+
+                <h2 class="display-3 fw-black text-white mb-3">
+                    See our work on <span class="text-vnv">@vnv_events</span>
+                </h2>
+
+                <p class="fs-5 mb-4" style="color:rgba(255,255,255,0.65);">
+                    Explore real events, behind-the-scenes moments and design details.
+                    Get inspired by what we create across South Florida.
+                </p>
+
+                <a href="https://www.instagram.com/vnv_events/" target="_blank" class="vnv-btn btn-outline-vnv">
+                    View Instagram Portfolio
+                </a>
+            </div>
+
+            <!-- RIGHT -->
+            <div class="col-lg-6 mt-5 mt-lg-0">
+                <div class="vnv-studio-card">
+
+                    <span class="vnv-badge-request">Visit Our Studio</span>
+
+                    <h3 class="text-white mb-3">Experience VNV in person.</h3>
+
+                    <p>
+                        Visit our VNV Studio in Sunrise, FL to explore event concepts,
+                        test food options and design your event in a fully immersive way.
+                    </p>
+
+                    <div class="vnv-studio-info">
+                        <i class="fa-solid fa-location-dot"></i>
+                        <span>10258 NW 47th St, Sunrise, FL 33351</span>
+                    </div>
+
+                    <div class="vnv-studio-actions">
+                        <a href="https://maps.google.com/?q=10258+NW+47th+St+Sunrise+FL+33351" target="_blank" class="vnv-btn btn-ghost-white">
+                            Get Directions
+                        </a>
+
+                        <a href="#" data-vnv-open-request class="vnv-btn btn-gold-vnv">
+                            Book a Tasting
+                        </a>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+<section class="section-plan-vnv" id="upcoming-events">
+    <div class="container">
+        <div class="plan-vnv-card animate__animated animate__fadeInUp">
+            <div class="row align-items-center">
+                <div class="col-lg-7">
+                    <span class="vnv-badge-request">Upcoming Events</span>
+                    <h2 class="display-3 fw-bold text-white mb-4">We design experiences<br>people remember.</h2>
+                    <p class="fs-5 mb-5">
+                        Discover upcoming VNV productions, immersive concepts and community-driven experiences across South Florida.
+                        Explore what’s next, view event details and secure your tickets before they sell out.
+                    </p>
+                </div>
+
+                <div class="col-lg-5 text-center text-lg-end">
+                    <div class="d-flex flex-column flex-lg-row gap-3 justify-content-end">
+                        <a href="/vnv-events-productions" class="vnv-btn btn-gold-vnv vnv-btn-fixed">
+                            View Events <i class="fa-solid fa-arrow-right ms-2"></i>
+                        </a>
+                        <a href="/vnv-events-productions" class="vnv-btn btn-ghost-white vnv-btn-fixed">
+                            Get Tickets
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+{% include "templates/components/publicEventRequestModal.html.twig" with {
+    request_form_action: "/api/public/event-request"
+} %}
+
+{% include "templates/layout/publicFooterVnv.html.twig" %}
+
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+
+<script>
+if (typeof gsap !== 'undefined' && typeof ScrollTrigger !== 'undefined') {
+    gsap.registerPlugin(ScrollTrigger);
+
+    gsap.utils.toArray('.vnv-service-grid-card').forEach(card => {
+        gsap.from(card, {
+            scrollTrigger: {
+                trigger: card,
+                start: "top 85%"
+            },
+            y: 60,
+            opacity: 0,
+            duration: 1.1,
+            ease: "power4.out"
+        });
+    });
+
+    gsap.from(".choose-visual-composition", {
+        scrollTrigger: {
+            trigger: ".choose-visual-composition",
+            start: "top 80%"
+        },
+        scale: 0.8,
+        opacity: 0,
+        duration: 1.4,
+        ease: "expo.out"
+    });
+
+    gsap.from(".plan-vnv-card", {
+        scrollTrigger: {
+            trigger: ".plan-vnv-card",
+            start: "top 85%"
+        },
+        y: 40,
+        opacity: 0,
+        duration: 1.1,
+        ease: "power3.out"
+    });
+
+    gsap.utils.toArray('.ig-modern-card').forEach((card, index) => {
+        gsap.from(card, {
+            scrollTrigger: {
+                trigger: card,
+                start: "top 90%"
+            },
+            y: 40,
+            opacity: 0,
+            duration: 0.9,
+            delay: index * 0.05,
+            ease: "power3.out"
+        });
+    });
+
+    if (window.innerWidth > 991) {
+        gsap.to('.services-bg-video', {
+            yPercent: 12,
+            ease: 'none',
+            scrollTrigger: {
+                trigger: '#services',
+                start: 'top bottom',
+                end: 'bottom top',
+                scrub: true
+            }
+        });
+    }
+}
+
+document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+    anchor.addEventListener('click', function (e) {
+        const target = this.getAttribute('href');
+        if (!target || target === '#') return;
+
+        const el = document.querySelector(target);
+        if (!el) return;
+
+        e.preventDefault();
+        el.scrollIntoView({
+            behavior: 'smooth',
+            block: 'start'
+        });
+    });
+});
+</script>
+{% endblock %}

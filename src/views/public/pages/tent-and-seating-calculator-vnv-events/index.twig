@@ -1,0 +1,1268 @@
+{% extends "templates/base.twig" %}
+
+{% set show_whatsapp = true %}
+
+{% block styles %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@200;300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,700;0,900;1,700;1,900&display=swap" rel="stylesheet">
+
+<style>
+:root{
+    --vnv-primary:#5EC6C4;
+    --vnv-primary-dark:#4aa8a6;
+    --vnv-gold:#c5a059;
+    --vnv-gold-gradient:linear-gradient(135deg,#bf953f 0%,#fcf6ba 45%,#b38728 100%);
+    --vnv-dark-deep:#0a0c0c;
+    --vnv-dark-soft:#141818;
+    --vnv-dark-card:#1b2021;
+    --vnv-light:#ffffff;
+    --vnv-marble:#f4f7f8;
+    --vnv-text-dark:#11181a;
+    --vnv-text-light:#f3f5f6;
+    --vnv-text-muted:rgba(255,255,255,.72);
+    --vnv-text-muted-soft:rgba(255,255,255,.58);
+    --vnv-border:rgba(255,255,255,.08);
+    --vnv-shadow:0 25px 70px rgba(0,0,0,.14);
+    --success:#26c281;
+    --warning:#f4b740;
+    --danger:#ff5f6d;
+}
+
+html { scroll-behavior:smooth; }
+
+body{
+    background:var(--vnv-dark-deep);
+    color:var(--vnv-text-light);
+    font-family:'Plus Jakarta Sans',sans-serif;
+    line-height:1.8;
+    -webkit-font-smoothing:antialiased;
+    overflow-x:hidden;
+}
+
+h1,h2,h3,h4,h5,.luxury-font{
+    font-family:'Playfair Display',serif;
+}
+
+.text-vnv{ color:var(--vnv-primary)!important; }
+
+.text-gold{
+    background:var(--vnv-gold-gradient);
+    -webkit-background-clip:text;
+    -webkit-text-fill-color:transparent;
+}
+
+.vnv-btn{
+    padding:18px 30px;
+    font-weight:800;
+    text-transform:uppercase;
+    letter-spacing:2px;
+    transition:all .35s ease;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    gap:10px;
+    text-decoration:none;
+    border:none;
+    cursor:pointer;
+    font-size:.78rem;
+    border-radius:999px;
+}
+
+.btn-gold-vnv{
+    background:var(--vnv-gold-gradient);
+    color:#000!important;
+}
+.btn-gold-vnv:hover{
+    transform:translateY(-3px);
+    box-shadow:0 20px 40px rgba(197,160,89,.22);
+}
+
+.btn-outline-vnv{
+    border:2px solid var(--vnv-primary);
+    color:var(--vnv-primary)!important;
+    background:transparent;
+}
+.btn-outline-vnv:hover{
+    background:var(--vnv-primary);
+    color:#fff!important;
+}
+
+.section-vnv{
+    padding:120px 0;
+    position:relative;
+}
+
+.vnv-badge{
+    display:inline-flex;
+    align-items:center;
+    gap:10px;
+    padding:10px 18px;
+    border-radius:999px;
+    background:rgba(94,198,196,.1);
+    color:var(--vnv-primary);
+    font-size:.74rem;
+    letter-spacing:2px;
+    font-weight:800;
+    text-transform:uppercase;
+}
+
+.hero-tool{
+    position:relative;
+    min-height:82vh;
+    display:flex;
+    align-items:center;
+    overflow:hidden;
+    background:
+        linear-gradient(90deg, rgba(10,12,12,.90) 0%, rgba(10,12,12,.66) 44%, rgba(10,12,12,.38) 100%),
+        url('{{ asset_for('assets/images/tool-tent-calculator-hero.jpg') }}') center/cover no-repeat;
+}
+
+.hero-tool::after{
+    content:"";
+    position:absolute;
+    inset:0;
+    background:
+        radial-gradient(circle at top right, rgba(94,198,196,.16), transparent 28%),
+        radial-gradient(circle at bottom left, rgba(197,160,89,.10), transparent 24%);
+    pointer-events:none;
+}
+
+.hero-tool-inner{
+    position:relative;
+    z-index:2;
+    width:100%;
+}
+
+.hero-tool h1{
+    font-size:clamp(3rem,6vw,5.4rem);
+    line-height:1.02;
+    margin:20px 0 28px;
+    max-width:980px;
+}
+
+.hero-tool p.hero-copy{
+    font-size:1.08rem;
+    color:var(--vnv-text-muted);
+    max-width:840px;
+    margin-bottom:22px;
+}
+
+.hero-cta-row{
+    display:flex;
+    flex-wrap:wrap;
+    gap:16px;
+    margin-top:24px;
+}
+
+.section-white{
+    background:var(--vnv-marble);
+    color:var(--vnv-text-dark);
+}
+
+.tool-shell{
+    background:linear-gradient(145deg, #151a1b 0%, #0c0f10 100%);
+    border-radius:34px;
+    border:1px solid rgba(255,255,255,.06);
+    box-shadow:0 26px 80px rgba(0,0,0,.22);
+    overflow:hidden;
+}
+
+.tool-topbar{
+    padding:18px 22px;
+    background:#0c0f10;
+    border-bottom:1px solid rgba(255,255,255,.06);
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:16px;
+    flex-wrap:wrap;
+}
+
+.tool-topbar-left{
+    display:flex;
+    align-items:center;
+    gap:14px;
+}
+
+.tool-topbar-icon{
+    width:46px;
+    height:46px;
+    border-radius:14px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:rgba(94,198,196,.12);
+    color:var(--vnv-primary);
+    font-size:1.15rem;
+}
+
+.tool-topbar-title{
+    color:#fff;
+    font-weight:800;
+    font-size:1rem;
+    line-height:1.2;
+}
+
+.tool-topbar-sub{
+    color:var(--vnv-text-muted-soft);
+    font-size:.8rem;
+    font-weight:700;
+}
+
+.tool-topbar-note{
+    color:rgba(255,255,255,.62);
+    font-size:.88rem;
+    font-weight:700;
+}
+
+.tool-body{
+    padding:28px;
+}
+
+.tool-grid{
+    display:grid;
+    grid-template-columns: 460px 1fr;
+    gap:24px;
+    align-items:start;
+}
+
+.tool-panel{
+    background:#f7f9fa;
+    border:1px solid rgba(17,24,26,.08);
+    border-radius:26px;
+    padding:22px;
+    box-shadow:0 18px 50px rgba(0,0,0,.06);
+    color:#122022;
+}
+
+.tool-panel h3{
+    font-family:'Plus Jakarta Sans',sans-serif;
+    margin:0 0 18px;
+    font-size:1.05rem;
+    font-weight:800;
+    color:#122022;
+    letter-spacing:.3px;
+}
+
+.tool-field{
+    margin-bottom:16px;
+}
+
+.tool-field label{
+    display:block;
+    font-size:.84rem;
+    font-weight:800;
+    color:#2c3a3d;
+    margin-bottom:8px;
+    text-transform:uppercase;
+    letter-spacing:1px;
+}
+
+.tool-field input,
+.tool-field select{
+    width:100%;
+    border:1px solid rgba(17,24,26,.12);
+    background:#fff;
+    border-radius:14px;
+    outline:none;
+    padding:14px 14px;
+    font-size:1rem;
+    color:#122022;
+    font-family:'Plus Jakarta Sans',sans-serif;
+}
+
+.tool-inline-2{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:14px;
+}
+
+.tool-inline-3{
+    display:grid;
+    grid-template-columns:1fr 1fr 1fr;
+    gap:14px;
+}
+
+.option-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:12px;
+    margin-top:6px;
+}
+
+.option-pill{
+    position:relative;
+    display:flex;
+    align-items:flex-start;
+    gap:10px;
+    padding:14px 14px;
+    border:1px solid rgba(17,24,26,.10);
+    background:#fff;
+    border-radius:16px;
+    cursor:pointer;
+    transition:all .22s ease;
+}
+
+.option-pill:hover{
+    transform:translateY(-1px);
+    box-shadow:0 10px 28px rgba(0,0,0,.05);
+}
+
+.option-pill input{
+    margin-top:3px;
+    transform:scale(1.1);
+}
+
+.option-pill strong{
+    display:block;
+    font-size:.9rem;
+    color:#122022;
+    line-height:1.2;
+}
+
+.option-pill span{
+    display:block;
+    font-size:.78rem;
+    color:#58686b;
+    line-height:1.4;
+    margin-top:4px;
+}
+
+.tool-actions{
+    display:flex;
+    gap:12px;
+    flex-wrap:wrap;
+    margin-top:10px;
+}
+
+.tool-btn{
+    border:none;
+    outline:none;
+    cursor:pointer;
+    border-radius:14px;
+    padding:14px 16px;
+    font-weight:800;
+    font-size:.88rem;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    gap:10px;
+    transition:all .25s ease;
+}
+
+.tool-btn.primary{
+    background:linear-gradient(135deg, #c0006b 0%, #e00087 100%);
+    color:#fff;
+}
+
+.tool-btn.secondary{
+    background:#11181a;
+    color:#fff;
+}
+
+.tool-btn:hover{
+    transform:translateY(-2px);
+}
+
+.tool-helper{
+    margin-top:16px;
+    background:#fff;
+    border:1px solid rgba(17,24,26,.08);
+    border-radius:18px;
+    padding:16px;
+    font-size:.92rem;
+    color:#4e5c5f;
+    line-height:1.65;
+}
+
+.tool-results{
+    display:grid;
+    gap:22px;
+}
+
+.result-card{
+    background:linear-gradient(145deg, rgba(28,34,35,0.96) 0%, rgba(15,18,19,0.98) 100%);
+    border:1px solid rgba(255,255,255,.06);
+    border-radius:26px;
+    padding:24px;
+    box-shadow:0 24px 60px rgba(0,0,0,.18);
+}
+
+.result-card h3{
+    font-size:1.45rem;
+    color:#fff;
+    margin:0 0 14px;
+}
+
+.result-card p{
+    color:var(--vnv-text-muted);
+    margin:0 0 14px;
+}
+
+.result-grid{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:14px;
+    margin-top:14px;
+}
+
+.result-stat{
+    background:rgba(255,255,255,.04);
+    border:1px solid rgba(255,255,255,.06);
+    border-radius:18px;
+    padding:16px 14px;
+}
+
+.result-stat-label{
+    color:rgba(255,255,255,.58);
+    font-size:.72rem;
+    font-weight:800;
+    text-transform:uppercase;
+    letter-spacing:1.4px;
+    margin-bottom:6px;
+}
+
+.result-stat-value{
+    color:#fff;
+    font-size:1.32rem;
+    font-weight:800;
+    line-height:1.2;
+}
+
+.breakdown-grid{
+    display:grid;
+    grid-template-columns:repeat(2,1fr);
+    gap:14px;
+    margin-top:14px;
+}
+
+.breakdown-card{
+    background:rgba(255,255,255,.04);
+    border:1px solid rgba(255,255,255,.06);
+    border-radius:18px;
+    padding:16px 14px;
+}
+
+.breakdown-card h4{
+    font-family:'Plus Jakarta Sans',sans-serif;
+    color:#fff;
+    margin:0 0 8px;
+    font-size:1rem;
+    font-weight:800;
+}
+
+.breakdown-card p{
+    margin:0;
+    color:var(--vnv-text-muted);
+    font-size:.92rem;
+    line-height:1.6;
+}
+
+.total-highlight{
+    margin-top:18px;
+    background:linear-gradient(135deg, rgba(197,160,89,.16) 0%, rgba(94,198,196,.12) 100%);
+    border:1px solid rgba(197,160,89,.22);
+    border-radius:22px;
+    padding:18px;
+}
+
+.total-highlight .label{
+    color:rgba(255,255,255,.64);
+    font-size:.76rem;
+    font-weight:800;
+    text-transform:uppercase;
+    letter-spacing:1.5px;
+    margin-bottom:6px;
+}
+
+.total-highlight .value{
+    color:#fff;
+    font-size:2.1rem;
+    font-weight:900;
+    line-height:1.1;
+}
+
+.alert-box{
+    margin-top:16px;
+    border-radius:18px;
+    padding:16px;
+    font-size:.95rem;
+    line-height:1.65;
+    border:1px solid transparent;
+}
+
+.alert-box.safe{
+    background:rgba(38,194,129,.12);
+    border-color:rgba(38,194,129,.22);
+    color:#d8fff0;
+}
+
+.alert-box.warn{
+    background:rgba(244,183,64,.12);
+    border-color:rgba(244,183,64,.22);
+    color:#fff4d8;
+}
+
+.alert-box.danger{
+    background:rgba(255,95,109,.12);
+    border-color:rgba(255,95,109,.22);
+    color:#ffe1e4;
+}
+
+.muted-note{
+    margin-top:16px;
+    color:rgba(255,255,255,.52);
+    font-size:.84rem;
+    line-height:1.6;
+}
+
+.empty-state{
+    min-height:420px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+    padding:30px;
+    background:linear-gradient(145deg, rgba(28,34,35,0.96) 0%, rgba(15,18,19,0.98) 100%);
+    border:1px solid rgba(255,255,255,.06);
+    border-radius:26px;
+    color:var(--vnv-text-muted);
+}
+
+.empty-state-inner{
+    max-width:420px;
+}
+
+.empty-state-icon{
+    width:72px;
+    height:72px;
+    margin:0 auto 18px;
+    border-radius:22px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:rgba(94,198,196,.10);
+    color:var(--vnv-primary);
+    font-size:1.5rem;
+}
+
+@media (max-width: 1199px){
+    .tool-grid{
+        grid-template-columns:1fr;
+    }
+}
+
+@media (max-width: 767px){
+    .section-vnv{
+        padding:90px 0;
+    }
+
+    .hero-tool h1{
+        font-size:2.7rem;
+    }
+
+    .vnv-btn{
+        width:100%;
+        padding:18px 24px;
+        letter-spacing:2px;
+    }
+
+    .hero-cta-row{
+        flex-direction:column;
+    }
+
+    .tool-body{
+        padding:16px;
+    }
+
+    .tool-inline-2,
+    .tool-inline-3,
+    .option-grid,
+    .result-grid,
+    .breakdown-grid{
+        grid-template-columns:1fr;
+    }
+
+    .tool-panel,
+    .result-card{
+        padding:18px;
+    }
+}
+</style>
+{% endblock %}
+
+{% block body %}
+
+{% include "templates/layout/publicHeaderVnv.html.twig" %}
+
+<section class="hero-tool">
+    <div class="container hero-tool-inner">
+        <span class="vnv-badge">Free Event Planning Tool</span>
+
+        <h1>Tent & Seating <span class="text-gold">Calculator</span></h1>
+
+        <p class="hero-copy">
+            Estimate tent size, banquet tables, cocktail tables and chair counts for weddings, social events, corporate functions and outdoor celebrations. Plan a setup that works in the real world, not just on paper.
+        </p>
+
+        <div class="hero-cta-row">
+            <a href="#tent-tool" class="vnv-btn btn-gold-vnv">Use the Calculator</a>
+            <a href="#" data-vnv-open-request class="vnv-btn btn-outline-vnv">Need Tent & Rental Help?</a>
+        </div>
+    </div>
+</section>
+
+<section class="section-vnv section-white" id="tent-tool">
+    <div class="container">
+        <div class="tool-shell">
+            <div class="tool-topbar">
+                <div class="tool-topbar-left">
+                    <div class="tool-topbar-icon"><i class="fa-solid fa-tents"></i></div>
+                    <div>
+                        <div class="tool-topbar-title">Tent and Seating Requirement Calculator</div>
+                        <div class="tool-topbar-sub">Estimate tent footprint, tables and seating counts more realistically</div>
+                    </div>
+                </div>
+
+                <div class="tool-topbar-note">
+                    Better for outdoor weddings, backyard parties, social celebrations and corporate tent layouts
+                </div>
+            </div>
+
+            <div class="tool-body">
+                <div class="tool-grid">
+                    <div class="tool-panel">
+                        <h3>Plan Your Tent Layout</h3>
+
+                        <div class="tool-inline-2">
+                            <div class="tool-field">
+                                <label for="guest-count">Number of guests</label>
+                                <input type="number" id="guest-count" min="1" step="1" placeholder="e.g. 100">
+                            </div>
+
+                            <div class="tool-field">
+                                <label for="event-style">Event style</label>
+                                <select id="event-style">
+                                    <option value="wedding" selected>Wedding Reception</option>
+                                    <option value="social">Birthday / Social Event</option>
+                                    <option value="corporate">Corporate Event</option>
+                                    <option value="cocktail">Cocktail Reception</option>
+                                    <option value="ceremony">Ceremony / Presentation</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="tool-inline-3">
+                            <div class="tool-field">
+                                <label for="seating-type">Seating arrangement</label>
+                                <select id="seating-type">
+                                    <option value="banquet-rounds" selected>Banquet Rounds</option>
+                                    <option value="banquet-rect">Banquet Rectangular</option>
+                                    <option value="theater">Theater Seating</option>
+                                    <option value="classroom">Classroom</option>
+                                    <option value="cocktail">Cocktail Style</option>
+                                    <option value="mixed">Mixed Layout</option>
+                                </select>
+                            </div>
+
+                            <div class="tool-field">
+                                <label for="comfort-level">Comfort level</label>
+                                <select id="comfort-level">
+                                    <option value="efficient">Efficient Fit</option>
+                                    <option value="balanced" selected>Balanced</option>
+                                    <option value="spacious">Spacious</option>
+                                </select>
+                            </div>
+
+                            <div class="tool-field">
+                                <label for="table-size">Banquet table size</label>
+                                <select id="table-size">
+                                    <option value="8" selected>8 Guests per Table</option>
+                                    <option value="10">10 Guests per Table</option>
+                                    <option value="12">12 Guests per Table</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="tool-field">
+                            <label>Additional areas to include</label>
+                            <div class="option-grid">
+                                <label class="option-pill">
+                                    <input type="checkbox" id="high-top-area">
+                                    <div>
+                                        <strong>High-Top Table Area</strong>
+                                        <span>Add cocktail tables for approximately 25% of guests.</span>
+                                    </div>
+                                </label>
+
+                                <label class="option-pill">
+                                    <input type="checkbox" id="dance-floor" checked>
+                                    <div>
+                                        <strong>Dance Floor</strong>
+                                        <span>Add room for dancing and movement near entertainment.</span>
+                                    </div>
+                                </label>
+
+                                <label class="option-pill">
+                                    <input type="checkbox" id="bar-area" checked>
+                                    <div>
+                                        <strong>Bar Area</strong>
+                                        <span>Allow room for bartenders, lines and guest gathering.</span>
+                                    </div>
+                                </label>
+
+                                <label class="option-pill">
+                                    <input type="checkbox" id="buffet-area" checked>
+                                    <div>
+                                        <strong>Buffet / Catering Area</strong>
+                                        <span>Useful for buffet lines, food stations or service support.</span>
+                                    </div>
+                                </label>
+
+                                <label class="option-pill">
+                                    <input type="checkbox" id="dj-area" checked>
+                                    <div>
+                                        <strong>DJ / Entertainment Area</strong>
+                                        <span>Space for DJ booth, speakers or a compact stage setup.</span>
+                                    </div>
+                                </label>
+
+                                <label class="option-pill">
+                                    <input type="checkbox" id="lounge-area">
+                                    <div>
+                                        <strong>Lounge / Decor Space</strong>
+                                        <span>Optional footprint for décor, photo area or soft seating.</span>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="tool-actions">
+                            <button type="button" class="tool-btn primary" id="calculate-btn">
+                                <i class="fa-solid fa-calculator"></i>
+                                Calculate
+                            </button>
+
+                            <button type="button" class="tool-btn secondary" id="reset-btn">
+                                <i class="fa-solid fa-rotate-left"></i>
+                                Reset
+                            </button>
+                        </div>
+
+                        <div class="tool-helper">
+                            This version is intentionally more useful than a basic table count. It estimates the tent footprint together with real support areas so the setup does not look fine in a spreadsheet but cramped on event day.
+                        </div>
+                    </div>
+
+                    <div class="tool-results" id="tool-results">
+                        <div class="empty-state">
+                            <div class="empty-state-inner">
+                                <div class="empty-state-icon"><i class="fa-solid fa-chair"></i></div>
+                                <h3 style="font-size:1.7rem; color:#fff; margin-bottom:10px;">Your tent and seating recommendation will appear here</h3>
+                                <p style="margin:0;">
+                                    Enter your guest count and seating setup to estimate tent size, tables and chairs.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+{% include "templates/components/publicEventRequestModal.html.twig" with {
+    request_form_action: "/api/public/event-request"
+} %}
+
+{% include "templates/layout/publicFooterVnv.html.twig" %}
+
+{% endblock %}
+
+{% block scripts %}
+<script type="application/ld+json">
+{
+  "@context":"https://schema.org",
+  "@type":"WebApplication",
+  "name":"Tent and Seating Calculator",
+  "applicationCategory":"BusinessApplication",
+  "operatingSystem":"Web",
+  "description":"A free web-based tent and seating calculator that estimates tent size, table count, chair count and cocktail table needs for events.",
+  "offers":{
+    "@type":"Offer",
+    "price":"0",
+    "priceCurrency":"USD"
+  }
+}
+</script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const guestCount = document.getElementById('guest-count');
+    const eventStyle = document.getElementById('event-style');
+    const seatingType = document.getElementById('seating-type');
+    const comfortLevel = document.getElementById('comfort-level');
+    const tableSize = document.getElementById('table-size');
+
+    const highTopArea = document.getElementById('high-top-area');
+    const danceFloor = document.getElementById('dance-floor');
+    const barArea = document.getElementById('bar-area');
+    const buffetArea = document.getElementById('buffet-area');
+    const djArea = document.getElementById('dj-area');
+    const loungeArea = document.getElementById('lounge-area');
+
+    const calculateBtn = document.getElementById('calculate-btn');
+    const resetBtn = document.getElementById('reset-btn');
+    const resultsWrap = document.getElementById('tool-results');
+
+    const seatingPresets = {
+        'banquet-rounds': {
+            label: 'Banquet Rounds',
+            min: 11,
+            rec: 12,
+            max: 14
+        },
+        'banquet-rect': {
+            label: 'Banquet Rectangular',
+            min: 9,
+            rec: 10,
+            max: 12
+        },
+        theater: {
+            label: 'Theater Seating',
+            min: 6,
+            rec: 7,
+            max: 8
+        },
+        classroom: {
+            label: 'Classroom',
+            min: 14,
+            rec: 16,
+            max: 18
+        },
+        cocktail: {
+            label: 'Cocktail Style',
+            min: 12,
+            rec: 15,
+            max: 18
+        },
+        mixed: {
+            label: 'Mixed Layout',
+            min: 11,
+            rec: 14,
+            max: 17
+        }
+    };
+
+    const standardTentSizes = [
+        400, 600, 800, 900, 1000, 1200, 1500, 1600, 1800, 2000,
+        2400, 2500, 3000, 3200, 3600, 4000, 4500, 4800, 5000, 6000
+    ];
+
+    function renderEmpty() {
+        resultsWrap.innerHTML = `
+            <div class="empty-state">
+                <div class="empty-state-inner">
+                    <div class="empty-state-icon"><i class="fa-solid fa-chair"></i></div>
+                    <h3 style="font-size:1.7rem; color:#fff; margin-bottom:10px;">Your tent and seating recommendation will appear here</h3>
+                    <p style="margin:0;">
+                        Enter your guest count and event setup to see a practical outdoor layout estimate.
+                    </p>
+                </div>
+            </div>
+        `;
+    }
+
+    function formatNumber(value) {
+        return new Intl.NumberFormat('en-US').format(Math.round(value));
+    }
+
+    function getComfortMultiplier(value) {
+        switch (value) {
+            case 'efficient':
+                return 0.92;
+            case 'spacious':
+                return 1.14;
+            default:
+                return 1.00;
+        }
+    }
+
+    function getEventMultiplier(value) {
+        switch (value) {
+            case 'wedding':
+                return 1.08;
+            case 'social':
+                return 1.02;
+            case 'corporate':
+                return 1.00;
+            case 'cocktail':
+                return 1.05;
+            case 'ceremony':
+                return 0.96;
+            default:
+                return 1.00;
+        }
+    }
+
+    function calculateAddons(guests) {
+        let total = 0;
+        const list = [];
+
+        function addItem(enabled, label, amount) {
+            if (!enabled) return;
+            total += amount;
+            list.push({ label, amount });
+        }
+
+        addItem(danceFloor.checked, 'Dance Floor', Math.max(120, guests * 2.5));
+        addItem(barArea.checked, 'Bar Area', Math.max(60, guests * 1.2));
+        addItem(buffetArea.checked, 'Buffet / Catering Area', Math.max(80, guests * 1.8));
+        addItem(djArea.checked, 'DJ / Entertainment Area', 70);
+        addItem(loungeArea.checked, 'Lounge / Decor Space', Math.max(70, guests * 1.3));
+
+        return { total, list };
+    }
+
+    function getRecommendedTentSize(requiredSqFt) {
+        for (let i = 0; i < standardTentSizes.length; i++) {
+            if (standardTentSizes[i] >= requiredSqFt) {
+                return standardTentSizes[i];
+            }
+        }
+        return Math.ceil(requiredSqFt / 100) * 100;
+    }
+
+    function getTentSuggestion(size) {
+        if (size <= 400) return '20x20 tent';
+        if (size <= 600) return '20x30 tent';
+        if (size <= 800) return '20x40 tent';
+        if (size <= 900) return '30x30 tent';
+        if (size <= 1200) return '30x40 tent';
+        if (size <= 1600) return '40x40 tent';
+        if (size <= 2000) return '40x50 tent';
+        if (size <= 2400) return '40x60 tent';
+        if (size <= 3000) return '40x75 tent';
+        if (size <= 3200) return '40x80 tent';
+        if (size <= 4000) return '40x100 tent';
+        if (size <= 4800) return '40x120 tent';
+        if (size <= 6000) return '60x100 tent';
+        return 'Multiple connected tents or custom structure';
+    }
+
+    function getRoomFeeling(totalSqFt, guests) {
+        const ratio = totalSqFt / guests;
+
+        if (ratio <= 9) {
+            return {
+                type: 'danger',
+                title: 'Tight fit',
+                copy: 'This can work, but layout discipline becomes critical and the tent may feel compressed once all rentals are installed.'
+            };
+        }
+
+        if (ratio <= 13) {
+            return {
+                type: 'warn',
+                title: 'Usable but not generous',
+                copy: 'This is workable for many events, especially if the layout is efficient and support areas stay compact.'
+            };
+        }
+
+        if (ratio <= 18) {
+            return {
+                type: 'safe',
+                title: 'Comfortable planning range',
+                copy: 'This usually gives a balanced event footprint with better circulation and a more realistic install plan.'
+            };
+        }
+
+        if (ratio <= 22) {
+            return {
+                type: 'safe',
+                title: 'Comfortable to spacious',
+                copy: 'This should feel open and flexible for most outdoor events without pushing into obviously oversized territory.'
+            };
+        }
+
+        return {
+            type: 'safe',
+            title: 'Very spacious',
+            copy: 'This gives strong flexibility for premium circulation, décor moments and a more open guest experience.'
+        };
+    }
+
+    function getPlanningNotes(guests, seatingValue, tentSize, recommendedSqFt) {
+        const notes = [];
+
+        if (seatingValue === 'cocktail') {
+            notes.push('Cocktail-style events often need fewer dining tables but more circulation space, especially near the bar and entertainment zones.');
+        }
+
+        if (highTopArea.checked) {
+            notes.push('High-top areas are useful visually and operationally, but they add footprint quickly once spacing around the cocktail tables is considered.');
+        }
+
+        if (danceFloor.checked) {
+            notes.push('If dancing matters, avoid selecting a tent that only fits the chairs and tables. Dance floor plus guest circulation usually changes the feel of the event dramatically.');
+        }
+
+        if (guests >= 120) {
+            notes.push('For larger guest counts, tent width and structural leg placement matter almost as much as raw square footage.');
+        }
+
+        if (tentSize > recommendedSqFt * 1.12) {
+            notes.push('Your recommended tent size was rounded up to the next common rental footprint, which is usually the smarter choice in real-world planning.');
+        }
+
+        if (notes.length === 0) {
+            notes.push('This estimate is a solid planning baseline, but final rental needs should still be checked against the real site, tent leg placement and service flow.');
+        }
+
+        return notes;
+    }
+
+    function calculateEstimate() {
+        const guests = parseFloat(guestCount.value || '0');
+        const seatsPerTable = parseInt(tableSize.value || '8', 10);
+
+        if (guests <= 0) {
+            renderEmpty();
+            return;
+        }
+
+        const preset = seatingPresets[seatingType.value];
+        const comfortMultiplier = getComfortMultiplier(comfortLevel.value);
+        const eventMultiplier = getEventMultiplier(eventStyle.value);
+        const addons = calculateAddons(guests);
+
+        const minBase = guests * preset.min * eventMultiplier;
+        const recBase = guests * preset.rec * eventMultiplier;
+        const maxBase = guests * preset.max * eventMultiplier;
+
+        const efficientSqFt = (minBase + addons.total) * comfortMultiplier * 0.96;
+        const recommendedSqFt = (recBase + addons.total) * comfortMultiplier;
+        const spaciousSqFt = (maxBase + addons.total) * comfortMultiplier * 1.02;
+
+        const roundedTentSqFt = getRecommendedTentSize(recommendedSqFt);
+        const tentSuggestion = getTentSuggestion(roundedTentSqFt);
+
+        let banquetTables = 0;
+        let banquetChairs = 0;
+
+        if (['banquet-rounds', 'banquet-rect', 'mixed'].includes(seatingType.value)) {
+            banquetTables = Math.ceil(guests / seatsPerTable);
+            banquetChairs = guests;
+        } else if (seatingType.value === 'cocktail') {
+            banquetTables = 0;
+            banquetChairs = Math.ceil(guests * 0.35);
+        } else {
+            banquetTables = 0;
+            banquetChairs = guests;
+        }
+
+        let highTopGuestCount = 0;
+        let highTopCount = 0;
+        let highTopChairCount = 0;
+
+        if (highTopArea.checked) {
+            highTopGuestCount = Math.ceil(guests * 0.25);
+            highTopCount = Math.ceil(highTopGuestCount / 4);
+            highTopChairCount = highTopGuestCount;
+        }
+
+        const roomFeeling = getRoomFeeling(recommendedSqFt, guests);
+        const notes = getPlanningNotes(guests, seatingType.value, roundedTentSqFt, recommendedSqFt);
+
+        const summaryLine = [
+            eventStyle.options[eventStyle.selectedIndex].text,
+            seatingType.options[seatingType.selectedIndex].text,
+            comfortLevel.options[comfortLevel.selectedIndex].text
+        ].join(' · ');
+
+        const addonHtml = addons.list.length
+            ? addons.list.map(item => `
+                <div class="breakdown-card">
+                    <h4>${item.label}</h4>
+                    <p><strong>${formatNumber(item.amount)} sq ft</strong> added for this support area.</p>
+                </div>
+            `).join('')
+            : `
+                <div class="breakdown-card">
+                    <h4>No Add-On Areas Selected</h4>
+                    <p>Your estimate is based on the core seating arrangement only.</p>
+                </div>
+            `;
+
+        const notesHtml = notes.map(note => `<p style="margin:0 0 12px;">${note}</p>`).join('');
+
+        resultsWrap.innerHTML = `
+            <div class="result-card">
+                <h3>Recommended Tent Footprint</h3>
+                <p>${summaryLine}</p>
+
+                <div class="result-grid">
+                    <div class="result-stat">
+                        <div class="result-stat-label">Efficient Fit</div>
+                        <div class="result-stat-value">${formatNumber(efficientSqFt)} sq ft</div>
+                    </div>
+                    <div class="result-stat">
+                        <div class="result-stat-label">Recommended</div>
+                        <div class="result-stat-value">${formatNumber(recommendedSqFt)} sq ft</div>
+                    </div>
+                    <div class="result-stat">
+                        <div class="result-stat-label">Spacious</div>
+                        <div class="result-stat-value">${formatNumber(spaciousSqFt)} sq ft</div>
+                    </div>
+                </div>
+
+                <div class="total-highlight">
+                    <div class="label">Suggested rental tent size</div>
+                    <div class="value">${formatNumber(roundedTentSqFt)} sq ft · ${tentSuggestion}</div>
+                </div>
+            </div>
+
+            <div class="result-card">
+                <h3>Seating & Rental Counts</h3>
+
+                <div class="breakdown-grid">
+                    <div class="breakdown-card">
+                        <h4>Banquet Tables</h4>
+                        <p>${formatNumber(banquetTables)}</p>
+                    </div>
+
+                    <div class="breakdown-card">
+                        <h4>Standard Chairs</h4>
+                        <p>${formatNumber(banquetChairs)}</p>
+                    </div>
+
+                    <div class="breakdown-card">
+                        <h4>High-Top Tables</h4>
+                        <p>${formatNumber(highTopCount)}</p>
+                    </div>
+
+                    <div class="breakdown-card">
+                        <h4>High-Top Chairs / Stools</h4>
+                        <p>${formatNumber(highTopChairCount)}</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="result-card">
+                <h3>Base Layout + Add-Ons</h3>
+
+                <div class="breakdown-grid">
+                    <div class="breakdown-card">
+                        <h4>Base Seating Layout</h4>
+                        <p><strong>${seatingType.options[seatingType.selectedIndex].text}</strong> was used as the main tent footprint driver.</p>
+                    </div>
+
+                    <div class="breakdown-card">
+                        <h4>Additional Area Added</h4>
+                        <p><strong>${formatNumber(addons.total)} sq ft</strong> total added for dance floor, service and support zones.</p>
+                    </div>
+                </div>
+
+                <div class="breakdown-grid">
+                    ${addonHtml}
+                </div>
+            </div>
+
+            <div class="result-card">
+                <h3>How That Tent Will Feel</h3>
+
+                <div class="alert-box ${roomFeeling.type}">
+                    <strong>${roomFeeling.title}.</strong> ${roomFeeling.copy}
+                </div>
+
+                <div class="muted-note">
+                    This result assumes the tent footprint is actually usable. Site slope, catering tent separation, power runs, restrooms, structural legs and weather backup can still affect the final rental plan.
+                </div>
+            </div>
+
+            <div class="result-card">
+                <h3>Planner Notes</h3>
+                ${notesHtml}
+            </div>
+        `;
+    }
+
+    function applyEventDefaults() {
+        switch (eventStyle.value) {
+            case 'wedding':
+                seatingType.value = 'banquet-rounds';
+                comfortLevel.value = 'balanced';
+                tableSize.value = '8';
+                highTopArea.checked = false;
+                danceFloor.checked = true;
+                barArea.checked = true;
+                buffetArea.checked = true;
+                djArea.checked = true;
+                loungeArea.checked = false;
+                break;
+
+            case 'social':
+                seatingType.value = 'mixed';
+                comfortLevel.value = 'balanced';
+                tableSize.value = '8';
+                highTopArea.checked = true;
+                danceFloor.checked = true;
+                barArea.checked = true;
+                buffetArea.checked = true;
+                djArea.checked = true;
+                loungeArea.checked = false;
+                break;
+
+            case 'corporate':
+                seatingType.value = 'classroom';
+                comfortLevel.value = 'balanced';
+                tableSize.value = '8';
+                highTopArea.checked = false;
+                danceFloor.checked = false;
+                barArea.checked = true;
+                buffetArea.checked = true;
+                djArea.checked = false;
+                loungeArea.checked = false;
+                break;
+
+            case 'cocktail':
+                seatingType.value = 'cocktail';
+                comfortLevel.value = 'balanced';
+                tableSize.value = '8';
+                highTopArea.checked = true;
+                danceFloor.checked = false;
+                barArea.checked = true;
+                buffetArea.checked = true;
+                djArea.checked = false;
+                loungeArea.checked = true;
+                break;
+
+            case 'ceremony':
+                seatingType.value = 'theater';
+                comfortLevel.value = 'efficient';
+                tableSize.value = '8';
+                highTopArea.checked = false;
+                danceFloor.checked = false;
+                barArea.checked = false;
+                buffetArea.checked = false;
+                djArea.checked = false;
+                loungeArea.checked = false;
+                break;
+        }
+    }
+
+    eventStyle.addEventListener('change', applyEventDefaults);
+    calculateBtn.addEventListener('click', calculateEstimate);
+
+    resetBtn.addEventListener('click', function () {
+        guestCount.value = '';
+        eventStyle.value = 'wedding';
+        applyEventDefaults();
+        renderEmpty();
+    });
+
+    applyEventDefaults();
+    renderEmpty();
+});
+</script>
+{% endblock %}

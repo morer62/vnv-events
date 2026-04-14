@@ -1,0 +1,1051 @@
+{% extends "templates/base.twig" %}
+
+{% set show_whatsapp = true %}
+
+{% block styles %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@200;300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,700;0,900;1,700;1,900&display=swap" rel="stylesheet">
+
+<style>
+:root {
+    --vnv-primary: #5EC6C4;
+    --vnv-primary-dark: #4aa8a6;
+    --vnv-gold: #c5a059;
+    --vnv-gold-gradient: linear-gradient(135deg, #bf953f 0%, #fcf6ba 45%, #b38728 100%);
+    --vnv-dark-deep: #0a0c0c;
+    --vnv-dark-soft: #141818;
+    --vnv-dark-card: #1b2021;
+    --vnv-light: #ffffff;
+    --vnv-marble: #f4f7f8;
+    --vnv-text-main: #2d3436;
+    --vnv-text-dark: #11181a;
+    --vnv-text-light: #f3f5f6;
+    --vnv-text-muted: rgba(255,255,255,.74);
+    --vnv-text-muted-soft: rgba(255,255,255,.60);
+    --vnv-border: rgba(255,255,255,.08);
+    --vnv-shadow-lg: 0 40px 100px rgba(0,0,0,.24);
+    --vnv-glow: 0 0 40px rgba(94,198,196,.16);
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+    background: var(--vnv-dark-deep);
+    color: var(--vnv-text-light);
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    line-height: 1.8;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+}
+
+h1, h2, h3, h4, h5, .luxury-font {
+    font-family: 'Playfair Display', serif;
+}
+
+.text-vnv { color: var(--vnv-primary) !important; }
+.text-gold {
+    background: var(--vnv-gold-gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+.letter-spacing-lg { letter-spacing: 4px; }
+
+.vnv-btn {
+    padding: 18px 30px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    transition: all .35s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    text-decoration: none;
+    border: none;
+    cursor: pointer;
+    font-size: .78rem;
+    border-radius: 999px;
+}
+
+.btn-gold-vnv {
+    background: var(--vnv-gold-gradient);
+    color: #000 !important;
+}
+.btn-gold-vnv:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 20px 40px rgba(197,160,89,.22);
+}
+.btn-outline-vnv {
+    border: 2px solid var(--vnv-primary);
+    color: var(--vnv-primary) !important;
+    background: transparent;
+}
+.btn-outline-vnv:hover {
+    background: var(--vnv-primary);
+    color: #fff !important;
+}
+.btn-ghost-dark {
+    border: 1px solid rgba(17,24,26,.16);
+    color: var(--vnv-text-dark) !important;
+    background: transparent;
+}
+.btn-ghost-dark:hover {
+    background: var(--vnv-text-dark);
+    color: #fff !important;
+}
+
+.section-vnv {
+    padding: 120px 0;
+    position: relative;
+}
+
+.vnv-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 18px;
+    border-radius: 999px;
+    background: rgba(94,198,196,.1);
+    color: var(--vnv-primary);
+    font-size: .74rem;
+    letter-spacing: 2px;
+    font-weight: 800;
+    text-transform: uppercase;
+}
+
+.vnv-breadcrumbs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    font-size: .88rem;
+    color: rgba(255,255,255,.6);
+    margin-top: 18px;
+}
+.vnv-breadcrumbs a {
+    color: rgba(255,255,255,.76);
+    text-decoration: none;
+}
+.vnv-breadcrumbs span.sep {
+    opacity: .4;
+}
+
+.hero-gourmet {
+    position: relative;
+    min-height: 92vh;
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+    background:
+        linear-gradient(90deg, rgba(10,12,12,.88) 0%, rgba(10,12,12,.68) 42%, rgba(10,12,12,.42) 100%),
+        url('{{ asset_for('assets/images/vnv-gourmet-hero.jpg') }}') center/cover no-repeat;
+}
+
+.hero-gourmet::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+        radial-gradient(circle at top right, rgba(94,198,196,.16), transparent 28%),
+        radial-gradient(circle at bottom left, rgba(197,160,89,.10), transparent 24%);
+    pointer-events: none;
+}
+
+.hero-gourmet-inner {
+    position: relative;
+    z-index: 2;
+    width: 100%;
+}
+
+.hero-gourmet h1 {
+    font-size: clamp(3rem, 6vw, 5.4rem);
+    line-height: 1.02;
+    margin: 20px 0 28px;
+    max-width: 900px;
+}
+
+.hero-gourmet p.hero-copy {
+    font-size: 1.08rem;
+    color: var(--vnv-text-muted);
+    max-width: 760px;
+    margin-bottom: 34px;
+}
+
+.hero-cta-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-bottom: 28px;
+}
+
+.section-white {
+    background: var(--vnv-marble);
+    color: var(--vnv-text-dark);
+}
+
+.section-dark {
+    background: var(--vnv-dark-deep);
+    color: var(--vnv-text-light);
+}
+
+.section-heading {
+    max-width: 900px;
+    margin-bottom: 55px;
+}
+.section-heading h2 {
+    font-size: clamp(2.2rem, 4vw, 4.3rem);
+    line-height: 1.04;
+    margin: 16px 0 18px;
+}
+.section-dark .section-heading p {
+    color: var(--vnv-text-muted);
+}
+.section-white .section-heading p {
+    color: #5a6669;
+}
+
+.menu-card {
+    border-radius: 30px;
+    padding: 34px 30px;
+    height: 100%;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 20px 60px rgba(0,0,0,.10);
+}
+
+.section-dark .menu-card,
+.section-dark .holiday-card,
+.section-dark .mini-card,
+.section-dark .contact-card {
+    background: linear-gradient(145deg, rgba(28,34,35,.95) 0%, rgba(16,18,18,.96) 100%);
+    border: 1px solid rgba(255,255,255,.07);
+}
+
+.section-white .menu-card,
+.section-white .holiday-card,
+.section-white .mini-card,
+.section-white .instagram-card {
+    background: #fff;
+    border: 1px solid rgba(17,24,26,.08);
+}
+
+.menu-card h3,
+.holiday-card h4,
+.mini-card h4,
+.contact-card h4,
+.instagram-card h4,
+.feature-copy h3 {
+    margin-bottom: 18px;
+}
+
+.section-dark .menu-card h3,
+.section-dark .holiday-card h4,
+.section-dark .mini-card h4,
+.section-dark .contact-card h4 {
+    color: #fff;
+}
+
+.section-white .menu-card h3,
+.section-white .holiday-card h4,
+.section-white .mini-card h4,
+.section-white .instagram-card h4,
+.section-white .feature-copy h3 {
+    color: var(--vnv-text-dark);
+}
+
+.menu-card h3 {
+    font-size: 2rem;
+}
+
+.menu-card h4 {
+    color: var(--vnv-primary);
+    font-size: 1.15rem;
+    margin: 26px 0 12px;
+}
+
+.section-dark .menu-card p,
+.section-dark .holiday-card p,
+.section-dark .mini-card p,
+.section-dark .contact-card p,
+.section-dark .menu-card li,
+.section-dark .holiday-card li,
+.section-dark .mini-card li,
+.section-dark .contact-card li {
+    color: var(--vnv-text-muted);
+}
+
+.section-white .menu-card p,
+.section-white .holiday-card p,
+.section-white .mini-card p,
+.section-white .instagram-card p,
+.section-white .menu-card li,
+.section-white .holiday-card li,
+.section-white .mini-card li {
+    color: #485457;
+}
+
+.menu-card ul,
+.holiday-card ul,
+.mini-card ul,
+.contact-card ul {
+    list-style: none;
+    padding-left: 0;
+    margin: 0;
+}
+
+.menu-card ul li,
+.holiday-card ul li,
+.mini-card ul li {
+    position: relative;
+    padding-left: 22px;
+    margin-bottom: 8px;
+}
+
+.menu-card ul li::before,
+.holiday-card ul li::before,
+.mini-card ul li::before {
+    content: "";
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--vnv-gold);
+    position: absolute;
+    left: 0;
+    top: 12px;
+}
+
+.menu-top-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin: 0 0 22px;
+}
+
+.call-strip {
+    margin-top: 22px;
+    padding-top: 20px;
+}
+.section-dark .call-strip {
+    border-top: 1px solid rgba(255,255,255,.08);
+}
+.section-white .call-strip {
+    border-top: 1px solid rgba(17,24,26,.08);
+}
+.call-strip a {
+    color: var(--vnv-primary);
+    text-decoration: none;
+    font-weight: 800;
+    letter-spacing: 1px;
+}
+
+.split-feature {
+    position: relative;
+}
+
+.feature-box {
+    border-radius: 34px;
+    overflow: hidden;
+    box-shadow: 0 20px 60px rgba(0,0,0,.12);
+    border: 1px solid rgba(17,24,26,.08);
+    background: #fff;
+}
+
+.feature-visual {
+    min-height: 100%;
+    background:
+        linear-gradient(180deg, rgba(0,0,0,.10), rgba(0,0,0,.20)),
+        url('{{ asset_for('assets/images/vnv-gourmet-corporate.jpg') }}') center/cover no-repeat;
+}
+
+.feature-copy {
+    padding: 60px 50px;
+    color: var(--vnv-text-dark);
+}
+.feature-copy p,
+.feature-copy li {
+    color: #4d595c;
+}
+.feature-copy ul {
+    list-style: none;
+    padding-left: 0;
+    margin: 0;
+}
+.feature-copy ul li {
+    padding-left: 22px;
+    position: relative;
+    margin-bottom: 10px;
+}
+.feature-copy ul li::before {
+    content: "•";
+    color: var(--vnv-gold);
+    position: absolute;
+    left: 0;
+    top: 0;
+    font-size: 1.2rem;
+}
+
+.holiday-card,
+.mini-card,
+.contact-card,
+.instagram-card {
+    border-radius: 28px;
+    padding: 30px;
+    height: 100%;
+}
+
+.instagram-visual {
+    border-radius: 26px;
+    overflow: hidden;
+    min-height: 420px;
+    background:
+        linear-gradient(180deg, rgba(0,0,0,.08), rgba(0,0,0,.22)),
+        url('{{ asset_for('assets/images/vnv-gourmet-instagram.jpg') }}') center/cover no-repeat;
+    border: 1px solid rgba(17,24,26,.08);
+}
+
+.location-block {
+    padding-bottom: 90px;
+}
+.contact-card ul li {
+    margin-bottom: 10px;
+}
+.contact-card a {
+    color: var(--vnv-primary);
+    text-decoration: none;
+}
+.footer-links-inline {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-top: 18px;
+}
+.footer-links-inline a {
+    color: rgba(255,255,255,.75);
+    text-decoration: none;
+}
+
+@media (max-width: 991px) {
+    .hero-gourmet {
+        min-height: auto;
+        padding: 120px 0 80px;
+        background-position: center center;
+    }
+
+    .feature-copy {
+        padding: 38px 28px;
+    }
+
+    .instagram-card {
+        padding: 32px;
+    }
+}
+
+@media (max-width: 767px) {
+    .section-vnv {
+        padding: 90px 0;
+    }
+
+    .hero-gourmet h1 {
+        font-size: 2.7rem;
+    }
+
+    .vnv-btn {
+        width: 100%;
+    }
+
+    .menu-card,
+    .mini-card,
+    .holiday-card,
+    .contact-card,
+    .instagram-card {
+        padding: 24px;
+    }
+}
+</style>
+{% endblock %}
+
+{% block body %}
+
+{% include "templates/layout/publicHeaderVnv.html.twig" %}
+
+<section class="hero-gourmet">
+    <div class="container hero-gourmet-inner">
+        <span class="vnv-badge">VNV Gourmet</span>
+
+        <h1>Event Catering Services in <span class="text-gold">South Florida</span></h1>
+
+        <p class="hero-copy">
+            At VNV Events, we’re passionate about providing exceptional catering services that elevate any event. Our team of expert caterers excels in a variety of offerings, from corporate catering tailored to your business needs to BBQ catering for your family gatherings.
+        </p>
+
+        <p class="hero-copy">
+            Our personalized solutions range from delightful breakfast catering and Brunch to elegant wedding catering , all designed to ensure your event is as exceptional as it deserves to be.
+        </p>
+
+        <div class="hero-cta-row">
+            <a href="tel:+13052045427" class="vnv-btn btn-gold-vnv">Call Now (305) 204 5427</a>
+            <a href="#menu-services" class="vnv-btn btn-outline-vnv">Menu and Services</a>
+        </div>
+
+        <div class="vnv-breadcrumbs">
+            <a href="#">Home</a>
+            <span class="sep">/</span>
+            <a href="#">Our Services</a>
+            <span class="sep">/</span>
+            <span>Event Catering Services &amp; Corporate Meal Plans</span>
+        </div>
+    </div>
+</section>
+
+<section class="section-vnv section-white" id="menu-services">
+    <div class="container">
+        <div class="section-heading">
+            <span class="vnv-badge">Menu and Services</span>
+            <h2>Menu and <span class="text-vnv">Services</span></h2>
+        </div>
+
+        <div class="row g-4">
+            <div class="col-lg-6">
+                <div class="menu-card">
+                    <h3>Entree &amp; Sides</h3>
+
+                    <div class="menu-top-actions">
+                        <a href="#" class="vnv-btn btn-gold-vnv">Price &amp; Details</a>
+                        <a href="#" class="vnv-btn btn-outline-vnv">Menu &amp; Details</a>
+                    </div>
+
+                    <p>Includes two Sides and Salad</p>
+
+                    <ul>
+                        <li>Herb Crusted Baked Salmon</li>
+                        <li>Chicken Shawarma Wraps with Tzatziki Sauce</li>
+                        <li>Eggplant Parmesan with Fresh Basil</li>
+                        <li>Shrimp Scampi with Garlic and White Wine</li>
+                        <li>Pork Tenderloin Medallions with Apple Chutney</li>
+                        <li>Classic Margherita Pizza</li>
+                        <li>Traditional Beef Lasagna</li>
+                        <li>Cheeseburger</li>
+                        <li>Crispy Fried Calamari</li>
+                        <li>Grilled Teriyaki Chicken</li>
+                        <li>Beef Tenderloin Sliders with Caramelized Onions</li>
+                        <li>Jamaican Jerk Chicken</li>
+                        <li>BBQ Pulled Pork Tacos</li>
+                        <li>Lemon-Herb Baked Salmon</li>
+                        <li>Grilled Filet Mignon with Red Wine Reduction</li>
+                    </ul>
+
+                    <h4>Sides:</h4>
+                    <ul>
+                        <li>Roasted Garlic Mashed Potatoes</li>
+                        <li>Garlic Bread</li>
+                        <li>Roasted Sweet Potatoes with Cinnamon</li>
+                        <li>Grilled Asparagus with Lemon Zest</li>
+                        <li>White Rice</li>
+                        <li>Grilled Vegetables</li>
+                        <li>Stuffed Mushrooms</li>
+                    </ul>
+
+                    <h4>Salads</h4>
+                    <ul>
+                        <li>Quinoa Salad with Roasted Vegetables</li>
+                        <li>Caesar Salad</li>
+                        <li>Greek Salad</li>
+                        <li>Spinach and Strawberry Salad</li>
+                    </ul>
+
+                    <div class="call-strip">
+                        <a href="tel:+13052045427">Call Now (305) 204 5427</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-6">
+                <div class="menu-card">
+                    <h3>Brunch Specials</h3>
+
+                    <div class="menu-top-actions">
+                        <a href="#" class="vnv-btn btn-gold-vnv">Price &amp; Details</a>
+                    </div>
+
+                    <ul>
+                        <li>Our brunch includes a live chef on-site for a 2-hour service, preparing select stations for your guests. Please choose two stations from the options below.</li>
+                        <li>Salad Bar</li>
+                        <li>Live Pancake Station (Chef included)</li>
+                        <li>Live Omelet Station (Chef included)</li>
+                        <li>Live Crepes Station (Chef included)</li>
+                        <li>Fresh Seasonal Fruit Display</li>
+                    </ul>
+
+                    <h4>Add-On Suggestions:</h4>
+                    <ul>
+                        <li>Servers and Staffing</li>
+                        <li>Charcuterie Board</li>
+                        <li>Seafood Display</li>
+                        <li>Sweet Table</li>
+                        <li>Chocolate Fondue Station</li>
+                        <li>Ice Cream Station</li>
+                        <li>Coffee Bar (1 attendant included)</li>
+                        <li>Bar &amp; Bartender Services</li>
+                        <li>Rental Services (tables, chairs, tents, decorations)</li>
+                        <li>Dj Services</li>
+                    </ul>
+
+                    <div class="call-strip">
+                        <a href="tel:+13052045427">Call Now (305) 204 5427</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-6">
+                <div class="menu-card">
+                    <h3>Taco Station</h3>
+
+                    <div class="menu-top-actions">
+                        <a href="#" class="vnv-btn btn-gold-vnv">Price &amp; Details</a>
+                    </div>
+
+                    <ul>
+                        <li>A variety of authentic Mexican dishes prepared fresh on-site</li>
+                        <li>Taco and Burrito Bar</li>
+                        <li>Select 2 proteins: Carnitas, Chicken, or Steak</li>
+                        <li>Sides available: Rice, Beans, Cheese, Guacamole, Onion, Cilantro, and Pico de Gallo</li>
+                        <li>2 hours of live chefs interacting with guests and preparing customized dishes</li>
+                    </ul>
+
+                    <div class="call-strip">
+                        <a href="tel:+13052045427">Call Now (305) 204 5427</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-6">
+                <div class="menu-card">
+                    <h3>Crepes Station</h3>
+
+                    <div class="menu-top-actions">
+                        <a href="#" class="vnv-btn btn-gold-vnv">Price &amp; Details</a>
+                    </div>
+
+                    <ul>
+                        <li>Variety of sweet and savory crepes made fresh on-site</li>
+                        <li>Choice of 2 fillings for sweet crepes (Nutella, strawberries, whipped cream)</li>
+                        <li>Choice of 2 fillings for savory crepes (ham, cheese, spinach, or chicken</li>
+                        <li>Buffet setup with elegant décor matching your event theme</li>
+                        <li>2 hours of live chefs who interact with your guests and customize each dish.</li>
+                    </ul>
+
+                    <div class="call-strip">
+                        <a href="tel:+13052045427">Call Now (305) 204 5427</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-6">
+                <div class="menu-card">
+                    <h3>Pizza Station</h3>
+
+                    <div class="menu-top-actions">
+                        <a href="#" class="vnv-btn btn-gold-vnv">Price &amp; Details</a>
+                        <a href="#" class="vnv-btn btn-outline-vnv">Details</a>
+                    </div>
+
+                    <ul>
+                        <li>Selection of Freshly Made Pizzas: Offering a variety of crusts and toppings to suit different tastes.</li>
+                        <li>Choice of Sauces: Including classic marinara, creamy Alfredo, and pesto.</li>
+                        <li>Fresh Toppings: Guests can customize with a range of meats, vegetables, and cheeses.</li>
+                        <li>Live Chef Interaction: Our chefs prepare pizzas on-site, allowing each guest to customize their dish.</li>
+                        <li>2 hours of live chefs who interact with your guests and customize each dish.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="col-lg-6">
+                <div class="menu-card">
+                    <h3>Pasta Station</h3>
+
+                    <div class="menu-top-actions">
+                        <a href="#" class="vnv-btn btn-gold-vnv">Price &amp; Details</a>
+                    </div>
+
+                    <ul>
+                        <li>3 variety of pastas</li>
+                        <li>3 Classic and innovative sauces prepared on the spot</li>
+                        <li>A selection of fresh ingredients 02 proteins</li>
+                        <li>Buffet Setups and Decorations</li>
+                        <li>2 hours of live chefs who interact with your guests and customize each dish.</li>
+                    </ul>
+
+                    <div class="call-strip">
+                        <a href="tel:+13052045427">Call Now (305) 204 5427</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-6">
+                <div class="menu-card">
+                    <h3>Paella &amp; Tapas Station</h3>
+
+                    <div class="menu-top-actions">
+                        <a href="#" class="vnv-btn btn-gold-vnv">Price &amp; Details</a>
+                    </div>
+
+                    <ul>
+                        <li>Authentic Spanish paella cooked live, with options for seafood, chicken, or vegetarian</li>
+                        <li>Selection of traditional tapas: Patatas bravas, jamón ibérico, croquetas, and more</li>
+                        <li>Customizable toppings and ingredients to suit guest preferences</li>
+                        <li>Elegant buffet setup with themed decorations for a Spanish-inspired atmosphere</li>
+                        <li>2 hours of live chefs who interact with your guests and customize each dish.</li>
+                    </ul>
+
+                    <div class="call-strip">
+                        <a href="tel:+13052045427">Call Now (305) 204 5427</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-6">
+                <div class="menu-card">
+                    <h3>appetizers</h3>
+
+                    <div class="menu-top-actions">
+                        <a href="#" class="vnv-btn btn-gold-vnv">Price &amp; Details</a>
+                    </div>
+
+                    <p>A complementary setup of a 6-ft table. If needed, additional servers can be added for an extra cost to assist with serving the appetizers to your guests.</p>
+
+                    <ul>
+                        <li>Pulled Pork Sliders with BBQ Sauce</li>
+                        <li>Crostata Pizza Bites</li>
+                        <li>Venezuelan Tequeños with Sweet and Sour Sauce</li>
+                        <li>Mozzarella Sticks whit Marinara Sauce</li>
+                        <li>Chips with Salsa and Guacamole</li>
+                        <li>Argentinian Empanada</li>
+                        <li>Charcuterie and Cheese Board</li>
+                        <li>Mac and Cheese bites</li>
+                        <li>Beef Slides with Chimichurri Sauce</li>
+                        <li>Bacon-Wrapped Dates with Goat Cheese</li>
+                        <li>Chicken wings with BBQ Sauce</li>
+                        <li>Vegetables or Pork Asian Spring Rolls</li>
+                        <li>Vegetable Spring Rolls with Sweet Chili Dipping Sauce</li>
+                        <li>Beef Meatballs with Marinara Sauce</li>
+                        <li>Shrimp Cocktail Shooters</li>
+                        <li>Mixed Seafood Ceviche</li>
+                        <li>Bruschetta with Tomato, Basil, and Mozzarella</li>
+                        <li>Smoked Salmon Crostini with Dill Cream Cheese</li>
+                        <li>Prosciuto-Wrapped asparagus with balsamic</li>
+                    </ul>
+
+                    <div class="call-strip">
+                        <a href="tel:+13052045427">Call Now (305) 204 5427</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-6">
+                <div class="menu-card">
+                    <h3>Sushi Boat Packages</h3>
+
+                    <div class="menu-top-actions">
+                        <a href="#" class="vnv-btn btn-gold-vnv">Price &amp; Details</a>
+                        <a href="#" class="vnv-btn btn-outline-vnv">Click for Details</a>
+                    </div>
+
+                    <p>Elevate your next event with VNV Events. Whether you crave the classic elegance of gourmet bites or the stunning visual of our iconic Sushi Boats, we have the perfect collection for you.</p>
+
+                    <ul>
+                        <li>1. THE SIGNATURE COLLECTION (Classic Variety) - 7 Handcrafted Gourmet Appetizers per person.</li>
+                        <li>2. THE OCEAN BLUE COLLECTION (Sushi Experience) 7 Gourmet Pieces Total: 4 Signature Sushi Pieces (Displayed on our iconic Sushi Boats). 3 Premium Appetizers of your choice.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="col-lg-6">
+                <div class="menu-card">
+                    <h3>D e s s e r t s</h3>
+
+                    <div class="menu-top-actions">
+                        <a href="#" class="vnv-btn btn-gold-vnv">Price &amp; Details</a>
+                        <a href="#" class="vnv-btn btn-outline-vnv">Details</a>
+                    </div>
+
+                    <p>Complementary setup of a 6-ft sweet table if need it</p>
+
+                    <ul>
+                        <li>Mini Chocolate Mousse Cups</li>
+                        <li>Fruit Skewers with Yogurt Dip</li>
+                        <li>Key Lime Pie Bites</li>
+                        <li>Tiramisu Cups</li>
+                        <li>Baklava Bites</li>
+                        <li>Chocolate-Dipped Cannoli</li>
+                        <li>Apple Pie</li>
+                        <li>Macarons</li>
+                        <li>Milojas</li>
+                        <li>Cake Pops</li>
+                        <li>Chocolate Truffle</li>
+                        <li>Strawberry tartlets</li>
+                    </ul>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+<section class="section-vnv section-dark">
+    <div class="container">
+        <div class="section-heading">
+            <span class="vnv-badge">Seasonal Holiday Menus</span>
+            <h2>Holiday and seasonal <span class="text-gold">selections</span></h2>
+        </div>
+
+        <div class="row g-4">
+            <div class="col-lg-6">
+                <div class="holiday-card">
+                    <h4>Thanksgiving Feast</h4>
+                    <ul>
+                        <li>Whole herb-roasted turkey</li>
+                        <li>Honey–pineapple glazed ham</li>
+                        <li>Mashed potatoes with gravy</li>
+                        <li>House stuffing</li>
+                        <li>Roasted fall vegetables</li>
+                        <li>Cranberry sauce</li>
+                        <li>Warm dinner rolls</li>
+                        <li>Mini pumpkin cheesecakes</li>
+                    </ul>
+
+                    <h4 style="margin-top:24px;">Christmas &amp; Holiday Celebration</h4>
+                    <ul>
+                        <li>Carved honey-glazed ham</li>
+                        <li>Roasted pork loin</li>
+                        <li>Creamy pasta with festive sauces</li>
+                        <li>House stuffing</li>
+                        <li>Truffle mashed potatoes</li>
+                        <li>Garlic bread</li>
+                        <li>Yule log cake</li>
+                    </ul>
+
+                    <div class="call-strip">
+                        <a href="tel:+13052045427">Call Now (305) 204 5427</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-6">
+                <div class="holiday-card">
+                    <h4>Easter Spring Brunch</h4>
+                    <ul>
+                        <li>Fresh waffles</li>
+                        <li>Omelet Station</li>
+                        <li>Seasonal fruit displays</li>
+                        <li>Cuban pastries</li>
+                        <li>Baggels Station</li>
+                    </ul>
+
+                    <h4 style="margin-top:24px;">Mother’s Day Floral Brunch</h4>
+                    <ul>
+                        <li>Lemon–herb chicken</li>
+                        <li>Pasta with alfredo &amp; vodka sauce</li>
+                        <li>Mediterranean rice</li>
+                        <li>Strawberry–feta salad</li>
+                        <li>Fresh assorted pastries</li>
+                    </ul>
+
+                    <h4 style="margin-top:24px;">4th of July All-American BBQ</h4>
+                    <ul>
+                        <li>Cheese Burgers</li>
+                        <li>Hot dogs</li>
+                        <li>BBQ wings</li>
+                        <li>Cornbread</li>
+                        <li>Mac &amp; cheese</li>
+                        <li>Potato salad</li>
+                        <li>Fresh watermelon</li>
+                        <li>Mini apple pies</li>
+                    </ul>
+
+                    <div class="call-strip">
+                        <a href="tel:+13052045427">Call Now (305) 204 5427</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="section-vnv section-white split-feature">
+    <div class="container">
+        <div class="feature-box">
+            <div class="row g-0 align-items-stretch">
+                <div class="col-lg-5 feature-visual"></div>
+                <div class="col-lg-7">
+                    <div class="feature-copy">
+                        <span class="vnv-badge">Corporate Team Appreciation Catering</span>
+                        <h3>Corporate Team Appreciation Catering</h3>
+
+                        <div class="menu-top-actions">
+                            <a href="#" class="vnv-btn btn-gold-vnv">Menu &amp; Details</a>
+                        </div>
+
+                        <p>Choose one curated station, ideal for corporate gatherings of 50+ guests.</p>
+
+                        <ul>
+                            <li>Minimum: 50 guests</li>
+                            <li>Buffet Setups and Decorations</li>
+                            <li>1 Hour Chef Service</li>
+                            <li>One price, no surprises</li>
+                            <li>Fast service for large teams</li>
+                        </ul>
+
+                        <h4 style="margin-top:24px;color:var(--vnv-text-dark);">Select one of our five food stations.</h4>
+                        <ul>
+                            <li>Pasta Station</li>
+                            <li>Paella Station</li>
+                            <li>Pizza Station</li>
+                            <li>Brunch Station</li>
+                            <li>Mexican Station</li>
+                        </ul>
+
+                        <div class="call-strip">
+                            <a href="tel:+13052045427">Call Now (305) 204 5427</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="section-vnv section-dark">
+    <div class="container">
+        <div class="section-heading">
+            <span class="vnv-badge">Additional Services</span>
+            <h2>Additional <span class="text-vnv">Services</span></h2>
+        </div>
+
+        <div class="row g-4">
+            <div class="col-md-6 col-xl-4">
+                <div class="mini-card">
+                    <h4>Staffing</h4>
+                    <p>We provide professional staff to attend to your guests and ensure your event runs smoothly.</p>
+                    <a href="#" class="vnv-btn btn-outline-vnv">More Info</a>
+                </div>
+            </div>
+
+            <div class="col-md-6 col-xl-4">
+                <div class="mini-card">
+                    <h4>Decoration</h4>
+                    <p>Our team will handle all aspects of event decoration to create the perfect ambiance.</p>
+                    <a href="#" class="vnv-btn btn-outline-vnv">More Info</a>
+                </div>
+            </div>
+
+            <div class="col-md-6 col-xl-4">
+                <div class="mini-card">
+                    <h4>Setup</h4>
+                    <p>We manage the setup process, ensuring everything is perfectly arranged for your event.</p>
+                    <a href="#" class="vnv-btn btn-outline-vnv">More Info</a>
+                </div>
+            </div>
+
+            <div class="col-md-6 col-xl-4">
+                <div class="mini-card">
+                    <h4>Cleaning Service</h4>
+                    <p>We provide thorough cleaning services during and after the event to maintain a pristine environment.</p>
+                </div>
+            </div>
+
+            <div class="col-md-6 col-xl-4">
+                <div class="mini-card">
+                    <h4>Entertainment</h4>
+                    <p>We offer a variety of entertainment options to keep your guests engaged and entertained.</p>
+                    <a href="#" class="vnv-btn btn-outline-vnv">More Info</a>
+                </div>
+            </div>
+
+            <div class="col-md-6 col-xl-4">
+                <div class="mini-card">
+                    <h4>Event Planner</h4>
+                    <p>Our experienced event planners will work with you to design and execute a flawless event.</p>
+                    <a href="#" class="vnv-btn btn-outline-vnv">More Info</a>
+                </div>
+            </div>
+
+            <div class="col-md-6 col-xl-6">
+                <div class="mini-card">
+                    <h4>Event Coordinators</h4>
+                    <p>We provide day-of coordination to ensure every detail is handled smoothly.</p>
+                    <a href="#" class="vnv-btn btn-outline-vnv">More Info</a>
+                </div>
+            </div>
+
+            <div class="col-md-6 col-xl-6">
+                <div class="mini-card">
+                    <h4>Photobooth, Photography and Video Service</h4>
+                    <p>Our professional photographers will capture every special moment of your event.</p>
+                    <a href="#" class="vnv-btn btn-outline-vnv">More Info</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="call-strip mt-4">
+            <a href="tel:+13052045427">Call Now (305) 204 5427</a>
+        </div>
+    </div>
+</section>
+
+<section class="section-vnv section-white">
+    <div class="container">
+        <div class="row g-4 align-items-center">
+            <div class="col-lg-6">
+                <div class="instagram-card">
+                    <span class="vnv-badge">Visit our Instagram Gallery</span>
+                    <h4 style="font-size:2.3rem;">Learn more about our VNV Events creative process and previous work, and be part of our digital community.</h4>
+                    <a href="https://www.instagram.com/" target="_blank" class="vnv-btn btn-gold-vnv">Click Here</a>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="instagram-visual"></div>
+            </div>
+        </div>
+    </div>
+</section>
+
+ 
+
+{% include "templates/layout/publicFooterVnv.html.twig" %}
+
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+
+<script>
+if (typeof gsap !== 'undefined' && typeof ScrollTrigger !== 'undefined') {
+    gsap.registerPlugin(ScrollTrigger);
+
+    gsap.utils.toArray('.menu-card, .holiday-card, .mini-card, .contact-card, .instagram-card').forEach((card) => {
+        gsap.from(card, {
+            scrollTrigger: {
+                trigger: card,
+                start: "top 88%"
+            },
+            y: 36,
+            opacity: 0,
+            duration: 0.9,
+            ease: "power3.out"
+        });
+    });
+
+    gsap.from('.feature-box', {
+        scrollTrigger: {
+            trigger: '.feature-box',
+            start: 'top 82%'
+        },
+        y: 40,
+        opacity: 0,
+        duration: 1.1,
+        ease: "power3.out"
+    });
+}
+</script>
+{% endblock %}

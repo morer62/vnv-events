@@ -1,0 +1,971 @@
+{% extends "templates/base.twig" %}
+
+{% set show_whatsapp = true %}
+
+{% block styles %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@200;300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,700;0,900;1,700;1,900&display=swap" rel="stylesheet">
+
+<style>
+:root {
+    --vnv-primary: #5EC6C4;
+    --vnv-primary-dark: #4aa8a6;
+    --vnv-gold: #c5a059;
+    --vnv-gold-gradient: linear-gradient(135deg, #bf953f 0%, #fcf6ba 45%, #b38728 100%);
+    --vnv-dark-deep: #0a0c0c;
+    --vnv-dark-soft: #141818;
+    --vnv-dark-card: #1b2021;
+    --vnv-light: #ffffff;
+    --vnv-marble: #f4f7f8;
+    --vnv-text-main: #2d3436;
+    --vnv-text-dark: #11181a;
+    --vnv-text-light: #f3f5f6;
+    --vnv-text-muted: rgba(255,255,255,.74);
+    --vnv-text-muted-soft: rgba(255,255,255,.60);
+    --vnv-border: rgba(255,255,255,.08);
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+    background: var(--vnv-dark-deep);
+    color: var(--vnv-text-light);
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    line-height: 1.8;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+}
+
+h1, h2, h3, h4, h5, .luxury-font {
+    font-family: 'Playfair Display', serif;
+}
+
+.text-vnv { color: var(--vnv-primary) !important; }
+.text-gold {
+    background: var(--vnv-gold-gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+.letter-spacing-lg { letter-spacing: 4px; }
+
+.vnv-btn {
+    padding: 18px 30px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    transition: all .35s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    text-decoration: none;
+    border: none;
+    cursor: pointer;
+    font-size: .78rem;
+    border-radius: 999px;
+}
+
+.btn-gold-vnv {
+    background: var(--vnv-gold-gradient);
+    color: #000 !important;
+}
+.btn-gold-vnv:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 20px 40px rgba(197,160,89,.22);
+}
+.btn-outline-vnv {
+    border: 2px solid var(--vnv-primary);
+    color: var(--vnv-primary) !important;
+    background: transparent;
+}
+.btn-outline-vnv:hover {
+    background: var(--vnv-primary);
+    color: #fff !important;
+}
+.btn-ghost-white {
+    border: 1px solid rgba(255,255,255,.18);
+    color: #fff !important;
+    background: transparent;
+}
+.btn-ghost-white:hover {
+    background: #fff;
+    color: #000 !important;
+}
+
+.section-vnv {
+    padding: 120px 0;
+    position: relative;
+}
+
+.vnv-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 18px;
+    border-radius: 999px;
+    background: rgba(94,198,196,.1);
+    color: var(--vnv-primary);
+    font-size: .74rem;
+    letter-spacing: 2px;
+    font-weight: 800;
+    text-transform: uppercase;
+}
+
+.hero-planning {
+    position: relative;
+    min-height: 92vh;
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+    background:
+        linear-gradient(90deg, rgba(10,12,12,.88) 0%, rgba(10,12,12,.68) 42%, rgba(10,12,12,.42) 100%),
+        url('{{ asset_for('assets/images/planner1.jpg') }}') center/cover no-repeat;
+}
+
+.hero-planning::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+        radial-gradient(circle at top right, rgba(94,198,196,.16), transparent 28%),
+        radial-gradient(circle at bottom left, rgba(197,160,89,.10), transparent 24%);
+    pointer-events: none;
+}
+
+.hero-planning-inner {
+    position: relative;
+    z-index: 2;
+    width: 100%;
+}
+
+.hero-planning h1 {
+    font-size: clamp(3rem, 6vw, 5.4rem);
+    line-height: 1.02;
+    margin: 20px 0 28px;
+    max-width: 940px;
+}
+
+.hero-planning p.hero-copy {
+    font-size: 1.08rem;
+    color: var(--vnv-text-muted);
+    max-width: 760px;
+    margin-bottom: 34px;
+}
+
+.hero-cta-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-top: 20px;
+}
+
+.section-white {
+    background: var(--vnv-marble);
+    color: var(--vnv-text-dark);
+}
+
+.section-dark {
+    background: var(--vnv-dark-deep);
+    color: var(--vnv-text-light);
+}
+
+.section-heading {
+    max-width: 920px;
+    margin-bottom: 55px;
+}
+.section-heading h2 {
+    font-size: clamp(2.2rem, 4vw, 4.2rem);
+    line-height: 1.04;
+    margin: 16px 0 18px;
+}
+.section-heading p {
+    font-size: 1.05rem;
+    margin: 0;
+}
+.section-white .section-heading p {
+    color: #566164;
+}
+.section-dark .section-heading p {
+    color: var(--vnv-text-muted);
+}
+
+.info-wrap {
+    display: grid;
+    grid-template-columns: 1.05fr .95fr;
+    gap: 40px;
+    align-items: center;
+}
+
+.info-image-card {
+    border-radius: 30px;
+    overflow: hidden;
+    box-shadow: 0 25px 70px rgba(0,0,0,.10);
+    border: 1px solid rgba(17,24,26,.08);
+    background: #fff;
+}
+
+.info-image-card img {
+    width: 100%;
+    min-height: 420px;
+    object-fit: cover;
+    display: block;
+}
+
+.info-panel {
+    background: #fff;
+    border: 1px solid rgba(17,24,26,.08);
+    border-radius: 30px;
+    padding: 40px;
+    box-shadow: 0 25px 70px rgba(0,0,0,.08);
+}
+
+.info-panel h3 {
+    font-size: 2rem;
+    color: var(--vnv-text-dark);
+    margin-bottom: 20px;
+}
+
+.info-panel p,
+.info-panel li {
+    color: #4f5b5f;
+}
+
+.info-panel ul {
+    list-style: none;
+    padding: 0;
+    margin: 25px 0 0;
+}
+.info-panel ul li {
+    position: relative;
+    padding-left: 22px;
+    margin-bottom: 10px;
+}
+.info-panel ul li::before {
+    content: "";
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--vnv-gold);
+    position: absolute;
+    left: 0;
+    top: 12px;
+}
+
+.services-bg-video-wrap {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+}
+
+.services-bg-video {
+    width: 100%;
+    height: 120%;
+    object-fit: cover;
+    object-position: center center;
+    opacity: 0.12;
+    filter: blur(2px) saturate(0.8);
+    transform: translateY(-6%);
+}
+
+.services-bg-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+        to bottom,
+        rgba(10,12,12,0.25),
+        rgba(10,12,12,0.30),
+        rgba(10,12,12,0.25)
+    );
+}
+
+.compare-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 26px;
+}
+
+.compare-card {
+    background: rgba(28, 34, 35, 0.82);
+    backdrop-filter: blur(6px);
+    border-radius: 28px;
+    padding: 42px 34px;
+    border: 1px solid rgba(197, 160, 89, 0.08);
+    height: 100%;
+    position: relative;
+    z-index: 2;
+}
+
+.compare-card h3 {
+    color: #fff;
+    font-size: 2rem;
+    margin-bottom: 14px;
+}
+
+.compare-card p,
+.compare-card li {
+    color: var(--vnv-text-muted);
+}
+
+.compare-card ul {
+    list-style: none;
+    padding: 0;
+    margin: 22px 0 0;
+}
+.compare-card ul li {
+    position: relative;
+    padding-left: 22px;
+    margin-bottom: 10px;
+}
+.compare-card ul li::before {
+    content: "";
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--vnv-primary);
+    position: absolute;
+    left: 0;
+    top: 12px;
+}
+
+.package-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+}
+
+.package-card {
+    background: #fff;
+    border: 1px solid rgba(17,24,26,.08);
+    border-radius: 30px;
+    padding: 34px 30px;
+    height: 100%;
+    box-shadow: 0 20px 60px rgba(0,0,0,.08);
+}
+
+.package-card h3 {
+    color: var(--vnv-text-dark);
+    font-size: 1.8rem;
+    margin-bottom: 8px;
+}
+.package-price {
+    font-size: 2.3rem;
+    font-weight: 900;
+    line-height: 1;
+    color: var(--vnv-primary);
+    margin-bottom: 20px;
+}
+.package-card p,
+.package-card li {
+    color: #4f5b5f;
+}
+.package-card ul {
+    list-style: none;
+    padding: 0;
+    margin: 22px 0 0;
+}
+.package-card ul li {
+    position: relative;
+    padding-left: 22px;
+    margin-bottom: 10px;
+}
+.package-card ul li::before {
+    content: "";
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--vnv-gold);
+    position: absolute;
+    left: 0;
+    top: 12px;
+}
+.package-note {
+    font-size: .92rem;
+    color: #677174;
+    margin-top: 20px;
+    padding-top: 18px;
+    border-top: 1px solid rgba(17,24,26,.08);
+}
+
+.process-wrap {
+    display: grid;
+    grid-template-columns: .95fr 1.05fr;
+    gap: 40px;
+    align-items: stretch;
+}
+
+.process-image-stack {
+    display: grid;
+    gap: 24px;
+}
+
+.process-image-stack img {
+    width: 100%;
+    border-radius: 26px;
+    object-fit: cover;
+    display: block;
+    box-shadow: 0 20px 60px rgba(0,0,0,.10);
+    border: 1px solid rgba(17,24,26,.08);
+}
+
+.process-image-stack img:first-child,
+.process-image-stack img:last-child {
+    min-height: 260px;
+    max-height: 260px;
+}
+
+.process-panel {
+    background: #fff;
+    border: 1px solid rgba(17,24,26,.08);
+    border-radius: 30px;
+    padding: 42px;
+    box-shadow: 0 25px 70px rgba(0,0,0,.08);
+}
+
+.process-panel h3 {
+    font-size: 2rem;
+    color: var(--vnv-text-dark);
+    margin-bottom: 18px;
+}
+
+.process-panel p,
+.process-panel li {
+    color: #4f5b5f;
+}
+
+.process-panel ol {
+    padding-left: 18px;
+    margin: 25px 0 0;
+}
+.process-panel li {
+    margin-bottom: 14px;
+}
+
+.instagram-block {
+    position: relative;
+    overflow: hidden;
+}
+
+.instagram-block::before {
+    content: "";
+    position: absolute;
+    top: -120px;
+    left: -120px;
+    width: 320px;
+    height: 320px;
+    background: radial-gradient(circle, rgba(94,198,196,0.14) 0%, transparent 70%);
+    pointer-events: none;
+}
+
+.vnv-studio-card {
+    background: linear-gradient(145deg, #161a1b 0%, #0d0f0f 100%);
+    border-radius: 30px;
+    padding: 50px;
+    border: 1px solid rgba(255,255,255,0.06);
+    box-shadow: 0 20px 60px rgba(0,0,0,0.35);
+}
+
+.vnv-studio-card h3 {
+    font-size: 1.8rem;
+    font-weight: 800;
+}
+
+.vnv-studio-card p {
+    color: rgba(255,255,255,0.7);
+    margin-bottom: 20px;
+}
+
+.vnv-studio-info {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    color: #fff;
+    font-weight: 600;
+    margin-bottom: 25px;
+}
+
+.vnv-studio-info i {
+    color: var(--vnv-primary);
+}
+
+.vnv-studio-actions {
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.instagram-gallery-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 18px;
+}
+
+.instagram-gallery-grid img {
+    width: 100%;
+    height: 220px;
+    object-fit: cover;
+    border-radius: 22px;
+    display: block;
+    border: 1px solid rgba(255,255,255,.08);
+}
+
+.final-cta-card {
+    background: linear-gradient(145deg, #161a1b 0%, #0d0f0f 100%);
+    border-radius: 45px;
+    padding: 90px 70px;
+    border: 1px solid rgba(255,255,255,.06);
+    position: relative;
+    overflow: hidden;
+}
+
+.final-cta-card::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    right: 10%;
+    width: 360px;
+    height: 360px;
+    transform: translateY(-50%);
+    background: radial-gradient(circle, rgba(94, 198, 196, 0.08) 0%, transparent 70%);
+    pointer-events: none;
+}
+
+.final-cta-card p {
+    color: var(--vnv-text-muted-soft);
+}
+
+.vnv-btn-fixed {
+    min-width: 240px;
+    text-align: center;
+    white-space: normal;
+    line-height: 1.35;
+    padding: 20px 28px;
+}
+
+@media (max-width: 1199px) {
+    .package-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+    .final-cta-card {
+        padding: 60px 45px;
+    }
+}
+
+@media (max-width: 991px) {
+    .info-wrap,
+    .process-wrap,
+    .compare-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .package-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .info-panel,
+    .process-panel,
+    .vnv-studio-card {
+        padding: 32px 28px;
+    }
+
+    .final-cta-card {
+        padding: 50px 30px;
+        text-align: center;
+    }
+
+    .vnv-btn-fixed {
+        min-width: 100%;
+    }
+
+    .services-bg-video {
+        height: 100%;
+        transform: none;
+        filter: blur(1px) saturate(0.8);
+    }
+}
+
+@media (max-width: 767px) {
+    .section-vnv {
+        padding: 90px 0;
+    }
+
+    .hero-planning h1 {
+        font-size: 2.7rem;
+    }
+
+    .vnv-btn {
+        width: 100%;
+        padding: 18px 24px;
+        letter-spacing: 2px;
+    }
+
+    .hero-cta-row {
+        flex-direction: column;
+    }
+
+    .instagram-gallery-grid img {
+        height: 150px;
+    }
+}
+</style>
+{% endblock %}
+
+{% block body %}
+
+{% include "templates/layout/publicHeaderVnv.html.twig" %}
+
+<section class="hero-planning">
+    <div class="container hero-planning-inner">
+        <span class="vnv-badge">Planner & Coordinator</span>
+
+        <h1>Planning Support That Feels <span class="text-gold">Structured, Personal & Realistic</span></h1>
+
+        <p class="hero-copy">
+            Our planning service is designed for South Florida clients who want guidance before the event, not just help on the day of the event. At VNV, planning and coordination are connected — but they are not automatically the same person.
+        </p>
+
+        <p class="hero-copy">
+            Mary Isern, our expert planner, helps guide the project throughout the planning process with structure, design sense and calm decision-making. The coordinator is then focused on event-day execution, and in some cases it may be Mary, but not always.
+        </p>
+
+        <div class="hero-cta-row">
+            <a href="tel:+13052045427" class="vnv-btn btn-gold-vnv">Call Now (305) 204-5427</a>
+            <a href="#planning-packages" class="vnv-btn btn-outline-vnv">View Packages</a>
+        </div>
+    </div>
+</section>
+
+<section class="section-vnv section-white">
+    <div class="container">
+        <div class="info-wrap">
+            <div class="info-image-card">
+                <img src="{{ asset_for('assets/images/planner2.jpg') }}" alt="Event planning by VNV Events">
+            </div>
+
+            <div class="info-panel">
+                <span class="vnv-badge">Meet Your Planner</span>
+                <h3>Guided by Mary Isern throughout the project.</h3>
+                <p>
+                    Mary Isern is presented on her own site as an Event Planner, Creative Director and Founder of VNV Events & Ophyra App, with a role centered on structure, design, hospitality and event innovation. That makes her the right person to lead the planning side of the experience. :contentReference[oaicite:1]{index=1}
+                </p>
+                <p>
+                    This page is built so clients understand the real difference: planning is the strategic process before the event, while coordination is the operational oversight on the event day itself. That distinction is already stated in your current coordinator page. :contentReference[oaicite:2]{index=2}
+                </p>
+
+                <ul>
+                    <li>Planning guidance led by Mary Isern</li>
+                    <li>Clearer decisions, timelines and vendor direction</li>
+                    <li>A separate coordinator can be assigned for the event day</li>
+                    <li>More realistic support for how South Florida events actually move</li>
+                </ul>
+
+                <div class="mt-4">
+                    <a href="https://maryisern.com/" target="_blank" class="vnv-btn btn-gold-vnv">Visit MaryIsern.com</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="section-vnv section-dark" id="planning-packages">
+    <div class="services-bg-video-wrap">
+        <video class="services-bg-video" autoplay muted loop playsinline preload="auto">
+            <source src="{{ asset_for('assets/video/intro.mp4') }}" type="video/mp4">
+        </video>
+        <div class="services-bg-overlay"></div>
+    </div>
+
+    <div class="container position-relative" style="z-index:2;">
+        <div class="text-center mb-5 pb-5 section-heading">
+            <span class="vnv-badge">Understand the Difference</span>
+            <h2 class="text-white">Planner vs <span class="text-vnv">Coordinator</span></h2>
+            <p>
+                Your current sites already separate these roles: the planner supports the full process and the coordinator focuses on the day-of execution. :contentReference[oaicite:3]{index=3}
+            </p>
+        </div>
+
+        <div class="compare-grid">
+            <div class="compare-card">
+                <h3>Event Planner</h3>
+                <p>
+                    Best for clients who want guidance before the event, not just help when the day arrives.
+                </p>
+                <ul>
+                    <li>Budget and timeline direction</li>
+                    <li>Vendor recommendations and decision support</li>
+                    <li>Guest and logistics guidance as needed</li>
+                    <li>Consulting hours spread across the project</li>
+                    <li>Includes 8 hours of event-day coordination in the published planner packages</li>
+                </ul>
+            </div>
+
+            <div class="compare-card">
+                <h3>Event Day Coordinator</h3>
+                <p>
+                    Best for clients who already made most decisions and need a dedicated person managing the flow on the event day.
+                </p>
+                <ul>
+                    <li>Vendor arrivals and setup oversight</li>
+                    <li>Timeline execution and issue management</li>
+                    <li>Guest assistance and event flow support</li>
+                    <li>Focused on the event day rather than the full planning journey</li>
+                    <li>Available in 6, 8 or 10 hour published packages</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="section-vnv section-white">
+    <div class="container">
+        <div class="section-heading">
+            <span class="vnv-badge">Planning Packages</span>
+            <h2>Event Planner <span class="text-vnv">Packages</span></h2>
+            <p>
+                These prices are kept from your current planner page: Basic $1,950, Gold $2,650 and Premium $3,250, each including 8 hours of event-day coordination and additional hours at $220. :contentReference[oaicite:4]{index=4}
+            </p>
+        </div>
+
+        <div class="package-grid">
+            <div class="package-card">
+                <h3>Basic</h3>
+                <div class="package-price">$1,950</div>
+                <ul>
+                    <li>8 Hours of Event Day Coordinator</li>
+                    <li>Up to 12 Hours of Event Consulting</li>
+                    <li>Budget & Timeline direction</li>
+                    <li>Vendor coordination & selection support</li>
+                    <li>Planning checklist guidance</li>
+                    <li>General advice and consultation</li>
+                </ul>
+                <div class="package-note">Additional Hour: $220.00</div>
+            </div>
+
+            <div class="package-card">
+                <h3>Gold</h3>
+                <div class="package-price">$2,650</div>
+                <ul>
+                    <li>8 Hours of Event Day Coordinator</li>
+                    <li>Up to 18 Hours of Event Consulting</li>
+                    <li>Budget & Timeline direction</li>
+                    <li>Vendor coordination & selection support</li>
+                    <li>Planning checklist guidance</li>
+                    <li>Guest accommodation guidance</li>
+                </ul>
+                <div class="package-note">Additional Hour: $220.00</div>
+            </div>
+
+            <div class="package-card">
+                <h3>Premium</h3>
+                <div class="package-price">$3,250</div>
+                <ul>
+                    <li>8 Hours of Event Day Coordinator</li>
+                    <li>Up to 24 Hours of Event Consulting</li>
+                    <li>Budget & Timeline direction</li>
+                    <li>Vendor coordination & selection support</li>
+                    <li>Planning checklist guidance</li>
+                    <li>Guest accommodation guidance</li>
+                </ul>
+                <div class="package-note">Additional Hour: $220.00</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="section-vnv section-dark">
+    <div class="container">
+        <div class="section-heading">
+            <span class="vnv-badge">Coordination Packages</span>
+            <h2 class="text-white">Day Coordinator <span class="text-vnv">Packages</span></h2>
+            <p>
+                These prices are kept from your current coordinator page: Basic $780 for 6 hours, Gold $990 for 8 hours, and Premium $1,290 for 10 hours, with additional hours at $180. :contentReference[oaicite:5]{index=5}
+            </p>
+        </div>
+
+        <div class="package-grid">
+            <div class="package-card">
+                <h3>Basic</h3>
+                <div class="package-price">$780</div>
+                <ul>
+                    <li>6 Hours of Event Day Coordinator</li>
+                    <li>Vendor arrival coordination</li>
+                    <li>Timeline follow-up on event day</li>
+                    <li>Issue handling and flow support</li>
+                </ul>
+                <div class="package-note">Additional Hour: $180.00</div>
+            </div>
+
+            <div class="package-card">
+                <h3>Gold</h3>
+                <div class="package-price">$990</div>
+                <ul>
+                    <li>8 Hours of Event Day Coordinator</li>
+                    <li>Vendor arrival coordination</li>
+                    <li>Timeline follow-up on event day</li>
+                    <li>Issue handling and flow support</li>
+                </ul>
+                <div class="package-note">Additional Hour: $180.00</div>
+            </div>
+
+            <div class="package-card">
+                <h3>Premium</h3>
+                <div class="package-price">$1,290</div>
+                <ul>
+                    <li>10 Hours of Event Day Coordinator</li>
+                    <li>Vendor arrival coordination</li>
+                    <li>Timeline follow-up on event day</li>
+                    <li>Issue handling and flow support</li>
+                </ul>
+                <div class="package-note">Additional Hour: $180.00</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="section-vnv section-white">
+    <div class="container">
+        <div class="process-wrap">
+            <div class="process-image-stack">
+                <img src="{{ asset_for('assets/images/planner3.jpg') }}" alt="Planning process by VNV Events">
+                <img src="{{ asset_for('assets/images/planner4.jpg') }}" alt="Wedding coordination by VNV Events">
+            </div>
+
+            <div class="process-panel">
+                <span class="vnv-badge">How This Works</span>
+                <h3>A more realistic planning structure for South Florida events.</h3>
+                <p>
+                    Instead of promising everything, this page is built around what clients actually need most: the right amount of pre-event guidance, a strong planning lead, and a clear handoff into event-day execution.
+                </p>
+
+                <ol>
+                    <li><strong>Start with the planning level that fits your event.</strong> Basic, Gold and Premium give different amounts of consulting time while keeping event-day coordination included in the planner packages.</li>
+                    <li><strong>Work through decisions with Mary as the planning lead.</strong> The goal is to reduce confusion, tighten direction and avoid last-minute stress.</li>
+                    <li><strong>Move into coordination for the event day.</strong> The coordinator may be Mary in some cases, but not always. The priority is assigning the right operational support to the event.</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="section-vnv section-dark instagram-block">
+    <div class="container position-relative" style="z-index:2;">
+        <div class="row align-items-center g-5">
+            <div class="col-lg-6">
+                <span class="text-vnv fw-bold d-block mb-3 letter-spacing-lg">PORTFOLIO & SOCIAL</span>
+
+                <h2 class="display-3 fw-black text-white mb-3">
+                    See our work on <span class="text-vnv">@vnv_events</span>
+                </h2>
+
+                <p class="fs-5 mb-4" style="color:rgba(255,255,255,0.65);">
+                    Explore real events, planning moments and behind-the-scenes setup details from VNV Events.
+                </p>
+
+                <a href="https://www.instagram.com/vnv_events/" target="_blank" class="vnv-btn btn-outline-vnv">
+                    View Instagram
+                </a>
+
+                <div class="instagram-gallery-grid mt-4">
+                    <img src="{{ asset_for('assets/images/planner1.jpg') }}" alt="Planning gallery 1">
+                    <img src="{{ asset_for('assets/images/planner2.jpg') }}" alt="Planning gallery 2">
+                    <img src="{{ asset_for('assets/images/planner3.jpg') }}" alt="Planning gallery 3">
+                    <img src="{{ asset_for('assets/images/planner4.jpg') }}" alt="Planning gallery 4">
+                </div>
+            </div>
+
+            <div class="col-lg-6">
+                <div class="vnv-studio-card">
+                    <span class="vnv-badge">Visit Our Studio</span>
+
+                    <h3 class="text-white mb-3">Let’s plan it in person.</h3>
+
+                    <p>
+                        Visit our VNV Studio in Sunrise, FL to review the event vision, planning structure, priorities and next decisions with our team.
+                    </p>
+
+                    <div class="vnv-studio-info">
+                        <i class="fa-solid fa-location-dot"></i>
+                        <span>10258 NW 47th St, Sunrise, FL 33351</span>
+                    </div>
+
+                    <div class="vnv-studio-actions">
+                        <a href="https://maps.google.com/?q=10258+NW+47th+St+Sunrise+FL+33351" target="_blank" class="vnv-btn btn-ghost-white">
+                            Get Directions
+                        </a>
+
+                        <a href="#" data-vnv-open-request class="vnv-btn btn-gold-vnv">
+                            Book a Meeting
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="section-vnv section-white">
+    <div class="container">
+        <div class="final-cta-card">
+            <div class="row align-items-center">
+                <div class="col-lg-7">
+                    <span class="vnv-badge">Planning Support</span>
+                    <h2 class="display-3 fw-bold text-white mb-4">Choose the right level of planning before the event day arrives.</h2>
+                    <p class="fs-5 mb-5">
+                        If you want clearer decisions, better structure and stronger execution support, VNV can help you combine planning guidance with event-day coordination in a way that feels more realistic and more organized.
+                    </p>
+                </div>
+
+                <div class="col-lg-5 text-center text-lg-end">
+                    <div class="d-flex flex-column flex-lg-row gap-3 justify-content-end">
+                        <a href="tel:+13052045427" class="vnv-btn btn-gold-vnv vnv-btn-fixed">Call Now</a>
+                        <a href="#" class="vnv-btn btn-ghost-white vnv-btn-fixed">Request Proposal</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+{% include "templates/components/publicEventRequestModal.html.twig" with {
+    request_form_action: "/api/public/event-request"
+} %}
+
+{% include "templates/layout/publicFooterVnv.html.twig" %}
+
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+
+<script>
+if (typeof gsap !== 'undefined' && typeof ScrollTrigger !== 'undefined') {
+    gsap.registerPlugin(ScrollTrigger);
+
+    gsap.from(".info-image-card, .info-panel, .compare-card, .package-card, .process-image-stack, .process-panel, .vnv-studio-card, .final-cta-card", {
+        scrollTrigger: {
+            trigger: ".info-image-card",
+            start: "top 82%"
+        },
+        y: 35,
+        opacity: 0,
+        duration: 1,
+        ease: "power3.out"
+    });
+
+    if (window.innerWidth > 991) {
+        gsap.to('.services-bg-video', {
+            yPercent: 12,
+            ease: 'none',
+            scrollTrigger: {
+                trigger: '#planning-packages',
+                start: 'top bottom',
+                end: 'bottom top',
+                scrub: true
+            }
+        });
+    }
+}
+</script>
+{% endblock %}

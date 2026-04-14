@@ -1,158 +1,139 @@
 {% extends 'templates/base.admin.twig' %}
 
+{% set show_whatsapp = true %}
+
 {% block body %}
-<main class="gourmet-team-home mt-4 container pb-5">
+<main class="vnv-team-home mt-4 container pb-5">
 
   <style>
     :root{
-      --gourmet-primary:#f59e0b;
-      --gourmet-primary-dark:#d97706;
-      --gourmet-accent:#fb923c;
-      --gourmet-cream:#fff8ef;
-      --gourmet-soft:#fff3df;
-      --gourmet-dark:#1f1307;
-      --gourmet-dark-2:#2a1808;
-      --gourmet-text:#2d241c;
-      --gourmet-muted:#6f6255;
-      --gourmet-border:#ecd9bf;
-      --gourmet-shadow:0 18px 44px rgba(79,43,8,.10);
-      --gourmet-success:#16a34a;
-      --gourmet-info:#0ea5e9;
+      --vnv-primary:#5EC6C4;
+      --vnv-primary-dark:#49acab;
+      --vnv-gold:#D4A84F;
+      --vnv-gold-soft:rgba(212,168,79,.14);
+      --vnv-black:#0B0B0C;
+      --vnv-black-soft:#111214;
+      --vnv-black-card:#15181a;
+      --vnv-border:rgba(255,255,255,.08);
+      --vnv-text:#F6F1E8;
+      --vnv-text-muted:#B5ADA3;
+      --vnv-light-card:#F7F3ED;
+      --vnv-shadow:0 20px 54px rgba(0,0,0,.16);
+      --vnv-shadow-soft:0 18px 42px rgba(0,0,0,.10);
     }
 
-    .gourmet-team-home{
-      color:var(--gourmet-text);
+    .vnv-team-home{
+      color:var(--vnv-text);
     }
 
-    .g-badge{
+    .vnv-badge{
       display:inline-flex;
       align-items:center;
-      gap:.45rem;
+      gap:.5rem;
       border-radius:999px;
-      padding:.55rem .9rem;
-      font-size:.9rem;
-      font-weight:800;
-      background:#fff2db;
-      border:1px solid #f6d8a5;
-      color:#8a5300;
+      padding:.58rem .95rem;
+      font-size:.82rem;
+      font-weight:900;
+      letter-spacing:1.2px;
+      text-transform:uppercase;
+      background:rgba(94,198,196,.12);
+      border:1px solid rgba(94,198,196,.22);
+      color:var(--vnv-primary);
     }
 
-    .g-badge-dark{
-      background:rgba(255,255,255,.08);
-      color:#fff;
-      border:1px solid rgba(255,255,255,.14);
-      backdrop-filter:blur(6px);
-    }
-
-    .g-profile-switcher{
-      display:flex;
-      justify-content:flex-end;
-      margin-bottom:1rem;
-    }
-
-    .g-switch-btn{
-      border-radius:999px;
-      padding:.8rem 1.1rem;
-      font-weight:800;
-      border:1px solid #f0d8b4;
-      background:#fff;
-      color:var(--gourmet-dark);
-      box-shadow:var(--gourmet-shadow);
-    }
-
-    .g-hero{
+    .vnv-hero{
       position:relative;
       overflow:hidden;
-      border-radius:28px;
+      border-radius:30px;
       padding:2rem 1.8rem;
       color:#fff;
       background:
-        radial-gradient(900px 420px at 0% 0%, rgba(245,158,11,.16), transparent 60%),
-        linear-gradient(135deg, #251508 0%, #1f1307 55%, #361a06 100%);
-      box-shadow:0 22px 54px rgba(0,0,0,.16);
+        radial-gradient(900px 420px at 0% 0%, rgba(94,198,196,.16), transparent 60%),
+        radial-gradient(260px 260px at 100% 0%, rgba(212,168,79,.12), transparent 72%),
+        linear-gradient(135deg, #0B0B0C 0%, #111214 55%, #191c1f 100%);
+      box-shadow:var(--vnv-shadow);
       margin-bottom:2rem;
     }
 
-    .g-hero:after{
+    .vnv-hero:after{
       content:"";
       position:absolute;
       right:-70px;
       top:-70px;
       width:220px;
       height:220px;
-      background:radial-gradient(circle, rgba(255,209,138,.16) 0%, rgba(255,209,138,0) 70%);
+      background:radial-gradient(circle, rgba(255,255,255,.08) 0%, rgba(255,255,255,0) 70%);
       pointer-events:none;
     }
 
-    .g-hero > *{
+    .vnv-hero > *{
       position:relative;
       z-index:2;
     }
 
-    .g-hero-logo{
+    .vnv-hero-logo{
       max-width:92px;
-      margin:1rem 0 .9rem;
+      margin:1rem 0 .95rem;
       filter:drop-shadow(0 8px 20px rgba(0,0,0,.20));
     }
 
-    .g-hero h1{
-      font-size:clamp(2rem,4vw,3.1rem);
-      line-height:1.05;
+    .vnv-hero h1{
+      font-size:clamp(2rem,4vw,3.05rem);
+      line-height:1.04;
       font-weight:900;
       letter-spacing:-1px;
       margin-bottom:.8rem;
       max-width:860px;
     }
 
-    .g-hero h1 .warm{
-      color:#ffd18a;
+    .vnv-hero h1 .gold{
+      color:var(--vnv-gold);
     }
 
-    .g-hero p{
+    .vnv-hero p{
       max-width:760px;
-      color:#f4e4cb;
-      line-height:1.72;
+      color:#ddd5ca;
+      line-height:1.76;
       font-size:1rem;
       margin-bottom:1.2rem;
     }
 
-    .g-hero-actions{
+    .vnv-hero-actions{
       display:flex;
       flex-wrap:wrap;
       gap:.85rem;
       margin-top:1rem;
     }
 
-    .btn-g-main{
-      background:linear-gradient(135deg,var(--gourmet-primary),var(--gourmet-accent));
-      color:#23160a !important;
+    .btn-vnv-main{
+      background:linear-gradient(135deg, #6ed5d3 0%, #5EC6C4 50%, #8cd9d7 100%);
+      color:#081011 !important;
       padding:1rem 1.55rem;
       font-size:1rem;
       border-radius:999px;
       text-decoration:none;
-      font-weight:800;
+      font-weight:900;
       display:inline-flex;
       gap:.55rem;
       align-items:center;
       justify-content:center;
       border:none;
-      box-shadow:0 12px 28px rgba(245,158,11,.28);
+      box-shadow:0 12px 28px rgba(94,198,196,.25);
       transition:all .22s ease;
     }
 
-    .btn-g-main:hover{
+    .btn-vnv-main:hover{
       transform:translateY(-2px);
-      background:linear-gradient(135deg,var(--gourmet-primary-dark),var(--gourmet-accent));
     }
 
-    .btn-g-light{
+    .btn-vnv-light{
       padding:.92rem 1.25rem;
       font-size:1rem;
       border-radius:999px;
       font-weight:800;
       border:1.2px solid rgba(255,255,255,.18);
       color:#fff !important;
-      background:rgba(255,255,255,.08);
+      background:rgba(255,255,255,.07);
       text-decoration:none;
       display:inline-flex;
       align-items:center;
@@ -162,716 +143,313 @@
       transition:all .2s ease;
     }
 
-    .btn-g-light:hover{
+    .btn-vnv-light:hover{
       background:rgba(255,255,255,.14);
       transform:translateY(-1px);
     }
 
-    .g-institution{
-      background:#fff;
-      border:1px solid var(--gourmet-border);
-      border-radius:24px;
-      padding:1.2rem 1.2rem;
-      box-shadow:var(--gourmet-shadow);
-      margin-bottom:1.7rem;
+    .vnv-section-head{
+      margin-bottom:1.15rem;
     }
 
-    .g-role-pill{
-      display:inline-flex;
-      align-items:center;
-      gap:.45rem;
-      padding:.45rem .85rem;
-      border-radius:999px;
-      font-weight:800;
-      font-size:.88rem;
-      background:#fff6e8;
-      color:#8b4f00;
-      border:1px solid #f2d29d;
-    }
-
-    .g-role-pill.blue{
-      background:#eef8ff;
-      color:#0b6ea8;
-      border-color:#b9e1fb;
-    }
-
-    .g-section-head{
-      margin-bottom:1.2rem;
-    }
-
-    .g-title{
-      font-weight:800;
+    .vnv-title{
+      font-weight:900;
       font-size:clamp(1.6rem,3vw,2.3rem);
       line-height:1.12;
       letter-spacing:-.5px;
       margin-bottom:.5rem;
-      color:var(--gourmet-dark);
+      color:#15181a;
     }
 
-    .g-title .highlight{
-      color:var(--gourmet-primary-dark);
+    .vnv-title .highlight{
+      color:#247170;
     }
 
-    .g-subtitle{
-      color:var(--gourmet-muted);
+    .vnv-subtitle{
+      color:#69787b;
       font-size:1rem;
       line-height:1.75;
       margin-bottom:0;
       max-width:760px;
     }
 
-    .g-card{
+    .vnv-main-card{
       background:#fff;
       padding:1.8rem 1.35rem;
-      border-radius:22px;
-      box-shadow:var(--gourmet-shadow);
-      border:1px solid rgba(94,55,15,.06);
+      border-radius:24px;
+      box-shadow:var(--vnv-shadow-soft);
+      border:1px solid rgba(17,24,26,.06);
       height:100%;
       transition:all .22s ease;
       text-align:center;
     }
 
-    .g-card:hover{
+    .vnv-main-card:hover{
       transform:translateY(-4px);
-      box-shadow:0 24px 54px rgba(79,43,8,.12);
+      box-shadow:0 24px 54px rgba(0,0,0,.10);
     }
 
-    .g-card i.big-icon{
+    .vnv-main-card i.big-icon{
       font-size:2rem;
-      color:var(--gourmet-primary-dark);
+      color:#247170;
       margin-bottom:.95rem;
     }
 
-    .g-card h3{
+    .vnv-main-card h3{
       font-size:1.24rem;
-      font-weight:800;
+      font-weight:900;
       margin-bottom:.65rem;
-      color:var(--gourmet-dark);
+      color:#141a1b;
     }
 
-    .g-card p{
-      color:var(--gourmet-muted);
+    .vnv-main-card p{
+      color:#6b7a7d;
       line-height:1.68;
       margin-bottom:1rem;
     }
 
-    .g-link-btn{
+    .vnv-link-btn{
       display:inline-flex;
       align-items:center;
       justify-content:center;
       gap:.45rem;
       padding:.82rem 1.15rem;
       border-radius:999px;
-      font-weight:800;
+      font-weight:900;
       text-decoration:none;
-      background:#fff6e8;
-      color:#8b4f00;
-      border:1px solid #f1d4a3;
+      background:#eef8f8;
+      color:#1f6e6d;
+      border:1px solid #d7ecec;
       transition:all .2s ease;
     }
 
-    .g-link-btn:hover{
-      background:#ffefcf;
-      color:#7a4500;
+    .vnv-link-btn:hover{
+      background:#def3f2;
+      color:#145958;
       transform:translateY(-1px);
     }
 
-    .g-tools-scroll{
-      display:flex;
-      overflow:auto;
+    .vnv-mini-row{
+      display:grid;
+      grid-template-columns:repeat(4, 1fr);
       gap:1rem;
-      padding-bottom:.4rem;
+      margin-top:1.2rem;
     }
 
-    .g-tool-tile{
-      min-width:210px;
-      text-decoration:none;
-      color:inherit;
-    }
-
-    .g-tool-box{
-      background:#fff;
+    .vnv-mini-card{
+      background:#14181a;
+      border:1px solid rgba(255,255,255,.08);
       border-radius:22px;
-      padding:1.2rem 1rem;
-      box-shadow:var(--gourmet-shadow);
-      border:1px solid rgba(94,55,15,.06);
+      padding:1.1rem .9rem;
       text-align:center;
-      height:100%;
-      transition:all .2s ease;
+      text-decoration:none;
+      color:#fff !important;
+      transition:all .22s ease;
+      box-shadow:0 14px 34px rgba(0,0,0,.10);
     }
 
-    .g-tool-box:hover{
+    .vnv-mini-card:hover{
       transform:translateY(-3px);
+      border-color:rgba(94,198,196,.22);
     }
 
-    .g-tool-box img{
-      height:96px;
-      object-fit:contain;
-      margin-bottom:.75rem;
+    .vnv-mini-card i{
+      font-size:1.25rem;
+      color:var(--vnv-gold);
+      margin-bottom:.7rem;
+      display:block;
     }
 
-    .g-tool-box p{
-      margin:0;
+    .vnv-mini-card span{
+      display:block;
+      font-size:.95rem;
       font-weight:800;
-      font-size:1.02rem;
-      color:var(--gourmet-dark);
+      line-height:1.4;
+      color:#f6f1e8;
     }
 
-    .g-final{
+    .vnv-final{
       margin-top:2rem;
-      background:linear-gradient(135deg,#271507 0%, #3a1f08 100%);
+      background:linear-gradient(135deg,#121516 0%, #1b2022 100%);
       color:#fff;
-      border-radius:24px;
+      border-radius:26px;
       padding:2rem 1.3rem;
-      box-shadow:0 20px 50px rgba(0,0,0,.18);
+      box-shadow:0 20px 50px rgba(0,0,0,.16);
       text-align:center;
     }
 
-    .g-final p{
+    .vnv-final p{
       max-width:720px;
       margin:0 auto 1.2rem;
-      color:#f3dfbf;
+      color:#d5cec3;
       font-size:1rem;
       line-height:1.75;
     }
 
+    @media (max-width: 991px){
+      .vnv-mini-row{
+        grid-template-columns:repeat(2,1fr);
+      }
+    }
+
     @media (max-width: 768px){
-      .g-hero{
+      .vnv-hero{
         padding:1.4rem 1.05rem;
         border-radius:22px;
       }
 
-      .g-card,
-      .g-final,
-      .g-institution{
+      .vnv-main-card,
+      .vnv-final,
+      .vnv-mini-card{
         border-radius:20px;
       }
 
-      .g-hero-actions{
+      .vnv-hero-actions{
         flex-direction:column;
       }
 
-      .btn-g-main,
-      .btn-g-light{
+      .btn-vnv-main,
+      .btn-vnv-light{
         width:100%;
       }
 
-      .g-profile-switcher{
-        justify-content:stretch;
-      }
-
-      .g-switch-btn{
-        width:100%;
+      .vnv-mini-row{
+        grid-template-columns:1fr 1fr;
       }
     }
   </style>
 
-  {% if isMobileApp == false %}
-    <div class="g-profile-switcher">
-      <div class="dropdown">
-        <button class="g-switch-btn dropdown-toggle" type="button" id="roleSwitcher" data-bs-toggle="dropdown" aria-expanded="false">
-          🔄 Change Profile
-        </button>
-        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="roleSwitcher">
-          <li><button class="dropdown-item" data-switch="5" data-label="👤 Client — Request and manage services" data-bs-toggle="modal" data-bs-target="#confirmSwitchModal">👤 Client — Request and manage services</button></li>
-          <li><button class="dropdown-item" data-switch="2" data-label="🏢 Venue Manager — Create and manage your event venue" data-bs-toggle="modal" data-bs-target="#confirmSwitchModal">🏢 Venue Manager — Create and manage your event venue</button></li>
-          <li><button class="dropdown-item" data-switch="3" data-label="🛠 Vendor — Offer your services as a provider" data-bs-toggle="modal" data-bs-target="#confirmSwitchModal">🛠 Vendor — Offer your services as a provider</button></li>
-        </ul>
-      </div>
-    </div>
-  {% endif %}
-
-  {% if currentInstitution %}
-  <section class="g-institution">
-    <div class="row align-items-center g-3">
-      <div class="col-md-8">
-        <div class="d-flex align-items-start gap-3">
-          <div style="font-size:2.3rem;">🏢</div>
-          <div>
-            <h4 class="fw-bold mb-1">{{ currentInstitution.company_name }}</h4>
-
-            <div class="d-flex flex-wrap gap-2 mb-2">
-              {% if currentInstitutionRole == 'owner' %}
-                <span class="g-role-pill">
-                  <i class="fa-solid fa-crown"></i> Owner
-                </span>
-              {% else %}
-                <span class="g-role-pill">
-                  <i class="fa-solid fa-user-tag"></i>
-                  {% if roleName %}{{ roleName }}{% else %}No role{% endif %}
-                </span>
-              {% endif %}
-
-              <span class="g-role-pill blue">
-                <i class="fa-solid {{ storeRoleIcon }}"></i> Store: {{ storeRoleLabel }}
-              </span>
-
-              {% if hourlyRate and hourlyRate > 0 %}
-                <span class="g-role-pill">
-                  <i class="fa-solid fa-dollar-sign"></i> ${{ hourlyRate|number_format(2) }}/hr
-                </span>
-              {% endif %}
-
-              {% if hasMultipleInstitutions %}
-                <span class="g-role-pill">
-                  <i class="fa-solid fa-building-circle-check"></i> Multiple institutions
-                </span>
-              {% endif %}
-            </div>
-
-            <p class="text-muted mb-2">
-              {{ storeRoleDescription }}
-            </p>
-
-            {% if contractDetail %}
-            <button type="button" class="btn btn-outline-info btn-sm" onclick="showMyContractDetails('{{ contractDetail|e('js') }}')">
-              <i class="fas fa-file-contract me-1"></i> View My Contract
-            </button>
-            {% endif %}
-          </div>
-        </div>
-      </div>
-
-      <div class="col-md-4 text-md-end">
-        {% if hasMultipleInstitutions %}
-        <button class="btn btn-outline-primary btn-lg fw-bold px-4" onclick="showInstitutionSwitcher()">
-          🔄 Switch Institution
-        </button>
-        {% endif %}
-      </div>
-    </div>
-  </section>
-  {% endif %}
-
-  <section class="g-hero">
-    <span class="g-badge g-badge-dark">
-      <i class="fa-solid {{ storeRoleIcon }}"></i> Team Dashboard · {{ storeRoleLabel }}
+  <section class="vnv-hero">
+    <span class="vnv-badge">
+      <i class="fa-solid fa-briefcase"></i> Team Flow
     </span>
 
     <div>
-      <img src="{{ asset_for('assets/images/planner-hub-logo-positive.png') }}" class="g-hero-logo" alt="VNV Gourmet Logo">
+      <img src="{{ asset_for('assets/images/planner-hub-logo-positive.png') }}" class="vnv-hero-logo" alt="VNV Events Logo">
     </div>
 
     <h1>
-      <span style="color:#fff">Welcome back{% if user.name is defined and user.name %}, {{ user.name }}{% endif %}.</span>
-      {% if storeTeamRole == 'delivery' %}
-        <span class="warm">Handle assigned deliveries and mark each order with confidence.</span>
-      {% elseif storeTeamRole == 'kitchen' %}
-        <span class="warm">Prepare, assemble, and move store orders cleanly through the kitchen flow.</span>
-      {% else %}
-        <span class="warm">Coordinate daily store work from one cleaner operational dashboard.</span>
-      {% endif %}
+      Welcome back{% if user.name is defined and user.name %}, {{ user.name }}{% endif %}. <span class="gold">Move through your work with clarity.</span>
     </h1>
 
     <p>
-      {% if storeTeamRole == 'delivery' %}
-        Access your delivery area, review the orders assigned to you, update sending status, and keep your time and payment flow organized.
-      {% elseif storeTeamRole == 'kitchen' %}
-        Access the store kitchen area to review what must be prepared, support packaging by order, and keep work moving toward delivery.
-      {% else %}
-        Access the store team area, review operational tasks, track time, and keep communication and payroll simpler.
-      {% endif %}
+      Track time, review payroll, check your assigned jobs and stay aligned with event execution in one clean team workspace.
     </p>
 
-    <div class="g-hero-actions">
-      {% if storeTeamRole == 'delivery' %}
-        <a href="{{ path('panel/planner-hub/team/store/delivery/home') }}" class="btn-g-main">
-          <i class="fa-solid fa-truck-fast"></i> Delivery Area
-        </a>
-      {% elseif storeTeamRole == 'kitchen' %}
-        <a href="{{ path('panel/planner-hub/team/store/kitchen/home') }}" class="btn-g-main">
-          <i class="fa-solid fa-kitchen-set"></i> Kitchen Area
-        </a>
-      {% else %}
-        <a href="{{ path('panel/planner-hub/team/store/orders/home') }}" class="btn-g-main">
-          <i class="fa-solid fa-store"></i> Store Orders
-        </a>
-      {% endif %}
+    <div class="vnv-hero-actions">
+      <a href="{{ path('panel/planner-hub/team/payroll/clock') }}" class="btn-vnv-main">
+        <i class="fa-solid fa-clock"></i> Clock In / Out
+      </a>
 
-      <a href="{{ path('panel/planner-hub/team/payroll/clock') }}" class="btn-g-light">
-        <i class="fa-solid fa-clock"></i> Track Time
+      <a href="{{ path('panel/planner-hub/team/orders/orders/') }}" class="btn-vnv-light">
+        <i class="fa-solid fa-calendar-check"></i> Open Schedule
       </a>
     </div>
   </section>
 
   <section>
-    <div class="g-section-head">
-      <h2 class="g-title">
-        Main <span class="highlight">areas</span>
+    <div class="vnv-section-head">
+      <h2 class="vnv-title">
+        Your core <span class="highlight">tools</span>
       </h2>
-      <p class="g-subtitle">
-        A cleaner workspace for store operations, time control, and payroll follow-up.
+      <p class="vnv-subtitle">
+        The areas you will use most often every week, based on the new team dashboard flow.
       </p>
     </div>
 
     <div class="row g-4">
       <div class="col-md-4">
-        <div class="g-card">
-          {% if storeTeamRole == 'delivery' %}
-            <i class="fa-solid fa-truck-fast big-icon"></i>
-            <h3>Delivery Orders</h3>
-            <p>
-              Review assigned store deliveries, organize your execution flow, and keep each delivery status updated from one place.
-            </p>
-            <a href="{{ path('panel/planner-hub/team/store/delivery/home') }}" class="g-link-btn">
-              Open Delivery Area <i class="fa-solid fa-arrow-right"></i>
-            </a>
-          {% elseif storeTeamRole == 'kitchen' %}
-            <i class="fa-solid fa-kitchen-set big-icon"></i>
-            <h3>Kitchen Orders</h3>
-            <p>
-              Review what needs preparation, support package assembly by order, and keep kitchen output organized for handoff.
-            </p>
-            <a href="{{ path('panel/planner-hub/team/store/kitchen/home') }}" class="g-link-btn">
-              Open Kitchen Area <i class="fa-solid fa-arrow-right"></i>
-            </a>
-          {% else %}
-            <i class="fa-solid fa-box-open big-icon"></i>
-            <h3>Store Orders</h3>
-            <p>
-              Open the new store order area and review the operational order flow without mixing it with the old service module.
-            </p>
-            <a href="{{ path('panel/planner-hub/team/store/orders/home') }}" class="g-link-btn">
-              Open Store Orders <i class="fa-solid fa-arrow-right"></i>
-            </a>
-          {% endif %}
-        </div>
-      </div>
-
-      <div class="col-md-4">
-        <div class="g-card">
-          <i class="fa-solid fa-clock big-icon"></i>
-          <h3>Track Time</h3>
+        <div class="vnv-main-card">
+          <i class="fa-solid fa-stopwatch big-icon"></i>
+          <h3>Track Your Time</h3>
           <p>
-            Clock in and out quickly, keep your work hours organized, and make your payroll review easier later.
+            Clock in and out quickly, keep shifts clean and maintain a more reliable record of your working hours.
           </p>
-          <a href="{{ path('panel/planner-hub/team/payroll/clock') }}" class="g-link-btn">
-            Open Time Tracker <i class="fa-solid fa-arrow-right"></i>
+          <a href="{{ path('panel/planner-hub/team/payroll/clock') }}" class="vnv-link-btn">
+            Open Clock <i class="fa-solid fa-arrow-right"></i>
           </a>
         </div>
       </div>
 
       <div class="col-md-4">
-        <div class="g-card">
-          <i class="fa-solid fa-money-bill-wave big-icon"></i>
-          <h3>Payroll & Banking</h3>
+        <div class="vnv-main-card">
+          <i class="fa-solid fa-wallet big-icon"></i>
+          <h3>Payroll</h3>
           <p>
-            Review pending payments, check banking information, and keep your compensation area easier to follow.
+            Review your pending payments, compensation details and payroll-related information from one clear area.
           </p>
-          <a href="{{ path('panel/planner-hub/team/payroll/pending') }}" class="g-link-btn">
+          <a href="{{ path('panel/planner-hub/team/payroll/pending') }}" class="vnv-link-btn">
             Open Payroll <i class="fa-solid fa-arrow-right"></i>
           </a>
         </div>
       </div>
-    </div>
-  </section>
-
-  <section class="mt-5">
-    <div class="g-section-head">
-      <h2 class="g-title">
-        Role-based <span class="highlight">workflow</span>
-      </h2>
-      <p class="g-subtitle">
-        The store experience adapts to the operational role assigned to you.
-      </p>
-    </div>
-
-    <div class="row g-4">
-      <div class="col-md-4">
-        <div class="g-card">
-          <i class="fa-solid fa-user-gear big-icon"></i>
-          <h3>General Support</h3>
-          <p>
-            Broader operational support, internal coordination, and store-related follow-up from the shared team area.
-          </p>
-        </div>
-      </div>
 
       <div class="col-md-4">
-        <div class="g-card">
-          <i class="fa-solid fa-bowl-food big-icon"></i>
-          <h3>Kitchen / Preparation</h3>
+        <div class="vnv-main-card">
+          <i class="fa-solid fa-list-check big-icon"></i>
+          <h3>Job Schedule</h3>
           <p>
-            Preparation quantities, package assembly by customer order, and handoff readiness for delivery.
+            Open your assigned events, job details and tasks so you always know what is coming next.
           </p>
-        </div>
-      </div>
-
-      <div class="col-md-4">
-        <div class="g-card">
-          <i class="fa-solid fa-camera big-icon"></i>
-          <h3>Delivery</h3>
-          <p>
-            Assigned delivery orders, sending status, route execution, and delivery confirmation workflow.
-          </p>
+          <a href="{{ path('panel/planner-hub/team/orders/orders/') }}" class="vnv-link-btn">
+            Open Schedule <i class="fa-solid fa-arrow-right"></i>
+          </a>
         </div>
       </div>
     </div>
   </section>
 
   <section class="mt-5">
-    <div class="g-section-head">
-      <h2 class="g-title">
-        Explore <span class="highlight">more</span>
+    <div class="vnv-section-head">
+      <h2 class="vnv-title">
+        More <span class="highlight">access</span>
       </h2>
-      <p class="g-subtitle">
-        Keep access to the tools you already use most.
+      <p class="vnv-subtitle">
+        Supporting tools that help you stay connected without overwhelming the daily workflow.
       </p>
     </div>
 
-    <div class="g-tools-scroll">
-      <a href="{{ path('panel/planner-hub/team/chat') }}" class="g-tool-tile">
-        <div class="g-tool-box">
-          <img src="{{ asset_for('assets/images/icons_website/icon_3.png') }}" alt="Chat">
-          <p>💬 Chat</p>
-        </div>
+    <div class="vnv-mini-row">
+      <a href="{{ path('panel/planner-hub') }}" class="vnv-mini-card">
+        <i class="fa-solid fa-house"></i>
+        <span>Planner Hub</span>
       </a>
 
-      <a href="{{ path('/panel/planner-hub/team/storage') }}" class="g-tool-tile">
-        <div class="g-tool-box">
-          <img src="{{ asset_for('assets/images/icons_website/icon_7.png') }}" alt="Inventory">
-          <p>📦 Inventory</p>
-        </div>
+      <a href="{{ path('panel/planning-tools') }}" class="vnv-mini-card">
+        <i class="fa-solid fa-compass-drafting"></i>
+        <span>Planner Tools</span>
       </a>
 
-      <a href="{{ path('panel/planner-hub/team/payments') }}" class="g-tool-tile">
-        <div class="g-tool-box">
-          <img src="{{ asset_for('assets/images/icons_website/icon_3.png') }}" alt="Banking">
-          <p>📅 Banking</p>
-        </div>
+      <a href="{{ path('panel/planner-hub/team/chat') }}" class="vnv-mini-card">
+        <i class="fa-solid fa-comments"></i>
+        <span>Chat</span>
       </a>
 
-      <a href="{{ path('panel/planning-tools') }}" class="g-tool-tile">
-        <div class="g-tool-box">
-          <img src="{{ asset_for('assets/images/icons_website/icon_12.png') }}" alt="Planning Tools">
-          <p>🧰 Planning Tools</p>
-        </div>
-      </a>
-
-      <a href="{{ path('panel/planner-hub/management/crm') }}" class="g-tool-tile">
-        <div class="g-tool-box">
-          <img src="{{ asset_for('assets/images/icons_website/icon_8.png') }}" alt="CRM">
-          <p>📇 CRM</p>
-        </div>
-      </a>
-
-      <a href="{{ path('panel/planner-hub') }}" class="g-tool-tile">
-        <div class="g-tool-box">
-          <img src="{{ asset_for('assets/images/icons_website/icon_4.png') }}" alt="Management Tools">
-          <p>🧩 Management Tools</p>
-        </div>
-      </a>
-
-      <a href="{{ path('panel/settings') }}" class="g-tool-tile">
-        <div class="g-tool-box">
-          <img src="{{ asset_for('assets/images/icons_website/icon_5.png') }}" alt="Settings">
-          <p>⚙️ Basic Setting</p>
-        </div>
+      <a href="{{ path('panel/settings') }}" class="vnv-mini-card">
+        <i class="fa-solid fa-sliders"></i>
+        <span>Settings</span>
       </a>
     </div>
   </section>
 
-  <section class="g-final">
-    <h2 class="g-title" style="color:#fff;">
-      Keep the store operation moving
+  <section class="vnv-final">
+    <h2 class="vnv-title" style="color:#fff;">
+      Stay sharp and stay ready
     </h2>
     <p>
-      {% if storeTeamRole == 'delivery' %}
-        Stay focused on assigned deliveries, status updates, proof of completion, and clean execution from the field.
-      {% elseif storeTeamRole == 'kitchen' %}
-        Stay focused on preparation, assembly, and a smoother handoff from kitchen to delivery.
-      {% else %}
-        Stay focused on store work, time tracking, and daily operational support without mixing this with the old service order area.
-      {% endif %}
+      Keep your hours, assignments and communication organized in one elegant workflow built for team execution.
     </p>
 
     <div class="d-flex flex-wrap gap-3 justify-content-center">
-      {% if storeTeamRole == 'delivery' %}
-        <a href="{{ path('panel/planner-hub/team/store/delivery/home') }}" class="btn-g-main">
-          <i class="fa-solid fa-truck-fast"></i> Open Delivery Area
-        </a>
-      {% elseif storeTeamRole == 'kitchen' %}
-        <a href="{{ path('panel/planner-hub/team/store/kitchen/home') }}" class="btn-g-main">
-          <i class="fa-solid fa-kitchen-set"></i> Open Kitchen Area
-        </a>
-      {% else %}
-        <a href="{{ path('panel/planner-hub/team/store/orders/home') }}" class="btn-g-main">
-          <i class="fa-solid fa-store"></i> Open Store Orders
-        </a>
-      {% endif %}
+      <a href="{{ path('panel/planner-hub/team/orders/orders/') }}" class="btn-vnv-main">
+        <i class="fa-solid fa-calendar-check"></i> Open Schedule
+      </a>
 
-      <a href="{{ path('panel/planner-hub/team/payroll/clock') }}" class="btn-g-light">
-        <i class="fa-solid fa-clock"></i> Clock In / Out
+      <a href="{{ path('panel/planner-hub/team/chat') }}" class="btn-vnv-light">
+        <i class="fa-solid fa-comments"></i> Open Chat
       </a>
     </div>
   </section>
 
 </main>
-
-<div class="modal fade" id="institutionSwitcherModal" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content rounded-4">
-      <div class="modal-header">
-        <h5 class="modal-title fw-bold">🏢 Switch Institution</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body">
-        <p class="mb-3">Select the institution you want to work with:</p>
-        <div class="list-group">
-          {% for institution in userInstitutions %}
-          <div class="list-group-item d-flex justify-content-between align-items-center">
-            <div>
-              <h6 class="mb-1">{{ institution.company_name }}</h6>
-              <small class="text-muted">
-                {% if institution.relationship_type == 'primary' %}
-                  Role: <span class="badge bg-success">Owner</span>
-                {% else %}
-                  Role:
-                  {% if institution.role_name %}
-                    <span class="badge bg-info">{{ institution.role_name }}</span>
-                  {% else %}
-                    <span class="text-muted">No role</span>
-                  {% endif %}
-                  | Rate:
-                  {% if institution.hourly_rate and institution.hourly_rate > 0 %}
-                    ${{ institution.hourly_rate|number_format(2) }}/hr
-                  {% else %}
-                    <span class="text-muted">Not set</span>
-                  {% endif %}
-                {% endif %}
-                {% if currentInstitution and institution.working_institution_id == currentInstitution.id %}
-                  <span class="badge bg-success ms-2">Current</span>
-                {% endif %}
-              </small>
-            </div>
-            {% if currentInstitution and institution.working_institution_id != currentInstitution.id %}
-            <button class="btn btn-outline-primary btn-sm" onclick="switchInstitution({{ institution.working_institution_id }}, '{% if institution.relationship_type == 'primary' %}owner{% else %}employee{% endif %}')">
-              Switch
-            </button>
-            {% endif %}
-          </div>
-          {% endfor %}
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<div class="modal fade" id="confirmSwitchModal" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content rounded-4">
-      <form method="POST" action="{{ path('panel/home') }}">
-        <div class="modal-header">
-          <h5 class="modal-title fw-bold">Confirm Profile Change</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-        </div>
-        <div class="modal-body">
-          Are you sure you want to switch to <span id="switchRoleLabel" class="fw-bold"></span>?
-          <p class="mt-2 text-muted small">This will reload your dashboard immediately.</p>
-          <input type="hidden" name="level" id="switchRoleValue">
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
-          <button type="submit" class="btn btn-primary">Yes, switch</button>
-        </div>
-      </form>
-    </div>
-  </div>
-</div>
-
-<div class="modal fade" id="myContractModal" tabindex="-1" aria-labelledby="myContractModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-lg">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="myContractModalLabel">📋 My Contract Details</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body">
-        <div class="mb-3">
-          <h6 class="text-muted">Current Institution:</h6>
-          <p class="fw-bold">{{ currentInstitution.company_name }}</p>
-        </div>
-        <div class="mb-3">
-          <h6 class="text-muted">Contract Information:</h6>
-          <div id="myContractContent" class="border rounded p-3 bg-light"></div>
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<script>
-document.addEventListener("DOMContentLoaded", () => {
-  document.querySelectorAll("[data-switch]").forEach(btn => {
-    btn.addEventListener("click", () => {
-      const level = btn.getAttribute("data-switch");
-      const label = btn.getAttribute("data-label");
-      document.getElementById("switchRoleValue").value = level;
-      document.getElementById("switchRoleLabel").innerText = label;
-    });
-  });
-});
-
-function showInstitutionSwitcher() {
-  const modal = new bootstrap.Modal(document.getElementById('institutionSwitcherModal'));
-  modal.show();
-}
-
-function switchInstitution(institutionId, role) {
-  const form = document.createElement('form');
-  form.method = 'POST';
-  form.action = window.location.href;
-
-  const switchInput = document.createElement('input');
-  switchInput.type = 'hidden';
-  switchInput.name = 'switch_institution';
-  switchInput.value = '1';
-
-  const idInput = document.createElement('input');
-  idInput.type = 'hidden';
-  idInput.name = 'institution_id';
-  idInput.value = institutionId;
-
-  const roleInput = document.createElement('input');
-  roleInput.type = 'hidden';
-  roleInput.name = 'role';
-  roleInput.value = role;
-
-  form.appendChild(switchInput);
-  form.appendChild(idInput);
-  form.appendChild(roleInput);
-
-  document.body.appendChild(form);
-  form.submit();
-}
-
-function showMyContractDetails(contractDetail) {
-  const contractContent = document.getElementById('myContractContent');
-
-  if (contractDetail && contractDetail.trim() !== '') {
-    contractContent.innerHTML = `
-      <div class="contract-details">
-        <pre class="mb-0" style="white-space: pre-wrap; font-family: inherit;">${contractDetail}</pre>
-      </div>
-    `;
-  } else {
-    contractContent.innerHTML = `
-      <div class="text-center text-muted">
-        <i class="fas fa-file-contract fa-3x mb-3"></i>
-        <p class="mb-0">No contract details have been added for this institution yet.</p>
-        <small>Contact the administrator to add contract information.</small>
-      </div>
-    `;
-  }
-
-  const modal = new bootstrap.Modal(document.getElementById('myContractModal'));
-  modal.show();
-}
-</script>
 {% endblock %}

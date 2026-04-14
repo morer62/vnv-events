@@ -6,18 +6,17 @@ use App\Core\FindViewTrait;
 use App\Core\GetViewTrait;
 use App\Core\IncludeViewTrait;
 use App\Entity\User;
+use App\Repositories\InstitutionProfileRepository;
 use App\Services\ConfigService;
 use App\Services\LoginService;
 use App\Services\ValidationSessionService;
 use App\Utils\ErrorLogging;
 use App\Utils\LocationUtils;
-use App\Repositories\InstitutionProfileRepository;
 use Closure;
 use Exception;
 
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
-
 
 class Kernel
 {
@@ -30,9 +29,33 @@ class Kernel
 
     private static string $homeIndex = "planner-hub";
     private static string $notFoundIndex = "404.php";
-    private static string $errorIndex = "505.php";
+    private static string $errorIndex = "500.php";
     private static string $notFoundApi = "404.php";
     private static array $urlViews = [];
+
+    /**
+     * Public folders (internal routing)
+     *
+     * Estas carpetas existen solo internamente.
+     * La URL NO las muestra.
+     *
+     * Ej:
+     * /login → public/auth/login/index.php
+     *
+     * Para agregar una nueva carpeta:
+     * 1. Crear en /public/{carpeta}
+     * 2. Agregar aquí en el array
+     *
+     * ⚠️ No repetir slugs entre carpetas
+     */
+    private static array $publicFolders = [
+        'app',
+        'auth',
+        'commerce',
+        'content',
+        'system',
+        'pages',
+    ];
 
     /**
      * @var array|Closure[] $VERIFYING_SESSION_MIDDLEWARES
@@ -40,7 +63,6 @@ class Kernel
      * has the necessary permissions to access the requested view.
      */
     private static array $VERIFYING_SESSION_MIDDLEWARES = [];
-
 
     use GetViewTrait, IncludeViewTrait, FindViewTrait;
 
@@ -52,46 +74,41 @@ class Kernel
     private function handleAffiliateRoute($affiliateCode): void
     {
         try {
-            // Cargar servicios necesarios
             $affiliateService = new \App\Services\AffiliateService();
-            
-            // Obtener parámetros UTM
+
             $utmSource = $_GET['utm_source'] ?? null;
             $utmMedium = $_GET['utm_medium'] ?? null;
             $utmCampaign = $_GET['utm_campaign'] ?? null;
-            
-            // Procesar el click de afiliado
+
             $success = $affiliateService->processAffiliateClick($affiliateCode, $utmSource, $utmMedium, $utmCampaign);
-            
+
             if (!$success) {
                 LocationUtils::redirectInternal("/");
                 return;
             }
-            
-            // Redirigir según el estado de sesión
+
             $redirectTo = $_GET['redirect'] ?? '/';
-            
+
             if (!isset($_SESSION['user'])) {
                 $redirectTo = '/signup?from_affiliate=1';
             }
-            
+
             LocationUtils::redirectInternal($redirectTo);
-            
         } catch (\Exception $e) {
             LocationUtils::redirectInternal("/");
         }
     }
-
 
     private function getNotFoundView(): string
     {
         return LocationUtils::getRootLocation() . "/src/views/public/" . self::$notFoundIndex;
     }
 
-    public function __construct() {
-
+    public function __construct()
+    {
         $timezone = $_ENV['APP_TIMEZONE'] ?? 'UTC';
         date_default_timezone_set($timezone);
+
         ConfigService::init();
         ErrorLogging::init();
 
@@ -110,10 +127,78 @@ class Kernel
         if (isset($_GET["url"])) {
             $url = rtrim($_GET["url"], '/');
             $url = filter_var($url, FILTER_SANITIZE_URL);
+
+            if ($url === '') {
+                return [];
+            }
+
             return explode('/', strtolower($url));
         }
 
         return [];
+    }
+
+    /**
+     * Resuelve rutas públicas ignorando la carpeta intermedia.
+     *
+     * Ejemplos:
+     * /login       -> /src/views/public/auth/login/index.php
+     * /store       -> /src/views/public/commerce/store/index.php
+     * /planner-hub -> /src/views/public/app/planner-hub/index.php
+     */
+    private function resolvePublicView(array $urlViews): ?string
+    {
+        if (empty($urlViews)) {
+            return null;
+        }
+
+        $root = LocationUtils::getRootLocation();
+        $publicRoot = $root . "/src/views/public";
+        $slug = implode('/', $urlViews);
+
+        // 1) Buscar directamente en /public
+        $directIndex = $publicRoot . "/{$slug}/index.php";
+        if (file_exists($directIndex)) {
+            return $directIndex;
+        }
+
+        $directPhp = $publicRoot . "/{$slug}.php";
+        if (file_exists($directPhp)) {
+            return $directPhp;
+        }
+
+        // 2) Buscar dentro de carpetas transparentes
+        foreach (self::$publicFolders as $folder) {
+            $indexPath = $publicRoot . "/{$folder}/{$slug}/index.php";
+            if (file_exists($indexPath)) {
+                return $indexPath;
+            }
+
+            $phpPath = $publicRoot . "/{$folder}/{$slug}.php";
+            if (file_exists($phpPath)) {
+                return $phpPath;
+            }
+        }
+
+        // 3) Casos especiales
+        if ($slug === 'logout') {
+            $logoutPath = $publicRoot . "/auth/logout.php";
+            if (file_exists($logoutPath)) {
+                return $logoutPath;
+            }
+        }
+
+        return null;
+    }
+
+    private function includeResolvedFileAndExit(string $filePath): void
+    {
+        if (!file_exists($filePath)) {
+            throw new Exception("Resolved file not found: " . $filePath);
+        }
+
+        include $filePath;
+        exit;
     }
 
     /**
@@ -145,12 +230,19 @@ class Kernel
 
             // Home por defecto
             if (empty($urlViews)) {
+                $resolvedHome = $this->resolvePublicView([self::$homeIndex]);
+
+                if ($resolvedHome) {
+                    $this->includeResolvedFileAndExit($resolvedHome);
+                }
+
                 $this->includeViewAndExit($this->getPublicView([self::$homeIndex]));
             }
 
             // Vistas privadas (panel)
-            if ($urlViews[0] == self::$protectedFolderViews) {
+            if ($urlViews[0] === self::$protectedFolderViews) {
                 $user = LoginService::getSession();
+
                 if ($user instanceof User) {
                     LoginService::verifyMany([
                         fn () => LoginService::verifyPhoneConfirmation($urlViews),
@@ -159,7 +251,7 @@ class Kernel
                     $path = implode("/", $urlViews);
 
                     // Verificación de membresía
-                    if (str_contains($path, "planner-hub") && in_array($user->getLevel(), [2, 3])) {
+                    if (str_contains($path, "planner-hub") && in_array($user->getLevel(), [2, 3], true)) {
                         if (!$user->hasActiveMembership()) {
                             LocationUtils::redirectInternal("panel/membership/pay");
                         }
@@ -176,7 +268,7 @@ class Kernel
                         }
                     }
 
-                    // 🔐 Verificación de permisos para rutas tipo /panel/planner-hub/management/{module}
+                    // Verificación de permisos para rutas tipo /panel/planner-hub/management/{module}
                     if (
                         $user->getLevel() === 4 &&
                         isset($urlViews[1], $urlViews[2], $urlViews[3]) &&
@@ -184,6 +276,7 @@ class Kernel
                         $urlViews[2] === 'management'
                     ) {
                         $module = $urlViews[3];
+
                         if (!$user->hasPermissionForModule($module)) {
                             \App\Utils\MessageUtil::setMessage("ℹ️ This area is reserved for administrators. Let us know if you need help finding what you are looking for.");
                             LocationUtils::redirectInternal("panel/planner-hub/management");
@@ -201,23 +294,36 @@ class Kernel
             }
 
             // API
-            if ($urlViews[0] == self::$apiUrlPrefix) {
+            if ($urlViews[0] === self::$apiUrlPrefix) {
                 $this->includeViewAndExit($this->getApiViews($urlViews));
             }
 
-            // Manejar rutas de afiliado específicamente
+            // Rutas de afiliado
             if (count($urlViews) >= 2 && $urlViews[0] === 'r') {
                 $this->handleAffiliateRoute($urlViews[1]);
             }
 
-            // Vista pública
+            // Vista pública resuelta dinámicamente
+            $resolvedPublicView = $this->resolvePublicView($urlViews);
+
+            if ($resolvedPublicView) {
+                $this->includeResolvedFileAndExit($resolvedPublicView);
+            }
+
+            // Fallback por compatibilidad
             $this->includeViewAndExit($this->getPublicView($urlViews));
         } catch (Exception $exception) {
-            if ($_ENV["APP_ENV"] == "debug") {
+            if (($_ENV["APP_ENV"] ?? 'production') === "debug") {
                 throw $exception;
             }
 
-            $this->includeViewAndExit($this->getPublicView([self::$errorIndex]));
+            $errorView = LocationUtils::getRootLocation() . "/src/views/public/" . self::$errorIndex;
+
+            if (file_exists($errorView)) {
+                $this->includeResolvedFileAndExit($errorView);
+            }
+
+            $this->includeResolvedFileAndExit($this->getNotFoundView());
         }
     }
 }

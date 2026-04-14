@@ -1,0 +1,1574 @@
+{% extends "templates/base.twig" %}
+
+{% set show_whatsapp = true %}
+
+{% block styles %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@200;300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,700;0,900;1,700;1,900&display=swap" rel="stylesheet">
+
+<style>
+:root{
+    --vnv-primary:#5EC6C4;
+    --vnv-primary-dark:#4aa8a6;
+    --vnv-gold:#c5a059;
+    --vnv-gold-gradient:linear-gradient(135deg,#bf953f 0%,#fcf6ba 45%,#b38728 100%);
+    --vnv-dark-deep:#0a0c0c;
+    --vnv-dark-soft:#141818;
+    --vnv-dark-card:#1b2021;
+    --vnv-light:#ffffff;
+    --vnv-marble:#f4f7f8;
+    --vnv-text-dark:#11181a;
+    --vnv-text-light:#f3f5f6;
+    --vnv-text-muted:rgba(255,255,255,.72);
+    --vnv-text-muted-soft:rgba(255,255,255,.58);
+    --vnv-border:rgba(255,255,255,.08);
+    --vnv-shadow:0 25px 70px rgba(0,0,0,.14);
+}
+
+html { scroll-behavior:smooth; }
+
+body{
+    background:var(--vnv-dark-deep);
+    color:var(--vnv-text-light);
+    font-family:'Plus Jakarta Sans',sans-serif;
+    line-height:1.8;
+    -webkit-font-smoothing:antialiased;
+    overflow-x:hidden;
+}
+
+h1,h2,h3,h4,h5,.luxury-font{
+    font-family:'Playfair Display',serif;
+}
+
+.text-vnv{ color:var(--vnv-primary)!important; }
+
+.text-gold{
+    background:var(--vnv-gold-gradient);
+    -webkit-background-clip:text;
+    -webkit-text-fill-color:transparent;
+}
+
+.vnv-btn{
+    padding:18px 30px;
+    font-weight:800;
+    text-transform:uppercase;
+    letter-spacing:2px;
+    transition:all .35s ease;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    gap:10px;
+    text-decoration:none;
+    border:none;
+    cursor:pointer;
+    font-size:.78rem;
+    border-radius:999px;
+}
+
+.btn-gold-vnv{
+    background:var(--vnv-gold-gradient);
+    color:#000!important;
+}
+.btn-gold-vnv:hover{
+    transform:translateY(-3px);
+    box-shadow:0 20px 40px rgba(197,160,89,.22);
+}
+
+.btn-outline-vnv{
+    border:2px solid var(--vnv-primary);
+    color:var(--vnv-primary)!important;
+    background:transparent;
+}
+.btn-outline-vnv:hover{
+    background:var(--vnv-primary);
+    color:#fff!important;
+}
+
+.btn-ghost-white{
+    border:1px solid rgba(255,255,255,.18);
+    color:#fff!important;
+    background:transparent;
+}
+.btn-ghost-white:hover{
+    background:#fff;
+    color:#000!important;
+}
+
+.section-vnv{
+    padding:120px 0;
+    position:relative;
+}
+
+.vnv-badge{
+    display:inline-flex;
+    align-items:center;
+    gap:10px;
+    padding:10px 18px;
+    border-radius:999px;
+    background:rgba(94,198,196,.1);
+    color:var(--vnv-primary);
+    font-size:.74rem;
+    letter-spacing:2px;
+    font-weight:800;
+    text-transform:uppercase;
+}
+
+.hero-tool{
+    position:relative;
+    min-height:86vh;
+    display:flex;
+    align-items:center;
+    overflow:hidden;
+    background:
+        linear-gradient(90deg, rgba(10,12,12,.90) 0%, rgba(10,12,12,.66) 44%, rgba(10,12,12,.38) 100%),
+        url('{{ asset_for('assets/images/tool-space-planner-hero.jpg') }}') center/cover no-repeat;
+}
+
+.hero-tool::after{
+    content:"";
+    position:absolute;
+    inset:0;
+    background:
+        radial-gradient(circle at top right, rgba(94,198,196,.16), transparent 28%),
+        radial-gradient(circle at bottom left, rgba(197,160,89,.10), transparent 24%);
+    pointer-events:none;
+}
+
+.hero-tool-inner{
+    position:relative;
+    z-index:2;
+    width:100%;
+}
+
+.hero-tool h1{
+    font-size:clamp(3rem,6vw,5.4rem);
+    line-height:1.02;
+    margin:20px 0 28px;
+    max-width:980px;
+}
+
+.hero-tool p.hero-copy{
+    font-size:1.08rem;
+    color:var(--vnv-text-muted);
+    max-width:780px;
+    margin-bottom:22px;
+}
+
+.hero-cta-row{
+    display:flex;
+    flex-wrap:wrap;
+    gap:16px;
+    margin-top:24px;
+}
+
+.section-white{
+    background:var(--vnv-marble);
+    color:var(--vnv-text-dark);
+}
+
+.section-dark{
+    background:var(--vnv-dark-deep);
+    color:var(--vnv-text-light);
+}
+
+.section-heading{
+    max-width:920px;
+    margin-bottom:50px;
+}
+.section-heading h2{
+    font-size:clamp(2.2rem,4vw,4rem);
+    line-height:1.04;
+    margin:16px 0 18px;
+}
+.section-heading p{
+    font-size:1.05rem;
+    margin:0;
+}
+.section-white .section-heading p{ color:#566164; }
+.section-dark .section-heading p{ color:var(--vnv-text-muted); }
+
+.intro-wrap{
+    display:grid;
+    grid-template-columns:1.02fr .98fr;
+    gap:40px;
+    align-items:center;
+}
+
+.intro-image-card{
+    border-radius:30px;
+    overflow:hidden;
+    box-shadow:var(--vnv-shadow);
+    border:1px solid rgba(17,24,26,.08);
+    background:#fff;
+}
+
+.intro-image-card img{
+    width:100%;
+    min-height:420px;
+    object-fit:cover;
+    display:block;
+}
+
+.intro-panel{
+    background:linear-gradient(145deg,#161a1b 0%,#0d0f0f 100%);
+    border:1px solid rgba(255,255,255,.06);
+    border-radius:30px;
+    padding:40px;
+    box-shadow:0 25px 70px rgba(0,0,0,.12);
+    color:#fff;
+}
+
+.intro-panel h3{
+    font-size:2rem;
+    color:#fff;
+    margin-bottom:18px;
+}
+
+.intro-panel p,
+.intro-panel li{
+    color:rgba(255,255,255,.78);
+}
+
+.intro-panel ul{
+    list-style:none;
+    padding:0;
+    margin:24px 0 0;
+}
+.intro-panel ul li{
+    position:relative;
+    padding-left:22px;
+    margin-bottom:10px;
+}
+.intro-panel ul li::before{
+    content:"";
+    width:8px;
+    height:8px;
+    border-radius:50%;
+    background:var(--vnv-gold);
+    position:absolute;
+    left:0;
+    top:12px;
+}
+
+/* TOOL APP */
+.tool-app-shell{
+    background:linear-gradient(145deg, #151a1b 0%, #0c0f10 100%);
+    border-radius:34px;
+    border:1px solid rgba(255,255,255,.06);
+    box-shadow:0 26px 80px rgba(0,0,0,.25);
+    overflow:hidden;
+}
+
+.tool-app-topnote{
+    padding:14px 18px;
+    background:linear-gradient(90deg, rgba(197,160,89,.18), rgba(197,160,89,.10));
+    color:#fff7df;
+    font-size:.93rem;
+    font-weight:700;
+    border-bottom:1px solid rgba(255,255,255,.06);
+}
+
+.tool-app-topbar{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:20px;
+    padding:18px 20px;
+    background:#0a0c0d;
+    border-bottom:1px solid rgba(255,255,255,.06);
+    flex-wrap:wrap;
+}
+
+.tool-app-brand{
+    display:flex;
+    align-items:center;
+    gap:14px;
+    color:#fff;
+    font-weight:800;
+}
+
+.tool-app-brand-icon{
+    width:44px;
+    height:44px;
+    border-radius:14px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:rgba(94,198,196,.12);
+    color:var(--vnv-primary);
+    font-size:1.1rem;
+}
+
+.tool-control-cluster{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    flex-wrap:wrap;
+}
+
+.tool-field{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    color:#fff;
+    font-weight:700;
+    font-size:.92rem;
+    background:rgba(255,255,255,.03);
+    border:1px solid rgba(255,255,255,.06);
+    border-radius:14px;
+    padding:8px 10px;
+}
+
+.tool-field input,
+.tool-field select{
+    background:#fff;
+    border:none;
+    outline:none;
+    border-radius:8px;
+    padding:8px 10px;
+    width:86px;
+    font-size:.95rem;
+}
+
+.tool-toolbar{
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+    padding:18px 20px;
+    background:#101415;
+    border-bottom:1px solid rgba(255,255,255,.06);
+}
+
+.tool-action-btn{
+    border:none;
+    outline:none;
+    cursor:pointer;
+    border-radius:14px;
+    padding:12px 16px;
+    background:rgba(255,255,255,.04);
+    color:#fff;
+    font-weight:800;
+    font-size:.85rem;
+    display:inline-flex;
+    align-items:center;
+    gap:10px;
+    transition:all .25s ease;
+}
+.tool-action-btn:hover{
+    transform:translateY(-2px);
+    background:rgba(94,198,196,.12);
+}
+.tool-action-btn.primary{
+    background:rgba(94,198,196,.14);
+    color:#fff;
+}
+.tool-action-btn.gold{
+    background:rgba(197,160,89,.18);
+}
+
+.tool-workspace{
+    display:grid;
+    grid-template-columns:280px 1fr;
+    min-height:740px;
+}
+
+.tool-sidebar{
+    background:#eef2f3;
+    border-right:1px solid rgba(17,24,26,.08);
+    padding:22px 18px;
+    color:#11181a;
+}
+
+.tool-sidebar h3{
+    font-family:'Plus Jakarta Sans',sans-serif;
+    font-size:1.08rem;
+    font-weight:800;
+    margin:0 0 16px;
+    color:#11181a;
+    text-transform:uppercase;
+    letter-spacing:1px;
+}
+
+.tool-sidebar p{
+    color:#526164;
+    font-size:.94rem;
+    margin:0 0 16px;
+    line-height:1.6;
+}
+
+.tool-palette{
+    display:grid;
+    grid-template-columns:1fr;
+    gap:10px;
+}
+
+.palette-btn{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    border:none;
+    outline:none;
+    cursor:pointer;
+    width:100%;
+    border-radius:16px;
+    padding:14px 14px;
+    background:#fff;
+    border:1px solid rgba(17,24,26,.10);
+    font-weight:700;
+    color:#222b2d;
+    text-align:left;
+    transition:all .22s ease;
+    box-shadow:0 8px 18px rgba(0,0,0,.04);
+}
+.palette-btn:hover{
+    transform:translateY(-2px);
+    border-color:rgba(94,198,196,.4);
+}
+.palette-meta{
+    display:flex;
+    align-items:center;
+    gap:12px;
+}
+.palette-icon{
+    width:40px;
+    height:40px;
+    border-radius:12px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:rgba(94,198,196,.10);
+    color:var(--vnv-primary-dark);
+    font-size:1rem;
+}
+.palette-arrow{
+    color:#879497;
+    font-size:.9rem;
+}
+
+.tool-sidebar-card{
+    margin-top:18px;
+    background:#fff;
+    border-radius:18px;
+    padding:16px;
+    border:1px solid rgba(17,24,26,.08);
+}
+
+.tool-sidebar-card h4{
+    font-family:'Plus Jakarta Sans',sans-serif;
+    margin:0 0 8px;
+    font-size:.95rem;
+    font-weight:800;
+    color:#121a1c;
+}
+.tool-sidebar-card ul{
+    margin:0;
+    padding-left:18px;
+    color:#506062;
+    font-size:.9rem;
+}
+.tool-sidebar-card li{ margin-bottom:6px; }
+
+.tool-canvas-zone{
+    background:#dfe4e6;
+    position:relative;
+    overflow:hidden;
+}
+
+.tool-canvas-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:12px;
+    padding:14px 16px;
+    border-bottom:1px solid rgba(17,24,26,.08);
+    background:#f3f6f7;
+    color:#162022;
+    flex-wrap:wrap;
+}
+
+.tool-canvas-header strong{
+    font-size:.95rem;
+    letter-spacing:.5px;
+}
+
+.tool-mobile-palette-toggle{
+    display:none;
+    border:none;
+    background:#11181a;
+    color:#fff;
+    border-radius:12px;
+    padding:10px 14px;
+    font-weight:800;
+    font-size:.84rem;
+}
+
+.tool-canvas-scroll{
+    position:relative;
+    width:100%;
+    height:calc(740px - 58px);
+    overflow:auto;
+    padding:20px;
+}
+
+.tool-canvas-stage{
+    position:relative;
+    display:inline-block;
+    background:#f9fbfb;
+    border:2px solid rgba(17,24,26,.12);
+    box-shadow:0 18px 50px rgba(0,0,0,.10);
+    transform-origin:top left;
+}
+
+.tool-canvas-grid{
+    background-image:
+        linear-gradient(rgba(120,135,140,.22) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(120,135,140,.22) 1px, transparent 1px);
+    background-size:20px 20px;
+}
+
+.tool-canvas-label{
+    position:absolute;
+    top:12px;
+    left:12px;
+    z-index:2;
+    background:rgba(17,24,26,.82);
+    color:#fff;
+    font-size:.75rem;
+    font-weight:800;
+    letter-spacing:1.2px;
+    padding:8px 12px;
+    border-radius:999px;
+    pointer-events:none;
+}
+
+.canvas-item{
+    position:absolute;
+    box-sizing:border-box;
+    user-select:none;
+    touch-action:none;
+    cursor:grab;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+    font-size:12px;
+    font-weight:800;
+    color:#102022;
+    border:2px dashed rgba(17,24,26,.45);
+    background:rgba(94,198,196,.22);
+    border-radius:14px;
+    padding:6px;
+    overflow:hidden;
+}
+
+.canvas-item.round{ border-radius:50%; }
+
+.canvas-item.selected{
+    border:2px solid #d58f1b;
+    box-shadow:0 0 0 3px rgba(213,143,27,.18);
+}
+
+.canvas-item .item-label{
+    pointer-events:none;
+    line-height:1.2;
+}
+
+.canvas-item.text-block{
+    border:1px dashed rgba(17,24,26,.28);
+    background:rgba(255,255,255,.62);
+    align-items:stretch;
+    justify-content:stretch;
+    padding:0;
+}
+
+.canvas-item.text-block textarea{
+    width:100%;
+    height:100%;
+    resize:none;
+    border:none;
+    outline:none;
+    background:transparent;
+    font:600 14px 'Plus Jakarta Sans', sans-serif;
+    color:#162022;
+    padding:10px;
+    box-sizing:border-box;
+}
+
+.canvas-item .resize-handle{
+    position:absolute;
+    right:2px;
+    bottom:2px;
+    width:16px;
+    height:16px;
+    border-radius:6px;
+    background:#11181a;
+    cursor:nwse-resize;
+}
+
+.canvas-item .item-top-tools{
+    position:absolute;
+    top:6px;
+    right:6px;
+    display:flex;
+    gap:6px;
+    opacity:0;
+    transition:opacity .18s ease;
+}
+
+.canvas-item.selected .item-top-tools{
+    opacity:1;
+}
+
+.item-mini-btn{
+    width:24px;
+    height:24px;
+    border:none;
+    border-radius:50%;
+    background:rgba(17,24,26,.84);
+    color:#fff;
+    font-size:.72rem;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
+}
+
+.canvas-empty-state{
+    position:absolute;
+    inset:0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+    padding:20px;
+    color:#607074;
+    font-weight:700;
+    pointer-events:none;
+}
+.canvas-empty-state.hidden{ display:none; }
+
+.quick-tips-grid{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:22px;
+}
+
+.tip-card{
+    background:#fff;
+    border:1px solid rgba(17,24,26,.08);
+    border-radius:26px;
+    padding:28px 24px;
+    box-shadow:0 20px 60px rgba(0,0,0,.08);
+    height:100%;
+}
+.tip-card h4{
+    color:var(--vnv-text-dark);
+    font-size:1.2rem;
+    margin-bottom:10px;
+}
+.tip-card p{
+    color:#4f5b5f;
+    margin:0;
+}
+
+.faq-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:22px;
+}
+
+.faq-card{
+    background:rgba(28,34,35,.82);
+    backdrop-filter:blur(6px);
+    border-radius:26px;
+    padding:28px 24px;
+    border:1px solid rgba(255,255,255,.06);
+    height:100%;
+}
+.faq-card h4{
+    color:#fff;
+    font-size:1.18rem;
+    margin-bottom:10px;
+}
+.faq-card p{
+    color:var(--vnv-text-muted);
+    margin:0;
+}
+
+.final-cta-card{
+    background:linear-gradient(145deg,#161a1b 0%,#0d0f0f 100%);
+    border-radius:42px;
+    padding:80px 65px;
+    border:1px solid rgba(255,255,255,.06);
+    position:relative;
+    overflow:hidden;
+}
+
+.final-cta-card::after{
+    content:'';
+    position:absolute;
+    top:50%;
+    right:10%;
+    width:340px;
+    height:340px;
+    transform:translateY(-50%);
+    background:radial-gradient(circle, rgba(94,198,196,.08) 0%, transparent 70%);
+    pointer-events:none;
+}
+
+.final-cta-card p{
+    color:var(--vnv-text-muted-soft);
+}
+
+.vnv-btn-fixed{
+    min-width:240px;
+    text-align:center;
+    white-space:normal;
+    line-height:1.35;
+    padding:20px 28px;
+}
+
+@media (max-width: 1199px){
+    .quick-tips-grid,
+    .faq-grid{
+        grid-template-columns:1fr 1fr;
+    }
+}
+
+@media (max-width: 991px){
+    .intro-wrap,
+    .quick-tips-grid,
+    .faq-grid{
+        grid-template-columns:1fr;
+    }
+
+    .tool-workspace{
+        grid-template-columns:1fr;
+    }
+
+    .tool-sidebar{
+        display:none;
+        border-right:none;
+        border-bottom:1px solid rgba(17,24,26,.08);
+    }
+
+    .tool-sidebar.is-open{
+        display:block;
+    }
+
+    .tool-mobile-palette-toggle{
+        display:inline-flex;
+        align-items:center;
+        gap:8px;
+    }
+
+    .tool-canvas-scroll{
+        height:560px;
+        padding:14px;
+    }
+
+    .final-cta-card{
+        padding:50px 30px;
+        text-align:center;
+    }
+
+    .vnv-btn-fixed{
+        min-width:100%;
+    }
+}
+
+@media (max-width: 767px){
+    .section-vnv{
+        padding:90px 0;
+    }
+
+    .hero-tool h1{
+        font-size:2.7rem;
+    }
+
+    .vnv-btn{
+        width:100%;
+        padding:18px 24px;
+        letter-spacing:2px;
+    }
+
+    .hero-cta-row{
+        flex-direction:column;
+    }
+
+    .tool-app-topbar,
+    .tool-toolbar,
+    .tool-control-cluster{
+        flex-direction:column;
+        align-items:stretch;
+    }
+
+    .tool-field{
+        justify-content:space-between;
+    }
+
+    .tool-field input,
+    .tool-field select{
+        width:92px;
+    }
+
+    .tool-canvas-header{
+        flex-direction:column;
+        align-items:flex-start;
+    }
+
+    .tool-canvas-scroll{
+        height:500px;
+    }
+}
+</style>
+{% endblock %}
+
+{% block body %}
+
+{% include "templates/layout/publicHeaderVnv.html.twig" %}
+
+<section class="hero-tool">
+    <div class="container hero-tool-inner">
+        <span class="vnv-badge">Interactive Event Layout Tool</span>
+
+        <h1>Interactive Event Space Planner for <span class="text-gold">Layout Design</span></h1>
+
+        <p class="hero-copy">
+            Build cleaner room layouts before setup begins. This free event space planner helps you map tables, chairs, stages, bars, photo booth areas and guest flow so you can visualize the space before event day.
+        </p>
+
+        <p class="hero-copy">
+            It is useful for weddings, private parties, social events, corporate functions, venues, planners and anyone who needs a faster way to organize an event floor plan without guessing.
+        </p>
+
+        <div class="hero-cta-row">
+            <a href="#planner-tool" class="vnv-btn btn-gold-vnv">Use the Planner</a>
+            <a href="#" data-vnv-open-request class="vnv-btn btn-outline-vnv">Request Professional Help</a>
+        </div>
+    </div>
+</section>
+
+ 
+
+<section class="section-vnv section-white" id="planner-tool">
+    <div class="container">
+        <div class="section-heading">
+            <span class="vnv-badge">Free Planning Tool</span>
+            <h2>Build your event layout <span class="text-vnv">right here</span></h2>
+            <p>
+                Add items, move them around, test the room size and export your layout as an image. On mobile, use the “Add Items” button to open the item library.
+            </p>
+        </div>
+
+        <div class="tool-app-shell" id="event-planner-app">
+            <div class="tool-app-topnote">
+                💡 Tap items to add them. Drag to move. Select an item to rotate, duplicate or delete it. Text blocks can be edited and resized.
+            </div>
+
+            <div class="tool-app-topbar">
+                <div class="tool-app-brand">
+                    <div class="tool-app-brand-icon"><i class="fa-solid fa-vector-square"></i></div>
+                    <div>
+                        <div style="font-size:1rem;">Event Space Planner</div>
+                        <div style="font-size:.78rem; color:var(--vnv-text-muted-soft); font-weight:700;">Interactive layout design tool</div>
+                    </div>
+                </div>
+
+                <div class="tool-control-cluster">
+                    <div class="tool-field">
+                        <span>Preset</span>
+                        <select id="room-preset">
+                            <option value="">Custom</option>
+                            <option value="20x20">20 x 20</option>
+                            <option value="24x36">24 x 36</option>
+                            <option value="30x40">30 x 40</option>
+                            <option value="40x60">40 x 60</option>
+                            <option value="60x80">60 x 80</option>
+                        </select>
+                    </div>
+
+                    <div class="tool-field">
+                        <span>Width</span>
+                        <input type="number" id="room-width" value="20" min="5">
+                    </div>
+
+                    <div class="tool-field">
+                        <span>Length</span>
+                        <input type="number" id="room-height" value="20" min="5">
+                    </div>
+
+                    <button type="button" class="tool-action-btn primary" id="set-room-btn">
+                        <i class="fa-solid fa-ruler-combined"></i>
+                        Set Room
+                    </button>
+                </div>
+            </div>
+
+            <div class="tool-toolbar">
+                <button type="button" class="tool-action-btn" id="mobile-palette-toggle">
+                    <i class="fa-solid fa-plus"></i>
+                    Add Items
+                </button>
+
+                <button type="button" class="tool-action-btn" id="zoom-out-btn">
+                    <i class="fa-solid fa-magnifying-glass-minus"></i>
+                    Zoom Out
+                </button>
+
+                <button type="button" class="tool-action-btn" id="zoom-in-btn">
+                    <i class="fa-solid fa-magnifying-glass-plus"></i>
+                    Zoom In
+                </button>
+
+                <button type="button" class="tool-action-btn" id="fit-screen-btn">
+                    <i class="fa-solid fa-expand"></i>
+                    Fit Screen
+                </button>
+
+                <button type="button" class="tool-action-btn gold" id="clear-room-btn">
+                    <i class="fa-solid fa-trash-can"></i>
+                    Clear Layout
+                </button>
+
+                <button type="button" class="tool-action-btn primary" id="export-btn">
+                    <i class="fa-solid fa-file-export"></i>
+                    Export Design
+                </button>
+            </div>
+
+            <div class="tool-workspace">
+                <aside class="tool-sidebar" id="tool-sidebar">
+                    <h3>Add Items</h3>
+                    <p>Tap an item to place it near the center of the room, then drag it where you want it.</p>
+
+                    <div class="tool-palette">
+                        <button type="button" class="palette-btn" data-add-type="round-table">
+                            <span class="palette-meta">
+                                <span class="palette-icon"><i class="fa-solid fa-circle"></i></span>
+                                <span>Round Table</span>
+                            </span>
+                            <span class="palette-arrow"><i class="fa-solid fa-arrow-right"></i></span>
+                        </button>
+
+                        <button type="button" class="palette-btn" data-add-type="rect-table">
+                            <span class="palette-meta">
+                                <span class="palette-icon"><i class="fa-solid fa-table-cells-large"></i></span>
+                                <span>Rectangular Table</span>
+                            </span>
+                            <span class="palette-arrow"><i class="fa-solid fa-arrow-right"></i></span>
+                        </button>
+
+                        <button type="button" class="palette-btn" data-add-type="chair">
+                            <span class="palette-meta">
+                                <span class="palette-icon"><i class="fa-solid fa-chair"></i></span>
+                                <span>Chair</span>
+                            </span>
+                            <span class="palette-arrow"><i class="fa-solid fa-arrow-right"></i></span>
+                        </button>
+
+                        <button type="button" class="palette-btn" data-add-type="stage">
+                            <span class="palette-meta">
+                                <span class="palette-icon"><i class="fa-solid fa-microphone"></i></span>
+                                <span>Stage</span>
+                            </span>
+                            <span class="palette-arrow"><i class="fa-solid fa-arrow-right"></i></span>
+                        </button>
+
+                        <button type="button" class="palette-btn" data-add-type="cocktail-table">
+                            <span class="palette-meta">
+                                <span class="palette-icon"><i class="fa-solid fa-martini-glass-citrus"></i></span>
+                                <span>Cocktail Table</span>
+                            </span>
+                            <span class="palette-arrow"><i class="fa-solid fa-arrow-right"></i></span>
+                        </button>
+
+                        <button type="button" class="palette-btn" data-add-type="bar">
+                            <span class="palette-meta">
+                                <span class="palette-icon"><i class="fa-solid fa-wine-glass"></i></span>
+                                <span>Bar</span>
+                            </span>
+                            <span class="palette-arrow"><i class="fa-solid fa-arrow-right"></i></span>
+                        </button>
+
+                        <button type="button" class="palette-btn" data-add-type="photobooth">
+                            <span class="palette-meta">
+                                <span class="palette-icon"><i class="fa-solid fa-camera-retro"></i></span>
+                                <span>Photobooth Area</span>
+                            </span>
+                            <span class="palette-arrow"><i class="fa-solid fa-arrow-right"></i></span>
+                        </button>
+
+                        <button type="button" class="palette-btn" data-add-type="altar">
+                            <span class="palette-meta">
+                                <span class="palette-icon"><i class="fa-solid fa-heart"></i></span>
+                                <span>Altar / Focal Area</span>
+                            </span>
+                            <span class="palette-arrow"><i class="fa-solid fa-arrow-right"></i></span>
+                        </button>
+
+                        <button type="button" class="palette-btn" data-add-type="text-block">
+                            <span class="palette-meta">
+                                <span class="palette-icon"><i class="fa-solid fa-pen"></i></span>
+                                <span>Text Block</span>
+                            </span>
+                            <span class="palette-arrow"><i class="fa-solid fa-arrow-right"></i></span>
+                        </button>
+                    </div>
+
+                    <div class="tool-sidebar-card">
+                        <h4>Good uses for this tool</h4>
+                        <ul>
+                            <li>Table layout drafts</li>
+                            <li>Guest flow planning</li>
+                            <li>Ceremony and reception layouts</li>
+                            <li>Quick client previews</li>
+                        </ul>
+                    </div>
+
+                    <div class="tool-sidebar-card">
+                        <h4>What to test</h4>
+                        <ul>
+                            <li>Space between tables</li>
+                            <li>Bar and service placement</li>
+                            <li>Stage or focal area visibility</li>
+                            <li>Traffic around entrances</li>
+                        </ul>
+                    </div>
+                </aside>
+
+                <div class="tool-canvas-zone">
+                    <div class="tool-canvas-header">
+                        <strong id="room-summary">Room: 20ft × 20ft</strong>
+
+                        <button type="button" class="tool-mobile-palette-toggle" id="mobile-palette-toggle-header">
+                            <i class="fa-solid fa-layer-group"></i>
+                            Add Items
+                        </button>
+                    </div>
+
+                    <div class="tool-canvas-scroll" id="canvas-scroll">
+                        <div class="tool-canvas-stage tool-canvas-grid" id="canvas-stage">
+                            <div class="tool-canvas-label" id="canvas-label">20ft × 20ft Room</div>
+
+                            <div class="canvas-empty-state" id="canvas-empty-state">
+                                <div>
+                                    <div style="font-size:1.1rem; margin-bottom:8px;">Start by adding tables, chairs or service areas.</div>
+                                    <div style="font-size:.92rem; font-weight:600;">The planner works on both desktop and mobile.</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</section>
+
+<section class="section-vnv section-white">
+    <div class="container">
+        <div class="section-heading">
+            <span class="vnv-badge">How To Use It</span>
+            <h2>Three fast ways this planner makes <span class="text-vnv">layout work easier</span></h2>
+            <p>
+                You do not need a huge software suite to get value from a floor plan. Most users just need a fast visual draft they can adjust and share.
+            </p>
+        </div>
+
+        <div class="quick-tips-grid">
+            <div class="tip-card">
+                <h4>Test room size first</h4>
+                <p>Start with realistic room dimensions in feet so the layout decisions are grounded in the actual space.</p>
+            </div>
+
+            <div class="tip-card">
+                <h4>Place focal points early</h4>
+                <p>Drop the stage, altar, bar or photo booth first, then build guest seating and circulation around those anchors.</p>
+            </div>
+
+            <div class="tip-card">
+                <h4>Export and review</h4>
+                <p>Use the export feature to save a draft image for team discussion, client review or vendor coordination.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="section-vnv section-dark">
+    <div class="container">
+        <div class="section-heading">
+            <span class="vnv-badge">FAQ</span>
+            <h2 class="text-white">Questions people usually ask about an <span class="text-vnv">event space planner</span></h2>
+            <p>
+                These are the practical questions that usually come up when planning room layouts for parties, weddings and event production.
+            </p>
+        </div>
+
+        <div class="faq-grid">
+            <div class="faq-card">
+                <h4>Who is this tool for?</h4>
+                <p>It works for planners, venues, couples, event hosts, designers and anyone trying to map an event room more clearly before setup begins.</p>
+            </div>
+
+            <div class="faq-card">
+                <h4>Can I use it on mobile?</h4>
+                <p>Yes. This version is built so items can be added by tapping, then moved with touch gestures instead of relying only on desktop drag-and-drop.</p>
+            </div>
+
+            <div class="faq-card">
+                <h4>Can I export the layout?</h4>
+                <p>Yes. You can export the visible room layout as an image, which is useful for internal planning, client review and vendor communication.</p>
+            </div>
+
+            <div class="faq-card">
+                <h4>Is this a final technical floor plan?</h4>
+                <p>No. It is a planning tool for fast visualization and layout thinking. For highly technical venue diagrams, exact venue documentation is still important.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="section-vnv section-white">
+    <div class="container">
+        <div class="final-cta-card">
+            <div class="row align-items-center">
+                <div class="col-lg-7">
+                    <span class="vnv-badge">Need Help With The Real Event?</span>
+                    <h2 class="display-3 fw-bold text-white mb-4">A better layout is only one part of a better event.</h2>
+                    <p class="fs-5 mb-5">
+                        If you want help with the actual guest flow, staging, rentals, service logic or full event production, VNV can help turn the layout into a real event plan.
+                    </p>
+                </div>
+
+                <div class="col-lg-5 text-center text-lg-end">
+                    <div class="d-flex flex-column flex-lg-row gap-3 justify-content-end">
+                        <a href="{{ path('event-production') }}" class="vnv-btn btn-gold-vnv vnv-btn-fixed">Event Production</a>
+                        <a href="#" data-vnv-open-request class="vnv-btn btn-ghost-white vnv-btn-fixed">Request Guidance</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+{% include "templates/components/publicEventRequestModal.html.twig" with {
+    request_form_action: "/api/public/event-request"
+} %}
+
+{% include "templates/layout/publicFooterVnv.html.twig" %}
+
+{% endblock %}
+
+{% block scripts %}
+<script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Interactive Event Space Planner for Layout Design",
+  "applicationCategory": "BusinessApplication",
+  "operatingSystem": "Web",
+  "description": "A free web-based event space planner that helps users design event layouts, place tables and chairs, test room dimensions and export layout drafts.",
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "USD"
+  }
+}
+</script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const PIXELS_PER_FT = 24;
+    const MIN_ZOOM = 0.35;
+    const MAX_ZOOM = 2.2;
+
+    const stage = document.getElementById('canvas-stage');
+    const scrollWrap = document.getElementById('canvas-scroll');
+    const roomWidthInput = document.getElementById('room-width');
+    const roomHeightInput = document.getElementById('room-height');
+    const roomPreset = document.getElementById('room-preset');
+    const roomSummary = document.getElementById('room-summary');
+    const canvasLabel = document.getElementById('canvas-label');
+    const emptyState = document.getElementById('canvas-empty-state');
+    const sidebar = document.getElementById('tool-sidebar');
+
+    const setRoomBtn = document.getElementById('set-room-btn');
+    const zoomInBtn = document.getElementById('zoom-in-btn');
+    const zoomOutBtn = document.getElementById('zoom-out-btn');
+    const fitScreenBtn = document.getElementById('fit-screen-btn');
+    const clearRoomBtn = document.getElementById('clear-room-btn');
+    const exportBtn = document.getElementById('export-btn');
+    const mobilePaletteToggle = document.getElementById('mobile-palette-toggle');
+    const mobilePaletteToggleHeader = document.getElementById('mobile-palette-toggle-header');
+
+    let currentZoom = 1;
+    let selectedItem = null;
+    let itemCounter = 0;
+
+    const itemTypes = {
+        'round-table': { widthFt: 5, heightFt: 5, label: 'Round Table', round: true, icon: '○' },
+        'rect-table': { widthFt: 6, heightFt: 3, label: 'Rect Table', round: false, icon: '▭' },
+        'chair': { widthFt: 2, heightFt: 2, label: 'Chair', round: false, icon: 'Chair' },
+        'stage': { widthFt: 10, heightFt: 4, label: 'Stage', round: false, icon: 'Stage' },
+        'cocktail-table': { widthFt: 3, heightFt: 3, label: 'Cocktail', round: true, icon: 'Cocktail' },
+        'bar': { widthFt: 8, heightFt: 3, label: 'Bar', round: false, icon: 'Bar' },
+        'photobooth': { widthFt: 6, heightFt: 4, label: 'Photo Booth', round: false, icon: 'Photo' },
+        'altar': { widthFt: 8, heightFt: 6, label: 'Altar', round: false, icon: 'Altar' },
+        'text-block': { widthFt: 8, heightFt: 3, label: '', round: false, icon: 'Text' }
+    };
+
+    function clamp(value, min, max) {
+        return Math.min(max, Math.max(min, value));
+    }
+
+    function snap(value) {
+        return Math.round(value / 10) * 10;
+    }
+
+    function updateEmptyState() {
+        const hasItems = !!stage.querySelector('.canvas-item');
+        emptyState.classList.toggle('hidden', hasItems);
+    }
+
+    function updateRoomLabels() {
+        const w = parseInt(roomWidthInput.value || '20', 10);
+        const h = parseInt(roomHeightInput.value || '20', 10);
+        roomSummary.textContent = `Room: ${w}ft × ${h}ft`;
+        canvasLabel.textContent = `${w}ft × ${h}ft Room`;
+    }
+
+    function setRoomSize() {
+        const widthFt = Math.max(5, parseInt(roomWidthInput.value || '20', 10));
+        const heightFt = Math.max(5, parseInt(roomHeightInput.value || '20', 10));
+
+        roomWidthInput.value = widthFt;
+        roomHeightInput.value = heightFt;
+
+        stage.style.width = (widthFt * PIXELS_PER_FT) + 'px';
+        stage.style.height = (heightFt * PIXELS_PER_FT) + 'px';
+
+        updateRoomLabels();
+        fitCanvasToView();
+    }
+
+    function setZoom(zoom) {
+        currentZoom = clamp(zoom, MIN_ZOOM, MAX_ZOOM);
+        stage.style.transform = `scale(${currentZoom})`;
+    }
+
+    function fitCanvasToView() {
+        const wrapWidth = scrollWrap.clientWidth - 20;
+        const wrapHeight = scrollWrap.clientHeight - 20;
+        const stageWidth = stage.offsetWidth;
+        const stageHeight = stage.offsetHeight;
+
+        const zoomX = wrapWidth / stageWidth;
+        const zoomY = wrapHeight / stageHeight;
+        const fitZoom = clamp(Math.min(zoomX, zoomY, 1), MIN_ZOOM, MAX_ZOOM);
+
+        setZoom(fitZoom);
+
+        requestAnimationFrame(() => {
+            const scaledWidth = stage.offsetWidth * currentZoom;
+            const scaledHeight = stage.offsetHeight * currentZoom;
+            scrollWrap.scrollLeft = Math.max(0, (scaledWidth - scrollWrap.clientWidth) / 2);
+            scrollWrap.scrollTop = Math.max(0, (scaledHeight - scrollWrap.clientHeight) / 2);
+        });
+    }
+
+    function deselectAll() {
+        stage.querySelectorAll('.canvas-item.selected').forEach(el => el.classList.remove('selected'));
+        selectedItem = null;
+    }
+
+    function selectItem(item) {
+        deselectAll();
+        selectedItem = item;
+        item.classList.add('selected');
+    }
+
+    function createMiniToolButton(iconClass, title, onClick) {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'item-mini-btn';
+        btn.title = title;
+        btn.innerHTML = `<i class="${iconClass}"></i>`;
+        btn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            onClick();
+        });
+        return btn;
+    }
+
+    function duplicateItem(item) {
+        const cloneType = item.dataset.type;
+        const x = parseFloat(item.style.left || '0') + 20;
+        const y = parseFloat(item.style.top || '0') + 20;
+        const newItem = addItem(cloneType, x, y);
+
+        newItem.style.width = item.style.width;
+        newItem.style.height = item.style.height;
+        newItem.dataset.rotation = item.dataset.rotation || '0';
+        newItem.style.transform = `rotate(${newItem.dataset.rotation}deg)`;
+
+        const originalTextarea = item.querySelector('textarea');
+        const newTextarea = newItem.querySelector('textarea');
+
+        if (originalTextarea && newTextarea) {
+            newTextarea.value = originalTextarea.value;
+        }
+
+        updateEmptyState();
+        selectItem(newItem);
+    }
+
+    function rotateItem(item) {
+        const currentRotation = parseInt(item.dataset.rotation || '0', 10);
+        const nextRotation = (currentRotation + 90) % 360;
+        item.dataset.rotation = nextRotation;
+        item.style.transform = `rotate(${nextRotation}deg)`;
+    }
+
+    function removeItem(item) {
+        if (selectedItem === item) {
+            selectedItem = null;
+        }
+        item.remove();
+        updateEmptyState();
+    }
+
+    function attachDragAndResize(item) {
+        let mode = null;
+        let startX = 0;
+        let startY = 0;
+        let startLeft = 0;
+        let startTop = 0;
+        let startWidth = 0;
+        let startHeight = 0;
+
+        item.addEventListener('pointerdown', function(e) {
+            const target = e.target;
+
+            if (target.tagName === 'TEXTAREA') {
+                selectItem(item);
+                return;
+            }
+
+            if (target.classList.contains('resize-handle')) {
+                mode = 'resize';
+            } else {
+                mode = 'drag';
+            }
+
+            selectItem(item);
+
+            startX = e.clientX;
+            startY = e.clientY;
+            startLeft = parseFloat(item.style.left || '0');
+            startTop = parseFloat(item.style.top || '0');
+            startWidth = item.offsetWidth;
+            startHeight = item.offsetHeight;
+
+            item.setPointerCapture(e.pointerId);
+            e.preventDefault();
+        });
+
+        item.addEventListener('pointermove', function(e) {
+            if (!mode) return;
+
+            const dx = (e.clientX - startX) / currentZoom;
+            const dy = (e.clientY - startY) / currentZoom;
+
+            if (mode === 'drag') {
+                let newLeft = snap(startLeft + dx);
+                let newTop = snap(startTop + dy);
+
+                const maxLeft = Math.max(0, stage.offsetWidth - item.offsetWidth);
+                const maxTop = Math.max(0, stage.offsetHeight - item.offsetHeight);
+
+                newLeft = clamp(newLeft, 0, maxLeft);
+                newTop = clamp(newTop, 0, maxTop);
+
+                item.style.left = newLeft + 'px';
+                item.style.top = newTop + 'px';
+            }
+
+            if (mode === 'resize') {
+                const minW = 40;
+                const minH = 40;
+                const maxW = stage.offsetWidth - parseFloat(item.style.left || '0');
+                const maxH = stage.offsetHeight - parseFloat(item.style.top || '0');
+
+                const newWidth = clamp(snap(startWidth + dx), minW, maxW);
+                const newHeight = clamp(snap(startHeight + dy), minH, maxH);
+
+                item.style.width = newWidth + 'px';
+                item.style.height = newHeight + 'px';
+            }
+        });
+
+        function endPointer() {
+            mode = null;
+        }
+
+        item.addEventListener('pointerup', endPointer);
+        item.addEventListener('pointercancel', endPointer);
+    }
+
+    function addItem(type, x = null, y = null) {
+        const config = itemTypes[type];
+        if (!config) return null;
+
+        itemCounter += 1;
+
+        const item = document.createElement('div');
+        item.className = 'canvas-item';
+        if (config.round) item.classList.add('round');
+        if (type === 'text-block') item.classList.add('text-block');
+
+        const widthPx = config.widthFt * PIXELS_PER_FT;
+        const heightPx = config.heightFt * PIXELS_PER_FT;
+
+        item.style.width = widthPx + 'px';
+        item.style.height = heightPx + 'px';
+
+        const defaultX = Math.max(10, ((stage.offsetWidth - widthPx) / 2) + ((itemCounter % 4) * 14));
+        const defaultY = Math.max(10, ((stage.offsetHeight - heightPx) / 2) + ((itemCounter % 4) * 14));
+
+        item.style.left = (x !== null ? snap(x) : snap(defaultX)) + 'px';
+        item.style.top = (y !== null ? snap(y) : snap(defaultY)) + 'px';
+        item.dataset.type = type;
+        item.dataset.rotation = '0';
+        item.style.transform = 'rotate(0deg)';
+
+        const topTools = document.createElement('div');
+        topTools.className = 'item-top-tools';
+
+        topTools.appendChild(createMiniToolButton('fa-solid fa-copy', 'Duplicate', function() {
+            duplicateItem(item);
+        }));
+
+        topTools.appendChild(createMiniToolButton('fa-solid fa-rotate-right', 'Rotate', function() {
+            rotateItem(item);
+        }));
+
+        topTools.appendChild(createMiniToolButton('fa-solid fa-trash', 'Delete', function() {
+            removeItem(item);
+        }));
+
+        item.appendChild(topTools);
+
+        if (type === 'text-block') {
+            const textarea = document.createElement('textarea');
+            textarea.placeholder = 'Write here...';
+            textarea.value = 'Text';
+            item.appendChild(textarea);
+
+            const resizeHandle = document.createElement('div');
+            resizeHandle.className = 'resize-handle';
+            item.appendChild(resizeHandle);
+        } else {
+            const label = document.createElement('div');
+            label.className = 'item-label';
+            label.textContent = config.label;
+            item.appendChild(label);
+
+            const resizeHandle = document.createElement('div');
+            resizeHandle.className = 'resize-handle';
+            item.appendChild(resizeHandle);
+        }
+
+        item.addEventListener('click', function(e) {
+            if (e.target.classList.contains('item-mini-btn')) return;
+            selectItem(item);
+        });
+
+        attachDragAndResize(item);
+        stage.appendChild(item);
+        updateEmptyState();
+        selectItem(item);
+        return item;
+    }
+
+    document.querySelectorAll('[data-add-type]').forEach(btn => {
+        btn.addEventListener('click', function() {
+            addItem(btn.dataset.addType);
+            if (window.innerWidth <= 991) {
+                sidebar.classList.remove('is-open');
+            }
+        });
+    });
+
+    roomPreset.addEventListener('change', function() {
+        if (!roomPreset.value) return;
+        const [w, h] = roomPreset.value.split('x');
+        roomWidthInput.value = w;
+        roomHeightInput.value = h;
+        setRoomSize();
+    });
+
+    setRoomBtn.addEventListener('click', setRoomSize);
+
+    zoomInBtn.addEventListener('click', function() {
+        setZoom(currentZoom + 0.1);
+    });
+
+    zoomOutBtn.addEventListener('click', function() {
+        setZoom(currentZoom - 0.1);
+    });
+
+    fitScreenBtn.addEventListener('click', fitCanvasToView);
+
+    clearRoomBtn.addEventListener('click', function() {
+        if (!confirm('Do you want to clear the current layout?')) return;
+        stage.querySelectorAll('.canvas-item').forEach(el => el.remove());
+        deselectAll();
+        updateEmptyState();
+    });
+
+    exportBtn.addEventListener('click', function() {
+        deselectAll();
+
+        const previousTransform = stage.style.transform;
+        stage.style.transform = 'scale(1)';
+
+        html2canvas(stage, {
+            backgroundColor: '#f9fbfb',
+            scale: 2
+        }).then(canvas => {
+            const link = document.createElement('a');
+            link.download = 'event-layout.png';
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+            stage.style.transform = previousTransform;
+        }).catch(() => {
+            stage.style.transform = previousTransform;
+        });
+    });
+
+    function toggleSidebar() {
+        sidebar.classList.toggle('is-open');
+    }
+
+    mobilePaletteToggle.addEventListener('click', toggleSidebar);
+    mobilePaletteToggleHeader.addEventListener('click', toggleSidebar);
+
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('.canvas-item') && !e.target.closest('.tool-sidebar') && !e.target.closest('#mobile-palette-toggle') && !e.target.closest('#mobile-palette-toggle-header')) {
+            deselectAll();
+        }
+    });
+
+    setRoomSize();
+
+    setTimeout(() => {
+        fitCanvasToView();
+    }, 120);
+});
+</script>
+{% endblock %}

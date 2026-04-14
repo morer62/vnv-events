@@ -1,0 +1,1102 @@
+{% extends "templates/base.twig" %}
+
+{% set show_whatsapp = true %}
+
+{% block styles %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@200;300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,700;0,900;1,700;1,900&display=swap" rel="stylesheet">
+
+<style>
+:root {
+    --vnv-primary: #5EC6C4;
+    --vnv-primary-dark: #4aa8a6;
+    --vnv-gold: #c5a059;
+    --vnv-gold-gradient: linear-gradient(135deg, #bf953f 0%, #fcf6ba 45%, #b38728 100%);
+    --vnv-dark-deep: #0a0c0c;
+    --vnv-dark-soft: #141818;
+    --vnv-dark-card: #1b2021;
+    --vnv-light: #ffffff;
+    --vnv-marble: #f4f7f8;
+    --vnv-text-main: #2d3436;
+    --vnv-text-dark: #11181a;
+    --vnv-text-light: #f3f5f6;
+    --vnv-text-muted: rgba(255,255,255,.74);
+    --vnv-text-muted-soft: rgba(255,255,255,.60);
+    --vnv-border: rgba(255,255,255,.08);
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+    background: var(--vnv-dark-deep);
+    color: var(--vnv-text-light);
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    line-height: 1.8;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+}
+
+h1, h2, h3, h4, h5, .luxury-font {
+    font-family: 'Playfair Display', serif;
+}
+
+.text-vnv { color: var(--vnv-primary) !important; }
+.text-gold {
+    background: var(--vnv-gold-gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+.letter-spacing-lg { letter-spacing: 4px; }
+
+.vnv-btn {
+    padding: 18px 30px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    transition: all .35s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    text-decoration: none;
+    border: none;
+    cursor: pointer;
+    font-size: .78rem;
+    border-radius: 999px;
+}
+
+.btn-gold-vnv {
+    background: var(--vnv-gold-gradient);
+    color: #000 !important;
+}
+.btn-gold-vnv:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 20px 40px rgba(197,160,89,.22);
+}
+.btn-outline-vnv {
+    border: 2px solid var(--vnv-primary);
+    color: var(--vnv-primary) !important;
+    background: transparent;
+}
+.btn-outline-vnv:hover {
+    background: var(--vnv-primary);
+    color: #fff !important;
+}
+.btn-ghost-white {
+    border: 1px solid rgba(255,255,255,.18);
+    color: #fff !important;
+    background: transparent;
+}
+.btn-ghost-white:hover {
+    background: #fff;
+    color: #000 !important;
+}
+
+.section-vnv {
+    padding: 120px 0;
+    position: relative;
+}
+
+.vnv-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 18px;
+    border-radius: 999px;
+    background: rgba(94,198,196,.1);
+    color: var(--vnv-primary);
+    font-size: .74rem;
+    letter-spacing: 2px;
+    font-weight: 800;
+    text-transform: uppercase;
+}
+
+.hero-rentals {
+    position: relative;
+    min-height: 92vh;
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+    background:
+        linear-gradient(90deg, rgba(10,12,12,.90) 0%, rgba(10,12,12,.70) 42%, rgba(10,12,12,.44) 100%),
+        url('{{ asset_for('assets/images/rentals1.jpg') }}') center/cover no-repeat;
+}
+
+.hero-rentals::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+        radial-gradient(circle at top right, rgba(94,198,196,.16), transparent 28%),
+        radial-gradient(circle at bottom left, rgba(197,160,89,.10), transparent 24%);
+    pointer-events: none;
+}
+
+.hero-rentals-inner {
+    position: relative;
+    z-index: 2;
+    width: 100%;
+}
+
+.hero-rentals h1 {
+    font-size: clamp(3rem, 6vw, 5.4rem);
+    line-height: 1.02;
+    margin: 20px 0 28px;
+    max-width: 980px;
+}
+
+.hero-rentals p.hero-copy {
+    font-size: 1.08rem;
+    color: var(--vnv-text-muted);
+    max-width: 790px;
+    margin-bottom: 24px;
+}
+
+.hero-cta-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-top: 22px;
+}
+
+.section-white {
+    background: var(--vnv-marble);
+    color: var(--vnv-text-dark);
+}
+
+.section-dark {
+    background: var(--vnv-dark-deep);
+    color: var(--vnv-text-light);
+}
+
+.section-heading {
+    max-width: 920px;
+    margin-bottom: 55px;
+}
+.section-heading h2 {
+    font-size: clamp(2.2rem, 4vw, 4.2rem);
+    line-height: 1.04;
+    margin: 16px 0 18px;
+}
+.section-heading p {
+    font-size: 1.05rem;
+    margin: 0;
+}
+.section-white .section-heading p {
+    color: #566164;
+}
+.section-dark .section-heading p {
+    color: var(--vnv-text-muted);
+}
+
+.intro-wrap {
+    display: grid;
+    grid-template-columns: 1.05fr .95fr;
+    gap: 40px;
+    align-items: center;
+}
+
+.intro-image-card {
+    border-radius: 30px;
+    overflow: hidden;
+    box-shadow: 0 25px 70px rgba(0,0,0,.10);
+    border: 1px solid rgba(17,24,26,.08);
+    background: #fff;
+}
+
+.intro-image-card img {
+    width: 100%;
+    min-height: 430px;
+    object-fit: cover;
+    display: block;
+}
+
+.intro-panel {
+    background: #fff;
+    border: 1px solid rgba(17,24,26,.08);
+    border-radius: 30px;
+    padding: 40px;
+    box-shadow: 0 25px 70px rgba(0,0,0,.08);
+}
+
+.intro-panel h3 {
+    font-size: 2rem;
+    color: var(--vnv-text-dark);
+    margin-bottom: 20px;
+}
+
+.intro-panel p,
+.intro-panel li {
+    color: #4f5b5f;
+}
+
+.intro-panel ul {
+    list-style: none;
+    padding: 0;
+    margin: 25px 0 0;
+}
+.intro-panel ul li {
+    position: relative;
+    padding-left: 22px;
+    margin-bottom: 10px;
+}
+.intro-panel ul li::before {
+    content: "";
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--vnv-gold);
+    position: absolute;
+    left: 0;
+    top: 12px;
+}
+
+.services-bg-video-wrap {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+}
+
+.services-bg-video {
+    width: 100%;
+    height: 120%;
+    object-fit: cover;
+    object-position: center center;
+    opacity: 0.12;
+    filter: blur(2px) saturate(0.8);
+    transform: translateY(-6%);
+}
+
+.services-bg-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+        to bottom,
+        rgba(10,12,12,0.25),
+        rgba(10,12,12,0.30),
+        rgba(10,12,12,0.25)
+    );
+}
+
+.service-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+}
+
+.service-card {
+    background: rgba(28, 34, 35, 0.82);
+    backdrop-filter: blur(6px);
+    border-radius: 28px;
+    padding: 42px 34px;
+    border: 1px solid rgba(197, 160, 89, 0.08);
+    height: 100%;
+    position: relative;
+    z-index: 2;
+}
+
+.service-card h3 {
+    color: #fff;
+    font-size: 1.8rem;
+    margin-bottom: 14px;
+}
+.service-card p,
+.service-card li {
+    color: var(--vnv-text-muted);
+}
+
+.service-icon-box {
+    width: 60px;
+    height: 60px;
+    background: rgba(197, 160, 89, 0.1);
+    border-radius: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--vnv-gold);
+    font-size: 1.6rem;
+    margin-bottom: 24px;
+}
+
+.packages-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+}
+
+.package-card {
+    background: #fff;
+    border: 1px solid rgba(17,24,26,.08);
+    border-radius: 30px;
+    padding: 36px 30px;
+    box-shadow: 0 20px 60px rgba(0,0,0,.08);
+    position: relative;
+    overflow: hidden;
+    height: 100%;
+}
+
+.package-card.featured {
+    transform: translateY(-10px);
+    border: 1px solid rgba(94,198,196,.25);
+    box-shadow: 0 25px 70px rgba(0,0,0,.12);
+}
+
+.package-card .mini-badge {
+    display: inline-flex;
+    padding: 7px 14px;
+    border-radius: 999px;
+    font-size: .72rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1.4px;
+    margin-bottom: 18px;
+    background: rgba(94,198,196,.12);
+    color: var(--vnv-primary-dark);
+}
+
+.package-card h3 {
+    color: var(--vnv-text-dark);
+    font-size: 2rem;
+    margin-bottom: 8px;
+}
+
+.package-card .package-guests {
+    color: #6a7578;
+    font-weight: 700;
+    margin-bottom: 14px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-size: .8rem;
+}
+
+.package-card .package-price {
+    font-size: 2.4rem;
+    line-height: 1;
+    color: var(--vnv-text-dark);
+    font-weight: 800;
+    margin-bottom: 20px;
+}
+
+.package-card .package-note {
+    color: #7a8588;
+    font-size: .95rem;
+    margin-bottom: 22px;
+}
+
+.package-card ul {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 24px;
+}
+.package-card ul li {
+    position: relative;
+    padding-left: 22px;
+    margin-bottom: 12px;
+    color: #4f5b5f;
+}
+.package-card ul li::before {
+    content: "";
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--vnv-gold);
+    position: absolute;
+    left: 0;
+    top: 11px;
+}
+
+.rentals-wrap {
+    display: grid;
+    grid-template-columns: .95fr 1.05fr;
+    gap: 40px;
+    align-items: stretch;
+}
+
+.rentals-image-stack {
+    display: grid;
+    gap: 24px;
+}
+
+.rentals-image-stack img {
+    width: 100%;
+    border-radius: 26px;
+    object-fit: cover;
+    display: block;
+    box-shadow: 0 20px 60px rgba(0,0,0,.10);
+    border: 1px solid rgba(17,24,26,.08);
+}
+
+.rentals-image-stack img:first-child,
+.rentals-image-stack img:last-child {
+    min-height: 260px;
+    max-height: 260px;
+}
+
+.rentals-panel {
+    background: #fff;
+    border: 1px solid rgba(17,24,26,.08);
+    border-radius: 30px;
+    padding: 42px;
+    box-shadow: 0 25px 70px rgba(0,0,0,.08);
+}
+
+.rentals-panel h3 {
+    font-size: 2rem;
+    color: var(--vnv-text-dark);
+    margin-bottom: 18px;
+}
+
+.rentals-panel p,
+.rentals-panel li {
+    color: #4f5b5f;
+}
+
+.rentals-panel ul {
+    list-style: none;
+    padding: 0;
+    margin: 28px 0 0;
+}
+.rentals-panel ul li {
+    position: relative;
+    padding-left: 24px;
+    margin-bottom: 12px;
+}
+.rentals-panel ul li::before {
+    content: "";
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--vnv-primary);
+    position: absolute;
+    left: 0;
+    top: 12px;
+}
+
+.capacity-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 22px;
+}
+
+.capacity-card {
+    background: #fff;
+    border: 1px solid rgba(17,24,26,.08);
+    border-radius: 28px;
+    padding: 30px 24px;
+    box-shadow: 0 20px 60px rgba(0,0,0,.08);
+    height: 100%;
+}
+
+.capacity-card h4 {
+    color: var(--vnv-text-dark);
+    font-size: 1.25rem;
+    margin-bottom: 10px;
+}
+.capacity-card p {
+    color: #4f5b5f;
+    margin: 0;
+}
+
+.table-card {
+    background: linear-gradient(145deg, #161a1b 0%, #0d0f0f 100%);
+    border-radius: 30px;
+    padding: 34px;
+    border: 1px solid rgba(255,255,255,0.06);
+    box-shadow: 0 20px 60px rgba(0,0,0,0.35);
+    overflow-x: auto;
+}
+
+.tent-table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 880px;
+}
+
+.tent-table th,
+.tent-table td {
+    padding: 16px 14px;
+    text-align: left;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    color: rgba(255,255,255,0.82);
+    font-size: .96rem;
+}
+
+.tent-table th {
+    color: #fff;
+    font-size: .85rem;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+}
+
+.tent-table tr:last-child td {
+    border-bottom: none;
+}
+
+.location-block {
+    position: relative;
+    overflow: hidden;
+}
+
+.location-block::before {
+    content: "";
+    position: absolute;
+    top: -120px;
+    left: -120px;
+    width: 320px;
+    height: 320px;
+    background: radial-gradient(circle, rgba(94,198,196,0.14) 0%, transparent 70%);
+    pointer-events: none;
+}
+
+.vnv-location-card {
+    background: linear-gradient(145deg, #161a1b 0%, #0d0f0f 100%);
+    border-radius: 30px;
+    padding: 50px;
+    border: 1px solid rgba(255,255,255,0.06);
+    box-shadow: 0 20px 60px rgba(0,0,0,0.35);
+}
+
+.vnv-location-card h3 {
+    font-size: 1.8rem;
+    font-weight: 800;
+}
+
+.vnv-location-card p {
+    color: rgba(255,255,255,0.7);
+    margin-bottom: 20px;
+}
+
+.vnv-location-info {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    color: #fff;
+    font-weight: 600;
+    margin-bottom: 18px;
+}
+
+.vnv-location-info i {
+    color: var(--vnv-primary);
+}
+
+.location-gallery-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 18px;
+}
+
+.location-gallery-grid img {
+    width: 100%;
+    height: 220px;
+    object-fit: cover;
+    border-radius: 22px;
+    display: block;
+    border: 1px solid rgba(255,255,255,.08);
+}
+
+.final-cta-card {
+    background: linear-gradient(145deg, #161a1b 0%, #0d0f0f 100%);
+    border-radius: 45px;
+    padding: 90px 70px;
+    border: 1px solid rgba(255,255,255,.06);
+    position: relative;
+    overflow: hidden;
+}
+
+.final-cta-card::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    right: 10%;
+    width: 360px;
+    height: 360px;
+    transform: translateY(-50%);
+    background: radial-gradient(circle, rgba(94, 198, 196, 0.08) 0%, transparent 70%);
+    pointer-events: none;
+}
+
+.final-cta-card p {
+    color: var(--vnv-text-muted-soft);
+}
+
+.vnv-btn-fixed {
+    min-width: 240px;
+    text-align: center;
+    white-space: normal;
+    line-height: 1.35;
+    padding: 20px 28px;
+}
+
+@media (max-width: 1199px) {
+    .packages-grid,
+    .capacity-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+    .final-cta-card {
+        padding: 60px 45px;
+    }
+}
+
+@media (max-width: 991px) {
+    .intro-wrap,
+    .rentals-wrap {
+        grid-template-columns: 1fr;
+    }
+
+    .service-grid,
+    .packages-grid,
+    .capacity-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .intro-panel,
+    .rentals-panel,
+    .vnv-location-card {
+        padding: 32px 28px;
+    }
+
+    .final-cta-card {
+        padding: 50px 30px;
+        text-align: center;
+    }
+
+    .vnv-btn-fixed {
+        min-width: 100%;
+    }
+
+    .services-bg-video {
+        height: 100%;
+        transform: none;
+        filter: blur(1px) saturate(0.8);
+    }
+}
+
+@media (max-width: 767px) {
+    .section-vnv {
+        padding: 90px 0;
+    }
+
+    .hero-rentals h1 {
+        font-size: 2.7rem;
+    }
+
+    .vnv-btn {
+        width: 100%;
+        padding: 18px 24px;
+        letter-spacing: 2px;
+    }
+
+    .hero-cta-row {
+        flex-direction: column;
+    }
+
+    .location-gallery-grid img {
+        height: 150px;
+    }
+}
+</style>
+{% endblock %}
+
+{% block body %}
+
+{% include "templates/layout/publicHeaderVnv.html.twig" %}
+
+<section class="hero-rentals">
+    <div class="container hero-rentals-inner">
+        <span class="vnv-badge">VNV Event Rentals</span>
+
+        <h1>Party Tents & <span class="text-gold">Event Rental</span> Services in South Florida</h1>
+
+        <p class="hero-copy">
+            Elegant event rentals for celebrations that need more than just tables and chairs. From party tents and seating to lounge furniture and setup essentials, VNV helps you build an event environment that feels complete from the first guest arrival.
+        </p>
+
+        <p class="hero-copy">
+            Whether you're planning a backyard party, corporate activation, birthday, shower or wedding-related event, we can supply the rental pieces that shape the experience across Broward, Miami and West Palm Beach.
+        </p>
+
+        <div class="hero-cta-row">
+            <a href="tel:+13052045427" class="vnv-btn btn-gold-vnv">Call Now (305) 204-5427</a>
+            <a href="#packages" class="vnv-btn btn-outline-vnv">Explore Packages</a>
+        </div>
+    </div>
+</section>
+
+<section class="section-vnv section-white">
+    <div class="container">
+        <div class="intro-wrap">
+            <div class="intro-image-card">
+                <img src="{{ asset_for('assets/images/rentals2.jpg') }}" alt="Party tent and rental setup by VNV Events">
+            </div>
+
+            <div class="intro-panel">
+                <span class="vnv-badge">All You Need in One Place</span>
+                <h3>Rentals that make the space feel ready.</h3>
+                <p>
+                    The goal is not just to drop off equipment. It is to help create a polished event environment with the practical pieces guests actually use and the visual pieces that make the setup feel intentional.
+                </p>
+                <p>
+                    From tent coverage and tables to lounge furniture, linens and event essentials, this page is designed for clients who want convenience, coordination and a cleaner final result.
+                </p>
+
+                <ul>
+                    <li>Party tents for outdoor events and covered setups</li>
+                    <li>Tables and chairs for guest seating and dining</li>
+                    <li>Lounge furniture for elevated social areas</li>
+                    <li>Linens, glassware, tableware, umbrellas and heaters</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="section-vnv section-dark" id="services-overview">
+    <div class="services-bg-video-wrap">
+        <video class="services-bg-video" autoplay muted loop playsinline preload="auto">
+            <source src="{{ asset_for('assets/video/intro.mp4') }}" type="video/mp4">
+        </video>
+        <div class="services-bg-overlay"></div>
+    </div>
+
+    <div class="container position-relative" style="z-index:2;">
+        <div class="text-center mb-5 pb-5 section-heading">
+            <span class="vnv-badge">Rental Highlights</span>
+            <h2 class="text-white">Built for <span class="text-vnv">Comfort, Function & Style</span></h2>
+            <p>
+                A strong rental setup supports the flow of the event while still looking refined in photos and in person.
+            </p>
+        </div>
+
+        <div class="service-grid">
+            <div class="service-card">
+                <div class="service-icon-box"><i class="fa-solid fa-tent"></i></div>
+                <h3>Tents & Coverage</h3>
+                <p>
+                    Flexible tent sizing for outdoor events that need coverage, structure and better guest comfort throughout the setup.
+                </p>
+            </div>
+
+            <div class="service-card">
+                <div class="service-icon-box"><i class="fa-solid fa-chair"></i></div>
+                <h3>Chairs, Tables & Dining</h3>
+                <p>
+                    Seating and table options that help adapt the layout to cocktail style, buffet service, seated dinners or ceremony needs.
+                </p>
+            </div>
+
+            <div class="service-card">
+                <div class="service-icon-box"><i class="fa-solid fa-couch"></i></div>
+                <h3>Lounge & Finishing Pieces</h3>
+                <p>
+                    Lounge furniture, linens, glassware, tableware, umbrellas and heaters to make the space feel more complete and guest-ready.
+                </p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="section-vnv section-white" id="packages">
+    <div class="container">
+        <div class="section-heading text-center mx-auto">
+            <span class="vnv-badge">Rental Packages</span>
+            <h2>Simple package options for <span class="text-vnv">30 guests</span></h2>
+            <p>
+                A quick starting point for smaller gatherings, with chair style upgrades depending on the look you want.
+            </p>
+        </div>
+
+        <div class="packages-grid">
+            <div class="package-card">
+                <span class="mini-badge">Basic</span>
+                <h3>Basic</h3>
+                <div class="package-guests">30 Guests</div>
+                <div class="package-price">$200</div>
+                <div class="package-note">+ Delivery Fee</div>
+
+                <ul>
+                    <li>30 Folding Chairs with white spandex cover</li>
+                    <li>3 Folding Tables</li>
+                    <li>6ft Rectangular or 60" / 5ft Round options</li>
+                    <li>3 Tablecloths included</li>
+                </ul>
+
+                <a href="tel:+13052045427" class="vnv-btn btn-outline-vnv">Call for This Package</a>
+            </div>
+
+            <div class="package-card featured">
+                <span class="mini-badge">Standard</span>
+                <h3>Standard</h3>
+                <div class="package-guests">30 Guests</div>
+                <div class="package-price">$220</div>
+                <div class="package-note">+ Delivery Fee</div>
+
+                <ul>
+                    <li>30 White Resin Folding Chairs</li>
+                    <li>3 Folding Tables</li>
+                    <li>6ft Rectangular or 60" / 5ft Round options</li>
+                    <li>3 Tablecloths included</li>
+                </ul>
+
+                <a href="tel:+13052045427" class="vnv-btn btn-gold-vnv">Best Everyday Option</a>
+            </div>
+
+            <div class="package-card">
+                <span class="mini-badge">Gold</span>
+                <h3>Gold</h3>
+                <div class="package-guests">30 Guests</div>
+                <div class="package-price">$245</div>
+                <div class="package-note">+ Delivery Fee</div>
+
+                <ul>
+                    <li>30 Chiavari or Acrylic Chairs</li>
+                    <li>3 Folding Tables</li>
+                    <li>6ft Rectangular or 60" / 5ft Round options</li>
+                    <li>3 Tablecloths included</li>
+                </ul>
+
+                <a href="tel:+13052045427" class="vnv-btn btn-outline-vnv">Call for Premium Setup</a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="section-vnv section-white">
+    <div class="container">
+        <div class="rentals-wrap">
+            <div class="rentals-image-stack">
+                <img src="{{ asset_for('assets/images/rentals3.jpg') }}" alt="Elegant party rental setup">
+                <img src="{{ asset_for('assets/images/rentals4.jpg') }}" alt="Tent and seating layout by VNV Events">
+            </div>
+
+            <div class="rentals-panel">
+                <span class="vnv-badge">What Else We Can Supply</span>
+                <h3>Beyond the tent, the event still needs a system.</h3>
+
+                <p>
+                    Clients often begin by asking for a tent, but the setup only feels complete when the surrounding rentals are coordinated as part of the same plan.
+                </p>
+
+                <ul>
+                    <li>Lounge furniture for social and cocktail areas</li>
+                    <li>Tablecloths and finishing linen details</li>
+                    <li>Glassware and tableware for service support</li>
+                    <li>Umbrellas and outdoor comfort pieces</li>
+                    <li>Outdoor heaters for cooler evenings</li>
+                    <li>Rental combinations tailored to the event style</li>
+                </ul>
+
+                <p class="mt-3">
+                    That is where VNV is strongest: helping clients combine practical rental needs with a more polished event presentation.
+                </p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="section-vnv section-dark">
+    <div class="container">
+        <div class="section-heading">
+            <span class="vnv-badge">Planning Tips</span>
+            <h2 class="text-white">How to think about <span class="text-vnv">tent capacity</span></h2>
+            <p>
+                Guest count changes depending on whether the event is cocktail style, buffet dining, seated dinner or cathedral seating.
+            </p>
+        </div>
+
+        <div class="capacity-grid">
+            <div class="capacity-card">
+                <h4>Stand-Up Cocktail</h4>
+                <p>Best when the event has flowing circulation, lighter furniture needs and more standing interaction.</p>
+            </div>
+
+            <div class="capacity-card">
+                <h4>Buffet Dinner</h4>
+                <p>Allows for dining support while still keeping more flexibility than a fully seated plated format.</p>
+            </div>
+
+            <div class="capacity-card">
+                <h4>Sit-Down Dinner</h4>
+                <p>Requires more deliberate spacing because tables, service paths and guest comfort become more important.</p>
+            </div>
+
+            <div class="capacity-card">
+                <h4>Ceremony / Cathedral</h4>
+                <p>Useful when the priority is forward-facing guest seating for presentations, ceremonies or structured moments.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="section-vnv section-dark" id="tent-guide">
+    <div class="container">
+        <div class="section-heading">
+            <span class="vnv-badge">Tent Seating Guide</span>
+            <h2 class="text-white">Recommended guest counts by <span class="text-vnv">tent size</span></h2>
+            <p>
+                Use this section as a quick planning reference when comparing different layout styles.
+            </p>
+        </div>
+
+        <div class="table-card">
+            <table class="tent-table">
+                <thead>
+                    <tr>
+                        <th>Tent Size</th>
+                        <th>Total Sq. Ft.</th>
+                        <th>Stand-Up Cocktail</th>
+                        <th>Buffet Dinner</th>
+                        <th>Sit Down Dinner</th>
+                        <th>Cathedral Seating</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td>20' x 20'</td><td>400</td><td>67</td><td>50</td><td>40</td><td>67</td></tr>
+                    <tr><td>20' x 30'</td><td>600</td><td>100</td><td>75</td><td>60</td><td>100</td></tr>
+                    <tr><td>20' x 40'</td><td>800</td><td>133</td><td>100</td><td>80</td><td>133</td></tr>
+                    <tr><td>20' x 50'</td><td>1000</td><td>167</td><td>125</td><td>100</td><td>167</td></tr>
+                    <tr><td>20' x 60'</td><td>1200</td><td>200</td><td>150</td><td>120</td><td>200</td></tr>
+                    <tr><td>30' x 30'</td><td>900</td><td>150</td><td>113</td><td>90</td><td>150</td></tr>
+                    <tr><td>30' x 40'</td><td>1200</td><td>200</td><td>150</td><td>120</td><td>200</td></tr>
+                    <tr><td>30' x 50'</td><td>1500</td><td>250</td><td>188</td><td>150</td><td>250</td></tr>
+                    <tr><td>30' x 60'</td><td>1800</td><td>300</td><td>225</td><td>180</td><td>300</td></tr>
+                    <tr><td>30' x 90'</td><td>2700</td><td>450</td><td>338</td><td>270</td><td>450</td></tr>
+                    <tr><td>30' x 120'</td><td>3600</td><td>600</td><td>450</td><td>306</td><td>600</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>
+
+<section class="section-vnv section-dark location-block">
+    <div class="container position-relative" style="z-index:2;">
+        <div class="row align-items-center g-5">
+            <div class="col-lg-6">
+                <span class="text-vnv fw-bold d-block mb-3 letter-spacing-lg">VISIT & PLAN</span>
+
+                <h2 class="display-3 fw-black text-white mb-3">
+                    Visit us in <span class="text-vnv">Sunrise, Florida</span>
+                </h2>
+
+                <p class="fs-5 mb-4" style="color:rgba(255,255,255,0.65);">
+                    Meet with the team, talk through tent sizing, rental combinations and the overall event flow before finalizing your setup.
+                </p>
+
+                <a href="https://www.instagram.com/vnv_events/" target="_blank" class="vnv-btn btn-outline-vnv">
+                    View Instagram
+                </a>
+
+                <div class="location-gallery-grid mt-4">
+                    <img src="{{ asset_for('assets/images/rentals1.jpg') }}" alt="Event rental gallery 1">
+                    <img src="{{ asset_for('assets/images/rentals2.jpg') }}" alt="Event rental gallery 2">
+                    <img src="{{ asset_for('assets/images/rentals3.jpg') }}" alt="Event rental gallery 3">
+                    <img src="{{ asset_for('assets/images/rentals4.jpg') }}" alt="Event rental gallery 4">
+                </div>
+            </div>
+
+            <div class="col-lg-6">
+                <div class="vnv-location-card">
+                    <span class="vnv-badge">VNV Location</span>
+
+                    <h3 class="text-white mb-3">A local team for South Florida events.</h3>
+
+                    <p>
+                        We serve clients across Broward, Miami and West Palm Beach, with a planning point in Sunrise for meetings, coordination and event preparation.
+                    </p>
+
+                    <div class="vnv-location-info">
+                        <i class="fa-solid fa-location-dot"></i>
+                        <span>10258 NW 47th St, Sunrise, FL 33351</span>
+                    </div>
+
+                    <div class="vnv-location-info">
+                        <i class="fa-solid fa-clock"></i>
+                        <span>Mon - Fri: 10 AM - 5 PM | Sat: 10 AM - 2 PM</span>
+                    </div>
+
+                    <div class="vnv-location-info">
+                        <i class="fa-solid fa-phone"></i>
+                        <span>(305) 204-5427</span>
+                    </div>
+
+                    <div class="d-flex gap-3 flex-wrap mt-4">
+                        <a href="https://maps.app.goo.gl/" target="_blank" class="vnv-btn btn-ghost-white">
+                            Get Directions
+                        </a>
+
+                        <a href="#" data-vnv-open-request class="vnv-btn btn-gold-vnv">
+                            Request Proposal
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="section-vnv section-white">
+    <div class="container">
+        <div class="final-cta-card">
+            <div class="row align-items-center">
+                <div class="col-lg-7">
+                    <span class="vnv-badge">Event Rental Planning</span>
+                    <h2 class="display-3 fw-bold text-white mb-4">Build the event layout before guests ever arrive.</h2>
+                    <p class="fs-5 mb-5">
+                        From tents and chairs to lounge areas and service support, VNV helps turn outdoor and open spaces into something functional, inviting and ready to host.
+                    </p>
+                </div>
+
+                <div class="col-lg-5 text-center text-lg-end">
+                    <div class="d-flex flex-column flex-lg-row gap-3 justify-content-end">
+                        <a href="tel:+13052045427" class="vnv-btn btn-gold-vnv vnv-btn-fixed">Call Now</a>
+                        <a href="#" data-vnv-open-request class="vnv-btn btn-ghost-white vnv-btn-fixed">Request Proposal</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+{% include "templates/components/publicEventRequestModal.html.twig" with {
+    request_form_action: "/api/public/event-request"
+} %}
+
+{% include "templates/layout/publicFooterVnv.html.twig" %}
+
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+
+<script>
+if (typeof gsap !== 'undefined' && typeof ScrollTrigger !== 'undefined') {
+    gsap.registerPlugin(ScrollTrigger);
+
+    gsap.from(".intro-image-card, .intro-panel, .service-card, .package-card, .rentals-image-stack, .rentals-panel, .capacity-card, .table-card, .vnv-location-card, .final-cta-card", {
+        scrollTrigger: {
+            trigger: ".intro-image-card",
+            start: "top 82%"
+        },
+        y: 35,
+        opacity: 0,
+        duration: 1,
+        ease: "power3.out"
+    });
+
+    if (window.innerWidth > 991) {
+        gsap.to('.services-bg-video', {
+            yPercent: 12,
+            ease: 'none',
+            scrollTrigger: {
+                trigger: '#services-overview',
+                start: 'top bottom',
+                end: 'bottom top',
+                scrub: true
+            }
+        });
+    }
+}
+</script>
+{% endblock %}

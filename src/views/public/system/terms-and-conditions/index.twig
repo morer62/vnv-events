@@ -1,0 +1,456 @@
+{% extends "templates/base.twig" %}
+
+{% set show_whatsapp = true %}
+
+{% block styles %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@200;300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,700;0,900;1,700;1,900&display=swap" rel="stylesheet">
+
+<style>
+:root{
+    --vnv-primary:#5EC6C4;
+    --vnv-gold:#c5a059;
+    --vnv-gold-gradient:linear-gradient(135deg,#bf953f 0%,#fcf6ba 45%,#b38728 100%);
+    --vnv-dark-deep:#0a0c0c;
+    --vnv-dark-soft:#141818;
+    --vnv-dark-card:#1b2021;
+    --vnv-light:#ffffff;
+    --vnv-marble:#f4f7f8;
+    --vnv-text-dark:#11181a;
+    --vnv-text-light:#f3f5f6;
+    --vnv-text-muted:rgba(255,255,255,.72);
+    --vnv-border:rgba(255,255,255,.08);
+    --vnv-shadow:0 25px 70px rgba(0,0,0,.14);
+}
+
+html { scroll-behavior:smooth; }
+
+body{
+    background:var(--vnv-dark-deep);
+    color:var(--vnv-text-light);
+    font-family:'Plus Jakarta Sans',sans-serif;
+    line-height:1.8;
+    -webkit-font-smoothing:antialiased;
+    overflow-x:hidden;
+}
+
+h1,h2,h3,h4,h5,.luxury-font{
+    font-family:'Playfair Display',serif;
+}
+
+.text-gold{
+    background:var(--vnv-gold-gradient);
+    -webkit-background-clip:text;
+    -webkit-text-fill-color:transparent;
+}
+
+.section-vnv{
+    padding:110px 0;
+    position:relative;
+}
+
+.section-white{
+    background:var(--vnv-marble);
+    color:var(--vnv-text-dark);
+}
+
+.terms-hero{
+    position:relative;
+    padding:120px 0 70px;
+    background:
+        radial-gradient(circle at top right, rgba(94,198,196,.12), transparent 22%),
+        radial-gradient(circle at bottom left, rgba(197,160,89,.08), transparent 20%),
+        linear-gradient(180deg, #0a0c0c 0%, #111616 100%);
+    border-bottom:1px solid rgba(255,255,255,.06);
+}
+
+.terms-hero-inner{
+    max-width:900px;
+}
+
+.terms-badge{
+    display:inline-flex;
+    align-items:center;
+    gap:10px;
+    padding:10px 18px;
+    border-radius:999px;
+    background:rgba(94,198,196,.1);
+    color:var(--vnv-primary);
+    font-size:.74rem;
+    letter-spacing:2px;
+    font-weight:800;
+    text-transform:uppercase;
+    margin-bottom:18px;
+}
+
+.terms-hero h1{
+    font-size:clamp(2.7rem,5.2vw,4.6rem);
+    line-height:1.05;
+    margin:0 0 18px;
+}
+
+.terms-hero p{
+    margin:0;
+    max-width:760px;
+    color:var(--vnv-text-muted);
+    font-size:1.05rem;
+}
+
+.terms-shell{
+    max-width:980px;
+    margin:0 auto;
+}
+
+.terms-card{
+    background:#fff;
+    border-radius:30px;
+    padding:34px;
+    box-shadow:0 24px 70px rgba(0,0,0,.10);
+    border:1px solid rgba(17,24,26,.06);
+}
+
+.terms-top{
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+    gap:18px;
+    margin-bottom:26px;
+    padding-bottom:22px;
+    border-bottom:1px solid rgba(17,24,26,.08);
+}
+
+.terms-top-left{
+    display:flex;
+    gap:16px;
+    align-items:flex-start;
+}
+
+.terms-icon{
+    width:56px;
+    height:56px;
+    border-radius:18px;
+    background:rgba(94,198,196,.12);
+    color:#1d6f6d;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:1.25rem;
+    flex-shrink:0;
+}
+
+.terms-meta-title{
+    margin:0 0 6px;
+    font-size:1.55rem;
+    line-height:1.2;
+    color:#11181a;
+}
+
+.terms-meta-sub{
+    margin:0;
+    color:#5d6a6d;
+    font-size:.98rem;
+}
+
+.terms-chip{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    padding:9px 14px;
+    border-radius:999px;
+    background:#11181a;
+    color:#fff;
+    font-size:.78rem;
+    font-weight:800;
+    letter-spacing:1px;
+    text-transform:uppercase;
+    white-space:nowrap;
+}
+
+.terms-content{
+    color:#1b2325;
+}
+
+.terms-content p{
+    margin:0 0 18px;
+    font-size:1rem;
+    line-height:1.82;
+}
+
+.terms-content strong{
+    color:#11181a;
+}
+
+.terms-section{
+    margin-top:28px;
+    padding-top:24px;
+    border-top:1px solid rgba(17,24,26,.08);
+}
+
+.terms-section:first-of-type{
+    margin-top:0;
+    padding-top:0;
+    border-top:none;
+}
+
+.terms-section h3{
+    margin:0 0 14px;
+    font-size:1.2rem;
+    color:#11181a;
+}
+
+.terms-footer-note{
+    margin-top:28px;
+    padding:18px 20px;
+    border-radius:18px;
+    background:#f6f8f9;
+    border:1px solid rgba(17,24,26,.08);
+    color:#536062;
+    font-size:.95rem;
+    line-height:1.7;
+}
+
+@media (max-width: 767px){
+    .section-vnv{
+        padding:80px 0;
+    }
+
+    .terms-hero{
+        padding:100px 0 50px;
+    }
+
+    .terms-card{
+        padding:22px;
+        border-radius:22px;
+    }
+
+    .terms-top{
+        flex-direction:column;
+        align-items:flex-start;
+    }
+
+    .terms-top-left{
+        align-items:flex-start;
+    }
+
+    .terms-meta-title{
+        font-size:1.3rem;
+    }
+}
+</style>
+{% endblock %}
+
+{% block body %}
+
+{% include "templates/layout/publicHeaderVnv.html.twig" %}
+
+<section class="terms-hero">
+    <div class="container">
+        <div class="terms-hero-inner">
+            <span class="terms-badge">
+                <i class="fa-solid fa-file-contract"></i>
+                Legal
+            </span>
+
+            <h1>Terms & <span class="text-gold">Conditions</span></h1>
+
+            <p>
+                Please review the following terms carefully. By submitting payment, signing electronically, or otherwise authorizing services, the client confirms acceptance of these terms and conditions.
+            </p>
+        </div>
+    </div>
+</section>
+
+<section class="section-vnv section-white">
+    <div class="container">
+        <div class="terms-shell">
+            <div class="terms-card">
+                <div class="terms-top">
+                    <div class="terms-top-left">
+                        <div class="terms-icon">
+                            <i class="fa-solid fa-scale-balanced"></i>
+                        </div>
+
+                        <div>
+                            <h2 class="terms-meta-title">VNV EVENTS LLC – Florida, USA</h2>
+                            <p class="terms-meta-sub">
+                                Event Services Agreement
+                            </p>
+                        </div>
+                    </div>
+
+                    <span class="terms-chip">Official Terms</span>
+                </div>
+
+                <div class="terms-content">
+                    <p>
+                        This Event Services Agreement (“Agreement”) is entered into between VNV Events LLC, a Florida limited liability company (“Company,” “VNV Events,” “we,” “us”), and the undersigned client (“Client”). By submitting payment, signing electronically, or otherwise authorizing services, the Client confirms that they have read, understood, and agreed to all terms and conditions contained herein.
+                    </p>
+
+                    <div class="terms-section">
+                        <h3>1. SCOPE OF SERVICES &amp; MODIFICATIONS</h3>
+                        <p>
+                            VNV Events LLC provides professional event-related services, which may include but are not limited to event planning, coordination, catering, décor, staffing, rentals, production, and on-site execution, as detailed in the approved written proposal (“Services”).
+                        </p>
+                        <p><strong>1.1 Finality of Scope</strong><br>Services not expressly included in the proposal are excluded.</p>
+                        <p><strong>1.2 No Unilateral Changes</strong><br>Once the retainer is paid, the Agreement cannot be modified by the Client. Requests to decrease or swap services are subject to Company discretion and may incur additional fees. If a modification is declined, the full original balance remains due. Disagreement with a declined change is not grounds for refund or chargeback.</p>
+                    </div>
+
+                    <div class="terms-section">
+                        <h3>2. BOOKING, PAYMENTS &amp; FEES</h3>
+                        <p><strong>2.1 Non-Refundable Retainer</strong><br>A retainer of fifty percent (50%) is required to reserve the date. This retainer is strictly non-refundable and serves as Liquidated Damages to compensate the Company for planning, administrative work, and the Loss of Opportunity for refusing other clients for that same date.</p>
+                        <p><strong>2.2 Final Payment</strong><br>The remaining balance must be paid no later than forty-eight (48) hours prior to the event. Failure to submit payment on time results in immediate cancellation and total forfeiture of the retainer.</p>
+                        <p><strong>2.3 Payment Methods</strong><br>Only via Stripe, Square, or bank transfer. Cash is not accepted.</p>
+                        <p><strong>2.4 Additional Services</strong><br>Services requested during or after the event require written approval and must be paid in full within 48 hours after the event.</p>
+                    </div>
+
+                    <div class="terms-section">
+                        <h3>3. SERVICE EXECUTION &amp; EARNED FEES</h3>
+                        <p>
+                            All fees are considered fully earned once the event becomes executable. An event is deemed executed and services fully rendered when:
+                        </p>
+                        <p>
+                            VNV Events staff arrives at the event location;<br>
+                            Equipment, décor, food, rentals, or materials are delivered, installed, or prepared; or<br>
+                            VNV Events is fully staffed, equipped, and available to perform at the scheduled time.
+                        </p>
+                        <p><strong>3.1 De Facto Acceptance</strong><br>By allowing VNV Events to begin setup or service delivery, the Client provides final acceptance of services and a total waiver of any future right to initiate a chargeback or payment dispute for "service not received."</p>
+                    </div>
+
+                    <div class="terms-section">
+                        <h3>4. NO REFUNDS &amp; NO CHARGEBACKS</h3>
+                        <p><strong>4.1 No Refund Policy</strong><br>Once services are executed or rendered, ALL SALES ARE FINAL. No refunds, credits, or reversals shall be issued due to dissatisfaction, subjective opinion, preferences, guest behavior, venue conditions, weather, or third-party actions.</p>
+                        <p><strong>4.2 Chargeback Prohibition</strong><br>The Client agrees not to initiate chargebacks or disputes. Any attempt constitutes a material breach and results in a $500 administrative fee plus all legal and collection costs.</p>
+                    </div>
+
+                    <div class="terms-section">
+                        <h3>5. CLIENT RESPONSIBILITIES &amp; ACCESS</h3>
+                        <p>
+                            The Client agrees to provide the exact address and venue contact at least 48 hours prior to the event. Venue access must be granted a minimum of three (3) hours prior for setup and two (2) hours after for breakdown. The Client must also provide at least two (2) functional power outlets within ten (10) feet of required equipment.
+                        </p>
+                        <p>
+                            All relevant event details, including menus, playlists, and protocols, must be submitted no later than 48 hours before the event. Failure to comply authorizes VNV Events to proceed at its sole professional discretion, without refund or liability.
+                        </p>
+                    </div>
+
+                    <div class="terms-section">
+                        <h3>6. PRE-EVENT SERVICE ACCEPTANCE (MANDATORY)</h3>
+                        <p>
+                            Prior to the start of the event, the Client or representative is required to sign a Service Acceptance Confirmation.
+                        </p>
+                        <p><strong>Failure to Sign</strong><br>If the Client refuses or fails to sign, the event is still deemed executed. The absence of a signature does not invalidate this Agreement or the De Facto Acceptance defined in Section 3.1.</p>
+                    </div>
+
+                    <div class="terms-section">
+                        <h3>7. DELAYS, ACCESS &amp; LOGISTICS</h3>
+                        <p>
+                            VNV Events LLC is not responsible for delays or interruptions caused by venue restrictions, late access, client, guest, or third-party interference.
+                        </p>
+                        <p><strong>Weather &amp; Outdoor Events</strong><br>The Company is not responsible for weather-related issues. For outdoor events, the Client must provide a covered, dry, and safe area for equipment and staff. If weather conditions, including rain, wind, or excessive heat, threaten equipment or staff safety, the Company reserves the right to suspend services without refund.</p>
+                        <p>
+                            Additional fees apply for overtime or additional labor.
+                        </p>
+                    </div>
+
+                    <div class="terms-section">
+                        <h3>8. EQUIPMENT &amp; INVENTORY</h3>
+                        <p>
+                            If Company-owned equipment remains at the venue, pickup must be coordinated within seventy-two (72) hours. Failure to comply authorizes billing of the full replacement value. The Company is not responsible for loss, theft, or damage caused by guests, venue staff, or third parties.
+                        </p>
+                    </div>
+
+                    <div class="terms-section">
+                        <h3>9. CONDUCT &amp; TERMINATION</h3>
+                        <p>
+                            The Client and guests must treat VNV Events staff with respect. Harassment, abuse, or unsafe behavior will result in immediate termination of services without refund.
+                        </p>
+                    </div>
+
+                    <div class="terms-section">
+                        <h3>10. MEDIA RELEASE &amp; USAGE</h3>
+                        <p>
+                            VNV Events LLC reserves the right to photograph or record the event for marketing and social media use. Unless the Client provides written notice via email to info@vnvevents.com at least 24 hours prior, consent is automatically granted.
+                        </p>
+                    </div>
+
+                    <div class="terms-section">
+                        <h3>11. LIABILITY LIMITATION</h3>
+                        <p>
+                            VNV Events LLC is not responsible for third-party vendors, venue operations, guest behavior, or force majeure. In no event shall the Company be liable for indirect or consequential damages.
+                        </p>
+                    </div>
+
+                    <div class="terms-section">
+                        <h3>12. CANCELLATION POLICY</h3>
+                        <p><strong>12.1 Client Cancellation</strong><br>All retainers are strictly non-refundable as Liquidated Damages. No refunds apply under any circumstance once the date is reserved.</p>
+                        <p><strong>12.2 Company Cancellation</strong><br>If VNV Events LLC cancels for reasons unrelated to Client breach, amounts paid beyond earned services will be refunded. This is the Client’s sole and exclusive remedy.</p>
+                    </div>
+
+                    <div class="terms-section">
+                        <h3>13. LAST-MINUTE CHANGES</h3>
+                        <p>
+                            Requests made within 48 hours of the event may incur additional fees or be declined. A declined change does not authorize a refund, cancellation, or chargeback.
+                        </p>
+                    </div>
+
+                    <div class="terms-section">
+                        <h3>14. NON-DISPARAGEMENT &amp; FALSE REVIEWS</h3>
+                        <p>
+                            The Client agrees not to publish false, misleading, or defamatory statements. This includes knowingly false claims regarding food safety, non-performance, or service quality. Violations entitle the Company to liquidated damages of $2,500 per occurrence plus any related economic losses.
+                        </p>
+                    </div>
+
+                    <div class="terms-section">
+                        <h3>15. DISPUTE RESOLUTION, FEES &amp; WAIVER OF JURY TRIAL</h3>
+                        <p><strong>15.1 Mandatory Negotiation</strong><br>The Client agrees to a mandatory 15-day good-faith negotiation period with VNV Events LLC before initiating any legal claim, chargeback, or third-party dispute.</p>
+                        <p><strong>15.2 Waiver of Jury Trial</strong><br>To the fullest extent permitted by law, the Client waives the right to a trial by jury in any dispute related to this Agreement.</p>
+                        <p><strong>15.3 Attorney’s Fees &amp; Costs</strong><br>The prevailing party in any dispute shall be entitled to recover reasonable attorney’s fees, court costs, and collection expenses.</p>
+                        <p><strong>15.4 Chargeback Waiver</strong><br>Once services have commenced, the Client waives the right to initiate a chargeback or payment dispute, as commencement of setup or service constitutes acceptance under Section 3.1.</p>
+                        <p><strong>15.5 Governing Law &amp; Venue</strong><br>This Agreement shall be governed by the laws of the State of Florida. Any legal action shall be brought exclusively in the county where the Company is headquartered.</p>
+                    </div>
+
+                    <div class="terms-section">
+                        <h3>16. ENTIRE AGREEMENT</h3>
+                        <p>
+                            This Agreement constitutes the entire agreement and supersedes all prior discussions or representations.
+                        </p>
+                        <p>
+                            This Agreement shall be governed by and construed in accordance with the laws of the State of Florida.
+                        </p>
+                    </div>
+
+                    <div class="terms-section">
+                        <h3>17. DATA USAGE, ACCOUNT CREATION & COMMUNICATIONS</h3>
+
+                        <p>
+                            By engaging with VNV Events LLC, submitting a form, requesting services, or completing a booking, the Client acknowledges and agrees that their provided personal information (including name, email address, phone number, and event details) may be used to create a user profile and account within the VNV Events platform, accessible through vnvevents.com or associated systems.
+                        </p>
+
+                        <p>
+                            The Client expressly authorizes VNV Events LLC to store and manage this information for operational purposes, including service coordination, account access, communication, and future event management.
+                        </p>
+
+                        <p>
+                            VNV Events LLC does not sell, rent, or distribute Client personal data to third parties for commercial purposes.
+                        </p>
+
+                        <p>
+                            The Client agrees that their contact information may be used to receive communications from VNV Events LLC, including service updates, event-related information, promotional content, and company announcements.
+                        </p>
+
+                        <p>
+                            The Client may opt out of promotional communications at any time by using the unsubscribe option included in emails or by sending a written request to info@vnvevents.com. Upon request, the Client’s email will be removed from marketing communications, while still allowing essential service-related communication when applicable.
+                        </p>
+                    </div>
+
+                    <div class="terms-footer-note">
+                        These terms are presented for review and reference. Please ensure the final route, acceptance flow, and any connected payment or signature logic in your system match your operational process exactly.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+{% include "templates/layout/publicFooterVnv.html.twig" %}
+
+{% endblock %}

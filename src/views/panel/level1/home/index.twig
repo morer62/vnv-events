@@ -3,133 +3,138 @@
 {% set show_whatsapp = true %}
 
 {% block body %}
-<main class="gourmet-admin-home mt-4 container pb-5">
+<main class="vnv-admin-home mt-4 container pb-5">
 
   <style>
     :root{
-      --gourmet-primary:#f59e0b;
-      --gourmet-primary-dark:#d97706;
-      --gourmet-accent:#fb923c;
-      --gourmet-cream:#fff8ef;
-      --gourmet-soft:#fff3df;
-      --gourmet-dark:#1f1307;
-      --gourmet-dark-2:#2a1808;
-      --gourmet-text:#2d241c;
-      --gourmet-muted:#6f6255;
-      --gourmet-border:#ecd9bf;
-      --gourmet-shadow:0 18px 44px rgba(79,43,8,.10);
+      --vnv-primary:#5EC6C4;
+      --vnv-primary-dark:#49acab;
+      --vnv-gold:#D4A84F;
+      --vnv-gold-soft:rgba(212,168,79,.14);
+      --vnv-black:#0B0B0C;
+      --vnv-black-soft:#111214;
+      --vnv-black-card:#15181a;
+      --vnv-border:rgba(255,255,255,.08);
+      --vnv-text:#F6F1E8;
+      --vnv-text-muted:#B5ADA3;
+      --vnv-light-card:#F7F3ED;
+      --vnv-shadow:0 20px 54px rgba(0,0,0,.16);
+      --vnv-shadow-soft:0 18px 42px rgba(0,0,0,.10);
     }
 
-    .gourmet-admin-home{
-      color:var(--gourmet-text);
+    .vnv-admin-home{
+      color:var(--vnv-text);
     }
 
-    .g-badge{
+    .vnv-badge{
       display:inline-flex;
       align-items:center;
-      gap:.45rem;
+      gap:.5rem;
       border-radius:999px;
-      padding:.55rem .9rem;
-      font-size:.9rem;
-      font-weight:800;
-      background:#fff2db;
-      border:1px solid #f6d8a5;
-      color:#8a5300;
+      padding:.58rem .95rem;
+      font-size:.82rem;
+      font-weight:900;
+      letter-spacing:1.2px;
+      text-transform:uppercase;
+      background:rgba(94,198,196,.12);
+      border:1px solid rgba(94,198,196,.22);
+      color:var(--vnv-primary);
     }
 
-    .g-hero{
+    .vnv-hero{
       position:relative;
       overflow:hidden;
-      border-radius:28px;
+      border-radius:30px;
       padding:2rem 1.8rem;
       color:#fff;
       background:
-        radial-gradient(900px 420px at 0% 0%, rgba(245,158,11,.16), transparent 60%),
-        linear-gradient(135deg, #251508 0%, #1f1307 55%, #361a06 100%);
-      box-shadow:0 22px 54px rgba(0,0,0,.16);
+        radial-gradient(900px 420px at 0% 0%, rgba(94,198,196,.16), transparent 60%),
+        radial-gradient(260px 260px at 100% 0%, rgba(212,168,79,.12), transparent 72%),
+        linear-gradient(135deg, #0B0B0C 0%, #111214 55%, #191c1f 100%);
+      box-shadow:var(--vnv-shadow);
       margin-bottom:2rem;
     }
 
-    .g-hero:after{
+    .vnv-hero:after{
       content:"";
       position:absolute;
       right:-70px;
       top:-70px;
       width:220px;
       height:220px;
-      background:radial-gradient(circle, rgba(255,209,138,.16) 0%, rgba(255,209,138,0) 70%);
+      background:radial-gradient(circle, rgba(255,255,255,.08) 0%, rgba(255,255,255,0) 70%);
       pointer-events:none;
     }
 
-    .g-hero > *{
+    .vnv-hero > *{
       position:relative;
       z-index:2;
     }
 
-    .g-hero-logo{
+    .vnv-hero-logo{
       max-width:92px;
-      margin:1rem 0 .9rem;
+      margin:1rem 0 .95rem;
       filter:drop-shadow(0 8px 20px rgba(0,0,0,.20));
     }
 
-    .g-hero h1{
-      font-size:clamp(2rem,4vw,3.1rem);
-      line-height:1.05;
+    .vnv-hero h1{
+      font-size:clamp(2rem,4vw,3.15rem);
+      line-height:1.04;
       font-weight:900;
       letter-spacing:-1px;
       margin-bottom:.8rem;
-      max-width:820px;
+      max-width:860px;
     }
 
-    .g-hero h1 .warm{
-      color:#ffd18a;
+    .vnv-hero h1 .gold{
+      color:var(--vnv-gold);
     }
 
-    .g-hero p{
-      max-width:760px;
-      color:#f4e4cb;
-      line-height:1.72;
+    .vnv-hero p{
+      max-width:780px;
+      color:#ddd5ca;
+      line-height:1.76;
       font-size:1rem;
       margin-bottom:1.2rem;
     }
 
-    .g-hero-actions{
+    .vnv-hero-actions{
       display:flex;
       flex-wrap:wrap;
       gap:.85rem;
       margin-top:1rem;
     }
 
-    .btn-g-main{
-      background:linear-gradient(135deg,var(--gourmet-primary),var(--gourmet-accent));
-      color:#23160a !important;
+    .btn-vnv-main{
+      background:linear-gradient(135deg, #6ed5d3 0%, #5EC6C4 50%, #8cd9d7 100%);
+      color:#081011 !important;
       padding:1rem 1.55rem;
       font-size:1rem;
       border-radius:999px;
       text-decoration:none;
-      font-weight:800;
+      font-weight:900;
       display:inline-flex;
       gap:.55rem;
       align-items:center;
       justify-content:center;
       border:none;
-      box-shadow:0 12px 28px rgba(245,158,11,.28);
+      box-shadow:0 12px 28px rgba(94,198,196,.25);
       transition:all .22s ease;
     }
 
-    .btn-g-main:hover{
+    .btn-vnv-main:hover{
       transform:translateY(-2px);
-      background:linear-gradient(135deg,var(--gourmet-primary-dark),var(--gourmet-accent));
+      background:linear-gradient(135deg, #63cfcc 0%, #52bbb8 50%, #7fd2cf 100%);
     }
 
-    .btn-g-light{
+    .btn-vnv-light{
       padding:.92rem 1.25rem;
       font-size:1rem;
       border-radius:999px;
       font-weight:800;
       border:1.2px solid rgba(255,255,255,.18);
       color:#fff !important;
-      background:rgba(255,255,255,.08);
+      background:rgba(255,255,255,.07);
       text-decoration:none;
       display:inline-flex;
       align-items:center;
@@ -139,228 +144,315 @@
       transition:all .2s ease;
     }
 
-    .btn-g-light:hover{
+    .btn-vnv-light:hover{
       background:rgba(255,255,255,.14);
       transform:translateY(-1px);
     }
 
-    .g-section-head{
-      margin-bottom:1.2rem;
+    .vnv-section-head{
+      margin-bottom:1.15rem;
     }
 
-    .g-title{
-      font-weight:800;
+    .vnv-title{
+      font-weight:900;
       font-size:clamp(1.6rem,3vw,2.3rem);
       line-height:1.12;
       letter-spacing:-.5px;
       margin-bottom:.5rem;
-      color:var(--gourmet-dark);
+      color:#15181a;
     }
 
-    .g-title .highlight{
-      color:var(--gourmet-primary-dark);
+    .vnv-title .highlight{
+      color:#247170;
     }
 
-    .g-subtitle{
-      color:var(--gourmet-muted);
+    .vnv-subtitle{
+      color:#69787b;
       font-size:1rem;
       line-height:1.75;
       margin-bottom:0;
       max-width:760px;
     }
 
-    .g-card{
+    .vnv-main-card{
       background:#fff;
       padding:1.8rem 1.35rem;
-      border-radius:22px;
-      box-shadow:var(--gourmet-shadow);
-      border:1px solid rgba(94,55,15,.06);
+      border-radius:24px;
+      box-shadow:var(--vnv-shadow-soft);
+      border:1px solid rgba(17,24,26,.06);
       height:100%;
       transition:all .22s ease;
       text-align:center;
     }
 
-    .g-card:hover{
+    .vnv-main-card:hover{
       transform:translateY(-4px);
-      box-shadow:0 24px 54px rgba(79,43,8,.12);
+      box-shadow:0 24px 54px rgba(0,0,0,.10);
     }
 
-    .g-card i.big-icon{
+    .vnv-main-card i.big-icon{
       font-size:2rem;
-      color:var(--gourmet-primary-dark);
+      color:#247170;
       margin-bottom:.95rem;
     }
 
-    .g-card h3{
+    .vnv-main-card h3{
       font-size:1.24rem;
-      font-weight:800;
+      font-weight:900;
       margin-bottom:.65rem;
-      color:var(--gourmet-dark);
+      color:#141a1b;
     }
 
-    .g-card p{
-      color:var(--gourmet-muted);
+    .vnv-main-card p{
+      color:#6b7a7d;
       line-height:1.68;
       margin-bottom:1rem;
     }
 
-    .g-link-btn{
+    .vnv-link-btn{
       display:inline-flex;
       align-items:center;
       justify-content:center;
       gap:.45rem;
       padding:.82rem 1.15rem;
       border-radius:999px;
-      font-weight:800;
+      font-weight:900;
       text-decoration:none;
-      background:#fff6e8;
-      color:#8b4f00;
-      border:1px solid #f1d4a3;
+      background:#eef8f8;
+      color:#1f6e6d;
+      border:1px solid #d7ecec;
       transition:all .2s ease;
     }
 
-    .g-link-btn:hover{
-      background:#ffefcf;
-      color:#7a4500;
+    .vnv-link-btn:hover{
+      background:#def3f2;
+      color:#145958;
       transform:translateY(-1px);
     }
 
-    .g-final{
+    .vnv-mini-row{
+      display:grid;
+      grid-template-columns:repeat(5, 1fr);
+      gap:1rem;
+      margin-top:1.2rem;
+    }
+
+    .vnv-mini-card{
+      background:#14181a;
+      border:1px solid rgba(255,255,255,.08);
+      border-radius:22px;
+      padding:1.1rem .9rem;
+      text-align:center;
+      text-decoration:none;
+      color:#fff !important;
+      transition:all .22s ease;
+      box-shadow:0 14px 34px rgba(0,0,0,.10);
+    }
+
+    .vnv-mini-card:hover{
+      transform:translateY(-3px);
+      border-color:rgba(94,198,196,.22);
+    }
+
+    .vnv-mini-card i{
+      font-size:1.25rem;
+      color:var(--vnv-gold);
+      margin-bottom:.7rem;
+      display:block;
+    }
+
+    .vnv-mini-card span{
+      display:block;
+      font-size:.95rem;
+      font-weight:800;
+      line-height:1.4;
+      color:#f6f1e8;
+    }
+
+    .vnv-final{
       margin-top:2rem;
-      background:linear-gradient(135deg,#271507 0%, #3a1f08 100%);
+      background:linear-gradient(135deg,#121516 0%, #1b2022 100%);
       color:#fff;
-      border-radius:24px;
+      border-radius:26px;
       padding:2rem 1.3rem;
-      box-shadow:0 20px 50px rgba(0,0,0,.18);
+      box-shadow:0 20px 50px rgba(0,0,0,.16);
       text-align:center;
     }
 
-    .g-final p{
+    .vnv-final p{
       max-width:720px;
       margin:0 auto 1.2rem;
-      color:#f3dfbf;
+      color:#d5cec3;
       font-size:1rem;
       line-height:1.75;
     }
 
+    @media (max-width: 991px){
+      .vnv-mini-row{
+        grid-template-columns:repeat(2,1fr);
+      }
+    }
+
     @media (max-width: 768px){
-      .g-hero{
+      .vnv-hero{
         padding:1.4rem 1.05rem;
         border-radius:22px;
       }
 
-      .g-card,
-      .g-final{
+      .vnv-main-card,
+      .vnv-final,
+      .vnv-mini-card{
         border-radius:20px;
       }
 
-      .g-hero-actions{
+      .vnv-hero-actions{
         flex-direction:column;
       }
 
-      .btn-g-main,
-      .btn-g-light{
+      .btn-vnv-main,
+      .btn-vnv-light{
         width:100%;
+      }
+
+      .vnv-mini-row{
+        grid-template-columns:1fr 1fr;
       }
     }
   </style>
 
-  <section class="g-hero">
-    <span class="g-badge">
-      <i class="fa-solid fa-utensils"></i> VNV Gourmet Admin
+  <section class="vnv-hero">
+    <span class="vnv-badge">
+      <i class="fa-solid fa-crown"></i> VNV Events
     </span>
 
     <div>
-      <img src="{{ asset_for('assets/images/planner-hub-logo-positive.png') }}" class="g-hero-logo" alt="VNV Gourmet Logo">
+      <img src="{{ asset_for('assets/images/planner-hub-logo-positive.png') }}" class="vnv-hero-logo" alt="VNV Events Logo">
     </div>
 
     <h1>
-      <span style="color:#fff">Welcome back{% if user.name is defined and user.name %}, {{ user.name }}{% endif %}.</span>
-      <span class="warm">Run the store from one clean dashboard.</span>
+      Welcome back{% if user.name is defined and user.name %}, {{ user.name }}{% endif %}. <span class="gold">Luxury event operations, simplified.</span>
     </h1>
 
     <p>
-      Manage catalog, monitor orders, and control customers and team access from a simpler operation panel.
+      Run your business from a sharper control center built for premium event execution, team coordination, client management and day-to-day operational visibility.
     </p>
 
-    <div class="g-hero-actions">
-      <a href="{{ path('panel/planner-hub/store/orders/home') }}" class="btn-g-main">
-        <i class="fa-solid fa-box-open"></i> Orders
+    <div class="vnv-hero-actions">
+      <a href="{{ path('panel/planner-hub/management/orders') }}" class="btn-vnv-main">
+        <i class="fa-solid fa-clipboard-list"></i> Open Orders
       </a>
 
-      <a href="{{ path('/meal-plans') }}" class="btn-g-light">
-        <i class="fa-solid fa-store"></i> View Store
+      <a href="{{ path('panel/planner-hub/management/crm') }}" class="btn-vnv-light">
+        <i class="fa-solid fa-users-viewfinder"></i> Open CRM
       </a>
     </div>
   </section>
 
   <section>
-    <div class="g-section-head">
-      <h2 class="g-title">
+    <div class="vnv-section-head">
+      <h2 class="vnv-title">
         Main <span class="highlight">areas</span>
       </h2>
-      <p class="g-subtitle">
-        Three clear sections to keep the store simple and easy to manage.
+      <p class="vnv-subtitle">
+        The core areas of your event operation, aligned with the new VNV dashboard flow.
       </p>
     </div>
 
     <div class="row g-4">
       <div class="col-md-4">
-        <div class="g-card">
-          <i class="fa-solid fa-burger big-icon"></i>
-          <h3>Products</h3>
-          <p>
-            Manage the catalog and access products, categories, attributes, and attribute values from one place.
-          </p>
-          <a href="{{ path('panel/planner-hub/store/products/home') }}" class="g-link-btn">
-            Open Products <i class="fa-solid fa-arrow-right"></i>
-          </a>
-        </div>
-      </div>
-
-      <div class="col-md-4">
-        <div class="g-card">
-          <i class="fa-solid fa-box-open big-icon"></i>
+        <div class="vnv-main-card">
+          <i class="fa-solid fa-clipboard-check big-icon"></i>
           <h3>Orders</h3>
           <p>
-            Review paid orders, follow store activity, and check abandoned carts from one operational area.
+            Run event operations, assignments, timelines, deliverables and production flow from your main command center.
           </p>
-          <a href="{{ path('panel/planner-hub/store/orders/home') }}" class="g-link-btn">
+          <a href="{{ path('panel/planner-hub/management/orders') }}" class="vnv-link-btn">
             Open Orders <i class="fa-solid fa-arrow-right"></i>
           </a>
         </div>
       </div>
 
       <div class="col-md-4">
-        <div class="g-card">
-          <i class="fa-solid fa-users big-icon"></i>
-          <h3>People</h3>
+        <div class="vnv-main-card">
+          <i class="fa-solid fa-users-gear big-icon"></i>
+          <h3>Team</h3>
           <p>
-            Access customers and team members from the management area and keep account access organized.
+            Manage staff, roles, permissions and internal structure so every event runs with more clarity and accountability.
           </p>
-          <a href="{{ path('panel/planner-hub/management/users') }}" class="g-link-btn">
-            Open People <i class="fa-solid fa-arrow-right"></i>
+          <a href="{{ path('panel/planner-hub/management/users') }}" class="vnv-link-btn">
+            Open Team <i class="fa-solid fa-arrow-right"></i>
+          </a>
+        </div>
+      </div>
+
+      <div class="col-md-4">
+        <div class="vnv-main-card">
+          <i class="fa-solid fa-address-book big-icon"></i>
+          <h3>CRM</h3>
+          <p>
+            Track leads, clients, follow-up activity and business opportunities from one polished relationship hub.
+          </p>
+          <a href="{{ path('panel/planner-hub/management/crm') }}" class="vnv-link-btn">
+            Open CRM <i class="fa-solid fa-arrow-right"></i>
           </a>
         </div>
       </div>
     </div>
   </section>
 
-  <section class="g-final">
-    <h2 class="g-title" style="color:#fff;">
-      Keep the operation clean
+  <section class="mt-5">
+    <div class="vnv-section-head">
+      <h2 class="vnv-title">
+        More <span class="highlight">tools</span>
+      </h2>
+      <p class="vnv-subtitle">
+        Secondary tools that keep the operation moving without cluttering the core experience.
+      </p>
+    </div>
+
+    <div class="vnv-mini-row">
+      <a href="{{ path('panel/planner-hub/management/payroll') }}" class="vnv-mini-card">
+        <i class="fa-solid fa-money-check-dollar"></i>
+        <span>Payroll</span>
+      </a>
+
+      <a href="{{ path('panel/planner-hub/management/storage') }}" class="vnv-mini-card">
+        <i class="fa-solid fa-boxes-stacked"></i>
+        <span>Inventory</span>
+      </a>
+
+      <a href="{{ path('panel/planner-hub/team/chat') }}" class="vnv-mini-card">
+        <i class="fa-solid fa-comments"></i>
+        <span>Chat</span>
+      </a>
+
+      <a href="{{ path('panel/planning-tools') }}" class="vnv-mini-card">
+        <i class="fa-solid fa-compass-drafting"></i>
+        <span>Planner Tools</span>
+      </a>
+
+      <a href="{{ path('panel/settings') }}" class="vnv-mini-card">
+        <i class="fa-solid fa-sliders"></i>
+        <span>Settings</span>
+      </a>
+    </div>
+  </section>
+
+  <section class="vnv-final">
+    <h2 class="vnv-title" style="color:#fff;">
+      Build better events with less friction
     </h2>
     <p>
-      Use these three areas as the main control points for products, orders, and people inside VNV Gourmet.
+      Keep production, staffing, CRM and operations aligned in one premium dashboard built around the real workflow of VNV Events.
     </p>
 
     <div class="d-flex flex-wrap gap-3 justify-content-center">
-      <a href="{{ path('panel/planner-hub/store/orders/home') }}" class="btn-g-main">
-        <i class="fa-solid fa-box-open"></i> Go to Orders
+      <a href="{{ path('panel/planner-hub/management/orders') }}" class="btn-vnv-main">
+        <i class="fa-solid fa-clipboard-list"></i> Go to Orders
       </a>
 
-      <a href="{{ path('panel/planner-hub/store/products/home') }}" class="btn-g-light">
-        <i class="fa-solid fa-burger"></i> Manage Products
+      <a href="{{ path('panel/planner-hub/management/crm') }}" class="btn-vnv-light">
+        <i class="fa-solid fa-users-viewfinder"></i> Open CRM
       </a>
     </div>
   </section>

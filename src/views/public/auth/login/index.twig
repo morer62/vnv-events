@@ -1,0 +1,452 @@
+{% extends "templates/base.twig" %}
+
+{% set show_whatsapp = true %}
+
+{% block styles %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Playfair+Display:wght@700;800;900&display=swap" rel="stylesheet">
+
+<style>
+:root{
+    --vnv-primary:#5EC6C4;
+    --vnv-primary-dark:#49acab;
+    --vnv-gold:#c5a059;
+    --vnv-gold-gradient:linear-gradient(135deg,#bf953f 0%,#fcf6ba 45%,#b38728 100%);
+    --vnv-dark:#0a0c0c;
+    --vnv-dark-soft:#111617;
+    --vnv-dark-card:#151b1c;
+    --vnv-border:rgba(255,255,255,.08);
+    --vnv-text-light:#f4f7f8;
+    --vnv-text-muted:rgba(255,255,255,.68);
+    --vnv-text-dark:#122022;
+    --vnv-surface:#f7f9fa;
+}
+
+body{
+    background:
+        radial-gradient(circle at top left, rgba(94,198,196,.12), transparent 26%),
+        radial-gradient(circle at bottom right, rgba(197,160,89,.10), transparent 24%),
+        linear-gradient(135deg, #090b0b 0%, #101516 100%);
+    font-family:'Plus Jakarta Sans',sans-serif;
+    color:var(--vnv-text-light);
+    overflow-x:hidden;
+}
+
+.vnv-login-wrap{
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    padding:48px 0;
+    position:relative;
+}
+
+.vnv-login-brand img{
+    width:140px;
+    max-width:140px;
+}
+
+.vnv-login-copy{
+    margin-top:22px;
+}
+
+.vnv-login-kicker{
+    display:inline-flex;
+    align-items:center;
+    gap:10px;
+    padding:10px 16px;
+    border-radius:999px;
+    background:rgba(94,198,196,.10);
+    color:var(--vnv-primary);
+    font-size:.75rem;
+    font-weight:800;
+    letter-spacing:1.8px;
+    text-transform:uppercase;
+    margin-bottom:18px;
+}
+
+.vnv-login-copy h1{
+    font-family:'Playfair Display',serif;
+    font-size:clamp(2.4rem,4vw,4rem);
+    line-height:1.02;
+    margin:0 0 14px;
+    color:#fff;
+}
+
+.vnv-login-copy p{
+    color:var(--vnv-text-muted);
+    font-size:1rem;
+    line-height:1.8;
+    margin:0;
+    max-width:560px;
+}
+
+.vnv-login-note{
+    background:rgba(255,255,255,.04);
+    border:1px solid rgba(255,255,255,.08);
+    border-radius:24px;
+    padding:22px;
+    margin-top:26px;
+}
+
+.vnv-login-note h4{
+    font-size:1rem;
+    font-weight:800;
+    color:#fff;
+    margin:0 0 8px;
+}
+
+.vnv-login-note p{
+    margin:0;
+    color:var(--vnv-text-muted);
+    line-height:1.75;
+    font-size:.95rem;
+}
+
+.vnv-login-card{
+    background:rgba(255,255,255,.97);
+    border:1px solid rgba(255,255,255,.08);
+    border-radius:30px;
+    box-shadow:0 30px 80px rgba(0,0,0,.24);
+    overflow:hidden;
+}
+
+.vnv-login-card-inner{
+    padding:32px;
+}
+
+.vnv-login-card-title{
+    color:var(--vnv-text-dark);
+    font-size:1.4rem;
+    font-weight:800;
+    margin:0 0 8px;
+}
+
+.vnv-login-card-sub{
+    color:#607174;
+    font-size:.96rem;
+    line-height:1.7;
+    margin-bottom:24px;
+}
+
+.vnv-form-label{
+    display:block;
+    color:#243538;
+    font-size:.83rem;
+    font-weight:800;
+    margin-bottom:8px;
+    text-transform:uppercase;
+    letter-spacing:1px;
+}
+
+.vnv-form-control{
+    width:100%;
+    border:1px solid rgba(17,24,26,.12);
+    background:#fff;
+    border-radius:16px;
+    padding:16px 16px;
+    font-size:1rem;
+    color:#122022;
+    outline:none;
+    transition:all .22s ease;
+    box-shadow:none;
+}
+
+.vnv-form-control:focus{
+    border-color:rgba(94,198,196,.55);
+    box-shadow:0 0 0 4px rgba(94,198,196,.12);
+}
+
+.vnv-input-group{
+    display:flex;
+    align-items:stretch;
+}
+
+.vnv-input-group .vnv-form-control{
+    border-top-right-radius:0;
+    border-bottom-right-radius:0;
+    border-right:0;
+}
+
+.vnv-password-toggle{
+    width:58px;
+    border:1px solid rgba(17,24,26,.12);
+    border-left:0;
+    background:#fff;
+    color:#4b5e61;
+    border-top-right-radius:16px;
+    border-bottom-right-radius:16px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
+    transition:all .22s ease;
+}
+
+.vnv-password-toggle:hover{
+    background:#f3f6f6;
+}
+
+.vnv-password-toggle:focus{
+    outline:none;
+    box-shadow:none;
+}
+
+.vnv-check-row{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:14px;
+    margin-top:16px;
+    margin-bottom:22px;
+    flex-wrap:wrap;
+}
+
+.vnv-check{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    color:#526164;
+    font-size:.92rem;
+}
+
+.vnv-check input{
+    width:16px;
+    height:16px;
+}
+
+.vnv-link{
+    color:#1e5e60;
+    font-weight:700;
+    text-decoration:none;
+    transition:all .2s ease;
+}
+
+.vnv-link:hover{
+    color:#0f8d8b;
+}
+
+.vnv-btn{
+    width:100%;
+    border:none;
+    border-radius:16px;
+    padding:16px 18px;
+    font-size:.92rem;
+    font-weight:800;
+    letter-spacing:1.2px;
+    text-transform:uppercase;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    gap:10px;
+    transition:all .25s ease;
+    cursor:pointer;
+    text-decoration:none;
+}
+
+.vnv-btn-primary{
+    background:linear-gradient(135deg, #0f1516 0%, #1b2324 100%);
+    color:#fff;
+}
+
+.vnv-btn-primary:hover{
+    transform:translateY(-2px);
+    box-shadow:0 18px 36px rgba(0,0,0,.14);
+    color:#fff;
+}
+
+.vnv-support-line{
+    margin-top:18px;
+    text-align:center;
+    color:#6a7a7d;
+    font-size:.9rem;
+}
+
+.vnv-support-line a{
+    color:#1e5e60;
+    font-weight:700;
+    text-decoration:none;
+}
+
+.vnv-auth-footer{
+    margin-top:18px;
+    text-align:center;
+    color:var(--vnv-text-muted);
+    font-size:.94rem;
+}
+
+.vnv-auth-footer a{
+    color:var(--vnv-primary);
+    font-weight:700;
+    text-decoration:none;
+}
+
+.vnv-auth-footer .legal-link{
+    color:var(--vnv-text-light);
+    opacity:.8;
+}
+
+[data-feather]{
+    width:18px;
+    height:18px;
+}
+
+@media (max-width: 991px){
+    .vnv-login-wrap{
+        padding:30px 0;
+    }
+
+    .vnv-login-card-inner{
+        padding:22px;
+    }
+
+    .vnv-login-copy h1{
+        font-size:2.5rem;
+    }
+}
+</style>
+{% endblock %}
+
+{% block body %}
+<main class="vnv-login-wrap">
+    <div class="container">
+        <div class="row align-items-center justify-content-center g-4">
+            <div class="col-lg-6 col-xl-6">
+                <div class="vnv-login-brand">
+                    <a href="{{ path('planner-hub') }}">
+                        <img src="{{ asset_for('assets/images/planner-hub-logo-positive.png') }}" alt="VNV Events">
+                    </a>
+                </div>
+
+                <div class="vnv-login-copy">
+                    <span class="vnv-login-kicker">
+                        <i class="fa-solid fa-lock"></i>
+                        Client & Team Access
+                    </span>
+
+                    <h1>Sign in to continue</h1>
+
+                    <p>
+                        Access your VNV Events account to review event details, manage services, check updates, communicate with the team and continue planning with confidence.
+                    </p>
+                </div>
+
+                <div class="vnv-login-note">
+                    <h4>Need help accessing your account?</h4>
+                    <p>
+                        If you are having trouble signing in, visit our support area or use the password recovery option to regain access securely.
+                    </p>
+                </div>
+            </div>
+
+            <div class="col-sm-11 col-md-9 col-lg-6 col-xl-5">
+                <div class="vnv-login-card">
+                    <div class="vnv-login-card-inner">
+                        <h2 class="vnv-login-card-title">Welcome back</h2>
+                        <div class="vnv-login-card-sub">
+                            Sign in to access your dashboard, event information and account tools.
+                        </div>
+
+                        <form method="post">
+                            <div class="mb-3">
+                                <label class="vnv-form-label">Email Address</label>
+                                <input
+                                    class="vnv-form-control"
+                                    type="email"
+                                    name="email"
+                                    placeholder="Enter your email"
+                                    required
+                                />
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="vnv-form-label">Password</label>
+                                <div class="vnv-input-group">
+                                    <input
+                                        class="vnv-form-control"
+                                        type="password"
+                                        name="password"
+                                        id="password"
+                                        placeholder="Enter your password"
+                                        required
+                                    />
+                                    <button class="vnv-password-toggle" type="button" id="togglePassword" aria-label="Toggle password visibility">
+                                        <i data-feather="eye" id="eyeIcon"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="vnv-check-row">
+                                <label class="vnv-check" for="customControlInline">
+                                    <input
+                                        id="customControlInline"
+                                        type="checkbox"
+                                        value="remember-me"
+                                        name="remember-me"
+                                        checked
+                                    >
+                                    <span>Remember me</span>
+                                </label>
+
+                                <a href="{{ path('forgot_password') }}" class="vnv-link">Forgot password?</a>
+                            </div>
+
+                            <button type="submit" class="vnv-btn vnv-btn-primary" id="submitBtn">
+                                <i class="fa-solid fa-arrow-right-to-bracket"></i>
+                                Sign in
+                            </button>
+                        </form>
+
+                        <div class="vnv-support-line">
+                            Need help? <a href="{{ path('support') }}">Go to Support Center</a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="vnv-auth-footer">
+                    Don’t have an account?
+                    <a href="{{ path('signup?level=5') }}">Sign up</a>
+                    &nbsp;·&nbsp;
+                    <a href="{{ path('terms_and_conditions') }}" class="legal-link">Privacy Policy</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const togglePassword = document.getElementById('togglePassword');
+    const password = document.getElementById('password');
+    const eyeIcon = document.getElementById('eyeIcon');
+    const submitBtn = document.getElementById('submitBtn');
+
+    togglePassword.addEventListener('click', function() {
+        const type = password.getAttribute('type') === 'password' ? 'text' : 'password';
+        password.setAttribute('type', type);
+
+        if (type === 'text') {
+            eyeIcon.setAttribute('data-feather', 'eye-off');
+        } else {
+            eyeIcon.setAttribute('data-feather', 'eye');
+        }
+
+        if (typeof feather !== 'undefined') {
+            feather.replace();
+        }
+    });
+
+    const form = document.querySelector('form');
+    if (form && submitBtn) {
+        form.addEventListener('submit', function () {
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Signing in...';
+        });
+    }
+
+    if (typeof feather !== 'undefined') {
+        feather.replace();
+    }
+});
+</script>
+
+{% endblock %}

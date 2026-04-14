@@ -1,0 +1,1175 @@
+{% extends "templates/base.twig" %}
+
+{% set show_whatsapp = true %}
+
+{% block styles %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@200;300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,700;0,900;1,700;1,900&display=swap" rel="stylesheet">
+
+<style>
+:root{
+    --vnv-primary:#5EC6C4;
+    --vnv-primary-dark:#4aa8a6;
+    --vnv-gold:#c5a059;
+    --vnv-gold-gradient:linear-gradient(135deg,#bf953f 0%,#fcf6ba 45%,#b38728 100%);
+    --vnv-dark-deep:#0a0c0c;
+    --vnv-dark-soft:#141818;
+    --vnv-dark-card:#1b2021;
+    --vnv-light:#ffffff;
+    --vnv-marble:#f4f7f8;
+    --vnv-text-dark:#11181a;
+    --vnv-text-light:#f3f5f6;
+    --vnv-text-muted:rgba(255,255,255,.72);
+    --vnv-text-muted-soft:rgba(255,255,255,.58);
+    --vnv-border:rgba(255,255,255,.08);
+    --vnv-shadow:0 25px 70px rgba(0,0,0,.14);
+}
+
+html { scroll-behavior:smooth; }
+
+body{
+    background:var(--vnv-dark-deep);
+    color:var(--vnv-text-light);
+    font-family:'Plus Jakarta Sans',sans-serif;
+    line-height:1.8;
+    -webkit-font-smoothing:antialiased;
+    overflow-x:hidden;
+}
+
+h1,h2,h3,h4,h5,.luxury-font{
+    font-family:'Playfair Display',serif;
+}
+
+.text-vnv{ color:var(--vnv-primary)!important; }
+
+.text-gold{
+    background:var(--vnv-gold-gradient);
+    -webkit-background-clip:text;
+    -webkit-text-fill-color:transparent;
+}
+
+.vnv-btn{
+    padding:18px 30px;
+    font-weight:800;
+    text-transform:uppercase;
+    letter-spacing:2px;
+    transition:all .35s ease;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    gap:10px;
+    text-decoration:none;
+    border:none;
+    cursor:pointer;
+    font-size:.78rem;
+    border-radius:999px;
+}
+
+.btn-gold-vnv{
+    background:var(--vnv-gold-gradient);
+    color:#000!important;
+}
+.btn-gold-vnv:hover{
+    transform:translateY(-3px);
+    box-shadow:0 20px 40px rgba(197,160,89,.22);
+}
+
+.btn-outline-vnv{
+    border:2px solid var(--vnv-primary);
+    color:var(--vnv-primary)!important;
+    background:transparent;
+}
+.btn-outline-vnv:hover{
+    background:var(--vnv-primary);
+    color:#fff!important;
+}
+
+.section-vnv{
+    padding:120px 0;
+    position:relative;
+}
+
+.vnv-badge{
+    display:inline-flex;
+    align-items:center;
+    gap:10px;
+    padding:10px 18px;
+    border-radius:999px;
+    background:rgba(94,198,196,.1);
+    color:var(--vnv-primary);
+    font-size:.74rem;
+    letter-spacing:2px;
+    font-weight:800;
+    text-transform:uppercase;
+}
+
+.hero-tool{
+    position:relative;
+    min-height:82vh;
+    display:flex;
+    align-items:center;
+    overflow:hidden;
+    background:
+        linear-gradient(90deg, rgba(10,12,12,.90) 0%, rgba(10,12,12,.66) 44%, rgba(10,12,12,.38) 100%),
+        url('{{ asset_for('assets/images/tool-photo-video-hero.jpg') }}') center/cover no-repeat;
+}
+
+.hero-tool::after{
+    content:"";
+    position:absolute;
+    inset:0;
+    background:
+        radial-gradient(circle at top right, rgba(94,198,196,.16), transparent 28%),
+        radial-gradient(circle at bottom left, rgba(197,160,89,.10), transparent 24%);
+    pointer-events:none;
+}
+
+.hero-tool-inner{
+    position:relative;
+    z-index:2;
+    width:100%;
+}
+
+.hero-tool h1{
+    font-size:clamp(3rem,6vw,5.4rem);
+    line-height:1.02;
+    margin:20px 0 28px;
+    max-width:980px;
+}
+
+.hero-tool p.hero-copy{
+    font-size:1.08rem;
+    color:var(--vnv-text-muted);
+    max-width:780px;
+    margin-bottom:22px;
+}
+
+.hero-cta-row{
+    display:flex;
+    flex-wrap:wrap;
+    gap:16px;
+    margin-top:24px;
+}
+
+.section-white{
+    background:var(--vnv-marble);
+    color:var(--vnv-text-dark);
+}
+
+.tool-shell{
+    background:linear-gradient(145deg, #151a1b 0%, #0c0f10 100%);
+    border-radius:34px;
+    border:1px solid rgba(255,255,255,.06);
+    box-shadow:0 26px 80px rgba(0,0,0,.22);
+    overflow:hidden;
+}
+
+.tool-topbar{
+    padding:18px 22px;
+    background:#0c0f10;
+    border-bottom:1px solid rgba(255,255,255,.06);
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:16px;
+    flex-wrap:wrap;
+}
+
+.tool-topbar-left{
+    display:flex;
+    align-items:center;
+    gap:14px;
+}
+
+.tool-topbar-icon{
+    width:46px;
+    height:46px;
+    border-radius:14px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:rgba(94,198,196,.12);
+    color:var(--vnv-primary);
+    font-size:1.15rem;
+}
+
+.tool-topbar-title{
+    color:#fff;
+    font-weight:800;
+    font-size:1rem;
+    line-height:1.2;
+}
+
+.tool-topbar-sub{
+    color:var(--vnv-text-muted-soft);
+    font-size:.8rem;
+    font-weight:700;
+}
+
+.tool-topbar-note{
+    color:rgba(255,255,255,.62);
+    font-size:.88rem;
+    font-weight:700;
+}
+
+.tool-body{
+    padding:28px;
+}
+
+.tool-grid{
+    display:grid;
+    grid-template-columns: 430px 1fr;
+    gap:24px;
+    align-items:start;
+}
+
+.tool-panel{
+    background:#f7f9fa;
+    border:1px solid rgba(17,24,26,.08);
+    border-radius:26px;
+    padding:22px;
+    box-shadow:0 18px 50px rgba(0,0,0,.06);
+    color:#122022;
+}
+
+.tool-panel h3{
+    font-family:'Plus Jakarta Sans',sans-serif;
+    margin:0 0 18px;
+    font-size:1.05rem;
+    font-weight:800;
+    color:#122022;
+    letter-spacing:.3px;
+}
+
+.tool-field{
+    margin-bottom:16px;
+}
+
+.tool-field label{
+    display:block;
+    font-size:.84rem;
+    font-weight:800;
+    color:#2c3a3d;
+    margin-bottom:8px;
+    text-transform:uppercase;
+    letter-spacing:1px;
+}
+
+.tool-field input,
+.tool-field select{
+    width:100%;
+    border:1px solid rgba(17,24,26,.12);
+    background:#fff;
+    border-radius:14px;
+    outline:none;
+    padding:14px 14px;
+    font-size:1rem;
+    color:#122022;
+    font-family:'Plus Jakarta Sans',sans-serif;
+}
+
+.tool-check{
+    display:flex;
+    align-items:flex-start;
+    gap:10px;
+    background:#fff;
+    border:1px solid rgba(17,24,26,.08);
+    border-radius:16px;
+    padding:14px 14px;
+    margin-bottom:14px;
+}
+
+.tool-check input{
+    margin-top:4px;
+    flex-shrink:0;
+}
+
+.tool-check label{
+    margin:0;
+    font-size:.92rem;
+    font-weight:700;
+    color:#2c3a3d;
+    line-height:1.45;
+}
+
+.tool-inline-2{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:14px;
+}
+
+.tool-inline-3{
+    display:grid;
+    grid-template-columns:1fr 1fr 1fr;
+    gap:14px;
+}
+
+.tool-actions{
+    display:flex;
+    gap:12px;
+    flex-wrap:wrap;
+    margin-top:10px;
+}
+
+.tool-btn{
+    border:none;
+    outline:none;
+    cursor:pointer;
+    border-radius:14px;
+    padding:14px 16px;
+    font-weight:800;
+    font-size:.88rem;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    gap:10px;
+    transition:all .25s ease;
+}
+
+.tool-btn.primary{
+    background:linear-gradient(135deg, #c0006b 0%, #e00087 100%);
+    color:#fff;
+}
+
+.tool-btn.secondary{
+    background:#11181a;
+    color:#fff;
+}
+
+.tool-btn:hover{
+    transform:translateY(-2px);
+}
+
+.tool-helper{
+    margin-top:16px;
+    background:#fff;
+    border:1px solid rgba(17,24,26,.08);
+    border-radius:18px;
+    padding:16px;
+    font-size:.92rem;
+    color:#4e5c5f;
+    line-height:1.65;
+}
+
+.tool-results{
+    display:grid;
+    gap:22px;
+}
+
+.result-card{
+    background:linear-gradient(145deg, rgba(28,34,35,0.96) 0%, rgba(15,18,19,0.98) 100%);
+    border:1px solid rgba(255,255,255,.06);
+    border-radius:26px;
+    padding:24px;
+    box-shadow:0 24px 60px rgba(0,0,0,.18);
+}
+
+.result-card h3{
+    font-size:1.45rem;
+    color:#fff;
+    margin:0 0 14px;
+}
+
+.result-card p{
+    color:var(--vnv-text-muted);
+    margin:0 0 14px;
+}
+
+.result-grid{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:14px;
+    margin-top:14px;
+}
+
+.result-stat{
+    background:rgba(255,255,255,.04);
+    border:1px solid rgba(255,255,255,.06);
+    border-radius:18px;
+    padding:16px 14px;
+}
+
+.result-stat-label{
+    color:rgba(255,255,255,.58);
+    font-size:.72rem;
+    font-weight:800;
+    text-transform:uppercase;
+    letter-spacing:1.4px;
+    margin-bottom:6px;
+}
+
+.result-stat-value{
+    color:#fff;
+    font-size:1.24rem;
+    font-weight:800;
+    line-height:1.2;
+}
+
+.ingredient-grid{
+    display:grid;
+    grid-template-columns:repeat(2,1fr);
+    gap:14px;
+    margin-top:14px;
+}
+
+.ingredient-card{
+    background:rgba(255,255,255,.04);
+    border:1px solid rgba(255,255,255,.06);
+    border-radius:18px;
+    padding:16px 14px;
+}
+
+.ingredient-card h4{
+    font-family:'Plus Jakarta Sans',sans-serif;
+    color:#fff;
+    margin:0 0 8px;
+    font-size:1rem;
+    font-weight:800;
+}
+
+.ingredient-card p{
+    margin:0;
+    color:var(--vnv-text-muted);
+    font-size:.92rem;
+    line-height:1.6;
+}
+
+.muted-note{
+    margin-top:16px;
+    color:rgba(255,255,255,.52);
+    font-size:.84rem;
+    line-height:1.6;
+}
+
+.empty-state{
+    min-height:460px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+    padding:30px;
+    background:linear-gradient(145deg, rgba(28,34,35,0.96) 0%, rgba(15,18,19,0.98) 100%);
+    border:1px solid rgba(255,255,255,.06);
+    border-radius:26px;
+    color:var(--vnv-text-muted);
+}
+
+.empty-state-inner{
+    max-width:420px;
+}
+
+.empty-state-icon{
+    width:72px;
+    height:72px;
+    margin:0 auto 18px;
+    border-radius:22px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:rgba(94,198,196,.10);
+    color:var(--vnv-primary);
+    font-size:1.5rem;
+}
+
+.tool-bento-card{
+    display:flex;
+    flex-direction:column;
+    justify-content:space-between;
+    gap:18px;
+    min-height:220px;
+    padding:22px;
+    border-radius:24px;
+    background:linear-gradient(145deg, rgba(28,34,35,0.96) 0%, rgba(15,18,19,0.98) 100%);
+    border:1px solid rgba(255,255,255,.06);
+    box-shadow:0 24px 60px rgba(0,0,0,.18);
+    text-decoration:none;
+    color:#fff !important;
+    transition:all .28s ease;
+    margin-top:22px;
+}
+
+.tool-bento-card:hover{
+    transform:translateY(-4px);
+    border-color:rgba(94,198,196,.24);
+    box-shadow:0 28px 70px rgba(0,0,0,.24);
+    text-decoration:none;
+}
+
+.tool-bento-card.small{
+    min-height:200px;
+}
+
+.tool-bento-top{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    margin-bottom:16px;
+}
+
+.tool-bento-icon{
+    width:52px;
+    height:52px;
+    border-radius:16px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:rgba(94,198,196,.12);
+    color:#5EC6C4;
+    font-size:1.2rem;
+    flex-shrink:0;
+}
+
+.tool-bento-badge{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    padding:8px 14px;
+    border-radius:999px;
+    background:rgba(94,198,196,.10);
+    color:#5EC6C4;
+    font-size:.72rem;
+    font-weight:800;
+    text-transform:uppercase;
+    letter-spacing:1.2px;
+    white-space:nowrap;
+}
+
+.tool-bento-card h3{
+    margin:0 0 10px;
+    color:#fff !important;
+    font-size:1.4rem;
+    line-height:1.15;
+}
+
+.tool-bento-card p{
+    margin:0;
+    color:rgba(255,255,255,.72) !important;
+    font-size:.96rem;
+    line-height:1.65;
+}
+
+.tool-bento-footer{
+    margin-top:auto;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:14px;
+    padding-top:8px;
+    color:#fff;
+    font-weight:800;
+    font-size:.9rem;
+}
+
+.tool-bento-arrow{
+    width:40px;
+    height:40px;
+    border-radius:999px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:rgba(255,255,255,.06);
+    color:#fff;
+    transition:all .25s ease;
+}
+
+.tool-bento-card:hover .tool-bento-arrow{
+    background:#5EC6C4;
+    color:#0a0c0c;
+}
+
+@media (max-width: 1199px){
+    .tool-grid{
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 767px){
+    .section-vnv{
+        padding:90px 0;
+    }
+
+    .hero-tool h1{
+        font-size:2.7rem;
+    }
+
+    .vnv-btn{
+        width:100%;
+        padding:18px 24px;
+        letter-spacing:2px;
+    }
+
+    .hero-cta-row{
+        flex-direction:column;
+    }
+
+    .tool-body{
+        padding:16px;
+    }
+
+    .tool-inline-2,
+    .tool-inline-3,
+    .result-grid,
+    .ingredient-grid{
+        grid-template-columns:1fr;
+    }
+
+    .tool-panel,
+    .result-card{
+        padding:18px;
+    }
+
+    .tool-bento-card{
+        min-height:auto;
+        padding:18px;
+        border-radius:20px;
+    }
+
+    .tool-bento-card h3{
+        font-size:1.2rem;
+    }
+
+    .tool-bento-card p{
+        font-size:.92rem;
+    }
+}
+</style>
+{% endblock %}
+
+{% block body %}
+
+{% include "templates/layout/publicHeaderVnv.html.twig" %}
+
+<section class="hero-tool">
+    <div class="container hero-tool-inner">
+        <span class="vnv-badge">Free Media Planning Tool</span>
+
+        <h1>Photo, Video & <span class="text-gold">Photobooth Calculator</span></h1>
+
+        <p class="hero-copy">
+            Estimate coverage cost, editing workload, drone add-ons, photobooth pricing and expected delivery timeline for weddings, private parties, birthdays, corporate events and branded activations.
+        </p>
+
+        <div class="hero-cta-row">
+            <a href="#photo-video-tool" class="vnv-btn btn-gold-vnv">Use the Calculator</a>
+            <a href="#" data-vnv-open-request class="vnv-btn btn-outline-vnv">Need Photo & Video Help?</a>
+        </div>
+    </div>
+</section>
+
+<section class="section-vnv section-white" id="photo-video-tool">
+    <div class="container">
+        <div class="tool-shell">
+            <div class="tool-topbar">
+                <div class="tool-topbar-left">
+                    <div class="tool-topbar-icon"><i class="fa-solid fa-camera-retro"></i></div>
+                    <div>
+                        <div class="tool-topbar-title">Photo & Video Calculator for Events</div>
+                        <div class="tool-topbar-sub">Coverage, editing, photobooth and delivery estimate</div>
+                    </div>
+                </div>
+
+                <div class="tool-topbar-note">
+                    Better for weddings, birthdays, corporate events, private parties and branded activations
+                </div>
+            </div>
+
+            <div class="tool-body">
+                <div class="tool-grid">
+                    <div class="tool-panel">
+                        <h3>Plan Your Media Coverage</h3>
+
+                        <div class="tool-inline-2">
+                            <div class="tool-field">
+                                <label for="event-type">Event type</label>
+                                <select id="event-type">
+                                    <option value="birthday">Birthday / Social Event</option>
+                                    <option value="wedding">Wedding</option>
+                                    <option value="corporate">Corporate Event</option>
+                                    <option value="luxury">Luxury Private Event</option>
+                                </select>
+                            </div>
+
+                            <div class="tool-field">
+                                <label for="coverage-hours">Coverage hours</label>
+                                <input type="number" id="coverage-hours" min="1" step="1" value="4">
+                            </div>
+                        </div>
+
+                        <div class="tool-inline-2">
+                            <div class="tool-field">
+                                <label for="guest-count">Guest count</label>
+                                <input type="number" id="guest-count" min="1" placeholder="e.g. 80">
+                            </div>
+
+                            <div class="tool-field">
+                                <label for="team-size">Coverage team</label>
+                                <select id="team-size">
+                                    <option value="1">Single Shooter</option>
+                                    <option value="2">Two-Person Team</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="tool-inline-2">
+                            <div class="tool-field">
+                                <label for="videographer-rate">Videographer rate / hour</label>
+                                <select id="videographer-rate">
+                                    <option value="0">No Videographer</option>
+                                    <option value="125">$125 / hour</option>
+                                    <option value="175" selected>$175 / hour</option>
+                                    <option value="225">$225 / hour</option>
+                                    <option value="300">$300 / hour</option>
+                                </select>
+                            </div>
+
+                            <div class="tool-field">
+                                <label for="photographer-rate">Photographer rate / hour</label>
+                                <select id="photographer-rate">
+                                    <option value="0">No Photographer</option>
+                                    <option value="125">$125 / hour</option>
+                                    <option value="175" selected>$175 / hour</option>
+                                    <option value="225">$225 / hour</option>
+                                    <option value="300">$300 / hour</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="tool-inline-2">
+                            <div class="tool-field">
+                                <label for="highlight-length">Highlight edit length</label>
+                                <select id="highlight-length">
+                                    <option value="0">No Highlight Video</option>
+                                    <option value="1">30–60 sec teaser</option>
+                                    <option value="3" selected>2–3 min highlight</option>
+                                    <option value="5">4–5 min highlight</option>
+                                    <option value="8">6–8 min feature edit</option>
+                                </select>
+                            </div>
+
+                            <div class="tool-field">
+                                <label for="edited-photos">Edited photos</label>
+                                <input type="number" id="edited-photos" min="0" step="10" value="80">
+                            </div>
+                        </div>
+
+                        <div class="tool-check">
+                            <input type="checkbox" id="drone-option">
+                            <label for="drone-option">Include drone footage / aerial coverage</label>
+                        </div>
+
+                        <div class="tool-check">
+                            <input type="checkbox" id="social-reel-option">
+                            <label for="social-reel-option">Include vertical social media teaser / reel delivery</label>
+                        </div>
+
+                        <h3 style="margin-top:28px;">Photobooth Options</h3>
+
+                        <div class="tool-inline-2">
+                            <div class="tool-field">
+                                <label for="photobooth-type">Photobooth type</label>
+                                <select id="photobooth-type">
+                                    <option value="0">None</option>
+                                    <option value="175">Standard Booth</option>
+                                    <option value="225">360 Booth</option>
+                                    <option value="275">Premium Booth + Backdrop</option>
+                                </select>
+                            </div>
+
+                            <div class="tool-field">
+                                <label for="photobooth-hours">Photobooth hours</label>
+                                <input type="number" id="photobooth-hours" min="0" step="1" value="0">
+                            </div>
+                        </div>
+
+                        <div class="tool-check">
+                            <input type="checkbox" id="print-option">
+                            <label for="print-option">Include on-site prints for photobooth service</label>
+                        </div>
+
+                        <div class="tool-actions">
+                            <button type="button" class="tool-btn primary" id="calculate-btn">
+                                <i class="fa-solid fa-calculator"></i>
+                                Calculate
+                            </button>
+
+                            <button type="button" class="tool-btn secondary" id="reset-btn">
+                                <i class="fa-solid fa-rotate-left"></i>
+                                Reset
+                            </button>
+                        </div>
+
+                        <div class="tool-helper">
+                            This tool is best for early quote planning. It helps estimate crew cost, editing workload, photobooth add-ons and a realistic delivery window before your exact shot list and contract are finalized.
+                        </div>
+                    </div>
+
+                    <div class="tool-results" id="tool-results">
+                        <div class="empty-state">
+                            <div class="empty-state-inner">
+                                <div class="empty-state-icon"><i class="fa-solid fa-photo-film"></i></div>
+                                <h3 style="font-size:1.7rem; color:#fff; margin-bottom:10px;">Your media estimate will appear here</h3>
+                                <p style="margin:0;">
+                                    Enter your coverage hours, team structure, media needs and booth options to estimate your total and delivery range.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <a href="{{ path('dj-sound-system-requirements-calculator') }}" class="tool-bento-card small">
+                    <div>
+                        <div class="tool-bento-top">
+                            <div class="tool-bento-icon"><i class="fa-solid fa-volume-high"></i></div>
+                            <span class="tool-bento-badge">Sound</span>
+                        </div>
+
+                        <h3>DJ &amp; Sound System Requirements Calculator</h3>
+                        <p>
+                            Estimate the sound coverage, speaker setup and basic audio requirements your event may need based on guest count, room style and event format.
+                        </p>
+                    </div>
+
+                    <div class="tool-bento-footer">
+                        <span>Open Calculator</span>
+                        <div class="tool-bento-arrow"><i class="fa-solid fa-arrow-right"></i></div>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+{% include "templates/components/publicEventRequestModal.html.twig" with {
+    request_form_action: "/api/public/event-request"
+} %}
+
+{% include "templates/layout/publicFooterVnv.html.twig" %}
+
+{% endblock %}
+
+{% block scripts %}
+<script type="application/ld+json">
+{
+  "@context":"https://schema.org",
+  "@type":"WebApplication",
+  "name":"Photo, Video and Photobooth Calculator for Events",
+  "applicationCategory":"BusinessApplication",
+  "operatingSystem":"Web",
+  "description":"A free web-based calculator for event photo, video and photobooth planning, including coverage cost, editing and delivery estimate.",
+  "offers":{
+    "@type":"Offer",
+    "price":"0",
+    "priceCurrency":"USD"
+  }
+}
+</script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const eventType = document.getElementById('event-type');
+    const coverageHours = document.getElementById('coverage-hours');
+    const guestCount = document.getElementById('guest-count');
+    const teamSize = document.getElementById('team-size');
+    const videographerRate = document.getElementById('videographer-rate');
+    const photographerRate = document.getElementById('photographer-rate');
+    const highlightLength = document.getElementById('highlight-length');
+    const editedPhotos = document.getElementById('edited-photos');
+    const droneOption = document.getElementById('drone-option');
+    const socialReelOption = document.getElementById('social-reel-option');
+    const photoboothType = document.getElementById('photobooth-type');
+    const photoboothHours = document.getElementById('photobooth-hours');
+    const printOption = document.getElementById('print-option');
+    const calculateBtn = document.getElementById('calculate-btn');
+    const resetBtn = document.getElementById('reset-btn');
+    const resultsWrap = document.getElementById('tool-results');
+
+    function renderEmpty() {
+        resultsWrap.innerHTML = `
+            <div class="empty-state">
+                <div class="empty-state-inner">
+                    <div class="empty-state-icon"><i class="fa-solid fa-photo-film"></i></div>
+                    <h3 style="font-size:1.7rem; color:#fff; margin-bottom:10px;">Your media estimate will appear here</h3>
+                    <p style="margin:0;">
+                        Enter your coverage hours, team structure, media needs and booth options to estimate your total and delivery range.
+                    </p>
+                </div>
+            </div>
+        `;
+    }
+
+    function formatMoney(value) {
+        return Number(value || 0).toLocaleString('en-US', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        });
+    }
+
+    function getEventMultiplier(type) {
+        switch (type) {
+            case 'wedding':
+                return 1.15;
+            case 'corporate':
+                return 1.05;
+            case 'luxury':
+                return 1.25;
+            case 'birthday':
+            default:
+                return 1;
+        }
+    }
+
+    function getPhotoEstimate(guests, hours, team) {
+        const basePerHour = 35;
+        const teamMultiplier = team === 2 ? 1.55 : 1;
+        return Math.ceil(basePerHour * hours * teamMultiplier * (guests > 150 ? 1.15 : 1));
+    }
+
+    function getHighlightEditCost(minutes) {
+        switch (minutes) {
+            case 1: return 150;
+            case 3: return 325;
+            case 5: return 550;
+            case 8: return 850;
+            default: return 0;
+        }
+    }
+
+    function getDeliveryEstimateDays(videoSelected, photoSelected, editedPhotoCount, highlightMinutes, reelSelected, team) {
+        let minDays = 5;
+        let maxDays = 10;
+
+        if (photoSelected) {
+            minDays += 4;
+            maxDays += 10;
+        }
+
+        if (editedPhotoCount > 100) {
+            minDays += 2;
+            maxDays += 4;
+        }
+
+        if (videoSelected) {
+            minDays += 10;
+            maxDays += 21;
+        }
+
+        if (highlightMinutes >= 5) {
+            minDays += 4;
+            maxDays += 7;
+        }
+
+        if (reelSelected) {
+            minDays += 2;
+            maxDays += 4;
+        }
+
+        if (team === 2) {
+            minDays -= 1;
+        }
+
+        if (minDays < 3) minDays = 3;
+        if (maxDays < minDays + 2) maxDays = minDays + 2;
+
+        return { minDays, maxDays };
+    }
+
+    function buildServiceNotes(type, videoSelected, photoSelected, boothSelected) {
+        const notes = [];
+
+        if (type === 'wedding') {
+            notes.push('Wedding coverage usually benefits from longer storytelling, more culling and more polished final delivery.');
+        } else if (type === 'corporate') {
+            notes.push('Corporate events often need faster turnaround for recap content, sponsor visibility and social assets.');
+        } else if (type === 'luxury') {
+            notes.push('Luxury private events usually require tighter coverage, stronger finishing and more detail shots.');
+        } else {
+            notes.push('Social events usually work best with straightforward coverage and a practical edit scope.');
+        }
+
+        if (videoSelected && photoSelected) {
+            notes.push('Combined photo + video coverage is more efficient operationally, but still increases post-production workload.');
+        }
+
+        if (boothSelected) {
+            notes.push('Photobooth service is treated separately because staffing, booth hardware and print handling behave differently from photo coverage.');
+        }
+
+        return notes.join(' ');
+    }
+
+    function calculateEstimate() {
+        const type = eventType.value;
+        const hours = parseFloat(coverageHours.value || '0');
+        const guests = parseFloat(guestCount.value || '0');
+        const team = parseInt(teamSize.value || '1', 10);
+        const videoRate = parseFloat(videographerRate.value || '0');
+        const photoRate = parseFloat(photographerRate.value || '0');
+        const highlight = parseInt(highlightLength.value || '0', 10);
+        const editedPhotoCount = parseFloat(editedPhotos.value || '0');
+        const boothRate = parseFloat(photoboothType.value || '0');
+        const boothHours = parseFloat(photoboothHours.value || '0');
+
+        if (hours <= 0 || guests <= 0) {
+            renderEmpty();
+            return;
+        }
+
+        const eventMultiplier = getEventMultiplier(type);
+
+        const videoSelected = videoRate > 0;
+        const photoSelected = photoRate > 0;
+        const boothSelected = boothRate > 0 && boothHours > 0;
+
+        const shooterMultiplier = team;
+        const videographerCost = videoSelected ? videoRate * hours * shooterMultiplier * eventMultiplier : 0;
+        const photographerCost = photoSelected ? photoRate * hours * shooterMultiplier * eventMultiplier : 0;
+
+        const droneCost = droneOption.checked ? 250 : 0;
+        const highlightEditCost = getHighlightEditCost(highlight);
+        const socialReelCost = socialReelOption.checked ? 125 : 0;
+
+        const includedPhotos = photoSelected ? Math.ceil(hours * 20 * shooterMultiplier) : 0;
+        const extraEditedPhotos = Math.max(0, editedPhotoCount - includedPhotos);
+        const photoEditingCost = photoSelected ? (extraEditedPhotos * 4) : 0;
+
+        const boothCoverageCost = boothSelected ? boothRate * boothHours : 0;
+        const boothPrintCost = (boothSelected && printOption.checked) ? (boothHours * 90) : 0;
+
+        const totalCost = videographerCost + photographerCost + droneCost + highlightEditCost + socialReelCost + photoEditingCost + boothCoverageCost + boothPrintCost;
+
+        const estimatedDeliveredPhotos = photoSelected ? Math.max(Math.ceil(hours * 45 * shooterMultiplier), Math.ceil(editedPhotoCount)) : 0;
+        const delivery = getDeliveryEstimateDays(videoSelected, photoSelected, editedPhotoCount, highlight, socialReelOption.checked, team);
+
+        const eventTypeLabel = eventType.options[eventType.selectedIndex].text;
+        const teamLabel = teamSize.options[teamSize.selectedIndex].text;
+        const boothLabel = photoboothType.options[photoboothType.selectedIndex].text;
+
+        resultsWrap.innerHTML = `
+            <div class="result-card">
+                <h3>Coverage Summary</h3>
+                <p>${buildServiceNotes(type, videoSelected, photoSelected, boothSelected)}</p>
+
+                <div class="result-grid">
+                    <div class="result-stat">
+                        <div class="result-stat-label">Event Type</div>
+                        <div class="result-stat-value" style="font-size:1rem;">${eventTypeLabel}</div>
+                    </div>
+                    <div class="result-stat">
+                        <div class="result-stat-label">Coverage Hours</div>
+                        <div class="result-stat-value">${hours}</div>
+                    </div>
+                    <div class="result-stat">
+                        <div class="result-stat-label">Guests</div>
+                        <div class="result-stat-value">${guests}</div>
+                    </div>
+                    <div class="result-stat">
+                        <div class="result-stat-label">Team</div>
+                        <div class="result-stat-value" style="font-size:1rem;">${teamLabel}</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="result-card">
+                <h3>Coverage & Editing Breakdown</h3>
+                <div class="ingredient-grid">
+                    <div class="ingredient-card">
+                        <h4>Videography Coverage</h4>
+                        <p>$${formatMoney(videographerCost)}</p>
+                    </div>
+
+                    <div class="ingredient-card">
+                        <h4>Photography Coverage</h4>
+                        <p>$${formatMoney(photographerCost)}</p>
+                    </div>
+
+                    <div class="ingredient-card">
+                        <h4>Drone Add-On</h4>
+                        <p>$${formatMoney(droneCost)}</p>
+                    </div>
+
+                    <div class="ingredient-card">
+                        <h4>Highlight Edit</h4>
+                        <p>$${formatMoney(highlightEditCost)}</p>
+                    </div>
+
+                    <div class="ingredient-card">
+                        <h4>Social Reel</h4>
+                        <p>$${formatMoney(socialReelCost)}</p>
+                    </div>
+
+                    <div class="ingredient-card">
+                        <h4>Extra Photo Editing</h4>
+                        <p>$${formatMoney(photoEditingCost)}</p>
+                    </div>
+                </div>
+
+                <div class="muted-note">
+                    Included edited-photo capacity is estimated from coverage time. Extra requested edits beyond that threshold are priced separately.
+                </div>
+            </div>
+
+            <div class="result-card">
+                <h3>Photobooth & Delivery</h3>
+                <div class="ingredient-grid">
+                    <div class="ingredient-card">
+                        <h4>Photobooth Type</h4>
+                        <p>${boothSelected ? boothLabel : 'No photobooth selected'}</p>
+                    </div>
+
+                    <div class="ingredient-card">
+                        <h4>Photobooth Cost</h4>
+                        <p>$${formatMoney(boothCoverageCost)}</p>
+                    </div>
+
+                    <div class="ingredient-card">
+                        <h4>Print Add-On</h4>
+                        <p>$${formatMoney(boothPrintCost)}</p>
+                    </div>
+
+                    <div class="ingredient-card">
+                        <h4>Estimated Delivered Photos</h4>
+                        <p>${estimatedDeliveredPhotos} images</p>
+                    </div>
+
+                    <div class="ingredient-card">
+                        <h4>Estimated Delivery Range</h4>
+                        <p>${delivery.minDays}–${delivery.maxDays} days</p>
+                    </div>
+
+                    <div class="ingredient-card">
+                        <h4>Total Estimated Cost</h4>
+                        <p>$${formatMoney(totalCost)}</p>
+                    </div>
+                </div>
+
+                <div class="muted-note">
+                    Tip: this is a planning guide. Final pricing usually depends on timeline complexity, travel, venue restrictions, shot list, same-day requests, licensing and final editing style.
+                </div>
+            </div>
+        `;
+    }
+
+    calculateBtn.addEventListener('click', calculateEstimate);
+
+    resetBtn.addEventListener('click', function () {
+        eventType.value = 'birthday';
+        coverageHours.value = '4';
+        guestCount.value = '';
+        teamSize.value = '1';
+        videographerRate.value = '175';
+        photographerRate.value = '175';
+        highlightLength.value = '3';
+        editedPhotos.value = '80';
+        droneOption.checked = false;
+        socialReelOption.checked = false;
+        photoboothType.value = '0';
+        photoboothHours.value = '0';
+        printOption.checked = false;
+        renderEmpty();
+    });
+
+    renderEmpty();
+});
+</script>
+{% endblock %}

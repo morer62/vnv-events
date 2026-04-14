@@ -1,0 +1,1179 @@
+{% extends "templates/base.twig" %}
+
+{% set show_whatsapp = true %}
+
+{% block styles %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@200;300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,700;0,900;1,700;1,900&display=swap" rel="stylesheet">
+
+<style>
+:root {
+    --vnv-primary: #5EC6C4;
+    --vnv-primary-dark: #4aa8a6;
+    --vnv-gold: #c5a059;
+    --vnv-gold-gradient: linear-gradient(135deg, #bf953f 0%, #fcf6ba 45%, #b38728 100%);
+    --vnv-dark-deep: #0a0c0c;
+    --vnv-dark-soft: #141818;
+    --vnv-dark-card: #1b2021;
+    --vnv-light: #ffffff;
+    --vnv-marble: #f4f7f8;
+    --vnv-text-main: #2d3436;
+    --vnv-text-dark: #11181a;
+    --vnv-text-light: #f3f5f6;
+    --vnv-text-muted: rgba(255,255,255,.74);
+    --vnv-text-muted-soft: rgba(255,255,255,.60);
+    --vnv-border: rgba(255,255,255,.08);
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+    background: var(--vnv-dark-deep);
+    color: var(--vnv-text-light);
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    line-height: 1.8;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+}
+
+h1, h2, h3, h4, h5, .luxury-font {
+    font-family: 'Playfair Display', serif;
+}
+
+.text-vnv { color: var(--vnv-primary) !important; }
+.text-gold {
+    background: var(--vnv-gold-gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+.letter-spacing-lg { letter-spacing: 4px; }
+
+.vnv-btn {
+    padding: 18px 30px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    transition: all .35s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    text-decoration: none;
+    border: none;
+    cursor: pointer;
+    font-size: .78rem;
+    border-radius: 999px;
+}
+
+.btn-gold-vnv {
+    background: var(--vnv-gold-gradient);
+    color: #000 !important;
+}
+.btn-gold-vnv:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 20px 40px rgba(197,160,89,.22);
+}
+.btn-outline-vnv {
+    border: 2px solid var(--vnv-primary);
+    color: var(--vnv-primary) !important;
+    background: transparent;
+}
+.btn-outline-vnv:hover {
+    background: var(--vnv-primary);
+    color: #fff !important;
+}
+.btn-ghost-white {
+    border: 1px solid rgba(255,255,255,.18);
+    color: #fff !important;
+    background: transparent;
+}
+.btn-ghost-white:hover {
+    background: #fff;
+    color: #000 !important;
+}
+
+.section-vnv {
+    padding: 120px 0;
+    position: relative;
+}
+
+.vnv-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 18px;
+    border-radius: 999px;
+    background: rgba(94,198,196,.1);
+    color: var(--vnv-primary);
+    font-size: .74rem;
+    letter-spacing: 2px;
+    font-weight: 800;
+    text-transform: uppercase;
+}
+
+.hero-production {
+    position: relative;
+    min-height: 94vh;
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+    background:
+        linear-gradient(90deg, rgba(10,12,12,.92) 0%, rgba(10,12,12,.70) 44%, rgba(10,12,12,.40) 100%),
+        url('{{ asset_for('assets/images/production1.jpg') }}') center/cover no-repeat;
+}
+
+.hero-production::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+        radial-gradient(circle at top right, rgba(94,198,196,.16), transparent 28%),
+        radial-gradient(circle at bottom left, rgba(197,160,89,.10), transparent 24%);
+    pointer-events: none;
+}
+
+.hero-production-inner {
+    position: relative;
+    z-index: 2;
+    width: 100%;
+}
+
+.hero-production h1 {
+    font-size: clamp(3rem, 6vw, 5.5rem);
+    line-height: 1.01;
+    margin: 20px 0 28px;
+    max-width: 1020px;
+}
+
+.hero-production p.hero-copy {
+    font-size: 1.08rem;
+    color: var(--vnv-text-muted);
+    max-width: 820px;
+    margin-bottom: 22px;
+}
+
+.hero-cta-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-top: 26px;
+}
+
+.section-white {
+    background: var(--vnv-marble);
+    color: var(--vnv-text-dark);
+}
+
+.section-dark {
+    background: var(--vnv-dark-deep);
+    color: var(--vnv-text-light);
+}
+
+.section-heading {
+    max-width: 960px;
+    margin-bottom: 55px;
+}
+.section-heading h2 {
+    font-size: clamp(2.2rem, 4vw, 4.2rem);
+    line-height: 1.04;
+    margin: 16px 0 18px;
+}
+.section-heading p {
+    font-size: 1.05rem;
+    margin: 0;
+}
+.section-white .section-heading p {
+    color: #566164;
+}
+.section-dark .section-heading p {
+    color: var(--vnv-text-muted);
+}
+
+.intro-wrap {
+    display: grid;
+    grid-template-columns: 1.05fr .95fr;
+    gap: 40px;
+    align-items: center;
+}
+
+.intro-image-card {
+    border-radius: 30px;
+    overflow: hidden;
+    box-shadow: 0 25px 70px rgba(0,0,0,.10);
+    border: 1px solid rgba(17,24,26,.08);
+    background: #fff;
+}
+
+.intro-image-card img {
+    width: 100%;
+    min-height: 430px;
+    object-fit: cover;
+    display: block;
+}
+
+.intro-panel {
+    background: linear-gradient(145deg, #161a1b 0%, #0d0f0f 100%);
+    border: 1px solid rgba(255,255,255,.06);
+    border-radius: 30px;
+    padding: 40px;
+    box-shadow: 0 25px 70px rgba(0,0,0,.12);
+    color: #fff;
+}
+
+.intro-panel h3 {
+    font-size: 2rem;
+    color: #fff;
+    margin-bottom: 20px;
+}
+
+.intro-panel p,
+.intro-panel li {
+    color: rgba(255,255,255,.78);
+}
+
+.intro-panel ul {
+    list-style: none;
+    padding: 0;
+    margin: 25px 0 0;
+}
+.intro-panel ul li {
+    position: relative;
+    padding-left: 22px;
+    margin-bottom: 10px;
+}
+.intro-panel ul li::before {
+    content: "";
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--vnv-gold);
+    position: absolute;
+    left: 0;
+    top: 12px;
+}
+
+.services-bg-video-wrap {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+}
+
+.services-bg-video {
+    width: 100%;
+    height: 120%;
+    object-fit: cover;
+    object-position: center center;
+    opacity: 0.12;
+    filter: blur(2px) saturate(0.8);
+    transform: translateY(-6%);
+}
+
+.services-bg-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+        to bottom,
+        rgba(10,12,12,0.25),
+        rgba(10,12,12,0.30),
+        rgba(10,12,12,0.25)
+    );
+}
+
+.service-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+}
+
+.service-card {
+    background: rgba(28, 34, 35, 0.82);
+    backdrop-filter: blur(6px);
+    border-radius: 28px;
+    padding: 42px 34px;
+    border: 1px solid rgba(197, 160, 89, 0.08);
+    height: 100%;
+    position: relative;
+    z-index: 2;
+}
+
+.service-card h3 {
+    color: #fff;
+    font-size: 1.7rem;
+    margin-bottom: 14px;
+}
+.service-card p,
+.service-card li {
+    color: var(--vnv-text-muted);
+}
+
+.service-icon-box {
+    width: 60px;
+    height: 60px;
+    background: rgba(197, 160, 89, 0.1);
+    border-radius: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--vnv-gold);
+    font-size: 1.6rem;
+    margin-bottom: 24px;
+}
+
+.process-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 24px;
+}
+
+.process-step {
+    background: #fff;
+    border: 1px solid rgba(17,24,26,.08);
+    border-radius: 28px;
+    padding: 34px 30px;
+    box-shadow: 0 20px 60px rgba(0,0,0,.08);
+    height: 100%;
+    position: relative;
+}
+
+.process-number {
+    width: 54px;
+    height: 54px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(94,198,196,.12);
+    color: var(--vnv-primary-dark);
+    font-weight: 800;
+    font-size: 1rem;
+    margin-bottom: 18px;
+}
+
+.process-step h3 {
+    color: var(--vnv-text-dark);
+    font-size: 1.6rem;
+    margin-bottom: 12px;
+}
+
+.process-step p,
+.process-step li {
+    color: #4f5b5f;
+}
+
+.process-step ul {
+    list-style: none;
+    padding: 0;
+    margin: 18px 0 0;
+}
+.process-step ul li {
+    position: relative;
+    padding-left: 22px;
+    margin-bottom: 10px;
+}
+.process-step ul li::before {
+    content: "";
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--vnv-gold);
+    position: absolute;
+    left: 0;
+    top: 11px;
+}
+
+.production-wrap {
+    display: grid;
+    grid-template-columns: .95fr 1.05fr;
+    gap: 40px;
+    align-items: stretch;
+}
+
+.production-image-stack {
+    display: grid;
+    gap: 24px;
+}
+
+.production-image-stack img {
+    width: 100%;
+    border-radius: 26px;
+    object-fit: cover;
+    display: block;
+    box-shadow: 0 20px 60px rgba(0,0,0,.10);
+    border: 1px solid rgba(17,24,26,.08);
+}
+
+.production-image-stack img:first-child,
+.production-image-stack img:last-child {
+    min-height: 260px;
+    max-height: 260px;
+}
+
+.production-panel {
+    background: #fff;
+    border: 1px solid rgba(17,24,26,.08);
+    border-radius: 30px;
+    padding: 42px;
+    box-shadow: 0 25px 70px rgba(0,0,0,.08);
+}
+
+.production-panel h3 {
+    font-size: 2rem;
+    color: var(--vnv-text-dark);
+    margin-bottom: 18px;
+}
+
+.production-panel p,
+.production-panel li {
+    color: #4f5b5f;
+}
+
+.production-panel ul {
+    list-style: none;
+    padding: 0;
+    margin: 28px 0 0;
+}
+.production-panel ul li {
+    position: relative;
+    padding-left: 24px;
+    margin-bottom: 12px;
+}
+.production-panel ul li::before {
+    content: "";
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--vnv-primary);
+    position: absolute;
+    left: 0;
+    top: 12px;
+}
+
+.scope-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 22px;
+}
+
+.scope-card {
+    background: #fff;
+    border: 1px solid rgba(17,24,26,.08);
+    border-radius: 28px;
+    padding: 30px 24px;
+    box-shadow: 0 20px 60px rgba(0,0,0,.08);
+    height: 100%;
+}
+
+.scope-card h4 {
+    color: var(--vnv-text-dark);
+    font-size: 1.22rem;
+    margin-bottom: 10px;
+}
+.scope-card p {
+    color: #4f5b5f;
+    margin: 0;
+}
+
+.blueprint-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+}
+
+.blueprint-card {
+    background: linear-gradient(145deg, #161a1b 0%, #0d0f0f 100%);
+    border-radius: 30px;
+    padding: 34px 30px;
+    border: 1px solid rgba(255,255,255,0.06);
+    box-shadow: 0 20px 60px rgba(0,0,0,0.30);
+    height: 100%;
+}
+
+.blueprint-card h3 {
+    color: #fff;
+    font-size: 1.55rem;
+    margin-bottom: 12px;
+}
+
+.blueprint-card p,
+.blueprint-card li {
+    color: rgba(255,255,255,.72);
+}
+
+.blueprint-card ul {
+    list-style: none;
+    padding: 0;
+    margin: 18px 0 0;
+}
+.blueprint-card ul li {
+    position: relative;
+    padding-left: 22px;
+    margin-bottom: 10px;
+}
+.blueprint-card ul li::before {
+    content: "";
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--vnv-primary);
+    position: absolute;
+    left: 0;
+    top: 11px;
+}
+
+.location-block {
+    position: relative;
+    overflow: hidden;
+}
+
+.location-block::before {
+    content: "";
+    position: absolute;
+    top: -120px;
+    left: -120px;
+    width: 320px;
+    height: 320px;
+    background: radial-gradient(circle, rgba(94,198,196,0.14) 0%, transparent 70%);
+    pointer-events: none;
+}
+
+.vnv-location-card {
+    background: linear-gradient(145deg, #161a1b 0%, #0d0f0f 100%);
+    border-radius: 30px;
+    padding: 50px;
+    border: 1px solid rgba(255,255,255,0.06);
+    box-shadow: 0 20px 60px rgba(0,0,0,0.35);
+}
+
+.vnv-location-card h3 {
+    font-size: 1.8rem;
+    font-weight: 800;
+}
+
+.vnv-location-card p {
+    color: rgba(255,255,255,0.7);
+    margin-bottom: 20px;
+}
+
+.vnv-location-info {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    color: #fff;
+    font-weight: 600;
+    margin-bottom: 18px;
+}
+
+.vnv-location-info i {
+    color: var(--vnv-primary);
+}
+
+.location-gallery-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 18px;
+}
+
+.location-gallery-grid img {
+    width: 100%;
+    height: 220px;
+    object-fit: cover;
+    border-radius: 22px;
+    display: block;
+    border: 1px solid rgba(255,255,255,.08);
+}
+
+.final-cta-card {
+    background: linear-gradient(145deg, #161a1b 0%, #0d0f0f 100%);
+    border-radius: 45px;
+    padding: 90px 70px;
+    border: 1px solid rgba(255,255,255,.06);
+    position: relative;
+    overflow: hidden;
+}
+
+.final-cta-card::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    right: 10%;
+    width: 360px;
+    height: 360px;
+    transform: translateY(-50%);
+    background: radial-gradient(circle, rgba(94, 198, 196, 0.08) 0%, transparent 70%);
+    pointer-events: none;
+}
+
+.final-cta-card p {
+    color: var(--vnv-text-muted-soft);
+}
+
+.vnv-btn-fixed {
+    min-width: 240px;
+    text-align: center;
+    white-space: normal;
+    line-height: 1.35;
+    padding: 20px 28px;
+}
+
+@media (max-width: 1199px) {
+    .scope-grid,
+    .blueprint-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+    .final-cta-card {
+        padding: 60px 45px;
+    }
+}
+
+@media (max-width: 991px) {
+    .intro-wrap,
+    .production-wrap,
+    .process-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .service-grid,
+    .scope-grid,
+    .blueprint-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .intro-panel,
+    .production-panel,
+    .vnv-location-card {
+        padding: 32px 28px;
+    }
+
+    .final-cta-card {
+        padding: 50px 30px;
+        text-align: center;
+    }
+
+    .vnv-btn-fixed {
+        min-width: 100%;
+    }
+
+    .services-bg-video {
+        height: 100%;
+        transform: none;
+        filter: blur(1px) saturate(0.8);
+    }
+}
+
+@media (max-width: 767px) {
+    .section-vnv {
+        padding: 90px 0;
+    }
+
+    .hero-production h1 {
+        font-size: 2.7rem;
+    }
+
+    .vnv-btn {
+        width: 100%;
+        padding: 18px 24px;
+        letter-spacing: 2px;
+    }
+
+    .hero-cta-row {
+        flex-direction: column;
+    }
+
+    .location-gallery-grid img {
+        height: 150px;
+    }
+}
+</style>
+{% endblock %}
+
+{% block body %}
+
+{% include "templates/layout/publicHeaderVnv.html.twig" %}
+
+<section class="hero-production">
+    <div class="container hero-production-inner">
+        <span class="vnv-badge">VNV Event Production</span>
+
+        <h1>Event Production with <span class="text-gold">strategy, structure and full 360 execution</span></h1>
+
+        <p class="hero-copy">
+            Some events need more than vendors. They need a real production plan. VNV helps build and execute events from concept and budgeting to logistics, branding, ticketing, digital platform support, sponsors, staffing and show flow.
+        </p>
+
+        <p class="hero-copy">
+            This is ideal for galas, conferences, trade shows, launches, branded experiences, fundraisers, community events and other projects where multiple moving parts need to work as one.
+        </p>
+
+        <div class="hero-cta-row">
+            <a href="tel:+13052045427" class="vnv-btn btn-gold-vnv">Call Now (305) 204-5427</a>
+            <a href="#production-process" class="vnv-btn btn-outline-vnv">See Our Process</a>
+        </div>
+    </div>
+</section>
+
+<section class="section-vnv section-white">
+    <div class="container">
+        <div class="intro-wrap">
+            <div class="intro-image-card">
+                <img src="{{ asset_for('assets/images/production2.jpg') }}" alt="Event production planning by VNV Events">
+            </div>
+
+            <div class="intro-panel">
+                <span class="vnv-badge">Not Just Coordination</span>
+                <h3>We do not just manage the day. We help build the event.</h3>
+                <p>
+                    Event production means taking a vision and turning it into an organized system with budget logic, brand direction, operational structure, timelines, people, platforms and execution.
+                </p>
+                <p>
+                    For some clients, that means producing the full experience. For others, it means stepping into an existing project and bringing order, clarity and leadership to the moving parts that matter most.
+                </p>
+
+                <ul>
+                    <li>Concept development and event positioning</li>
+                    <li>Budget planning and production mapping</li>
+                    <li>Digital support including RSVP, ticketing and landing pages</li>
+                    <li>Sponsor structure, sales support and rollout planning</li>
+                    <li>Team assignment, staffing flow and on-site execution</li>
+                    <li>One strategic plan instead of disconnected vendors</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="section-vnv section-dark" id="production-process">
+    <div class="services-bg-video-wrap">
+        <video class="services-bg-video" autoplay muted loop playsinline preload="auto">
+            <source src="{{ asset_for('assets/video/intro.mp4') }}" type="video/mp4">
+        </video>
+        <div class="services-bg-overlay"></div>
+    </div>
+
+    <div class="container position-relative" style="z-index:2;">
+        <div class="text-center mb-5 pb-5 section-heading">
+            <span class="vnv-badge">360 Event Production</span>
+            <h2 class="text-white">What full production can include <span class="text-vnv">before the event even starts</span></h2>
+            <p>
+                When the project is serious, production begins long before event day. The value is in building the system that makes the event possible.
+            </p>
+        </div>
+
+        <div class="service-grid">
+            <div class="service-card">
+                <div class="service-icon-box"><i class="fa-solid fa-lightbulb"></i></div>
+                <h3>Concept & Positioning</h3>
+                <p>
+                    Defining what the event is, who it is for, how it should feel, what message it should communicate and how the brand should show up across the experience.
+                </p>
+            </div>
+
+            <div class="service-card">
+                <div class="service-icon-box"><i class="fa-solid fa-chart-line"></i></div>
+                <h3>Budget & Structure</h3>
+                <p>
+                    Building a realistic production plan with priorities, resource mapping, cost logic, vendor categories and decision-making structure.
+                </p>
+            </div>
+
+            <div class="service-card">
+                <div class="service-icon-box"><i class="fa-solid fa-laptop-code"></i></div>
+                <h3>Digital Layer</h3>
+                <p>
+                    RSVP systems, ticketing flows, landing pages, sales pages, email touchpoints, digital materials and even mobile app support when needed.
+                </p>
+            </div>
+
+            <div class="service-card">
+                <div class="service-icon-box"><i class="fa-solid fa-handshake-angle"></i></div>
+                <h3>Sponsors & Partnerships</h3>
+                <p>
+                    Support for sponsor decks, deliverables, category planning, activation placement and the operational side of partnership visibility.
+                </p>
+            </div>
+
+            <div class="service-card">
+                <div class="service-icon-box"><i class="fa-solid fa-bullhorn"></i></div>
+                <h3>Marketing & Sales Support</h3>
+                <p>
+                    Promotion planning, audience communication, campaign alignment, ticket momentum and sales support for events that need traction before launch.
+                </p>
+            </div>
+
+            <div class="service-card">
+                <div class="service-icon-box"><i class="fa-solid fa-gears"></i></div>
+                <h3>On-Site Execution</h3>
+                <p>
+                    Staffing, logistics, team communication, production flow, cue management, behind-the-scenes control and event-day problem solving.
+                </p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="section-vnv section-white">
+    <div class="container">
+        <div class="section-heading">
+            <span class="vnv-badge">Our Production Method</span>
+            <h2>A clearer step-by-step plan for <span class="text-vnv">serious event projects</span></h2>
+            <p>
+                This is the part that helps clients understand we are not improvising. We are building a structured path from idea to execution.
+            </p>
+        </div>
+
+        <div class="process-grid">
+            <div class="process-step">
+                <div class="process-number">01</div>
+                <h3>Discovery & Objectives</h3>
+                <p>
+                    We begin by understanding the goal of the event, target audience, success criteria, stakeholders, business purpose and the overall scale of the opportunity.
+                </p>
+                <ul>
+                    <li>Event purpose</li>
+                    <li>Audience profile</li>
+                    <li>Desired outcome</li>
+                </ul>
+            </div>
+
+            <div class="process-step">
+                <div class="process-number">02</div>
+                <h3>Budget & Feasibility</h3>
+                <p>
+                    Before creative ideas go too far, we define the financial reality of the project and align the concept with what can be produced at the right level.
+                </p>
+                <ul>
+                    <li>Budget allocation</li>
+                    <li>Priority mapping</li>
+                    <li>Production feasibility</li>
+                </ul>
+            </div>
+
+            <div class="process-step">
+                <div class="process-number">03</div>
+                <h3>Concept & Brand Direction</h3>
+                <p>
+                    We shape the event identity: the story, visual tone, experience logic, guest journey and how the event should be presented to the public or invited audience.
+                </p>
+                <ul>
+                    <li>Theme and positioning</li>
+                    <li>Brand language</li>
+                    <li>Experience tone</li>
+                </ul>
+            </div>
+
+            <div class="process-step">
+                <div class="process-number">04</div>
+                <h3>Platform & Digital Setup</h3>
+                <p>
+                    If the event needs ticketing, RSVP, registration, landing pages, sponsor visibility, check-in flow or digital assets, this gets built early so the event can start moving.
+                </p>
+                <ul>
+                    <li>RSVP or ticketing flow</li>
+                    <li>Landing page or sales page</li>
+                    <li>Email and registration touchpoints</li>
+                </ul>
+            </div>
+
+            <div class="process-step">
+                <div class="process-number">05</div>
+                <h3>Sponsors, Sales & Audience Growth</h3>
+                <p>
+                    For events that need attendance, revenue or partnerships, we create the structure needed to support sponsorship value, communications and pre-event momentum.
+                </p>
+                <ul>
+                    <li>Sponsor visibility plan</li>
+                    <li>Sales support structure</li>
+                    <li>Promotion alignment</li>
+                </ul>
+            </div>
+
+            <div class="process-step">
+                <div class="process-number">06</div>
+                <h3>Vendors, Team & Production Assignments</h3>
+                <p>
+                    Once the system is clear, we define responsibilities across vendors, staff, internal teams, assistants, coordinators and key operational roles.
+                </p>
+                <ul>
+                    <li>Team assignment</li>
+                    <li>Vendor direction</li>
+                    <li>Operational ownership</li>
+                </ul>
+            </div>
+
+            <div class="process-step">
+                <div class="process-number">07</div>
+                <h3>Logistics & Run of Show</h3>
+                <p>
+                    This is where all timing, installation, guest flow, service flow, cues, room transitions, staffing movement and production timing are documented.
+                </p>
+                <ul>
+                    <li>Master timeline</li>
+                    <li>Run of show</li>
+                    <li>Flow control</li>
+                </ul>
+            </div>
+
+            <div class="process-step">
+                <div class="process-number">08</div>
+                <h3>Execution & Post-Event Continuity</h3>
+                <p>
+                    We manage the live execution and, when needed, support what happens after: recap assets, lead capture, audience follow-up, reporting or future rollout continuity.
+                </p>
+                <ul>
+                    <li>On-site execution</li>
+                    <li>Post-event assets</li>
+                    <li>Continuation strategy</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="section-vnv section-white">
+    <div class="container">
+        <div class="production-wrap">
+            <div class="production-image-stack">
+                <img src="{{ asset_for('assets/images/production3.jpg') }}" alt="Event production logistics and setup">
+                <img src="{{ asset_for('assets/images/production4.jpg') }}" alt="Brand activation and event execution by VNV">
+            </div>
+
+            <div class="production-panel">
+                <span class="vnv-badge">What Clients Usually Need</span>
+                <h3>Production is often a mix of creative, technical and operational leadership.</h3>
+
+                <p>
+                    Some clients come in needing help with the entire event. Others already have pieces in place but need someone to connect the dots and turn scattered ideas into a working production plan.
+                </p>
+
+                <ul>
+                    <li>Galas that need structure, sponsors, timeline control and premium execution</li>
+                    <li>Trade shows that need brand positioning, booth logic, staffing and guest flow</li>
+                    <li>Launches that need concept, marketing, digital support and audience momentum</li>
+                    <li>Fundraisers that need messaging, event flow, guest experience and operational control</li>
+                    <li>Corporate projects that need both presentation quality and real execution discipline</li>
+                </ul>
+
+                <p class="mt-3">
+                    The real value is not just producing something beautiful. It is producing something organized, aligned and capable of delivering results.
+                </p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="section-vnv section-dark">
+    <div class="container">
+        <div class="section-heading">
+            <span class="vnv-badge">Scope of Support</span>
+            <h2 class="text-white">Some projects need a planner. Others need a <span class="text-vnv">production partner</span>.</h2>
+            <p>
+                This page is built for the second type: events with multiple layers, multiple stakeholders and real operational weight behind them.
+            </p>
+        </div>
+
+        <div class="scope-grid">
+            <div class="scope-card">
+                <h4>Brand & Experience</h4>
+                <p>Concept, visual direction, guest journey and how the event should feel from invitation to final impression.</p>
+            </div>
+
+            <div class="scope-card">
+                <h4>Operations</h4>
+                <p>Timelines, staffing, vendor structure, room flow, install logic, service sequence and team responsibilities.</p>
+            </div>
+
+            <div class="scope-card">
+                <h4>Digital Infrastructure</h4>
+                <p>RSVP systems, ticketing pages, landing pages, communication assets, registration and custom digital support.</p>
+            </div>
+
+            <div class="scope-card">
+                <h4>Growth & Revenue Support</h4>
+                <p>Sponsors, partner visibility, event marketing, ticket traction, outreach support and pre-event momentum strategy.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="section-vnv section-dark">
+    <div class="container">
+        <div class="section-heading">
+            <span class="vnv-badge">The Production Blueprint</span>
+            <h2 class="text-white">How VNV approaches a project when the client wants the <span class="text-vnv">full picture</span></h2>
+            <p>
+                Not every event needs every layer. But when it does, we are able to design the production around the actual business and experience goals.
+            </p>
+        </div>
+
+        <div class="blueprint-grid">
+            <div class="blueprint-card">
+                <h3>Creative Layer</h3>
+                <p>
+                    We help define the event identity so the production is not just functional, but meaningful and on-brand.
+                </p>
+                <ul>
+                    <li>Concept and messaging</li>
+                    <li>Theme direction</li>
+                    <li>Experience framing</li>
+                </ul>
+            </div>
+
+            <div class="blueprint-card">
+                <h3>Commercial Layer</h3>
+                <p>
+                    For public-facing or revenue-driven events, we support the systems that help attendance, partner value and sales momentum.
+                </p>
+                <ul>
+                    <li>Ticketing and RSVP flow</li>
+                    <li>Sponsor alignment</li>
+                    <li>Promotion support</li>
+                </ul>
+            </div>
+
+            <div class="blueprint-card">
+                <h3>Execution Layer</h3>
+                <p>
+                    This is where the event becomes real: people, timing, logistics, communication, problem solving and live control.
+                </p>
+                <ul>
+                    <li>Staffing and assignments</li>
+                    <li>Run of show</li>
+                    <li>On-site production leadership</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="section-vnv section-dark location-block">
+    <div class="container position-relative" style="z-index:2;">
+        <div class="row align-items-center g-5">
+            <div class="col-lg-6">
+                <span class="text-vnv fw-bold d-block mb-3 letter-spacing-lg">PLAN & PRODUCE</span>
+
+                <h2 class="display-3 fw-black text-white mb-3">
+                    Let’s build the event <span class="text-vnv">before we execute it</span>
+                </h2>
+
+                <p class="fs-5 mb-4" style="color:rgba(255,255,255,0.65);">
+                    Meet with our team in South Florida to talk through concept, budget, ticketing, sponsors, logistics, team structure and the full event production roadmap.
+                </p>
+
+                <a href="https://www.instagram.com/vnv_events/" target="_blank" class="vnv-btn btn-outline-vnv">
+                    View Instagram
+                </a>
+
+                <div class="location-gallery-grid mt-4">
+                    <img src="{{ asset_for('assets/images/production1.jpg') }}" alt="Event production gallery 1">
+                    <img src="{{ asset_for('assets/images/production2.jpg') }}" alt="Event production gallery 2">
+                    <img src="{{ asset_for('assets/images/production3.jpg') }}" alt="Event production gallery 3">
+                    <img src="{{ asset_for('assets/images/production4.jpg') }}" alt="Event production gallery 4">
+                </div>
+            </div>
+
+            <div class="col-lg-6">
+                <div class="vnv-location-card">
+                    <span class="vnv-badge">VNV Location</span>
+
+                    <h3 class="text-white mb-3">Production support from Sunrise, serving all South Florida.</h3>
+
+                    <p>
+                        We support event production projects across Broward, Miami and West Palm Beach, with planning meetings and coordination available from our Sunrise location.
+                    </p>
+
+                    <div class="vnv-location-info">
+                        <i class="fa-solid fa-location-dot"></i>
+                        <span>10258 NW 47th St, Sunrise, FL 33351</span>
+                    </div>
+
+                    <div class="vnv-location-info">
+                        <i class="fa-solid fa-clock"></i>
+                        <span>Mon - Fri: 10 AM - 5 PM | Sat: 10 AM - 2 PM</span>
+                    </div>
+
+                    <div class="vnv-location-info">
+                        <i class="fa-solid fa-phone"></i>
+                        <span>(305) 204-5427</span>
+                    </div>
+
+                    <div class="d-flex gap-3 flex-wrap mt-4">
+                        <a href="https://maps.app.goo.gl/" target="_blank" class="vnv-btn btn-ghost-white">
+                            Get Directions
+                        </a>
+
+                        <a href="#" data-vnv-open-request class="vnv-btn btn-gold-vnv">
+                            Request Production Consultation
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="section-vnv section-white">
+    <div class="container">
+        <div class="final-cta-card">
+            <div class="row align-items-center">
+                <div class="col-lg-7">
+                    <span class="vnv-badge">Event Production Consultation</span>
+                    <h2 class="display-3 fw-bold text-white mb-4">If the project has many moving parts, it needs more than vendors.</h2>
+                    <p class="fs-5 mb-5">
+                        VNV can help organize the creative, digital, commercial and operational sides of the event into one clear production plan built for real execution.
+                    </p>
+                </div>
+
+                <div class="col-lg-5 text-center text-lg-end">
+                    <div class="d-flex flex-column flex-lg-row gap-3 justify-content-end">
+                        <a href="tel:+13052045427" class="vnv-btn btn-gold-vnv vnv-btn-fixed">Call Now</a>
+                        <a href="#" data-vnv-open-request class="vnv-btn btn-ghost-white vnv-btn-fixed">Request Consultation</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+{% include "templates/components/publicEventRequestModal.html.twig" with {
+    request_form_action: "/api/public/event-request"
+} %}
+
+{% include "templates/layout/publicFooterVnv.html.twig" %}
+
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+
+<script>
+if (typeof gsap !== 'undefined' && typeof ScrollTrigger !== 'undefined') {
+    gsap.registerPlugin(ScrollTrigger);
+
+    gsap.from(".intro-image-card, .intro-panel, .service-card, .process-step, .production-image-stack, .production-panel, .scope-card, .blueprint-card, .vnv-location-card, .final-cta-card", {
+        scrollTrigger: {
+            trigger: ".intro-image-card",
+            start: "top 82%"
+        },
+        y: 35,
+        opacity: 0,
+        duration: 1,
+        ease: "power3.out"
+    });
+
+    if (window.innerWidth > 991) {
+        gsap.to('.services-bg-video', {
+            yPercent: 12,
+            ease: 'none',
+            scrollTrigger: {
+                trigger: '#production-process',
+                start: 'top bottom',
+                end: 'bottom top',
+                scrub: true
+            }
+        });
+    }
+}
+</script>
+{% endblock %}

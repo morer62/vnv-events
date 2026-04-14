@@ -1,0 +1,112 @@
+(function(){
+  // ---------- helpers ----------
+  function lockBody(lock){
+    if(lock){
+      document.documentElement.style.overflow = 'hidden';
+      document.body.style.overflow = 'hidden';
+      document.documentElement.classList.add('vnv-modal-open');
+    }else{
+      document.documentElement.style.overflow = '';
+      document.body.style.overflow = '';
+      document.documentElement.classList.remove('vnv-modal-open');
+    }
+  }
+
+  // Move modal to <body> so fixed positioning is relative to viewport
+  function portalToBody(modal){
+    if(!modal || modal.__portaled) return;
+    try{
+      document.body.appendChild(modal);
+      modal.__portaled = true;
+    }catch(e){}
+  }
+
+  function openModal(modal){
+    if(!modal) return;
+    portalToBody(modal);           // <— clave para centrar en desktop
+    modal.hidden = false;
+    lockBody(true);
+    const closeBtn = modal.querySelector('.vnv-modal__close');
+    if(closeBtn){ try{ closeBtn.focus({preventScroll:true}); }catch(e){} }
+  }
+
+  function closeModal(modal){
+    if(!modal) return;
+    modal.hidden = true;
+    lockBody(false);
+  }
+
+  // ---------- open by button ----------
+  document.addEventListener('click', (e)=>{
+    const btn = e.target.closest && e.target.closest('.vnv-open-modal');
+    if(!btn) return;
+    const sel = btn.getAttribute('data-target');
+    const modal = document.querySelector(sel);
+    openModal(modal);
+  });
+
+  // ---------- close (overlay / [data-close]) ----------
+  document.addEventListener('click', (e)=>{
+    const target = e.target;
+    if(!(target instanceof Element)) return;
+    if(target.matches('[data-close]')){
+      const modal = target.closest('.vnv-modal');
+      closeModal(modal);
+    }
+  });
+
+  // ---------- ESC ----------
+  document.addEventListener('keydown', (e)=>{
+    if(e.key === 'Escape'){
+      const open = document.querySelector('.vnv-modal:not([hidden])');
+      if(open) closeModal(open);
+    }
+  });
+
+  // ---------- auto-popup ----------
+  function shouldOpen(modal){
+    const mode = (modal.getAttribute('data-autopopup')||'').toLowerCase();
+    const key  = modal.getAttribute('data-key') || modal.id || 'vnv-msef';
+    if(!mode) return false;
+    const storageKey = 'vnv_msef_autopopup_' + key;
+
+    if(mode === 'always') return true;
+
+    if(mode === 'session'){
+      if(sessionStorage.getItem(storageKey)) return false;
+      sessionStorage.setItem(storageKey, '1');
+      return true;
+    }
+
+    if(mode === 'daily'){
+      const today = new Date().toISOString().slice(0,10);
+      const last  = localStorage.getItem(storageKey);
+      if(last === today) return false;
+      localStorage.setItem(storageKey, today);
+      return true;
+    }
+    return false;
+  }
+
+  function autoPopup(){
+    const modals = document.querySelectorAll('.vnv-modal[data-autopopup]');
+    modals.forEach(modal => {
+      portalToBody(modal); // asegúrate de portalar ANTES de abrir
+      if(shouldOpen(modal)){
+        const delay = parseInt(modal.getAttribute('data-delay')||'0', 10) || 0;
+        setTimeout(()=> openModal(modal), Math.max(0, delay));
+      }
+    });
+  }
+
+  // On load, portal all modals to <body> so they're not inside narrow columns
+  function mountAll(){
+    document.querySelectorAll('.vnv-modal').forEach(portalToBody);
+    autoPopup();
+  }
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', mountAll);
+  }else{
+    mountAll();
+  }
+})();

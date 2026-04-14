@@ -1,0 +1,890 @@
+{% extends "templates/base.twig" %}
+
+{% set show_whatsapp = true %}
+
+{% block styles %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@200;300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,700;0,900;1,700;1,900&display=swap" rel="stylesheet">
+
+<style>
+:root {
+    --vnv-primary: #5EC6C4;
+    --vnv-primary-dark: #4aa8a6;
+    --vnv-gold: #c5a059;
+    --vnv-gold-gradient: linear-gradient(135deg, #bf953f 0%, #fcf6ba 45%, #b38728 100%);
+    --vnv-dark-deep: #0a0c0c;
+    --vnv-dark-soft: #141818;
+    --vnv-dark-card: #1b2021;
+    --vnv-light: #ffffff;
+    --vnv-marble: #f4f7f8;
+    --vnv-text-main: #2d3436;
+    --vnv-text-dark: #11181a;
+    --vnv-text-light: #f3f5f6;
+    --vnv-text-muted: rgba(255,255,255,.74);
+    --vnv-text-muted-soft: rgba(255,255,255,.60);
+    --vnv-border: rgba(255,255,255,.08);
+    --vnv-shadow-lg: 0 40px 100px rgba(0,0,0,.24);
+    --vnv-glow: 0 0 40px rgba(94,198,196,.16);
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+    background: var(--vnv-dark-deep);
+    color: var(--vnv-text-light);
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    line-height: 1.8;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+}
+
+h1, h2, h3, h4, h5, .luxury-font {
+    font-family: 'Playfair Display', serif;
+}
+
+.text-vnv { color: var(--vnv-primary) !important; }
+.text-gold {
+    background: var(--vnv-gold-gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+.letter-spacing-lg { letter-spacing: 4px; }
+
+.vnv-btn {
+    padding: 18px 30px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    transition: all .35s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    text-decoration: none;
+    border: none;
+    cursor: pointer;
+    font-size: .78rem;
+    border-radius: 999px;
+}
+
+.btn-gold-vnv {
+    background: var(--vnv-gold-gradient);
+    color: #000 !important;
+}
+.btn-gold-vnv:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 20px 40px rgba(197,160,89,.22);
+}
+.btn-outline-vnv {
+    border: 2px solid var(--vnv-primary);
+    color: var(--vnv-primary) !important;
+    background: transparent;
+}
+.btn-outline-vnv:hover {
+    background: var(--vnv-primary);
+    color: #fff !important;
+}
+.btn-ghost-white {
+    border: 1px solid rgba(255,255,255,.18);
+    color: #fff !important;
+    background: transparent;
+}
+.btn-ghost-white:hover {
+    background: #fff;
+    color: #000 !important;
+}
+
+.section-vnv {
+    padding: 120px 0;
+    position: relative;
+}
+
+.vnv-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 18px;
+    border-radius: 999px;
+    background: rgba(94,198,196,.1);
+    color: var(--vnv-primary);
+    font-size: .74rem;
+    letter-spacing: 2px;
+    font-weight: 800;
+    text-transform: uppercase;
+}
+
+.hero-corporate {
+    position: relative;
+    min-height: 92vh;
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+    background:
+        linear-gradient(90deg, rgba(10,12,12,.88) 0%, rgba(10,12,12,.68) 42%, rgba(10,12,12,.42) 100%),
+        url('{{ asset_for('assets/images/corp1.jpg') }}') center/cover no-repeat;
+}
+
+.hero-corporate::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+        radial-gradient(circle at top right, rgba(94,198,196,.16), transparent 28%),
+        radial-gradient(circle at bottom left, rgba(197,160,89,.10), transparent 24%);
+    pointer-events: none;
+}
+
+.hero-corporate-inner {
+    position: relative;
+    z-index: 2;
+    width: 100%;
+}
+
+.hero-corporate h1 {
+    font-size: clamp(3rem, 6vw, 5.4rem);
+    line-height: 1.02;
+    margin: 20px 0 28px;
+    max-width: 920px;
+}
+
+.hero-corporate p.hero-copy {
+    font-size: 1.08rem;
+    color: var(--vnv-text-muted);
+    max-width: 760px;
+    margin-bottom: 34px;
+}
+
+.hero-cta-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-top: 20px;
+}
+
+.section-white {
+    background: var(--vnv-marble);
+    color: var(--vnv-text-dark);
+}
+
+.section-dark {
+    background: var(--vnv-dark-deep);
+    color: var(--vnv-text-light);
+}
+
+.section-heading {
+    max-width: 920px;
+    margin-bottom: 55px;
+}
+.section-heading h2 {
+    font-size: clamp(2.2rem, 4vw, 4.2rem);
+    line-height: 1.04;
+    margin: 16px 0 18px;
+}
+.section-heading p {
+    font-size: 1.05rem;
+    margin: 0;
+}
+.section-white .section-heading p {
+    color: #566164;
+}
+.section-dark .section-heading p {
+    color: var(--vnv-text-muted);
+}
+
+.corp-intro-wrap {
+    display: grid;
+    grid-template-columns: 1.05fr .95fr;
+    gap: 40px;
+    align-items: center;
+}
+
+.corp-image-card {
+    border-radius: 30px;
+    overflow: hidden;
+    box-shadow: 0 25px 70px rgba(0,0,0,.10);
+    border: 1px solid rgba(17,24,26,.08);
+    background: #fff;
+}
+
+.corp-image-card img {
+    width: 100%;
+    height: 100%;
+    min-height: 420px;
+    object-fit: cover;
+    display: block;
+}
+
+.corp-info-panel {
+    background: #fff;
+    border: 1px solid rgba(17,24,26,.08);
+    border-radius: 30px;
+    padding: 40px;
+    box-shadow: 0 25px 70px rgba(0,0,0,.08);
+}
+
+.corp-info-panel h3 {
+    font-size: 2rem;
+    color: var(--vnv-text-dark);
+    margin-bottom: 20px;
+}
+
+.corp-info-panel p,
+.corp-info-panel li {
+    color: #4f5b5f;
+}
+
+.corp-info-panel ul {
+    list-style: none;
+    padding: 0;
+    margin: 25px 0 0;
+}
+.corp-info-panel ul li {
+    position: relative;
+    padding-left: 22px;
+    margin-bottom: 10px;
+}
+.corp-info-panel ul li::before {
+    content: "";
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--vnv-gold);
+    position: absolute;
+    left: 0;
+    top: 12px;
+}
+
+.services-bg-video-wrap {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+}
+
+.services-bg-video {
+    width: 100%;
+    height: 120%;
+    object-fit: cover;
+    object-position: center center;
+    opacity: 0.12;
+    filter: blur(2px) saturate(0.8);
+    transform: translateY(-6%);
+}
+
+.services-bg-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+        to bottom,
+        rgba(10,12,12,0.25),
+        rgba(10,12,12,0.30),
+        rgba(10,12,12,0.25)
+    );
+}
+
+.vnv-service-grid-card {
+    background: rgba(28, 34, 35, 0.82);
+    backdrop-filter: blur(6px);
+    border-radius: 28px;
+    padding: 50px 38px;
+    height: 100%;
+    border: 1px solid rgba(197, 160, 89, 0.08);
+    transition: all 0.6s cubic-bezier(0.165, 0.84, 0.44, 1);
+    position: relative;
+    overflow: hidden;
+    z-index: 2;
+}
+
+.vnv-service-grid-card:hover {
+    transform: translateY(-12px);
+    border-color: var(--vnv-gold);
+    box-shadow: 0 40px 80px rgba(0,0,0,0.42);
+}
+
+.service-icon-box {
+    width: 60px;
+    height: 60px;
+    background: rgba(197, 160, 89, 0.1);
+    border-radius: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--vnv-gold);
+    font-size: 1.6rem;
+    margin-bottom: 30px;
+}
+
+.service-num-floating {
+    position: absolute;
+    top: 30px;
+    right: 34px;
+    font-family: 'Playfair Display', serif;
+    font-size: 2.2rem;
+    font-weight: 900;
+    color: rgba(197, 160, 89, 0.40);
+}
+
+.vnv-service-grid-card h3 {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: white;
+    margin-bottom: 18px;
+}
+
+.vnv-service-grid-card p {
+    color: var(--vnv-text-muted);
+    font-size: 1rem;
+    margin-bottom: 30px;
+}
+
+.vnv-link-gold {
+    color: var(--vnv-gold) !important;
+    font-weight: 800;
+    letter-spacing: 2px;
+    font-size: 0.85rem;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    transition: 0.4s;
+}
+
+.vnv-link-gold:hover {
+    gap: 20px;
+    color: white !important;
+}
+
+.solution-wrap {
+    display: grid;
+    grid-template-columns: .95fr 1.05fr;
+    gap: 40px;
+    align-items: stretch;
+}
+
+.solution-image-stack {
+    display: grid;
+    gap: 24px;
+}
+
+.solution-image-stack img {
+    width: 100%;
+    border-radius: 26px;
+    object-fit: cover;
+    display: block;
+    box-shadow: 0 20px 60px rgba(0,0,0,.10);
+    border: 1px solid rgba(17,24,26,.08);
+}
+
+.solution-image-stack img:first-child {
+    min-height: 260px;
+    max-height: 260px;
+}
+.solution-image-stack img:last-child {
+    min-height: 260px;
+    max-height: 260px;
+}
+
+.solution-panel {
+    background: #fff;
+    border: 1px solid rgba(17,24,26,.08);
+    border-radius: 30px;
+    padding: 42px;
+    box-shadow: 0 25px 70px rgba(0,0,0,.08);
+}
+
+.solution-panel h3 {
+    font-size: 2rem;
+    color: var(--vnv-text-dark);
+    margin-bottom: 18px;
+}
+
+.solution-panel p,
+.solution-panel li {
+    color: #4f5b5f;
+}
+
+.solution-panel ul {
+    list-style: none;
+    padding: 0;
+    margin: 28px 0 0;
+}
+.solution-panel ul li {
+    position: relative;
+    padding-left: 24px;
+    margin-bottom: 12px;
+}
+.solution-panel ul li::before {
+    content: "";
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--vnv-primary);
+    position: absolute;
+    left: 0;
+    top: 12px;
+}
+
+.instagram-block {
+    position: relative;
+    overflow: hidden;
+}
+
+.instagram-block::before {
+    content: "";
+    position: absolute;
+    top: -120px;
+    left: -120px;
+    width: 320px;
+    height: 320px;
+    background: radial-gradient(circle, rgba(94,198,196,0.14) 0%, transparent 70%);
+    pointer-events: none;
+}
+
+.vnv-studio-card {
+    background: linear-gradient(145deg, #161a1b 0%, #0d0f0f 100%);
+    border-radius: 30px;
+    padding: 50px;
+    border: 1px solid rgba(255,255,255,0.06);
+    box-shadow: 0 20px 60px rgba(0,0,0,0.35);
+}
+
+.vnv-studio-card h3 {
+    font-size: 1.8rem;
+    font-weight: 800;
+}
+
+.vnv-studio-card p {
+    color: rgba(255,255,255,0.7);
+    margin-bottom: 20px;
+}
+
+.vnv-studio-info {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    color: #fff;
+    font-weight: 600;
+    margin-bottom: 25px;
+}
+
+.vnv-studio-info i {
+    color: var(--vnv-primary);
+}
+
+.vnv-studio-actions {
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.instagram-gallery-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 18px;
+}
+
+.instagram-gallery-grid img {
+    width: 100%;
+    height: 220px;
+    object-fit: cover;
+    border-radius: 22px;
+    display: block;
+    border: 1px solid rgba(255,255,255,.08);
+}
+
+.final-cta-card {
+    background: linear-gradient(145deg, #161a1b 0%, #0d0f0f 100%);
+    border-radius: 45px;
+    padding: 90px 70px;
+    border: 1px solid var(--vnv-border);
+    position: relative;
+    overflow: hidden;
+}
+
+.final-cta-card::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    right: 10%;
+    width: 360px;
+    height: 360px;
+    transform: translateY(-50%);
+    background: radial-gradient(circle, rgba(94, 198, 196, 0.08) 0%, transparent 70%);
+    pointer-events: none;
+}
+
+.final-cta-card p {
+    color: var(--vnv-text-muted-soft);
+}
+
+.vnv-btn-fixed {
+    min-width: 240px;
+    text-align: center;
+    white-space: normal;
+    line-height: 1.35;
+    padding: 20px 28px;
+}
+
+@media (max-width: 1199px) {
+    .final-cta-card { padding: 60px 45px; }
+}
+
+@media (max-width: 991px) {
+    .corp-intro-wrap,
+    .solution-wrap {
+        grid-template-columns: 1fr;
+    }
+
+    .section-vnv,
+    .section-dark,
+    .section-white {
+        border-radius: 0;
+    }
+
+    .corp-info-panel,
+    .solution-panel,
+    .vnv-studio-card {
+        padding: 32px 28px;
+    }
+
+    .final-cta-card {
+        padding: 50px 30px;
+        text-align: center;
+    }
+
+    .vnv-btn-fixed {
+        min-width: 100%;
+    }
+
+    .services-bg-video {
+        height: 100%;
+        transform: none;
+        filter: blur(1px) saturate(0.8);
+    }
+}
+
+@media (max-width: 767px) {
+    .section-vnv {
+        padding: 90px 0;
+    }
+
+    .hero-corporate h1 {
+        font-size: 2.7rem;
+    }
+
+    .vnv-btn {
+        width: 100%;
+        padding: 18px 24px;
+        letter-spacing: 2px;
+    }
+
+    .hero-cta-row {
+        flex-direction: column;
+    }
+
+    .instagram-gallery-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .instagram-gallery-grid img {
+        height: 150px;
+    }
+}
+</style>
+{% endblock %}
+
+{% block body %}
+
+{% include "templates/layout/publicHeaderVnv.html.twig" %}
+
+<section class="hero-corporate">
+    <div class="container hero-corporate-inner">
+        <span class="vnv-badge">Corporate Events</span>
+
+        <h1>Corporate Events That Feel <span class="text-gold">Organized, Polished & Professional</span></h1>
+
+        <p class="hero-copy">
+            VNV Events helps companies bring together the pieces that matter most in a successful corporate event: quality food, clear sound, strong multimedia support and reliable staffing — all under one coordinated execution.
+        </p>
+
+        <p class="hero-copy">
+            Whether it’s an office celebration, networking event, brand activation or client-facing gathering, our role is to make the experience feel smooth for your guests and easier for your internal team.
+        </p>
+
+        <div class="hero-cta-row">
+            <a href="tel:+13052045427" class="vnv-btn btn-gold-vnv">Call Now (305) 204-5427</a>
+            <a href="#corporate-services" class="vnv-btn btn-outline-vnv">Explore Services</a>
+        </div>
+    </div>
+</section>
+
+<section class="section-vnv section-white">
+    <div class="container">
+        <div class="corp-intro-wrap">
+            <div class="corp-image-card">
+                <img src="{{ asset_for('assets/images/corp2.jpg') }}" alt="Corporate hospitality by VNV Events">
+            </div>
+
+            <div class="corp-info-panel">
+                <span class="vnv-badge">Built for Business Environments</span>
+                <h3>Corporate events need more than a nice setup.</h3>
+                <p>
+                    They need timing, presentation, coordination and a guest experience that reflects well on the company behind the event.
+                </p>
+                <p>
+                    That is why our corporate approach focuses on the areas that most directly impact how the event feels in real life: food service, sound clarity, visual support and operational staffing.
+                </p>
+
+                <ul>
+                    <li>Cleaner guest experience without internal chaos</li>
+                    <li>Fewer moving parts for your team to manage</li>
+                    <li>Professional execution across hospitality and logistics</li>
+                    <li>A more complete event without hiring multiple vendors</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="section-vnv section-dark" id="corporate-services">
+    <div class="services-bg-video-wrap">
+        <video class="services-bg-video" autoplay muted loop playsinline preload="auto">
+            <source src="{{ asset_for('assets/video/intro.mp4') }}" type="video/mp4">
+        </video>
+        <div class="services-bg-overlay"></div>
+    </div>
+
+    <div class="container position-relative" style="z-index:2;">
+        <div class="text-center mb-5 pb-5 section-heading">
+            <span class="vnv-badge">Core Services</span>
+            <h2 class="text-white">What We Bring to <span class="text-vnv">Corporate Events</span></h2>
+            <p>These are the services companies tend to need most when they want the event to run well and look professional.</p>
+        </div>
+
+        <div class="row g-4">
+            <div class="col-md-6 col-xl-3">
+                <div class="vnv-service-grid-card">
+                    <span class="service-num-floating">01</span>
+                    <div class="service-icon-box"><i class="fa-solid fa-utensils"></i></div>
+                    <h3>Food Service</h3>
+                    <p>Curated catering for office gatherings, networking events, activations and internal celebrations with presentation and flow in mind.</p>
+                    <a href="{{ path('vnv-gourmet') }}" class="vnv-link-gold">REQUEST SERVICE →</a>
+                </div>
+            </div>
+
+            <div class="col-md-6 col-xl-3">
+                <div class="vnv-service-grid-card">
+                    <span class="service-num-floating">02</span>
+                    <div class="service-icon-box"><i class="fa-solid fa-volume-high"></i></div>
+                    <h3>Sound</h3>
+                    <p>Audio support for speeches, presentations and event moments where clarity matters and the room needs to feel controlled.</p>
+                    <a href="#" class="vnv-link-gold">REQUEST SERVICE →</a>
+                </div>
+            </div>
+
+            <div class="col-md-6 col-xl-3">
+                <div class="vnv-service-grid-card">
+                    <span class="service-num-floating">03</span>
+                    <div class="service-icon-box"><i class="fa-solid fa-display"></i></div>
+                    <h3>Multimedia</h3>
+                    <p>Screen support, visual playback and presentation-ready execution for events that need stronger communication and brand presence.</p>
+                    <a href="#" class="vnv-link-gold">REQUEST SERVICE →</a>
+                </div>
+            </div>
+
+            <div class="col-md-6 col-xl-3">
+                <div class="vnv-service-grid-card">
+                    <span class="service-num-floating">04</span>
+                    <div class="service-icon-box"><i class="fa-solid fa-user-group"></i></div>
+                    <h3>Staffing</h3>
+                    <p>Professional support for service, setup and guest-facing operations so the event does not depend on your internal team running logistics.</p>
+                    <a href="#" class="vnv-link-gold">REQUEST SERVICE →</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="section-vnv section-white">
+    <div class="container">
+        <div class="solution-wrap">
+            <div class="solution-image-stack">
+                <img src="{{ asset_for('assets/images/corp3.jpg') }}" alt="Corporate event detail">
+                <img src="{{ asset_for('assets/images/corp4.jpg') }}" alt="Corporate event production detail">
+            </div>
+
+            <div class="solution-panel">
+                <span class="vnv-badge">How This Helps</span>
+                <h3>A better corporate event usually comes down to execution.</h3>
+
+                <p>
+                    Companies usually do not struggle because they lack ideas. They struggle because too many event elements get fragmented between different providers, different timelines and different expectations.
+                </p>
+
+                <p>
+                    Our role is to reduce that fragmentation by supporting the areas that shape the experience most directly in the room.
+                </p>
+
+                <ul>
+                    <li>Food that feels appropriate for the audience and event type</li>
+                    <li>Sound that supports communication instead of becoming a distraction</li>
+                    <li>Visual and multimedia support that strengthens the brand presence</li>
+                    <li>Staffing that keeps service, timing and guest flow under control</li>
+                    <li>A smoother event experience without overloading your internal team</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="section-vnv section-dark instagram-block">
+    <div class="container position-relative" style="z-index:2;">
+        <div class="row align-items-center g-5">
+            <div class="col-lg-6">
+                <span class="text-vnv fw-bold d-block mb-3 letter-spacing-lg">PORTFOLIO & SOCIAL</span>
+
+                <h2 class="display-3 fw-black text-white mb-3">
+                    See our work on <span class="text-vnv">@vnv_events</span>
+                </h2>
+
+                <p class="fs-5 mb-4" style="color:rgba(255,255,255,0.65);">
+                    Explore real events, setup moments and behind-the-scenes details from VNV Events across South Florida.
+                </p>
+
+                <a href="https://www.instagram.com/vnv_events/" target="_blank" class="vnv-btn btn-outline-vnv">
+                    View Instagram
+                </a>
+
+                <div class="instagram-gallery-grid mt-4">
+                    <img src="{{ asset_for('assets/images/corp1.jpg') }}" alt="Corporate event gallery 1">
+                    <img src="{{ asset_for('assets/images/corp2.jpg') }}" alt="Corporate event gallery 2">
+                    <img src="{{ asset_for('assets/images/corp3.jpg') }}" alt="Corporate event gallery 3">
+                    <img src="{{ asset_for('assets/images/corp4.jpg') }}" alt="Corporate event gallery 4">
+                </div>
+            </div>
+
+            <div class="col-lg-6">
+                <div class="vnv-studio-card">
+                    <span class="vnv-badge">Visit Our Studio</span>
+
+                    <h3 class="text-white mb-3">Plan it in person.</h3>
+
+                    <p>
+                        Visit our VNV Studio in Sunrise, FL to review event direction, discuss food, sound, multimedia and staffing, and shape a more complete corporate event experience.
+                    </p>
+
+                    <div class="vnv-studio-info">
+                        <i class="fa-solid fa-location-dot"></i>
+                        <span>10258 NW 47th St, Sunrise, FL 33351</span>
+                    </div>
+
+                    <div class="vnv-studio-actions">
+                        <a href="https://maps.google.com/?q=10258+NW+47th+St+Sunrise+FL+33351" target="_blank" class="vnv-btn btn-ghost-white">
+                            Get Directions
+                        </a>
+
+                        <a href="#" data-vnv-open-request class="vnv-btn btn-gold-vnv">
+                            Book a Meeting
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="section-vnv section-white">
+    <div class="container">
+        <div class="final-cta-card">
+            <div class="row align-items-center">
+                <div class="col-lg-7">
+                    <span class="vnv-badge">Corporate Planning</span>
+                    <h2 class="display-3 fw-bold text-white mb-4">Bring food, sound, multimedia and staffing together under one plan.</h2>
+                    <p class="fs-5 mb-5">
+                        If your company needs an event that feels presentable, organized and easier to manage from start to finish, VNV Events can help you build the right setup around the moments that matter most.
+                    </p>
+                </div>
+
+                <div class="col-lg-5 text-center text-lg-end">
+                    <div class="d-flex flex-column flex-lg-row gap-3 justify-content-end">
+                        <a href="tel:+13052045427" class="vnv-btn btn-gold-vnv vnv-btn-fixed">Call Now</a>
+                        <a href="#" class="vnv-btn btn-ghost-white vnv-btn-fixed">Request Proposal</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+{% include "templates/components/publicEventRequestModal.html.twig" with {
+    request_form_action: "/api/public/event-request"
+} %}
+
+{% include "templates/layout/publicFooterVnv.html.twig" %}
+
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+
+<script>
+if (typeof gsap !== 'undefined' && typeof ScrollTrigger !== 'undefined') {
+    gsap.registerPlugin(ScrollTrigger);
+
+    gsap.utils.toArray('.vnv-service-grid-card').forEach(card => {
+        gsap.from(card, {
+            scrollTrigger: {
+                trigger: card,
+                start: "top 85%"
+            },
+            y: 50,
+            opacity: 0,
+            duration: 1,
+            ease: "power4.out"
+        });
+    });
+
+    gsap.from(".corp-image-card, .corp-info-panel, .solution-image-stack, .solution-panel, .vnv-studio-card, .final-cta-card", {
+        scrollTrigger: {
+            trigger: ".corp-image-card",
+            start: "top 82%"
+        },
+        y: 35,
+        opacity: 0,
+        duration: 1,
+        ease: "power3.out"
+    });
+
+    if (window.innerWidth > 991) {
+        gsap.to('.services-bg-video', {
+            yPercent: 12,
+            ease: 'none',
+            scrollTrigger: {
+                trigger: '#corporate-services',
+                start: 'top bottom',
+                end: 'bottom top',
+                scrub: true
+            }
+        });
+    }
+}
+
+document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+    anchor.addEventListener('click', function (e) {
+        const target = this.getAttribute('href');
+        if (!target || target === '#') return;
+
+        const el = document.querySelector(target);
+        if (!el) return;
+
+        e.preventDefault();
+        el.scrollIntoView({
+            behavior: 'smooth',
+            block: 'start'
+        });
+    });
+});
+</script>
+{% endblock %}
