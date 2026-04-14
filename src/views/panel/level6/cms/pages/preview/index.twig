@@ -1,0 +1,255 @@
+{% extends "templates/base.admin.twig" %}
+
+{% block body %}
+<style>
+    .cms-wrap{
+        padding:24px;
+        max-width:1200px;
+    }
+
+    .cms-header{
+        display:flex;
+        align-items:flex-start;
+        justify-content:space-between;
+        gap:16px;
+        margin-bottom:24px;
+        flex-wrap:wrap;
+    }
+
+    .cms-title{
+        font-size:2rem;
+        font-weight:800;
+        color:#111827;
+        margin:0 0 6px 0;
+    }
+
+    .cms-subtitle{
+        color:#6b7280;
+        font-size:.96rem;
+        margin:0;
+    }
+
+    .cms-card{
+        background:#fff;
+        border:1px solid #e5e7eb;
+        border-radius:20px;
+        padding:24px;
+        box-shadow:0 10px 30px rgba(0,0,0,.05);
+        margin-bottom:22px;
+    }
+
+    .cms-grid{
+        display:grid;
+        grid-template-columns:1fr 1fr;
+        gap:18px;
+    }
+
+    .cms-meta{
+        padding:14px 16px;
+        border:1px solid #e5e7eb;
+        border-radius:14px;
+        background:#f9fafb;
+    }
+
+    .cms-meta strong{
+        display:block;
+        color:#111827;
+        margin-bottom:6px;
+    }
+
+    .cms-muted{
+        color:#6b7280;
+    }
+
+    .cms-badge{
+        display:inline-flex;
+        align-items:center;
+        justify-content:center;
+        padding:6px 10px;
+        border-radius:999px;
+        font-size:.8rem;
+        font-weight:700;
+        white-space:nowrap;
+    }
+
+    .cms-badge.published{
+        background:#ecfdf5;
+        color:#047857;
+    }
+
+    .cms-badge.draft{
+        background:#fff7ed;
+        color:#c2410c;
+    }
+
+    .cms-btn{
+        display:inline-flex;
+        align-items:center;
+        justify-content:center;
+        padding:10px 16px;
+        border-radius:12px;
+        text-decoration:none;
+        font-weight:700;
+        font-size:.92rem;
+        transition:.2s ease;
+        border:none;
+        cursor:pointer;
+    }
+
+    .cms-btn-primary{
+        background:#111827;
+        color:#fff;
+    }
+
+    .cms-btn-primary:hover{
+        background:#000;
+        color:#fff;
+    }
+
+    .cms-btn-light{
+        background:#f3f4f6;
+        color:#111827;
+    }
+
+    .cms-btn-light:hover{
+        background:#e5e7eb;
+        color:#111827;
+    }
+
+    .cms-code{
+        width:100%;
+        min-height:520px;
+        border:1px solid #d1d5db;
+        border-radius:14px;
+        padding:16px;
+        font-size:.9rem;
+        line-height:1.6;
+        color:#111827;
+        background:#fbfbfb;
+        box-sizing:border-box;
+        font-family:Consolas, Monaco, monospace;
+        white-space:pre-wrap;
+        overflow:auto;
+    }
+
+    .cms-preview-box{
+        padding:18px;
+        border:1px dashed #d1d5db;
+        border-radius:16px;
+        background:#fcfcfc;
+    }
+
+    @media (max-width:768px){
+        .cms-wrap{
+            padding:16px;
+        }
+
+        .cms-grid{
+            grid-template-columns:1fr;
+        }
+
+        .cms-title{
+            font-size:1.55rem;
+        }
+
+        .cms-code{
+            min-height:360px;
+        }
+    }
+</style>
+
+<div class="cms-wrap">
+    <div class="cms-header">
+        <div>
+            <h1 class="cms-title">Preview Page</h1>
+            <p class="cms-subtitle">
+                Review the stored structure and publishing details for this CMS page.
+            </p>
+        </div>
+
+        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+            <a href="{{ path('panel/cms/pages') }}" class="cms-btn cms-btn-light">← Back to Pages</a>
+            <a href="{{ path('panel/cms/pages/edit') }}?id={{ page.id }}" class="cms-btn cms-btn-primary">Edit Page</a>
+
+            {% if page.published_path %}
+                <a href="/{{ page.published_path|trim('/') }}" target="_blank" class="cms-btn cms-btn-light">Open Public Page</a>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="cms-card">
+        <div class="cms-grid">
+            <div class="cms-meta">
+                <strong>Title</strong>
+                <div>{{ page.title }}</div>
+            </div>
+
+            <div class="cms-meta">
+                <strong>Slug</strong>
+                <div>{{ page.slug }}</div>
+            </div>
+
+            <div class="cms-meta">
+                <strong>Category</strong>
+                <div>{{ page.category_name ?: '—' }}</div>
+            </div>
+
+            <div class="cms-meta">
+                <strong>Template</strong>
+                <div>{{ page.template_name ?: '—' }}</div>
+            </div>
+
+            <div class="cms-meta">
+                <strong>Status</strong>
+                <div>
+                    {% if page.status == 'PUBLISHED' %}
+                        <span class="cms-badge published">Published</span>
+                    {% else %}
+                        <span class="cms-badge draft">Draft</span>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="cms-meta">
+                <strong>Published Path</strong>
+                <div>{{ page.published_path ?: '—' }}</div>
+            </div>
+        </div>
+    </div>
+
+    {% if page.short_description %}
+        <div class="cms-card">
+            <h2 style="font-size:1.1rem; font-weight:800; margin-bottom:14px;">Short Description</h2>
+            <div class="cms-preview-box">
+                {{ page.short_description }}
+            </div>
+        </div>
+    {% endif %}
+
+    <div class="cms-card">
+        <h2 style="font-size:1.1rem; font-weight:800; margin-bottom:14px;">Template Source</h2>
+        <div class="cms-code">{{ page.template_source }}</div>
+    </div>
+
+    {% if page.custom_css %}
+        <div class="cms-card">
+            <h2 style="font-size:1.1rem; font-weight:800; margin-bottom:14px;">Custom CSS</h2>
+            <div class="cms-code">{{ page.custom_css }}</div>
+        </div>
+    {% endif %}
+
+    {% if page.custom_head %}
+        <div class="cms-card">
+            <h2 style="font-size:1.1rem; font-weight:800; margin-bottom:14px;">Custom Head</h2>
+            <div class="cms-code">{{ page.custom_head }}</div>
+        </div>
+    {% endif %}
+
+    {% if page.schema_markup %}
+        <div class="cms-card">
+            <h2 style="font-size:1.1rem; font-weight:800; margin-bottom:14px;">Schema Markup</h2>
+            <div class="cms-code">{{ page.schema_markup }}</div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

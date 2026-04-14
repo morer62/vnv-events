@@ -1,0 +1,194 @@
+{% extends 'templates/base.admin.twig' %}
+
+{% block style %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/trumbowyg@2.27.3/dist/ui/trumbowyg.min.css">
+{% endblock %}
+
+{% block body %}
+<div class="container py-4">
+    <h1 class="h3 mb-4">Create Location Page</h1>
+
+    <form method="post" class="card shadow-lg border-0 p-4">
+        <div class="row">
+            <div class="col-md-8 mb-3">
+                <label class="form-label">Title *</label>
+                <input type="text" name="title" class="form-control" required placeholder="Event Venues in Sunrise, FL">
+            </div>
+
+            <div class="col-md-4 mb-3">
+                <label class="form-label">Slug *</label>
+                <input type="text" name="slug" class="form-control" required placeholder="sunrise">
+            </div>
+
+            <div class="col-md-4 mb-3">
+                <label class="form-label">Category</label>
+                <input type="text" name="category" class="form-control" value="location">
+            </div>
+
+            <div class="col-md-4 mb-3">
+                <label class="form-label">Template Key</label>
+                <input type="text" name="template_key" class="form-control" value="location-default">
+            </div>
+
+            <div class="col-md-4 mb-3">
+                <label class="form-label">Status</label>
+                <select name="status" class="form-select">
+                    <option value="DRAFT">Draft</option>
+                    <option value="PUBLISHED">Published</option>
+                </select>
+            </div>
+
+            <div class="col-md-4 mb-3">
+                <label class="form-label">City</label>
+                <input type="text" name="city" class="form-control" placeholder="Sunrise">
+            </div>
+
+            <div class="col-md-4 mb-3">
+                <label class="form-label">County</label>
+                <input type="text" name="county" class="form-control" placeholder="Broward County">
+            </div>
+
+            <div class="col-md-4 mb-3">
+                <label class="form-label">State</label>
+                <input type="text" name="state" class="form-control" value="Florida">
+            </div>
+
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Hero Title</label>
+                <input type="text" name="hero_title" class="form-control">
+            </div>
+
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Hero Image URL</label>
+                <input type="text" name="hero_image" class="form-control" placeholder="https://...">
+            </div>
+
+            <div class="col-12 mb-3">
+                <label class="form-label">Hero Subtitle</label>
+                <textarea name="hero_subtitle" class="form-control" rows="2"></textarea>
+            </div>
+
+            <div class="col-12 mb-3">
+                <label class="form-label">Excerpt</label>
+                <textarea name="excerpt" class="form-control" rows="2"></textarea>
+            </div>
+
+            <div class="col-12 mb-3">
+                <label class="form-label">Main Content</label>
+                <textarea name="content_long" id="content-editor" class="form-control" rows="10"></textarea>
+            </div>
+
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Primary Keyword</label>
+                <input type="text" name="primary_keyword" class="form-control">
+            </div>
+
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Secondary Keywords</label>
+                <input type="text" name="secondary_keywords" class="form-control">
+            </div>
+
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Meta Title</label>
+                <input type="text" name="meta_title" class="form-control">
+            </div>
+
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Meta Keywords</label>
+                <input type="text" name="meta_keywords" class="form-control">
+            </div>
+
+            <div class="col-12 mb-3">
+                <label class="form-label">Meta Description</label>
+                <textarea name="meta_description" class="form-control" rows="2"></textarea>
+            </div>
+
+            <div class="col-md-6 mb-3">
+                <label class="form-label">OG Title</label>
+                <input type="text" name="og_title" class="form-control">
+            </div>
+
+            <div class="col-md-6 mb-3">
+                <label class="form-label">OG Image</label>
+                <input type="text" name="og_image" class="form-control" placeholder="https://...">
+            </div>
+
+            <div class="col-12 mb-3">
+                <label class="form-label">OG Description</label>
+                <textarea name="og_description" class="form-control" rows="2"></textarea>
+            </div>
+
+            <div class="col-12 mb-3">
+                <label class="form-label">Canonical URL</label>
+                <input type="text" name="canonical_url" class="form-control" placeholder="https://vnvevents.com/sunrise">
+            </div>
+
+            <div class="col-12 mb-3">
+                <label class="form-label">FAQ JSON</label>
+                <textarea name="faq_json" class="form-control" rows="6" placeholder='[{"question":"...","answer":"..."}]'></textarea>
+            </div>
+
+            <div class="col-12 mb-3">
+                <label class="form-label">Dynamic Blocks JSON</label>
+                <textarea name="dynamic_blocks_json" class="form-control" rows="6" placeholder='[{"type":"text","title":"...","content":"..."}]'></textarea>
+            </div>
+
+            <div class="col-12 mb-3">
+                <label class="form-label">Schema JSON</label>
+                <textarea name="schema_json" class="form-control" rows="6"></textarea>
+            </div>
+
+            <div class="col-12 mb-3">
+                <label class="form-label">Custom CSS</label>
+                <textarea name="custom_css" class="form-control" rows="4"></textarea>
+            </div>
+
+            <div class="col-12 mb-3">
+                <label class="form-label">Custom JS</label>
+                <textarea name="custom_js" class="form-control" rows="4"></textarea>
+            </div>
+
+            <div class="col-12 mb-4">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" name="is_indexable" id="is_indexable" checked>
+                    <label class="form-check-label" for="is_indexable">
+                        Allow search engines to index this page
+                    </label>
+                </div>
+            </div>
+
+            <div class="col-12 d-flex gap-2">
+                <a href="/panel/level6/cms/location-pages" class="btn btn-outline-secondary">Back</a>
+                <button type="submit" class="btn btn-success">Create Page</button>
+            </div>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/trumbowyg@2.27.3/dist/trumbowyg.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    $('#content-editor').trumbowyg();
+
+    const titleInput = document.querySelector('[name="title"]');
+    const slugInput = document.querySelector('[name="slug"]');
+
+    titleInput.addEventListener('input', () => {
+        if (slugInput.dataset.edited === '1') return;
+
+        slugInput.value = titleInput.value
+            .toLowerCase()
+            .trim()
+            .replace(/[^a-z0-9]+/g, '-')
+            .replace(/^-+|-+$/g, '');
+    });
+
+    slugInput.addEventListener('input', () => {
+        slugInput.dataset.edited = '1';
+    });
+});
+</script>
+{% endblock %}

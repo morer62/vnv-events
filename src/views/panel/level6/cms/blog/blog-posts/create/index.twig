@@ -1,0 +1,225 @@
+{% extends "templates/base.admin.twig" %}
+
+{% block style %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/trumbowyg@2.27.3/dist/ui/trumbowyg.min.css">
+{% endblock %}
+
+{% block body %}
+<style>
+    .cms-wrap{padding:24px;max-width:1200px;}
+    .cms-header{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:24px;flex-wrap:wrap;}
+    .cms-title{font-size:2rem;font-weight:800;color:#111827;margin:0 0 6px 0;}
+    .cms-subtitle{color:#6b7280;font-size:.96rem;margin:0;}
+    .cms-card{background:#fff;border:1px solid #e5e7eb;border-radius:20px;padding:24px;box-shadow:0 10px 30px rgba(0,0,0,.05);margin-bottom:22px;}
+    .cms-section-title{font-size:1.15rem;font-weight:800;color:#111827;margin:0 0 18px 0;}
+    .cms-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;}
+    .cms-field{margin-bottom:18px;}
+    .cms-field.full{grid-column:1 / -1;}
+    .cms-label{display:block;font-size:.92rem;font-weight:700;color:#111827;margin-bottom:8px;}
+    .cms-input,.cms-select,.cms-textarea{width:100%;border:1px solid #d1d5db;border-radius:14px;padding:12px 14px;font-size:.95rem;color:#111827;background:#fff;outline:none;transition:.2s ease;box-sizing:border-box;font-family:inherit;}
+    .cms-input:focus,.cms-select:focus,.cms-textarea:focus{border-color:#111827;box-shadow:0 0 0 3px rgba(17,24,39,.08);}
+    .cms-textarea{min-height:130px;resize:vertical;}
+    .cms-textarea.code{min-height:260px;font-family:Consolas, Monaco, monospace;font-size:.9rem;line-height:1.6;white-space:pre;}
+    .cms-help{margin-top:6px;font-size:.84rem;color:#6b7280;}
+    .cms-actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:10px;}
+    .cms-btn{display:inline-flex;align-items:center;justify-content:center;padding:10px 16px;border-radius:12px;text-decoration:none;font-weight:700;font-size:.92rem;transition:.2s ease;border:none;cursor:pointer;}
+    .cms-btn-primary{background:#111827;color:#fff;}
+    .cms-btn-primary:hover{background:#000;color:#fff;}
+    .cms-btn-light{background:#f3f4f6;color:#111827;}
+    .cms-btn-light:hover{background:#e5e7eb;color:#111827;}
+    .cms-alert{margin-bottom:18px;background:#fef2f2;border:1px solid #fecaca;color:#991b1b;border-radius:16px;padding:14px 16px;}
+    .cms-alert ul{margin:0;padding-left:18px;}
+    @media (max-width:768px){.cms-wrap{padding:16px;}.cms-grid{grid-template-columns:1fr;}.cms-title{font-size:1.55rem;}}
+</style>
+
+<div class="cms-wrap">
+    <div class="cms-header">
+        <div>
+            <h1 class="cms-title">Create Blog Post</h1>
+            <p class="cms-subtitle">
+                Create a new blog article with category, SEO metadata and public route.
+            </p>
+        </div>
+
+        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+            <a href="{{ path('panel/cms/blog/blog-posts') }}" class="cms-btn cms-btn-light">← Back to Posts</a>
+        </div>
+    </div>
+
+    {% if errors and errors|length > 0 %}
+        <div class="cms-alert">
+            <ul>
+                {% for error in errors %}
+                    <li>{{ error }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+    {% endif %}
+
+    <form method="POST" enctype="multipart/form-data">
+        <div class="cms-card">
+            <h2 class="cms-section-title">General</h2>
+
+            <div class="cms-grid">
+                <div class="cms-field">
+                    <label class="cms-label">Blog Category *</label>
+                    <select name="id_blog_category" class="cms-select" required>
+                        <option value="">Select a category</option>
+                        {% for item in categories %}
+                            <option value="{{ item.id }}" {% if old.id_blog_category == item.id %}selected{% endif %}>
+                                {{ item.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="cms-field">
+                    <label class="cms-label">Template</label>
+                    <select name="id_template" class="cms-select">
+                        <option value="">No template</option>
+                        {% for item in templates %}
+                            <option value="{{ item.id }}" {% if old.id_template == item.id %}selected{% endif %}>
+                                {{ item.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="cms-field">
+                    <label class="cms-label">Title *</label>
+                    <input type="text" name="title" class="cms-input" value="{{ old.title }}" required>
+                </div>
+
+                <div class="cms-field">
+                    <label class="cms-label">Slug</label>
+                    <input type="text" name="slug" class="cms-input" value="{{ old.slug }}">
+                    <div class="cms-help">If left empty, it will be generated from the title.</div>
+                </div>
+
+                <div class="cms-field">
+                    <label class="cms-label">Status</label>
+                    <select name="status" class="cms-select">
+                        <option value="DRAFT" {% if old.status == 'DRAFT' %}selected{% endif %}>Draft</option>
+                        <option value="PREVIEW" {% if old.status == 'PREVIEW' %}selected{% endif %}>Preview</option>
+                        <option value="GENERATED" {% if old.status == 'GENERATED' %}selected{% endif %}>Generated</option>
+                        <option value="PUBLISHED" {% if old.status == 'PUBLISHED' %}selected{% endif %}>Published</option>
+                        <option value="ARCHIVED" {% if old.status == 'ARCHIVED' %}selected{% endif %}>Archived</option>
+                    </select>
+                </div>
+
+                <div class="cms-field">
+                    <label class="cms-label">Public Route</label>
+                    <input type="text" name="route" class="cms-input" value="{{ old.route }}">
+                    <div class="cms-help">Example: /holiday-season-weddings-december-celebrations/</div>
+                </div>
+
+                <div class="cms-field full">
+                    <label class="cms-label">Excerpt</label>
+                    <textarea name="excerpt" class="cms-textarea">{{ old.excerpt }}</textarea>
+                </div>
+            </div>
+        </div>
+
+        <div class="cms-card">
+            <h2 class="cms-section-title">Article Body</h2>
+
+            <div class="cms-field full">
+                <label class="cms-label">Article Content *</label>
+                <textarea name="body_html" id="body_html_editor" class="cms-textarea">{{ old.body_html }}</textarea>
+                <div class="cms-help">This editor saves HTML content.</div>
+            </div>
+
+            <div class="cms-field full">
+                <label class="cms-label">Content JSON</label>
+                <textarea name="content_json" class="cms-textarea code">{{ old.content_json }}</textarea>
+            </div>
+
+            <input type="hidden" name="content_mode" value="html">
+        </div>
+
+        <div class="cms-card">
+            <h2 class="cms-section-title">SEO / Metadata</h2>
+
+            <div class="cms-grid">
+                <div class="cms-field">
+                    <label class="cms-label">Meta Title</label>
+                    <input type="text" name="meta_title" class="cms-input" value="{{ old.meta_title }}">
+                </div>
+
+                <div class="cms-field">
+                    <label class="cms-label">Canonical URL</label>
+                    <input type="text" name="canonical_url" class="cms-input" value="{{ old.canonical_url }}">
+                </div>
+
+                <div class="cms-field full">
+                    <label class="cms-label">Meta Description</label>
+                    <textarea name="meta_description" class="cms-textarea">{{ old.meta_description }}</textarea>
+                </div>
+
+                <div class="cms-field full">
+                    <label class="cms-label">Meta Keywords</label>
+                    <textarea name="meta_keywords" class="cms-textarea">{{ old.meta_keywords }}</textarea>
+                </div>
+
+                <div class="cms-field">
+                    <label class="cms-label">Featured Image Upload</label>
+                    <input type="file" name="featured_image" class="cms-input" accept="image/*">
+                </div>
+
+                <div class="cms-field">
+                    <label class="cms-label">Featured Image URL</label>
+                    <input type="text" name="featured_image_url" class="cms-input" value="{{ old.featured_image_url }}">
+                </div>
+
+                <div class="cms-field">
+                    <label class="cms-label">OG Title</label>
+                    <input type="text" name="og_title" class="cms-input" value="{{ old.og_title }}">
+                </div>
+
+                <div class="cms-field">
+                    <label class="cms-label">OG Description</label>
+                    <input type="text" name="og_description" class="cms-input" value="{{ old.og_description }}">
+                </div>
+
+                <div class="cms-field">
+                    <label class="cms-label">Robots</label>
+                    <input type="text" name="robots" class="cms-input" value="{{ old.robots }}">
+                </div>
+
+                <div class="cms-field full">
+                    <label class="cms-label">Schema JSON</label>
+                    <textarea name="schema_json" class="cms-textarea code">{{ old.schema_json }}</textarea>
+                </div>
+            </div>
+        </div>
+
+        <div class="cms-actions">
+            <button type="submit" class="cms-btn cms-btn-primary">Save Post</button>
+            <a href="{{ path('panel/cms/blog/blog-posts') }}" class="cms-btn cms-btn-light">Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/trumbowyg@2.27.3/dist/trumbowyg.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    $('#body_html_editor').trumbowyg({
+        btns: [
+            ['viewHTML'],
+            ['formatting'],
+            ['strong', 'em', 'del'],
+            ['link'],
+            ['insertImage'],
+            ['justifyLeft', 'justifyCenter', 'justifyRight'],
+            ['unorderedList', 'orderedList'],
+            ['horizontalRule'],
+            ['removeformat'],
+            ['fullscreen']
+        ]
+    });
+});
+</script>
+{% endblock %}

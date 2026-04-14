@@ -1,5 +1,6 @@
 <?php
 
+use App\Repositories\BlogCategoriesRepository;
 use App\Repositories\CmsContentsRepository;
 use App\Repositories\CmsRoutesRepository;
 use App\Repositories\CmsTemplatesRepository;
@@ -11,7 +12,7 @@ use App\Utils\TemplateResponse;
 
 $router = new Router();
 
-function cmsContentSlugify(string $text): string
+function blogPostSlugifyEdit(string $text): string
 {
     $text = trim($text);
     $text = strtolower($text);
@@ -21,43 +22,66 @@ function cmsContentSlugify(string $text): string
     return trim($text, '-');
 }
 
-function cmsDefaultPageBodyHtml(): string
-{
-    return '<section class="container py-5"><div class="row justify-content-center"><div class="col-lg-10"><h1>Page Title</h1><p>Start building your page content here.</p></div></div></section>';
-}
-
 $router->get(function () {
     $db = new Connection();
 
     $templatesRepository = new CmsTemplatesRepository();
     $templatesRepository->db = $db;
 
-    $templates = $templatesRepository->getActive();
+    $blogCategoriesRepository = new BlogCategoriesRepository();
+    $blogCategoriesRepository->db = $db;
+
+    $contentsRepository = new CmsContentsRepository();
+    $contentsRepository->db = $db;
+
+    $routesRepository = new CmsRoutesRepository();
+    $routesRepository->db = $db;
+
+    $id = (int)($_GET['id'] ?? 0);
+
+    if ($id <= 0) {
+        echo "Invalid post ID.";
+        exit;
+    }
+
+    $post = $contentsRepository->getOneWithTemplate($id);
+
+    if (!$post || ($post->type ?? '') !== 'post') {
+        echo "Post not found.";
+        exit;
+    }
+
+    $mainRoute = $routesRepository->getMainRouteByContent((int)$post->id, $post->language ?? 'en');
 
     return TemplateResponse::render(__DIR__ . "/index.twig", [
-        "title" => "Create CMS Page",
+        "title" => "Edit Blog Post",
         "errors" => [],
-        "templates" => $templates,
+        "templates" => $templatesRepository->getActive(),
+        "categories" => $blogCategoriesRepository->getActive(),
+        "post" => $post,
         "old" => [
-            "id_template" => "",
-            "title" => "",
-            "slug" => "",
-            "excerpt" => "",
-            "status" => "DRAFT",
-            "content_mode" => "hybrid",
-            "body_html" => cmsDefaultPageBodyHtml(),
-            "content_json" => "",
-            "meta_title" => "",
-            "meta_description" => "",
-            "meta_keywords" => "",
-            "canonical_url" => "",
-            "schema_json" => "",
-            "featured_image_url" => "",
-            "og_title" => "",
-            "og_description" => "",
-            "route" => "",
-            "robots" => "index,follow",
-            "is_homepage" => 0,
+            "id" => $post->id,
+            "id_template" => $post->id_template ?? "",
+            "id_blog_category" => $post->id_blog_category ?? "",
+            "title" => $post->title ?? "",
+            "slug" => $post->slug ?? "",
+            "excerpt" => $post->excerpt ?? "",
+            "status" => $post->status ?? "DRAFT",
+            "content_mode" => $post->content_mode ?? "html",
+            "body_html" => $post->body_html ?? "",
+            "content_json" => $post->content_json ?? "",
+            "meta_title" => $post->meta_title ?? "",
+            "meta_description" => $post->meta_description ?? "",
+            "meta_keywords" => $post->meta_keywords ?? "",
+            "canonical_url" => $post->canonical_url ?? "",
+            "schema_json" => $post->schema_json ?? "",
+            "featured_image_url" => $post->featured_image_url ?? "",
+            "og_title" => $post->og_title ?? "",
+            "og_description" => $post->og_description ?? "",
+            "route" => $mainRoute->route ?? "",
+            "robots" => $post->robots ?? "index,follow",
+            "published_at" => $post->published_at ?? "",
+            "last_generated_at" => $post->last_generated_at ?? "",
         ],
     ]);
 });
@@ -68,6 +92,9 @@ $router->post(function () {
     $templatesRepository = new CmsTemplatesRepository();
     $templatesRepository->db = $db;
 
+    $blogCategoriesRepository = new BlogCategoriesRepository();
+    $blogCategoriesRepository->db = $db;
+
     $contentsRepository = new CmsContentsRepository();
     $contentsRepository->db = $db;
 
@@ -75,13 +102,16 @@ $router->post(function () {
     $routesRepository->db = $db;
 
     $templates = $templatesRepository->getActive();
+    $categories = $blogCategoriesRepository->getActive();
 
+    $id                = (int)($_POST['id'] ?? 0);
     $idTemplate        = (int)($_POST['id_template'] ?? 0);
+    $idBlogCategory    = (int)($_POST['id_blog_category'] ?? 0);
     $title             = trim($_POST['title'] ?? '');
     $slug              = trim($_POST['slug'] ?? '');
     $excerpt           = trim($_POST['excerpt'] ?? '');
     $status            = trim($_POST['status'] ?? 'DRAFT');
-    $contentMode       = trim($_POST['content_mode'] ?? 'hybrid');
+    $contentMode       = trim($_POST['content_mode'] ?? 'html');
     $bodyHtml          = trim($_POST['body_html'] ?? '');
     $contentJson       = trim($_POST['content_json'] ?? '');
     $metaTitle         = trim($_POST['meta_title'] ?? '');
@@ -93,12 +123,25 @@ $router->post(function () {
     $ogDescription     = trim($_POST['og_description'] ?? '');
     $manualRoute       = trim($_POST['route'] ?? '');
     $robots            = trim($_POST['robots'] ?? 'index,follow');
-    $isHomepage        = isset($_POST['is_homepage']) ? 1 : 0;
+
+    if ($id <= 0) {
+        echo "Invalid post ID.";
+        exit;
+    }
+
+    $post = $contentsRepository->getOneWithTemplate($id);
+
+    if (!$post || ($post->type ?? '') !== 'post') {
+        echo "Post not found.";
+        exit;
+    }
+
+    $mainRoute = $routesRepository->getMainRouteByContent((int)$post->id, $post->language ?? 'en');
 
     if ($slug === '') {
-        $slug = cmsContentSlugify($title);
+        $slug = blogPostSlugifyEdit($title);
     } else {
-        $slug = cmsContentSlugify($slug);
+        $slug = blogPostSlugifyEdit($slug);
     }
 
     if (!in_array($status, ['DRAFT', 'PREVIEW', 'GENERATED', 'PUBLISHED', 'ARCHIVED'], true)) {
@@ -106,7 +149,7 @@ $router->post(function () {
     }
 
     if (!in_array($contentMode, ['structured', 'html', 'hybrid'], true)) {
-        $contentMode = 'hybrid';
+        $contentMode = 'html';
     }
 
     if ($metaTitle === '') {
@@ -117,14 +160,13 @@ $router->post(function () {
         $ogTitle = $title;
     }
 
-    if ($bodyHtml === '') {
-        $bodyHtml = cmsDefaultPageBodyHtml();
-    }
-
     $route = $manualRoute !== '' ? $routesRepository->normalizeRoute($manualRoute) : $routesRepository->normalizeRoute($slug);
 
     $errors = [];
-    $selectedTemplate = null;
+
+    if ($idBlogCategory <= 0) {
+        $errors[] = "Blog category is required.";
+    }
 
     if ($title === '') {
         $errors[] = "Title is required.";
@@ -134,8 +176,23 @@ $router->post(function () {
         $errors[] = "Slug is required.";
     }
 
-    if ($contentMode !== 'structured' && $bodyHtml === '') {
-        $errors[] = "Body HTML is required for this content mode.";
+    if ($bodyHtml === '') {
+        $errors[] = "Article body is required.";
+    }
+
+    $selectedCategory = null;
+    if ($idBlogCategory > 0) {
+        $selectedCategory = $blogCategoriesRepository->getOne(['id' => $idBlogCategory]);
+        if (!$selectedCategory) {
+            $errors[] = "Selected blog category is invalid.";
+        }
+    }
+
+    if ($idTemplate > 0) {
+        $selectedTemplate = $templatesRepository->getOne(['id' => $idTemplate]);
+        if (!$selectedTemplate) {
+            $errors[] = "Selected template is invalid.";
+        }
     }
 
     if ($contentJson !== '') {
@@ -152,28 +209,24 @@ $router->post(function () {
         }
     }
 
-    if ($idTemplate > 0) {
-        $selectedTemplate = $templatesRepository->getOne([
-            'id' => $idTemplate
-        ]);
-
-        if (!$selectedTemplate) {
-            $errors[] = "Selected template is invalid.";
-        }
-    }
-
-    if ($contentsRepository->slugExists($slug, null, 'en')) {
+    if ($contentsRepository->slugExists($slug, null, $post->language ?? 'en', $id)) {
         $errors[] = "That slug already exists.";
     }
 
-    if ($routesRepository->routeExists($route, null, 'en')) {
-        $errors[] = "That public route already exists.";
+    if ($mainRoute) {
+        if ($routesRepository->routeExists($route, null, $post->language ?? 'en', (int)$mainRoute->id)) {
+            $errors[] = "That public route already exists.";
+        }
+    } else {
+        if ($routesRepository->routeExists($route, null, $post->language ?? 'en')) {
+            $errors[] = "That public route already exists.";
+        }
     }
 
-    $featuredImageUrl = trim($_POST['featured_image_url'] ?? '');
+    $featuredImageUrl = trim($_POST['featured_image_url'] ?? ($post->featured_image_url ?? ''));
     if (FileUtils::hasFile($_FILES, 'featured_image')) {
         try {
-            $featuredImageUrl = FileUtils::saveFile($_FILES['featured_image'], 'cms/contents/featured');
+            $featuredImageUrl = FileUtils::saveFile($_FILES['featured_image'], 'blog/posts/featured');
         } catch (Exception $e) {
             $errors[] = "Featured image upload failed: " . $e->getMessage();
         }
@@ -181,11 +234,15 @@ $router->post(function () {
 
     if (!empty($errors)) {
         return TemplateResponse::render(__DIR__ . "/index.twig", [
-            "title" => "Create CMS Page",
+            "title" => "Edit Blog Post",
             "errors" => $errors,
             "templates" => $templates,
+            "categories" => $categories,
+            "post" => $post,
             "old" => [
+                "id" => $id,
                 "id_template" => $idTemplate > 0 ? $idTemplate : "",
+                "id_blog_category" => $idBlogCategory > 0 ? $idBlogCategory : "",
                 "title" => $title,
                 "slug" => $slug,
                 "excerpt" => $excerpt,
@@ -203,19 +260,26 @@ $router->post(function () {
                 "og_description" => $ogDescription,
                 "route" => $route,
                 "robots" => $robots,
-                "is_homepage" => $isHomepage,
+                "published_at" => $post->published_at ?? "",
+                "last_generated_at" => $post->last_generated_at ?? "",
             ],
         ]);
     }
 
-    $publishedAt = $status === 'PUBLISHED' ? date('Y-m-d H:i:s') : null;
+    $publishedAt = $post->published_at ?? null;
+    if ($status === 'PUBLISHED' && empty($publishedAt)) {
+        $publishedAt = date('Y-m-d H:i:s');
+    }
 
-    $ok = $contentsRepository->add([
+    if ($status !== 'PUBLISHED') {
+        $publishedAt = null;
+    }
+
+    $ok = $contentsRepository->update([
         "id_template" => $idTemplate > 0 ? $idTemplate : null,
-        "type" => "page",
+        "id_blog_category" => $idBlogCategory,
         "title" => $title,
         "slug" => $slug,
-        "language" => "en",
         "content_mode" => $contentMode,
         "excerpt" => $excerpt,
         "content_json" => $contentJson !== '' ? $contentJson : null,
@@ -223,23 +287,27 @@ $router->post(function () {
         "meta_title" => $metaTitle,
         "meta_description" => $metaDescription,
         "meta_keywords" => $metaKeywords,
-        "canonical_url" => $canonicalUrl,
+        "canonical_url" => $canonicalUrl !== '' ? $canonicalUrl : null,
         "robots" => $robots,
         "schema_json" => $schemaJson !== '' ? $schemaJson : null,
         "featured_image_url" => $featuredImageUrl !== '' ? $featuredImageUrl : null,
         "status" => $status,
-        "is_homepage" => $isHomepage,
         "published_at" => $publishedAt,
-        "last_generated_at" => null,
+    ], [
+        "id" => $id
     ]);
 
     if (!$ok) {
         return TemplateResponse::render(__DIR__ . "/index.twig", [
-            "title" => "Create CMS Page",
-            "errors" => ["The page could not be created."],
+            "title" => "Edit Blog Post",
+            "errors" => ["The blog post could not be updated."],
             "templates" => $templates,
+            "categories" => $categories,
+            "post" => $post,
             "old" => [
+                "id" => $id,
                 "id_template" => $idTemplate > 0 ? $idTemplate : "",
+                "id_blog_category" => $idBlogCategory > 0 ? $idBlogCategory : "",
                 "title" => $title,
                 "slug" => $slug,
                 "excerpt" => $excerpt,
@@ -257,26 +325,36 @@ $router->post(function () {
                 "og_description" => $ogDescription,
                 "route" => $route,
                 "robots" => $robots,
-                "is_homepage" => $isHomepage,
+                "published_at" => $publishedAt,
+                "last_generated_at" => $post->last_generated_at ?? "",
             ],
         ]);
     }
 
-    $contentId = $contentsRepository->getLastId();
+    if ($mainRoute) {
+        $routesRepository->update([
+            "route" => $route,
+            "route_hash" => md5($route),
+            "status" => "ACTIVE",
+            "redirect_to" => null,
+        ], [
+            "id" => (int)$mainRoute->id
+        ]);
+    } else {
+        $routesRepository->add([
+            "id_content" => $id,
+            "route" => $route,
+            "route_hash" => md5($route),
+            "is_main" => 1,
+            "language" => $post->language ?? 'en',
+            "public_php_path" => null,
+            "public_twig_path" => null,
+            "status" => "ACTIVE",
+            "redirect_to" => null,
+        ]);
+    }
 
-    $routesRepository->add([
-        "id_content" => $contentId,
-        "route" => $route,
-        "route_hash" => md5($route),
-        "is_main" => 1,
-        "language" => "en",
-        "public_php_path" => null,
-        "public_twig_path" => null,
-        "status" => "ACTIVE",
-        "redirect_to" => null,
-    ]);
-
-    LocationUtils::redirectInternal("panel/cms/pages");
+    LocationUtils::redirectInternal("panel/cms/blog/blog-posts/edit?id=" . $id);
     exit;
 });
 

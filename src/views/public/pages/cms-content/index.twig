@@ -1,0 +1,113 @@
+{% extends "base.twig" %}
+
+{% block title %}
+    {{ page.meta_title ?: page.title ~ ' | VNV Events' }}
+{% endblock %}
+
+{% block meta_description %}
+    {{ page.meta_description ?: page.excerpt ?: 'VNV Events page' }}
+{% endblock %}
+
+{% block meta_keywords %}
+    {{ page.meta_keywords ?: 'VNV Events, South Florida events' }}
+{% endblock %}
+
+{% block canonical %}
+    {{ page.canonical_url ?: ('https://vnvevents.com' ~ route.route) }}
+{% endblock %}
+
+{% block og_title %}
+    {{ page.og_title ?: page.meta_title ?: page.title }}
+{% endblock %}
+
+{% block og_description %}
+    {{ page.og_description ?: page.meta_description ?: page.excerpt ?: 'VNV Events page' }}
+{% endblock %}
+
+{% block og_url %}
+    {{ page.canonical_url ?: ('https://vnvevents.com' ~ route.route) }}
+{% endblock %}
+
+{% block og_image %}
+    {{ page.featured_image_url ?: asset_for('assets/images/planner-hub-logo-negative.png') }}
+{% endblock %}
+
+{% block body %}
+    <section class="container py-5">
+        <div class="row justify-content-center">
+            <div class="col-lg-10">
+                {% if page.featured_image_url %}
+                    <div class="mb-4">
+                        <img
+                            src="{{ page.featured_image_url }}"
+                            alt="{{ page.title }}"
+                            class="img-fluid rounded-4 w-100"
+                            style="max-height: 420px; object-fit: cover;"
+                        >
+                    </div>
+                {% endif %}
+
+                <header class="mb-4">
+                    <h1 class="display-5 fw-bold mb-3">{{ page.title }}</h1>
+
+                    {% if page.excerpt %}
+                        <p class="lead text-muted mb-0">{{ page.excerpt }}</p>
+                    {% endif %}
+                </header>
+
+                {% if page.body_html %}
+                    <div class="cms-public-body">
+                        {{ page.body_html|raw }}
+                    </div>
+                {% elseif content_json.hero or content_json.blocks %}
+                    <div class="cms-public-body">
+                        {% if content_json.hero %}
+                            <section class="mb-4">
+                                {% if content_json.hero.title %}
+                                    <h2>{{ content_json.hero.title }}</h2>
+                                {% endif %}
+                                {% if content_json.hero.subtitle %}
+                                    <p>{{ content_json.hero.subtitle }}</p>
+                                {% endif %}
+                            </section>
+                        {% endif %}
+
+                        {% if content_json.blocks %}
+                            {% for block in content_json.blocks %}
+                                <section class="mb-4">
+                                    {% if block.title %}
+                                        <h3>{{ block.title }}</h3>
+                                    {% endif %}
+                                    {% if block.content %}
+                                        <div>{{ block.content|raw }}</div>
+                                    {% endif %}
+                                </section>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+                {% else %}
+                    <div class="alert alert-light border">
+                        This page has no public body content yet.
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </section>
+
+    {% if page.schema_json %}
+        <script type="application/ld+json">{{ page.schema_json|raw }}</script>
+    {% endif %}
+
+    {% if page.custom_head %}
+        {{ page.custom_head|raw }}
+    {% endif %}
+{% endblock %}
+
+{% block styles %}
+    {{ parent() }}
+    {% if page.custom_css %}
+        <style>
+            {{ page.custom_css|raw }}
+        </style>
+    {% endif %}
+{% endblock %}

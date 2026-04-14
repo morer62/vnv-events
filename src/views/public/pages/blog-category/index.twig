@@ -1,0 +1,120 @@
+{% extends "base.twig" %}
+
+{% block title %}
+    {{ category.meta_title ?: category.name ~ ' | VNV Events Blog' }}
+{% endblock %}
+
+{% block meta_description %}
+    {{ category.meta_description ?: category.description ?: 'VNV Events blog category' }}
+{% endblock %}
+
+{% block body %}
+<style>
+    .blog-cat-shell{
+        padding:60px 0;
+    }
+
+    .blog-cat-title{
+        font-size:2.6rem;
+        font-weight:800;
+        margin-bottom:12px;
+        color:#111827;
+    }
+
+    .blog-cat-desc{
+        color:#6b7280;
+        max-width:800px;
+        margin-bottom:40px;
+    }
+
+    .blog-grid{
+        display:grid;
+        grid-template-columns:repeat(auto-fill,minmax(300px,1fr));
+        gap:24px;
+    }
+
+    .blog-card{
+        border:1px solid #e5e7eb;
+        border-radius:20px;
+        overflow:hidden;
+        background:#fff;
+        transition:.2s;
+    }
+
+    .blog-card:hover{
+        transform:translateY(-4px);
+        box-shadow:0 10px 30px rgba(0,0,0,.08);
+    }
+
+    .blog-card img{
+        width:100%;
+        height:200px;
+        object-fit:cover;
+    }
+
+    .blog-card-body{
+        padding:18px;
+    }
+
+    .blog-card-title{
+        font-weight:800;
+        font-size:1.1rem;
+        margin-bottom:8px;
+        color:#111827;
+    }
+
+    .blog-card-excerpt{
+        font-size:.92rem;
+        color:#6b7280;
+        margin-bottom:12px;
+    }
+
+    .blog-card a{
+        text-decoration:none;
+    }
+
+    .blog-empty{
+        text-align:center;
+        color:#6b7280;
+        padding:60px 0;
+    }
+</style>
+
+<section class="blog-cat-shell">
+    <div class="container">
+        <h1 class="blog-cat-title">{{ category.name }}</h1>
+
+        {% if category.description %}
+            <p class="blog-cat-desc">{{ category.description }}</p>
+        {% endif %}
+
+        {% if posts|length > 0 %}
+            <div class="blog-grid">
+                {% for post in posts %}
+                    <div class="blog-card">
+                        <a href="/{{ post.slug }}/">
+                            {% if post.featured_image_url %}
+                                <img src="{{ post.featured_image_url }}" alt="{{ post.title }}">
+                            {% endif %}
+
+                            <div class="blog-card-body">
+                                <div class="blog-card-title">{{ post.title }}</div>
+
+                                {% if post.excerpt %}
+                                    <div class="blog-card-excerpt">
+                                        {{ post.excerpt|slice(0, 120) }}...
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </a>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="blog-empty">
+                No articles found in this category yet.
+            </div>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}
