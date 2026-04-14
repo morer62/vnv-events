@@ -56,6 +56,7 @@
                             <strong>Location preview</strong>
                             <p>Enter the venue address and we’ll use it to prepare your request.</p>
                             <small id="vnvRequestAddressMirror">No address entered yet.</small>
+                            <div id="vnvRequestMiniMap" class="vnv-request-mini-map" aria-label="Map preview"></div>
                         </div>
                     </div>
 
@@ -161,12 +162,18 @@
                     <div class="vnv-request-grid vnv-request-grid--two">
                         <div>
                             <label class="vnv-request-label" for="vnv_event_date">Date</label>
-                            <input id="vnv_event_date" name="event_date" type="date" class="vnv-request-input" required>
+                            <div class="vnv-request-input-wrap">
+                                <i class="fa-regular fa-calendar-days" aria-hidden="true"></i>
+                                <input id="vnv_event_date" name="event_date" type="date" class="vnv-request-input vnv-request-input--with-icon" required>
+                            </div>
                         </div>
 
                         <div>
                             <label class="vnv-request-label" for="vnv_event_time">Time</label>
-                            <input id="vnv_event_time" name="event_time" type="time" class="vnv-request-input" required>
+                            <div class="vnv-request-input-wrap">
+                                <i class="fa-regular fa-clock" aria-hidden="true"></i>
+                                <input id="vnv_event_time" name="event_time" type="time" class="vnv-request-input vnv-request-input--with-icon" required>
+                            </div>
                         </div>
 
                         <div>
@@ -258,8 +265,12 @@
                         <button type="button" class="vnv-request-btn vnv-request-btn--ghost" data-vnv-prev>
                             Back
                         </button>
-                        <button type="submit" class="vnv-request-btn vnv-request-btn--primary">
-                            Send Request
+                        <button type="submit" class="vnv-request-btn vnv-request-btn--primary" id="vnvSendRequestBtn">
+                            <span class="vnv-send-label">Send Request</span>
+                            <span class="vnv-send-loading d-none">
+                                <i class="fa-solid fa-spinner fa-spin"></i>
+                                Sending...
+                            </span>
                         </button>
                     </div>
                 </div>
@@ -464,6 +475,53 @@
     color: rgba(255,255,255,0.72);
 }
 
+.vnv-request-mini-map{
+    width: 100%;
+    height: 158px;
+    border-radius: 14px;
+    border: 1px solid rgba(94, 198, 196, 0.18);
+    background: rgba(2, 12, 24, 0.72);
+    margin-top: 8px;
+}
+
+.vnv-request-input-wrap{
+    position: relative;
+}
+
+.vnv-request-input-wrap > i{
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: rgba(255,255,255,0.72);
+    pointer-events: none;
+    z-index: 2;
+}
+
+.vnv-request-input--with-icon{
+    padding-left: 42px;
+}
+
+.vnv-request-input[type="date"]::-webkit-calendar-picker-indicator,
+.vnv-request-input[type="time"]::-webkit-calendar-picker-indicator{
+    filter: invert(1) brightness(1.2);
+    opacity: .9;
+    cursor: pointer;
+}
+
+.vnv-request-input[type="date"]::-webkit-datetime-edit,
+.vnv-request-input[type="time"]::-webkit-datetime-edit{
+    color: #fff;
+}
+
+/* Google Places suggestions above modal */
+.pac-container{
+    z-index: 5000 !important;
+    border-radius: 12px;
+    border: 1px solid rgba(94, 198, 196, 0.25);
+    box-shadow: 0 16px 40px rgba(0,0,0,0.35);
+}
+
 .vnv-request-service-group{
     margin-bottom: 22px;
 }
@@ -620,6 +678,21 @@
     filter: brightness(1.04);
 }
 
+.vnv-request-btn.is-loading{
+    opacity: .85;
+    cursor: not-allowed;
+}
+
+.vnv-send-loading{
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.d-none{
+    display: none !important;
+}
+
 .vnv-request-btn--ghost{
     background: rgba(255,255,255,0.06);
     color: #fff;
@@ -668,6 +741,19 @@ body.vnv-request-lock{
     const form = document.getElementById('vnvRequestForm');
     if (!modal || !form) return;
 
+    function normalizeActionUrl() {
+        const rawAction = form.getAttribute('action') || '';
+        if (!rawAction || !rawAction.startsWith('/api/public/')) return;
+
+        const pathParts = window.location.pathname.split('/').filter(Boolean);
+        if (!pathParts.length) return;
+
+        const appBase = pathParts[0];
+        if (!appBase || appBase === 'api') return;
+
+        form.setAttribute('action', '/' + appBase + rawAction);
+    }
+
     const openers = document.querySelectorAll('[data-vnv-open-request]');
     const closers = modal.querySelectorAll('[data-vnv-request-close]');
     const steps = Array.from(modal.querySelectorAll('[data-vnv-step]'));
@@ -681,20 +767,77 @@ body.vnv-request-lock{
     const summaryAddress = document.getElementById('vnvSummaryAddress');
     const addressMirror = document.getElementById('vnvRequestAddressMirror');
     const addressInput = document.getElementById('vnv_event_address');
+    const sendRequestBtn = document.getElementById('vnvSendRequestBtn');
+    const sendLabel = sendRequestBtn ? sendRequestBtn.querySelector('.vnv-send-label') : null;
+    const sendLoading = sendRequestBtn ? sendRequestBtn.querySelector('.vnv-send-loading') : null;
+    const dateInput = document.getElementById('vnv_event_date');
+    const timeInput = document.getElementById('vnv_event_time');
+    const phoneInput = document.getElementById('vnv_phone');
+    const miniMapEl = document.getElementById('vnvRequestMiniMap');
+    const AUTO_OPEN_STORAGE_KEY = 'vnv_request_modal_last_auto_open_at';
+    const AUTO_OPEN_INTERVAL_MS = 24 * 60 * 60 * 1000; 
 
     let currentStep = 1;
     const selectedServices = new Set();
+    let requestMap = null;
+    let requestMarker = null;
+    let requestGeocoder = null;
+    let requestAutocomplete = null;
+    let lastLatLng = null;
+
+    function setFieldError(field, message) {
+        if (!field) return false;
+        field.setCustomValidity(message || '');
+        if (message) field.reportValidity();
+        return !message;
+    }
+
+    function clearFieldError(field) {
+        if (!field) return;
+        field.setCustomValidity('');
+    }
 
     function openModal() {
         modal.classList.add('is-open');
         modal.setAttribute('aria-hidden', 'false');
         document.body.classList.add('vnv-request-lock');
+        setTimeout(function () {
+            ensureMapVisible();
+        }, 80);
     }
 
     function closeModal() {
         modal.classList.remove('is-open');
         modal.setAttribute('aria-hidden', 'true');
         document.body.classList.remove('vnv-request-lock');
+    }
+
+    function isRootPath() {
+        const parts = window.location.pathname.split('/').filter(Boolean);
+        // Domain root: /
+        if (!parts.length) return true;
+        // Subfolder root: /vnv-events/
+        return parts.length === 1;
+    }
+
+    function shouldAutoOpenNow() {
+        if (!isRootPath()) return false;
+        try {
+            const raw = localStorage.getItem(AUTO_OPEN_STORAGE_KEY);
+            const last = raw ? parseInt(raw, 10) : 0;
+            const now = Date.now();
+            return !last || Number.isNaN(last) || (now - last) >= AUTO_OPEN_INTERVAL_MS;
+        } catch (e) {
+            return true;
+        }
+    }
+
+    function markAutoOpenTimestamp() {
+        try {
+            localStorage.setItem(AUTO_OPEN_STORAGE_KEY, String(Date.now()));
+        } catch (e) {
+            // ignore storage failures
+        }
     }
 
     function goToStep(step) {
@@ -707,6 +850,11 @@ body.vnv-request-lock{
         });
         if (step === 4) {
             updateSummary();
+        }
+        if (step === 1) {
+            setTimeout(function () {
+                ensureMapVisible();
+            }, 40);
         }
     }
 
@@ -729,6 +877,134 @@ body.vnv-request-lock{
         const address = addressInput.value.trim();
         summaryAddress.textContent = address || 'Not provided yet.';
         updateSelectedServices();
+    }
+
+    function updateMiniMap(latLng) {
+        if (!miniMapEl || !window.google || !google.maps) return;
+        lastLatLng = latLng;
+        if (!requestMap) {
+            requestMap = new google.maps.Map(miniMapEl, {
+                center: latLng,
+                zoom: 15,
+                mapTypeControl: false,
+                streetViewControl: false,
+                fullscreenControl: false
+            });
+        } else {
+            requestMap.setCenter(latLng);
+        }
+        if (!requestMarker) {
+            requestMarker = new google.maps.Marker({
+                map: requestMap,
+                position: latLng
+            });
+        } else {
+            requestMarker.setPosition(latLng);
+        }
+
+        ensureMapVisible();
+    }
+
+    function ensureMapVisible() {
+        if (!requestMap || !window.google || !google.maps) return;
+        google.maps.event.trigger(requestMap, 'resize');
+        if (lastLatLng) {
+            requestMap.setCenter(lastLatLng);
+            if (requestMarker) {
+                requestMarker.setPosition(lastLatLng);
+            }
+        }
+    }
+
+    function initLocationTools() {
+        if (!addressInput || !miniMapEl || !window.google || !google.maps || !google.maps.places) return false;
+
+        requestGeocoder = new google.maps.Geocoder();
+        updateMiniMap({ lat: 25.7617, lng: -80.1918 }); // Miami default
+
+        requestAutocomplete = new google.maps.places.Autocomplete(addressInput, {
+            fields: ['formatted_address', 'geometry', 'name'],
+            types: ['geocode']
+        });
+
+        requestAutocomplete.addListener('place_changed', function () {
+            const place = requestAutocomplete.getPlace();
+            if (!place || !place.geometry || !place.geometry.location) return;
+            if (place.formatted_address) {
+                addressInput.value = place.formatted_address;
+            }
+            const chosenAddress = addressInput.value.trim();
+            if (addressMirror) addressMirror.textContent = chosenAddress || 'No address entered yet.';
+            updateMiniMap(place.geometry.location);
+            setTimeout(function () {
+                ensureMapVisible();
+            }, 60);
+            updateSummary();
+        });
+
+        return true;
+    }
+
+    function geocodeTypedAddress() {
+        if (!requestGeocoder || !addressInput || !addressInput.value.trim()) return;
+        const address = addressInput.value.trim();
+        requestGeocoder.geocode({ address: address }, function (results, status) {
+            if (status === 'OK' && results && results[0] && results[0].geometry && results[0].geometry.location) {
+                updateMiniMap(results[0].geometry.location);
+            }
+        });
+    }
+
+    function waitForGoogleAndInit(maxAttempts = 20) {
+        let attempts = 0;
+        const timer = setInterval(function () {
+            attempts += 1;
+            if (initLocationTools()) {
+                clearInterval(timer);
+                return;
+            }
+            if (attempts >= maxAttempts) {
+                clearInterval(timer);
+            }
+        }, 350);
+    }
+
+    function validateDateField() {
+        if (!dateInput || !dateInput.value.trim()) {
+            return setFieldError(dateInput, 'Date is required.');
+        }
+        const selected = new Date(dateInput.value + 'T00:00:00');
+        const now = new Date();
+        const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        if (Number.isNaN(selected.getTime())) {
+            return setFieldError(dateInput, 'Please enter a valid date.');
+        }
+        if (selected < today) {
+            return setFieldError(dateInput, 'Event date cannot be in the past.');
+        }
+        return setFieldError(dateInput, '');
+    }
+
+    function validateTimeField() {
+        if (!timeInput || !timeInput.value.trim()) {
+            return setFieldError(timeInput, 'Time is required.');
+        }
+        const valid = /^([01]\d|2[0-3]):([0-5]\d)$/.test(timeInput.value.trim());
+        if (!valid) {
+            return setFieldError(timeInput, 'Please enter a valid time.');
+        }
+        return setFieldError(timeInput, '');
+    }
+
+    function validatePhoneField() {
+        if (!phoneInput || !phoneInput.value.trim()) {
+            return setFieldError(phoneInput, 'Phone is required.');
+        }
+        const digits = phoneInput.value.replace(/\D/g, '');
+        if (digits.length < 10) {
+            return setFieldError(phoneInput, 'Please enter a valid phone number.');
+        }
+        return setFieldError(phoneInput, '');
     }
 
     function validateStep(step) {
@@ -758,6 +1034,9 @@ body.vnv-request-lock{
                     return false;
                 }
             }
+            if (!validateDateField()) return false;
+            if (!validateTimeField()) return false;
+            if (!validatePhoneField()) return false;
         }
 
         return true;
@@ -813,12 +1092,41 @@ body.vnv-request-lock{
             const value = this.value.trim();
             addressMirror.textContent = value || 'No address entered yet.';
         });
+        addressInput.addEventListener('blur', geocodeTypedAddress);
+    }
+
+    if (dateInput) {
+        dateInput.addEventListener('input', function () { clearFieldError(dateInput); });
+        dateInput.addEventListener('change', validateDateField);
+    }
+
+    if (timeInput) {
+        timeInput.addEventListener('input', function () { clearFieldError(timeInput); });
+        timeInput.addEventListener('change', validateTimeField);
+    }
+
+    if (phoneInput) {
+        phoneInput.addEventListener('input', function () { clearFieldError(phoneInput); });
+        phoneInput.addEventListener('blur', validatePhoneField);
     }
 
     form.addEventListener('submit', function () {
         updateSummary();
+        if (sendRequestBtn) {
+            sendRequestBtn.disabled = true;
+            sendRequestBtn.classList.add('is-loading');
+        }
+        if (sendLabel) sendLabel.classList.add('d-none');
+        if (sendLoading) sendLoading.classList.remove('d-none');
     });
 
+    normalizeActionUrl();
+    waitForGoogleAndInit();
     goToStep(1);
+
+    if (shouldAutoOpenNow()) {
+        openModal();
+        markAutoOpenTimestamp();
+    }
 })();
 </script>
