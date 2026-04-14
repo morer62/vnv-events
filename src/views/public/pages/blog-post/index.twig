@@ -1,0 +1,238 @@
+{% extends "base.twig" %}
+
+{% block title %}
+    {{ post.meta_title ?: post.title ~ ' | VNV Events Blog' }}
+{% endblock %}
+
+{% block meta_description %}
+    {{ post.meta_description ?: post.excerpt ?: 'VNV Events blog article' }}
+{% endblock %}
+
+{% block meta_keywords %}
+    {{ post.meta_keywords ?: 'VNV Events blog, South Florida events, event planning blog' }}
+{% endblock %}
+
+{% block canonical %}
+    {{ post.canonical_url ?: ('https://vnvevents.com' ~ route.route) }}
+{% endblock %}
+
+{% block og_title %}
+    {{ post.og_title ?: post.meta_title ?: post.title }}
+{% endblock %}
+
+{% block og_description %}
+    {{ post.og_description ?: post.meta_description ?: post.excerpt ?: 'VNV Events blog article' }}
+{% endblock %}
+
+{% block og_url %}
+    {{ post.canonical_url ?: ('https://vnvevents.com' ~ route.route) }}
+{% endblock %}
+
+{% block og_image %}
+    {{ post.featured_image_url ?: asset_for('assets/images/planner-hub-logo-negative.png') }}
+{% endblock %}
+
+{% block body %}
+<style>
+    .blog-post-shell{
+        padding: 56px 0 72px;
+    }
+
+    .blog-post-hero{
+        margin-bottom: 32px;
+    }
+
+    .blog-post-category{
+        display:inline-flex;
+        align-items:center;
+        gap:8px;
+        padding:8px 14px;
+        border-radius:999px;
+        background:#f3f4f6;
+        color:#111827;
+        text-decoration:none;
+        font-weight:700;
+        font-size:.88rem;
+        margin-bottom:18px;
+    }
+
+    .blog-post-title{
+        font-size: clamp(2.1rem, 4vw, 3.5rem);
+        line-height:1.05;
+        font-weight:800;
+        margin-bottom:18px;
+        color:#111827;
+    }
+
+    .blog-post-excerpt{
+        font-size:1.12rem;
+        line-height:1.7;
+        color:#6b7280;
+        max-width:900px;
+        margin-bottom:18px;
+    }
+
+    .blog-post-meta{
+        display:flex;
+        flex-wrap:wrap;
+        gap:14px 22px;
+        color:#6b7280;
+        font-size:.94rem;
+        margin-bottom:12px;
+    }
+
+    .blog-post-featured{
+        margin: 28px 0 36px;
+    }
+
+    .blog-post-featured img{
+        width:100%;
+        max-height:520px;
+        object-fit:cover;
+        border-radius:24px;
+        border:1px solid #e5e7eb;
+        display:block;
+    }
+
+    .blog-post-body{
+        font-size:1.02rem;
+        line-height:1.85;
+        color:#111827;
+    }
+
+    .blog-post-body h2,
+    .blog-post-body h3,
+    .blog-post-body h4{
+        margin-top:2.2rem;
+        margin-bottom:1rem;
+        color:#111827;
+        font-weight:800;
+    }
+
+    .blog-post-body p{
+        margin-bottom:1.25rem;
+    }
+
+    .blog-post-body ul,
+    .blog-post-body ol{
+        margin-bottom:1.25rem;
+        padding-left:1.3rem;
+    }
+
+    .blog-post-body blockquote{
+        border-left:4px solid #111827;
+        padding:12px 18px;
+        background:#f9fafb;
+        border-radius:0 14px 14px 0;
+        margin:1.5rem 0;
+    }
+
+    .blog-post-body img{
+        max-width:100%;
+        height:auto;
+        border-radius:18px;
+    }
+
+    .blog-post-back{
+        margin-top:48px;
+    }
+
+    .blog-post-back a{
+        display:inline-flex;
+        align-items:center;
+        justify-content:center;
+        padding:12px 18px;
+        border-radius:12px;
+        background:#f3f4f6;
+        color:#111827;
+        text-decoration:none;
+        font-weight:700;
+    }
+</style>
+
+<section class="blog-post-shell">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-10">
+                <header class="blog-post-hero">
+                    {% if category %}
+                        <a class="blog-post-category" href="/category/blog/{{ category.slug }}/">
+                            {{ category.name }}
+                        </a>
+                    {% endif %}
+
+                    <h1 class="blog-post-title">{{ post.title }}</h1>
+
+                    {% if post.excerpt %}
+                        <div class="blog-post-excerpt">{{ post.excerpt }}</div>
+                    {% endif %}
+
+                    <div class="blog-post-meta">
+                        {% if post.published_at %}
+                            <span>Published: {{ post.published_at|date("F j, Y") }}</span>
+                        {% endif %}
+
+                        {% if category %}
+                            <span>Category: {{ category.name }}</span>
+                        {% endif %}
+                    </div>
+                </header>
+
+                {% if post.featured_image_url %}
+                    <div class="blog-post-featured">
+                        <img src="{{ post.featured_image_url }}" alt="{{ post.title }}">
+                    </div>
+                {% endif %}
+
+                {% if post.body_html %}
+                    <article class="blog-post-body">
+                        {{ post.body_html|raw }}
+                    </article>
+                {% elseif content_json.hero or content_json.blocks %}
+                    <article class="blog-post-body">
+                        {% if content_json.hero %}
+                            <section class="mb-4">
+                                {% if content_json.hero.title %}
+                                    <h2>{{ content_json.hero.title }}</h2>
+                                {% endif %}
+                                {% if content_json.hero.subtitle %}
+                                    <p>{{ content_json.hero.subtitle }}</p>
+                                {% endif %}
+                            </section>
+                        {% endif %}
+
+                        {% if content_json.blocks %}
+                            {% for block in content_json.blocks %}
+                                <section class="mb-4">
+                                    {% if block.title %}
+                                        <h3>{{ block.title }}</h3>
+                                    {% endif %}
+                                    {% if block.content %}
+                                        <div>{{ block.content|raw }}</div>
+                                    {% endif %}
+                                </section>
+                            {% endfor %}
+                        {% endif %}
+                    </article>
+                {% else %}
+                    <div class="alert alert-light border">
+                        This article has no public body content yet.
+                    </div>
+                {% endif %}
+
+                <div class="blog-post-back">
+                    {% if category %}
+                        <a href="/category/blog/{{ category.slug }}/">← Back to {{ category.name }}</a>
+                    {% else %}
+                        <a href="/">← Back</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+{% if post.schema_json %}
+    <script type="application/ld+json">{{ post.schema_json|raw }}</script>
+{% endif %}
+{% endblock %}

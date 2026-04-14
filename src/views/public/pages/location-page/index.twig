@@ -1,0 +1,114 @@
+{% extends "base.twig" %}
+
+{% block title %}
+    {{ page.meta_title ?: page.title ~ ' | VNV Events' }}
+{% endblock %}
+
+{% block meta_description %}
+    {{ page.meta_description ?: page.excerpt ?: 'VNV Events location page' }}
+{% endblock %}
+
+{% block meta_keywords %}
+    {{ page.meta_keywords ?: page.primary_keyword ?: 'VNV Events, South Florida events' }}
+{% endblock %}
+
+{% block canonical %}
+    {{ page.canonical_url ?: ('https://vnvevents.com/' ~ page.slug) }}
+{% endblock %}
+
+{% block og_title %}
+    {{ page.og_title ?: page.meta_title ?: page.title }}
+{% endblock %}
+
+{% block og_description %}
+    {{ page.og_description ?: page.meta_description ?: page.excerpt ?: 'VNV Events location page' }}
+{% endblock %}
+
+{% block og_url %}
+    {{ page.canonical_url ?: ('https://vnvevents.com/' ~ page.slug) }}
+{% endblock %}
+
+{% block og_image %}
+    {{ page.og_image ?: page.hero_image ?: asset_for('assets/images/planner-hub-logo-negative.png') }}
+{% endblock %}
+
+{% block body %}
+    <section class="container py-5">
+        <div class="row justify-content-center">
+            <div class="col-lg-10">
+                {% if page.hero_image %}
+                    <div class="mb-4">
+                        <img
+                            src="{{ page.hero_image }}"
+                            alt="{{ page.title }}"
+                            class="img-fluid rounded-4 w-100"
+                            style="max-height: 420px; object-fit: cover;"
+                        >
+                    </div>
+                {% endif %}
+
+                <div class="mb-4">
+                    <span class="badge bg-dark mb-3">
+                        {{ page.category ?: 'Location' }}
+                    </span>
+
+                    <h1 class="display-5 fw-bold mb-3">
+                        {{ page.hero_title ?: page.title }}
+                    </h1>
+
+                    {% if page.hero_subtitle %}
+                        <p class="lead text-muted mb-0">
+                            {{ page.hero_subtitle }}
+                        </p>
+                    {% elseif page.excerpt %}
+                        <p class="lead text-muted mb-0">
+                            {{ page.excerpt }}
+                        </p>
+                    {% endif %}
+                </div>
+
+                {% if page.content_long %}
+                    <div class="mb-5">
+                        {{ page.content_long|raw }}
+                    </div>
+                {% endif %}
+
+                {% if page.faqs is not empty %}
+                    <div class="mt-5">
+                        <h2 class="h3 mb-4">Frequently Asked Questions</h2>
+
+                        <div class="accordion" id="locationFaqAccordion">
+                            {% for faq in page.faqs %}
+                                <div class="accordion-item">
+                                    <h2 class="accordion-header" id="faqHeading{{ loop.index }}">
+                                        <button
+                                            class="accordion-button {{ not loop.first ? 'collapsed' : '' }}"
+                                            type="button"
+                                            data-bs-toggle="collapse"
+                                            data-bs-target="#faqCollapse{{ loop.index }}"
+                                            aria-expanded="{{ loop.first ? 'true' : 'false' }}"
+                                            aria-controls="faqCollapse{{ loop.index }}"
+                                        >
+                                            {{ faq.question ?? '' }}
+                                        </button>
+                                    </h2>
+
+                                    <div
+                                        id="faqCollapse{{ loop.index }}"
+                                        class="accordion-collapse collapse {{ loop.first ? 'show' : '' }}"
+                                        aria-labelledby="faqHeading{{ loop.index }}"
+                                        data-bs-parent="#locationFaqAccordion"
+                                    >
+                                        <div class="accordion-body">
+                                            {{ faq.answer ?? '' }}
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </section>
+{% endblock %}

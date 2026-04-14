@@ -1,20 +1,27 @@
 <?php
 
-use App\Repositories\CmsPagesRepository;
+use App\Repositories\CmsContentsRepository;
+use App\Repositories\CmsRoutesRepository;
 use App\Repositories\Connection;
 use App\Utils\Router;
 use App\Utils\TemplateResponse;
-use App\Utils\LocationUtils;
 
 $router = new Router();
 
 $router->get(function () {
     $db = new Connection();
 
-    $pagesRepository = new CmsPagesRepository();
-    $pagesRepository->db = $db;
+    $contentsRepository = new CmsContentsRepository();
+    $contentsRepository->db = $db;
 
-    $pages = $pagesRepository->getAllWithCategoryAndTemplate();
+    $routesRepository = new CmsRoutesRepository();
+    $routesRepository->db = $db;
+
+    $pages = $contentsRepository->getAllByType('page', 'en');
+
+    foreach ($pages as $page) {
+        $page->main_route = $routesRepository->getMainRouteByContent((int)$page->id, $page->language ?? 'en');
+    }
 
     return TemplateResponse::render(__DIR__ . "/index.twig", [
         "title" => "CMS Pages",

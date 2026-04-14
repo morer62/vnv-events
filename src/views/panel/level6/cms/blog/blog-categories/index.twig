@@ -78,7 +78,7 @@
     .cms-table{
         width:100%;
         border-collapse:collapse;
-        min-width:1180px;
+        min-width:1050px;
     }
 
     .cms-table th{
@@ -137,27 +137,12 @@
         white-space:nowrap;
     }
 
-    .cms-badge.published{
+    .cms-badge.active{
         background:#ecfdf5;
         color:#047857;
     }
 
-    .cms-badge.draft{
-        background:#fff7ed;
-        color:#c2410c;
-    }
-
-    .cms-badge.preview{
-        background:#eff6ff;
-        color:#1d4ed8;
-    }
-
-    .cms-badge.generated{
-        background:#f5f3ff;
-        color:#6d28d9;
-    }
-
-    .cms-badge.archived{
+    .cms-badge.inactive{
         background:#f3f4f6;
         color:#4b5563;
     }
@@ -199,86 +184,59 @@
 <div class="cms-wrap">
     <div class="cms-header">
         <div>
-            <h1 class="cms-title">Pages</h1>
+            <h1 class="cms-title">Blog Categories</h1>
             <p class="cms-subtitle">
-                Manage CMS pages stored in cms_contents with public routes from cms_routes.
+                Manage the categories used by blog posts and public category pages.
             </p>
         </div>
 
         <div style="display:flex; gap:10px; flex-wrap:wrap;">
             <a href="{{ path('panel/cms') }}" class="cms-btn cms-btn-light">← Back to CMS</a>
-            <a href="{{ path('panel/cms/pages/create') }}" class="cms-btn cms-btn-primary">+ New Page</a>
+            <a href="{{ path('panel/cms/blog/blog-categories/create') }}" class="cms-btn cms-btn-primary">+ New Category</a>
         </div>
     </div>
 
     <div class="cms-card">
-        {% if pages|length > 0 %}
+        {% if categories|length > 0 %}
             <div class="cms-table-wrap">
                 <table class="cms-table">
                     <thead>
                         <tr>
-                            <th>Title</th>
-                            <th>Type</th>
-                            <th>Template</th>
+                            <th>Name</th>
                             <th>Slug</th>
+                            <th>Public Path</th>
                             <th>Status</th>
-                            <th>Main Route</th>
-                            <th>Published</th>
+                            <th>Created</th>
                             <th style="width:220px;">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {% for item in pages %}
+                        {% for item in categories %}
                             <tr>
                                 <td>
-                                    <strong>{{ item.title }}</strong>
-                                    {% if item.excerpt %}
+                                    <strong>{{ item.name }}</strong>
+                                    {% if item.description %}
                                         <div class="cms-muted" style="margin-top:6px;">
-                                            {{ item.excerpt|slice(0, 90) }}{% if item.excerpt|length > 90 %}...{% endif %}
+                                            {{ item.description|slice(0, 90) }}{% if item.description|length > 90 %}...{% endif %}
                                         </div>
-                                    {% endif %}
-                                </td>
-                                <td>
-                                    <strong>{{ item.type }}</strong><br>
-                                    <span class="cms-muted">{{ item.language ?: 'en' }}</span>
-                                </td>
-                                <td>
-                                    {% if item.template_name %}
-                                        <strong>{{ item.template_name }}</strong><br>
-                                        <span class="cms-muted">{{ item.template_slug }}</span>
-                                    {% else %}
-                                        <span class="cms-muted">—</span>
                                     {% endif %}
                                 </td>
                                 <td>
                                     <span class="cms-slug">{{ item.slug }}</span>
                                 </td>
                                 <td>
-                                    {% set statusClass = item.status|lower %}
-                                    <span class="cms-badge {{ statusClass }}">{{ item.status }}</span>
+                                    <span class="cms-path">/category/blog/{{ item.slug }}/</span>
                                 </td>
                                 <td>
-                                    {% if item.main_route and item.main_route.route %}
-                                        <span class="cms-path">{{ item.main_route.route }}</span>
-                                    {% else %}
-                                        <span class="cms-muted">—</span>
-                                    {% endif %}
+                                    <span class="cms-badge {{ item.status|lower }}">{{ item.status }}</span>
                                 </td>
                                 <td>
-                                    {% if item.published_at %}
-                                        {{ item.published_at }}
-                                    {% else %}
-                                        <span class="cms-muted">—</span>
-                                    {% endif %}
+                                    {{ item.created_at ?: '—' }}
                                 </td>
                                 <td>
                                     <div class="cms-actions">
-                                        <a href="{{ path('panel/cms/pages/edit') }}?id={{ item.id }}" class="cms-btn cms-btn-light">Edit</a>
-                                        <a href="{{ path('panel/cms/pages/preview') }}?id={{ item.id }}" class="cms-btn cms-btn-light">Preview</a>
-
-                                        {% if item.main_route and item.main_route.route %}
-                                            <a href="{{ item.main_route.route }}" target="_blank" class="cms-btn cms-btn-light">Open</a>
-                                        {% endif %}
+                                        <a href="{{ path('panel/cms/blog/blog-categories/edit') }}?id={{ item.id }}" class="cms-btn cms-btn-light">Edit</a>
+                                        <a href="/category/blog/{{ item.slug }}/" target="_blank" class="cms-btn cms-btn-light">Open</a>
                                     </div>
                                 </td>
                             </tr>
@@ -288,10 +246,10 @@
             </div>
         {% else %}
             <div class="cms-empty">
-                <strong>No pages yet</strong>
-                Create your first CMS page.
+                <strong>No blog categories yet</strong>
+                Create your first category to organize blog posts.
                 <div style="margin-top:16px;">
-                    <a href="{{ path('panel/cms/pages/create') }}" class="cms-btn cms-btn-primary">+ Create First Page</a>
+                    <a href="{{ path('panel/cms/blog/blog-categories/create') }}" class="cms-btn cms-btn-primary">+ Create First Category</a>
                 </div>
             </div>
         {% endif %}

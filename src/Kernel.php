@@ -6,7 +6,9 @@ use App\Core\FindViewTrait;
 use App\Core\GetViewTrait;
 use App\Core\IncludeViewTrait;
 use App\Entity\User;
+use App\Repositories\CmsRoutesRepository;
 use App\Repositories\InstitutionProfileRepository;
+use App\Repositories\LocationPagesRepository;
 use App\Services\ConfigService;
 use App\Services\LoginService;
 use App\Services\ValidationSessionService;
@@ -201,6 +203,37 @@ class Kernel
         exit;
     }
 
+    private function isReservedDynamicSlug(string $slug): bool
+    {
+        $reserved = [
+            'login',
+            'logout',
+            'signup',
+            'register',
+            'contact',
+            'panel',
+            'api',
+            'planner-hub',
+            'store',
+            'terms',
+            'privacy',
+            'about',
+            'services',
+            'venues',
+            'vendors',
+            'pages',
+            'content',
+            'auth',
+            'commerce',
+            'system',
+            'app',
+            'r',
+            'category',
+        ];
+
+        return in_array($slug, $reserved, true);
+    }
+
     /**
      * @throws Exception
      */
@@ -303,11 +336,69 @@ class Kernel
                 $this->handleAffiliateRoute($urlViews[1]);
             }
 
-            // Vista pública resuelta dinámicamente
+            // Location pages dinámicas por slug raíz
+            // Ej: /sunrise -> src/views/public/pages/location-page/index.php
+            if (count($urlViews) === 1) {
+                $slug = $urlViews[0];
+
+                if (!$this->isReservedDynamicSlug($slug)) {
+                    $repo = new LocationPagesRepository();
+                    $page = $repo->getPublishedBySlug($slug);
+
+                    if ($page) {
+                        $locationPageView = LocationUtils::getRootLocation()
+                            . "/src/views/public/pages/location-page/index.php";
+
+                        $this->includeResolvedFileAndExit($locationPageView);
+                    }
+                }
+            }
+
+            // Vista pública resuelta por archivos físicos
             $resolvedPublicView = $this->resolvePublicView($urlViews);
 
             if ($resolvedPublicView) {
                 $this->includeResolvedFileAndExit($resolvedPublicView);
+            }
+
+            // Blog category pública: /category/blog/{slug}/
+            if (
+                count($urlViews) === 3 &&
+                $urlViews[0] === 'category' &&
+                $urlViews[1] === 'blog' &&
+                !empty($urlViews[2])
+            ) {
+                $blogCategoryView = LocationUtils::getRootLocation()
+                    . "/src/views/public/pages/blog-category/index.php";
+
+                $this->includeResolvedFileAndExit($blogCategoryView);
+            }
+
+            // CMS dinámico por cms_routes
+            $cmsRoutePath = '/' . implode('/', $urlViews);
+            if ($cmsRoutePath !== '/') {
+                $cmsRoutePath .= '/';
+            }
+
+            $cmsRoutesRepository = new CmsRoutesRepository();
+            $cmsRoutesRepository->db = new \App\Repositories\Connection();
+
+            $cmsRoute = $cmsRoutesRepository->getByRoute($cmsRoutePath, 'en');
+
+            if ($cmsRoute && ($cmsRoute->content_status ?? '') === 'PUBLISHED') {
+                if (($cmsRoute->type ?? '') === 'page') {
+                    $cmsContentView = LocationUtils::getRootLocation()
+                        . "/src/views/public/pages/cms-content/index.php";
+
+                    $this->includeResolvedFileAndExit($cmsContentView);
+                }
+
+                if (($cmsRoute->type ?? '') === 'post') {
+                    $blogPostView = LocationUtils::getRootLocation()
+                        . "/src/views/public/pages/blog-post/index.php";
+
+                    $this->includeResolvedFileAndExit($blogPostView);
+                }
             }
 
             // Fallback por compatibilidad

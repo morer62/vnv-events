@@ -1,0 +1,183 @@
+{% extends 'templates/base.admin.twig' %}
+
+{% block style %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/trumbowyg@2.27.3/dist/ui/trumbowyg.min.css">
+{% endblock %}
+
+{% block body %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0">Edit Location Page</h1>
+        <a href="/{{ page.slug }}" target="_blank" class="btn btn-outline-dark">View Public Page</a>
+    </div>
+
+    <form method="post" class="card shadow-lg border-0 p-4">
+        <input type="hidden" name="id" value="{{ page.id }}">
+
+        <div class="row">
+            <div class="col-md-8 mb-3">
+                <label class="form-label">Title *</label>
+                <input type="text" name="title" class="form-control" required value="{{ page.title }}">
+            </div>
+
+            <div class="col-md-4 mb-3">
+                <label class="form-label">Slug *</label>
+                <input type="text" name="slug" class="form-control" required value="{{ page.slug }}">
+            </div>
+
+            <div class="col-md-4 mb-3">
+                <label class="form-label">Category</label>
+                <input type="text" name="category" class="form-control" value="{{ page.category }}">
+            </div>
+
+            <div class="col-md-4 mb-3">
+                <label class="form-label">Template Key</label>
+                <input type="text" name="template_key" class="form-control" value="{{ page.template_key }}">
+            </div>
+
+            <div class="col-md-4 mb-3">
+                <label class="form-label">Status</label>
+                <select name="status" class="form-select">
+                    <option value="DRAFT" {{ page.status == 'DRAFT' ? 'selected' : '' }}>Draft</option>
+                    <option value="PUBLISHED" {{ page.status == 'PUBLISHED' ? 'selected' : '' }}>Published</option>
+                </select>
+            </div>
+
+            <div class="col-md-4 mb-3">
+                <label class="form-label">City</label>
+                <input type="text" name="city" class="form-control" value="{{ page.city }}">
+            </div>
+
+            <div class="col-md-4 mb-3">
+                <label class="form-label">County</label>
+                <input type="text" name="county" class="form-control" value="{{ page.county }}">
+            </div>
+
+            <div class="col-md-4 mb-3">
+                <label class="form-label">State</label>
+                <input type="text" name="state" class="form-control" value="{{ page.state }}">
+            </div>
+
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Hero Title</label>
+                <input type="text" name="hero_title" class="form-control" value="{{ page.hero_title }}">
+            </div>
+
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Hero Image URL</label>
+                <input type="text" name="hero_image" class="form-control" value="{{ page.hero_image }}">
+            </div>
+
+            <div class="col-12 mb-3">
+                <label class="form-label">Hero Subtitle</label>
+                <textarea name="hero_subtitle" class="form-control" rows="2">{{ page.hero_subtitle }}</textarea>
+            </div>
+
+            <div class="col-12 mb-3">
+                <label class="form-label">Excerpt</label>
+                <textarea name="excerpt" class="form-control" rows="2">{{ page.excerpt }}</textarea>
+            </div>
+
+            <div class="col-12 mb-3">
+                <label class="form-label">Main Content</label>
+                <textarea name="content_long" id="content-editor" class="form-control" rows="10">{{ page.content_long }}</textarea>
+            </div>
+
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Primary Keyword</label>
+                <input type="text" name="primary_keyword" class="form-control" value="{{ page.primary_keyword }}">
+            </div>
+
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Secondary Keywords</label>
+                <input type="text" name="secondary_keywords" class="form-control" value="{{ page.secondary_keywords }}">
+            </div>
+
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Meta Title</label>
+                <input type="text" name="meta_title" class="form-control" value="{{ page.meta_title }}">
+            </div>
+
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Meta Keywords</label>
+                <input type="text" name="meta_keywords" class="form-control" value="{{ page.meta_keywords }}">
+            </div>
+
+            <div class="col-12 mb-3">
+                <label class="form-label">Meta Description</label>
+                <textarea name="meta_description" class="form-control" rows="2">{{ page.meta_description }}</textarea>
+            </div>
+
+            <div class="col-md-6 mb-3">
+                <label class="form-label">OG Title</label>
+                <input type="text" name="og_title" class="form-control" value="{{ page.og_title }}">
+            </div>
+
+            <div class="col-md-6 mb-3">
+                <label class="form-label">OG Image</label>
+                <input type="text" name="og_image" class="form-control" value="{{ page.og_image }}">
+            </div>
+
+            <div class="col-12 mb-3">
+                <label class="form-label">OG Description</label>
+                <textarea name="og_description" class="form-control" rows="2">{{ page.og_description }}</textarea>
+            </div>
+
+            <div class="col-12 mb-3">
+                <label class="form-label">Canonical URL</label>
+                <input type="text" name="canonical_url" class="form-control" value="{{ page.canonical_url }}">
+            </div>
+
+            <div class="col-12 mb-3">
+                <label class="form-label">FAQ JSON</label>
+                <textarea name="faq_json" class="form-control" rows="6">{{ page.faq_json }}</textarea>
+            </div>
+
+            <div class="col-12 mb-3">
+                <label class="form-label">Dynamic Blocks JSON</label>
+                <textarea name="dynamic_blocks_json" class="form-control" rows="6">{{ page.dynamic_blocks_json }}</textarea>
+            </div>
+
+            <div class="col-12 mb-3">
+                <label class="form-label">Schema JSON</label>
+                <textarea name="schema_json" class="form-control" rows="6">{{ page.schema_json }}</textarea>
+            </div>
+
+            <div class="col-12 mb-3">
+                <label class="form-label">Custom CSS</label>
+                <textarea name="custom_css" class="form-control" rows="4">{{ page.custom_css }}</textarea>
+            </div>
+
+            <div class="col-12 mb-3">
+                <label class="form-label">Custom JS</label>
+                <textarea name="custom_js" class="form-control" rows="4">{{ page.custom_js }}</textarea>
+            </div>
+
+            <div class="col-12 mb-4">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" name="is_indexable" id="is_indexable"
+                           {{ page.is_indexable ? 'checked' : '' }}>
+                    <label class="form-check-label" for="is_indexable">
+                        Allow search engines to index this page
+                    </label>
+                </div>
+            </div>
+
+            <div class="col-12 d-flex gap-2 flex-wrap">
+                <a href="/panel/level6/cms/location-pages" class="btn btn-outline-secondary">Back</a>
+                <button type="submit" class="btn btn-success">Save Changes</button>
+            </div>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/trumbowyg@2.27.3/dist/trumbowyg.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    $('#content-editor').trumbowyg();
+});
+</script>
+{% endblock %}
