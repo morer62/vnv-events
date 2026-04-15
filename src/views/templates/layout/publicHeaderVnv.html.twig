@@ -1,57 +1,287 @@
-<header class="vnv-public-header" id="vnvPublicHeader">
-    <div class="container">
-        <div class="vnv-public-header__inner">
-            <!--<a href="{{ path('home') }}" class="vnv-public-header__brand" aria-label="VNV Events Home">
-                <!--<span class="vnv-public-header__logo-mark">
-                    <img src="{{ asset_for('assets/images/logo/logo-black.png') }}" alt="VNV Events Logo">
-                </span>
-                <span class="vnv-public-header__brand-text">
-                    <strong>VNV EVENTS</strong>
-                    <small>South Florida</small>
-                </span>
-            </a>-->
+<style>
+/* =========================
+   NEW PUBLIC HEADER - VNVX
+========================= */
 
-            <nav class="vnv-public-header__nav d-none d-xl-flex" aria-label="Main navigation">
+.vnvx-header{
+    position: sticky;
+    top: 0;
+    z-index: 1400;
+    width: 100%;
+    background: rgba(255,255,255,0.88);
+    backdrop-filter: blur(16px);
+    border-bottom: 1px solid rgba(17,24,26,0.08);
+}
+
+.vnvx-header__wrap{
+    max-width: 1320px;
+}
+
+.vnvx-header__row{
+    min-height: 84px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+}
+
+.vnvx-header__nav{
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.vnvx-header__nav a{
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 44px;
+    padding: 10px 16px;
+    border-radius: 999px;
+    text-decoration: none;
+    color: #11181a;
+    font-size: 0.95rem;
+    font-weight: 700;
+    letter-spacing: 0.01em;
+    transition: all .22s ease;
+}
+
+.vnvx-header__nav a:hover{
+    background: rgba(17,24,26,0.06);
+    color: #000;
+}
+
+.vnvx-header__right{
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+}
+
+.vnvx-header__socials{
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.vnvx-header__socials a{
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    color: #11181a;
+    background: rgba(17,24,26,0.05);
+    border: 1px solid rgba(17,24,26,0.08);
+    transition: all .22s ease;
+}
+
+.vnvx-header__socials a:hover{
+    transform: translateY(-2px);
+    background: #fff;
+    color: #000;
+}
+
+.vnvx-header__cta{
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 46px;
+    padding: 0 18px;
+    border-radius: 999px;
+    text-decoration: none;
+    background: linear-gradient(135deg, #e3c06c 0%, #cfa24b 100%);
+    color: #11181a;
+    font-size: .82rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    box-shadow: 0 14px 28px rgba(207,162,75,0.22);
+    transition: all .22s ease;
+}
+
+.vnvx-header__cta:hover{
+    transform: translateY(-2px);
+    color: #000;
+}
+
+.vnvx-header__toggle{
+    display: none;
+    width: 48px;
+    height: 48px;
+    border: 1px solid rgba(17,24,26,0.10);
+    background: #fff;
+    border-radius: 14px;
+    padding: 0;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 5px;
+    box-shadow: 0 10px 22px rgba(0,0,0,0.06);
+}
+
+.vnvx-header__toggle span{
+    width: 20px;
+    height: 2px;
+    border-radius: 999px;
+    background: #11181a;
+    transition: all .22s ease;
+}
+
+.vnvx-header__toggle.is-active span:nth-child(1){
+    transform: translateY(7px) rotate(45deg);
+}
+
+.vnvx-header__toggle.is-active span:nth-child(2){
+    opacity: 0;
+}
+
+.vnvx-header__toggle.is-active span:nth-child(3){
+    transform: translateY(-7px) rotate(-45deg);
+}
+
+.vnvx-mobile{
+    display: none;
+    width: 100%;
+    background: rgba(255,255,255,0.96);
+    border-top: 1px solid rgba(17,24,26,0.08);
+}
+
+.vnvx-mobile.is-open{
+    display: block;
+}
+
+.vnvx-mobile__content{
+    padding: 18px 0 26px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.vnvx-mobile__content > a{
+    text-decoration: none;
+    color: #11181a;
+    font-weight: 800;
+    padding: 14px 0;
+    border-bottom: 1px solid rgba(17,24,26,0.08);
+}
+
+.vnvx-mobile__meta{
+    padding-top: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.vnvx-mobile__meta a{
+    text-decoration: none;
+    color: #475254;
+    font-weight: 600;
+}
+
+.vnvx-mobile__socials{
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding-top: 14px;
+}
+
+.vnvx-mobile__socials a{
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    background: #11181a;
+    color: #fff;
+}
+
+/* Tablet / laptop */
+@media (max-width: 1100px){
+    .vnvx-header__nav a{
+        padding: 10px 12px;
+        font-size: 0.9rem;
+    }
+
+    .vnvx-header__socials{
+        display: none;
+    }
+}
+
+/* Mobile */
+@media (max-width: 860px){
+    .vnvx-header__row{
+        min-height: 76px;
+    }
+
+    .vnvx-header__nav{
+        display: none;
+    }
+
+    .vnvx-header__cta{
+        display: none;
+    }
+
+    .vnvx-header__toggle{
+        display: inline-flex;
+    }
+}
+</style>
+ 
+ <header class="vnvx-header" id="vnvxHeader">
+    <div class="vnvx-header__wrap container">
+        <div class="vnvx-header__row">
+            <nav class="vnvx-header__nav" aria-label="Main navigation">
+                <a href="{{ path('/') }}">Home</a>
+                <a href="{{ path('/#services') }}">Services</a>
+                <a href="{{ path('/#why-vnv') }}">Why VNV</a>
+                <a href="{{ path('/#podcast') }}">Sessions</a>
+                <a href="{{ path('/#instagram-feed') }}">Gallery</a>
+                <a href="{{ path('/store-categories') }}" >Services & Pricing</a>
+            </nav>
+
+            <div class="vnvx-header__right">
+                <div class="vnvx-header__socials">
+                    <a href="https://www.instagram.com/vnv_events/" target="_blank" rel="noopener" aria-label="Instagram">
+                        <i class="fa-brands fa-instagram"></i>
+                    </a>
+                    <a href="https://www.youtube.com/" target="_blank" rel="noopener" aria-label="YouTube">
+                        <i class="fa-brands fa-youtube"></i>
+                    </a>
+                </div>
+
+                <a href="#"  data-vnv-open-request class="vnvx-header__cta">New Request</a>
+
+                <button class="vnvx-header__toggle" type="button" aria-label="Open menu" data-vnvx-toggle>
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="vnvx-mobile" data-vnvx-panel>
+        <div class="container">
+            <div class="vnvx-mobile__content">
                 <a href="{{ path('/') }}">Home</a>
                 <a href="{{ path('/#services') }}">Services</a>
                 <a href="{{ path('/#why-vnv') }}">Why VNV</a>
                 <a href="{{ path('/#podcast') }}">Sessions</a>
                 <a href="{{ path('/#instagram-feed') }}">Gallery</a>
                 <a href="{{ path('/#planning') }}">New Request</a>
-            </nav>
 
-            <div class="vnv-public-header__actions d-none d-xl-flex">
-                <a href="https://www.instagram.com/vnv_events/" target="_blank" rel="noopener" class="vnv-public-header__icon" aria-label="Instagram">
-                    <i class="fa-brands fa-instagram"></i>
-                </a>
-                <a href="https://www.youtube.com/" target="_blank" rel="noopener" class="vnv-public-header__icon" aria-label="YouTube">
-                    <i class="fa-brands fa-youtube"></i>
-                </a>
-                <a href="#planning" class="vnv-public-header__cta">New Request</a>
-            </div>
-
-            <button class="vnv-public-header__toggle d-xl-none" type="button" aria-label="Open menu" data-vnv-public-toggle>
-                <span></span>
-                <span></span>
-            </button>
-        </div>
-    </div>
-
-    <div class="vnv-public-mobile-panel" data-vnv-public-panel>
-        <div class="container">
-            <div class="vnv-public-mobile-panel__content">
-                <a href="#services">Services</a>
-                <a href="#why-vnv">Why VNV</a>
-                <a href="#podcast">Sessions</a>
-                <a href="#instagram-feed">Gallery</a>
-                <a href="#planning">New Request</a>
-
-                <div class="vnv-public-mobile-panel__meta">
+                <div class="vnvx-mobile__meta">
                     <a href="tel:+13052045427">+1 305-204-5427</a>
                     <a href="mailto:info@vnvevents.com">info@vnvevents.com</a>
                 </div>
 
-                <div class="vnv-public-mobile-panel__socials">
+                <div class="vnvx-mobile__socials">
                     <a href="https://www.instagram.com/vnv_events/" target="_blank" rel="noopener" aria-label="Instagram"><i class="fa-brands fa-instagram"></i></a>
                     <a href="https://www.youtube.com/" target="_blank" rel="noopener" aria-label="YouTube"><i class="fa-brands fa-youtube"></i></a>
                     <a href="https://www.facebook.com/" target="_blank" rel="noopener" aria-label="Facebook"><i class="fa-brands fa-facebook-f"></i></a>
@@ -63,3 +293,25 @@
         </div>
     </div>
 </header>
+
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const toggle = document.querySelector('[data-vnvx-toggle]');
+    const panel = document.querySelector('[data-vnvx-panel]');
+
+    if (!toggle || !panel) return;
+
+    toggle.addEventListener('click', function () {
+        toggle.classList.toggle('is-active');
+        panel.classList.toggle('is-open');
+    });
+
+    panel.querySelectorAll('a').forEach(function (link) {
+        link.addEventListener('click', function () {
+            toggle.classList.remove('is-active');
+            panel.classList.remove('is-open');
+        });
+    });
+});
+</script>
