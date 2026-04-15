@@ -96,6 +96,7 @@ $router->post(function () {
     }
 
     $name = trim($_POST['name'] ?? '');
+    $slugInput = trim($_POST['slug'] ?? '');
     $sku = trim($_POST['sku'] ?? '');
     $shortDescription = trim($_POST['short_description'] ?? '');
     $description = trim($_POST['description'] ?? '');
@@ -151,7 +152,8 @@ $router->post(function () {
         }
     }
 
-    $slug = $productsRepo->generateUniqueSlug($name);
+    $slugBase = $slugInput !== '' ? $slugInput : $name;
+    $slug = $productsRepo->generateUniqueSlug($slugBase, $id);
 
     $ok = $productsRepo->update([
         'name' => $name,

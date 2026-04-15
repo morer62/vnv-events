@@ -779,9 +779,17 @@ body.vnv-request-lock{
 
     function normalizeActionUrl() {
         const rawAction = form.getAttribute('action') || '';
-        if (!rawAction) return;
-        form.setAttribute('action', rawAction);
+        if (!rawAction || !rawAction.startsWith('/api/public/')) return;
+
+        const pathParts = window.location.pathname.split('/').filter(Boolean);
+        if (!pathParts.length) return;
+
+        const appBase = pathParts[0];
+        if (!appBase || appBase === 'api') return;
+
+        form.setAttribute('action', '/' + appBase + rawAction);
     }
+
 
     const openers = document.querySelectorAll('[data-vnv-open-request]');
     const closers = modal.querySelectorAll('[data-vnv-request-close]');
@@ -803,6 +811,12 @@ body.vnv-request-lock{
     const timeInput = document.getElementById('vnv_event_time');
     const phoneInput = document.getElementById('vnv_phone');
     const miniMapEl = document.getElementById('vnvRequestMiniMap');
+    const AUTO_OPEN_STORAGE_KEY = 'vnv_request_modal_last_auto_open_at';
+    const AUTO_OPEN_HOURS_RAW = Number('{{ env.REQUEST_MODAL_AUTO_OPEN_HOURS|default(24) }}');
+    const AUTO_OPEN_HOURS = Number.isFinite(AUTO_OPEN_HOURS_RAW) && AUTO_OPEN_HOURS_RAW > 0
+        ? AUTO_OPEN_HOURS_RAW
+        : 24;
+    const AUTO_OPEN_INTERVAL_MS = AUTO_OPEN_HOURS * 60 * 60 * 1000;
 
     let currentStep = 1;
     const selectedServices = new Set();

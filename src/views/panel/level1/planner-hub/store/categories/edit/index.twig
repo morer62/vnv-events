@@ -17,7 +17,7 @@
     <div class="card shadow-sm border-0">
         <div class="card-body p-4">
 
-            <form method="post">
+            <form method="post" id="categoryForm">
 
                 <input type="hidden" name="id" value="{{ category.id }}">
 
@@ -31,6 +31,17 @@
                             class="form-control"
                             value="{{ category.name }}"
                             required
+                        >
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Slug</label>
+                        <input
+                            type="text"
+                            name="slug"
+                            class="form-control"
+                            value="{{ category.slug }}"
+                            placeholder="event-planners-and-coordinator"
                         >
                     </div>
 
@@ -56,6 +67,25 @@
                         </small>
                     </div>
 
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">SEO Title</label>
+                        <input
+                            type="text"
+                            name="meta_title"
+                            class="form-control"
+                            value="{{ category.meta_title }}"
+                        >
+                    </div>
+
+                    <div class="col-12 mb-3">
+                        <label class="form-label">SEO Description</label>
+                        <textarea
+                            name="meta_description"
+                            class="form-control"
+                            rows="3"
+                        >{{ category.meta_description }}</textarea>
+                    </div>
+
                     <div class="col-12 mb-3">
                         <label class="form-label">Description</label>
                         <textarea
@@ -66,6 +96,22 @@
                     </div>
 
                 </div>
+
+                <hr class="my-4">
+
+                <h5 class="mb-2">Category Page Builder</h5>
+                <p class="text-muted mb-3">Edit the dynamic blocks for <code>/product-category/{{ category.slug }}</code>.</p>
+
+                <div class="d-flex flex-wrap gap-2 mb-3">
+                    <button class="btn btn-sm btn-outline-primary" type="button" data-add-block="hero">+ Hero</button>
+                    <button class="btn btn-sm btn-outline-primary" type="button" data-add-block="text">+ Text</button>
+                    <button class="btn btn-sm btn-outline-primary" type="button" data-add-block="image">+ Image</button>
+                    <button class="btn btn-sm btn-outline-primary" type="button" data-add-block="product_grid">+ Product Grid</button>
+                    <button class="btn btn-sm btn-outline-primary" type="button" data-add-block="cta">+ CTA</button>
+                </div>
+
+                <div id="builderBlocks" class="d-flex flex-column gap-3"></div>
+                <input type="hidden" name="page_builder_json" id="pageBuilderJson" value="">
 
                 <div class="d-flex gap-2 flex-wrap">
                     <button type="submit" class="btn btn-success">
@@ -83,4 +129,171 @@
     </div>
 
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const blocksContainer = document.getElementById('builderBlocks');
+    const hiddenInput = document.getElementById('pageBuilderJson');
+    const form = document.getElementById('categoryForm');
+
+    let initialBlocks = [];
+    try {
+        initialBlocks = JSON.parse('{{ category.page_builder_json|default("[]")|e("js") }}') || [];
+    } catch (e) {
+        initialBlocks = [];
+    }
+
+    function createBlock(type, data = {}) {
+        const block = document.createElement('div');
+        block.className = 'card border';
+        block.innerHTML = `
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <strong>Block</strong>
+                    <div class="d-flex gap-2">
+                        <button type="button" class="btn btn-sm btn-outline-secondary" data-move="up">Up</button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary" data-move="down">Down</button>
+                        <button type="button" class="btn btn-sm btn-outline-danger" data-remove>Remove</button>
+                    </div>
+                </div>
+                <div class="row g-2">
+                    <div class="col-md-3">
+                        <label class="form-label">Type</label>
+                        <select class="form-select" data-field="type">
+                            <option value="hero">Hero</option>
+                            <option value="text">Text</option>
+                            <option value="image">Image</option>
+                            <option value="product_grid">Product Grid</option>
+                            <option value="cta">CTA</option>
+                        </select>
+                    </div>
+                    <div class="col-md-9">
+                        <label class="form-label">Title</label>
+                        <input type="text" class="form-control" data-field="title">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Subtitle</label>
+                        <input type="text" class="form-control" data-field="subtitle">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Image URL</label>
+                        <input type="text" class="form-control" data-field="image_url">
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label">Content</label>
+                        <textarea class="form-control" rows="3" data-field="content"></textarea>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Grid Limit</label>
+                        <input type="number" min="1" max="100" class="form-control" data-field="limit">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Grid Columns</label>
+                        <input type="number" min="1" max="4" class="form-control" data-field="columns">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Button Text</label>
+                        <input type="text" class="form-control" data-field="button_text">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Button URL</label>
+                        <input type="text" class="form-control" data-field="button_url">
+                    </div>
+                </div>
+            </div>
+        `;
+
+        Object.entries(data || {}).forEach(([key, value]) => {
+            const input = block.querySelector(`[data-field="${key}"]`);
+            if (input) {
+                input.value = value == null ? '' : String(value);
+            }
+        });
+
+        const typeInput = block.querySelector('[data-field="type"]');
+        if (typeInput) {
+            typeInput.value = type || 'text';
+        }
+
+        blocksContainer.appendChild(block);
+    }
+
+    function serializeBlocks() {
+        const blocks = Array.from(blocksContainer.querySelectorAll('.card')).map(function (card) {
+            const out = {};
+            card.querySelectorAll('[data-field]').forEach(function (input) {
+                const key = input.getAttribute('data-field');
+                out[key] = input.value;
+            });
+            if (!out.type) {
+                out.type = 'text';
+            }
+            if (out.limit !== '') {
+                out.limit = parseInt(out.limit, 10) || 12;
+            }
+            if (out.columns !== '') {
+                out.columns = parseInt(out.columns, 10) || 3;
+            }
+            return out;
+        });
+
+        hiddenInput.value = JSON.stringify(blocks);
+    }
+
+    document.querySelectorAll('[data-add-block]').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            const type = btn.getAttribute('data-add-block');
+            const defaults = {
+                hero: { title: 'Category title', subtitle: 'Category subtitle' },
+                text: { title: 'Section title', content: 'Write your content here.' },
+                image: { title: 'Image section', image_url: '' },
+                product_grid: { title: 'Products', limit: '12', columns: '3' },
+                cta: { title: 'Need help?', content: 'Contact us for a custom package.', button_text: 'Contact us', button_url: '/contact' }
+            };
+            createBlock(type, defaults[type] || {});
+            serializeBlocks();
+        });
+    });
+
+    blocksContainer.addEventListener('click', function (event) {
+        const removeBtn = event.target.closest('[data-remove]');
+        const moveBtn = event.target.closest('[data-move]');
+        const card = event.target.closest('.card');
+        if (!card) return;
+
+        if (removeBtn) {
+            card.remove();
+            serializeBlocks();
+            return;
+        }
+
+        if (moveBtn) {
+            const direction = moveBtn.getAttribute('data-move');
+            if (direction === 'up' && card.previousElementSibling) {
+                blocksContainer.insertBefore(card, card.previousElementSibling);
+            }
+            if (direction === 'down' && card.nextElementSibling) {
+                blocksContainer.insertBefore(card.nextElementSibling, card);
+            }
+            serializeBlocks();
+        }
+    });
+
+    blocksContainer.addEventListener('input', serializeBlocks);
+    form.addEventListener('submit', serializeBlocks);
+
+    if (Array.isArray(initialBlocks) && initialBlocks.length) {
+        initialBlocks.forEach(function (block) {
+            createBlock(block.type || 'text', block);
+        });
+    } else {
+        createBlock('hero', { title: 'Category title', subtitle: 'Category subtitle' });
+        createBlock('product_grid', { title: 'Products', limit: '12', columns: '3' });
+    }
+
+    serializeBlocks();
+});
+</script>
 {% endblock %}

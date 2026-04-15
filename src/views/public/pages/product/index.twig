@@ -1,0 +1,323 @@
+{% extends "templates/base.twig" %}
+
+{% block title %}
+    {{ product.name }} | VNV Events
+{% endblock %}
+
+{% block meta_description %}
+    {{ product.short_description ?: 'Explore product details at VNV Events' }}
+{% endblock %}
+
+{% block body %}
+<style>
+    :root{
+        --pp-primary:#f59e0b;
+        --pp-primary-dark:#d97706;
+        --pp-accent:#fb923c;
+        --pp-cream:#fff8ef;
+        --pp-soft:#fff3df;
+        --pp-dark:#1f1307;
+        --pp-text:#2d241c;
+        --pp-muted:#6f6255;
+        --pp-border:#ecd9bf;
+        --pp-shadow:0 18px 44px rgba(79,43,8,.10);
+    }
+    body{background:#fffaf4;color:var(--pp-text);}
+    .pp-wrap{max-width:1240px;margin:0 auto;padding:42px 16px 64px;}
+    .pp-breadcrumb{display:flex;gap:8px;flex-wrap:wrap;font-size:.88rem;color:var(--pp-muted);margin-bottom:14px;}
+    .pp-breadcrumb a{color:var(--pp-primary-dark);text-decoration:none;font-weight:700;}
+    .pp-shell{
+        border:1px solid #efdec5;border-radius:26px;background:#fff;box-shadow:var(--pp-shadow);
+        overflow:hidden;
+    }
+    .pp-main{display:grid;grid-template-columns:1fr 1fr;gap:0;}
+    .pp-image-wrap{padding:22px;background:linear-gradient(135deg,#fff6e8 0%, #fffdf8 100%);}
+    .pp-image{
+        width:100%;height:460px;object-fit:cover;border-radius:20px;border:1px solid #e9d5b8;background:#f3f4f6;
+    }
+    .pp-details{padding:26px;}
+    .pp-title{font-size:clamp(1.8rem,3vw,2.6rem);line-height:1.1;margin:0 0 8px;color:var(--pp-dark);font-weight:900;}
+    .pp-sub{color:var(--pp-muted);line-height:1.75;margin:0 0 14px;}
+    .pp-badges{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px;}
+    .pp-badge{
+        display:inline-flex;align-items:center;gap:6px;padding:8px 12px;border-radius:999px;
+        background:#fff;border:1px solid #f0d6b0;font-size:.78rem;font-weight:900;color:#8b4f00;
+    }
+    .pp-price-row{display:flex;align-items:end;gap:10px;margin:8px 0 12px;flex-wrap:wrap;}
+    .pp-price{font-size:2rem;font-weight:900;color:var(--pp-primary-dark);line-height:1;}
+    .pp-promo{font-size:1rem;color:#9f1239;text-decoration:line-through;font-weight:700;}
+    .pp-meta{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:14px 0 18px;}
+    .pp-meta-card{
+        border:1px solid #efdec7;border-radius:14px;background:#fffdf9;padding:10px 12px;
+    }
+    .pp-meta-label{font-size:.76rem;font-weight:800;color:var(--pp-muted);text-transform:uppercase;letter-spacing:.04em;}
+    .pp-meta-value{font-size:1rem;font-weight:900;color:var(--pp-dark);margin-top:2px;}
+    .pp-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px;}
+    .pp-btn{
+        border:none;border-radius:999px;padding:12px 18px;font-weight:900;text-decoration:none;
+        display:inline-flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;
+    }
+    .pp-btn-main{
+        background:linear-gradient(135deg,var(--pp-primary),var(--pp-accent));color:#2a1a0f;
+        box-shadow:0 12px 28px rgba(245,158,11,.26);
+    }
+    .pp-btn-light{background:#fff8ec;color:#8b4f00;border:1px solid #f0d2a2;}
+    .pp-block{
+        margin-top:18px;border:1px solid #efdec5;border-radius:20px;background:#fff;box-shadow:var(--pp-shadow);padding:18px;
+    }
+    .pp-block h3{font-size:1.2rem;font-weight:900;color:var(--pp-dark);margin:0 0 10px;}
+    .pp-desc{color:#564d43;line-height:1.8;}
+    .pp-chip{display:inline-flex;align-items:center;padding:6px 10px;border-radius:999px;background:#fff5e6;border:1px solid #efd6ae;color:#8b4f00;font-size:.78rem;font-weight:800;margin:0 8px 8px 0;}
+    .pp-related-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;}
+    .pp-card{
+        border:1px solid #efdec7;border-radius:18px;background:#fff;overflow:hidden;display:flex;flex-direction:column;
+        box-shadow:0 10px 20px rgba(101,61,15,.06);text-decoration:none;color:inherit;
+    }
+    .pp-card img{width:100%;height:160px;object-fit:cover;background:#f3f4f6;}
+    .pp-card-body{padding:12px;}
+    .pp-card-title{font-size:.96rem;font-weight:900;color:var(--pp-dark);margin-bottom:5px;line-height:1.3;}
+    .pp-card-price{font-size:1rem;font-weight:900;color:var(--pp-primary-dark);}
+    @media (max-width: 1024px){
+        .pp-main{grid-template-columns:1fr;}
+        .pp-image{height:360px;}
+        .pp-related-grid{grid-template-columns:repeat(2,minmax(0,1fr));}
+    }
+    @media (max-width: 640px){
+        .pp-wrap{padding-top:22px;}
+        .pp-details{padding:16px;}
+        .pp-image-wrap{padding:16px;}
+        .pp-image{height:260px;}
+        .pp-meta{grid-template-columns:1fr 1fr;}
+        .pp-actions .pp-btn{width:100%;}
+        .pp-related-grid{grid-template-columns:1fr;}
+    }
+</style>
+
+<main class="pp-wrap">
+    <div class="pp-breadcrumb">
+        <a href="{{ path('') }}">Home</a>
+        <span>/</span>
+        <span>Product</span>
+        <span>/</span>
+        <strong>{{ product.name }}</strong>
+    </div>
+
+    <section class="pp-shell">
+        <div class="pp-main">
+            <div class="pp-image-wrap">
+                {% if product.main_image %}
+                    <img src="{{ product.main_image }}" alt="{{ product.name }}" class="pp-image">
+                {% else %}
+                    <div class="pp-image d-flex align-items-center justify-content-center text-muted">No image</div>
+                {% endif %}
+            </div>
+
+            <div class="pp-details">
+                <h1 class="pp-title">{{ product.name }}</h1>
+                <p class="pp-sub">{{ product.short_description ?: 'Premium product crafted for your event needs.' }}</p>
+
+                <div class="pp-badges">
+                    {% if product.is_featured %}<span class="pp-badge">Featured</span>{% endif %}
+                    {% if product.is_public %}<span class="pp-badge">Public</span>{% endif %}
+                    {% if product.status %}<span class="pp-badge">{{ product.status }}</span>{% endif %}
+                </div>
+
+                <div class="pp-price-row">
+                    <div class="pp-price">${{ product.price|number_format(2, '.', ',') }}</div>
+                    {% if product.promo_price %}
+                        <div class="pp-promo">${{ product.promo_price|number_format(2, '.', ',') }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="pp-meta">
+                    <div class="pp-meta-card">
+                        <div class="pp-meta-label">SKU</div>
+                        <div class="pp-meta-value">{{ product.sku ?: '—' }}</div>
+                    </div>
+                    <div class="pp-meta-card">
+                        <div class="pp-meta-label">Stock</div>
+                        <div class="pp-meta-value">{{ product.stock_quantity ?: 0 }}</div>
+                    </div>
+                    <div class="pp-meta-card">
+                        <div class="pp-meta-label">Min Qty</div>
+                        <div class="pp-meta-value">{{ product.min_purchase_qty ?: 1 }}</div>
+                    </div>
+                </div>
+
+                <div class="pp-actions">
+                    <a
+                        href="{{ path('store/cart') }}"
+                        class="pp-btn pp-btn-main"
+                        data-add-to-plan
+                        data-id="{{ product.id }}"
+                        data-name="{{ product.name|e('html_attr') }}"
+                        data-slug="{{ product.slug|default('')|e('html_attr') }}"
+                        data-short-description="{{ (product.short_description ?: '')|e('html_attr') }}"
+                        data-description="{{ (product.description ?: '')|e('html_attr') }}"
+                        data-main-image="{{ (product.main_image ?: '')|e('html_attr') }}"
+                        data-price="{{ product.price|default(0) }}"
+                        data-stock-quantity="{{ product.stock_quantity|default(0) }}"
+                        data-min-purchase-qty="{{ product.min_purchase_qty|default(1) }}"
+                        data-max-purchase-qty="{{ product.max_purchase_qty is not null ? product.max_purchase_qty : '' }}"
+                        data-sku="{{ product.sku|default('')|e('html_attr') }}"
+                    >
+                        Add to plan
+                    </a>
+                    <a href="{{ path('store/cart') }}" class="pp-btn pp-btn-light">Go to cart</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="pp-block">
+        <h3>Product Description</h3>
+        <div class="pp-desc">{{ product.description|raw }}</div>
+    </section>
+
+    {% if product.categories|length > 0 %}
+        <section class="pp-block">
+            <h3>Categories</h3>
+            {% for c in product.categories %}
+                <span class="pp-chip">{{ c.name }}</span>
+            {% endfor %}
+        </section>
+    {% endif %}
+
+    {% if product.attributes_grouped is not empty %}
+        <section class="pp-block">
+            <h3>Attributes</h3>
+            {% for attributeName, values in product.attributes_grouped %}
+                <div class="mb-2">
+                    <strong>{{ attributeName }}</strong>
+                    <div class="mt-1">
+                        {% for v in values %}
+                            <span class="pp-chip">{{ v }}</span>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endfor %}
+        </section>
+    {% endif %}
+
+    {% if related_products|length > 0 %}
+        <section class="pp-block">
+            <h3>You May Also Like</h3>
+            <div class="pp-related-grid">
+                {% for r in related_products %}
+                    <a class="pp-card" href="{{ path('product/' ~ r.slug) }}">
+                        {% if r.main_image %}
+                            <img src="{{ r.main_image }}" alt="{{ r.name }}">
+                        {% endif %}
+                        <div class="pp-card-body">
+                            <div class="pp-card-title">{{ r.name }}</div>
+                            <div class="pp-card-price">${{ r.price|number_format(2, '.', ',') }}</div>
+                        </div>
+                    </a>
+                {% endfor %}
+            </div>
+        </section>
+    {% endif %}
+</main>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const CHECKOUT_KEY = 'vnv_gourmet_checkout_selection';
+    const DRAFT_KEY = 'vnv_gourmet_cart_draft';
+
+    function toInt(value, fallback) {
+        const n = parseInt(value, 10);
+        return Number.isFinite(n) ? n : fallback;
+    }
+    function toFloat(value, fallback) {
+        const n = parseFloat(value);
+        return Number.isFinite(n) ? n : fallback;
+    }
+    function readSelection() {
+        try {
+            const raw = localStorage.getItem(CHECKOUT_KEY);
+            if (!raw) return null;
+            const parsed = JSON.parse(raw);
+            return parsed && typeof parsed === 'object' ? parsed : null;
+        } catch (e) {
+            return null;
+        }
+    }
+    function saveSelection(selection) {
+        localStorage.setItem(CHECKOUT_KEY, JSON.stringify(selection));
+        const quantities = {};
+        (selection.items || []).forEach(function (item) { quantities[item.id] = item.quantity; });
+        localStorage.setItem(DRAFT_KEY, JSON.stringify({
+            audience: selection.audience || 'professional',
+            mealStyle: selection.meal_style || 'balanced',
+            quantities: quantities
+        }));
+    }
+
+    const addBtn = document.querySelector('[data-add-to-plan]');
+    if (!addBtn) return;
+
+    addBtn.addEventListener('click', function (event) {
+        event.preventDefault();
+        const id = toInt(addBtn.dataset.id, 0);
+        if (!id) {
+            window.location.href = addBtn.getAttribute('href');
+            return;
+        }
+
+        const existing = readSelection();
+        const selection = existing || {
+            source: 'product',
+            audience: 'professional',
+            meal_style: 'balanced',
+            membership_enabled: true,
+            pricing_mode: 'SUBSCRIPTION',
+            items: []
+        };
+        if (!Array.isArray(selection.items)) selection.items = [];
+
+        const stockQty = Math.max(0, toInt(addBtn.dataset.stockQuantity, 0));
+        const maxPurchaseQty = addBtn.dataset.maxPurchaseQty !== '' ? Math.max(1, toInt(addBtn.dataset.maxPurchaseQty, 1)) : null;
+        const maxAllowed = maxPurchaseQty !== null ? (stockQty > 0 ? Math.min(stockQty, maxPurchaseQty) : maxPurchaseQty) : stockQty;
+
+        const existingItem = selection.items.find(function (x) { return toInt(x.id, 0) === id; });
+        if (existingItem) {
+            const current = Math.max(0, toInt(existingItem.quantity, 0));
+            existingItem.quantity = maxAllowed > 0 ? Math.min(current + 1, maxAllowed) : current + 1;
+        } else {
+            selection.items.push({
+                id: id,
+                name: addBtn.dataset.name || '',
+                slug: addBtn.dataset.slug || '',
+                short_description: addBtn.dataset.shortDescription || '',
+                description: addBtn.dataset.description || '',
+                main_image: addBtn.dataset.mainImage || '',
+                price: toFloat(addBtn.dataset.price, 0),
+                unit_price: toFloat(addBtn.dataset.price, 0),
+                quantity: 1,
+                line_total: toFloat(addBtn.dataset.price, 0),
+                stock_quantity: stockQty,
+                min_purchase_qty: Math.max(1, toInt(addBtn.dataset.minPurchaseQty, 1)),
+                max_purchase_qty: maxPurchaseQty,
+                categories: [],
+                audiences: [],
+                meal_styles: [],
+                attributes_grouped: {},
+                nutrition: null,
+                sku: addBtn.dataset.sku || ''
+            });
+        }
+
+        selection.total_meals = selection.items.reduce(function (sum, it) { return sum + Math.max(0, toInt(it.quantity, 0)); }, 0);
+        selection.subtotal = Number(selection.items.reduce(function (sum, it) {
+            const q = Math.max(0, toInt(it.quantity, 0));
+            return sum + (q * toFloat(it.price, 0));
+        }, 0).toFixed(2));
+        selection.total = selection.subtotal;
+        selection.saved_at = new Date().toISOString();
+
+        saveSelection(selection);
+        window.location.href = addBtn.getAttribute('href');
+    });
+});
+</script>
+{% endblock %}
