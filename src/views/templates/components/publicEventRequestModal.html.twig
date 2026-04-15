@@ -779,9 +779,17 @@ body.vnv-request-lock{
 
     function normalizeActionUrl() {
         const rawAction = form.getAttribute('action') || '';
-        if (!rawAction) return;
-        form.setAttribute('action', rawAction);
+        if (!rawAction || !rawAction.startsWith('/api/public/')) return;
+
+        const pathParts = window.location.pathname.split('/').filter(Boolean);
+        if (!pathParts.length) return;
+
+        const appBase = pathParts[0];
+        if (!appBase || appBase === 'api') return;
+
+        form.setAttribute('action', '/' + appBase + rawAction);
     }
+
 
     const openers = document.querySelectorAll('[data-vnv-open-request]');
     const closers = modal.querySelectorAll('[data-vnv-request-close]');

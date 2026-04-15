@@ -14,8 +14,8 @@ class EmailService
     public function __construct()
     {
         $this->mailer = new PHPMailer(true);
-        $this->fromEmail = 'no-reply@ophyra.com';
-        $this->fromName  = 'Ophyra';
+        $this->fromEmail = (string)($_ENV['MAIL_FROM_EMAIL'] ?? 'no-reply@ophyra.com');
+        $this->fromName  = (string)($_ENV['MAIL_FROM_NAME'] ?? 'Ophyra');
 
         $this->configureSMTP();
     }
@@ -24,12 +24,16 @@ class EmailService
     {
         try {
             $this->mailer->isSMTP();
-            $this->mailer->Host       = 'smtp-relay.brevo.com';
+            $this->mailer->Host       = (string)($_ENV['MAIL_HOST'] ?? 'smtp-relay.brevo.com');
             $this->mailer->SMTPAuth   = true;
-            $this->mailer->Username   = '92dd67001@smtp-brevo.com';
-            $this->mailer->Password   = '6qQhvfXZ2mzMECLs';
-            $this->mailer->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
-            $this->mailer->Port       = 587;
+            $this->mailer->Username   = (string)($_ENV['MAIL_USERNAME'] ?? '');
+            $this->mailer->Password   = (string)($_ENV['MAIL_PASSWORD'] ?? '');
+            $this->mailer->SMTPSecure = match (strtolower((string)($_ENV['MAIL_ENCRYPTION'] ?? 'tls'))) {
+                'ssl' => PHPMailer::ENCRYPTION_SMTPS,
+                'none' => '',
+                default => PHPMailer::ENCRYPTION_STARTTLS
+            };
+            $this->mailer->Port       = (int)($_ENV['MAIL_PORT'] ?? 587);
             $this->mailer->CharSet    = 'UTF-8';
             $this->mailer->Timeout    = 15;
             $this->mailer->SMTPKeepAlive = false;
