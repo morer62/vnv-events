@@ -22,6 +22,7 @@
                                 <th style="min-width:70px;">ID</th>
                                 <th style="min-width:220px;">Name</th>
                                 <th>Description</th>
+                                <th style="min-width:220px;">Public URL</th>
                                 <th style="min-width:180px;">Icon</th>
                                 <th style="min-width:120px;">Status</th>
                                 <th style="min-width:180px;">Created</th>
@@ -40,6 +41,15 @@
                                     </td>
                                     <td>
                                         {{ c.description ?: '—' }}
+                                    </td>
+                                    <td>
+                                        {% if c.slug %}
+                                            <a href="{{ path('product-category/' ~ c.slug) }}" target="_blank">
+                                                /product-category/{{ c.slug }}
+                                            </a>
+                                        {% else %}
+                                            <span class="text-muted">—</span>
+                                        {% endif %}
                                     </td>
                                     <td>
                                         {% if c.icon %}

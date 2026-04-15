@@ -45,6 +45,7 @@ $router->post(function () {
     $productsMealStylesRepo = new StoreProductsMealStylesRepository();
 
     $name = trim($_POST['name'] ?? '');
+    $slugInput = trim($_POST['slug'] ?? '');
     $sku = trim($_POST['sku'] ?? '');
     $shortDescription = trim($_POST['short_description'] ?? '');
     $description = trim($_POST['description'] ?? '');
@@ -102,7 +103,8 @@ $router->post(function () {
         LocationUtils::redirectInternal("panel/planner-hub/store/products/create");
     }
 
-    $slug = $productsRepo->generateUniqueSlug($name);
+    $slugBase = $slugInput !== '' ? $slugInput : $name;
+    $slug = $productsRepo->generateUniqueSlug($slugBase);
 
     $ok = $productsRepo->add([
         'name' => $name,

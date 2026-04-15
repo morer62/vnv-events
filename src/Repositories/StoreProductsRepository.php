@@ -34,17 +34,27 @@ class StoreProductsRepository extends BaseRepository
     {
         $this->table = "store_products";
         $this->db = new Connection();
+        $this->ensureSlugColumn();
     }
 
-    public function generateUniqueSlug(string $name): string
+    public function normalizeSlug(string $value): string
     {
-        $slug = strtolower(trim(preg_replace('/[^A-Za-z0-9-]+/', '-', $name)));
+        $slug = strtolower(trim(preg_replace('/[^A-Za-z0-9-]+/', '-', $value)));
         $slug = trim($slug, '-');
+        return $slug;
+    }
+
+    public function generateUniqueSlug(string $baseValue, int $excludeId = 0): string
+    {
+        $slug = $this->normalizeSlug($baseValue);
+        if ($slug === '') {
+            $slug = 'product';
+        }
 
         $originalSlug = $slug;
         $counter = 1;
 
-        while ($this->slugExists($slug)) {
+        while ($this->slugExists($slug, $excludeId)) {
             $slug = $originalSlug . '-' . $counter;
             $counter++;
         }
@@ -52,10 +62,18 @@ class StoreProductsRepository extends BaseRepository
         return $slug;
     }
 
-    private function slugExists(string $slug): bool
+    private function slugExists(string $slug, int $excludeId = 0): bool
     {
-        $this->db->query("SELECT id FROM {$this->table} WHERE slug = :slug LIMIT 1");
+        $query = "SELECT id FROM {$this->table} WHERE slug = :slug";
+        if ($excludeId > 0) {
+            $query .= " AND id != :exclude_id";
+        }
+        $query .= " LIMIT 1";
+        $this->db->query($query);
         $this->db->bind(':slug', $slug);
+        if ($excludeId > 0) {
+            $this->db->bind(':exclude_id', $excludeId);
+        }
         return $this->db->fetchOne() !== false;
     }
 
@@ -85,6 +103,22 @@ class StoreProductsRepository extends BaseRepository
         return $result ?: null;
     }
 
+    public function getPublicBySlug(string $slug): ?object
+    {
+        $this->db->query("
+            SELECT *
+            FROM {$this->table}
+            WHERE slug = :slug
+              AND is_public = 1
+              AND status = :status
+            LIMIT 1
+        ");
+        $this->db->bind(':slug', $slug);
+        $this->db->bind(':status', self::STATUS_ACTIVE);
+        $result = $this->db->fetchOne();
+        return $result ?: null;
+    }
+
     public function getPublicProducts(): array
     {
         $this->db->query("
@@ -96,6 +130,42 @@ class StoreProductsRepository extends BaseRepository
         ");
         $this->db->bind(':status', self::STATUS_ACTIVE);
         return $this->db->fetchAll();
+    }
+
+    public function getPublicByCategory(int $categoryId, int $limit = 48): array
+    {
+        $this->db->query("
+            SELECT p.*
+            FROM {$this->table} p
+            INNER JOIN store_products_categories pc ON pc.id_product = p.id
+            WHERE pc.id_category = :id_category
+              AND p.is_public = 1
+              AND p.status = :status
+            ORDER BY p.is_featured DESC, p.created_at DESC
+            LIMIT :limit
+        ");
+        $this->db->bind(':id_category', $categoryId, \PDO::PARAM_INT);
+        $this->db->bind(':status', self::STATUS_ACTIVE);
+        $this->db->bind(':limit', $limit, \PDO::PARAM_INT);
+
+        return $this->db->fetchAll() ?: [];
+    }
+
+    public function getPublicRelatedProducts(int $excludeProductId, int $limit = 6): array
+    {
+        $this->db->query("
+            SELECT *
+            FROM {$this->table}
+            WHERE id != :id
+              AND is_public = 1
+              AND status = :status
+            ORDER BY is_featured DESC, created_at DESC
+            LIMIT :limit
+        ");
+        $this->db->bind(':id', $excludeProductId, \PDO::PARAM_INT);
+        $this->db->bind(':status', self::STATUS_ACTIVE);
+        $this->db->bind(':limit', $limit, \PDO::PARAM_INT);
+        return $this->db->fetchAll() ?: [];
     }
 
     public function getFeaturedProducts(int $limit = 8): array
@@ -219,6 +289,21 @@ public function getPublicById(int $id): ?object
     $this->db->bind(':status', self::STATUS_ACTIVE);
     $row = $this->db->fetchOne();
     return $row ?: null;
+}
+
+private function ensureSlugColumn(): void
+{
+    if (!$this->hasColumn('slug')) {
+        $this->db->query("ALTER TABLE {$this->table} ADD COLUMN slug VARCHAR(255) NULL AFTER name");
+        $this->db->execute();
+    }
+}
+
+private function hasColumn(string $column): bool
+{
+    $this->db->query("SHOW COLUMNS FROM {$this->table} LIKE :column_name");
+    $this->db->bind(':column_name', $column);
+    return $this->db->fetchOne() !== false;
 }
 
 public function getRecommendedProducts(string $audience, string $mealStyle, int $limit = 24): array

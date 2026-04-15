@@ -775,7 +775,11 @@ body.vnv-request-lock{
     const phoneInput = document.getElementById('vnv_phone');
     const miniMapEl = document.getElementById('vnvRequestMiniMap');
     const AUTO_OPEN_STORAGE_KEY = 'vnv_request_modal_last_auto_open_at';
-    const AUTO_OPEN_INTERVAL_MS = 24 * 60 * 60 * 1000; 
+    const AUTO_OPEN_HOURS_RAW = Number('{{ env.REQUEST_MODAL_AUTO_OPEN_HOURS|default(24) }}');
+    const AUTO_OPEN_HOURS = Number.isFinite(AUTO_OPEN_HOURS_RAW) && AUTO_OPEN_HOURS_RAW > 0
+        ? AUTO_OPEN_HOURS_RAW
+        : 24;
+    const AUTO_OPEN_INTERVAL_MS = AUTO_OPEN_HOURS * 60 * 60 * 1000;
 
     let currentStep = 1;
     const selectedServices = new Set();

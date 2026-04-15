@@ -374,6 +374,30 @@ class Kernel
                 $this->includeResolvedFileAndExit($blogCategoryView);
             }
 
+            // Store product category pública: /product-category/{slug}/
+            if (
+                count($urlViews) === 2 &&
+                $urlViews[0] === 'product-category' &&
+                !empty($urlViews[1])
+            ) {
+                $productCategoryView = LocationUtils::getRootLocation()
+                    . "/src/views/public/pages/product-category/index.php";
+
+                $this->includeResolvedFileAndExit($productCategoryView);
+            }
+
+            // Store product public page: /product/{slug}/
+            if (
+                count($urlViews) === 2 &&
+                $urlViews[0] === 'product' &&
+                !empty($urlViews[1])
+            ) {
+                $productView = LocationUtils::getRootLocation()
+                    . "/src/views/public/pages/product/index.php";
+
+                $this->includeResolvedFileAndExit($productView);
+            }
+
             // CMS dinámico por cms_routes
             $cmsRoutePath = '/' . implode('/', $urlViews);
             if ($cmsRoutePath !== '/') {
