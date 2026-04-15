@@ -164,7 +164,13 @@
                             <label class="vnv-request-label" for="vnv_event_date">Date</label>
                             <div class="vnv-request-input-wrap">
                                 <i class="fa-regular fa-calendar-days" aria-hidden="true"></i>
-                                <input id="vnv_event_date" name="event_date" type="date" class="vnv-request-input vnv-request-input--with-icon" required>
+                                <input
+                                    id="vnv_event_date"
+                                    name="event_date"
+                                    type="date"
+                                    class="vnv-request-input vnv-request-input--with-icon"
+                                    required
+                                >
                             </div>
                         </div>
 
@@ -172,7 +178,14 @@
                             <label class="vnv-request-label" for="vnv_event_time">Time</label>
                             <div class="vnv-request-input-wrap">
                                 <i class="fa-regular fa-clock" aria-hidden="true"></i>
-                                <input id="vnv_event_time" name="event_time" type="time" class="vnv-request-input vnv-request-input--with-icon" required>
+                                <input
+                                    id="vnv_event_time"
+                                    name="event_time"
+                                    type="time"
+                                    step="60"
+                                    class="vnv-request-input vnv-request-input--with-icon"
+                                    required
+                                >
                             </div>
                         </div>
 
@@ -193,7 +206,16 @@
 
                         <div>
                             <label class="vnv-request-label" for="vnv_phone">Phone</label>
-                            <input id="vnv_phone" name="phone" type="text" class="vnv-request-input" placeholder="(xxx) xxx-xxxx" required>
+                            <input
+                                id="vnv_phone"
+                                name="phone"
+                                type="tel"
+                                inputmode="numeric"
+                                maxlength="14"
+                                class="vnv-request-input"
+                                placeholder="(305) 555-5555"
+                                required
+                            >
                         </div>
                     </div>
 
@@ -310,6 +332,13 @@
     box-shadow: 0 30px 90px rgba(0,0,0,0.45);
     padding: 28px 28px 34px;
     color: #fff;
+    box-sizing: border-box;
+}
+
+.vnv-request-modal__dialog::after{
+    content: "";
+    display: block;
+    height: 10px;
 }
 
 .vnv-request-modal__brand{
@@ -427,6 +456,7 @@
     padding: 14px 16px;
     outline: none;
     transition: .2s ease;
+    box-sizing: border-box;
 }
 
 .vnv-request-input::placeholder,
@@ -514,7 +544,6 @@
     color: #fff;
 }
 
-/* Google Places suggestions above modal */
 .pac-container{
     z-index: 5000 !important;
     border-radius: 12px;
@@ -710,7 +739,13 @@ body.vnv-request-lock{
 @media (max-width: 991px){
     .vnv-request-modal__dialog{
         width: min(100% - 18px, 100%);
-        padding: 20px 16px 24px;
+        padding: 20px 16px calc(120px + env(safe-area-inset-bottom, 0px));
+        max-height: calc(100vh - 12px);
+        margin: 6px auto;
+    }
+
+    .vnv-request-modal__dialog::after{
+        height: calc(70px + env(safe-area-inset-bottom, 0px));
     }
 
     .vnv-request-grid--location,
@@ -721,12 +756,13 @@ body.vnv-request-lock{
     }
 
     .vnv-request-panel{
-        padding: 18px 16px;
+        padding: 18px 16px 26px;
     }
 
     .vnv-request-actions{
         flex-direction: column;
         align-items: stretch;
+        padding-bottom: env(safe-area-inset-bottom, 0px);
     }
 
     .vnv-request-btn{
@@ -743,15 +779,8 @@ body.vnv-request-lock{
 
     function normalizeActionUrl() {
         const rawAction = form.getAttribute('action') || '';
-        if (!rawAction || !rawAction.startsWith('/api/public/')) return;
-
-        const pathParts = window.location.pathname.split('/').filter(Boolean);
-        if (!pathParts.length) return;
-
-        const appBase = pathParts[0];
-        if (!appBase || appBase === 'api') return;
-
-        form.setAttribute('action', '/' + appBase + rawAction);
+        if (!rawAction) return;
+        form.setAttribute('action', rawAction);
     }
 
     const openers = document.querySelectorAll('[data-vnv-open-request]');
@@ -818,30 +847,12 @@ body.vnv-request-lock{
 
     function isRootPath() {
         const parts = window.location.pathname.split('/').filter(Boolean);
-        // Domain root: /
         if (!parts.length) return true;
-        // Subfolder root: /vnv-events/
         return parts.length === 1;
     }
 
     function shouldAutoOpenNow() {
-        if (!isRootPath()) return false;
-        try {
-            const raw = localStorage.getItem(AUTO_OPEN_STORAGE_KEY);
-            const last = raw ? parseInt(raw, 10) : 0;
-            const now = Date.now();
-            return !last || Number.isNaN(last) || (now - last) >= AUTO_OPEN_INTERVAL_MS;
-        } catch (e) {
-            return true;
-        }
-    }
-
-    function markAutoOpenTimestamp() {
-        try {
-            localStorage.setItem(AUTO_OPEN_STORAGE_KEY, String(Date.now()));
-        } catch (e) {
-            // ignore storage failures
-        }
+        return isRootPath();
     }
 
     function goToStep(step) {
@@ -924,7 +935,7 @@ body.vnv-request-lock{
         if (!addressInput || !miniMapEl || !window.google || !google.maps || !google.maps.places) return false;
 
         requestGeocoder = new google.maps.Geocoder();
-        updateMiniMap({ lat: 25.7617, lng: -80.1918 }); // Miami default
+        updateMiniMap({ lat: 25.7617, lng: -80.1918 });
 
         requestAutocomplete = new google.maps.places.Autocomplete(addressInput, {
             fields: ['formatted_address', 'geometry', 'name'],
@@ -973,30 +984,66 @@ body.vnv-request-lock{
         }, 350);
     }
 
+    function formatPhoneNumber(value) {
+        const digits = (value || '').replace(/\D/g, '').slice(0, 10);
+
+        if (digits.length === 0) return '';
+        if (digits.length < 4) return '(' + digits;
+        if (digits.length < 7) return '(' + digits.slice(0, 3) + ') ' + digits.slice(3);
+        return '(' + digits.slice(0, 3) + ') ' + digits.slice(3, 6) + '-' + digits.slice(6, 10);
+    }
+
     function validateDateField() {
         if (!dateInput || !dateInput.value.trim()) {
             return setFieldError(dateInput, 'Date is required.');
         }
+
         const selected = new Date(dateInput.value + 'T00:00:00');
         const now = new Date();
         const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
         if (Number.isNaN(selected.getTime())) {
             return setFieldError(dateInput, 'Please enter a valid date.');
         }
+
         if (selected < today) {
             return setFieldError(dateInput, 'Event date cannot be in the past.');
         }
+
         return setFieldError(dateInput, '');
     }
 
     function validateTimeField() {
-        if (!timeInput || !timeInput.value.trim()) {
+        if (!timeInput) return true;
+
+        const value = timeInput.value.trim();
+        if (!value) {
             return setFieldError(timeInput, 'Time is required.');
         }
-        const valid = /^([01]\d|2[0-3]):([0-5]\d)$/.test(timeInput.value.trim());
-        if (!valid) {
+
+        if (timeInput.validity && timeInput.validity.badInput) {
             return setFieldError(timeInput, 'Please enter a valid time.');
         }
+
+        const parts = value.split(':');
+        if (parts.length < 2) {
+            return setFieldError(timeInput, 'Please enter a valid time.');
+        }
+
+        const hours = parseInt(parts[0], 10);
+        const minutes = parseInt(parts[1], 10);
+
+        if (
+            Number.isNaN(hours) ||
+            Number.isNaN(minutes) ||
+            hours < 0 ||
+            hours > 23 ||
+            minutes < 0 ||
+            minutes > 59
+        ) {
+            return setFieldError(timeInput, 'Please enter a valid time.');
+        }
+
         return setFieldError(timeInput, '');
     }
 
@@ -1004,10 +1051,12 @@ body.vnv-request-lock{
         if (!phoneInput || !phoneInput.value.trim()) {
             return setFieldError(phoneInput, 'Phone is required.');
         }
+
         const digits = phoneInput.value.replace(/\D/g, '');
-        if (digits.length < 10) {
+        if (digits.length !== 10) {
             return setFieldError(phoneInput, 'Please enter a valid phone number.');
         }
+
         return setFieldError(phoneInput, '');
     }
 
@@ -1038,6 +1087,7 @@ body.vnv-request-lock{
                     return false;
                 }
             }
+
             if (!validateDateField()) return false;
             if (!validateTimeField()) return false;
             if (!validatePhoneField()) return false;
@@ -1100,22 +1150,49 @@ body.vnv-request-lock{
     }
 
     if (dateInput) {
-        dateInput.addEventListener('input', function () { clearFieldError(dateInput); });
+        dateInput.addEventListener('input', function () {
+            clearFieldError(dateInput);
+        });
         dateInput.addEventListener('change', validateDateField);
     }
 
     if (timeInput) {
-        timeInput.addEventListener('input', function () { clearFieldError(timeInput); });
+        timeInput.addEventListener('input', function () {
+            clearFieldError(timeInput);
+        });
         timeInput.addEventListener('change', validateTimeField);
+        timeInput.addEventListener('blur', validateTimeField);
     }
 
     if (phoneInput) {
-        phoneInput.addEventListener('input', function () { clearFieldError(phoneInput); });
-        phoneInput.addEventListener('blur', validatePhoneField);
+        phoneInput.addEventListener('input', function () {
+            const start = this.selectionStart || 0;
+            const oldLength = this.value.length;
+            this.value = formatPhoneNumber(this.value);
+            clearFieldError(phoneInput);
+
+            const newLength = this.value.length;
+            const newPos = start + (newLength - oldLength);
+            try {
+                this.setSelectionRange(newPos, newPos);
+            } catch (e) {}
+        });
+
+        phoneInput.addEventListener('blur', function () {
+            this.value = formatPhoneNumber(this.value);
+            validatePhoneField();
+        });
     }
 
-    form.addEventListener('submit', function () {
+    form.addEventListener('submit', function (e) {
         updateSummary();
+
+        if (!validateStep(3)) {
+            e.preventDefault();
+            goToStep(3);
+            return;
+        }
+
         if (sendRequestBtn) {
             sendRequestBtn.disabled = true;
             sendRequestBtn.classList.add('is-loading');
@@ -1130,7 +1207,6 @@ body.vnv-request-lock{
 
     if (shouldAutoOpenNow()) {
         openModal();
-        markAutoOpenTimestamp();
     }
 })();
 </script>
