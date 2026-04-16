@@ -778,18 +778,9 @@ body.vnv-request-lock{
     const form = document.getElementById('vnvRequestForm');
     if (!modal || !form) return;
 
-    function normalizeActionUrl() {
-        const rawAction = form.getAttribute('action') || '';
-        if (!rawAction || !rawAction.startsWith('/api/public/')) return;
-
-        const pathParts = window.location.pathname.split('/').filter(Boolean);
-        if (!pathParts.length) return;
-
-        const appBase = pathParts[0];
-        if (!appBase || appBase === 'api') return;
-
-        form.setAttribute('action', '/' + appBase + rawAction);
-    }
+   function normalizeActionUrl() {
+    return;
+}
 
     const openers = document.querySelectorAll('[data-vnv-open-request]');
     const closers = modal.querySelectorAll('[data-vnv-request-close]');
@@ -1220,7 +1211,7 @@ body.vnv-request-lock{
         form.submit();
     });
 
-    normalizeActionUrl();
+   
     waitForGoogleAndInit();
     goToStep(1);
 })();
