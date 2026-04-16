@@ -39,6 +39,10 @@ function eventRequestMailTo(): string
 function eventRequestVerifyRecaptcha(string $token): bool
 {
     $secret = trim((string)($_ENV['GOOGLE_RECAPTCHA_SECRET'] ?? ''));
+
+    error_log('reCAPTCHA token received: ' . ($token !== '' ? 'YES' : 'NO'));
+    error_log('reCAPTCHA secret loaded: ' . ($secret !== '' ? 'YES' : 'NO'));
+
     if ($secret === '' || $token === '') {
         return false;
     }
@@ -61,14 +65,23 @@ function eventRequestVerifyRecaptcha(string $token): bool
     $context = stream_context_create($options);
     $response = @file_get_contents('https://www.google.com/recaptcha/api/siteverify', false, $context);
 
+    error_log('reCAPTCHA raw response: ' . ($response !== false ? $response : 'FALSE'));
+
     if ($response === false) {
         return false;
     }
 
     $result = json_decode($response, true);
+
     if (!is_array($result)) {
+        error_log('reCAPTCHA decoded response invalid');
         return false;
     }
+
+    error_log('reCAPTCHA success: ' . (($result['success'] ?? false) ? 'YES' : 'NO'));
+    error_log('reCAPTCHA score: ' . (string)($result['score'] ?? 'NULL'));
+    error_log('reCAPTCHA action: ' . (string)($result['action'] ?? 'NULL'));
+    error_log('reCAPTCHA errors: ' . json_encode($result['error-codes'] ?? []));
 
     $success = (bool)($result['success'] ?? false);
     $score   = (float)($result['score'] ?? 0);
