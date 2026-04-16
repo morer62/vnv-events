@@ -149,20 +149,44 @@ class StoreProductsRepository extends BaseRepository
         return $result ?: null;
     }
 
-    public function getAll(int $limit = 500): array
-    {
-        $this->db->query("
-            SELECT *
-            FROM {$this->table}
-            ORDER BY id DESC
-            LIMIT :limit
-        ");
-        $this->db->bind(':limit', $limit, \PDO::PARAM_INT);
+    public function getAll(array $columns = [], int $limit = 0): array
+{
+    $selectedColumns = '*';
 
-        $rows = $this->db->fetchAll();
+    if (!empty($columns)) {
+        $safeColumns = array_map(function ($col) {
+            return trim((string)$col);
+        }, $columns);
 
-        return $this->appendComputedPricingToProducts($rows);
+        $safeColumns = array_filter($safeColumns, function ($col) {
+            return $col !== '';
+        });
+
+        if (!empty($safeColumns)) {
+            $selectedColumns = implode(', ', $safeColumns);
+        }
     }
+
+    $sql = "
+        SELECT {$selectedColumns}
+        FROM {$this->table}
+        ORDER BY id DESC
+    ";
+
+    if ($limit > 0) {
+        $sql .= " LIMIT :limit";
+    }
+
+    $this->db->query($sql);
+
+    if ($limit > 0) {
+        $this->db->bind(':limit', $limit, \PDO::PARAM_INT);
+    }
+
+    $rows = $this->db->fetchAll();
+
+    return $this->appendComputedPricingToProducts($rows);
+}
 
     public function getActivePublic(int $limit = 500): array
     {
