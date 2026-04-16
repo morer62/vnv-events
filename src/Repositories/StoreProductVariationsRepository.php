@@ -208,32 +208,41 @@ class StoreProductVariationsRepository extends BaseRepository
             $slug = $this->generateUniqueSlug($productId, $variation['slug'] ?? $name);
 
             $ok = $this->add([
-                'id_product' => $productId,
-                'name' => $name,
-                'slug' => $slug,
-                'sku' => trim((string)($variation['sku'] ?? '')),
-                'price' => (float)($variation['price'] ?? 0),
-                'promo_price' => ($variation['promo_price'] !== '' && $variation['promo_price'] !== null)
-                    ? (float)$variation['promo_price']
-                    : null,
-                'stock_quantity' => (int)($variation['stock_quantity'] ?? 0),
-                'min_purchase_qty' => max(1, (int)($variation['min_purchase_qty'] ?? 1)),
-                'max_purchase_qty' => ($variation['max_purchase_qty'] !== '' && $variation['max_purchase_qty'] !== null)
-                    ? (int)$variation['max_purchase_qty']
-                    : null,
-                'sort_order' => (int)($variation['sort_order'] ?? $sortOrder),
-                'status' => in_array(($variation['status'] ?? self::STATUS_ACTIVE), [self::STATUS_ACTIVE, self::STATUS_INACTIVE], true)
-                    ? $variation['status']
-                    : self::STATUS_ACTIVE,
-                'created_at' => date('Y-m-d H:i:s'),
-                'updated_at' => date('Y-m-d H:i:s'),
-            ]);
+            'id_product' => $productId,
+            'name' => $name,
+            'slug' => $slug,
+            'sku' => trim((string)($variation['sku'] ?? '')),
+            'price' => (float)($variation['price'] ?? 0),
+            'promo_price' => ($variation['promo_price'] !== '' && $variation['promo_price'] !== null)
+                ? (float)$variation['promo_price']
+                : null,
+            'stock_quantity' => (int)($variation['stock_quantity'] ?? 0),
+            'min_purchase_qty' => max(1, (int)($variation['min_purchase_qty'] ?? 1)),
+            'max_purchase_qty' => ($variation['max_purchase_qty'] !== '' && $variation['max_purchase_qty'] !== null)
+                ? (int)$variation['max_purchase_qty']
+                : null,
+            'sort_order' => (int)($variation['sort_order'] ?? $sortOrder),
+            'status' => in_array(($variation['status'] ?? self::STATUS_ACTIVE), [self::STATUS_ACTIVE, self::STATUS_INACTIVE], true)
+                ? $variation['status']
+                : self::STATUS_ACTIVE,
+            'created_at' => date('Y-m-d H:i:s'),
+            'updated_at' => date('Y-m-d H:i:s'),
+        ]);
+
+        if (!$ok) {
+            return false;
+        }
+
+        $variationId = (int)$this->getLastId();
+        if ($variationId <= 0) {
+            return false;
+        }
 
             if (!$ok) {
                 return false;
             }
 
-            $variationId = (int)$this->db->lastInsertId();
+            $variationId = (int)$this->getLastId();
 
             $attributePairs = $variation['attribute_pairs'] ?? [];
             if ($attributePairs && !$variationValuesRepo->replaceByVariation($variationId, $attributePairs)) {

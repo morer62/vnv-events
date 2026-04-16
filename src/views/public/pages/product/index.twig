@@ -427,7 +427,14 @@
         <div class="pp-breadcrumb">
             <a href="{{ path('') }}">Home</a>
             <span>/</span>
-            <a href="{{ path('store') }}">Store</a>
+            <a href="{{ path('/store-categories/') }}">Store Categories</a>
+
+            {% if product.categories is defined and product.categories|length > 0 %}
+                {% set main_category = product.categories|first %}
+                <span>/</span>
+                <a href="{{ path('product-category/' ~ main_category.slug) }}">{{ main_category.name }}</a>
+            {% endif %}
+
             <span>/</span>
             <strong>{{ product.name }}</strong>
         </div>

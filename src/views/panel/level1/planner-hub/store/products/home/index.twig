@@ -547,7 +547,13 @@
                                     <td>
                                         <div class="sp-product-name">{{ p.name }}</div>
                                         {% if p.slug %}
-                                            <div class="sp-product-slug">{{ p.slug }}</div>
+                                            <div class="sp-product-slug">
+                                                <a href="{{ path('product/' ~ p.slug) }}" target="_blank" style="color:inherit; text-decoration:none;">
+                                                    /product/{{ p.slug }}
+                                                </a>
+                                            </div>
+                                        {% else %}
+                                            <div class="sp-product-slug">—</div>
                                         {% endif %}
                                     </td>
 
@@ -617,8 +623,8 @@
 
                                     <td class="text-end">
                                         <div class="sp-actions">
-                                            <a href="{{ path('panel/planner-hub/store/products/details') }}?id={{ p.id }}" class="sp-btn sp-btn-dark">
-                                                Details
+                                            <a href="{{ path('product/' ~ p.slug) }}" target="_blank" class="sp-btn sp-btn-dark">
+                                                View Public
                                             </a>
                                             <a href="{{ path('panel/planner-hub/store/products/edit') }}?id={{ p.id }}" class="sp-btn sp-btn-primary">
                                                 Edit

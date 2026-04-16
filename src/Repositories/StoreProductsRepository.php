@@ -135,19 +135,18 @@ class StoreProductsRepository extends BaseRepository
         return $this->db->fetchOne() !== false;
     }
 
-    public function getBySlug(string $slug): ?object
-    {
-        $this->db->query("
-            SELECT *
-            FROM {$this->table}
-            WHERE slug = :slug
-            LIMIT 1
-        ");
-        $this->db->bind(':slug', $slug);
-
-        $result = $this->db->fetchOne();
-        return $result ?: null;
-    }
+   public function getBySlug(string $slug): ?object
+{
+    $this->db->query("
+        SELECT *
+        FROM {$this->table}
+        WHERE slug = CONVERT(:slug USING latin1)
+        LIMIT 1
+    ");
+    $this->db->bind(':slug', $slug);
+    $result = $this->db->fetchOne();
+    return $result ?: null;
+}
 
     public function getAll(array $columns = [], int $limit = 0): array
 {
@@ -206,6 +205,35 @@ class StoreProductsRepository extends BaseRepository
         return $this->appendComputedPricingToProducts($rows);
     }
 
+    public function getPublicByCategory(int $categoryId, int $limit = 120): array
+{
+    $sql = "
+        SELECT sp.*
+        FROM {$this->table} sp
+        INNER JOIN store_products_categories spc ON spc.id_product = sp.id
+        WHERE spc.id_category = :id_category
+          AND sp.status = :status
+          AND sp.is_public = 1
+        ORDER BY sp.is_featured DESC, sp.id DESC
+    ";
+
+    if ($limit > 0) {
+        $sql .= " LIMIT :limit";
+    }
+
+    $this->db->query($sql);
+    $this->db->bind(':id_category', $categoryId, \PDO::PARAM_INT);
+    $this->db->bind(':status', self::STATUS_ACTIVE);
+
+    if ($limit > 0) {
+        $this->db->bind(':limit', $limit, \PDO::PARAM_INT);
+    }
+
+    $rows = $this->db->fetchAll();
+
+    return $this->appendComputedPricingToProducts($rows);
+}
+
     public function getPublicById(int $id): ?object
     {
         $this->db->query("
@@ -228,25 +256,25 @@ class StoreProductsRepository extends BaseRepository
     }
 
     public function getPublicBySlug(string $slug): ?object
-    {
-        $this->db->query("
-            SELECT *
-            FROM {$this->table}
-            WHERE slug = :slug
-              AND status = :status
-              AND is_public = 1
-            LIMIT 1
-        ");
-        $this->db->bind(':slug', $slug);
-        $this->db->bind(':status', self::STATUS_ACTIVE);
+{
+    $this->db->query("
+        SELECT *
+        FROM {$this->table}
+        WHERE slug = CONVERT(:slug USING latin1)
+          AND status = :status
+          AND is_public = 1
+        LIMIT 1
+    ");
+    $this->db->bind(':slug', $slug);
+    $this->db->bind(':status', self::STATUS_ACTIVE);
 
-        $product = $this->db->fetchOne();
-        if (!$product) {
-            return null;
-        }
-
-        return $this->appendComputedPricingToProduct($product);
+    $product = $this->db->fetchOne();
+    if (!$product) {
+        return null;
     }
+
+    return $this->appendComputedPricingToProduct($product);
+}
 
     public function getEffectivePrice(object|array $product): float
     {
