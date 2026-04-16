@@ -232,20 +232,28 @@ $router->post(function () {
         'updated_at' => date('Y-m-d H:i:s')
     ];
 
-    $productId = $productsRepo->saveProductWithRelations(
-        $productData,
-        is_array($categoryIds) ? $categoryIds : [],
-        is_array($attributeValues) ? $attributeValues : [],
-        $variations
-    );
+    try {
+        $productId = $productsRepo->saveProductWithRelations(
+            $productData,
+            is_array($categoryIds) ? $categoryIds : [],
+            is_array($attributeValues) ? $attributeValues : [],
+            $variations
+        );
 
-    if (!$productId) {
-        MessageUtil::setMessage("Product could not be created.");
+        if (!$productId) {
+            throw new \Exception("saveProductWithRelations returned false.");
+        }
+
+        MessageUtil::setMessage("Product created successfully.");
+        LocationUtils::redirectInternal("panel/planner-hub/store/products/home");
+    } catch (\Throwable $e) {
+        MessageUtil::setMessage(
+            "Product could not be created: " . $e->getMessage()
+            . " | File: " . $e->getFile()
+            . " | Line: " . $e->getLine()
+        );
         LocationUtils::redirectInternal("panel/planner-hub/store/products/create");
     }
-
-    MessageUtil::setMessage("Product created successfully.");
-    LocationUtils::redirectInternal("panel/planner-hub/store/products/home");
 });
 
 $router->run();
