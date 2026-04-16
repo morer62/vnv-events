@@ -7,7 +7,7 @@ use App\Utils\LocationUtils;
 $router = new Router();
 
 $router->get(function () {
-    $cookieName = 'vnv_gourmet_payment_success';
+    $cookieName = 'store_payment_success';
     $encodedPayload = $_COOKIE[$cookieName] ?? '';
 
     if (trim((string)$encodedPayload) === '') {
@@ -36,7 +36,7 @@ $router->get(function () {
     $total = (float)($payload['total'] ?? 0);
     $email = (string)($payload['email'] ?? '');
 
-    // borrar cookie para que no puedan volver a entrar manualmente y no contaminar conversiones
+    // clear cookie so the page cannot be re-opened manually and analytics stay clean
     setcookie($cookieName, '', time() - 3600, '/');
 
     return TemplateResponse::render(__DIR__ . '/index.twig', [

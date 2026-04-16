@@ -5,8 +5,6 @@ use App\Utils\LocationUtils;
 use App\Utils\MessageUtil;
 use App\Utils\Router;
 use App\Utils\TemplateResponse;
-use App\Repositories\StoreProductsAudiencesRepository;
-use App\Repositories\StoreProductsMealStylesRepository;
 
 $router = new Router();
 
@@ -26,12 +24,6 @@ $router->get(function () {
         MessageUtil::setMessage("Product not found.");
         LocationUtils::redirectInternal("panel/planner-hub/store/products/home");
     }
-
-    $audiencesRepo = new StoreProductsAudiencesRepository();
-    $mealStylesRepo = new StoreProductsMealStylesRepository();
-
-    $product->audiences = $audiencesRepo->getAudienceTypesByProduct($id);
-    $product->meal_styles = $mealStylesRepo->getMealStylesByProduct($id);
 
     return TemplateResponse::render(__DIR__ . "/index.twig", [
         "product" => $product

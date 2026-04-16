@@ -1,28 +1,22 @@
 {% extends "templates/base.twig" %}
 
-{% set show_whatsapp = true %}
-
 {% block styles %}
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
 <style>
 :root{
-    --gourmet-primary:#f59e0b;
-    --gourmet-primary-dark:#d97706;
-    --gourmet-accent:#fb923c;
-    --gourmet-cream:#fff8ef;
-    --gourmet-soft:#fff3df;
-    --gourmet-dark:#1f1307;
-    --gourmet-text:#2d241c;
-    --gourmet-muted:#6f6255;
-    --gourmet-border:#ecd9bf;
-    --gourmet-success:#16a34a;
-    --gourmet-danger:#dc2626;
-    --gourmet-shadow:0 18px 44px rgba(79,43,8,.10);
+    --store-primary:#111827;
+    --store-accent:#1f2937;
+    --store-soft:#f8fafc;
+    --store-muted:#6b7280;
+    --store-border:#e5e7eb;
+    --store-success:#16a34a;
+    --store-danger:#dc2626;
+    --store-shadow:0 18px 44px rgba(15,23,42,.08);
 }
 
 body{
-    color:var(--gourmet-text);
-    background:#fffaf4;
+    color:#111827;
+    background:#f8fafc;
 }
 
 .cart-wrap{
@@ -32,11 +26,11 @@ body{
 }
 
 .cart-header{
-    background:linear-gradient(135deg,#fff6e8 0%, #fffdf8 100%);
-    border:1px solid var(--gourmet-border);
+    background:linear-gradient(135deg,#ffffff 0%, #f8fafc 100%);
+    border:1px solid var(--store-border);
     border-radius:28px;
     padding:2rem 1.5rem;
-    box-shadow:var(--gourmet-shadow);
+    box-shadow:var(--store-shadow);
     margin-bottom:1.5rem;
 }
 
@@ -45,12 +39,12 @@ body{
     font-weight:900;
     font-size:clamp(2rem,4vw,3rem);
     line-height:1.05;
-    color:var(--gourmet-dark);
+    color:#111827;
     margin-bottom:.75rem;
 }
 
 .cart-subtitle{
-    color:var(--gourmet-muted);
+    color:var(--store-muted);
     line-height:1.8;
     max-width:820px;
     margin:0;
@@ -64,9 +58,9 @@ body{
 
 .cart-card{
     background:#fff;
-    border:1px solid #efdec5;
+    border:1px solid var(--store-border);
     border-radius:26px;
-    box-shadow:var(--gourmet-shadow);
+    box-shadow:var(--store-shadow);
     overflow:hidden;
 }
 
@@ -77,17 +71,17 @@ body{
 .cart-section-title{
     font-size:1.35rem;
     font-weight:900;
-    color:var(--gourmet-dark);
+    color:#111827;
     margin-bottom:1rem;
 }
 
 .cart-empty{
     text-align:center;
     padding:3rem 1rem;
-    color:var(--gourmet-muted);
-    border:1px dashed #ead6b9;
+    color:var(--store-muted);
+    border:1px dashed #d1d5db;
     border-radius:18px;
-    background:#fffdf9;
+    background:#fcfcfd;
 }
 
 .cart-items{
@@ -101,10 +95,10 @@ body{
     grid-template-columns:90px 1fr auto;
     gap:1rem;
     align-items:center;
-    border:1px solid #efdec7;
+    border:1px solid var(--store-border);
     border-radius:20px;
     padding:1rem;
-    background:#fffdf9;
+    background:#fcfcfd;
 }
 
 .cart-item-image{
@@ -112,25 +106,44 @@ body{
     height:90px;
     object-fit:cover;
     border-radius:16px;
-    background:#f6f6f6;
+    background:#f3f4f6;
 }
 
 .cart-item-title{
     font-weight:900;
-    color:var(--gourmet-dark);
+    color:#111827;
     margin-bottom:.25rem;
 }
 
 .cart-item-desc{
-    color:var(--gourmet-muted);
+    color:var(--store-muted);
     line-height:1.6;
     font-size:.94rem;
     margin-bottom:.5rem;
 }
 
+.cart-item-meta{
+    display:flex;
+    flex-wrap:wrap;
+    gap:.45rem;
+    margin-bottom:.45rem;
+}
+
+.cart-item-chip{
+    display:inline-flex;
+    align-items:center;
+    padding:.38rem .7rem;
+    border-radius:999px;
+    background:#f3f4f6;
+    border:1px solid var(--store-border);
+    color:#374151;
+    font-size:.76rem;
+    font-weight:800;
+}
+
 .cart-item-price{
     font-weight:900;
-    color:var(--gourmet-primary-dark);
+    color:#111827;
 }
 
 .cart-item-actions{
@@ -150,9 +163,9 @@ body{
     width:34px;
     height:34px;
     border-radius:50%;
-    border:1px solid #e9d3ad;
-    background:#fff8ec;
-    color:#7b4700;
+    border:1px solid #d1d5db;
+    background:#fff;
+    color:#111827;
     font-weight:900;
     cursor:pointer;
 }
@@ -161,7 +174,7 @@ body{
     min-width:24px;
     text-align:center;
     font-weight:900;
-    color:var(--gourmet-dark);
+    color:#111827;
 }
 
 .remove-btn{
@@ -176,8 +189,8 @@ body{
 }
 
 .summary-box{
-    background:linear-gradient(135deg,#fff5e6, #fffdf9);
-    border:1px solid #efd4a9;
+    background:linear-gradient(135deg,#ffffff, #f8fafc);
+    border:1px solid var(--store-border);
     border-radius:22px;
     padding:1rem;
     margin-bottom:1rem;
@@ -188,7 +201,7 @@ body{
     justify-content:space-between;
     gap:1rem;
     padding:.45rem 0;
-    color:#4f463d;
+    color:#4b5563;
 }
 
 .summary-row.discount{
@@ -197,18 +210,18 @@ body{
 }
 
 .summary-row.total{
-    border-top:1px dashed #ebd6b2;
+    border-top:1px dashed #d1d5db;
     margin-top:.35rem;
     padding-top:.9rem;
     font-weight:900;
-    color:var(--gourmet-dark);
+    color:#111827;
     font-size:1.05rem;
 }
 
 .coupon-inline{
     margin-top:.85rem;
     padding-top:.85rem;
-    border-top:1px dashed #ebd6b2;
+    border-top:1px dashed #d1d5db;
 }
 
 .coupon-inline-row{
@@ -227,7 +240,7 @@ body{
 }
 
 .coupon-applied-note.pending{
-    color:#8b4f00;
+    color:#92400e;
     display:block;
 }
 
@@ -243,28 +256,28 @@ body{
     display:block;
     font-weight:800;
     margin-bottom:.45rem;
-    color:#4d3c28;
+    color:#374151;
 }
 
 .field input{
     width:100%;
-    border:1px solid #e9d7bd;
+    border:1px solid #d1d5db;
     border-radius:14px;
     padding:.95rem 1rem;
-    background:#fffdfa;
-    color:#2d241c;
+    background:#fff;
+    color:#111827;
     outline:none;
 }
 
 .field input:focus{
-    border-color:#f59e0b;
-    box-shadow:0 0 0 4px rgba(245,158,11,.10);
+    border-color:#111827;
+    box-shadow:0 0 0 4px rgba(17,24,39,.08);
     background:#fff;
 }
 
 .btn-main{
-    background:linear-gradient(135deg,var(--gourmet-primary),var(--gourmet-accent));
-    color:#23160a !important;
+    background:#111827;
+    color:#fff !important;
     padding:1rem 1.75rem;
     font-size:1rem;
     border-radius:999px;
@@ -275,7 +288,7 @@ body{
     align-items:center;
     justify-content:center;
     border:none;
-    box-shadow:0 12px 28px rgba(245,158,11,.28);
+    box-shadow:0 12px 28px rgba(17,24,39,.18);
     transition:all .22s ease;
     width:100%;
 }
@@ -285,8 +298,8 @@ body{
     font-size:1rem;
     border-radius:999px;
     font-weight:800;
-    border:1.2px solid #f1d1a3;
-    color:var(--gourmet-dark) !important;
+    border:1.2px solid #d1d5db;
+    color:#111827 !important;
     background:#fff;
     text-decoration:none;
     display:inline-flex;
@@ -297,115 +310,10 @@ body{
 }
 
 .cart-note{
-    color:var(--gourmet-muted);
+    color:var(--store-muted);
     font-size:.92rem;
     line-height:1.7;
     margin-top:.75rem;
-}
-
-.cart-membership-box{
-    border:1px solid #efd4a9;
-    background:linear-gradient(135deg,#fffaf2, #fffdf9);
-    border-radius:22px;
-    padding:1rem;
-    margin-bottom:1rem;
-}
-
-.cart-membership-top{
-    display:flex;
-    justify-content:space-between;
-    align-items:flex-start;
-    gap:1rem;
-    margin-bottom:.75rem;
-}
-
-.cart-membership-title{
-    font-weight:900;
-    color:var(--gourmet-dark);
-    margin-bottom:.2rem;
-}
-
-.cart-membership-copy{
-    color:var(--gourmet-muted);
-    line-height:1.65;
-    font-size:.94rem;
-    margin:0;
-}
-
-.membership-status{
-    display:inline-flex;
-    align-items:center;
-    gap:.45rem;
-    padding:.45rem .75rem;
-    border-radius:999px;
-    font-size:.82rem;
-    font-weight:900;
-    background:#ecfdf3;
-    color:#166534;
-    border:1px solid #bbf7d0;
-    white-space:nowrap;
-}
-
-.membership-status.off{
-    background:#f8fafc;
-    color:#475569;
-    border:1px solid #cbd5e1;
-}
-
-.membership-switch-row{
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    gap:1rem;
-    flex-wrap:wrap;
-}
-
-.membership-switch-label{
-    font-weight:800;
-    color:#4d3c28;
-}
-
-.switch{
-    position:relative;
-    display:inline-block;
-    width:62px;
-    height:34px;
-}
-
-.switch input{
-    opacity:0;
-    width:0;
-    height:0;
-}
-
-.slider{
-    position:absolute;
-    inset:0;
-    cursor:pointer;
-    background:#d6d3d1;
-    transition:.22s;
-    border-radius:999px;
-}
-
-.slider:before{
-    position:absolute;
-    content:"";
-    height:26px;
-    width:26px;
-    left:4px;
-    top:4px;
-    background:white;
-    transition:.22s;
-    border-radius:50%;
-    box-shadow:0 4px 10px rgba(0,0,0,.12);
-}
-
-.switch input:checked + .slider{
-    background:linear-gradient(135deg,var(--gourmet-primary),var(--gourmet-accent));
-}
-
-.switch input:checked + .slider:before{
-    transform:translateX(28px);
 }
 
 .alert-box{
@@ -443,12 +351,6 @@ body{
         align-items:flex-start;
     }
 
-    .cart-membership-top,
-    .membership-switch-row{
-        flex-direction:column;
-        align-items:flex-start;
-    }
-
     .coupon-inline-row{
         grid-template-columns:1fr;
     }
@@ -459,16 +361,16 @@ body{
 {% block body %}
 <main class="cart-wrap">
     <section class="cart-header">
-        <h1 class="cart-title">Your meal cart</h1>
+        <h1 class="cart-title">Your cart</h1>
         <p class="cart-subtitle">
-            Review your selected meals, update quantities, and continue to checkout. Membership is enabled by default, but you can turn it off here.
+            Review selected products, update quantities, and continue to checkout.
         </p>
     </section>
 
     <section class="cart-shell">
         <div class="cart-card">
             <div class="cart-card-body">
-                <h2 class="cart-section-title">Selected meals</h2>
+                <h2 class="cart-section-title">Selected items</h2>
 
                 <div class="alert-box alert-error" id="cartErrorBox"></div>
                 <div class="alert-box alert-success" id="cartSuccessBox"></div>
@@ -476,7 +378,7 @@ body{
                 <div id="cartItemsWrap"></div>
 
                 <div class="cart-note">
-                    You need at least <strong>5 meals</strong> in the cart to continue. You can mix different meals in any quantity.
+                    Update quantities, remove items, or continue when everything looks right.
                 </div>
             </div>
         </div>
@@ -487,12 +389,12 @@ body{
 
                 <div class="summary-box">
                     <div class="summary-row">
-                        <span>Meals selected</span>
-                        <strong id="summaryMealsCount">0</strong>
+                        <span>Items</span>
+                        <strong id="summaryItemsCount">0</strong>
                     </div>
                     <div class="summary-row">
-                        <span>Membership</span>
-                        <strong id="summaryPricingMode">ON</strong>
+                        <span>Quantity total</span>
+                        <strong id="summaryQuantityTotal">0</strong>
                     </div>
                     <div class="summary-row">
                         <span>Subtotal</span>
@@ -508,7 +410,7 @@ body{
                     </div>
 
                     <div class="coupon-inline">
-                        <label for="cart_coupon_code" style="display:block;font-weight:800;margin-bottom:.45rem;color:#4d3c28;">
+                        <label for="cart_coupon_code" style="display:block;font-weight:800;margin-bottom:.45rem;color:#374151;">
                             Coupon code
                         </label>
 
@@ -518,28 +420,6 @@ body{
                         </div>
 
                         <div class="coupon-applied-note" id="couponAppliedNote"></div>
-                    </div>
-                </div>
-
-                <div class="cart-membership-box">
-                    <div class="cart-membership-top">
-                        <div>
-                            <div class="cart-membership-title">Weekly membership</div>
-                            <p class="cart-membership-copy">
-                                Leave this on if you want this cart to become a recurring membership after checkout.
-                            </p>
-                        </div>
-
-                        <span class="membership-status" id="membershipStatusBadge">ACTIVE</span>
-                    </div>
-
-                    <div class="membership-switch-row">
-                        <div class="membership-switch-label">Enable membership</div>
-
-                        <label class="switch">
-                            <input type="checkbox" id="membership_enabled" checked>
-                            <span class="slider"></span>
-                        </label>
                     </div>
                 </div>
 
@@ -562,8 +442,8 @@ body{
                     <i class="fa-solid fa-arrow-right"></i> Continue to checkout
                 </button>
 
-                <a href="{{ path('/meal-plans') }}" class="btn-light mt-3">
-                    <i class="fa-solid fa-arrow-left"></i> Back to meal plans
+                <a href="{{ path('/store') }}" class="btn-light mt-3">
+                    <i class="fa-solid fa-arrow-left"></i> Back to store
                 </a>
             </div>
         </div>
@@ -574,24 +454,21 @@ body{
 {% block scripts %}
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-    const CHECKOUT_KEY = 'vnv_gourmet_checkout_selection';
-    const DRAFT_KEY = 'vnv_gourmet_cart_draft';
-    const SESSION_KEY = 'vnv_gourmet_cart_session_token';
+    const CART_KEY = 'store_cart_selection';
+    const SESSION_KEY = 'store_cart_session_token';
 
     const cartWrap = document.getElementById('cartItemsWrap');
     const errorBox = document.getElementById('cartErrorBox');
     const successBox = document.getElementById('cartSuccessBox');
 
-    const summaryMealsCount = document.getElementById('summaryMealsCount');
-    const summaryPricingMode = document.getElementById('summaryPricingMode');
+    const summaryItemsCount = document.getElementById('summaryItemsCount');
+    const summaryQuantityTotal = document.getElementById('summaryQuantityTotal');
     const summarySubtotal = document.getElementById('summarySubtotal');
     const summaryDiscountRow = document.getElementById('summaryDiscountRow');
     const summaryDiscount = document.getElementById('summaryDiscount');
     const summaryTotal = document.getElementById('summaryTotal');
     const couponAppliedNote = document.getElementById('couponAppliedNote');
 
-    const membershipEnabledInput = document.getElementById('membership_enabled');
-    const membershipStatusBadge = document.getElementById('membershipStatusBadge');
     const saveCartBtn = document.getElementById('saveCartBtn');
     const guestNameInput = document.getElementById('cart_guest_name');
     const guestEmailInput = document.getElementById('cart_guest_email');
@@ -600,11 +477,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const applyCouponBtnCart = document.getElementById('applyCouponBtnCart');
 
     let state = {
-        audience: '',
-        mealStyle: '',
         items: [],
-        membershipEnabled: true,
-        pricingMode: 'SUBSCRIPTION',
         guestName: '',
         guestEmail: '',
         guestPhone: '',
@@ -629,6 +502,16 @@ document.addEventListener('DOMContentLoaded', function () {
         successBox.style.display = 'none';
     }
 
+    function toInt(value, fallback) {
+        const n = parseInt(value, 10);
+        return Number.isFinite(n) ? n : fallback;
+    }
+
+    function toFloat(value, fallback) {
+        const n = parseFloat(value);
+        return Number.isFinite(n) ? n : fallback;
+    }
+
     function formatUSPhoneDisplay(value) {
         const digits = String(value || '').replace(/\D/g, '').slice(0, 10);
         const area = digits.slice(0, 3);
@@ -641,32 +524,21 @@ document.addEventListener('DOMContentLoaded', function () {
         return `(${area}) ${exch}-${line}`;
     }
 
-    function syncPricingMode() {
-        state.pricingMode = state.membershipEnabled ? 'SUBSCRIPTION' : 'PAYG';
-    }
-
     function loadSelection() {
         try {
-            const raw = localStorage.getItem(CHECKOUT_KEY);
+            const raw = localStorage.getItem(CART_KEY);
             if (!raw) {
                 return false;
             }
 
             const selection = JSON.parse(raw);
 
-            state.audience = selection.audience || '';
-            state.mealStyle = selection.meal_style || '';
             state.items = Array.isArray(selection.items) ? selection.items : [];
-            state.membershipEnabled = typeof selection.membership_enabled === 'boolean'
-                ? selection.membership_enabled
-                : true;
             state.guestName = selection.guest_name || '';
             state.guestEmail = selection.guest_email || '';
             state.guestPhone = selection.guest_phone || '';
             state.couponCode = selection.coupon_code || '';
             state.discount = Number(selection.discount || 0);
-
-            syncPricingMode();
 
             return state.items.length > 0;
         } catch (e) {
@@ -677,50 +549,34 @@ document.addEventListener('DOMContentLoaded', function () {
     function persistSelection() {
         const totals = computeTotals();
 
-        localStorage.setItem(CHECKOUT_KEY, JSON.stringify({
+        localStorage.setItem(CART_KEY, JSON.stringify({
             source: 'cart',
-            audience: state.audience,
-            meal_style: state.mealStyle,
-            membership_enabled: state.membershipEnabled,
-            pricing_mode: state.pricingMode,
+            pricing_mode: 'PAYG',
             guest_name: state.guestName,
             guest_email: state.guestEmail,
             guest_phone: state.guestPhone,
             coupon_code: state.couponCode,
             discount: Number(state.discount || 0),
-            total_meals: totals.meals,
+            items_count: totals.itemsCount,
+            quantity_total: totals.quantityTotal,
             subtotal: totals.subtotal,
             total: totals.total,
             items: state.items,
             saved_at: new Date().toISOString()
         }));
-
-        const quantities = {};
-        state.items.forEach(item => {
-            quantities[item.id] = item.quantity;
-        });
-
-        localStorage.setItem(DRAFT_KEY, JSON.stringify({
-            audience: state.audience,
-            mealStyle: state.mealStyle,
-            quantities: quantities
-        }));
-    }
-
-    function getUnitPrice(item) {
-        return Number(item.price || 0);
     }
 
     function computeTotals() {
-        let meals = 0;
+        let quantityTotal = 0;
         let subtotal = 0;
 
         state.items.forEach(item => {
-            const qty = parseInt(item.quantity || 0, 10);
-            const unitPrice = getUnitPrice(item);
+            const qty = Math.max(0, toInt(item.quantity || 0, 0));
+            const unitPrice = toFloat(item.unit_price || item.price || 0, 0);
 
-            meals += qty;
+            quantityTotal += qty;
             subtotal += qty * unitPrice;
+            item.line_total = Number((qty * unitPrice).toFixed(2));
         });
 
         subtotal = Number(subtotal.toFixed(2));
@@ -728,7 +584,8 @@ document.addEventListener('DOMContentLoaded', function () {
         const total = Number(Math.max(0, subtotal - discount).toFixed(2));
 
         return {
-            meals,
+            itemsCount: state.items.length,
+            quantityTotal,
             subtotal,
             discount,
             total
@@ -746,14 +603,10 @@ document.addEventListener('DOMContentLoaded', function () {
     function renderSummary() {
         const totals = computeTotals();
 
-        summaryMealsCount.textContent = totals.meals;
-        summaryPricingMode.textContent = state.membershipEnabled ? 'ON' : 'OFF';
+        summaryItemsCount.textContent = totals.itemsCount;
+        summaryQuantityTotal.textContent = totals.quantityTotal;
         summarySubtotal.textContent = `$${totals.subtotal.toFixed(2)}`;
         summaryTotal.textContent = `$${totals.total.toFixed(2)}`;
-
-        membershipStatusBadge.textContent = state.membershipEnabled ? 'ACTIVE' : 'DISABLED';
-        membershipStatusBadge.classList.toggle('off', !state.membershipEnabled);
-        membershipEnabledInput.checked = !!state.membershipEnabled;
 
         if (totals.discount > 0) {
             summaryDiscountRow.style.display = 'flex';
@@ -779,7 +632,7 @@ document.addEventListener('DOMContentLoaded', function () {
         if (!state.items.length) {
             cartWrap.innerHTML = `
                 <div class="cart-empty">
-                    Your cart is empty. Please go back and choose your meals first.
+                    Your cart is empty. Please start by selecting products.
                 </div>
             `;
             renderSummary();
@@ -788,28 +641,36 @@ document.addEventListener('DOMContentLoaded', function () {
 
         cartWrap.innerHTML = `
             <div class="cart-items">
-                ${state.items.map(item => `
+                ${state.items.map((item, idx) => `
                     <div class="cart-item">
                         ${
                             item.main_image
-                                ? `<img src="${item.main_image}" alt="${item.name}" class="cart-item-image">`
+                                ? `<img src="${item.main_image}" alt="${item.product_name || item.name || ''}" class="cart-item-image">`
                                 : `<div class="cart-item-image d-flex align-items-center justify-content-center text-muted">No image</div>`
                         }
 
                         <div>
-                            <div class="cart-item-title">${item.name}</div>
-                            <div class="cart-item-desc">${item.short_description || 'Chef-prepared meal option.'}</div>
-                            <div class="cart-item-price">$${getUnitPrice(item).toFixed(2)} each</div>
+                            <div class="cart-item-title">${item.product_name || item.name || 'Product'}</div>
+                            <div class="cart-item-desc">${item.short_description || 'Selected store item.'}</div>
+
+                            <div class="cart-item-meta">
+                                ${item.variation_name ? `<span class="cart-item-chip">${item.variation_name}</span>` : ''}
+                                ${(Array.isArray(item.variation_options) ? item.variation_options : []).map(opt => `
+                                    <span class="cart-item-chip">${opt.attribute_name}: ${opt.attribute_value}</span>
+                                `).join('')}
+                            </div>
+
+                            <div class="cart-item-price">$${toFloat(item.unit_price || item.price || 0, 0).toFixed(2)} each</div>
                         </div>
 
                         <div class="cart-item-actions">
                             <div class="qty-box">
-                                <button type="button" class="qty-btn" data-action="minus" data-id="${item.id}">−</button>
+                                <button type="button" class="qty-btn" data-action="minus" data-index="${idx}">−</button>
                                 <span class="qty-value">${item.quantity}</span>
-                                <button type="button" class="qty-btn" data-action="plus" data-id="${item.id}">+</button>
+                                <button type="button" class="qty-btn" data-action="plus" data-index="${idx}">+</button>
                             </div>
 
-                            <button type="button" class="remove-btn" data-action="remove" data-id="${item.id}">
+                            <button type="button" class="remove-btn" data-action="remove" data-index="${idx}">
                                 Remove
                             </button>
                         </div>
@@ -821,31 +682,38 @@ document.addEventListener('DOMContentLoaded', function () {
         renderSummary();
     }
 
-    function findItem(id) {
-        return state.items.find(item => parseInt(item.id, 10) === parseInt(id, 10));
-    }
-
     cartWrap.addEventListener('click', function (e) {
         const btn = e.target.closest('[data-action]');
         if (!btn) return;
 
         const action = btn.dataset.action;
-        const id = parseInt(btn.dataset.id, 10);
-        const item = findItem(id);
+        const index = parseInt(btn.dataset.index, 10);
+        const item = state.items[index];
 
         if (!item) return;
 
         let currentQty = parseInt(item.quantity || 0, 10);
         const stockQty = parseInt(item.stock_quantity || 0, 10);
+        const minQty = Math.max(1, parseInt(item.min_purchase_qty || 1, 10));
+        const maxQty = item.max_purchase_qty !== null && item.max_purchase_qty !== undefined && item.max_purchase_qty !== ''
+            ? Math.max(1, parseInt(item.max_purchase_qty, 10))
+            : null;
 
         if (action === 'plus') {
-            if (stockQty === 0 || currentQty < stockQty) {
-                currentQty++;
+            currentQty++;
+            if (stockQty > 0) {
+                currentQty = Math.min(currentQty, stockQty);
+            }
+            if (maxQty !== null) {
+                currentQty = Math.min(currentQty, maxQty);
             }
         }
 
         if (action === 'minus') {
             currentQty = Math.max(0, currentQty - 1);
+            if (currentQty > 0) {
+                currentQty = Math.max(currentQty, minQty);
+            }
         }
 
         if (action === 'remove') {
@@ -858,15 +726,6 @@ document.addEventListener('DOMContentLoaded', function () {
         markCouponForReapply();
         persistSelection();
         renderItems();
-        hideMessages();
-    });
-
-    membershipEnabledInput.addEventListener('change', function () {
-        state.membershipEnabled = !!this.checked;
-        syncPricingMode();
-        markCouponForReapply();
-        persistSelection();
-        renderSummary();
         hideMessages();
     });
 
@@ -901,18 +760,16 @@ document.addEventListener('DOMContentLoaded', function () {
         const sessionToken = localStorage.getItem(SESSION_KEY) || '';
 
         return {
-            audience: state.audience,
-            meal_style: state.mealStyle,
             guest_name: state.guestName || '',
             guest_email: state.guestEmail || '',
             guest_phone: state.guestPhone || '',
             city: '',
             coupon_code: state.couponCode || '',
-            membership_enabled: state.membershipEnabled,
-            pricing_mode: state.pricingMode,
+            pricing_mode: 'PAYG',
             session_token: sessionToken,
             items: state.items.map(item => ({
-                id_product: item.id,
+                id_product: item.id_product || item.id,
+                id_product_variation: item.id_product_variation || null,
                 quantity: item.quantity
             }))
         };
@@ -927,10 +784,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
         hideMessages();
 
-        const totals = computeTotals();
-
-        if (totals.meals < 5) {
-            showError('You need at least 5 meals to continue.');
+        if (!state.items.length) {
+            showError('Your cart is empty.');
             return;
         }
 
@@ -1016,14 +871,13 @@ document.addEventListener('DOMContentLoaded', function () {
         if (!hasSelection) {
             cartWrap.innerHTML = `
                 <div class="cart-empty">
-                    Your cart is empty. Please start by selecting your meals.
+                    Your cart is empty. Please start by selecting products.
                 </div>
             `;
             renderSummary();
             return;
         }
 
-        membershipEnabledInput.checked = !!state.membershipEnabled;
         if (guestNameInput) guestNameInput.value = state.guestName || '';
         if (guestEmailInput) guestEmailInput.value = state.guestEmail || '';
         if (guestPhoneInput) guestPhoneInput.value = formatUSPhoneDisplay(state.guestPhone || '');

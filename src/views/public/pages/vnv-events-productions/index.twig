@@ -1,0 +1,501 @@
+{% extends "templates/base.twig" %}
+
+{% block title %}
+    VNV Events Productions
+{% endblock %}
+
+{% block meta_description %}
+    Discover VNV Events Productions: signature experiences built around business, culture, nostalgia, and meaningful community connection.
+{% endblock %}
+
+{% block body %}
+<style>
+    :root{
+        --vep-bg:#f8fafc;
+        --vep-card:#ffffff;
+        --vep-text:#111827;
+        --vep-muted:#6b7280;
+        --vep-border:#e5e7eb;
+        --vep-dark:#0f172a;
+        --vep-accent:#bfa46f;
+        --vep-accent-2:#d6c29a;
+        --vep-shadow:0 18px 44px rgba(15,23,42,.08);
+    }
+
+    body{
+        background:var(--vep-bg);
+        color:var(--vep-text);
+    }
+
+    .vep-wrap{
+        max-width:1280px;
+        margin:0 auto;
+        padding:2rem 1rem 4rem;
+    }
+
+    .vep-hero{
+        position:relative;
+        overflow:hidden;
+        border-radius:30px;
+        padding:3rem 1.5rem;
+        background:
+            radial-gradient(900px 420px at 0% 0%, rgba(255,255,255,.08), transparent 60%),
+            linear-gradient(135deg, #111827 0%, #1f2937 55%, #374151 100%);
+        color:#fff;
+        box-shadow:0 24px 60px rgba(15,23,42,.18);
+        margin-bottom:1.5rem;
+    }
+
+    .vep-hero::after{
+        content:"";
+        position:absolute;
+        right:-80px;
+        top:-80px;
+        width:260px;
+        height:260px;
+        background:radial-gradient(circle, rgba(255,255,255,.12) 0%, rgba(255,255,255,0) 70%);
+        pointer-events:none;
+    }
+
+    .vep-hero > *{
+        position:relative;
+        z-index:2;
+    }
+
+    .vep-badge{
+        display:inline-flex;
+        align-items:center;
+        gap:.5rem;
+        padding:.58rem .95rem;
+        border-radius:999px;
+        font-size:.9rem;
+        font-weight:800;
+        background:rgba(255,255,255,.10);
+        border:1px solid rgba(255,255,255,.14);
+        color:#f3f4f6;
+        margin-bottom:1rem;
+    }
+
+    .vep-hero h1{
+        font-size:clamp(2.2rem,5vw,4.2rem);
+        line-height:1.02;
+        letter-spacing:-.04em;
+        font-weight:900;
+        margin:0 0 .8rem;
+    }
+
+    .vep-hero p{
+        max-width:840px;
+        color:#e5e7eb;
+        line-height:1.8;
+        font-size:1.04rem;
+        margin:0 0 1.4rem;
+    }
+
+    .vep-hero-actions{
+        display:flex;
+        flex-wrap:wrap;
+        gap:.8rem;
+    }
+
+    .vep-btn{
+        display:inline-flex;
+        align-items:center;
+        justify-content:center;
+        gap:.5rem;
+        text-decoration:none;
+        border-radius:999px;
+        padding:1rem 1.4rem;
+        font-weight:900;
+        transition:all .2s ease;
+    }
+
+    .vep-btn-main{
+        background:#fff;
+        color:#111827;
+        box-shadow:0 12px 28px rgba(255,255,255,.18);
+    }
+
+    .vep-btn-main:hover{
+        transform:translateY(-2px);
+        background:#f9fafb;
+        color:#111827;
+    }
+
+    .vep-btn-soft{
+        background:rgba(255,255,255,.08);
+        border:1px solid rgba(255,255,255,.16);
+        color:#fff;
+    }
+
+    .vep-btn-soft:hover{
+        transform:translateY(-2px);
+        color:#fff;
+        background:rgba(255,255,255,.12);
+    }
+
+    .vep-intro{
+        background:#fff;
+        border:1px solid var(--vep-border);
+        border-radius:24px;
+        box-shadow:var(--vep-shadow);
+        padding:1.5rem;
+        margin-bottom:1.5rem;
+    }
+
+    .vep-intro h2{
+        font-size:1.4rem;
+        font-weight:900;
+        margin-bottom:.5rem;
+        color:var(--vep-dark);
+    }
+
+    .vep-intro p{
+        margin:0;
+        color:var(--vep-muted);
+        line-height:1.85;
+    }
+
+    .vep-grid{
+        display:grid;
+        grid-template-columns:repeat(2,minmax(0,1fr));
+        gap:1.2rem;
+        margin-bottom:1.5rem;
+    }
+
+    .vep-card{
+        background:#fff;
+        border:1px solid var(--vep-border);
+        border-radius:26px;
+        overflow:hidden;
+        box-shadow:var(--vep-shadow);
+        display:flex;
+        flex-direction:column;
+    }
+
+    .vep-card-image{
+        width:100%;
+        height:260px;
+        object-fit:cover;
+        background:#f3f4f6;
+    }
+
+    .vep-card-body{
+        padding:1.35rem;
+    }
+
+    .vep-card-tag{
+        display:inline-flex;
+        align-items:center;
+        padding:.45rem .8rem;
+        border-radius:999px;
+        background:#f8fafc;
+        border:1px solid var(--vep-border);
+        color:#475569;
+        font-size:.78rem;
+        font-weight:800;
+        margin-bottom:.85rem;
+    }
+
+    .vep-card h3{
+        font-size:1.35rem;
+        font-weight:900;
+        line-height:1.12;
+        margin:0 0 .65rem;
+        color:var(--vep-dark);
+    }
+
+    .vep-card p{
+        color:var(--vep-muted);
+        line-height:1.8;
+        margin-bottom:1rem;
+    }
+
+    .vep-list{
+        margin:0 0 1rem;
+        padding-left:1.1rem;
+        color:#475569;
+    }
+
+    .vep-list li{
+        margin-bottom:.45rem;
+        line-height:1.6;
+    }
+
+    .vep-card-foot{
+        display:flex;
+        flex-wrap:wrap;
+        gap:.65rem;
+    }
+
+    .vep-chip{
+        display:inline-flex;
+        align-items:center;
+        padding:.45rem .78rem;
+        border-radius:999px;
+        background:#f8fafc;
+        border:1px solid var(--vep-border);
+        color:#334155;
+        font-size:.76rem;
+        font-weight:800;
+    }
+
+    .vep-sponsor{
+        background:linear-gradient(135deg,#fff 0%, #f8fafc 100%);
+        border:1px solid var(--vep-border);
+        border-radius:26px;
+        box-shadow:var(--vep-shadow);
+        padding:1.5rem;
+        margin-bottom:1.5rem;
+    }
+
+    .vep-sponsor h2{
+        font-size:1.45rem;
+        font-weight:900;
+        margin-bottom:.55rem;
+        color:var(--vep-dark);
+    }
+
+    .vep-sponsor p{
+        color:var(--vep-muted);
+        line-height:1.8;
+        margin-bottom:1rem;
+        max-width:840px;
+    }
+
+    .vep-sponsor-grid{
+        display:grid;
+        grid-template-columns:repeat(2,minmax(0,1fr));
+        gap:1rem;
+    }
+
+    .vep-sponsor-box{
+        background:#fff;
+        border:1px solid var(--vep-border);
+        border-radius:20px;
+        padding:1rem;
+    }
+
+    .vep-sponsor-box strong{
+        display:block;
+        color:var(--vep-dark);
+        font-size:1rem;
+        margin-bottom:.25rem;
+    }
+
+    .vep-sponsor-box span{
+        display:block;
+        color:var(--vep-muted);
+        line-height:1.7;
+        font-size:.94rem;
+    }
+
+    .vep-cta{
+        background:#fff;
+        border:1px solid var(--vep-border);
+        border-radius:26px;
+        box-shadow:var(--vep-shadow);
+        padding:1.8rem 1.5rem;
+        text-align:center;
+    }
+
+    .vep-cta h2{
+        font-size:1.6rem;
+        font-weight:900;
+        margin-bottom:.55rem;
+        color:var(--vep-dark);
+    }
+
+    .vep-cta p{
+        max-width:760px;
+        margin:0 auto 1.2rem;
+        color:var(--vep-muted);
+        line-height:1.8;
+    }
+
+    .vep-cta-actions{
+        display:flex;
+        justify-content:center;
+        gap:.8rem;
+        flex-wrap:wrap;
+    }
+
+    @media (max-width: 991px){
+        .vep-grid,
+        .vep-sponsor-grid{
+            grid-template-columns:1fr;
+        }
+    }
+
+    @media (max-width: 640px){
+        .vep-wrap{
+            padding-top:1.2rem;
+        }
+
+        .vep-hero{
+            padding:2rem 1rem;
+            border-radius:24px;
+        }
+
+        .vep-card-image{
+            height:220px;
+        }
+
+        .vep-hero-actions,
+        .vep-cta-actions{
+            flex-direction:column;
+        }
+
+        .vep-btn{
+            width:100%;
+        }
+    }
+</style>
+
+<main class="vep-wrap">
+
+    <section class="vep-hero">
+        <span class="vep-badge">VNV Events Productions</span>
+        <h1>Experiences designed to connect, inspire, and leave a mark.</h1>
+        <p>
+            VNV Events Productions brings together community, creativity, business, and lifestyle through a growing collection of signature experiences. Each event is designed with intention — not only to entertain, but to create memorable environments where people connect, brands grow, and ideas come to life.
+        </p>
+
+        <div class="vep-hero-actions">
+            <a href="#events" class="vep-btn vep-btn-main">Explore Events</a>
+            <a href="/new-request" class="vep-btn vep-btn-soft">Sponsor or Collaborate</a>
+        </div>
+    </section>
+
+    <section class="vep-intro">
+        <h2>A curated series of original event concepts</h2>
+        <p>
+            Our productions are built around different audience interests while keeping one common standard: strong aesthetics, intentional programming, and real community value. From business-focused networking to nostalgic lifestyle concepts, every production is created to feel distinctive and professionally executed.
+        </p>
+    </section>
+
+    <section id="events" class="vep-grid">
+
+        <article class="vep-card">
+            <img src="{{ asset_for('assets/images/productions/vanguarg-business-gala.jpg') }}" alt="Vanguarg Business Gala" class="vep-card-image">
+            <div class="vep-card-body">
+                <span class="vep-card-tag">Flagship Networking Experience</span>
+                <h3>Vanguarg Business Gala</h3>
+                <p>
+                    An elevated evening designed for entrepreneurs, executives, and decision-makers who value real connection in a polished environment. This concept is still being defined, but the vision points toward a refined dinner-driven experience with curated speakers, elegant production, and meaningful networking.
+                </p>
+                <ul class="vep-list">
+                    <li>Premium audience and elevated atmosphere</li>
+                    <li>Ideal for sponsors seeking prestige and visibility</li>
+                    <li>Built for high-value conversations and long-term brand positioning</li>
+                </ul>
+                <div class="vep-card-foot">
+                    <span class="vep-chip">T.B.A.</span>
+                    <span class="vep-chip">Business</span>
+                    <span class="vep-chip">Formal Gala</span>
+                </div>
+            </div>
+        </article>
+
+        <article class="vep-card">
+            <img src="{{ asset_for('assets/images/productions/b2b-live.jpg') }}" alt="B2B Live" class="vep-card-image">
+            <div class="vep-card-body">
+                <span class="vep-card-tag">Business • Trends • Technology</span>
+                <h3>B2B Live</h3>
+                <p>
+                    A dynamic platform where brands, founders, and professionals come together to exchange ideas, discover business trends, and build strategic relationships. B2B Live is built to feel modern, practical, and highly interactive — more than a networking event, it is a live business ecosystem.
+                </p>
+                <ul class="vep-list">
+                    <li>Networking opportunities with local businesses and professionals</li>
+                    <li>Exhibitor potential for brands and service providers</li>
+                    <li>Speaking segments, brand activations, and collaborative visibility</li>
+                </ul>
+                <div class="vep-card-foot">
+                    <span class="vep-chip">Expo Style</span>
+                    <span class="vep-chip">Networking</span>
+                    <span class="vep-chip">Tech & Business</span>
+                </div>
+            </div>
+        </article>
+
+        <article class="vep-card">
+            <img src="{{ asset_for('assets/images/productions/retro-glam-session.jpg') }}" alt="Retro Glam Session" class="vep-card-image">
+            <div class="vep-card-body">
+                <span class="vep-card-tag">Music • Style • Nostalgia</span>
+                <h3>Retro Glam Session</h3>
+                <p>
+                    A vibrant immersive experience inspired by the visual and musical energy of the 70s, 80s, and 90s. Retro Glam Session is designed for guests who want more than a themed party — it is meant to feel cinematic, stylish, interactive, and unforgettable.
+                </p>
+                <ul class="vep-list">
+                    <li>Strong visual identity and highly sponsor-friendly activations</li>
+                    <li>Ideal for lifestyle, fashion, beauty, and entertainment partnerships</li>
+                    <li>Built around nostalgia, music, glamour, and immersive design</li>
+                </ul>
+                <div class="vep-card-foot">
+                    <span class="vep-chip">Immersive</span>
+                    <span class="vep-chip">Lifestyle</span>
+                    <span class="vep-chip">Retro</span>
+                </div>
+            </div>
+        </article>
+
+        <article class="vep-card">
+            <img src="{{ asset_for('assets/images/productions/mommy-and-daddy-break.jpg') }}" alt="Mommy and Daddy Break" class="vep-card-image">
+            <div class="vep-card-body">
+                <span class="vep-card-tag">Parents • Lifestyle • Recharge</span>
+                <h3>Mommy and Daddy Break</h3>
+                <p>
+                    A concept designed for parents who need room to reconnect, unwind, and enjoy a quality experience outside of the routine. Mommy and Daddy Break is envisioned as a refreshing lifestyle event with music, conversation, good food, and thoughtful details that make adults feel seen and celebrated.
+                </p>
+                <ul class="vep-list">
+                    <li>Perfect for family-oriented brands and wellness partnerships</li>
+                    <li>Can blend leisure, light entertainment, and curated activations</li>
+                    <li>Built around relaxation, connection, and premium casual energy</li>
+                </ul>
+                <div class="vep-card-foot">
+                    <span class="vep-chip">Lifestyle</span>
+                    <span class="vep-chip">Parents</span>
+                    <span class="vep-chip">Community</span>
+                </div>
+            </div>
+        </article>
+
+    </section>
+
+    <section class="vep-sponsor">
+        <h2>Brand partnerships and sponsorship opportunities</h2>
+        <p>
+            We are building these productions not only as events, but as platforms for brand visibility, strategic collaboration, and community engagement. Sponsors and partners can align with one event concept or participate across multiple productions depending on audience fit and campaign goals.
+        </p>
+
+        <div class="vep-sponsor-grid">
+            <div class="vep-sponsor-box">
+                <strong>For sponsors</strong>
+                <span>
+                    Position your brand inside experiences designed to feel intentional, elevated, and memorable — with room for activations, branded visibility, hosted experiences, and direct audience connection.
+                </span>
+            </div>
+
+            <div class="vep-sponsor-box">
+                <strong>For collaborators</strong>
+                <span>
+                    We welcome aligned vendors, media partners, speakers, exhibitors, and creative collaborators who can add value to the audience and strengthen the experience.
+                </span>
+            </div>
+        </div>
+    </section>
+
+    <section class="vep-cta">
+        <h2>Interested in sponsoring or being part of a production?</h2>
+        <p>
+            If you would like to explore partnership opportunities, exhibitor space, branded activations, or media collaboration, reach out to our team and let’s discuss which event is the best fit for your brand.
+        </p>
+
+        <div class="vep-cta-actions">
+            <a href="/new-request" class="vep-btn vep-btn-main">Request Information</a>
+            <a href="/contact" class="vep-btn vep-btn-soft" style="background:#111827;color:#fff;border-color:#111827;">Contact VNV Events</a>
+        </div>
+    </section>
+
+</main>
+{% endblock %}

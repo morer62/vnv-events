@@ -7,23 +7,19 @@
 {% endif %}
 <style>
 :root{
-    --gourmet-primary:#f59e0b;
-    --gourmet-primary-dark:#d97706;
-    --gourmet-accent:#fb923c;
-    --gourmet-cream:#fff8ef;
-    --gourmet-soft:#fff3df;
-    --gourmet-dark:#1f1307;
-    --gourmet-text:#2d241c;
-    --gourmet-muted:#6f6255;
-    --gourmet-border:#ecd9bf;
-    --gourmet-success:#16a34a;
-    --gourmet-danger:#dc2626;
-    --gourmet-shadow:0 18px 44px rgba(79,43,8,.10);
+    --store-primary:#111827;
+    --store-accent:#1f2937;
+    --store-soft:#f8fafc;
+    --store-muted:#6b7280;
+    --store-border:#e5e7eb;
+    --store-success:#16a34a;
+    --store-danger:#dc2626;
+    --store-shadow:0 18px 44px rgba(15,23,42,.08);
 }
 
 body{
-    color:var(--gourmet-text);
-    background:#fffaf4;
+    color:#111827;
+    background:#f8fafc;
 }
 
 .checkout-wrap{
@@ -33,11 +29,11 @@ body{
 }
 
 .checkout-header{
-    background:linear-gradient(135deg,#fff6e8 0%, #fffdf8 100%);
-    border:1px solid var(--gourmet-border);
+    background:linear-gradient(135deg,#ffffff 0%, #f8fafc 100%);
+    border:1px solid var(--store-border);
     border-radius:28px;
     padding:2rem 1.5rem;
-    box-shadow:var(--gourmet-shadow);
+    box-shadow:var(--store-shadow);
     margin-bottom:1.5rem;
 }
 
@@ -46,12 +42,12 @@ body{
     font-weight:900;
     font-size:clamp(2rem,4vw,3rem);
     line-height:1.05;
-    color:var(--gourmet-dark);
+    color:#111827;
     margin-bottom:.75rem;
 }
 
 .checkout-subtitle{
-    color:var(--gourmet-muted);
+    color:var(--store-muted);
     line-height:1.8;
     max-width:820px;
     margin:0;
@@ -65,9 +61,9 @@ body{
 
 .checkout-card{
     background:#fff;
-    border:1px solid #efdec5;
+    border:1px solid var(--store-border);
     border-radius:26px;
-    box-shadow:var(--gourmet-shadow);
+    box-shadow:var(--store-shadow);
     overflow:hidden;
 }
 
@@ -78,7 +74,7 @@ body{
 .checkout-section-title{
     font-size:1.35rem;
     font-weight:900;
-    color:var(--gourmet-dark);
+    color:#111827;
     margin-bottom:1rem;
 }
 
@@ -93,10 +89,10 @@ body{
     grid-template-columns:80px 1fr auto;
     gap:1rem;
     align-items:center;
-    border:1px solid #efdec7;
+    border:1px solid var(--store-border);
     border-radius:18px;
     padding:1rem;
-    background:#fffdf9;
+    background:#fcfcfd;
 }
 
 .checkout-item-image{
@@ -109,24 +105,37 @@ body{
 
 .checkout-item-title{
     font-weight:900;
-    color:var(--gourmet-dark);
+    color:#111827;
     margin-bottom:.2rem;
 }
 
 .checkout-item-meta{
-    color:var(--gourmet-muted);
+    color:var(--store-muted);
     font-size:.94rem;
     line-height:1.6;
 }
 
+.checkout-item-chip{
+    display:inline-flex;
+    align-items:center;
+    padding:.38rem .7rem;
+    border-radius:999px;
+    background:#f3f4f6;
+    border:1px solid var(--store-border);
+    color:#374151;
+    font-size:.76rem;
+    font-weight:800;
+    margin:0 .35rem .35rem 0;
+}
+
 .checkout-item-total{
     font-weight:900;
-    color:var(--gourmet-primary-dark);
+    color:#111827;
 }
 
 .summary-box{
-    background:linear-gradient(135deg,#fff5e6, #fffdf9);
-    border:1px solid #efd4a9;
+    background:linear-gradient(135deg,#ffffff, #f8fafc);
+    border:1px solid var(--store-border);
     border-radius:22px;
     padding:1rem;
     margin-bottom:1rem;
@@ -137,15 +146,20 @@ body{
     justify-content:space-between;
     gap:1rem;
     padding:.5rem 0;
-    color:#4f463d;
+    color:#4b5563;
+}
+
+.summary-row.discount{
+    color:#166534;
+    font-weight:800;
 }
 
 .summary-row.total{
-    border-top:1px dashed #ebd6b2;
+    border-top:1px dashed #d1d5db;
     margin-top:.35rem;
     padding-top:.95rem;
     font-weight:900;
-    color:var(--gourmet-dark);
+    color:#111827;
     font-size:1.05rem;
 }
 
@@ -157,45 +171,38 @@ body{
     display:block;
     font-weight:800;
     margin-bottom:.45rem;
-    color:#4d3c28;
+    color:#374151;
 }
 
 .field input{
     width:100%;
-    border:1px solid #e9d7bd;
+    border:1px solid #d1d5db;
     border-radius:14px;
     padding:.95rem 1rem;
-    background:#fffdfa;
-    color:#2d241c;
+    background:#fff;
+    color:#111827;
     outline:none;
 }
 
 .field input:focus{
-    border-color:#f59e0b;
-    box-shadow:0 0 0 4px rgba(245,158,11,.10);
+    border-color:#111827;
+    box-shadow:0 0 0 4px rgba(17,24,39,.08);
     background:#fff;
 }
 
 .field input[readonly]{
-    background:#f8f4ee;
-    color:#6b5b49;
+    background:#f8fafc;
+    color:#6b7280;
     cursor:not-allowed;
 }
 
-#square-card-container{
-    min-height:150px;
-    border:1px solid #e9d7bd;
-    border-radius:16px;
-    padding:14px;
-    background:#fffdfa;
-}
-
+#square-card-container,
 #stripe-card-container{
     min-height:44px;
-    border:1px solid #e9d7bd;
+    border:1px solid #d1d5db;
     border-radius:16px;
     padding:14px;
-    background:#fffdfa;
+    background:#fff;
 }
 
 .alert-box{
@@ -219,8 +226,8 @@ body{
 }
 
 .btn-main{
-    background:linear-gradient(135deg,var(--gourmet-primary),var(--gourmet-accent));
-    color:#23160a !important;
+    background:#111827;
+    color:#fff !important;
     padding:1rem 1.75rem;
     font-size:1rem;
     border-radius:999px;
@@ -231,7 +238,7 @@ body{
     align-items:center;
     justify-content:center;
     border:none;
-    box-shadow:0 12px 28px rgba(245,158,11,.28);
+    box-shadow:0 12px 28px rgba(17,24,39,.18);
     transition:all .22s ease;
     width:100%;
 }
@@ -241,8 +248,8 @@ body{
     font-size:1rem;
     border-radius:999px;
     font-weight:800;
-    border:1.2px solid #f1d1a3;
-    color:var(--gourmet-dark) !important;
+    border:1.2px solid #d1d5db;
+    color:#111827 !important;
     background:#fff;
     text-decoration:none;
     display:inline-flex;
@@ -253,7 +260,7 @@ body{
 }
 
 .checkout-note{
-    color:var(--gourmet-muted);
+    color:var(--store-muted);
     font-size:.92rem;
     line-height:1.7;
     margin-top:.75rem;
@@ -262,10 +269,10 @@ body{
 .checkout-empty{
     text-align:center;
     padding:3rem 1rem;
-    color:var(--gourmet-muted);
-    border:1px dashed #ead6b9;
+    color:var(--store-muted);
+    border:1px dashed #d1d5db;
     border-radius:18px;
-    background:#fffdf9;
+    background:#fcfcfd;
 }
 
 .shipping-fields{
@@ -275,6 +282,18 @@ body{
 
 .shipping-fields.hidden{
     display:none;
+}
+
+.saved-cards-field{
+    display:none;
+    margin-bottom:1rem;
+}
+
+.saved-cards-actions{
+    display:flex;
+    gap:.6rem;
+    flex-wrap:wrap;
+    margin-top:.6rem;
 }
 
 @media (max-width: 991px){
@@ -296,7 +315,7 @@ body{
     <section class="checkout-header">
         <h1 class="checkout-title">Checkout</h1>
         <p class="checkout-subtitle">
-            Review your meal plan, confirm your details, and complete your payment securely.
+            Review your selected items, confirm your billing and shipping details, and complete your payment securely.
         </p>
     </section>
 
@@ -320,24 +339,20 @@ body{
 
                 <div class="summary-box">
                     <div class="summary-row">
-                        <span>Meals selected</span>
-                        <strong id="checkoutMealsCount">0</strong>
+                        <span>Items</span>
+                        <strong id="checkoutItemsCount">0</strong>
                     </div>
                     <div class="summary-row">
-                        <span>Subscription</span>
-                        <strong id="checkoutPricingMode">ON</strong>
+                        <span>Quantity total</span>
+                        <strong id="checkoutQuantityTotal">0</strong>
                     </div>
                     <div class="summary-row">
                         <span>Subtotal</span>
                         <strong id="checkoutSubtotal">$0.00</strong>
                     </div>
-                    <div class="summary-row">
+                    <div class="summary-row discount" id="checkoutDiscountRow" style="display:none;">
                         <span>Coupon discount</span>
-                        <strong id="checkoutCouponDiscount">$0.00</strong>
-                    </div>
-                    <div class="summary-row" id="nextChargeRow" style="display:none;">
-                        <span>Next weekly charge</span>
-                        <strong id="checkoutNextCharge">$0.00</strong>
+                        <strong id="checkoutDiscount">-$0.00</strong>
                     </div>
                     <div class="summary-row total">
                         <span>Total</span>
@@ -345,130 +360,120 @@ body{
                     </div>
                 </div>
 
-                <input type="hidden" id="checkout_coupon_code" value="">
-                <input type="hidden" id="checkout_guest_name" value="">
-                <input type="hidden" id="checkout_guest_email" value="">
-                <input type="hidden" id="checkout_guest_phone" value="">
-                <input type="hidden" id="checkout_city" value="">
-
-                <div style="padding:0;">
-                    <h2 class="checkout-section-title" style="margin-top:1.25rem;">Billing & Shipping Address</h2>
-
-                    <div class="form-check form-switch mt-2">
-                        <input class="form-check-input" type="checkbox" role="switch" id="shippingSameAsBilling" checked>
-                        <label class="form-check-label" for="shippingSameAsBilling">
-                            Shipping address is the same as Billing
-                        </label>
-                    </div>
-
-                    <div class="field">
-                        <label for="billing_address_1">Billing address</label>
-                        <input
-                            type="text"
-                            id="billing_address_1"
-                            name="billing_address_1"
-                            autocomplete="off"
-                            required
-                            placeholder="Start typing and select from the list..."
-                        >
-                    </div>
-
-                    <div class="field">
-                        <label for="billing_address_2">Apt / Suite / Unit (optional)</label>
-                        <input
-                            type="text"
-                            id="billing_address_2"
-                            name="billing_address_2"
-                            placeholder="Apt 4B, Suite 210, Unit 7..."
-                        >
-                    </div>
-
-                    <div class="row g-2">
-                        <div class="col-md-4 field">
-                            <label for="billing_city">Billing city</label>
-                            <input type="text" id="billing_city" name="billing_city" required readonly>
-                        </div>
-                        <div class="col-md-4 field">
-                            <label for="billing_state">Billing state</label>
-                            <input type="text" id="billing_state" name="billing_state" required readonly>
-                        </div>
-                        <div class="col-md-4 field">
-                            <label for="billing_zip">Billing zip</label>
-                            <input type="text" id="billing_zip" name="billing_zip" required readonly>
-                        </div>
-                    </div>
-
-                    <div id="shippingFieldsBlock" class="shipping-fields hidden">
-                        <div class="field">
-                            <label for="shipping_address_1">Shipping address</label>
-                            <input
-                                type="text"
-                                id="shipping_address_1"
-                                name="shipping_address_1"
-                                autocomplete="off"
-                                required
-                                placeholder="Start typing and select from the list..."
-                            >
-                        </div>
-
-                        <div class="field">
-                            <label for="shipping_address_2">Apt / Suite / Unit (optional)</label>
-                            <input
-                                type="text"
-                                id="shipping_address_2"
-                                name="shipping_address_2"
-                                placeholder="Apt 4B, Suite 210, Unit 7..."
-                            >
-                        </div>
-
-                        <div class="row g-2">
-                            <div class="col-md-4 field">
-                                <label for="shipping_city">Shipping city</label>
-                                <input type="text" id="shipping_city" name="shipping_city" required readonly>
-                            </div>
-                            <div class="col-md-4 field">
-                                <label for="shipping_state">Shipping state</label>
-                                <input type="text" id="shipping_state" name="shipping_state" required readonly>
-                            </div>
-                            <div class="col-md-4 field">
-                                <label for="shipping_zip">Shipping zip</label>
-                                <input type="text" id="shipping_zip" name="shipping_zip" required readonly>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="checkout-note">Order city/area is taken from Shipping city.</div>
-                </div>
-
-                <div class="field" id="savedCardsField" style="display:none;">
-                    <label for="savedCardsSelect">Saved card</label>
-                    <select id="savedCardsSelect" class="form-select"></select>
-                    <button type="button" class="btn-light w-100 mt-2" id="useAnotherCardBtn">
-                        <i class="fa-solid fa-credit-card"></i> Use another card
-                    </button>
+                <div class="field">
+                    <label for="guest_name">Full name</label>
+                    <input type="text" id="guest_name" placeholder="Your full name">
                 </div>
 
                 <div class="field">
-                    <label>Card information</label>
-                    {% if active_provider_type == 'stripe' %}
-                        <div id="stripe-card-container"></div>
-                        <div class="checkout-note" id="stripeCardErrors" style="color:#be123c;"></div>
-                    {% else %}
-                        <div id="square-card-container"></div>
-                        <div class="checkout-note" id="squareCardErrors" style="color:#be123c;"></div>
-                    {% endif %}
+                    <label for="guest_email">Email</label>
+                    <input type="email" id="guest_email" placeholder="you@example.com">
                 </div>
 
+                <div class="field">
+                    <label for="guest_phone">Phone</label>
+                    <input type="text" id="guest_phone" placeholder="(305) 000-0000" inputmode="tel" autocomplete="tel">
+                </div>
+
+                <div class="field">
+                    <label for="billing_address_1">Billing address</label>
+                    <input type="text" id="billing_address_1" placeholder="Street address">
+                </div>
+
+                <div class="field">
+                    <label for="billing_address_2">Billing address line 2</label>
+                    <input type="text" id="billing_address_2" placeholder="Apartment, suite, unit (optional)">
+                </div>
+
+                <div class="field">
+                    <label for="billing_city">Billing city</label>
+                    <input type="text" id="billing_city" placeholder="City">
+                </div>
+
+                <div class="field">
+                    <label for="billing_state">Billing state</label>
+                    <input type="text" id="billing_state" placeholder="State">
+                </div>
+
+                <div class="field">
+                    <label for="billing_zip">Billing ZIP</label>
+                    <input type="text" id="billing_zip" placeholder="ZIP code">
+                </div>
+
+                <div class="field">
+                    <label class="d-flex align-items-center gap-2" style="cursor:pointer;">
+                        <input type="checkbox" id="shipping_same_as_billing" checked>
+                        <span>Shipping address is the same as billing</span>
+                    </label>
+                </div>
+
+                <div class="shipping-fields hidden" id="shippingFieldsBlock">
+                    <div class="field">
+                        <label for="shipping_address_1">Shipping address</label>
+                        <input type="text" id="shipping_address_1" placeholder="Street address">
+                    </div>
+
+                    <div class="field">
+                        <label for="shipping_address_2">Shipping address line 2</label>
+                        <input type="text" id="shipping_address_2" placeholder="Apartment, suite, unit (optional)">
+                    </div>
+
+                    <div class="field">
+                        <label for="shipping_city">Shipping city</label>
+                        <input type="text" id="shipping_city" placeholder="City">
+                    </div>
+
+                    <div class="field">
+                        <label for="shipping_state">Shipping state</label>
+                        <input type="text" id="shipping_state" placeholder="State">
+                    </div>
+
+                    <div class="field">
+                        <label for="shipping_zip">Shipping ZIP</label>
+                        <input type="text" id="shipping_zip" placeholder="ZIP code">
+                    </div>
+                </div>
+
+                <div class="saved-cards-field" id="savedCardsField">
+                    <div class="field">
+                        <label for="savedCardsSelect">Saved cards</label>
+                        <select id="savedCardsSelect" class="form-select">
+                            <option value="">Select a saved card</option>
+                        </select>
+                    </div>
+                    <div class="saved-cards-actions">
+                        <button type="button" class="btn btn-outline-dark btn-sm" id="useAnotherCardBtn">Use a new card instead</button>
+                    </div>
+                </div>
+
+                {% if active_provider_type == 'square' %}
+                    <div class="field">
+                        <label>Card details</label>
+                        <div id="square-card-container"></div>
+                        <div class="text-danger small mt-2" id="squareCardErrors"></div>
+                    </div>
+                {% elseif active_provider_type == 'stripe' %}
+                    <div class="field">
+                        <label>Card details</label>
+                        <div id="stripe-card-container"></div>
+                        <div class="text-danger small mt-2" id="stripeCardErrors"></div>
+                    </div>
+                {% else %}
+                    <div class="alert alert-warning mb-3">
+                        No active payment provider is configured.
+                    </div>
+                {% endif %}
+
                 <button type="button" class="btn-main" id="payNowBtn">
-                    <i class="fa-solid fa-credit-card"></i> Pay now
+                    <i class="fa-solid fa-lock"></i> Pay now
                 </button>
 
-                <a href="{{ path('/store/cart') }}" class="btn-light mt-3">
+                <a href="{{ path('store/cart') }}" class="btn-light mt-3">
                     <i class="fa-solid fa-arrow-left"></i> Back to cart
                 </a>
 
                 <div class="checkout-note">
-                    Your first order is paid in full at checkout. Subscription is enabled when your cart was saved with it turned on, and if that is the case we will create your recurring weekly plan after this payment.
+                    This checkout now uses the standard store flow and accepts fixed or variable products already normalized in the cart.
                 </div>
             </div>
         </div>
@@ -477,46 +482,43 @@ body{
 {% endblock %}
 
 {% block scripts %}
+<script src="https://js.stripe.com/v3/"></script>
 <script>
-document.addEventListener('DOMContentLoaded', async function () {
-    const SESSION_KEY = 'vnv_gourmet_cart_session_token'; 
+document.addEventListener('DOMContentLoaded', function () {
+    const CART_KEY = 'store_cart_selection';
+    const SESSION_KEY = 'store_cart_session_token';
     const PAYMENT_SUCCESS_FALLBACK = `{{ path('store/payment-successful') }}`;
     const RECOVERY_TOKEN = `{{ recovery_token|default('')|e('js') }}`;
-    const HAS_RECOVERY = {{ has_recovery ? 'true' : 'false' }};
 
-    const billingAddress2Input = document.getElementById('billing_address_2');
-    const shippingAddress2Input = document.getElementById('shipping_address_2');
-
-    const checkoutItemsWrap = document.getElementById('checkoutItemsWrap');
     const errorBox = document.getElementById('checkoutErrorBox');
     const successBox = document.getElementById('checkoutSuccessBox');
-    const mealsCountEl = document.getElementById('checkoutMealsCount');
-    const pricingModeEl = document.getElementById('checkoutPricingMode');
-    const subtotalEl = document.getElementById('checkoutSubtotal');
-    const couponDiscountEl = document.getElementById('checkoutCouponDiscount');
-    const totalEl = document.getElementById('checkoutTotal');
-    const nextChargeRow = document.getElementById('nextChargeRow');
-    const nextChargeEl = document.getElementById('checkoutNextCharge');
-    const couponCodeInput = document.getElementById('checkout_coupon_code');
-    const applyCouponBtn = document.getElementById('applyCouponBtn');
+    const itemsWrap = document.getElementById('checkoutItemsWrap');
 
-    const nameInput = document.getElementById('checkout_guest_name');
-    const emailInput = document.getElementById('checkout_guest_email');
-    const phoneInput = document.getElementById('checkout_guest_phone');
-    const cityInput = document.getElementById('checkout_city');
+    const itemsCountEl = document.getElementById('checkoutItemsCount');
+    const quantityTotalEl = document.getElementById('checkoutQuantityTotal');
+    const subtotalEl = document.getElementById('checkoutSubtotal');
+    const discountRowEl = document.getElementById('checkoutDiscountRow');
+    const discountEl = document.getElementById('checkoutDiscount');
+    const totalEl = document.getElementById('checkoutTotal');
+
+    const guestNameInput = document.getElementById('guest_name');
+    const guestEmailInput = document.getElementById('guest_email');
+    const guestPhoneInput = document.getElementById('guest_phone');
 
     const billingAddress1Input = document.getElementById('billing_address_1');
+    const billingAddress2Input = document.getElementById('billing_address_2');
     const billingCityInput = document.getElementById('billing_city');
     const billingStateInput = document.getElementById('billing_state');
     const billingZipInput = document.getElementById('billing_zip');
 
+    const shippingSameAsBillingInput = document.getElementById('shipping_same_as_billing');
+    const shippingFieldsBlock = document.getElementById('shippingFieldsBlock');
     const shippingAddress1Input = document.getElementById('shipping_address_1');
+    const shippingAddress2Input = document.getElementById('shipping_address_2');
     const shippingCityInput = document.getElementById('shipping_city');
     const shippingStateInput = document.getElementById('shipping_state');
     const shippingZipInput = document.getElementById('shipping_zip');
 
-    const shippingSameAsBillingInput = document.getElementById('shippingSameAsBilling');
-    const shippingFieldsBlock = document.getElementById('shippingFieldsBlock');
     const payNowBtn = document.getElementById('payNowBtn');
     const activeProviderType = `{{ active_provider_type|default('')|e('js') }}`;
     const stripePublicKey = `{{ stripe_public_key|default('')|e('js') }}`;
@@ -527,80 +529,13 @@ document.addEventListener('DOMContentLoaded', async function () {
     const useAnotherCardBtn = document.getElementById('useAnotherCardBtn');
 
     let sessionToken = localStorage.getItem(SESSION_KEY) || '';
-
-    let checkoutState = {
-        cart: null,
-        items: []
-    };
-
+    let checkoutState = { cart: null, items: [] };
     let card = null;
     let stripe = null;
     let stripeCard = null;
     let stripeElements = null;
-
     let paymentTokenType = 'new_card';
     let selectedSavedCardToken = '';
-    let savedCards = [];
-
-    function setPaymentMode(mode) {
-        paymentTokenType = mode;
-
-        if (mode === 'stored_card') {
-            selectedSavedCardToken = selectedSavedCardToken || '';
-            if (savedCardsField) savedCardsField.style.display = 'block';
-
-            const stripeContainer = document.getElementById('stripe-card-container');
-            const squareContainer = document.getElementById('square-card-container');
-            const stripeErr = document.getElementById('stripeCardErrors');
-            const squareErr = document.getElementById('squareCardErrors');
-
-            if (stripeContainer) stripeContainer.style.display = 'none';
-            if (squareContainer) squareContainer.style.display = 'none';
-            if (stripeErr) stripeErr.style.display = 'none';
-            if (squareErr) squareErr.style.display = 'none';
-        } else {
-            if (savedCardsField) savedCardsField.style.display = 'none';
-
-            const stripeContainer = document.getElementById('stripe-card-container');
-            const squareContainer = document.getElementById('square-card-container');
-            const stripeErr = document.getElementById('stripeCardErrors');
-            const squareErr = document.getElementById('squareCardErrors');
-
-            if (stripeContainer) stripeContainer.style.display = '';
-            if (squareContainer) squareContainer.style.display = '';
-            if (stripeErr) stripeErr.style.display = '';
-            if (squareErr) squareErr.style.display = '';
-        }
-
-        updatePayNowButtonState();
-    }
-
-    function canPayNow() {
-        const billingOk =
-            (billingAddress1Input?.value || '').trim() !== '' &&
-            (billingCityInput?.value || '').trim() !== '' &&
-            (billingStateInput?.value || '').trim() !== '' &&
-            (billingZipInput?.value || '').trim() !== '';
-
-        const shippingOk =
-            (shippingAddress1Input?.value || '').trim() !== '' &&
-            (shippingCityInput?.value || '').trim() !== '' &&
-            (shippingStateInput?.value || '').trim() !== '' &&
-            (shippingZipInput?.value || '').trim() !== '';
-
-        if (!billingOk || !shippingOk) return false;
-
-        if (paymentTokenType === 'stored_card') {
-            return !!(selectedSavedCardToken && selectedSavedCardToken.trim() !== '');
-        }
-
-        return true;
-    }
-
-    function updatePayNowButtonState() {
-        if (!payNowBtn) return;
-        payNowBtn.disabled = !canPayNow();
-    }
 
     function showError(message) {
         errorBox.textContent = message;
@@ -620,15 +555,6 @@ document.addEventListener('DOMContentLoaded', async function () {
         if (cardErrors) cardErrors.textContent = '';
     }
 
-    function normalizeUSPhoneToE164(value) {
-        const digits = String(value || '').replace(/\D/g, '');
-        if (!digits) return '';
-        if (digits.length === 10) return '+1' + digits;
-        if (digits.length === 11 && digits.startsWith('1')) return '+' + digits;
-        if (digits.startsWith('1') && digits.length > 11) return digits.slice(-10).length ? '+1' + digits.slice(-10) : '';
-        return '+' + digits;
-    }
-
     function formatUSPhoneDisplay(value) {
         const digits = String(value || '').replace(/\D/g, '').slice(0, 10);
         const area = digits.slice(0, 3);
@@ -641,241 +567,83 @@ document.addEventListener('DOMContentLoaded', async function () {
         return `(${area}) ${exch}-${line}`;
     }
 
-    if (phoneInput) {
-        phoneInput.addEventListener('input', () => {
-            const formatted = formatUSPhoneDisplay(phoneInput.value);
-            if (phoneInput.value !== formatted) {
-                phoneInput.value = formatted;
-            }
-        });
-    }
-
-    function setAddressFields(prefix, values) {
-        const addressInput = document.getElementById(`${prefix}_address_1`);
-        const cityInputField = document.getElementById(`${prefix}_city`);
-        const stateInputField = document.getElementById(`${prefix}_state`);
-        const zipInputField = document.getElementById(`${prefix}_zip`);
-
-        if (addressInput && typeof values.address1 === 'string') addressInput.value = values.address1;
-        if (cityInputField) cityInputField.value = values.city || '';
-        if (stateInputField) stateInputField.value = values.state || '';
-        if (zipInputField) zipInputField.value = values.zip || '';
-    }
-
-    function clearAddressDetails(prefix, keepAddressLine = true) {
-        const addressInput = document.getElementById(`${prefix}_address_1`);
-        const cityInputField = document.getElementById(`${prefix}_city`);
-        const stateInputField = document.getElementById(`${prefix}_state`);
-        const zipInputField = document.getElementById(`${prefix}_zip`);
-
-        if (!keepAddressLine && addressInput) addressInput.value = '';
-        if (cityInputField) cityInputField.value = '';
-        if (stateInputField) stateInputField.value = '';
-        if (zipInputField) zipInputField.value = '';
-    }
-
-    function extractPlaceData(place) {
-        const result = {
-            address1: '',
-            city: '',
-            state: '',
-            zip: ''
-        };
-
-        if (!place) return result;
-
-        if (place.formatted_address) {
-            result.address1 = place.formatted_address;
-        } else if (place.name) {
-            result.address1 = place.name;
-        }
-
-        const components = Array.isArray(place.address_components) ? place.address_components : [];
-
-        let streetNumber = '';
-        let route = '';
-        let locality = '';
-        let postalTown = '';
-        let sublocality = '';
-        let county = '';
-        let stateShort = '';
-        let postalCode = '';
-
-        components.forEach(component => {
-            const types = component.types || [];
-
-            if (types.includes('street_number')) streetNumber = component.long_name || '';
-            if (types.includes('route')) route = component.long_name || '';
-            if (types.includes('locality')) locality = component.long_name || '';
-            if (types.includes('postal_town')) postalTown = component.long_name || '';
-            if (types.includes('sublocality') || types.includes('sublocality_level_1')) sublocality = component.long_name || '';
-            if (types.includes('administrative_area_level_2')) county = component.long_name || '';
-            if (types.includes('administrative_area_level_1')) stateShort = component.short_name || component.long_name || '';
-            if (types.includes('postal_code')) postalCode = component.long_name || '';
-        });
-
-        const line1 = [streetNumber, route].filter(Boolean).join(' ').trim();
-        if (line1) {
-            result.address1 = line1;
-        }
-
-        result.city = locality || postalTown || sublocality || county || '';
-        result.state = stateShort || '';
-        result.zip = postalCode || '';
-
-        return result;
-    }
-
-    function syncShippingFromBilling() {
-        if (!billingAddress1Input || !shippingAddress1Input) return;
-
-        if (shippingSameAsBillingInput && shippingSameAsBillingInput.checked) {
-            shippingAddress1Input.value = billingAddress1Input.value || '';
-            if (shippingAddress2Input && billingAddress2Input) shippingAddress2Input.value = billingAddress2Input.value || '';
-            if (shippingCityInput && billingCityInput) shippingCityInput.value = billingCityInput.value || '';
-            if (shippingStateInput && billingStateInput) shippingStateInput.value = billingStateInput.value || '';
-            if (shippingZipInput && billingZipInput) shippingZipInput.value = billingZipInput.value || '';
-
-            if (cityInput && billingCityInput) {
-                cityInput.value = billingCityInput.value || '';
-            }
+    function readLocalCart() {
+        try {
+            const raw = localStorage.getItem(CART_KEY);
+            if (!raw) return null;
+            const parsed = JSON.parse(raw);
+            return parsed && typeof parsed === 'object' ? parsed : null;
+        } catch (e) {
+            return null;
         }
     }
 
     function applyShippingToggle() {
-        const same = shippingSameAsBillingInput ? !!shippingSameAsBillingInput.checked : true;
-        if (!shippingAddress1Input || !shippingCityInput || !shippingStateInput || !shippingZipInput) return;
+        const same = !!shippingSameAsBillingInput.checked;
+        shippingFieldsBlock.classList.toggle('hidden', same);
 
-        shippingAddress1Input.disabled = same;
-        shippingCityInput.disabled = same;
-        shippingStateInput.disabled = same;
-        shippingZipInput.disabled = same;
-
-        if (shippingFieldsBlock) {
-            shippingFieldsBlock.classList.toggle('hidden', same);
-        }
+        [shippingAddress1Input, shippingAddress2Input, shippingCityInput, shippingStateInput, shippingZipInput].forEach(el => {
+            if (!el) return;
+            el.disabled = same;
+        });
 
         if (same) {
-            syncShippingFromBilling();
+            shippingAddress1Input.value = billingAddress1Input.value || '';
+            shippingAddress2Input.value = billingAddress2Input.value || '';
+            shippingCityInput.value = billingCityInput.value || '';
+            shippingStateInput.value = billingStateInput.value || '';
+            shippingZipInput.value = billingZipInput.value || '';
+        }
+    }
+
+    function renderSummary(cart) {
+        const itemsCount = Number(cart.items_count || (cart.items || []).length || 0);
+        const quantityTotal = Number(cart.meals_count || cart.quantity_total || 0);
+        const subtotal = Number(cart.subtotal || 0);
+        const discount = Number(cart.discount || cart.coupon_discount || 0);
+        const total = Number(cart.total || subtotal);
+
+        itemsCountEl.textContent = itemsCount;
+        quantityTotalEl.textContent = quantityTotal;
+        subtotalEl.textContent = `$${subtotal.toFixed(2)}`;
+        totalEl.textContent = `$${total.toFixed(2)}`;
+
+        if (discount > 0) {
+            discountRowEl.style.display = 'flex';
+            discountEl.textContent = `-$${discount.toFixed(2)}`;
         } else {
-            if (cityInput && shippingCityInput) {
-                cityInput.value = shippingCityInput.value || '';
-            }
+            discountRowEl.style.display = 'none';
         }
-
-        updatePayNowButtonState();
     }
 
-    function initAddressAutocomplete(inputEl, prefix) {
-        if (!inputEl || typeof window.google === 'undefined' || !google.maps || !google.maps.places) {
+    function renderItems(items) {
+        if (!items || !items.length) {
+            itemsWrap.innerHTML = `<div class="checkout-empty">Your cart is empty.</div>`;
             return;
         }
 
-        const autocomplete = new google.maps.places.Autocomplete(inputEl, {
-            types: ['address'],
-            componentRestrictions: { country: 'us' },
-            fields: ['address_components', 'formatted_address', 'name']
-        });
-
-        autocomplete.addListener('place_changed', () => {
-            const place = autocomplete.getPlace();
-            const data = extractPlaceData(place);
-
-            setAddressFields(prefix, data);
-
-            if (prefix === 'billing') {
-                if (shippingSameAsBillingInput && shippingSameAsBillingInput.checked) {
-                    syncShippingFromBilling();
-                }
-            }
-
-            if (prefix === 'shipping') {
-                if (cityInput) {
-                    cityInput.value = data.city || '';
-                }
-            }
-
-            if (prefix === 'billing' && shippingSameAsBillingInput && shippingSameAsBillingInput.checked) {
-                if (cityInput) {
-                    cityInput.value = data.city || '';
-                }
-            }
-
-            updatePayNowButtonState();
-        });
-
-        inputEl.addEventListener('input', () => {
-            clearAddressDetails(prefix, true);
-
-            if (prefix === 'billing' && shippingSameAsBillingInput && shippingSameAsBillingInput.checked) {
-                syncShippingFromBilling();
-            }
-
-            if (prefix === 'shipping' && cityInput) {
-                cityInput.value = '';
-            }
-
-            if (prefix === 'billing' && shippingSameAsBillingInput && shippingSameAsBillingInput.checked && cityInput) {
-                cityInput.value = '';
-            }
-
-            updatePayNowButtonState();
-        });
-    }
-
-    function renderSummary() {
-        if (!checkoutState.cart) return;
-
-        mealsCountEl.textContent = checkoutState.cart.meals_count || 0;
-        pricingModeEl.textContent = (checkoutState.cart.pricing_mode || '').toUpperCase() === 'SUBSCRIPTION' ? 'ON' : 'OFF';
-        subtotalEl.textContent = `$${Number(checkoutState.cart.subtotal || 0).toFixed(2)}`;
-        couponDiscountEl.textContent = `-$${Number(checkoutState.cart.coupon_discount || 0).toFixed(2)}`;
-        totalEl.textContent = `$${Number(checkoutState.cart.total || 0).toFixed(2)}`;
-
-        const isSub = (checkoutState.cart.pricing_mode || '').toUpperCase() === 'SUBSCRIPTION';
-        const nextChargeTotal = checkoutState.cart.next_charge_total;
-        const nextChargeDate = checkoutState.cart.next_charge_date;
-        if (nextChargeRow && nextChargeEl) {
-            if (isSub && nextChargeTotal !== null && nextChargeTotal !== undefined) {
-                const amount = `$${Number(nextChargeTotal || 0).toFixed(2)}`;
-                nextChargeEl.textContent = nextChargeDate ? `${amount} (${nextChargeDate})` : amount;
-                nextChargeRow.style.display = '';
-            } else {
-                nextChargeRow.style.display = 'none';
-            }
-        }
-
-        if (couponCodeInput) {
-            couponCodeInput.value = checkoutState.cart.coupon_code || '';
-        }
-    }
-
-    function renderItems() {
-        if (!checkoutState.items.length) {
-            checkoutItemsWrap.innerHTML = `<div class="checkout-empty">Your cart is empty.</div>`;
-            return;
-        }
-
-        checkoutItemsWrap.innerHTML = `
+        itemsWrap.innerHTML = `
             <div class="checkout-items">
-                ${checkoutState.items.map(item => `
+                ${items.map(item => `
                     <div class="checkout-item">
                         ${
                             item.main_image
-                                ? `<img src="${item.main_image}" alt="${item.product_name_snapshot}" class="checkout-item-image">`
+                                ? `<img src="${item.main_image}" alt="${item.product_name_snapshot || item.product_name || ''}" class="checkout-item-image">`
                                 : `<div class="checkout-item-image d-flex align-items-center justify-content-center text-muted">No image</div>`
                         }
-
                         <div>
-                            <div class="checkout-item-title">${item.product_name_snapshot}</div>
+                            <div class="checkout-item-title">${item.product_name_snapshot || item.product_name || 'Item'}</div>
                             <div class="checkout-item-meta">
-                                ${item.quantity} meal(s) × $${Number(item.unit_price).toFixed(2)}
+                                ${(item.variation_name_snapshot || item.variation_name) ? `<div><strong>${item.variation_name_snapshot || item.variation_name}</strong></div>` : ''}
+                                ${
+                                    Array.isArray(item.variation_options)
+                                        ? item.variation_options.map(opt => `<span class="checkout-item-chip">${opt.attribute_name}: ${opt.attribute_value}</span>`).join('')
+                                        : ''
+                                }
+                                <div>${item.quantity} × $${Number(item.unit_price || 0).toFixed(2)}</div>
                             </div>
                         </div>
-
-                        <div class="checkout-item-total">
-                            $${Number(item.line_total).toFixed(2)}
-                        </div>
+                        <div class="checkout-item-total">$${Number(item.line_total || 0).toFixed(2)}</div>
                     </div>
                 `).join('')}
             </div>
@@ -883,11 +651,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     }
 
     async function loadSummary() {
-        if (!sessionToken && !HAS_RECOVERY) {
-            showError('Cart session not found.');
-            checkoutItemsWrap.innerHTML = `<div class="checkout-empty">We could not find your cart session.</div>`;
-            return false;
-        }
+        hideMessages();
 
         try {
             const response = await fetch('{{ path("store/checkout") }}', {
@@ -899,66 +663,51 @@ document.addEventListener('DOMContentLoaded', async function () {
                 body: JSON.stringify({
                     action: 'summary',
                     session_token: sessionToken,
-                    recovery_token: HAS_RECOVERY ? RECOVERY_TOKEN : ''
+                    recovery_token: RECOVERY_TOKEN
                 })
             });
 
             const data = await response.json();
 
             if (!data.success) {
-                showError(data.message || 'Could not load checkout.');
-                checkoutItemsWrap.innerHTML = `<div class="checkout-empty">We could not load your cart.</div>`;
+                showError(data.message || 'Could not load checkout summary.');
                 return false;
             }
 
-            checkoutState.cart = data.cart;
-            checkoutState.items = data.items || [];
+            checkoutState.cart = data.cart || null;
+            checkoutState.items = Array.isArray(data.items) ? data.items : [];
 
-            if ((!sessionToken || sessionToken === '') && data.cart && data.cart.session_token) {
-                sessionToken = data.cart.session_token;
-                localStorage.setItem(SESSION_KEY, sessionToken);
+            if (checkoutState.cart) {
+                guestNameInput.value = checkoutState.cart.guest_name || '';
+                guestEmailInput.value = checkoutState.cart.guest_email || '';
+                guestPhoneInput.value = formatUSPhoneDisplay(checkoutState.cart.guest_phone || '');
+
+                billingAddress1Input.value = checkoutState.cart.billing_address_1 || '';
+                billingAddress2Input.value = checkoutState.cart.billing_address_2 || '';
+                billingCityInput.value = checkoutState.cart.billing_city || '';
+                billingStateInput.value = checkoutState.cart.billing_state || '';
+                billingZipInput.value = checkoutState.cart.billing_zip || '';
+
+                shippingAddress1Input.value = checkoutState.cart.shipping_address_1 || '';
+                shippingAddress2Input.value = checkoutState.cart.shipping_address_2 || '';
+                shippingCityInput.value = checkoutState.cart.shipping_city || '';
+                shippingStateInput.value = checkoutState.cart.shipping_state || '';
+                shippingZipInput.value = checkoutState.cart.shipping_zip || '';
             }
 
-            nameInput.value = data.cart.guest_name || '';
-            emailInput.value = data.cart.guest_email || '';
-            phoneInput.value = data.cart.guest_phone || '';
-            cityInput.value = data.cart.city || '';
-
-            if (phoneInput && phoneInput.value) {
-                phoneInput.value = formatUSPhoneDisplay(phoneInput.value);
-            }
-
-            if (billingAddress1Input) billingAddress1Input.value = data.cart.billing_address_1 || '';
-            if (billingAddress2Input) billingAddress2Input.value = data.cart.billing_address_2 || '';
-            if (billingCityInput) billingCityInput.value = data.cart.billing_city || '';
-            if (billingStateInput) billingStateInput.value = data.cart.billing_state || '';
-            if (billingZipInput) billingZipInput.value = data.cart.billing_zip || '';
-
-            if (shippingAddress1Input) shippingAddress1Input.value = data.cart.shipping_address_1 || '';
-            if (shippingAddress2Input) shippingAddress2Input.value = data.cart.shipping_address_2 || '';
-            if (shippingCityInput) shippingCityInput.value = data.cart.shipping_city || '';
-            if (shippingStateInput) shippingStateInput.value = data.cart.shipping_state || '';
-            if (shippingZipInput) shippingZipInput.value = data.cart.shipping_zip || '';
-
-            await loadSavedCardsIfPossible();
-
-            renderSummary();
-            renderItems();
+            applyShippingToggle();
+            renderItems(checkoutState.items);
+            renderSummary(checkoutState.cart || {});
 
             return true;
         } catch (e) {
-            showError('Unexpected error loading checkout.');
-            checkoutItemsWrap.innerHTML = `<div class="checkout-empty">We could not load your cart.</div>`;
+            showError('Could not load checkout.');
             return false;
         }
     }
 
-    async function loadSavedCardsIfPossible() {
-        if (!savedCardsField || !savedCardsSelect) return;
-        if (!emailInput || !emailInput.value) return;
-
-        const email = emailInput.value.trim();
-        if (!email) return;
+    async function loadSavedCards() {
+        if (!guestEmailInput.value.trim()) return;
 
         try {
             const response = await fetch('{{ path("store/checkout") }}', {
@@ -970,232 +719,166 @@ document.addEventListener('DOMContentLoaded', async function () {
                 body: JSON.stringify({
                     action: 'saved_cards',
                     session_token: sessionToken,
-                    recovery_token: HAS_RECOVERY ? RECOVERY_TOKEN : '',
-                    guest_email: email
+                    recovery_token: RECOVERY_TOKEN,
+                    guest_email: guestEmailInput.value.trim()
                 })
             });
 
             const data = await response.json();
-            if (!data.success || !Array.isArray(data.cards) || data.cards.length === 0) {
-                savedCards = [];
-                setPaymentMode('new_card');
+            if (!data.success || !Array.isArray(data.cards) || !data.cards.length) {
                 return;
             }
 
-            savedCards = data.cards;
-
-            savedCardsSelect.innerHTML = '';
-            let mainToken = '';
-            for (const c of savedCards) {
-                const isMain = (c.main_card || '').toString().toLowerCase() === 'yes';
-                if (isMain && !mainToken) mainToken = c.token;
-
-                const optionText = `${c.brand} •••• ${c.last4}${c.exp ? ' (' + c.exp + ')' : ''}`;
-                const option = document.createElement('option');
-                option.value = c.token;
-                option.textContent = optionText;
-                savedCardsSelect.appendChild(option);
-            }
-
-            selectedSavedCardToken = mainToken || savedCards[0].token || '';
-            savedCardsSelect.value = selectedSavedCardToken;
-
-            setPaymentMode('stored_card');
-        } catch (e) {
-            setPaymentMode('new_card');
-        }
+            savedCardsField.style.display = 'block';
+            savedCardsSelect.innerHTML = `<option value="">Select a saved card</option>` + data.cards.map(card => {
+                const label = `${card.brand || 'Card'} •••• ${card.last4 || '0000'} ${card.exp ? '(' + card.exp + ')' : ''}`;
+                return `<option value="${card.token}">${label}</option>`;
+            }).join('');
+        } catch (e) {}
     }
 
-    async function initSquare() {
-        const appId = `{{ square_application_id|e('js') }}`;
-        const locationId = `{{ square_location_id|e('js') }}`;
+    function setPaymentMode(mode) {
+        paymentTokenType = mode;
 
-        if (!window.Square || !appId || !locationId) {
-            if (cardErrors) cardErrors.textContent = 'Payment form is unavailable right now.';
-            return false;
-        }
+        const stripeContainer = document.getElementById('stripe-card-container');
+        const squareContainer = document.getElementById('square-card-container');
+        const stripeErr = document.getElementById('stripeCardErrors');
+        const squareErr = document.getElementById('squareCardErrors');
 
-        try {
-            const payments = window.Square.payments(appId, locationId);
-            card = await payments.card();
-            await card.attach('#square-card-container');
-            return true;
-        } catch (e) {
-            if (cardErrors) cardErrors.textContent = 'Could not initialize the payment form.';
-            return false;
+        if (mode === 'stored_card') {
+            if (savedCardsField) savedCardsField.style.display = 'block';
+            if (stripeContainer) stripeContainer.style.display = 'none';
+            if (squareContainer) squareContainer.style.display = 'none';
+            if (stripeErr) stripeErr.style.display = 'none';
+            if (squareErr) squareErr.style.display = 'none';
+        } else {
+            if (stripeContainer) stripeContainer.style.display = '';
+            if (squareContainer) squareContainer.style.display = '';
+            if (stripeErr) stripeErr.style.display = '';
+            if (squareErr) squareErr.style.display = '';
         }
-    }
-
-    function initStripe() {
-        if (!stripePublicKey) {
-            showError('Payment system not configured. Please contact support.');
-            return false;
-        }
-        if (typeof Stripe === 'undefined') {
-            showError('Stripe could not be loaded. Please refresh.');
-            return false;
-        }
-
-        stripe = Stripe(stripePublicKey);
-        stripeElements = stripe.elements();
-        stripeCard = stripeElements.create('card', {
-            style: {
-                base: {
-                    fontFamily: 'Inter, Arial, sans-serif',
-                    fontSize: '16px',
-                    color: '#2d241c'
-                }
-            }
-        });
-        stripeCard.mount('#stripe-card-container');
-        return true;
     }
 
     if (savedCardsSelect) {
-        savedCardsSelect.addEventListener('change', () => {
-            selectedSavedCardToken = savedCardsSelect.value || '';
+        savedCardsSelect.addEventListener('change', function () {
+            selectedSavedCardToken = this.value || '';
             if (selectedSavedCardToken) {
                 setPaymentMode('stored_card');
+            } else {
+                setPaymentMode('new_card');
             }
         });
     }
 
     if (useAnotherCardBtn) {
-        useAnotherCardBtn.addEventListener('click', () => {
+        useAnotherCardBtn.addEventListener('click', function () {
             selectedSavedCardToken = '';
+            if (savedCardsSelect) savedCardsSelect.value = '';
             setPaymentMode('new_card');
         });
     }
 
+    [billingAddress1Input, billingAddress2Input, billingCityInput, billingStateInput, billingZipInput].forEach(input => {
+        if (!input) return;
+        input.addEventListener('input', applyShippingToggle);
+    });
+
     if (shippingSameAsBillingInput) {
-        shippingSameAsBillingInput.addEventListener('change', () => {
-            applyShippingToggle();
-        });
+        shippingSameAsBillingInput.addEventListener('change', applyShippingToggle);
     }
 
-    let savedCardsDebounceTimer = null;
-    if (emailInput) {
-        emailInput.addEventListener('input', () => {
-            if (savedCardsDebounceTimer) clearTimeout(savedCardsDebounceTimer);
-            savedCardsDebounceTimer = setTimeout(() => {
-                loadSavedCardsIfPossible();
-            }, 500);
-        });
-    }
-
-    if (billingAddress1Input) {
-        [
-            billingAddress1Input,
-            billingCityInput,
-            billingStateInput,
-            billingZipInput,
-            shippingAddress1Input,
-            shippingCityInput,
-            shippingStateInput,
-            shippingZipInput
-        ].forEach(elm => {
-            if (!elm) return;
-            elm.addEventListener('input', () => updatePayNowButtonState());
-            elm.addEventListener('change', () => updatePayNowButtonState());
-        });
-    }
-
-    if (billingAddress1Input) {
-        [billingAddress1Input, billingCityInput, billingStateInput, billingZipInput].forEach(elm => {
-            if (!elm) return;
-            elm.addEventListener('input', () => {
-                if (shippingSameAsBillingInput && shippingSameAsBillingInput.checked) {
-                    syncShippingFromBilling();
-                }
-                updatePayNowButtonState();
-            });
-        });
-    }
-
-    if (shippingCityInput) {
-        shippingCityInput.addEventListener('input', () => {
-            if (shippingSameAsBillingInput && !shippingSameAsBillingInput.checked && cityInput) {
-                cityInput.value = shippingCityInput.value || '';
+    if (guestPhoneInput) {
+        guestPhoneInput.addEventListener('input', () => {
+            const formatted = formatUSPhoneDisplay(guestPhoneInput.value);
+            if (guestPhoneInput.value !== formatted) {
+                guestPhoneInput.value = formatted;
             }
-            updatePayNowButtonState();
         });
     }
 
-    if (nameInput) nameInput.addEventListener('input', () => updatePayNowButtonState());
-    if (emailInput) emailInput.addEventListener('input', () => updatePayNowButtonState());
+    async function mountPaymentFields() {
+        if (activeProviderType === 'square') {
+            try {
+                const payments = window.Square.payments(`{{ square_application_id|default('')|e('js') }}`, `{{ square_location_id|default('')|e('js') }}`);
+                card = await payments.card();
+                await card.attach('#square-card-container');
+            } catch (e) {
+                showError('Could not load Square payment form.');
+            }
+            return;
+        }
 
-    applyShippingToggle();
-    updatePayNowButtonState();
+        if (activeProviderType === 'stripe' && stripePublicKey) {
+            try {
+                stripe = Stripe(stripePublicKey);
+                stripeElements = stripe.elements();
+                stripeCard = stripeElements.create('card');
+                stripeCard.mount('#stripe-card-container');
+            } catch (e) {
+                showError('Could not load Stripe payment form.');
+            }
+        }
+    }
+
+    async function getPaymentToken() {
+        if (paymentTokenType === 'stored_card') {
+            if (!selectedSavedCardToken) {
+                throw new Error('Please select a saved card.');
+            }
+            return {
+                token: selectedSavedCardToken,
+                card_brand: '',
+                card_last4: '',
+                card_exp: ''
+            };
+        }
+
+        if (activeProviderType === 'square') {
+            const result = await card.tokenize();
+            if (result.status !== 'OK') {
+                throw new Error('Could not tokenize Square card.');
+            }
+            return {
+                token: result.token,
+                card_brand: '',
+                card_last4: '',
+                card_exp: ''
+            };
+        }
+
+        if (activeProviderType === 'stripe') {
+            const result = await stripe.createToken(stripeCard);
+            if (result.error) {
+                throw new Error(result.error.message || 'Could not tokenize Stripe card.');
+            }
+            return {
+                token: result.token.id,
+                card_brand: result.token.card?.brand || '',
+                card_last4: result.token.card?.last4 || '',
+                card_exp: `${result.token.card?.exp_month || ''}/${result.token.card?.exp_year || ''}`
+            };
+        }
+
+        throw new Error('No active payment provider configured.');
+    }
 
     payNowBtn.addEventListener('click', async function () {
         hideMessages();
 
-        if (!checkoutState.cart || !checkoutState.items.length) {
-            showError('Your cart is empty.');
+        if (!guestNameInput.value.trim() || !guestEmailInput.value.trim()) {
+            showError('Name and email are required.');
             return;
         }
 
-        if (!emailInput.value.trim()) {
-            showError('Email is required. Please update your details in the cart.');
-            return;
-        }
-
-        const guestPhoneE164 = normalizeUSPhoneToE164(phoneInput.value);
-
-        const shippingSameAsBilling = shippingSameAsBillingInput ? !!shippingSameAsBillingInput.checked : true;
-        if (shippingSameAsBilling) {
-            syncShippingFromBilling();
-        }
-
-        const billingAddress1 = (billingAddress1Input?.value || '').trim();
-        const billingCity = (billingCityInput?.value || '').trim();
-        const billingState = (billingStateInput?.value || '').trim();
-        const billingZip = (billingZipInput?.value || '').trim();
-
-        const shippingAddress1 = (shippingAddress1Input?.value || '').trim();
-        const shippingCity = (shippingCityInput?.value || '').trim();
-        const shippingState = (shippingStateInput?.value || '').trim();
-        const shippingZip = (shippingZipInput?.value || '').trim();
-
-        if (!billingAddress1 || !billingCity || !billingState || !billingZip) {
+        if (!billingAddress1Input.value.trim() || !billingCityInput.value.trim() || !billingStateInput.value.trim() || !billingZipInput.value.trim()) {
             showError('Billing address is required.');
             return;
         }
 
-        if (!shippingAddress1 || !shippingCity || !shippingState || !shippingZip) {
-            showError('Shipping address is required.');
-            return;
-        }
-
-        const billingAddress2 = (billingAddress2Input?.value || '').trim();
-        const shippingAddress2 = (shippingAddress2Input?.value || '').trim();
-
-        if (shippingSameAsBilling) {
-            if (
-                billingAddress1 !== shippingAddress1 ||
-                billingAddress2 !== shippingAddress2 ||
-                billingCity !== shippingCity ||
-                billingState !== shippingState ||
-                billingZip !== shippingZip
-            ) {
-                showError('Shipping address must match billing address.');
+        if (!shippingSameAsBillingInput.checked) {
+            if (!shippingAddress1Input.value.trim() || !shippingCityInput.value.trim() || !shippingStateInput.value.trim() || !shippingZipInput.value.trim()) {
+                showError('Shipping address is required.');
                 return;
-            }
-        } else {
-            if (cityInput) cityInput.value = shippingCity || '';
-        }
-
-        if (paymentTokenType === 'new_card') {
-            if (activeProviderType === 'stripe') {
-                if (!stripe || !stripeCard) {
-                    showError('Payment form is not ready.');
-                    return;
-                }
-            } else {
-                if (!card) {
-                    showError('Payment form is not ready.');
-                    return;
-                }
             }
         }
 
@@ -1203,61 +886,7 @@ document.addEventListener('DOMContentLoaded', async function () {
         payNowBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Processing payment...';
 
         try {
-            let paymentToken = '';
-            let cardInfo = {};
-
-            if (paymentTokenType === 'stored_card') {
-                paymentToken = selectedSavedCardToken;
-                if (!paymentToken) {
-                    showError('Please select a saved card.');
-                    return;
-                }
-            } else {
-                if (activeProviderType === 'stripe') {
-                    const { token, error } = await stripe.createToken(stripeCard);
-                    if (error) {
-                        if (cardErrors) cardErrors.textContent = error.message || 'Card tokenization failed.';
-                        return;
-                    }
-
-                    paymentToken = token?.id || '';
-                    if (!paymentToken) {
-                        if (cardErrors) cardErrors.textContent = 'Card tokenization failed.';
-                        return;
-                    }
-
-                    const c = token?.card;
-                    if (c && c.brand && c.last4 && c.exp_month && c.exp_year) {
-                        cardInfo = {
-                            brand: c.brand,
-                            last4: c.last4,
-                            exp: c.exp_month + '/' + c.exp_year
-                        };
-                    }
-                } else {
-                    const tokenResult = await card.tokenize();
-
-                    if (tokenResult.status !== 'OK') {
-                        let message = 'Card tokenization failed.';
-                        if (tokenResult.errors && tokenResult.errors.length) {
-                            message = tokenResult.errors[0].detail || message;
-                        }
-                        if (cardErrors) cardErrors.textContent = message;
-                        return;
-                    }
-
-                    paymentToken = tokenResult.token;
-                    const details = tokenResult.details || tokenResult.card || {};
-                    const cd = details.card || details;
-                    if (cd && cd.brand && cd.last4 && cd.exp_month && cd.exp_year) {
-                        cardInfo = {
-                            brand: cd.brand,
-                            last4: cd.last4,
-                            exp: cd.exp_month + '/' + cd.exp_year
-                        };
-                    }
-                }
-            }
+            const paymentData = await getPaymentToken();
 
             const response = await fetch('{{ path("store/checkout") }}', {
                 method: 'POST',
@@ -1268,118 +897,56 @@ document.addEventListener('DOMContentLoaded', async function () {
                 body: JSON.stringify({
                     action: 'pay',
                     session_token: sessionToken,
-                    recovery_token: HAS_RECOVERY ? RECOVERY_TOKEN : '',
-                    customer_token: paymentToken,
+                    recovery_token: RECOVERY_TOKEN,
                     payment_token_type: paymentTokenType,
-                    guest_name: nameInput.value.trim(),
-                    guest_email: emailInput.value.trim(),
-                    guest_phone: guestPhoneE164,
-                    city: cityInput.value.trim(),
-                    billing_address_1: billingAddress1,
-                    billing_address_2: (billingAddress2Input?.value || '').trim(),
-                    billing_city: billingCity,
-                    billing_state: billingState,
-                    billing_zip: billingZip,
-                    shipping_address_1: shippingAddress1,
-                    shipping_address_2: (shippingAddress2Input?.value || '').trim(),
-                    shipping_city: shippingCity,
-                    shipping_state: shippingState,
-                    shipping_zip: shippingZip,
-                    shipping_same_as_billing: shippingSameAsBilling,
-                    card_info: cardInfo
+                    card_token: paymentData.token,
+                    guest_name: guestNameInput.value.trim(),
+                    guest_email: guestEmailInput.value.trim(),
+                    guest_phone: guestPhoneInput.value.trim(),
+                    billing_address_1: billingAddress1Input.value.trim(),
+                    billing_address_2: billingAddress2Input.value.trim(),
+                    billing_city: billingCityInput.value.trim(),
+                    billing_state: billingStateInput.value.trim(),
+                    billing_zip: billingZipInput.value.trim(),
+                    shipping_address_1: shippingSameAsBillingInput.checked ? billingAddress1Input.value.trim() : shippingAddress1Input.value.trim(),
+                    shipping_address_2: shippingSameAsBillingInput.checked ? billingAddress2Input.value.trim() : shippingAddress2Input.value.trim(),
+                    shipping_city: shippingSameAsBillingInput.checked ? billingCityInput.value.trim() : shippingCityInput.value.trim(),
+                    shipping_state: shippingSameAsBillingInput.checked ? billingStateInput.value.trim() : shippingStateInput.value.trim(),
+                    shipping_zip: shippingSameAsBillingInput.checked ? billingZipInput.value.trim() : shippingZipInput.value.trim(),
+                    card_brand: paymentData.card_brand || '',
+                    card_last4: paymentData.card_last4 || '',
+                    card_exp: paymentData.card_exp || ''
                 })
             });
 
             const data = await response.json();
 
             if (!data.success) {
-                showError(data.message || 'Payment failed.');
+                showError(data.message || 'Payment could not be completed.');
                 return;
             }
 
-            try {
-                localStorage.removeItem('vnv_gourmet_checkout_selection');
-                localStorage.removeItem('vnv_gourmet_cart_draft');
-                localStorage.removeItem(SESSION_KEY);
-            } catch (e) {}
+            localStorage.removeItem(CART_KEY);
+            localStorage.removeItem(SESSION_KEY);
+            showSuccess('Payment completed successfully.');
 
-            window.location.href = data.redirect || PAYMENT_SUCCESS_FALLBACK;
-            return;
+            setTimeout(() => {
+                window.location.href = data.redirect || PAYMENT_SUCCESS_FALLBACK;
+            }, 700);
         } catch (e) {
-            showError('Unexpected error processing payment.');
+            showError(e.message || 'Payment could not be completed.');
         } finally {
-            updatePayNowButtonState();
-            payNowBtn.innerHTML = '<i class="fa-solid fa-credit-card"></i> Pay now';
+            payNowBtn.disabled = false;
+            payNowBtn.innerHTML = '<i class="fa-solid fa-lock"></i> Pay now';
         }
     });
 
-    if (applyCouponBtn) {
-        applyCouponBtn.addEventListener('click', async function () {
-            hideMessages();
-
-            if (!checkoutState.cart) {
-                showError('Cart not loaded.');
-                return;
-            }
-
-            applyCouponBtn.disabled = true;
-            const previousText = applyCouponBtn.textContent;
-            applyCouponBtn.textContent = 'Applying...';
-
-            try {
-                const response = await fetch('{{ path("store/checkout") }}', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-Requested-With': 'XMLHttpRequest'
-                    },
-                    body: JSON.stringify({
-                        action: 'apply_coupon',
-                        session_token: sessionToken,
-                        recovery_token: HAS_RECOVERY ? RECOVERY_TOKEN : '',
-                        coupon_code: (couponCodeInput?.value || '').trim(),
-                        guest_email: (emailInput?.value || '').trim()
-                    })
-                });
-                const data = await response.json();
-                if (!data.success) {
-                    showError(data.message || 'Coupon could not be applied.');
-                    return;
-                }
-
-                if (checkoutState.cart) {
-                    checkoutState.cart.coupon_code = data.coupon_code || null;
-                    checkoutState.cart.coupon_discount = Number(data.coupon_discount || 0);
-                    checkoutState.cart.discount = Number(data.discount || 0);
-                    checkoutState.cart.subtotal = Number(data.subtotal || 0);
-                    checkoutState.cart.total = Number(data.total || 0);
-                    if (data.next_charge_total !== undefined && data.next_charge_total !== null) {
-                        checkoutState.cart.next_charge_total = Number(data.next_charge_total);
-                    }
-                }
-                renderSummary();
-                showSuccess(data.message || 'Coupon applied.');
-            } catch (e) {
-                showError('Unexpected error applying coupon.');
-            } finally {
-                applyCouponBtn.disabled = false;
-                applyCouponBtn.textContent = previousText;
-            }
-        });
-    }
-
-    const loaded = await loadSummary();
-
-    if (loaded) {
-        if (activeProviderType === 'stripe') {
-            initStripe();
-        } else {
-            await initSquare();
-        }
-    }
-
-    initAddressAutocomplete(billingAddress1Input, 'billing');
-    initAddressAutocomplete(shippingAddress1Input, 'shipping');
+    (async function init() {
+        const loaded = await loadSummary();
+        if (!loaded) return;
+        await loadSavedCards();
+        await mountPaymentFields();
+    })();
 });
 </script>
 {% endblock %}

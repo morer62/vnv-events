@@ -2,18 +2,18 @@
 
 {% block style %}
 <style>
-    .store-details-image-wrap{
-        width:100%;
-        max-width:420px;
-        margin:0 auto;
+    .store-details-image-wrap {
+        width: 100%;
+        max-width: 420px;
+        margin: 0 auto;
     }
 
-    .store-details-image-trigger{
-        border:0;
-        background:transparent;
-        padding:0;
-        width:100%;
-        cursor:pointer;
+    .store-details-image-trigger {
+        border: 0;
+        background: transparent;
+        padding: 0;
+        width: 100%;
+        cursor: pointer;
     }
 
     .store-details-image {
@@ -27,15 +27,15 @@
         transition: transform .18s ease, box-shadow .18s ease;
     }
 
-    .store-details-image:hover{
+    .store-details-image:hover {
         transform: translateY(-2px);
         box-shadow: 0 16px 32px rgba(0,0,0,.10);
     }
 
-    .store-image-hint{
-        font-size:.85rem;
-        color:#6c757d;
-        margin-top:.65rem;
+    .store-image-hint {
+        font-size: .85rem;
+        color: #6c757d;
+        margin-top: .65rem;
     }
 
     .store-info-card {
@@ -60,6 +60,16 @@
         font-size: 0.9rem;
     }
 
+    .store-chip-dark {
+        background: #111827;
+        color: #fff;
+    }
+
+    .store-chip-soft {
+        background: #eef2ff;
+        color: #3730a3;
+    }
+
     .store-meta-label {
         font-size: 0.85rem;
         color: #6c757d;
@@ -72,37 +82,86 @@
         word-break: break-word;
     }
 
-    .store-top-card{
-        border:1px solid #e9ecef;
-        border-radius:16px;
-        background:#fff;
+    .store-top-card {
+        border: 1px solid #e9ecef;
+        border-radius: 16px;
+        background: #fff;
     }
 
-    .store-top-nav{
-        display:flex;
-        flex-wrap:wrap;
-        gap:.5rem;
+    .store-top-nav {
+        display: flex;
+        flex-wrap: wrap;
+        gap: .5rem;
     }
 
-    .store-image-empty{
-        height:320px;
+    .store-image-empty {
+        height: 320px;
     }
 
-    .store-modal-image{
-        width:100%;
-        max-height:80vh;
-        object-fit:contain;
-        border-radius:12px;
-        background:#fff;
+    .store-modal-image {
+        width: 100%;
+        max-height: 80vh;
+        object-fit: contain;
+        border-radius: 12px;
+        background: #fff;
     }
 
-    @media (max-width: 768px){
-        .store-details-image{
-            height:260px;
+    .store-variation-card {
+        border: 1px solid #e5e7eb;
+        border-radius: 14px;
+        background: #fcfcfd;
+        padding: 16px;
+        margin-bottom: 14px;
+    }
+
+    .store-variation-card:last-child {
+        margin-bottom: 0;
+    }
+
+    .store-variation-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: start;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin-bottom: 12px;
+    }
+
+    .store-variation-name {
+        font-weight: 700;
+        font-size: 1rem;
+        color: #111827;
+        margin-bottom: 2px;
+    }
+
+    .store-variation-sub {
+        color: #6b7280;
+        font-size: 0.88rem;
+    }
+
+    .store-grid-compact {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+    }
+
+    .store-inline-stack {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    @media (max-width: 768px) {
+        .store-details-image {
+            height: 260px;
         }
 
-        .store-image-empty{
-            height:260px;
+        .store-image-empty {
+            height: 260px;
+        }
+
+        .store-grid-compact {
+            grid-template-columns: 1fr;
         }
     }
 </style>
@@ -116,7 +175,7 @@
             <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
                 <div>
                     <h1 class="h3 mb-1">Product Details</h1>
-                    <p class="text-muted mb-0">Review your product information.</p>
+                    <p class="text-muted mb-0">Review how this product is configured before moving to the public storefront.</p>
                 </div>
 
                 <div class="d-flex gap-2 flex-wrap">
@@ -138,6 +197,9 @@
                 </a>
                 <a href="{{ path('panel/planner-hub/store/attributes/home') }}" class="btn btn-outline-dark btn-sm">
                     Attributes
+                </a>
+                <a href="{{ path('panel/planner-hub/store/attribute-values/home') }}" class="btn btn-outline-dark btn-sm">
+                    Attribute Values
                 </a>
             </div>
         </div>
@@ -205,40 +267,73 @@
 
                     <div class="row">
                         <div class="col-md-4">
-                            <div class="store-meta-label">SKU</div>
-                            <div class="store-meta-value">{{ product.sku ?: '—' }}</div>
-                        </div>
-
-                        <div class="col-md-4">
-                            <div class="store-meta-label">Price</div>
-                            <div class="store-meta-value">${{ product.price|number_format(2, '.', ',') }}</div>
-                        </div>
-
-                        <div class="col-md-4">
-                            <div class="store-meta-label">Promo Price</div>
+                            <div class="store-meta-label">Product Type</div>
                             <div class="store-meta-value">
-                                {% if product.promo_price %}
-                                    ${{ product.promo_price|number_format(2, '.', ',') }}
+                                {% if product.product_type == 'VARIABLE' %}
+                                    <span class="store-chip store-chip-dark">VARIABLE</span>
                                 {% else %}
-                                    —
+                                    <span class="store-chip store-chip-soft">FIXED</span>
                                 {% endif %}
                             </div>
                         </div>
 
                         <div class="col-md-4">
-                            <div class="store-meta-label">Stock</div>
-                            <div class="store-meta-value">{{ product.stock_quantity }}</div>
+                            <div class="store-meta-label">SKU</div>
+                            <div class="store-meta-value">{{ product.sku ?: '—' }}</div>
                         </div>
 
                         <div class="col-md-4">
-                            <div class="store-meta-label">Min Purchase Qty</div>
-                            <div class="store-meta-value">{{ product.min_purchase_qty }}</div>
+                            <div class="store-meta-label">Display Price</div>
+                            <div class="store-meta-value">
+                                {% if product.product_type == 'VARIABLE' %}
+                                    {% if product.min_price == product.max_price %}
+                                        ${{ product.min_price|number_format(2, '.', ',') }}
+                                    {% else %}
+                                        ${{ product.min_price|number_format(2, '.', ',') }} - ${{ product.max_price|number_format(2, '.', ',') }}
+                                    {% endif %}
+                                {% else %}
+                                    ${{ product.display_price|number_format(2, '.', ',') }}
+                                {% endif %}
+                            </div>
                         </div>
 
-                        <div class="col-md-4">
-                            <div class="store-meta-label">Max Purchase Qty</div>
-                            <div class="store-meta-value">{{ product.max_purchase_qty ?: '—' }}</div>
-                        </div>
+                        {% if product.product_type == 'FIXED' %}
+                            <div class="col-md-4">
+                                <div class="store-meta-label">Base Price</div>
+                                <div class="store-meta-value">${{ product.price|number_format(2, '.', ',') }}</div>
+                            </div>
+
+                            <div class="col-md-4">
+                                <div class="store-meta-label">Promo Price</div>
+                                <div class="store-meta-value">
+                                    {% if product.promo_price %}
+                                        ${{ product.promo_price|number_format(2, '.', ',') }}
+                                    {% else %}
+                                        —
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <div class="col-md-4">
+                                <div class="store-meta-label">Stock</div>
+                                <div class="store-meta-value">{{ product.stock_quantity }}</div>
+                            </div>
+
+                            <div class="col-md-4">
+                                <div class="store-meta-label">Min Purchase Qty</div>
+                                <div class="store-meta-value">{{ product.min_purchase_qty }}</div>
+                            </div>
+
+                            <div class="col-md-4">
+                                <div class="store-meta-label">Max Purchase Qty</div>
+                                <div class="store-meta-value">{{ product.max_purchase_qty ?: '—' }}</div>
+                            </div>
+                        {% else %}
+                            <div class="col-md-4">
+                                <div class="store-meta-label">Variation Count</div>
+                                <div class="store-meta-value">{{ product.variations|length }}</div>
+                            </div>
+                        {% endif %}
                     </div>
 
                     <hr>
@@ -250,7 +345,7 @@
 
                     <div>
                         <h6>Full Description</h6>
-                        <div>{{ product.description|raw }}</div>
+                        <div>{{ product.description|default('No description provided.')|raw }}</div>
                     </div>
                 </div>
             </div>
@@ -272,61 +367,7 @@
 
         <div class="col-lg-6 mb-4">
             <div class="store-info-card shadow-sm">
-                <h5>Recommended Audience</h5>
-
-                {% if product.audiences|length > 0 %}
-                    {% for audience in product.audiences %}
-                        <span class="store-chip">
-                            {% if audience == 'professional' %}
-                                Busy Professional
-                            {% elseif audience == 'healthy_active' %}
-                                Healthy / Active Lifestyle
-                            {% elseif audience == 'family_kids' %}
-                                Family / Kids
-                            {% elseif audience == 'corporate' %}
-                                Corporate
-                            {% else %}
-                                {{ audience }}
-                            {% endif %}
-                        </span>
-                    {% endfor %}
-                {% else %}
-                    <p class="text-muted mb-0">No audience assigned.</p>
-                {% endif %}
-            </div>
-        </div>
-
-        <div class="col-lg-6 mb-4">
-            <div class="store-info-card shadow-sm">
-                <h5>Meal Styles</h5>
-
-                {% if product.meal_styles|length > 0 %}
-                    {% for style in product.meal_styles %}
-                        <span class="store-chip">
-                            {% if style == 'balanced' %}
-                                Balanced Meals
-                            {% elseif style == 'vegetarian' %}
-                                Vegetarian
-                            {% elseif style == 'family_friendly' %}
-                                Family-Friendly
-                            {% elseif style == 'protein_focused' %}
-                                Protein-Focused
-                            {% elseif style == 'corporate_lunch' %}
-                                Corporate Lunch
-                            {% else %}
-                                {{ style }}
-                            {% endif %}
-                        </span>
-                    {% endfor %}
-                {% else %}
-                    <p class="text-muted mb-0">No meal styles assigned.</p>
-                {% endif %}
-            </div>
-        </div>
-
-        <div class="col-lg-6 mb-4">
-            <div class="store-info-card shadow-sm">
-                <h5>Attributes</h5>
+                <h5>Informational Attributes</h5>
 
                 {% if product.attributes_grouped is not empty %}
                     {% for attributeName, values in product.attributes_grouped %}
@@ -338,67 +379,98 @@
                         </div>
                     {% endfor %}
                 {% else %}
-                    <p class="text-muted mb-0">No attributes assigned.</p>
+                    <p class="text-muted mb-0">No informational attributes assigned.</p>
                 {% endif %}
             </div>
         </div>
 
-        <div class="col-12 mb-4">
-            <div class="store-info-card shadow-sm">
-                <h5>Nutrition Information</h5>
+        {% if product.product_type == 'VARIABLE' %}
+            <div class="col-12 mb-4">
+                <div class="store-info-card shadow-sm">
+                    <h5>Variations</h5>
 
-                {% if product.nutrition %}
-                    <div class="row">
-                        <div class="col-md-3 col-sm-6">
-                            <div class="store-meta-label">Calories</div>
-                            <div class="store-meta-value">{{ product.nutrition.calories ?: '—' }}</div>
-                        </div>
+                    {% if product.variations|length > 0 %}
+                        {% for variation in product.variations %}
+                            <div class="store-variation-card">
+                                <div class="store-variation-head">
+                                    <div>
+                                        <div class="store-variation-name">{{ variation.name }}</div>
+                                        <div class="store-variation-sub">
+                                            {% if variation.slug %}Slug: {{ variation.slug }}{% else %}No slug{% endif %}
+                                            {% if variation.sku %} · SKU: {{ variation.sku }}{% endif %}
+                                        </div>
+                                    </div>
 
-                        <div class="col-md-3 col-sm-6">
-                            <div class="store-meta-label">Protein</div>
-                            <div class="store-meta-value">{{ product.nutrition.protein ?: '—' }}</div>
-                        </div>
+                                    <div class="text-end">
+                                        {% if variation.status == 'ACTIVE' %}
+                                            <span class="badge bg-success">ACTIVE</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">INACTIVE</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
 
-                        <div class="col-md-3 col-sm-6">
-                            <div class="store-meta-label">Carbohydrates</div>
-                            <div class="store-meta-value">{{ product.nutrition.carbohydrates ?: '—' }}</div>
-                        </div>
+                                <div class="store-grid-compact mb-3">
+                                    <div>
+                                        <div class="store-meta-label">Price</div>
+                                        <div class="store-meta-value mb-0">${{ variation.price|number_format(2, '.', ',') }}</div>
+                                    </div>
 
-                        <div class="col-md-3 col-sm-6">
-                            <div class="store-meta-label">Fat</div>
-                            <div class="store-meta-value">{{ product.nutrition.fat ?: '—' }}</div>
-                        </div>
+                                    <div>
+                                        <div class="store-meta-label">Promo Price</div>
+                                        <div class="store-meta-value mb-0">
+                                            {% if variation.promo_price %}
+                                                ${{ variation.promo_price|number_format(2, '.', ',') }}
+                                            {% else %}
+                                                —
+                                            {% endif %}
+                                        </div>
+                                    </div>
 
-                        <div class="col-md-3 col-sm-6">
-                            <div class="store-meta-label">Fiber</div>
-                            <div class="store-meta-value">{{ product.nutrition.fiber ?: '—' }}</div>
-                        </div>
+                                    <div>
+                                        <div class="store-meta-label">Effective Price</div>
+                                        <div class="store-meta-value mb-0">${{ variation.effective_price|number_format(2, '.', ',') }}</div>
+                                    </div>
 
-                        <div class="col-md-3 col-sm-6">
-                            <div class="store-meta-label">Sugar</div>
-                            <div class="store-meta-value">{{ product.nutrition.sugar ?: '—' }}</div>
-                        </div>
+                                    <div>
+                                        <div class="store-meta-label">Stock</div>
+                                        <div class="store-meta-value mb-0">{{ variation.stock_quantity }}</div>
+                                    </div>
 
-                        <div class="col-md-3 col-sm-6">
-                            <div class="store-meta-label">Sodium</div>
-                            <div class="store-meta-value">{{ product.nutrition.sodium ?: '—' }}</div>
-                        </div>
+                                    <div>
+                                        <div class="store-meta-label">Min Qty</div>
+                                        <div class="store-meta-value mb-0">{{ variation.min_purchase_qty }}</div>
+                                    </div>
 
-                        <div class="col-md-3 col-sm-6">
-                            <div class="store-meta-label">Serving Size</div>
-                            <div class="store-meta-value">{{ product.nutrition.serving_size ?: '—' }}</div>
-                        </div>
+                                    <div>
+                                        <div class="store-meta-label">Max Qty</div>
+                                        <div class="store-meta-value mb-0">{{ variation.max_purchase_qty ?: '—' }}</div>
+                                    </div>
+                                </div>
 
-                        <div class="col-12">
-                            <div class="store-meta-label">Ingredients</div>
-                            <div class="store-meta-value">{{ product.nutrition.ingredients ?: '—' }}</div>
-                        </div>
-                    </div>
-                {% else %}
-                    <p class="text-muted mb-0">No nutrition information added.</p>
-                {% endif %}
+                                <div>
+                                    <div class="store-meta-label">Variation Attribute Mapping</div>
+
+                                    {% if variation.attribute_values is defined and variation.attribute_values|length > 0 %}
+                                        <div class="store-inline-stack">
+                                            {% for av in variation.attribute_values %}
+                                                <span class="store-chip">
+                                                    {{ av.attribute_name }}: {{ av.attribute_value }}
+                                                </span>
+                                            {% endfor %}
+                                        </div>
+                                    {% else %}
+                                        <div class="text-muted">No attribute mapping assigned to this variation.</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <p class="text-muted mb-0">No variations added yet.</p>
+                    {% endif %}
+                </div>
             </div>
-        </div>
+        {% endif %}
     </div>
 </div>
 
@@ -417,5 +489,4 @@
     </div>
 </div>
 {% endif %}
-
 {% endblock %}

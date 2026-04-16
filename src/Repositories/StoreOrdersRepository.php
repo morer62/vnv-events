@@ -87,6 +87,7 @@ class StoreOrdersRepository extends BaseRepository
             if ($this->columnExists($column)) {
                 continue;
             }
+
             try {
                 $this->db->query("ALTER TABLE `{$this->table}` ADD COLUMN `{$column}` {$definition}");
                 $this->db->execute();
@@ -135,121 +136,29 @@ class StoreOrdersRepository extends BaseRepository
             LIMIT 1
         ");
         $this->db->bind(':id', $id, \PDO::PARAM_INT);
+
         $result = $this->db->fetchOne();
         return $result ?: null;
     }
 
-    public function getByEmail(string $email, int $limit = 50): array
-    {
-        $this->db->query("
-            SELECT *
-            FROM {$this->table}
-            WHERE guest_email = :guest_email
-            ORDER BY id DESC
-            LIMIT :limit
-        ");
-        $this->db->bind(':guest_email', $email);
-        $this->db->bind(':limit', $limit, \PDO::PARAM_INT);
-
-        return $this->db->fetchAll();
-    }
-
-    public function getByUser(int $userId, int $limit = 50): array
-    {
-        $this->db->query("
-            SELECT *
-            FROM {$this->table}
-            WHERE id_user = :id_user
-            ORDER BY id DESC
-            LIMIT :limit
-        ");
-        $this->db->bind(':id_user', $userId);
-        $this->db->bind(':limit', $limit, \PDO::PARAM_INT);
-
-        return $this->db->fetchAll();
-    }
-
-    public function getRecentByOwner(int $ownerId, int $limit = 50): array
+    public function getAllByOwner(int $ownerId, int $limit = 100): array
     {
         $this->db->query("
             SELECT *
             FROM {$this->table}
             WHERE id_owner = :id_owner
             ORDER BY id DESC
-            LIMIT :limit
-        ");
-        $this->db->bind(':id_owner', $ownerId);
-        $this->db->bind(':limit', $limit, \PDO::PARAM_INT);
-
-        return $this->db->fetchAll();
-    }
-
-    public function getFilteredByOwner(
-        int $ownerId,
-        ?string $paymentStatus = null,
-        ?string $status = null,
-        ?string $email = null,
-        int $limit = 100
-    ): array {
-        $sql = "SELECT * FROM {$this->table} WHERE id_owner = :id_owner";
-        $params = [
-            ':id_owner' => $ownerId
-        ];
-
-        if ($paymentStatus !== null && $paymentStatus !== '') {
-            $sql .= " AND payment_status = :payment_status";
-            $params[':payment_status'] = $paymentStatus;
-        }
-
-        if ($status !== null && $status !== '') {
-            $sql .= " AND status = :status";
-            $params[':status'] = $status;
-        }
-
-        if ($email !== null && $email !== '') {
-            $sql .= " AND guest_email LIKE :guest_email";
-            $params[':guest_email'] = '%' . $email . '%';
-        }
-
-        $sql .= " ORDER BY id DESC LIMIT :limit";
-
-        $this->db->query($sql);
-        foreach ($params as $key => $value) {
-            $this->db->bind($key, $value);
-        }
-        $this->db->bind(':limit', $limit, \PDO::PARAM_INT);
-
-        return $this->db->fetchAll();
-    }
-
-    public function getByOwnerAndDateRange(
-        int $ownerId,
-        string $fromDateTime,
-        string $toDateTime,
-        int $limit = 250
-    ): array {
-        $this->db->query("
-            SELECT *
-            FROM {$this->table}
-            WHERE id_owner = :id_owner
-              AND created_at BETWEEN :from_dt AND :to_dt
-            ORDER BY created_at DESC
             LIMIT :limit
         ");
         $this->db->bind(':id_owner', $ownerId, \PDO::PARAM_INT);
-        $this->db->bind(':from_dt', $fromDateTime);
-        $this->db->bind(':to_dt', $toDateTime);
         $this->db->bind(':limit', $limit, \PDO::PARAM_INT);
+
         return $this->db->fetchAll();
     }
 
-    public function getByOwnerStatuses(int $ownerId, array $statuses, int $limit = 250): array
+    public function getRecentByOwnerAndStatuses(int $ownerId, array $statuses, int $limit = 50): array
     {
-        if (!$statuses) {
-            return [];
-        }
-
-        $statuses = array_values(array_filter(array_map('strval', $statuses)));
+        $statuses = array_values(array_unique(array_filter(array_map('trim', $statuses))));
         if (!$statuses) {
             return [];
         }
@@ -268,9 +177,11 @@ class StoreOrdersRepository extends BaseRepository
             LIMIT :limit
         ");
         $this->db->bind(':id_owner', $ownerId, \PDO::PARAM_INT);
+
         foreach ($statuses as $i => $status) {
             $this->db->bind(':status_' . $i, $status);
         }
+
         $this->db->bind(':limit', $limit, \PDO::PARAM_INT);
         return $this->db->fetchAll();
     }
@@ -334,7 +245,7 @@ class StoreOrdersRepository extends BaseRepository
                 WHERE id = :id
                 LIMIT 1
             ");
-            $this->db->bind(':id', $orderId);
+            $this->db->bind(':id', $orderId, \PDO::PARAM_INT);
             $order = $this->db->fetchOne();
 
             if (!$order) {
@@ -344,8 +255,45 @@ class StoreOrdersRepository extends BaseRepository
             $itemsRepo = new StoreOrderItemsRepository();
             $paymentsRepo = new StorePaymentsRepository();
 
-            $order->items = $itemsRepo->getDetailedByOrder((int)$orderId);
-            $order->payments = $paymentsRepo->getByOrder((int)$orderId);
+            $items = $itemsRepo->getDetailedByOrder((int)$orderId);
+            $payments = $paymentsRepo->getByOrder((int)$orderId);
+            $successfulPayments = $paymentsRepo->getSuccessfulByOrder((int)$orderId);
+            $lastSuccessfulPayment = $paymentsRepo->getLastSuccessfulByOrder((int)$orderId);
+            $totalPaid = $paymentsRepo->getTotalPaidByOrder((int)$orderId);
+
+            $quantityTotal = 0;
+            $itemsCount = 0;
+
+            foreach ($items as $item) {
+                if (is_object($item)) {
+                    $item->variation_options = $this->decodeJsonArray($item->variation_options_snapshot ?? null);
+                    $item->display_label = $this->buildItemDisplayLabel(
+                        (string)($item->product_name_snapshot ?? ''),
+                        (string)($item->variation_name_snapshot ?? '')
+                    );
+                    $quantityTotal += (int)($item->quantity ?? 0);
+                } else {
+                    $item['variation_options'] = $this->decodeJsonArray($item['variation_options_snapshot'] ?? null);
+                    $item['display_label'] = $this->buildItemDisplayLabel(
+                        (string)($item['product_name_snapshot'] ?? ''),
+                        (string)($item['variation_name_snapshot'] ?? '')
+                    );
+                    $quantityTotal += (int)($item['quantity'] ?? 0);
+                }
+
+                $itemsCount++;
+            }
+
+            $order->items = $items;
+            $order->payments = $payments;
+            $order->successful_payments = $successfulPayments;
+            $order->last_successful_payment = $lastSuccessfulPayment;
+            $order->total_paid = round((float)$totalPaid, 2);
+            $order->balance_due = round(max(0, (float)$order->total - (float)$totalPaid), 2);
+            $order->is_paid_in_full = ((float)$totalPaid >= (float)$order->total);
+            $order->quantity_total = $quantityTotal;
+            $order->items_count = $itemsCount > 0 ? $itemsCount : (int)($order->items_count ?? 0);
+            $order->meals_count = $quantityTotal > 0 ? $quantityTotal : (int)($order->meals_count ?? 0);
 
             return $order;
         } catch (\PDOException $e) {
@@ -354,6 +302,28 @@ class StoreOrdersRepository extends BaseRepository
             }
             return null;
         }
+    }
+
+    private function decodeJsonArray(?string $json): array
+    {
+        if (!$json) {
+            return [];
+        }
+
+        $decoded = json_decode($json, true);
+        return is_array($decoded) ? $decoded : [];
+    }
+
+    private function buildItemDisplayLabel(string $productName, string $variationName): string
+    {
+        $productName = trim($productName);
+        $variationName = trim($variationName);
+
+        if ($variationName !== '') {
+            return $productName . ' - ' . $variationName;
+        }
+
+        return $productName;
     }
 
     public function createFromCart(object $cart, array $override = []): bool
@@ -366,13 +336,16 @@ class StoreOrdersRepository extends BaseRepository
             'guest_email' => $cart->guest_email ?? null,
             'guest_phone' => $cart->guest_phone ?? null,
             'city' => $cart->city ?? null,
-            'audience_type' => $cart->audience_type ?? null,
-            'meal_style' => $cart->meal_style ?? null,
-            'pricing_mode' => $cart->pricing_mode ?? self::PRICING_PAYG,
+            'audience_type' => null,
+            'meal_style' => null,
+            'pricing_mode' => self::PRICING_PAYG,
             'items_count' => (int)($cart->items_count ?? 0),
             'meals_count' => (int)($cart->meals_count ?? 0),
             'subtotal' => (float)($cart->subtotal ?? 0),
             'discount' => (float)($cart->discount ?? 0),
+            'coupon_code' => $cart->coupon_code ?? null,
+            'id_coupon' => $cart->id_coupon ?? null,
+            'coupon_discount' => (float)($cart->coupon_discount ?? $cart->discount ?? 0),
             'total' => (float)($cart->total ?? 0),
             'payment_status' => self::PAYMENT_PENDING,
             'status' => self::STATUS_NEW,
@@ -388,34 +361,34 @@ class StoreOrdersRepository extends BaseRepository
     }
 
     public function getAllByUser(int $userId, int $limit = 100): array
-{
-    $this->db->query("
-        SELECT *
-        FROM {$this->table}
-        WHERE id_user = :id_user
-        ORDER BY id DESC
-        LIMIT :limit
-    ");
-    $this->db->bind(':id_user', $userId);
-    $this->db->bind(':limit', $limit, \PDO::PARAM_INT);
+    {
+        $this->db->query("
+            SELECT *
+            FROM {$this->table}
+            WHERE id_user = :id_user
+            ORDER BY id DESC
+            LIMIT :limit
+        ");
+        $this->db->bind(':id_user', $userId, \PDO::PARAM_INT);
+        $this->db->bind(':limit', $limit, \PDO::PARAM_INT);
 
-    return $this->db->fetchAll();
-}
+        return $this->db->fetchAll();
+    }
 
-public function getAllByGuestEmail(string $email, int $limit = 100): array
-{
-    $this->db->query("
-        SELECT *
-        FROM {$this->table}
-        WHERE guest_email = :guest_email
-        ORDER BY id DESC
-        LIMIT :limit
-    ");
-    $this->db->bind(':guest_email', $email);
-    $this->db->bind(':limit', $limit, \PDO::PARAM_INT);
+    public function getAllByGuestEmail(string $email, int $limit = 100): array
+    {
+        $this->db->query("
+            SELECT *
+            FROM {$this->table}
+            WHERE guest_email = :guest_email
+            ORDER BY id DESC
+            LIMIT :limit
+        ");
+        $this->db->bind(':guest_email', $email);
+        $this->db->bind(':limit', $limit, \PDO::PARAM_INT);
 
-    return $this->db->fetchAll();
-}
+        return $this->db->fetchAll();
+    }
 
     public function hasAnyPaidOrderForCustomer(int $ownerId, ?int $userId, ?string $email): bool
     {

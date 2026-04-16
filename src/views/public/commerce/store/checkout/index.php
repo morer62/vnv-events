@@ -4,9 +4,7 @@ use App\Repositories\StoreCartsRepository;
 use App\Repositories\StoreCartItemsRepository;
 use App\Repositories\StoreOrdersRepository;
 use App\Repositories\StoreOrderItemsRepository;
-use App\Repositories\StorePaymentsRepository;
-use App\Repositories\StoreSubscriptionsRepository;
-use App\Repositories\StoreSubscriptionItemsRepository;
+use App\Repositories\StorePaymentsRepository; 
 use App\Repositories\StoreCouponsRepository;
 use App\Repositories\StoreCouponRedemptionsRepository;
 use App\Repositories\UserRepository;
@@ -105,8 +103,8 @@ function sendCheckoutOrderDetailsEmail(
     }
 
     $rows = '';
-    foreach ($cartItems as $item) {
-        $name = htmlspecialchars((string)($item->product_name_snapshot ?? 'Meal'));
+    foreach ($cartItems as $item) { 
+        $name = htmlspecialchars((string)($item->product_name_snapshot ?? 'Item'));
         $qty = (int)($item->quantity ?? 0);
         $line = number_format((float)($item->line_total ?? 0), 2);
         $rows .= "<tr>
@@ -116,7 +114,7 @@ function sendCheckoutOrderDetailsEmail(
         </tr>";
     }
 
-    $subject = "Order #{$orderId} confirmation - Avomeal";
+    $subject = "Order #{$orderId} confirmation";
     $message = '
         <div style="font-family:Arial,sans-serif;color:#222;line-height:1.6;max-width:700px;margin:0 auto;">
             <h2 style="margin-bottom:6px;">Thanks for your purchase!</h2>
@@ -572,9 +570,7 @@ $router->post(function () {
     $cartItemsRepo = new StoreCartItemsRepository();
     $ordersRepo = new StoreOrdersRepository();
     $orderItemsRepo = new StoreOrderItemsRepository();
-    $paymentsRepo = new StorePaymentsRepository();
-    $subscriptionsRepo = new StoreSubscriptionsRepository();
-    $subscriptionItemsRepo = new StoreSubscriptionItemsRepository();
+    $paymentsRepo = new StorePaymentsRepository(); 
     $storeCouponsRepo = new StoreCouponsRepository();
     $couponRedemptionsRepo = new StoreCouponRedemptionsRepository();
     $userRepo = new UserRepository();
@@ -830,7 +826,7 @@ $router->post(function () {
                     $subject = 'Your Avomeal access credentials';
                     $message = '
                         <div style="font-family: Arial, sans-serif; line-height: 1.6; color:#333;">
-                            <h2 style="margin: 0 0 10px;">Welcome to Avomeal</h2>
+                            <h2 style="margin: 0 0 10px;">Welcome</h2>
                             <p>Hello ' . htmlspecialchars($clientName ?: 'Customer') . ',</p>
                             <p>Your account was created for your store cart.</p>
                             <div style="background:#fff; border-left:4px solid #f59e0b; padding: 14px; margin: 18px 0;">
@@ -1148,13 +1144,7 @@ $router->post(function () {
         return;
     }
 
-    if ($mealsCount < 5) {
-        echo json_encode([
-            "success" => false,
-            "message" => "Minimum 5 meals required."
-        ]);
-        return;
-    }
+     
 
     $amountCents = (int)round($total * 100);
 
@@ -1173,7 +1163,7 @@ $router->post(function () {
             $customerToken,
             $amountCents,
             $guestEmail,
-            "Avomeal Order - Cart #" . $cart->id,
+            "Store Order - Cart #" . $cart->id,
             $squareCustomerIdForCardOnFile
         );
     } else {
@@ -1230,10 +1220,10 @@ $router->post(function () {
                 $temporaryPassword = (string)($user->temporary_password_plain ?? '');
                 $clientName = trim((string)($user->name ?? '') . ' ' . (string)($user->lastname ?? ''));
 
-                $subject = 'Your Avomeal access credentials';
+                $subject = 'Your store access credentials';
                 $message = '
                     <div style="font-family: Arial, sans-serif; line-height: 1.6; color:#333;">
-                        <h2 style="margin: 0 0 10px;">Welcome to Avomeal</h2>
+                        <h2 style="margin: 0 0 10px;">Welcome</h2>
                         <p>Hello ' . htmlspecialchars($clientName ?: 'Customer') . ',</p>
                         <p>Your account was created for your store purchase.</p>
                         <div style="background:#fff; border-left:4px solid #f59e0b; padding: 14px; margin: 18px 0;">
@@ -1494,54 +1484,7 @@ $router->post(function () {
         }
     }
 
-    if ($cart->pricing_mode === StoreCartsRepository::PRICING_SUBSCRIPTION) {
-        $subscriptionCouponCode = null;
-        $subscriptionCouponId = null;
-        if ($couponCodeFromCart !== '' && !empty($couponFromValidation)) {
-            $purchaseMode = strtoupper((string)($couponFromValidation->purchase_mode ?? StoreCouponsRepository::PURCHASE_MODE_PAYG));
-            if ($purchaseMode === StoreCouponsRepository::PURCHASE_MODE_SUBSCRIPTION) {
-                $subscriptionCouponCode = $couponCodeFromCart;
-                $subscriptionCouponId = (int)($couponFromValidation->id ?? 0) ?: null;
-            }
-        }
-
-        $subscriptionCreated = $subscriptionsRepo->add([
-            'id_owner' => $ownerId,
-            'id_user' => $userId,
-            'id_store_order' => $orderId,
-            'coupon_code' => $subscriptionCouponCode,
-            'id_coupon' => $subscriptionCouponId,
-            'email' => $guestEmail,
-            'full_name' => $guestName,
-            'phone' => $guestPhone ?: null,
-            'city' => $city ?: null,
-            'frequency' => StoreSubscriptionsRepository::FREQUENCY_WEEKLY,
-            'status' => StoreSubscriptionsRepository::STATUS_ACTIVE,
-            'price_per_meal' => round($subtotal / max($mealsCount, 1), 2),
-            'minimum_meals' => 5,
-            'meals_count' => $mealsCount,
-            'next_charge_date' => date('Y-m-d', strtotime('+7 days')),
-            'last_charge_date' => date('Y-m-d'),
-            'external_subscription_id' => null,
-            'notes' => 'Created from public gourmet checkout',
-            'updated_at' => date('Y-m-d H:i:s')
-        ]);
-
-        if ($subscriptionCreated) {
-            $subscriptionId = $subscriptionsRepo->getLastId();
-
-            $subscriptionItemsRepo->createFromOrderItems($subscriptionId, $cartItems);
-
-            $realMealsCount = $subscriptionItemsRepo->getMealsCount($subscriptionId);
-
-            $subscriptionsRepo->update([
-                'meals_count' => $realMealsCount,
-                'updated_at' => date('Y-m-d H:i:s')
-            ], [
-                'id' => $subscriptionId
-            ]);
-        }
-    }
+     
 
     if ($couponIdFromCart > 0 && $couponCodeFromCart !== '' && $discount > 0) {
         $couponRedemptionsRepo->add([
@@ -1558,19 +1501,19 @@ $router->post(function () {
     }
 
     $successPayload = [
-        'order_id' => (int)$orderId,
-        'public_token' => (string)$order->public_token,
-        'pricing_mode' => (string)($cart->pricing_mode ?? ''),
-        'guest_name' => (string)$guestName,
-        'total' => (float)$total,
-        'email' => (string)$guestEmail,
-        'created_at' => date('Y-m-d H:i:s')
+    'order_id' => (int)$orderId,
+    'public_token' => (string)$order->public_token,
+    'pricing_mode' => 'PAYG',
+    'guest_name' => (string)$guestName,
+    'total' => (float)$total,
+    'email' => (string)$guestEmail,
+    'created_at' => date('Y-m-d H:i:s')
     ];
 
     $encodedSuccessPayload = base64_encode(json_encode($successPayload));
 
     setcookie(
-        'vnv_gourmet_payment_success',
+        'store_payment_success',
         $encodedSuccessPayload,
         [
             'expires' => time() + 900,

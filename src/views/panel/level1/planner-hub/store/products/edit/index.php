@@ -3,17 +3,14 @@
 use App\Repositories\StoreAttributesRepository;
 use App\Repositories\StoreAttributeValuesRepository;
 use App\Repositories\StoreCategoriesRepository;
-use App\Repositories\StoreProductsAttributesRepository;
 use App\Repositories\StoreProductsCategoriesRepository;
-use App\Repositories\StoreProductsNutritionRepository;
 use App\Repositories\StoreProductsRepository;
+use App\Repositories\StoreProductVariationsRepository;
 use App\Utils\FileUtils;
 use App\Utils\LocationUtils;
 use App\Utils\MessageUtil;
 use App\Utils\Router;
 use App\Utils\TemplateResponse;
-use App\Repositories\StoreProductsAudiencesRepository;
-use App\Repositories\StoreProductsMealStylesRepository;
 
 $router = new Router();
 
@@ -23,10 +20,7 @@ $router->get(function () {
     $attributesRepo = new StoreAttributesRepository();
     $attributeValuesRepo = new StoreAttributeValuesRepository();
     $productsCategoriesRepo = new StoreProductsCategoriesRepository();
-    $productsAttributesRepo = new StoreProductsAttributesRepository();
-    $nutritionRepo = new StoreProductsNutritionRepository();
-    $productsAudiencesRepo = new StoreProductsAudiencesRepository();
-    $productsMealStylesRepo = new StoreProductsMealStylesRepository();
+    $variationsRepo = new StoreProductVariationsRepository();
 
     $id = intval($_GET['id'] ?? 0);
 
@@ -35,7 +29,7 @@ $router->get(function () {
         LocationUtils::redirectInternal("panel/planner-hub/store/products/home");
     }
 
-    $product = $productsRepo->getOne(['id' => $id]);
+    $product = $productsRepo->getFullProductDetails($id);
 
     if (!$product) {
         MessageUtil::setMessage("Product not found.");
@@ -48,16 +42,15 @@ $router->get(function () {
     }
 
     $selectedCategoryIds = $productsCategoriesRepo->getCategoryIdsByProduct($id);
-    $selectedAttributes = $productsAttributesRepo->getByProduct($id);
-    $nutrition = $nutritionRepo->getByProduct($id);
-
     $selectedValueIds = [];
-    foreach ($selectedAttributes as $row) {
-        $selectedValueIds[] = (int)(is_object($row) ? $row->id_attribute_value : $row['id_attribute_value']);
+
+    if (!empty($product->attributes)) {
+        foreach ($product->attributes as $row) {
+            $selectedValueIds[] = (int)(is_object($row) ? $row->id_attribute_value : $row['id_attribute_value']);
+        }
     }
 
-    $selectedAudiences = $productsAudiencesRepo->getAudienceTypesByProduct($id);
-$selectedMealStyles = $productsMealStylesRepo->getMealStylesByProduct($id);
+    $variations = $variationsRepo->getDetailedByProduct($id);
 
     return TemplateResponse::render(__DIR__ . "/index.twig", [
         "product" => $product,
@@ -65,21 +58,16 @@ $selectedMealStyles = $productsMealStylesRepo->getMealStylesByProduct($id);
         "attributes" => $attributes,
         "selected_category_ids" => $selectedCategoryIds,
         "selected_value_ids" => $selectedValueIds,
-        "nutrition" => $nutrition,
-        "selected_audiences" => $selectedAudiences,
-        "selected_meal_styles" => $selectedMealStyles,
+        "variations" => $variations,
+        "product_types" => [
+            StoreProductsRepository::PRODUCT_TYPE_FIXED,
+            StoreProductsRepository::PRODUCT_TYPE_VARIABLE,
+        ]
     ]);
 });
 
 $router->post(function () {
     $productsRepo = new StoreProductsRepository();
-    $categoriesRepo = new StoreCategoriesRepository();
-    $attributesRepo = new StoreAttributesRepository();
-    $productsCategoriesRepo = new StoreProductsCategoriesRepository();
-    $productsAttributesRepo = new StoreProductsAttributesRepository();
-    $nutritionRepo = new StoreProductsNutritionRepository();
-    $productsAudiencesRepo = new StoreProductsAudiencesRepository();
-    $productsMealStylesRepo = new StoreProductsMealStylesRepository();
 
     $id = intval($_POST['id'] ?? 0);
 
@@ -88,9 +76,9 @@ $router->post(function () {
         LocationUtils::redirectInternal("panel/planner-hub/store/products/home");
     }
 
-    $product = $productsRepo->getOne(['id' => $id]);
+    $existingProduct = $productsRepo->getOne(['id' => $id]);
 
-    if (!$product) {
+    if (!$existingProduct) {
         MessageUtil::setMessage("Product not found.");
         LocationUtils::redirectInternal("panel/planner-hub/store/products/home");
     }
@@ -100,29 +88,33 @@ $router->post(function () {
     $sku = trim($_POST['sku'] ?? '');
     $shortDescription = trim($_POST['short_description'] ?? '');
     $description = trim($_POST['description'] ?? '');
-    $price = floatval($_POST['price'] ?? 0);
+    $productType = $productsRepo->normalizeProductType($_POST['product_type'] ?? StoreProductsRepository::PRODUCT_TYPE_FIXED);
+
+    $priceRaw = trim($_POST['price'] ?? '');
     $promoPriceRaw = trim($_POST['promo_price'] ?? '');
-    $promoPrice = $promoPriceRaw !== '' ? floatval($promoPriceRaw) : null;
-    $stockQuantity = intval($_POST['stock_quantity'] ?? 0);
-    $minPurchaseQty = intval($_POST['min_purchase_qty'] ?? 1);
+
+    $price = $priceRaw !== '' ? (float)$priceRaw : 0;
+    $promoPrice = $promoPriceRaw !== '' ? (float)$promoPriceRaw : null;
+
+    $stockQuantity = (int)($_POST['stock_quantity'] ?? 0);
+    $minPurchaseQty = (int)($_POST['min_purchase_qty'] ?? 1);
     $maxPurchaseQtyRaw = trim($_POST['max_purchase_qty'] ?? '');
-    $maxPurchaseQty = $maxPurchaseQtyRaw !== '' ? intval($maxPurchaseQtyRaw) : null;
+    $maxPurchaseQty = $maxPurchaseQtyRaw !== '' ? (int)$maxPurchaseQtyRaw : null;
+
     $status = trim($_POST['status'] ?? StoreProductsRepository::STATUS_ACTIVE);
     $isFeatured = isset($_POST['is_featured']) ? 1 : 0;
     $isPublic = isset($_POST['is_public']) ? 1 : 0;
 
     $categoryIds = $_POST['category_ids'] ?? [];
     $attributeValues = $_POST['attribute_values'] ?? [];
-    $audiences = $_POST['audiences'] ?? [];
-    $mealStyles = $_POST['meal_styles'] ?? [];
 
     if ($name === '') {
         MessageUtil::setMessage("Product name is required.");
         LocationUtils::redirectInternal("panel/planner-hub/store/products/edit?id=" . $id);
     }
 
-    if ($price <= 0) {
-        MessageUtil::setMessage("Price must be greater than zero.");
+    if ($productType === StoreProductsRepository::PRODUCT_TYPE_FIXED && $price <= 0) {
+        MessageUtil::setMessage("Fixed products must have a price greater than zero.");
         LocationUtils::redirectInternal("panel/planner-hub/store/products/edit?id=" . $id);
     }
 
@@ -136,12 +128,132 @@ $router->post(function () {
         LocationUtils::redirectInternal("panel/planner-hub/store/products/edit?id=" . $id);
     }
 
+    if ($maxPurchaseQty !== null && $maxPurchaseQty > 0 && $maxPurchaseQty < $minPurchaseQty) {
+        MessageUtil::setMessage("Maximum purchase quantity cannot be lower than minimum purchase quantity.");
+        LocationUtils::redirectInternal("panel/planner-hub/store/products/edit?id=" . $id);
+    }
+
     if ($sku !== '' && $productsRepo->skuExists($sku, $id)) {
         MessageUtil::setMessage("SKU already exists.");
         LocationUtils::redirectInternal("panel/planner-hub/store/products/edit?id=" . $id);
     }
 
-    $mainImage = $product->main_image;
+    $variations = [];
+    if ($productType === StoreProductsRepository::PRODUCT_TYPE_VARIABLE) {
+        $variationNames = $_POST['variation_name'] ?? [];
+        $variationSlugs = $_POST['variation_slug'] ?? [];
+        $variationSkus = $_POST['variation_sku'] ?? [];
+        $variationPrices = $_POST['variation_price'] ?? [];
+        $variationPromoPrices = $_POST['variation_promo_price'] ?? [];
+        $variationStocks = $_POST['variation_stock_quantity'] ?? [];
+        $variationMinQtys = $_POST['variation_min_purchase_qty'] ?? [];
+        $variationMaxQtys = $_POST['variation_max_purchase_qty'] ?? [];
+        $variationSortOrders = $_POST['variation_sort_order'] ?? [];
+        $variationStatuses = $_POST['variation_status'] ?? [];
+        $variationAttributePairs = $_POST['variation_attribute_pairs'] ?? [];
+
+        $rowCount = max(
+            is_array($variationNames) ? count($variationNames) : 0,
+            is_array($variationPrices) ? count($variationPrices) : 0
+        );
+
+        $seenVariationSkus = [];
+
+        for ($i = 0; $i < $rowCount; $i++) {
+            $variationName = trim((string)($variationNames[$i] ?? ''));
+            $variationSku = trim((string)($variationSkus[$i] ?? ''));
+            $variationPriceRaw = trim((string)($variationPrices[$i] ?? ''));
+            $variationPromoPriceRaw = trim((string)($variationPromoPrices[$i] ?? ''));
+            $variationStockRaw = trim((string)($variationStocks[$i] ?? '0'));
+            $variationMinQtyRaw = trim((string)($variationMinQtys[$i] ?? '1'));
+            $variationMaxQtyRaw = trim((string)($variationMaxQtys[$i] ?? ''));
+            $variationSortOrderRaw = trim((string)($variationSortOrders[$i] ?? (string)$i));
+            $variationStatus = trim((string)($variationStatuses[$i] ?? 'ACTIVE'));
+
+            if ($variationName === '' && $variationPriceRaw === '' && $variationSku === '') {
+                continue;
+            }
+
+            if ($variationName === '') {
+                MessageUtil::setMessage("Each variation must have a name.");
+                LocationUtils::redirectInternal("panel/planner-hub/store/products/edit?id=" . $id);
+            }
+
+            $variationPrice = $variationPriceRaw !== '' ? (float)$variationPriceRaw : 0;
+            if ($variationPrice <= 0) {
+                MessageUtil::setMessage("Each variation must have a price greater than zero.");
+                LocationUtils::redirectInternal("panel/planner-hub/store/products/edit?id=" . $id);
+            }
+
+            $variationStock = (int)$variationStockRaw;
+            if ($variationStock < 0) {
+                MessageUtil::setMessage("Variation stock cannot be negative.");
+                LocationUtils::redirectInternal("panel/planner-hub/store/products/edit?id=" . $id);
+            }
+
+            $variationMinQty = max(1, (int)$variationMinQtyRaw);
+            $variationMaxQty = $variationMaxQtyRaw !== '' ? (int)$variationMaxQtyRaw : null;
+
+            if ($variationMaxQty !== null && $variationMaxQty > 0 && $variationMaxQty < $variationMinQty) {
+                MessageUtil::setMessage("Variation max quantity cannot be lower than min quantity.");
+                LocationUtils::redirectInternal("panel/planner-hub/store/products/edit?id=" . $id);
+            }
+
+            if ($variationSku !== '') {
+                $variationSkuKey = strtolower($variationSku);
+
+                if (isset($seenVariationSkus[$variationSkuKey])) {
+                    MessageUtil::setMessage("Variation SKUs cannot be repeated inside the same product.");
+                    LocationUtils::redirectInternal("panel/planner-hub/store/products/edit?id=" . $id);
+                }
+
+                $seenVariationSkus[$variationSkuKey] = true;
+
+                if ($sku !== '' && strtolower($sku) === $variationSkuKey) {
+                    MessageUtil::setMessage("A variation SKU cannot be the same as the main product SKU.");
+                    LocationUtils::redirectInternal("panel/planner-hub/store/products/edit?id=" . $id);
+                }
+            }
+
+            $pairs = [];
+            if (isset($variationAttributePairs[$i]) && is_array($variationAttributePairs[$i])) {
+                foreach ($variationAttributePairs[$i] as $attributeId => $attributeValueId) {
+                    $attributeId = (int)$attributeId;
+                    $attributeValueId = (int)$attributeValueId;
+
+                    if ($attributeId <= 0 || $attributeValueId <= 0) {
+                        continue;
+                    }
+
+                    $pairs[] = [
+                        'id_attribute' => $attributeId,
+                        'id_attribute_value' => $attributeValueId
+                    ];
+                }
+            }
+
+            $variations[] = [
+                'name' => $variationName,
+                'slug' => trim((string)($variationSlugs[$i] ?? '')),
+                'sku' => $variationSku,
+                'price' => $variationPrice,
+                'promo_price' => $variationPromoPriceRaw !== '' ? (float)$variationPromoPriceRaw : null,
+                'stock_quantity' => $variationStock,
+                'min_purchase_qty' => $variationMinQty,
+                'max_purchase_qty' => $variationMaxQty,
+                'sort_order' => $variationSortOrderRaw !== '' ? (int)$variationSortOrderRaw : $i,
+                'status' => in_array($variationStatus, ['ACTIVE', 'INACTIVE'], true) ? $variationStatus : 'ACTIVE',
+                'attribute_pairs' => $pairs
+            ];
+        }
+
+        if (count($variations) === 0) {
+            MessageUtil::setMessage("Variable products must include at least one variation.");
+            LocationUtils::redirectInternal("panel/planner-hub/store/products/edit?id=" . $id);
+        }
+    }
+
+    $mainImage = $existingProduct->main_image ?? null;
 
     if (FileUtils::hasFile($_FILES, 'main_image')) {
         try {
@@ -155,113 +267,43 @@ $router->post(function () {
     $slugBase = $slugInput !== '' ? $slugInput : $name;
     $slug = $productsRepo->generateUniqueSlug($slugBase, $id);
 
-    $ok = $productsRepo->update([
+    $productData = [
         'name' => $name,
         'slug' => $slug,
-        'sku' => $sku ?: null,
-        'short_description' => $shortDescription ?: null,
-        'description' => $description ?: null,
-        'price' => $price,
-        'promo_price' => $promoPrice,
+        'sku' => $sku !== '' ? $sku : null,
+        'short_description' => $shortDescription !== '' ? $shortDescription : null,
+        'description' => $description !== '' ? $description : null,
+        'product_type' => $productType,
+        'price' => $productsRepo->getPlainPriceForStorage([
+            'product_type' => $productType,
+            'price' => $price
+        ]),
+        'promo_price' => $productType === StoreProductsRepository::PRODUCT_TYPE_FIXED ? $promoPrice : null,
         'main_image' => $mainImage,
-        'stock_quantity' => $stockQuantity,
-        'min_purchase_qty' => $minPurchaseQty,
-        'max_purchase_qty' => $maxPurchaseQty,
+        'stock_quantity' => $productType === StoreProductsRepository::PRODUCT_TYPE_FIXED ? $stockQuantity : 0,
+        'min_purchase_qty' => $productType === StoreProductsRepository::PRODUCT_TYPE_FIXED ? $minPurchaseQty : 1,
+        'max_purchase_qty' => $productType === StoreProductsRepository::PRODUCT_TYPE_FIXED ? $maxPurchaseQty : null,
         'is_featured' => $isFeatured,
         'is_public' => $isPublic,
         'status' => $status,
         'updated_at' => date('Y-m-d H:i:s')
-    ], [
-        'id' => $id
-    ]);
+    ];
 
-    if (is_array($audiences)) {
-    $audiences = array_values(array_unique(array_filter(array_map('trim', $audiences))));
-    $productsAudiencesRepo->replaceByProduct($id, $audiences);
-} else {
-    $productsAudiencesRepo->deleteByProduct($id);
-}
-
-if (is_array($mealStyles)) {
-    $mealStyles = array_values(array_unique(array_filter(array_map('trim', $mealStyles))));
-    $productsMealStylesRepo->replaceByProduct($id, $mealStyles);
-} else {
-    $productsMealStylesRepo->deleteByProduct($id);
-}
+    $ok = $productsRepo->updateProductWithRelations(
+        $id,
+        $productData,
+        is_array($categoryIds) ? $categoryIds : [],
+        is_array($attributeValues) ? $attributeValues : [],
+        $variations
+    );
 
     if (!$ok) {
         MessageUtil::setMessage("Product could not be updated.");
         LocationUtils::redirectInternal("panel/planner-hub/store/products/edit?id=" . $id);
     }
 
-    $productsCategoriesRepo->deleteByProduct($id);
-    if (is_array($categoryIds)) {
-        $categoryIds = array_values(array_unique(array_filter(array_map('intval', $categoryIds))));
-        foreach ($categoryIds as $categoryId) {
-            $category = $categoriesRepo->getOne(['id' => $categoryId]);
-            if ($category) {
-                $productsCategoriesRepo->add([
-                    'id_product' => $id,
-                    'id_category' => $categoryId
-                ]);
-            }
-        }
-    }
-
-    $productsAttributesRepo->deleteByProduct($id);
-    if (is_array($attributeValues)) {
-        foreach ($attributeValues as $attributeId => $valueIds) {
-            $attributeId = intval($attributeId);
-            if (!is_array($valueIds) || $attributeId <= 0) {
-                continue;
-            }
-
-            $attribute = $attributesRepo->getOne(['id' => $attributeId]);
-            if (!$attribute) {
-                continue;
-            }
-
-            $valueIds = array_values(array_unique(array_filter(array_map('intval', $valueIds))));
-
-            foreach ($valueIds as $valueId) {
-                $productsAttributesRepo->add([
-                    'id_product' => $id,
-                    'id_attribute' => $attributeId,
-                    'id_attribute_value' => $valueId
-                ]);
-            }
-        }
-    }
-
-    $hasNutrition =
-        trim($_POST['serving_size'] ?? '') !== '' ||
-        trim($_POST['ingredients'] ?? '') !== '' ||
-        trim($_POST['calories'] ?? '') !== '' ||
-        trim($_POST['protein'] ?? '') !== '' ||
-        trim($_POST['carbohydrates'] ?? '') !== '' ||
-        trim($_POST['fat'] ?? '') !== '' ||
-        trim($_POST['fiber'] ?? '') !== '' ||
-        trim($_POST['sugar'] ?? '') !== '' ||
-        trim($_POST['sodium'] ?? '') !== '';
-
-    if ($hasNutrition) {
-        $nutritionRepo->saveForProduct($id, [
-            'calories' => trim($_POST['calories'] ?? '') !== '' ? intval($_POST['calories']) : null,
-            'protein' => trim($_POST['protein'] ?? '') !== '' ? floatval($_POST['protein']) : null,
-            'carbohydrates' => trim($_POST['carbohydrates'] ?? '') !== '' ? floatval($_POST['carbohydrates']) : null,
-            'fat' => trim($_POST['fat'] ?? '') !== '' ? floatval($_POST['fat']) : null,
-            'fiber' => trim($_POST['fiber'] ?? '') !== '' ? floatval($_POST['fiber']) : null,
-            'sugar' => trim($_POST['sugar'] ?? '') !== '' ? floatval($_POST['sugar']) : null,
-            'sodium' => trim($_POST['sodium'] ?? '') !== '' ? floatval($_POST['sodium']) : null,
-            'serving_size' => trim($_POST['serving_size'] ?? '') ?: null,
-            'ingredients' => trim($_POST['ingredients'] ?? '') ?: null
-        ]);
-    }
-
     MessageUtil::setMessage("Product updated successfully.");
     LocationUtils::redirectInternal("panel/planner-hub/store/products/home");
-
-    
 });
 
 $router->run();

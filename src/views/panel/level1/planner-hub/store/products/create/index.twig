@@ -3,6 +3,31 @@
 {% block style %}
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/trumbowyg@2.27.3/dist/ui/trumbowyg.min.css">
 <style>
+    .store-section-card {
+        border: 1px solid #e5e7eb;
+        border-radius: 16px;
+        background: #fff;
+        box-shadow: 0 8px 24px rgba(15, 23, 42, 0.04);
+        margin-bottom: 22px;
+    }
+
+    .store-section-card .card-body {
+        padding: 24px;
+    }
+
+    .store-section-title {
+        font-size: 1.05rem;
+        font-weight: 700;
+        margin-bottom: 4px;
+        color: #111827;
+    }
+
+    .store-section-subtitle {
+        color: #6b7280;
+        margin-bottom: 18px;
+        font-size: 0.92rem;
+    }
+
     .store-attribute-box {
         border: 1px solid #e5e7eb;
         border-radius: 12px;
@@ -13,6 +38,7 @@
 
     .store-attribute-box h6 {
         margin-bottom: 12px;
+        font-weight: 700;
     }
 
     .store-preview-image {
@@ -24,6 +50,124 @@
         display: none;
         margin-top: 10px;
     }
+
+    .store-product-type-option {
+        border: 1px solid #dbe3ea;
+        border-radius: 14px;
+        padding: 16px;
+        background: #fff;
+        cursor: pointer;
+        transition: all 0.18s ease;
+        height: 100%;
+    }
+
+    .store-product-type-option:hover {
+        border-color: #b8c4d1;
+        box-shadow: 0 6px 18px rgba(15, 23, 42, 0.05);
+    }
+
+    .store-product-type-option.active {
+        border-color: #111827;
+        background: #f8fafc;
+        box-shadow: 0 8px 20px rgba(15, 23, 42, 0.06);
+    }
+
+    .store-product-type-option .title {
+        display: block;
+        font-weight: 700;
+        color: #111827;
+        margin-bottom: 6px;
+    }
+
+    .store-product-type-option .desc {
+        display: block;
+        color: #6b7280;
+        font-size: 0.92rem;
+        line-height: 1.45;
+    }
+
+    .store-fixed-fields,
+    .store-variable-fields {
+        display: none;
+    }
+
+    .store-variation-card {
+        border: 1px solid #e5e7eb;
+        border-radius: 14px;
+        padding: 18px;
+        background: #fcfcfd;
+        margin-bottom: 16px;
+    }
+
+    .store-variation-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 14px;
+        flex-wrap: wrap;
+    }
+
+    .store-variation-header h6 {
+        margin: 0;
+        font-weight: 700;
+        color: #111827;
+    }
+
+    .store-variation-empty {
+        border: 1px dashed #cbd5e1;
+        border-radius: 14px;
+        padding: 18px;
+        background: #f8fafc;
+        color: #64748b;
+        text-align: center;
+    }
+
+    .store-helper-text {
+        color: #6b7280;
+        font-size: 0.86rem;
+    }
+
+    .store-inline-actions {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    .store-variation-attributes {
+        border-top: 1px dashed #dbe3ea;
+        margin-top: 14px;
+        padding-top: 14px;
+    }
+
+    .store-pill-note {
+        display: inline-block;
+        background: #f3f4f6;
+        color: #374151;
+        border-radius: 999px;
+        padding: 6px 10px;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+
+    .store-sticky-actions {
+        position: sticky;
+        bottom: 16px;
+        z-index: 20;
+        background: rgba(255, 255, 255, 0.92);
+        backdrop-filter: blur(8px);
+        border: 1px solid rgba(229, 231, 235, 0.9);
+        border-radius: 16px;
+        box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
+        padding: 14px 16px;
+        margin-top: 18px;
+    }
+
+    @media (max-width: 767px) {
+        .store-section-card .card-body {
+            padding: 18px;
+        }
+    }
 </style>
 {% endblock %}
 
@@ -32,318 +176,355 @@
     <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
         <div>
             <h1 class="h3 mb-1">Create Store Product</h1>
-            <p class="text-muted mb-0">Create a product with categories, attributes, stock and image.</p>
+            <p class="text-muted mb-0">Products are now the main entry point. Choose fixed or variable pricing and build the catalog from here.</p>
         </div>
-        <a href="/panel/planner-hub/store/products/home" class="btn btn-outline-secondary">
-            ← Back to Products
-        </a>
+        <div class="store-inline-actions">
+            <a href="/panel/planner-hub/store/products/home" class="btn btn-outline-secondary">
+                ← Back to Products
+            </a>
+            <a href="/panel/planner-hub/store/attributes/home" class="btn btn-outline-dark">
+                Attributes
+            </a>
+            <a href="/panel/planner-hub/store/attribute-values/home" class="btn btn-outline-dark">
+                Attribute Values
+            </a>
+        </div>
     </div>
 
-    <form method="post" enctype="multipart/form-data" class="card shadow-sm border-0">
-        <div class="card-body p-4">
-            <div class="row">
-                <div class="col-12">
-                    <h5 class="mb-3">Basic Information</h5>
-                </div>
+    <form method="post" enctype="multipart/form-data">
+        <div class="store-section-card">
+            <div class="card-body">
+                <div class="store-section-title">Basic Information</div>
+                <div class="store-section-subtitle">Create the product first. Categories, attributes and variations can all be managed from this workflow.</div>
 
-                <div class="col-md-6 mb-3">
-                    <label class="form-label">Product Name</label>
-                    <input type="text" name="name" class="form-control" required placeholder="e.g. Performance T-Shirt">
-                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Product Name</label>
+                        <input type="text" name="name" class="form-control" required placeholder="e.g. Planner Package, DJ Session, Photo Booth Rental">
+                    </div>
 
-                <div class="col-md-3 mb-3">
-                    <label class="form-label">SKU</label>
-                    <input type="text" name="sku" class="form-control" placeholder="e.g. SHIRT-001">
-                </div>
+                    <div class="col-md-3 mb-3">
+                        <label class="form-label">SKU</label>
+                        <input type="text" name="sku" class="form-control" placeholder="e.g. PRD-001">
+                    </div>
 
-                <div class="col-md-3 mb-3">
-                    <label class="form-label">Slug (optional)</label>
-                    <input type="text" name="slug" class="form-control" placeholder="day-coordinator-service-packages-premium">
-                    <small class="text-muted">If empty, it will be generated from product name.</small>
-                </div>
+                    <div class="col-md-3 mb-3">
+                        <label class="form-label">Slug (optional)</label>
+                        <input type="text" name="slug" class="form-control" placeholder="planner-package-premium">
+                        <small class="text-muted">If empty, it will be generated from product name.</small>
+                    </div>
 
-                <div class="col-md-3 mb-3">
-                    <label class="form-label">Status</label>
-                    <select name="status" class="form-select">
-                        <option value="ACTIVE" selected>ACTIVE</option>
-                        <option value="INACTIVE">INACTIVE</option>
-                        <option value="DRAFT">DRAFT</option>
-                    </select>
-                </div>
+                    <div class="col-md-3 mb-3">
+                        <label class="form-label">Status</label>
+                        <select name="status" class="form-select">
+                            <option value="ACTIVE" selected>ACTIVE</option>
+                            <option value="INACTIVE">INACTIVE</option>
+                            <option value="DRAFT">DRAFT</option>
+                        </select>
+                    </div>
 
-                <div class="col-md-6 mb-3">
-                    <label class="form-label">Short Description</label>
-                    <input type="text" name="short_description" class="form-control" placeholder="Short summary for cards and listings">
-                </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Short Description</label>
+                        <input type="text" name="short_description" class="form-control" placeholder="Short summary for cards and listings">
+                    </div>
 
-                <div class="col-md-6 mb-3">
-                    <label class="form-label">Main Image</label>
-                    <input type="file" name="main_image" class="form-control" accept="image/*" required id="main-image-input">
-                    <img id="main-image-preview" class="store-preview-image" alt="Preview">
-                </div>
+                    <div class="col-md-3 mb-3">
+                        <label class="form-label">Main Image</label>
+                        <input type="file" name="main_image" class="form-control" accept="image/*" required id="main-image-input">
+                        <img id="main-image-preview" class="store-preview-image" alt="Preview">
+                    </div>
 
-                <div class="col-12 mb-3">
-                    <label class="form-label">Full Description</label>
-                    <textarea name="description" id="description-editor" class="form-control" rows="6" placeholder="Describe your product..." required></textarea>
-                </div>
+                    <div class="col-md-3 mb-3 d-flex flex-column justify-content-end">
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="checkbox" name="is_public" id="is_public" checked>
+                            <label class="form-check-label" for="is_public">
+                                Public product
+                            </label>
+                        </div>
 
-                <div class="col-12 mt-2">
-                    <h5 class="mb-3">Pricing & Inventory</h5>
-                </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="is_featured" id="is_featured">
+                            <label class="form-check-label" for="is_featured">
+                                Featured product
+                            </label>
+                        </div>
+                    </div>
 
-                <div class="col-md-3 mb-3">
-                    <label class="form-label">Price</label>
-                    <input type="number" step="0.01" min="0.01" name="price" class="form-control" required placeholder="0.00">
-                </div>
-
-                <div class="col-md-3 mb-3">
-                    <label class="form-label">Promo Price</label>
-                    <input type="number" step="0.01" min="0" name="promo_price" class="form-control" placeholder="0.00">
-                </div>
-
-                <div class="col-md-2 mb-3">
-                    <label class="form-label">Stock</label>
-                    <input type="number" min="0" name="stock_quantity" class="form-control" value="0" required>
-                </div>
-
-                <div class="col-md-2 mb-3">
-                    <label class="form-label">Min Qty</label>
-                    <input type="number" min="1" name="min_purchase_qty" class="form-control" value="1" required>
-                </div>
-
-                <div class="col-md-2 mb-3">
-                    <label class="form-label">Max Qty</label>
-                    <input type="number" min="1" name="max_purchase_qty" class="form-control" placeholder="Optional">
-                </div>
-
-                <div class="col-md-3 mb-3">
-                    <div class="form-check mt-4 pt-2">
-                        <input class="form-check-input" type="checkbox" name="is_public" id="is_public" checked>
-                        <label class="form-check-label" for="is_public">
-                            Public product
-                        </label>
+                    <div class="col-12 mb-3">
+                        <label class="form-label">Full Description</label>
+                        <textarea name="description" id="description-editor" class="form-control" rows="6" placeholder="Describe your product or service..."></textarea>
                     </div>
                 </div>
+            </div>
+        </div>
 
-                <div class="col-md-3 mb-3">
-                    <div class="form-check mt-4 pt-2">
-                        <input class="form-check-input" type="checkbox" name="is_featured" id="is_featured">
-                        <label class="form-check-label" for="is_featured">
-                            Featured product
-                        </label>
+        <div class="store-section-card">
+            <div class="card-body">
+                <div class="store-section-title">Product Type</div>
+                <div class="store-section-subtitle">Choose how this product will be sold.</div>
+
+                <input type="hidden" name="product_type" id="product_type_input" value="FIXED">
+
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="store-product-type-option active" data-product-type-card="FIXED">
+                            <span class="title">Fixed Price</span>
+                            <span class="desc">Use one direct price for the whole product. Best for single packages, services, tickets or standalone items.</span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="store-product-type-option" data-product-type-card="VARIABLE">
+                            <span class="title">Variable Product</span>
+                            <span class="desc">Create options inside the product, each with its own name, SKU, price, stock and attribute combination.</span>
+                        </div>
                     </div>
                 </div>
+            </div>
+        </div>
 
-                <div class="col-12 mt-2">
-                    <h5 class="mb-3">Categories</h5>
-                </div>
+        <div class="store-section-card store-fixed-fields" id="fixed-fields-card">
+            <div class="card-body">
+                <div class="store-section-title">Fixed Pricing & Inventory</div>
+                <div class="store-section-subtitle">These fields apply only to fixed-price products.</div>
 
-                <div class="col-12 mb-4">
-                    <div class="row">
-                        {% for c in categories %}
-                            <div class="col-md-4 mb-2">
-                                <div class="form-check border rounded p-3">
-                                    <input class="form-check-input" type="checkbox" name="category_ids[]" value="{{ c.id }}" id="cat-{{ c.id }}">
-                                    <label class="form-check-label ms-1" for="cat-{{ c.id }}">
-                                        <strong>{{ c.name }}</strong>
-                                        {% if c.description %}
-                                            <div class="small text-muted">{{ c.description }}</div>
-                                        {% endif %}
-                                    </label>
-                                </div>
-                            </div>
-                        {% else %}
-                            <div class="col-12">
-                                <div class="alert alert-warning mb-0">
-                                    No active categories available yet.
-                                </div>
-                            </div>
-                        {% endfor %}
+                <div class="row">
+                    <div class="col-md-3 mb-3">
+                        <label class="form-label">Price</label>
+                        <input type="number" step="0.01" min="0.01" name="price" class="form-control" placeholder="0.00">
+                    </div>
+
+                    <div class="col-md-3 mb-3">
+                        <label class="form-label">Promo Price</label>
+                        <input type="number" step="0.01" min="0" name="promo_price" class="form-control" placeholder="0.00">
+                    </div>
+
+                    <div class="col-md-2 mb-3">
+                        <label class="form-label">Stock</label>
+                        <input type="number" min="0" name="stock_quantity" class="form-control" value="0">
+                    </div>
+
+                    <div class="col-md-2 mb-3">
+                        <label class="form-label">Min Qty</label>
+                        <input type="number" min="1" name="min_purchase_qty" class="form-control" value="1">
+                    </div>
+
+                    <div class="col-md-2 mb-3">
+                        <label class="form-label">Max Qty</label>
+                        <input type="number" min="1" name="max_purchase_qty" class="form-control" placeholder="Optional">
                     </div>
                 </div>
+            </div>
+        </div>
 
-                <div class="col-12 mt-2">
-                    <h5 class="mb-3">Attributes</h5>
+        <div class="store-section-card store-variable-fields" id="variable-fields-card">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center gap-2 flex-wrap mb-2">
+                    <div>
+                        <div class="store-section-title">Variations</div>
+                        <div class="store-section-subtitle mb-0">Add the sellable options directly inside this product.</div>
+                    </div>
+                    <button type="button" class="btn btn-dark" id="add-variation-btn">
+                        + Add Variation
+                    </button>
                 </div>
 
-                <div class="col-12 mb-4">
-                    <div class="row">
-                        {% for attribute in attributes %}
-                            <div class="col-lg-4 col-md-6 mb-3">
-                                <div class="store-attribute-box">
-                                    <h6>{{ attribute.name }}</h6>
+                <div class="mb-3">
+                    <span class="store-pill-note">Tip: use global attributes here only when they define the option being sold, like Package Type, Duration, Size or Color.</span>
+                </div>
 
-                                    {% if attribute.values|length > 0 %}
-                                        {% for value in attribute.values %}
-                                            <div class="form-check mb-2">
-                                                <input
-                                                    class="form-check-input"
-                                                    type="checkbox"
-                                                    name="attribute_values[{{ attribute.id }}][]"
-                                                    value="{{ value.id }}"
-                                                    id="attr-{{ attribute.id }}-value-{{ value.id }}"
-                                                >
-                                                <label class="form-check-label" for="attr-{{ attribute.id }}-value-{{ value.id }}">
-                                                    {{ value.value }}
-                                                </label>
-                                            </div>
-                                        {% endfor %}
-                                    {% else %}
-                                        <p class="text-muted small mb-0">No values available for this attribute.</p>
+                <div id="variations-container">
+                    <div class="store-variation-empty" id="variation-empty-state">
+                        No variations added yet. Click <strong>Add Variation</strong> to start.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="store-section-card">
+            <div class="card-body">
+                <div class="store-section-title">Categories</div>
+                <div class="store-section-subtitle">Organize where this product appears in the catalog.</div>
+
+                <div class="row">
+                    {% for c in categories %}
+                        <div class="col-md-4 mb-2">
+                            <div class="form-check border rounded p-3">
+                                <input class="form-check-input" type="checkbox" name="category_ids[]" value="{{ c.id }}" id="cat-{{ c.id }}">
+                                <label class="form-check-label ms-1" for="cat-{{ c.id }}">
+                                    <strong>{{ c.name }}</strong>
+                                    {% if c.description %}
+                                        <div class="small text-muted">{{ c.description }}</div>
                                     {% endif %}
-                                </div>
+                                </label>
                             </div>
-                        {% else %}
-                            <div class="col-12">
-                                <div class="alert alert-warning mb-0">
-                                    No active attributes available yet.
-                                </div>
+                        </div>
+                    {% else %}
+                        <div class="col-12">
+                            <div class="alert alert-warning mb-0">
+                                No active categories available yet.
                             </div>
-                        {% endfor %}
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <div class="store-section-card">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center gap-2 flex-wrap">
+                    <div>
+                        <div class="store-section-title">Informational Attributes</div>
+                        <div class="store-section-subtitle mb-0">Use these for product details, filters or supporting information. These do not control price by themselves.</div>
+                    </div>
+                    <div class="store-inline-actions">
+                        <a href="/panel/planner-hub/store/attributes/create" class="btn btn-outline-dark btn-sm">+ New Attribute</a>
+                        <a href="/panel/planner-hub/store/attribute-values/create" class="btn btn-outline-dark btn-sm">+ New Value</a>
                     </div>
                 </div>
 
+                <div class="row mt-3">
+                    {% for attribute in attributes %}
+                        <div class="col-lg-4 col-md-6 mb-3">
+                            <div class="store-attribute-box">
+                                <h6>{{ attribute.name }}</h6>
 
-                <div class="col-12 mt-2">
-    <h5 class="mb-3">Recommended For</h5>
-        </div>
-
-        <div class="col-md-6 mb-4">
-            <div class="store-attribute-box">
-                <h6>Audience Type</h6>
-
-                <div class="form-check mb-2">
-                    <input class="form-check-input" type="checkbox" name="audiences[]" value="professional" id="aud-professional">
-                    <label class="form-check-label" for="aud-professional">
-                        Busy Professional
-                    </label>
-                </div>
-
-                <div class="form-check mb-2">
-                    <input class="form-check-input" type="checkbox" name="audiences[]" value="healthy_active" id="aud-healthy-active">
-                    <label class="form-check-label" for="aud-healthy-active">
-                        Healthy / Active Lifestyle
-                    </label>
-                </div>
-
-                <div class="form-check mb-2">
-                    <input class="form-check-input" type="checkbox" name="audiences[]" value="family_kids" id="aud-family-kids">
-                    <label class="form-check-label" for="aud-family-kids">
-                        Family / Kids
-                    </label>
-                </div>
-
-                <div class="form-check mb-0">
-                    <input class="form-check-input" type="checkbox" name="audiences[]" value="corporate" id="aud-corporate">
-                    <label class="form-check-label" for="aud-corporate">
-                        Corporate
-                    </label>
+                                {% if attribute.values|length > 0 %}
+                                    {% for value in attribute.values %}
+                                        <div class="form-check mb-2">
+                                            <input
+                                                class="form-check-input"
+                                                type="checkbox"
+                                                name="attribute_values[{{ attribute.id }}][]"
+                                                value="{{ value.id }}"
+                                                id="attr-{{ attribute.id }}-value-{{ value.id }}"
+                                            >
+                                            <label class="form-check-label" for="attr-{{ attribute.id }}-value-{{ value.id }}">
+                                                {{ value.value }}
+                                            </label>
+                                        </div>
+                                    {% endfor %}
+                                {% else %}
+                                    <p class="text-muted small mb-0">No values available for this attribute.</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% else %}
+                        <div class="col-12">
+                            <div class="alert alert-warning mb-0">
+                                No active attributes available yet.
+                            </div>
+                        </div>
+                    {% endfor %}
                 </div>
             </div>
         </div>
 
-        <div class="col-md-6 mb-4">
-            <div class="store-attribute-box">
-                <h6>Meal Style</h6>
-
-                <div class="form-check mb-2">
-                    <input class="form-check-input" type="checkbox" name="meal_styles[]" value="balanced" id="style-balanced">
-                    <label class="form-check-label" for="style-balanced">
-                        Balanced Meals
-                    </label>
+        <div class="store-sticky-actions">
+            <div class="d-flex gap-2 flex-wrap justify-content-between align-items-center">
+                <div class="store-helper-text">
+                    Save the product once all required pricing and variation data is complete.
                 </div>
-
-                <div class="form-check mb-2">
-                    <input class="form-check-input" type="checkbox" name="meal_styles[]" value="vegetarian" id="style-vegetarian">
-                    <label class="form-check-label" for="style-vegetarian">
-                        Vegetarian
-                    </label>
+                <div class="store-inline-actions">
+                    <button type="submit" class="btn btn-success">
+                        Save Product
+                    </button>
+                    <a href="/panel/planner-hub/store/products/home" class="btn btn-outline-secondary">
+                        Cancel
+                    </a>
                 </div>
-
-                <div class="form-check mb-2">
-                    <input class="form-check-input" type="checkbox" name="meal_styles[]" value="family_friendly" id="style-family-friendly">
-                    <label class="form-check-label" for="style-family-friendly">
-                        Family-Friendly
-                    </label>
-                </div>
-
-                <div class="form-check mb-2">
-                    <input class="form-check-input" type="checkbox" name="meal_styles[]" value="protein_focused" id="style-protein-focused">
-                    <label class="form-check-label" for="style-protein-focused">
-                        Protein-Focused
-                    </label>
-                </div>
-
-                <div class="form-check mb-0">
-                    <input class="form-check-input" type="checkbox" name="meal_styles[]" value="corporate_lunch" id="style-corporate-lunch">
-                    <label class="form-check-label" for="style-corporate-lunch">
-                        Corporate Lunch
-                    </label>
-                </div>
-            </div>
-        </div>
-
-                <div class="col-12 mt-2">
-                    <h5 class="mb-3">Nutrition Information (Optional)</h5>
-                </div>
-
-                <div class="col-md-3 mb-3">
-                    <label class="form-label">Calories</label>
-                    <input type="number" min="0" name="calories" class="form-control" placeholder="e.g. 350">
-                </div>
-
-                <div class="col-md-3 mb-3">
-                    <label class="form-label">Protein</label>
-                    <input type="number" step="0.01" min="0" name="protein" class="form-control" placeholder="e.g. 25">
-                </div>
-
-                <div class="col-md-3 mb-3">
-                    <label class="form-label">Carbohydrates</label>
-                    <input type="number" step="0.01" min="0" name="carbohydrates" class="form-control" placeholder="e.g. 40">
-                </div>
-
-                <div class="col-md-3 mb-3">
-                    <label class="form-label">Fat</label>
-                    <input type="number" step="0.01" min="0" name="fat" class="form-control" placeholder="e.g. 12">
-                </div>
-
-                <div class="col-md-3 mb-3">
-                    <label class="form-label">Fiber</label>
-                    <input type="number" step="0.01" min="0" name="fiber" class="form-control" placeholder="e.g. 8">
-                </div>
-
-                <div class="col-md-3 mb-3">
-                    <label class="form-label">Sugar</label>
-                    <input type="number" step="0.01" min="0" name="sugar" class="form-control" placeholder="e.g. 5">
-                </div>
-
-                <div class="col-md-3 mb-3">
-                    <label class="form-label">Sodium</label>
-                    <input type="number" step="0.01" min="0" name="sodium" class="form-control" placeholder="e.g. 420">
-                </div>
-
-                <div class="col-md-3 mb-3">
-                    <label class="form-label">Serving Size</label>
-                    <input type="text" name="serving_size" class="form-control" placeholder="e.g. 1 bowl / 250g">
-                </div>
-
-                <div class="col-12 mb-3">
-                    <label class="form-label">Ingredients</label>
-                    <textarea name="ingredients" class="form-control" rows="3" placeholder="List ingredients..."></textarea>
-                </div>
-            </div>
-
-            <div class="d-flex gap-2 flex-wrap mt-3">
-                <button type="submit" class="btn btn-success">
-                    Save Product
-                </button>
-                <a href="/panel/planner-hub/store/products/home" class="btn btn-outline-secondary">
-                    Cancel
-                </a>
             </div>
         </div>
     </form>
 </div>
+
+<template id="variation-template">
+    <div class="store-variation-card" data-variation-row="__INDEX__">
+        <div class="store-variation-header">
+            <h6>Variation <span class="variation-number">#__NUMBER__</span></h6>
+            <button type="button" class="btn btn-outline-danger btn-sm remove-variation-btn">
+                Remove
+            </button>
+        </div>
+
+        <div class="row">
+            <div class="col-md-4 mb-3">
+                <label class="form-label">Variation Name</label>
+                <input type="text" name="variation_name[__INDEX__]" class="form-control" placeholder="e.g. Basic, Premium, 4 Hours">
+            </div>
+
+            <div class="col-md-4 mb-3">
+                <label class="form-label">Slug (optional)</label>
+                <input type="text" name="variation_slug[__INDEX__]" class="form-control" placeholder="basic">
+            </div>
+
+            <div class="col-md-4 mb-3">
+                <label class="form-label">SKU</label>
+                <input type="text" name="variation_sku[__INDEX__]" class="form-control" placeholder="e.g. PRD-BASIC">
+            </div>
+
+            <div class="col-md-3 mb-3">
+                <label class="form-label">Price</label>
+                <input type="number" step="0.01" min="0.01" name="variation_price[__INDEX__]" class="form-control" placeholder="0.00">
+            </div>
+
+            <div class="col-md-3 mb-3">
+                <label class="form-label">Promo Price</label>
+                <input type="number" step="0.01" min="0" name="variation_promo_price[__INDEX__]" class="form-control" placeholder="0.00">
+            </div>
+
+            <div class="col-md-2 mb-3">
+                <label class="form-label">Stock</label>
+                <input type="number" min="0" name="variation_stock_quantity[__INDEX__]" class="form-control" value="0">
+            </div>
+
+            <div class="col-md-2 mb-3">
+                <label class="form-label">Min Qty</label>
+                <input type="number" min="1" name="variation_min_purchase_qty[__INDEX__]" class="form-control" value="1">
+            </div>
+
+            <div class="col-md-2 mb-3">
+                <label class="form-label">Max Qty</label>
+                <input type="number" min="1" name="variation_max_purchase_qty[__INDEX__]" class="form-control" placeholder="Optional">
+            </div>
+
+            <div class="col-md-2 mb-3">
+                <label class="form-label">Sort Order</label>
+                <input type="number" min="0" name="variation_sort_order[__INDEX__]" class="form-control" value="__INDEX__">
+            </div>
+
+            <div class="col-md-2 mb-3">
+                <label class="form-label">Status</label>
+                <select name="variation_status[__INDEX__]" class="form-select">
+                    <option value="ACTIVE" selected>ACTIVE</option>
+                    <option value="INACTIVE">INACTIVE</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="store-variation-attributes">
+            <div class="d-flex justify-content-between align-items-center gap-2 flex-wrap mb-3">
+                <div>
+                    <strong>Variation Attribute Mapping</strong>
+                    <div class="store-helper-text">Choose which global values define this specific sellable option.</div>
+                </div>
+            </div>
+
+            <div class="row">
+                {% for attribute in attributes %}
+                    <div class="col-lg-4 col-md-6 mb-3">
+                        <label class="form-label">{{ attribute.name }}</label>
+                        <select class="form-select" name="variation_attribute_pairs[__INDEX__][{{ attribute.id }}]">
+                            <option value="">Not used</option>
+                            {% for value in attribute.values %}
+                                <option value="{{ value.id }}">{{ value.value }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</template>
 {% endblock %}
 
 {% block scripts %}
@@ -373,6 +554,87 @@ document.addEventListener('DOMContentLoaded', function () {
             reader.readAsDataURL(file);
         });
     }
+
+    const productTypeInput = document.getElementById('product_type_input');
+    const typeCards = document.querySelectorAll('[data-product-type-card]');
+    const fixedCard = document.getElementById('fixed-fields-card');
+    const variableCard = document.getElementById('variable-fields-card');
+
+    function toggleProductType(type) {
+        productTypeInput.value = type;
+
+        typeCards.forEach(card => {
+            card.classList.toggle('active', card.getAttribute('data-product-type-card') === type);
+        });
+
+        if (type === 'VARIABLE') {
+            fixedCard.style.display = 'none';
+            variableCard.style.display = 'block';
+        } else {
+            fixedCard.style.display = 'block';
+            variableCard.style.display = 'none';
+        }
+    }
+
+    typeCards.forEach(card => {
+        card.addEventListener('click', function () {
+            toggleProductType(this.getAttribute('data-product-type-card'));
+        });
+    });
+
+    toggleProductType('FIXED');
+
+    const addVariationBtn = document.getElementById('add-variation-btn');
+    const variationsContainer = document.getElementById('variations-container');
+    const variationTemplate = document.getElementById('variation-template');
+    const emptyState = document.getElementById('variation-empty-state');
+
+    let variationIndex = 0;
+
+    function refreshVariationNumbers() {
+        const rows = variationsContainer.querySelectorAll('.store-variation-card');
+        rows.forEach((row, idx) => {
+            const label = row.querySelector('.variation-number');
+            if (label) {
+                label.textContent = '#' + (idx + 1);
+            }
+        });
+
+        if (rows.length === 0) {
+            emptyState.style.display = 'block';
+        } else {
+            emptyState.style.display = 'none';
+        }
+    }
+
+    function addVariationRow() {
+        let html = variationTemplate.innerHTML;
+        html = html.replaceAll('__INDEX__', variationIndex);
+        html = html.replaceAll('__NUMBER__', variationIndex + 1);
+
+        const wrapper = document.createElement('div');
+        wrapper.innerHTML = html.trim();
+
+        const row = wrapper.firstElementChild;
+        variationsContainer.appendChild(row);
+
+        const removeBtn = row.querySelector('.remove-variation-btn');
+        if (removeBtn) {
+            removeBtn.addEventListener('click', function () {
+                row.remove();
+                refreshVariationNumbers();
+            });
+        }
+
+        variationIndex++;
+        refreshVariationNumbers();
+    }
+
+    if (addVariationBtn) {
+        addVariationBtn.addEventListener('click', addVariationRow);
+    }
+
+    refreshVariationNumbers();
 });
 </script>
 {% endblock %}

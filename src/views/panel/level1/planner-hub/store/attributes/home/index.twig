@@ -1,73 +1,455 @@
 {% extends 'templates/base.admin.twig' %}
 
 {% block body %}
-<div class="container-fluid">
-    <div class="card shadow-sm border-0 mb-4">
-        <div class="card-body">
-            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
-                <div>
-                    <h1 class="h3 mb-1">Store Attributes</h1>
-                    <p class="text-muted mb-0">Manage the attributes used by your store products.</p>
-                </div>
-                <a href="{{ path('panel/planner-hub/store/attributes/create') }}" class="btn btn-primary">
-                    + Create Attribute
-                </a>
+<div class="container-fluid store-attributes-page">
+
+    <style>
+        :root{
+            --store-primary:#111827;
+            --store-primary-soft:#1f2937;
+            --store-accent:#374151;
+            --store-bg:#f8fafc;
+            --store-card:#ffffff;
+            --store-text:#111827;
+            --store-muted:#6b7280;
+            --store-border:#e5e7eb;
+            --store-success:#16a34a;
+            --store-danger:#dc2626;
+            --store-warning:#d97706;
+            --store-info:#2563eb;
+            --store-shadow:0 18px 44px rgba(15,23,42,.08);
+        }
+
+        .store-attributes-page{
+            color:var(--store-text);
+        }
+
+        .sa-hero{
+            position:relative;
+            overflow:hidden;
+            border-radius:28px;
+            padding:1.8rem 1.6rem;
+            color:#fff;
+            background:
+                radial-gradient(900px 420px at 0% 0%, rgba(255,255,255,.08), transparent 60%),
+                linear-gradient(135deg, #111827 0%, #1f2937 55%, #374151 100%);
+            box-shadow:0 22px 54px rgba(15,23,42,.18);
+            margin-bottom:1.5rem;
+        }
+
+        .sa-hero > *{ position:relative; z-index:2; }
+
+        .sa-badge{
+            display:inline-flex;
+            align-items:center;
+            gap:.45rem;
+            border-radius:999px;
+            padding:.55rem .9rem;
+            font-size:.9rem;
+            font-weight:800;
+            background:rgba(255,255,255,.10);
+            border:1px solid rgba(255,255,255,.14);
+            color:#e5e7eb;
+            margin-bottom:.9rem;
+        }
+
+        .sa-hero h1{
+            font-size:clamp(1.9rem,3vw,2.7rem);
+            line-height:1.08;
+            font-weight:900;
+            letter-spacing:-.8px;
+            margin-bottom:.45rem;
+            color:#fff;
+        }
+
+        .sa-hero p{
+            color:#e5e7eb;
+            line-height:1.72;
+            font-size:1rem;
+            margin:0;
+            max-width:780px;
+        }
+
+        .sa-hero-top{
+            display:flex;
+            justify-content:space-between;
+            align-items:flex-start;
+            gap:1rem;
+            flex-wrap:wrap;
+        }
+
+        .btn-sa-main{
+            background:#fff;
+            color:#111827 !important;
+            padding:.95rem 1.35rem;
+            font-size:1rem;
+            border-radius:999px;
+            text-decoration:none;
+            font-weight:800;
+            display:inline-flex;
+            gap:.55rem;
+            align-items:center;
+            justify-content:center;
+            border:none;
+            box-shadow:0 12px 28px rgba(255,255,255,.18);
+            transition:all .22s ease;
+            white-space:nowrap;
+        }
+
+        .btn-sa-main:hover{
+            transform:translateY(-2px);
+            background:#f9fafb;
+        }
+
+        .sa-tools-card,
+        .sa-card{
+            background:#fff;
+            border:1px solid var(--store-border);
+            border-radius:24px;
+            box-shadow:var(--store-shadow);
+        }
+
+        .sa-tools-card{
+            padding:1.2rem;
+            margin-bottom:1.5rem;
+        }
+
+        .sa-tools-head h2{
+            font-size:1.1rem;
+            font-weight:900;
+            color:var(--store-text);
+            margin:0 0 .2rem;
+        }
+
+        .sa-tools-head p{
+            margin:0 0 1rem;
+            color:var(--store-muted);
+            line-height:1.6;
+        }
+
+        .sa-tool-item{
+            display:block;
+            text-decoration:none;
+            color:inherit;
+            height:100%;
+        }
+
+        .sa-tool-box{
+            height:100%;
+            background:linear-gradient(180deg,#fff 0%, #f8fafc 100%);
+            border:1px solid var(--store-border);
+            border-radius:20px;
+            padding:1.15rem 1rem;
+            transition:all .2s ease;
+            box-shadow:0 10px 24px rgba(15,23,42,.05);
+        }
+
+        .sa-tool-box:hover{
+            transform:translateY(-3px);
+            box-shadow:0 18px 34px rgba(15,23,42,.08);
+        }
+
+        .sa-tool-box i{
+            font-size:1.4rem;
+            color:var(--store-primary);
+            margin-bottom:.7rem;
+        }
+
+        .sa-tool-box strong{
+            display:block;
+            font-size:1rem;
+            color:var(--store-text);
+            margin-bottom:.25rem;
+        }
+
+        .sa-tool-box span{
+            display:block;
+            color:var(--store-muted);
+            font-size:.92rem;
+            line-height:1.55;
+        }
+
+        .sa-card-body{
+            padding:1.25rem;
+        }
+
+        .sa-table{
+            margin-bottom:0;
+        }
+
+        .sa-table thead th{
+            border-bottom:1px solid var(--store-border);
+            color:var(--store-text);
+            font-size:.92rem;
+            font-weight:800;
+            text-transform:uppercase;
+            letter-spacing:.02em;
+            background:#f8fafc;
+            padding:1rem .85rem;
+            white-space:nowrap;
+        }
+
+        .sa-table tbody td{
+            vertical-align:middle;
+            padding:1rem .85rem;
+            border-color:#eef2f7;
+        }
+
+        .sa-table tbody tr:hover{
+            background:#fbfcfe;
+        }
+
+        .sa-name{
+            font-weight:800;
+            color:var(--store-text);
+            margin-bottom:.15rem;
+        }
+
+        .sa-slug{
+            font-size:.85rem;
+            color:var(--store-muted);
+            word-break:break-word;
+        }
+
+        .sa-badge-status{
+            display:inline-flex;
+            align-items:center;
+            justify-content:center;
+            padding:.42rem .7rem;
+            border-radius:999px;
+            font-size:.78rem;
+            font-weight:800;
+            letter-spacing:.01em;
+            border:1px solid transparent;
+        }
+
+        .sa-active{
+            background:rgba(22,163,74,.12);
+            color:#166534;
+            border-color:rgba(22,163,74,.18);
+        }
+
+        .sa-actions{
+            display:flex;
+            flex-wrap:wrap;
+            gap:.45rem;
+            justify-content:flex-end;
+        }
+
+        .sa-btn{
+            display:inline-flex;
+            align-items:center;
+            justify-content:center;
+            gap:.4rem;
+            padding:.58rem .88rem;
+            border-radius:999px;
+            font-weight:800;
+            font-size:.84rem;
+            text-decoration:none;
+            transition:all .18s ease;
+            border:1px solid transparent;
+        }
+
+        .sa-btn-dark{
+            background:#f8fafc;
+            border-color:#dbe3ea;
+            color:var(--store-text);
+        }
+
+        .sa-btn-dark:hover{
+            background:#eef2f7;
+        }
+
+        .sa-btn-primary{
+            background:#eef2ff;
+            border-color:#c7d2fe;
+            color:#3730a3;
+        }
+
+        .sa-btn-primary:hover{
+            background:#e0e7ff;
+        }
+
+        .sa-btn-danger{
+            background:#fff1f2;
+            border-color:#fecdd3;
+            color:#b91c1c;
+        }
+
+        .sa-btn-danger:hover{
+            background:#ffe4e6;
+        }
+
+        .sa-empty{
+            padding:4rem 1.5rem;
+            text-align:center;
+        }
+
+        .sa-empty-icon{
+            width:76px;
+            height:76px;
+            border-radius:22px;
+            background:linear-gradient(135deg,#f8fafc,#ffffff);
+            border:1px solid #e5e7eb;
+            color:var(--store-primary);
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            font-size:2rem;
+            margin:0 auto 1rem;
+            box-shadow:0 12px 28px rgba(15,23,42,.06);
+        }
+
+        .sa-empty h5{
+            font-size:1.25rem;
+            font-weight:900;
+            color:var(--store-text);
+            margin-bottom:.5rem;
+        }
+
+        .sa-empty p{
+            color:var(--store-muted);
+            margin-bottom:1.2rem;
+        }
+
+        @media (max-width: 991px){
+            .sa-hero-top{
+                flex-direction:column;
+                align-items:flex-start;
+            }
+        }
+
+        @media (max-width: 768px){
+            .sa-hero{
+                padding:1.35rem 1rem;
+                border-radius:22px;
+            }
+
+            .sa-card,
+            .sa-tools-card{
+                border-radius:20px;
+            }
+
+            .sa-card-body,
+            .sa-tools-card{
+                padding:1rem;
+            }
+
+            .sa-actions{
+                justify-content:flex-start;
+            }
+
+            .btn-sa-main{
+                width:100%;
+            }
+        }
+    </style>
+
+    <section class="sa-hero">
+        <div class="sa-hero-top">
+            <div>
+                <span class="sa-badge">
+                    <i class="fa-solid fa-sliders"></i> Global Attributes
+                </span>
+                <h1>Store Attributes</h1>
+                <p>Manage reusable global attributes for product details, filters, and variation mapping across the catalog.</p>
             </div>
 
-            <div class="d-flex flex-wrap gap-2">
-                <a href="{{ path('panel/planner-hub/store/attributes/home') }}" class="btn btn-dark btn-sm">
-                    Attributes
-                </a>
-               
-                <a href="{{ path('panel/planner-hub/store/products/home') }}" class="btn btn-outline-secondary btn-sm">
-                    Products
+            <div>
+                <a href="{{ path('panel/planner-hub/store/attributes/create') }}" class="btn-sa-main">
+                    <i class="fa-solid fa-plus"></i> Create Attribute
                 </a>
             </div>
         </div>
-    </div>
+    </section>
 
-    <div class="card shadow-sm border-0">
-        <div class="card-body">
+    <section class="sa-tools-card">
+        <div class="sa-tools-head">
+            <h2>Attribute workflow</h2>
+            <p>Attributes are now support modules for the product flow. Create global attributes and then attach values that can be reused inside products or variations.</p>
+        </div>
+
+        <div class="row g-3">
+            <div class="col-md-4">
+                <a href="{{ path('panel/planner-hub/store/products/home') }}" class="sa-tool-item">
+                    <div class="sa-tool-box">
+                        <i class="fa-solid fa-box-open"></i>
+                        <strong>Products</strong>
+                        <span>Return to the main product catalog where fixed and variable items are managed.</span>
+                    </div>
+                </a>
+            </div>
+
+            <div class="col-md-4">
+                <a href="{{ path('panel/planner-hub/store/attribute-values/home') }}" class="sa-tool-item">
+                    <div class="sa-tool-box">
+                        <i class="fa-solid fa-list"></i>
+                        <strong>Attribute Values</strong>
+                        <span>Create and organize the values used under each global attribute.</span>
+                    </div>
+                </a>
+            </div>
+
+            <div class="col-md-4">
+                <a href="{{ path('panel/planner-hub/store/categories/home') }}" class="sa-tool-item">
+                    <div class="sa-tool-box">
+                        <i class="fa-solid fa-tags"></i>
+                        <strong>Categories</strong>
+                        <span>Keep product grouping separate from attributes and variation logic.</span>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <div class="sa-card">
+        <div class="sa-card-body">
             {% if attributes|length > 0 %}
                 <div class="table-responsive">
-                    <table class="table align-middle">
+                    <table class="table sa-table align-middle">
                         <thead>
                             <tr>
-                                <th style="min-width:70px;">ID</th>
-                                <th style="min-width:240px;">Name</th>
-                                <th style="min-width:140px;">Status</th>
-                                <th style="min-width:180px;">Created</th>
+                                <th style="min-width:260px;">Attribute</th>
+                                <th style="min-width:160px;">Slug</th>
+                                <th style="min-width:120px;">Values</th>
+                                <th style="min-width:140px;">Active Values</th>
+                                <th style="min-width:120px;">Status</th>
                                 <th style="min-width:220px;" class="text-end">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
                             {% for a in attributes %}
                                 <tr>
-                                    <td>#{{ a.id }}</td>
                                     <td>
-                                        <strong>{{ a.name }}</strong>
-                                        {% if a.slug %}
-                                            <div class="small text-muted">{{ a.slug }}</div>
-                                        {% endif %}
+                                        <div class="sa-name">{{ a.name }}</div>
                                     </td>
+
                                     <td>
-                                        {% if a.status == 'ACTIVE' %}
-                                            <span class="badge bg-success">ACTIVE</span>
-                                        {% else %}
-                                            <span class="badge bg-secondary">INACTIVE</span>
-                                        {% endif %}
+                                        <div class="sa-slug">{{ a.slug ?: '—' }}</div>
                                     </td>
-                                    <td>{{ a.created_at ?: '—' }}</td>
+
+                                    <td>
+                                        <strong>{{ a.values_count|default(0) }}</strong>
+                                    </td>
+
+                                    <td>
+                                        <strong>{{ a.active_values_count|default(0) }}</strong>
+                                    </td>
+
+                                    <td>
+                                        <span class="sa-badge-status sa-active">{{ a.status ?: 'ACTIVE' }}</span>
+                                    </td>
+
                                     <td class="text-end">
-                                        <div class="d-inline-flex gap-2 flex-wrap justify-content-end">
-                                            <a href="{{ path('panel/planner-hub/store/attribute-values/home') }}?id_attribute={{ a.id }}" class="btn btn-sm btn-outline-dark">
+                                        <div class="sa-actions">
+                                            <a href="{{ path('panel/planner-hub/store/attribute-values/home') }}?attribute_id={{ a.id }}" class="sa-btn sa-btn-dark">
                                                 Values
                                             </a>
-                                            <a href="{{ path('panel/planner-hub/store/attributes/edit') }}?id={{ a.id }}" class="btn btn-sm btn-outline-primary">
+                                            <a href="{{ path('panel/planner-hub/store/attributes/edit') }}?id={{ a.id }}" class="sa-btn sa-btn-primary">
                                                 Edit
                                             </a>
                                             <a href="{{ path('panel/planner-hub/store/attributes/delete') }}?id={{ a.id }}"
-                                               class="btn btn-sm btn-outline-danger"
+                                               class="sa-btn sa-btn-danger"
                                                onclick="return confirm('Are you sure you want to delete this attribute?');">
                                                 Delete
                                             </a>
@@ -79,11 +461,14 @@
                     </table>
                 </div>
             {% else %}
-                <div class="text-center py-5">
-                    <h5 class="mb-2">No attributes created yet</h5>
-                    <p class="text-muted mb-3">Start by creating your first store attribute.</p>
-                    <a href="{{ path('panel/planner-hub/store/attributes/create') }}" class="btn btn-primary">
-                        + Create Attribute
+                <div class="sa-empty">
+                    <div class="sa-empty-icon">
+                        <i class="fa-solid fa-sliders"></i>
+                    </div>
+                    <h5>No attributes created yet</h5>
+                    <p>Create reusable attributes that can later be used in product details or variation mapping.</p>
+                    <a href="{{ path('panel/planner-hub/store/attributes/create') }}" class="btn-sa-main">
+                        <i class="fa-solid fa-plus"></i> Create Attribute
                     </a>
                 </div>
             {% endif %}

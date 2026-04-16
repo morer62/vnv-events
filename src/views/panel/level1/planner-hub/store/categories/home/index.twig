@@ -1,80 +1,453 @@
 {% extends 'templates/base.admin.twig' %}
 
 {% block body %}
-<div class="container-fluid">
-    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
-        <div>
-            <h1 class="h3 mb-1">Store Categories</h1>
-            <p class="text-muted mb-0">Manage the categories used to organize your store products.</p>
-        </div>
-        <a href="{{ path('panel/planner-hub/store/categories/create') }}" class="btn btn-primary">
-            + Create Category
-        </a>
-    </div>
+<div class="container-fluid store-categories-page">
 
-    <div class="card shadow-sm border-0">
-        <div class="card-body">
+    <style>
+        :root{
+            --store-primary:#111827;
+            --store-primary-soft:#1f2937;
+            --store-accent:#374151;
+            --store-bg:#f8fafc;
+            --store-card:#ffffff;
+            --store-text:#111827;
+            --store-muted:#6b7280;
+            --store-border:#e5e7eb;
+            --store-success:#16a34a;
+            --store-danger:#dc2626;
+            --store-info:#2563eb;
+            --store-shadow:0 18px 44px rgba(15,23,42,.08);
+        }
+
+        .store-categories-page{
+            color:var(--store-text);
+        }
+
+        .sc-hero{
+            position:relative;
+            overflow:hidden;
+            border-radius:28px;
+            padding:1.8rem 1.6rem;
+            color:#fff;
+            background:
+                radial-gradient(900px 420px at 0% 0%, rgba(255,255,255,.08), transparent 60%),
+                linear-gradient(135deg, #111827 0%, #1f2937 55%, #374151 100%);
+            box-shadow:0 22px 54px rgba(15,23,42,.18);
+            margin-bottom:1.5rem;
+        }
+
+        .sc-hero > *{ position:relative; z-index:2; }
+
+        .sc-badge{
+            display:inline-flex;
+            align-items:center;
+            gap:.45rem;
+            border-radius:999px;
+            padding:.55rem .9rem;
+            font-size:.9rem;
+            font-weight:800;
+            background:rgba(255,255,255,.10);
+            border:1px solid rgba(255,255,255,.14);
+            color:#e5e7eb;
+            margin-bottom:.9rem;
+        }
+
+        .sc-hero h1{
+            font-size:clamp(1.9rem,3vw,2.7rem);
+            line-height:1.08;
+            font-weight:900;
+            letter-spacing:-.8px;
+            margin-bottom:.45rem;
+            color:#fff;
+        }
+
+        .sc-hero p{
+            color:#e5e7eb;
+            line-height:1.72;
+            font-size:1rem;
+            margin:0;
+            max-width:780px;
+        }
+
+        .sc-hero-top{
+            display:flex;
+            justify-content:space-between;
+            align-items:flex-start;
+            gap:1rem;
+            flex-wrap:wrap;
+        }
+
+        .btn-sc-main{
+            background:#fff;
+            color:#111827 !important;
+            padding:.95rem 1.35rem;
+            font-size:1rem;
+            border-radius:999px;
+            text-decoration:none;
+            font-weight:800;
+            display:inline-flex;
+            gap:.55rem;
+            align-items:center;
+            justify-content:center;
+            border:none;
+            box-shadow:0 12px 28px rgba(255,255,255,.18);
+            transition:all .22s ease;
+            white-space:nowrap;
+        }
+
+        .btn-sc-main:hover{
+            transform:translateY(-2px);
+            background:#f9fafb;
+        }
+
+        .sc-tools-card,
+        .sc-card{
+            background:#fff;
+            border:1px solid var(--store-border);
+            border-radius:24px;
+            box-shadow:var(--store-shadow);
+        }
+
+        .sc-tools-card{
+            padding:1.2rem;
+            margin-bottom:1.5rem;
+        }
+
+        .sc-tools-head h2{
+            font-size:1.1rem;
+            font-weight:900;
+            color:var(--store-text);
+            margin:0 0 .2rem;
+        }
+
+        .sc-tools-head p{
+            margin:0 0 1rem;
+            color:var(--store-muted);
+            line-height:1.6;
+        }
+
+        .sc-tool-item{
+            display:block;
+            text-decoration:none;
+            color:inherit;
+            height:100%;
+        }
+
+        .sc-tool-box{
+            height:100%;
+            background:linear-gradient(180deg,#fff 0%, #f8fafc 100%);
+            border:1px solid var(--store-border);
+            border-radius:20px;
+            padding:1.15rem 1rem;
+            transition:all .2s ease;
+            box-shadow:0 10px 24px rgba(15,23,42,.05);
+        }
+
+        .sc-tool-box:hover{
+            transform:translateY(-3px);
+            box-shadow:0 18px 34px rgba(15,23,42,.08);
+        }
+
+        .sc-tool-box i{
+            font-size:1.4rem;
+            color:var(--store-primary);
+            margin-bottom:.7rem;
+        }
+
+        .sc-tool-box strong{
+            display:block;
+            font-size:1rem;
+            color:var(--store-text);
+            margin-bottom:.25rem;
+        }
+
+        .sc-tool-box span{
+            display:block;
+            color:var(--store-muted);
+            font-size:.92rem;
+            line-height:1.55;
+        }
+
+        .sc-card-body{
+            padding:1.25rem;
+        }
+
+        .sc-table{
+            margin-bottom:0;
+        }
+
+        .sc-table thead th{
+            border-bottom:1px solid var(--store-border);
+            color:var(--store-text);
+            font-size:.92rem;
+            font-weight:800;
+            text-transform:uppercase;
+            letter-spacing:.02em;
+            background:#f8fafc;
+            padding:1rem .85rem;
+            white-space:nowrap;
+        }
+
+        .sc-table tbody td{
+            vertical-align:middle;
+            padding:1rem .85rem;
+            border-color:#eef2f7;
+        }
+
+        .sc-table tbody tr:hover{
+            background:#fbfcfe;
+        }
+
+        .sc-name{
+            font-weight:800;
+            color:var(--store-text);
+            margin-bottom:.15rem;
+        }
+
+        .sc-slug{
+            font-size:.85rem;
+            color:var(--store-muted);
+            word-break:break-word;
+        }
+
+        .sc-desc{
+            color:var(--store-muted);
+            font-size:.9rem;
+            line-height:1.6;
+            max-width:420px;
+        }
+
+        .sc-badge-status{
+            display:inline-flex;
+            align-items:center;
+            justify-content:center;
+            padding:.42rem .7rem;
+            border-radius:999px;
+            font-size:.78rem;
+            font-weight:800;
+            letter-spacing:.01em;
+            border:1px solid transparent;
+        }
+
+        .sc-active{
+            background:rgba(22,163,74,.12);
+            color:#166534;
+            border-color:rgba(22,163,74,.18);
+        }
+
+        .sc-actions{
+            display:flex;
+            flex-wrap:wrap;
+            gap:.45rem;
+            justify-content:flex-end;
+        }
+
+        .sc-btn{
+            display:inline-flex;
+            align-items:center;
+            justify-content:center;
+            gap:.4rem;
+            padding:.58rem .88rem;
+            border-radius:999px;
+            font-weight:800;
+            font-size:.84rem;
+            text-decoration:none;
+            transition:all .18s ease;
+            border:1px solid transparent;
+        }
+
+        .sc-btn-dark{
+            background:#f8fafc;
+            border-color:#dbe3ea;
+            color:var(--store-text);
+        }
+
+        .sc-btn-dark:hover{
+            background:#eef2f7;
+        }
+
+        .sc-btn-primary{
+            background:#eef2ff;
+            border-color:#c7d2fe;
+            color:#3730a3;
+        }
+
+        .sc-btn-primary:hover{
+            background:#e0e7ff;
+        }
+
+        .sc-btn-danger{
+            background:#fff1f2;
+            border-color:#fecdd3;
+            color:#b91c1c;
+        }
+
+        .sc-btn-danger:hover{
+            background:#ffe4e6;
+        }
+
+        .sc-empty{
+            padding:4rem 1.5rem;
+            text-align:center;
+        }
+
+        .sc-empty-icon{
+            width:76px;
+            height:76px;
+            border-radius:22px;
+            background:linear-gradient(135deg,#f8fafc,#ffffff);
+            border:1px solid #e5e7eb;
+            color:var(--store-primary);
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            font-size:2rem;
+            margin:0 auto 1rem;
+            box-shadow:0 12px 28px rgba(15,23,42,.06);
+        }
+
+        .sc-empty h5{
+            font-size:1.25rem;
+            font-weight:900;
+            color:var(--store-text);
+            margin-bottom:.5rem;
+        }
+
+        .sc-empty p{
+            color:var(--store-muted);
+            margin-bottom:1.2rem;
+        }
+
+        @media (max-width: 991px){
+            .sc-hero-top{
+                flex-direction:column;
+                align-items:flex-start;
+            }
+        }
+
+        @media (max-width: 768px){
+            .sc-hero{
+                padding:1.35rem 1rem;
+                border-radius:22px;
+            }
+
+            .sc-card,
+            .sc-tools-card{
+                border-radius:20px;
+            }
+
+            .sc-card-body,
+            .sc-tools-card{
+                padding:1rem;
+            }
+
+            .sc-actions{
+                justify-content:flex-start;
+            }
+
+            .btn-sc-main{
+                width:100%;
+            }
+        }
+    </style>
+
+    <section class="sc-hero">
+        <div class="sc-hero-top">
+            <div>
+                <span class="sc-badge">
+                    <i class="fa-solid fa-tags"></i> Catalog Grouping
+                </span>
+                <h1>Store Categories</h1>
+                <p>Organize the catalog structure with reusable product groups that work across fixed-price and variable products.</p>
+            </div>
+
+            <div>
+                <a href="{{ path('panel/planner-hub/store/categories/create') }}" class="btn-sc-main">
+                    <i class="fa-solid fa-plus"></i> Create Category
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <section class="sc-tools-card">
+        <div class="sc-tools-head">
+            <h2>Category workflow</h2>
+            <p>Categories support the product catalog structure. Products remain the center of the workflow, while categories help organize listings and landing pages.</p>
+        </div>
+
+        <div class="row g-3">
+            <div class="col-md-4">
+                <a href="{{ path('panel/planner-hub/store/products/home') }}" class="sc-tool-item">
+                    <div class="sc-tool-box">
+                        <i class="fa-solid fa-box-open"></i>
+                        <strong>Products</strong>
+                        <span>Return to the main product catalog and assign categories from product create or edit.</span>
+                    </div>
+                </a>
+            </div>
+
+            <div class="col-md-4">
+                <a href="{{ path('panel/planner-hub/store/attributes/home') }}" class="sc-tool-item">
+                    <div class="sc-tool-box">
+                        <i class="fa-solid fa-sliders"></i>
+                        <strong>Attributes</strong>
+                        <span>Keep product properties and variation mapping separate from category structure.</span>
+                    </div>
+                </a>
+            </div>
+
+            <div class="col-md-4">
+                <a href="{{ path('panel/planner-hub/store/categories/create') }}" class="sc-tool-item">
+                    <div class="sc-tool-box">
+                        <i class="fa-solid fa-folder-plus"></i>
+                        <strong>Create category</strong>
+                        <span>Add a new catalog group for store navigation and product discovery.</span>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <div class="sc-card">
+        <div class="sc-card-body">
             {% if categories|length > 0 %}
                 <div class="table-responsive">
-                    <table class="table align-middle">
+                    <table class="table sc-table align-middle">
                         <thead>
                             <tr>
-                                <th style="min-width:70px;">ID</th>
-                                <th style="min-width:220px;">Name</th>
-                                <th>Description</th>
-                                <th style="min-width:220px;">Public URL</th>
-                                <th style="min-width:180px;">Icon</th>
+                                <th style="min-width:220px;">Category</th>
+                                <th style="min-width:180px;">Slug</th>
+                                <th style="min-width:320px;">Description</th>
                                 <th style="min-width:120px;">Status</th>
-                                <th style="min-width:180px;">Created</th>
-                                <th style="min-width:180px;" class="text-end">Actions</th>
+                                <th style="min-width:220px;" class="text-end">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
                             {% for c in categories %}
                                 <tr>
-                                    <td>#{{ c.id }}</td>
                                     <td>
-                                        <strong>{{ c.name }}</strong>
-                                        {% if c.slug %}
-                                            <div class="small text-muted">{{ c.slug }}</div>
-                                        {% endif %}
+                                        <div class="sc-name">{{ c.name }}</div>
                                     </td>
+
                                     <td>
-                                        {{ c.description ?: '—' }}
+                                        <div class="sc-slug">{{ c.slug ?: '—' }}</div>
                                     </td>
+
                                     <td>
-                                        {% if c.slug %}
-                                            <a href="{{ path('product-category/' ~ c.slug) }}" target="_blank">
-                                                /product-category/{{ c.slug }}
-                                            </a>
-                                        {% else %}
-                                            <span class="text-muted">—</span>
-                                        {% endif %}
+                                        <div class="sc-desc">{{ c.description ?: 'No description provided.' }}</div>
                                     </td>
+
                                     <td>
-                                        {% if c.icon %}
-                                            <code>{{ c.icon }}</code>
-                                        {% else %}
-                                            <span class="text-muted">—</span>
-                                        {% endif %}
+                                        <span class="sc-badge-status sc-active">{{ c.status ?: 'ACTIVE' }}</span>
                                     </td>
-                                    <td>
-                                        {% if c.status == 'ACTIVE' %}
-                                            <span class="badge bg-success">ACTIVE</span>
-                                        {% else %}
-                                            <span class="badge bg-secondary">INACTIVE</span>
-                                        {% endif %}
-                                    </td>
-                                    <td>
-                                        {{ c.created_at ?: '—' }}
-                                    </td>
+
                                     <td class="text-end">
-                                        <div class="d-inline-flex gap-2 flex-wrap justify-content-end">
-                                            <a href="{{ path('panel/planner-hub/store/categories/edit') }}?id={{ c.id }}" class="btn btn-sm btn-outline-primary">
+                                        <div class="sc-actions">
+                                            <a href="{{ path('panel/planner-hub/store/categories/edit') }}?id={{ c.id }}" class="sc-btn sc-btn-primary">
                                                 Edit
                                             </a>
                                             <a href="{{ path('panel/planner-hub/store/categories/delete') }}?id={{ c.id }}"
-                                               class="btn btn-sm btn-outline-danger"
+                                               class="sc-btn sc-btn-danger"
                                                onclick="return confirm('Are you sure you want to delete this category?');">
                                                 Delete
                                             </a>
@@ -86,11 +459,14 @@
                     </table>
                 </div>
             {% else %}
-                <div class="text-center py-5">
-                    <h5 class="mb-2">No categories created yet</h5>
-                    <p class="text-muted mb-3">Start by creating your first store category.</p>
-                    <a href="{{ path('panel/planner-hub/store/categories/create') }}" class="btn btn-primary">
-                        + Create Category
+                <div class="sc-empty">
+                    <div class="sc-empty-icon">
+                        <i class="fa-solid fa-tags"></i>
+                    </div>
+                    <h5>No categories created yet</h5>
+                    <p>Create product groups to keep the catalog organized and easier to browse.</p>
+                    <a href="{{ path('panel/planner-hub/store/categories/create') }}" class="btn-sc-main">
+                        <i class="fa-solid fa-plus"></i> Create Category
                     </a>
                 </div>
             {% endif %}

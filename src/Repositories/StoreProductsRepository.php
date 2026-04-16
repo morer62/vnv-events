@@ -8,14 +8,17 @@ class StoreProductsRepository extends BaseRepository
     const STATUS_INACTIVE = 'INACTIVE';
     const STATUS_DRAFT = 'DRAFT';
 
+    const PRODUCT_TYPE_FIXED = 'FIXED';
+    const PRODUCT_TYPE_VARIABLE = 'VARIABLE';
+
     protected array $fields = [
         'id',
-        'id_owner',
         'name',
         'slug',
         'sku',
         'short_description',
         'description',
+        'product_type',
         'price',
         'promo_price',
         'main_image',
@@ -34,23 +37,48 @@ class StoreProductsRepository extends BaseRepository
     {
         $this->table = "store_products";
         $this->db = new Connection();
-        $this->ensureSlugColumn();
+        $this->ensureProductTypeColumn();
+    }
+
+    private function ensureProductTypeColumn(): void
+    {
+        if ($this->columnExists('product_type')) {
+            return;
+        }
+
+        try {
+            $this->db->query("
+                ALTER TABLE `{$this->table}`
+                ADD COLUMN `product_type` ENUM('FIXED','VARIABLE') NOT NULL DEFAULT 'FIXED' AFTER `description`
+            ");
+            $this->db->execute();
+        } catch (\Throwable $e) {
+            // Avoid breaking runtime if DDL is restricted or migration already handled elsewhere.
+        }
+    }
+
+    private function columnExists(string $column): bool
+    {
+        try {
+            $this->db->query("SHOW COLUMNS FROM `{$this->table}` LIKE :column");
+            $this->db->bind(':column', $column);
+            return (bool)$this->db->fetchOne();
+        } catch (\Throwable $e) {
+            return false;
+        }
     }
 
     public function normalizeSlug(string $value): string
     {
         $slug = strtolower(trim(preg_replace('/[^A-Za-z0-9-]+/', '-', $value)));
         $slug = trim($slug, '-');
-        return $slug;
+
+        return $slug !== '' ? $slug : 'product';
     }
 
     public function generateUniqueSlug(string $baseValue, int $excludeId = 0): string
     {
         $slug = $this->normalizeSlug($baseValue);
-        if ($slug === '') {
-            $slug = 'product';
-        }
-
         $originalSlug = $slug;
         $counter = 1;
 
@@ -64,32 +92,44 @@ class StoreProductsRepository extends BaseRepository
 
     private function slugExists(string $slug, int $excludeId = 0): bool
     {
-        $query = "SELECT id FROM {$this->table} WHERE slug = :slug";
+        $sql = "SELECT id FROM {$this->table} WHERE slug = :slug";
+
         if ($excludeId > 0) {
-            $query .= " AND id != :exclude_id";
+            $sql .= " AND id != :exclude_id";
         }
-        $query .= " LIMIT 1";
-        $this->db->query($query);
+
+        $sql .= " LIMIT 1";
+
+        $this->db->query($sql);
         $this->db->bind(':slug', $slug);
+
         if ($excludeId > 0) {
-            $this->db->bind(':exclude_id', $excludeId);
+            $this->db->bind(':exclude_id', $excludeId, \PDO::PARAM_INT);
         }
+
         return $this->db->fetchOne() !== false;
     }
 
     public function skuExists(string $sku, int $excludeId = 0): bool
     {
-        $query = "SELECT id FROM {$this->table} WHERE sku = :sku";
-        if ($excludeId > 0) {
-            $query .= " AND id != :exclude_id";
+        $sku = trim($sku);
+        if ($sku === '') {
+            return false;
         }
-        $query .= " LIMIT 1";
 
-        $this->db->query($query);
+        $sql = "SELECT id FROM {$this->table} WHERE sku = :sku";
+
+        if ($excludeId > 0) {
+            $sql .= " AND id != :exclude_id";
+        }
+
+        $sql .= " LIMIT 1";
+
+        $this->db->query($sql);
         $this->db->bind(':sku', $sku);
 
         if ($excludeId > 0) {
-            $this->db->bind(':exclude_id', $excludeId);
+            $this->db->bind(':exclude_id', $excludeId, \PDO::PARAM_INT);
         }
 
         return $this->db->fetchOne() !== false;
@@ -97,10 +137,70 @@ class StoreProductsRepository extends BaseRepository
 
     public function getBySlug(string $slug): ?object
     {
-        $this->db->query("SELECT * FROM {$this->table} WHERE slug = :slug LIMIT 1");
+        $this->db->query("
+            SELECT *
+            FROM {$this->table}
+            WHERE slug = :slug
+            LIMIT 1
+        ");
         $this->db->bind(':slug', $slug);
+
         $result = $this->db->fetchOne();
         return $result ?: null;
+    }
+
+    public function getAll(int $limit = 500): array
+    {
+        $this->db->query("
+            SELECT *
+            FROM {$this->table}
+            ORDER BY id DESC
+            LIMIT :limit
+        ");
+        $this->db->bind(':limit', $limit, \PDO::PARAM_INT);
+
+        $rows = $this->db->fetchAll();
+
+        return $this->appendComputedPricingToProducts($rows);
+    }
+
+    public function getActivePublic(int $limit = 500): array
+    {
+        $this->db->query("
+            SELECT *
+            FROM {$this->table}
+            WHERE status = :status
+              AND is_public = 1
+            ORDER BY is_featured DESC, id DESC
+            LIMIT :limit
+        ");
+        $this->db->bind(':status', self::STATUS_ACTIVE);
+        $this->db->bind(':limit', $limit, \PDO::PARAM_INT);
+
+        $rows = $this->db->fetchAll();
+
+        return $this->appendComputedPricingToProducts($rows);
+    }
+
+    public function getPublicById(int $id): ?object
+    {
+        $this->db->query("
+            SELECT *
+            FROM {$this->table}
+            WHERE id = :id
+              AND status = :status
+              AND is_public = 1
+            LIMIT 1
+        ");
+        $this->db->bind(':id', $id, \PDO::PARAM_INT);
+        $this->db->bind(':status', self::STATUS_ACTIVE);
+
+        $product = $this->db->fetchOne();
+        if (!$product) {
+            return null;
+        }
+
+        return $this->appendComputedPricingToProduct($product);
     }
 
     public function getPublicBySlug(string $slug): ?object
@@ -109,377 +209,106 @@ class StoreProductsRepository extends BaseRepository
             SELECT *
             FROM {$this->table}
             WHERE slug = :slug
-              AND is_public = 1
               AND status = :status
+              AND is_public = 1
             LIMIT 1
         ");
         $this->db->bind(':slug', $slug);
         $this->db->bind(':status', self::STATUS_ACTIVE);
-        $result = $this->db->fetchOne();
-        return $result ?: null;
+
+        $product = $this->db->fetchOne();
+        if (!$product) {
+            return null;
+        }
+
+        return $this->appendComputedPricingToProduct($product);
     }
 
-    public function getPublicProducts(): array
+    public function getEffectivePrice(object|array $product): float
     {
-        $this->db->query("
-            SELECT *
-            FROM {$this->table}
-            WHERE is_public = 1
-              AND status = :status
-            ORDER BY is_featured DESC, created_at DESC
-        ");
-        $this->db->bind(':status', self::STATUS_ACTIVE);
-        return $this->db->fetchAll();
+        $productType = (string)(is_object($product)
+            ? ($product->product_type ?? self::PRODUCT_TYPE_FIXED)
+            : ($product['product_type'] ?? self::PRODUCT_TYPE_FIXED));
+
+        if ($productType === self::PRODUCT_TYPE_VARIABLE) {
+            $productId = (int)(is_object($product) ? ($product->id ?? 0) : ($product['id'] ?? 0));
+            if ($productId > 0) {
+                $variationsRepo = new StoreProductVariationsRepository();
+                $range = $variationsRepo->getPriceRangeByProduct($productId);
+
+                if ((float)$range['min_price'] > 0) {
+                    return (float)$range['min_price'];
+                }
+            }
+        }
+
+        $promoPrice = (float)(is_object($product)
+            ? ($product->promo_price ?? 0)
+            : ($product['promo_price'] ?? 0));
+
+        $price = (float)(is_object($product)
+            ? ($product->price ?? 0)
+            : ($product['price'] ?? 0));
+
+        return $promoPrice > 0 ? $promoPrice : $price;
     }
 
-    public function getPublicByCategory(int $categoryId, int $limit = 48): array
-    {
-        $this->db->query("
-            SELECT p.*
-            FROM {$this->table} p
-            INNER JOIN store_products_categories pc ON pc.id_product = p.id
-            WHERE pc.id_category = :id_category
-              AND p.is_public = 1
-              AND p.status = :status
-            ORDER BY p.is_featured DESC, p.created_at DESC
-            LIMIT :limit
-        ");
-        $this->db->bind(':id_category', $categoryId, \PDO::PARAM_INT);
-        $this->db->bind(':status', self::STATUS_ACTIVE);
-        $this->db->bind(':limit', $limit, \PDO::PARAM_INT);
-
-        return $this->db->fetchAll() ?: [];
-    }
-
-    public function getPublicRelatedProducts(int $excludeProductId, int $limit = 6): array
-    {
-        $this->db->query("
-            SELECT *
-            FROM {$this->table}
-            WHERE id != :id
-              AND is_public = 1
-              AND status = :status
-            ORDER BY is_featured DESC, created_at DESC
-            LIMIT :limit
-        ");
-        $this->db->bind(':id', $excludeProductId, \PDO::PARAM_INT);
-        $this->db->bind(':status', self::STATUS_ACTIVE);
-        $this->db->bind(':limit', $limit, \PDO::PARAM_INT);
-        return $this->db->fetchAll() ?: [];
-    }
-
-    public function getFeaturedProducts(int $limit = 8): array
-    {
-        $this->db->query("
-            SELECT *
-            FROM {$this->table}
-            WHERE is_public = 1
-              AND is_featured = 1
-              AND status = :status
-            ORDER BY created_at DESC
-            LIMIT :limit
-        ");
-        $this->db->bind(':status', self::STATUS_ACTIVE);
-        $this->db->bind(':limit', $limit, \PDO::PARAM_INT);
-        return $this->db->fetchAll();
-    }
-
-    public function getAvailableStock(int $productId): int
-    {
-        $product = $this->getOne(['id' => $productId], ['stock_quantity']);
-        return $product ? (int)$product->stock_quantity : 0;
-    }
-
-    public function hasStock(int $productId, int $qty = 1): bool
-    {
-        return $this->getAvailableStock($productId) >= $qty;
-    }
-
-    public function updateStock(int $productId, int $newQty): bool
-    {
-        return $this->update([
-            'stock_quantity' => $newQty,
-            'updated_at' => date('Y-m-d H:i:s')
-        ], [
-            'id' => $productId
-        ]);
-    }
-
-    public function decreaseStock(int $productId, int $qty): bool
+    public function getPriceRange(int $productId): array
     {
         $product = $this->getOne(['id' => $productId]);
-
         if (!$product) {
-            return false;
+            return [
+                'min_price' => 0.0,
+                'max_price' => 0.0,
+            ];
         }
 
-        $currentStock = (int)$product->stock_quantity;
-        if ($currentStock < $qty) {
-            return false;
+        $productType = (string)($product->product_type ?? self::PRODUCT_TYPE_FIXED);
+
+        if ($productType === self::PRODUCT_TYPE_VARIABLE) {
+            $variationsRepo = new StoreProductVariationsRepository();
+            return $variationsRepo->getPriceRangeByProduct($productId);
         }
 
-        $newStock = $currentStock - $qty;
+        $effectivePrice = $this->getEffectivePrice($product);
 
-        return $this->update([
-            'stock_quantity' => $newStock,
-            'updated_at' => date('Y-m-d H:i:s')
-        ], [
-            'id' => $productId
-        ]);
+        return [
+            'min_price' => $effectivePrice,
+            'max_price' => $effectivePrice,
+        ];
     }
 
-    public function searchPublic(string $term = ''): array
+    public function getFullProductDetails(int $id): ?object
     {
-        $query = "
-            SELECT *
-            FROM {$this->table}
-            WHERE is_public = 1
-              AND status = :status
-        ";
-
-        if (!empty($term)) {
-            $query .= " AND (
-                name LIKE :term
-                OR short_description LIKE :term
-                OR description LIKE :term
-                OR sku LIKE :term
-            )";
+        $product = $this->getOne(['id' => $id]);
+        if (!$product) {
+            return null;
         }
 
-        $query .= " ORDER BY is_featured DESC, created_at DESC";
+        $product = $this->appendComputedPricingToProduct($product);
 
-        $this->db->query($query);
-        $this->db->bind(':status', self::STATUS_ACTIVE);
+        $categoriesRepo = new StoreProductsCategoriesRepository();
+        $attributesRepo = new StoreProductsAttributesRepository();
+        $nutritionRepo = new StoreProductsNutritionRepository();
 
-        if (!empty($term)) {
-            $this->db->bind(':term', '%' . $term . '%');
+        $product->categories = $categoriesRepo->getCategoriesByProduct($id);
+        $product->attributes = $attributesRepo->getByProduct($id);
+        $product->attributes_grouped = $attributesRepo->getGroupedByProduct($id);
+        $product->nutrition = $nutritionRepo->getByProduct($id);
+
+        if (($product->product_type ?? self::PRODUCT_TYPE_FIXED) === self::PRODUCT_TYPE_VARIABLE) {
+            $variationsRepo = new StoreProductVariationsRepository();
+            $product->variations = $variationsRepo->getDetailedByProduct($id);
+        } else {
+            $product->variations = [];
         }
 
-        return $this->db->fetchAll();
+        return $product;
     }
 
-
-    public function getPublicActiveProducts(int $limit = 50): array
-{
-    $this->db->query("
-        SELECT *
-        FROM {$this->table}
-        WHERE status = :status
-          AND is_public = 1
-        ORDER BY is_featured DESC, id DESC
-        LIMIT :limit
-    ");
-    $this->db->bind(':status', 'ACTIVE');
-    $this->db->bind(':limit', $limit, \PDO::PARAM_INT);
-
-    return $this->db->fetchAll() ?: [];
-}
-
-public function getPublicById(int $id): ?object
-{
-    $this->db->query("
-        SELECT *
-        FROM {$this->table}
-        WHERE id = :id
-          AND status = :status
-          AND is_public = 1
-        LIMIT 1
-    ");
-    $this->db->bind(':id', $id);
-    $this->db->bind(':status', self::STATUS_ACTIVE);
-    $row = $this->db->fetchOne();
-    return $row ?: null;
-}
-
-private function ensureSlugColumn(): void
-{
-    if (!$this->hasColumn('slug')) {
-        $this->db->query("ALTER TABLE {$this->table} ADD COLUMN slug VARCHAR(255) NULL AFTER name");
-        $this->db->execute();
-    }
-}
-
-private function hasColumn(string $column): bool
-{
-    $this->db->query("SHOW COLUMNS FROM {$this->table} LIKE :column_name");
-    $this->db->bind(':column_name', $column);
-    return $this->db->fetchOne() !== false;
-}
-
-public function getRecommendedProducts(string $audience, string $mealStyle, int $limit = 24): array
-{
-    $this->db->query("
-        SELECT *
-        FROM {$this->table}
-        WHERE status = :status
-          AND is_public = 1
-          AND (
-                audiences LIKE :audience_exact
-                OR audiences LIKE :audience_start
-                OR audiences LIKE :audience_middle
-                OR audiences LIKE :audience_end
-              )
-          AND (
-                meal_styles LIKE :style_exact
-                OR meal_styles LIKE :style_start
-                OR meal_styles LIKE :style_middle
-                OR meal_styles LIKE :style_end
-              )
-        ORDER BY is_featured DESC, id DESC
-        LIMIT :limit
-    ");
-
-    $this->db->bind(':status', 'ACTIVE');
-
-    $this->db->bind(':audience_exact', $audience);
-    $this->db->bind(':audience_start', $audience . ',%');
-    $this->db->bind(':audience_middle', '%,' . $audience . ',%');
-    $this->db->bind(':audience_end', '%,' . $audience);
-
-    $this->db->bind(':style_exact', $mealStyle);
-    $this->db->bind(':style_start', $mealStyle . ',%');
-    $this->db->bind(':style_middle', '%,' . $mealStyle . ',%');
-    $this->db->bind(':style_end', '%,' . $mealStyle);
-
-    $this->db->bind(':limit', $limit, \PDO::PARAM_INT);
-
-    $results = $this->db->fetchAll() ?: [];
-
-    if (!empty($results)) {
-        return $results;
-    }
-
-    $this->db->query("
-        SELECT *
-        FROM {$this->table}
-        WHERE status = :status
-          AND is_public = 1
-          AND (
-                audiences LIKE :audience_exact
-                OR audiences LIKE :audience_start
-                OR audiences LIKE :audience_middle
-                OR audiences LIKE :audience_end
-                OR meal_styles LIKE :style_exact
-                OR meal_styles LIKE :style_start
-                OR meal_styles LIKE :style_middle
-                OR meal_styles LIKE :style_end
-              )
-        ORDER BY is_featured DESC, id DESC
-        LIMIT :limit
-    ");
-
-    $this->db->bind(':status', 'ACTIVE');
-
-    $this->db->bind(':audience_exact', $audience);
-    $this->db->bind(':audience_start', $audience . ',%');
-    $this->db->bind(':audience_middle', '%,' . $audience . ',%');
-    $this->db->bind(':audience_end', '%,' . $audience);
-
-    $this->db->bind(':style_exact', $mealStyle);
-    $this->db->bind(':style_start', $mealStyle . ',%');
-    $this->db->bind(':style_middle', '%,' . $mealStyle . ',%');
-    $this->db->bind(':style_end', '%,' . $mealStyle);
-
-    $this->db->bind(':limit', $limit, \PDO::PARAM_INT);
-
-    return $this->db->fetchAll() ?: [];
-}
-
-public function countPublicProductsByAudience(string $audience): int
-{
-    $this->db->query("
-        SELECT COUNT(*) AS total
-        FROM {$this->table}
-        WHERE status = :status
-          AND is_public = 1
-          AND (
-                audiences LIKE :audience_exact
-                OR audiences LIKE :audience_start
-                OR audiences LIKE :audience_middle
-                OR audiences LIKE :audience_end
-              )
-    ");
-
-    $this->db->bind(':status', 'ACTIVE');
-    $this->db->bind(':audience_exact', $audience);
-    $this->db->bind(':audience_start', $audience . ',%');
-    $this->db->bind(':audience_middle', '%,' . $audience . ',%');
-    $this->db->bind(':audience_end', '%,' . $audience);
-
-    $result = $this->db->fetchOne();
-
-    return (int)($result->total ?? 0);
-}
-
-public function getPublicFeaturedByAudience(string $audience, int $limit = 4): array
-{
-    $this->db->query("
-        SELECT *
-        FROM {$this->table}
-        WHERE status = :status
-          AND is_public = 1
-          AND (
-                audiences LIKE :audience_exact
-                OR audiences LIKE :audience_start
-                OR audiences LIKE :audience_middle
-                OR audiences LIKE :audience_end
-              )
-        ORDER BY is_featured DESC, id DESC
-        LIMIT :limit
-    ");
-
-    $this->db->bind(':status', 'ACTIVE');
-    $this->db->bind(':audience_exact', $audience);
-    $this->db->bind(':audience_start', $audience . ',%');
-    $this->db->bind(':audience_middle', '%,' . $audience . ',%');
-    $this->db->bind(':audience_end', '%,' . $audience);
-    $this->db->bind(':limit', $limit, \PDO::PARAM_INT);
-
-    return $this->db->fetchAll() ?: [];
-}
-
-
-
-public function getPublicProductsByMealStyle(string $mealStyle, int $limit = 24): array
-{
-    $this->db->query("
-        SELECT *
-        FROM {$this->table}
-        WHERE status = :status
-          AND is_public = 1
-          AND (
-                meal_styles LIKE :style_exact
-                OR meal_styles LIKE :style_start
-                OR meal_styles LIKE :style_middle
-                OR meal_styles LIKE :style_end
-              )
-        ORDER BY is_featured DESC, id DESC
-        LIMIT :limit
-    ");
-
-    $this->db->bind(':status', 'ACTIVE');
-    $this->db->bind(':style_exact', $mealStyle);
-    $this->db->bind(':style_start', $mealStyle . ',%');
-    $this->db->bind(':style_middle', '%,' . $mealStyle . ',%');
-    $this->db->bind(':style_end', '%,' . $mealStyle);
-    $this->db->bind(':limit', $limit, \PDO::PARAM_INT);
-
-    return $this->db->fetchAll() ?: [];
-}
-
-
-    public function getFullProductDetails(int $productId): ?object
-{
-    try {
-        $this->db->query("
-            SELECT *
-            FROM {$this->table}
-            WHERE id = :id
-            LIMIT 1
-        ");
-        $this->db->bind(':id', $productId);
-        $product = $this->db->fetchOne();
-
+    public function getFullPublicProductDetails(int $id): ?object
+    {
+        $product = $this->getPublicById($id);
         if (!$product) {
             return null;
         }
@@ -488,17 +317,192 @@ public function getPublicProductsByMealStyle(string $mealStyle, int $limit = 24)
         $attributesRepo = new StoreProductsAttributesRepository();
         $nutritionRepo = new StoreProductsNutritionRepository();
 
-        $product->categories = $categoriesRepo->getCategoriesByProduct($productId);
-        $product->attributes = $attributesRepo->getByProduct($productId);
-        $product->attributes_grouped = $attributesRepo->getGroupedByProduct($productId);
-        $product->nutrition = $nutritionRepo->getByProduct($productId);
+        $product->categories = $categoriesRepo->getCategoriesByProduct($id);
+        $product->attributes = $attributesRepo->getByProduct($id);
+        $product->attributes_grouped = $attributesRepo->getGroupedByProduct($id);
+        $product->nutrition = $nutritionRepo->getByProduct($id);
+
+        if (($product->product_type ?? self::PRODUCT_TYPE_FIXED) === self::PRODUCT_TYPE_VARIABLE) {
+            $variationsRepo = new StoreProductVariationsRepository();
+            $product->variations = $variationsRepo->getDetailedByProduct($id);
+        } else {
+            $product->variations = [];
+        }
 
         return $product;
-    } catch (\PDOException $e) {
-        if ($this->showError) {
-            echo $e->getMessage();
-        }
-        return null;
     }
-}
+
+    public function appendComputedPricingToProducts(array $products): array
+    {
+        foreach ($products as $product) {
+            $this->appendComputedPricingToProduct($product);
+        }
+
+        return $products;
+    }
+
+    public function appendComputedPricingToProduct(object|array $product): object|array
+    {
+        $productType = (string)(is_object($product)
+            ? ($product->product_type ?? self::PRODUCT_TYPE_FIXED)
+            : ($product['product_type'] ?? self::PRODUCT_TYPE_FIXED));
+
+        $effectivePrice = $this->getEffectivePrice($product);
+
+        if (is_object($product)) {
+            $product->product_type = $productType;
+            $product->effective_price = $effectivePrice;
+            $product->display_price = $effectivePrice;
+            $product->is_variable = $productType === self::PRODUCT_TYPE_VARIABLE ? 1 : 0;
+
+            if ($productType === self::PRODUCT_TYPE_VARIABLE) {
+                $range = $this->getPriceRange((int)$product->id);
+                $product->min_price = (float)$range['min_price'];
+                $product->max_price = (float)$range['max_price'];
+            } else {
+                $product->min_price = $effectivePrice;
+                $product->max_price = $effectivePrice;
+            }
+
+            return $product;
+        }
+
+        $product['product_type'] = $productType;
+        $product['effective_price'] = $effectivePrice;
+        $product['display_price'] = $effectivePrice;
+        $product['is_variable'] = $productType === self::PRODUCT_TYPE_VARIABLE ? 1 : 0;
+
+        if ($productType === self::PRODUCT_TYPE_VARIABLE) {
+            $range = $this->getPriceRange((int)$product['id']);
+            $product['min_price'] = (float)$range['min_price'];
+            $product['max_price'] = (float)$range['max_price'];
+        } else {
+            $product['min_price'] = $effectivePrice;
+            $product['max_price'] = $effectivePrice;
+        }
+
+        return $product;
+    }
+
+    public function saveProductWithRelations(array $productData, array $categoryIds = [], array $attributeValues = [], array $variations = []): int|false
+    {
+        $ok = $this->add($productData);
+        if (!$ok) {
+            return false;
+        }
+
+        $productId = (int)$this->getLastId();
+        if ($productId <= 0) {
+            return false;
+        }
+
+        if (!$this->syncRelations($productId, $categoryIds, $attributeValues, $variations)) {
+            return false;
+        }
+
+        return $productId;
+    }
+
+    public function updateProductWithRelations(
+        int $productId,
+        array $productData,
+        array $categoryIds = [],
+        array $attributeValues = [],
+        array $variations = []
+    ): bool {
+        $ok = $this->update($productData, ['id' => $productId]);
+        if (!$ok) {
+            return false;
+        }
+
+        return $this->syncRelations($productId, $categoryIds, $attributeValues, $variations);
+    }
+
+    public function syncRelations(int $productId, array $categoryIds = [], array $attributeValues = [], array $variations = []): bool
+    {
+        $categoriesRepo = new StoreCategoriesRepository();
+        $attributesRepo = new StoreAttributesRepository();
+        $productsCategoriesRepo = new StoreProductsCategoriesRepository();
+        $productsAttributesRepo = new StoreProductsAttributesRepository();
+        $variationsRepo = new StoreProductVariationsRepository();
+        $variationValuesRepo = new StoreProductVariationValuesRepository();
+
+        $productsCategoriesRepo->deleteByProduct($productId);
+        $productsAttributesRepo->deleteByProduct($productId);
+        $variationValuesRepo->deleteByProduct($productId);
+        $variationsRepo->deleteByProduct($productId);
+
+        $categoryIds = array_values(array_unique(array_filter(array_map('intval', $categoryIds))));
+        foreach ($categoryIds as $categoryId) {
+            $category = $categoriesRepo->getOne(['id' => $categoryId]);
+            if (!$category) {
+                continue;
+            }
+
+            $ok = $productsCategoriesRepo->add([
+                'id_product' => $productId,
+                'id_category' => $categoryId
+            ]);
+
+            if (!$ok) {
+                return false;
+            }
+        }
+
+        foreach ($attributeValues as $attributeId => $valueIds) {
+            $attributeId = (int)$attributeId;
+            if ($attributeId <= 0 || !is_array($valueIds)) {
+                continue;
+            }
+
+            $attribute = $attributesRepo->getOne(['id' => $attributeId]);
+            if (!$attribute) {
+                continue;
+            }
+
+            $valueIds = array_values(array_unique(array_filter(array_map('intval', $valueIds))));
+            foreach ($valueIds as $valueId) {
+                $ok = $productsAttributesRepo->add([
+                    'id_product' => $productId,
+                    'id_attribute' => $attributeId,
+                    'id_attribute_value' => $valueId
+                ]);
+
+                if (!$ok) {
+                    return false;
+                }
+            }
+        }
+
+        if (!empty($variations)) {
+            if (!$variationsRepo->replaceByProduct($productId, $variations)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    public function getPlainPriceForStorage(array $data): float
+    {
+        $productType = (string)($data['product_type'] ?? self::PRODUCT_TYPE_FIXED);
+
+        if ($productType === self::PRODUCT_TYPE_VARIABLE) {
+            return 0.00;
+        }
+
+        return (float)($data['price'] ?? 0);
+    }
+
+    public function normalizeProductType(?string $productType): string
+    {
+        $productType = strtoupper(trim((string)$productType));
+
+        return in_array($productType, [
+            self::PRODUCT_TYPE_FIXED,
+            self::PRODUCT_TYPE_VARIABLE
+        ], true)
+            ? $productType
+            : self::PRODUCT_TYPE_FIXED;
+    }
 }

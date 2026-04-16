@@ -12,7 +12,10 @@ class StoreOrderItemsRepository extends BaseRepository
         'id_owner',
         'id_store_order',
         'id_product',
+        'id_product_variation',
         'product_name_snapshot',
+        'variation_name_snapshot',
+        'variation_options_snapshot',
         'unit_price',
         'pricing_mode',
         'quantity',
@@ -24,6 +27,40 @@ class StoreOrderItemsRepository extends BaseRepository
     {
         $this->table = "store_order_items";
         $this->db = new Connection();
+        $this->ensureVariationColumns();
+    }
+
+    private function ensureVariationColumns(): void
+    {
+        $columns = [
+            'id_product_variation' => 'INT(11) NULL AFTER `id_product`',
+            'variation_name_snapshot' => 'VARCHAR(180) NULL AFTER `product_name_snapshot`',
+            'variation_options_snapshot' => 'LONGTEXT NULL AFTER `variation_name_snapshot`',
+        ];
+
+        foreach ($columns as $column => $definition) {
+            if ($this->columnExists($column)) {
+                continue;
+            }
+
+            try {
+                $this->db->query("ALTER TABLE `{$this->table}` ADD COLUMN `{$column}` {$definition}");
+                $this->db->execute();
+            } catch (\Throwable $e) {
+                // Avoid breaking runtime if migration already ran or DDL is restricted.
+            }
+        }
+    }
+
+    private function columnExists(string $column): bool
+    {
+        try {
+            $this->db->query("SHOW COLUMNS FROM `{$this->table}` LIKE :column");
+            $this->db->bind(':column', $column);
+            return (bool)$this->db->fetchOne();
+        } catch (\Throwable $e) {
+            return false;
+        }
     }
 
     public function getByOrder(int $orderId): array
@@ -34,7 +71,7 @@ class StoreOrderItemsRepository extends BaseRepository
             WHERE id_store_order = :id_store_order
             ORDER BY id ASC
         ");
-        $this->db->bind(':id_store_order', $orderId);
+        $this->db->bind(':id_store_order', $orderId, \PDO::PARAM_INT);
 
         return $this->db->fetchAll();
     }
@@ -48,9 +85,18 @@ class StoreOrderItemsRepository extends BaseRepository
             WHERE soi.id_store_order = :id_store_order
             ORDER BY soi.id ASC
         ");
-        $this->db->bind(':id_store_order', $orderId);
+        $this->db->bind(':id_store_order', $orderId, \PDO::PARAM_INT);
 
-        return $this->db->fetchAll();
+        $rows = $this->db->fetchAll();
+
+        foreach ($rows as $row) {
+            if (is_object($row)) {
+                $row->variation_options = $this->decodeVariationOptions($row->variation_options_snapshot ?? null);
+                $row->display_label = $this->getDisplayLabel($row);
+            }
+        }
+
+        return $rows;
     }
 
     public function deleteByOrder(int $orderId): bool
@@ -60,7 +106,7 @@ class StoreOrderItemsRepository extends BaseRepository
                 DELETE FROM {$this->table}
                 WHERE id_store_order = :id_store_order
             ");
-            $this->db->bind(':id_store_order', $orderId);
+            $this->db->bind(':id_store_order', $orderId, \PDO::PARAM_INT);
 
             return (bool)$this->db->execute();
         } catch (\PDOException $e) {
@@ -74,14 +120,26 @@ class StoreOrderItemsRepository extends BaseRepository
     public function createFromCartItems(int $orderId, array $cartItems): bool
     {
         foreach ($cartItems as $item) {
+            $itemData = is_object($item) ? $item : (object)$item;
+
             $ok = $this->add([
                 'id_store_order' => $orderId,
-                'id_product' => is_object($item) ? $item->id_product : $item['id_product'],
-                'product_name_snapshot' => is_object($item) ? $item->product_name_snapshot : $item['product_name_snapshot'],
-                'unit_price' => is_object($item) ? $item->unit_price : $item['unit_price'],
-                'pricing_mode' => is_object($item) ? $item->pricing_mode : $item['pricing_mode'],
-                'quantity' => is_object($item) ? $item->quantity : $item['quantity'],
-                'line_total' => is_object($item) ? $item->line_total : $item['line_total']
+                'id_product' => (int)($itemData->id_product ?? 0),
+                'id_product_variation' => !empty($itemData->id_product_variation)
+                    ? (int)$itemData->id_product_variation
+                    : null,
+                'product_name_snapshot' => (string)($itemData->product_name_snapshot ?? ''),
+                'variation_name_snapshot' => !empty($itemData->variation_name_snapshot)
+                    ? (string)$itemData->variation_name_snapshot
+                    : null,
+                'variation_options_snapshot' => !empty($itemData->variation_options_snapshot)
+                    ? (string)$itemData->variation_options_snapshot
+                    : null,
+                'unit_price' => (float)($itemData->unit_price ?? 0),
+                'pricing_mode' => (string)($itemData->pricing_mode ?? self::PRICING_PAYG),
+                'quantity' => (int)($itemData->quantity ?? 1),
+                'line_total' => (float)($itemData->line_total ?? 0),
+                'created_at' => date('Y-m-d H:i:s'),
             ]);
 
             if (!$ok) {
@@ -92,52 +150,76 @@ class StoreOrderItemsRepository extends BaseRepository
         return true;
     }
 
-    public function getOrderTotals(int $orderId): array
+    public function getDisplayLabel(object|array $item): string
     {
-        $this->db->query("
-            SELECT
-                COUNT(*) AS items_count,
-                COALESCE(SUM(quantity), 0) AS meals_count,
-                COALESCE(SUM(line_total), 0) AS subtotal
-            FROM {$this->table}
-            WHERE id_store_order = :id_store_order
-        ");
-        $this->db->bind(':id_store_order', $orderId);
+        $productName = trim((string)(is_object($item)
+            ? ($item->product_name_snapshot ?? '')
+            : ($item['product_name_snapshot'] ?? '')));
 
-        $result = $this->db->fetchOne();
+        $variationName = trim((string)(is_object($item)
+            ? ($item->variation_name_snapshot ?? '')
+            : ($item['variation_name_snapshot'] ?? '')));
 
-        return [
-            'items_count' => (int)($result->items_count ?? 0),
-            'meals_count' => (int)($result->meals_count ?? 0),
-            'subtotal' => (float)($result->subtotal ?? 0)
-        ];
+        if ($variationName !== '') {
+            return $productName . ' - ' . $variationName;
+        }
+
+        return $productName;
     }
 
-    public function getPreparationTotalsByOrders(array $orderIds): array
+    public function decodeVariationOptions(?string $json): array
     {
-        if (!$orderIds) {
+        if (!$json) {
             return [];
         }
 
-        $orderIds = array_map('intval', $orderIds);
-        $placeholders = [];
-        foreach ($orderIds as $idx => $_id) {
-            $placeholders[] = ':id_' . $idx;
+        $decoded = json_decode($json, true);
+        return is_array($decoded) ? $decoded : [];
+    }
+
+    public function encodeVariationOptions(array|string|null $variationOptions): ?string
+    {
+        if ($variationOptions === null || $variationOptions === '') {
+            return null;
         }
 
-        $this->db->query("
-            SELECT
-                product_name_snapshot AS product_name,
-                SUM(quantity) AS total_qty
-            FROM {$this->table}
-            WHERE id_store_order IN (" . implode(',', $placeholders) . ")
-            GROUP BY product_name_snapshot
-            ORDER BY total_qty DESC, product_name_snapshot ASC
-        ");
-        foreach ($orderIds as $idx => $id) {
-            $this->db->bind(':id_' . $idx, $id, \PDO::PARAM_INT);
+        if (is_string($variationOptions)) {
+            return trim($variationOptions) !== '' ? $variationOptions : null;
         }
 
-        return $this->db->fetchAll();
+        return json_encode($variationOptions, JSON_UNESCAPED_UNICODE);
+    }
+
+    public function getOneByOrderProductAndVariation(int $orderId, int $productId, ?int $variationId = null): ?object
+    {
+        $variationId = (int)$variationId;
+
+        if ($variationId > 0) {
+            $this->db->query("
+                SELECT *
+                FROM {$this->table}
+                WHERE id_store_order = :id_store_order
+                  AND id_product = :id_product
+                  AND id_product_variation = :id_product_variation
+                LIMIT 1
+            ");
+            $this->db->bind(':id_store_order', $orderId, \PDO::PARAM_INT);
+            $this->db->bind(':id_product', $productId, \PDO::PARAM_INT);
+            $this->db->bind(':id_product_variation', $variationId, \PDO::PARAM_INT);
+        } else {
+            $this->db->query("
+                SELECT *
+                FROM {$this->table}
+                WHERE id_store_order = :id_store_order
+                  AND id_product = :id_product
+                  AND (id_product_variation IS NULL OR id_product_variation = 0)
+                LIMIT 1
+            ");
+            $this->db->bind(':id_store_order', $orderId, \PDO::PARAM_INT);
+            $this->db->bind(':id_product', $productId, \PDO::PARAM_INT);
+        }
+
+        $result = $this->db->fetchOne();
+        return $result ?: null;
     }
 }

@@ -3,6 +3,7 @@
 use App\Repositories\StoreCartsRepository;
 use App\Repositories\StoreCartItemsRepository;
 use App\Repositories\StoreProductsRepository;
+use App\Repositories\StoreProductVariationsRepository;
 use App\Services\StoreCouponService;
 use App\Services\LoginService;
 use App\Utils\Router;
@@ -18,6 +19,7 @@ $router->post(function () {
     header('Content-Type: application/json');
 
     $productsRepo = new StoreProductsRepository();
+    $variationsRepo = new StoreProductVariationsRepository();
     $cartsRepo = new StoreCartsRepository();
     $cartItemsRepo = new StoreCartItemsRepository();
 
@@ -31,17 +33,12 @@ $router->post(function () {
         return '';
     }
 
-    $audience = trim($payload['audience'] ?? '');
-    $mealStyle = trim($payload['meal_style'] ?? '');
     $guestName = trim($payload['guest_name'] ?? '');
     $guestEmail = trim($payload['guest_email'] ?? '');
     $guestPhone = trim($payload['guest_phone'] ?? '');
     $city = trim($payload['city'] ?? '');
     $couponCode = trim((string)($payload['coupon_code'] ?? ''));
-    $membershipEnabled = !empty($payload['membership_enabled']);
-    $pricingMode = $membershipEnabled
-        ? StoreCartsRepository::PRICING_SUBSCRIPTION
-        : StoreCartsRepository::PRICING_PAYG;
+    $pricingMode = StoreCartsRepository::PRICING_PAYG;
     $sessionToken = trim($payload['session_token'] ?? '');
     $items = $payload['items'] ?? [];
 
@@ -54,11 +51,12 @@ $router->post(function () {
     }
 
     $cleanItems = [];
-    $mealsCount = 0;
+    $quantityTotal = 0;
     $subtotal = 0.00;
 
     foreach ($items as $item) {
         $productId = intval($item['id_product'] ?? 0);
+        $variationId = intval($item['id_product_variation'] ?? 0);
         $quantity = intval($item['quantity'] ?? 0);
 
         if ($productId <= 0 || $quantity <= 0) {
@@ -71,29 +69,75 @@ $router->post(function () {
             continue;
         }
 
-        if ((int)$product->stock_quantity > 0 && $quantity > (int)$product->stock_quantity) {
-            $quantity = (int)$product->stock_quantity;
+        $productType = $product->product_type ?? StoreProductsRepository::PRODUCT_TYPE_FIXED;
+
+        $unitPrice = 0.00;
+        $stockQuantity = 0;
+        $minPurchaseQty = 1;
+        $maxPurchaseQty = null;
+        $variationName = null;
+        $variationOptions = null;
+        $resolvedVariationId = null;
+
+        if ($productType === StoreProductsRepository::PRODUCT_TYPE_VARIABLE) {
+            if ($variationId <= 0) {
+                continue;
+            }
+
+            $variation = $variationsRepo->getByProductAndId($productId, $variationId);
+            if (!$variation || ($variation->status ?? 'INACTIVE') !== 'ACTIVE') {
+                continue;
+            }
+
+            $unitPrice = $variationsRepo->getEffectivePrice($variation);
+            $stockQuantity = (int)($variation->stock_quantity ?? 0);
+            $minPurchaseQty = max(1, (int)($variation->min_purchase_qty ?? 1));
+            $maxPurchaseQty = isset($variation->max_purchase_qty) && $variation->max_purchase_qty !== null
+                ? (int)$variation->max_purchase_qty
+                : null;
+            $variationName = (string)($variation->name ?? '');
+            $variationOptions = $variation->attribute_values ?? [];
+            $resolvedVariationId = (int)$variation->id;
+        } else {
+            $unitPrice = (float)$productsRepo->getEffectivePrice($product);
+            $stockQuantity = (int)($product->stock_quantity ?? 0);
+            $minPurchaseQty = max(1, (int)($product->min_purchase_qty ?? 1));
+            $maxPurchaseQty = isset($product->max_purchase_qty) && $product->max_purchase_qty !== null
+                ? (int)$product->max_purchase_qty
+                : null;
         }
 
-        if ($quantity <= 0) {
+        if ($quantity < $minPurchaseQty) {
+            $quantity = $minPurchaseQty;
+        }
+
+        if ($stockQuantity > 0 && $quantity > $stockQuantity) {
+            $quantity = $stockQuantity;
+        }
+
+        if ($maxPurchaseQty !== null && $maxPurchaseQty > 0 && $quantity > $maxPurchaseQty) {
+            $quantity = $maxPurchaseQty;
+        }
+
+        if ($quantity <= 0 || $unitPrice <= 0) {
             continue;
         }
 
-        $unitPrice = (float)$product->price;
         $lineTotal = round($unitPrice * $quantity, 2);
 
         $cleanItems[] = [
             'id_product' => (int)$product->id,
+            'id_product_variation' => $resolvedVariationId,
             'product_name_snapshot' => $product->name,
+            'variation_name_snapshot' => $variationName,
+            'variation_options_snapshot' => $variationOptions ? json_encode($variationOptions, JSON_UNESCAPED_UNICODE) : null,
             'unit_price' => $unitPrice,
-            'pricing_mode' => $pricingMode === StoreCartItemsRepository::PRICING_SUBSCRIPTION
-                ? StoreCartItemsRepository::PRICING_SUBSCRIPTION
-                : StoreCartItemsRepository::PRICING_PAYG,
+            'pricing_mode' => StoreCartItemsRepository::PRICING_PAYG,
             'quantity' => $quantity,
             'line_total' => $lineTotal
         ];
 
-        $mealsCount += $quantity;
+        $quantityTotal += $quantity;
         $subtotal += $lineTotal;
     }
 
@@ -101,14 +145,6 @@ $router->post(function () {
         echo json_encode([
             "success" => false,
             "message" => "No valid products found"
-        ]);
-        return '';
-    }
-
-    if ($mealsCount < 5) {
-        echo json_encode([
-            "success" => false,
-            "message" => "Minimum 5 meals required"
         ]);
         return '';
     }
@@ -128,92 +164,38 @@ $router->post(function () {
     $couponId = null;
     $total = $subtotal;
 
-    /**
-     * Tries to validate the coupon in a permissive way:
-     * - current pricing mode
-     * - alternate pricing mode
-     * - with current user/email
-     * - without user/email
-     *
-     * Goal: do not block new customers because of membership mode or prior usage checks.
-     */
-    $resolveCouponPermissive = function (
-        StoreCouponService $couponService,
-        string $couponCode,
-        float $subtotal,
-        string $pricingMode,
-        ?int $userId,
-        ?string $guestEmail
-    ) {
-        $modesToTry = array_values(array_unique([
-            $pricingMode,
-            $pricingMode === StoreCartsRepository::PRICING_SUBSCRIPTION
-                ? StoreCartsRepository::PRICING_PAYG
-                : StoreCartsRepository::PRICING_SUBSCRIPTION
-        ]));
-
-        $userCandidates = [];
-        if ($userId) {
-            $userCandidates[] = (int)$userId;
-        }
-        $userCandidates[] = null;
-
-        $emailCandidates = [];
-        if ($guestEmail !== null && trim($guestEmail) !== '') {
-            $emailCandidates[] = trim($guestEmail);
-        }
-        $emailCandidates[] = null;
-
-        foreach ($modesToTry as $mode) {
-            foreach ($userCandidates as $uid) {
-                foreach ($emailCandidates as $email) {
-                    try {
-                        $result = $couponService->validateAndCalculate(
-                            2,
-                            $couponCode,
-                            $subtotal,
-                            $mode,
-                            $uid,
-                            $email
-                        );
-
-                        if (!empty($result['ok'])) {
-                            return $result;
-                        }
-                    } catch (Throwable $e) {
-                        // ignore and continue trying fallback combinations
-                    }
-                }
-            }
-        }
-
-        return null;
-    };
-
     $couponService = new StoreCouponService();
 
     if ($couponCode !== '') {
-        $couponResult = $resolveCouponPermissive(
-            $couponService,
-            $couponCode,
-            $subtotal,
-            $pricingMode,
-            $userId ? (int)$userId : null,
-            $guestEmail !== '' ? $guestEmail : null
-        );
+        try {
+            $couponResult = $couponService->validateAndCalculate(
+                2,
+                $couponCode,
+                $subtotal,
+                $pricingMode,
+                $userId ? (int)$userId : null,
+                $guestEmail !== '' ? $guestEmail : null
+            );
 
-        if (!$couponResult) {
+            if (empty($couponResult['ok'])) {
+                echo json_encode([
+                    "success" => false,
+                    "message" => "Invalid coupon"
+                ]);
+                return '';
+            }
+
+            $discount = round((float)($couponResult['discount'] ?? 0), 2);
+            $total = round((float)($couponResult['total'] ?? $subtotal), 2);
+            $couponCode = (string)($couponResult['code'] ?? $couponCode);
+            $couponId = (int)(($couponResult['coupon']->id ?? 0));
+        } catch (Throwable $e) {
             echo json_encode([
                 "success" => false,
                 "message" => "Invalid coupon"
             ]);
             return '';
         }
-
-        $discount = round((float)($couponResult['discount'] ?? 0), 2);
-        $total = round((float)($couponResult['total'] ?? $subtotal), 2);
-        $couponCode = (string)($couponResult['code'] ?? $couponCode);
-        $couponId = (int)(($couponResult['coupon']->id ?? 0));
     } else {
         $couponCode = '';
     }
@@ -236,11 +218,11 @@ $router->post(function () {
             'guest_email' => $guestEmail ?: null,
             'guest_phone' => $guestPhone ?: null,
             'city' => $city ?: null,
-            'audience_type' => $audience ?: null,
-            'meal_style' => $mealStyle ?: null,
+            'audience_type' => null,
+            'meal_style' => null,
             'pricing_mode' => $pricingMode,
             'items_count' => count($cleanItems),
-            'meals_count' => $mealsCount,
+            'meals_count' => $quantityTotal,
             'subtotal' => $subtotal,
             'discount' => $discount,
             'coupon_code' => $couponCode !== '' ? $couponCode : null,
@@ -272,11 +254,11 @@ $router->post(function () {
             'guest_email' => $guestEmail ?: null,
             'guest_phone' => $guestPhone ?: null,
             'city' => $city ?: null,
-            'audience_type' => $audience ?: null,
-            'meal_style' => $mealStyle ?: null,
+            'audience_type' => null,
+            'meal_style' => null,
             'pricing_mode' => $pricingMode,
             'items_count' => count($cleanItems),
-            'meals_count' => $mealsCount,
+            'meals_count' => $quantityTotal,
             'subtotal' => $subtotal,
             'discount' => $discount,
             'coupon_code' => $couponCode !== '' ? $couponCode : null,
@@ -306,7 +288,10 @@ $router->post(function () {
         $ok = $cartItemsRepo->add([
             'id_cart' => $cartId,
             'id_product' => $item['id_product'],
+            'id_product_variation' => $item['id_product_variation'],
             'product_name_snapshot' => $item['product_name_snapshot'],
+            'variation_name_snapshot' => $item['variation_name_snapshot'],
+            'variation_options_snapshot' => $item['variation_options_snapshot'],
             'unit_price' => $item['unit_price'],
             'pricing_mode' => $item['pricing_mode'],
             'quantity' => $item['quantity'],
@@ -327,9 +312,8 @@ $router->post(function () {
         "message" => "Cart saved successfully",
         "cart_id" => $cartId,
         "session_token" => $sessionToken,
-        "membership_enabled" => $membershipEnabled,
         "pricing_mode" => $pricingMode,
-        "meals_count" => $mealsCount,
+        "quantity_total" => $quantityTotal,
         "subtotal" => $subtotal,
         "discount" => $discount,
         "coupon_code" => $couponCode !== '' ? $couponCode : null,

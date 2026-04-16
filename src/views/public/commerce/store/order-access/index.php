@@ -1,7 +1,6 @@
 <?php
 
 use App\Repositories\StoreOrdersRepository;
-use App\Repositories\StoreSubscriptionsRepository;
 use App\Repositories\UserRepository;
 use App\Utils\LocationUtils;
 use App\Utils\MessageUtil;
@@ -20,7 +19,6 @@ $router->get(function () {
     }
 
     $ordersRepo = new StoreOrdersRepository();
-    $subscriptionsRepo = new StoreSubscriptionsRepository();
     $userRepo = new UserRepository();
 
     $order = $ordersRepo->getByPublicToken($token);
@@ -37,13 +35,6 @@ $router->get(function () {
         LocationUtils::redirectInternal("/store");
     }
 
-    // ✅ Subscription
-    $subscription = null;
-    if (($order->pricing_mode ?? '') === StoreOrdersRepository::PRICING_SUBSCRIPTION) {
-        $subscription = $subscriptionsRepo->getActiveByEmail($order->guest_email);
-    }
-
-    // ✅ Usuario existente
     $existingUser = null;
     if (!empty($order->guest_email)) {
         $existingUser = $userRepo->getOne(['email' => $order->guest_email]);
@@ -51,7 +42,6 @@ $router->get(function () {
 
     return TemplateResponse::render(__DIR__ . "/index.twig", [
         "order" => $order,
-        "subscription" => $subscription,
         "existingUser" => $existingUser
     ]);
 });

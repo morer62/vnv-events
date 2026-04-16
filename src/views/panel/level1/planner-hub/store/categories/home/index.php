@@ -10,7 +10,7 @@ $router->get(function () {
     $repo = new StoreCategoriesRepository();
 
     return TemplateResponse::render(__DIR__ . "/index.twig", [
-        "categories" => $repo->getAll()
+        "categories" => $repo->getActive()
     ]);
 });
 

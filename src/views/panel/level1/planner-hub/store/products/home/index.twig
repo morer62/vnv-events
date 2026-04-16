@@ -1,59 +1,59 @@
 {% extends 'templates/base.admin.twig' %}
 
 {% block body %}
-<div class="container-fluid gourmet-products-page">
+<div class="container-fluid store-products-page">
 
     <style>
         :root{
-            --gourmet-primary:#f59e0b;
-            --gourmet-primary-dark:#d97706;
-            --gourmet-accent:#fb923c;
-            --gourmet-cream:#fff8ef;
-            --gourmet-soft:#fff3df;
-            --gourmet-dark:#1f1307;
-            --gourmet-dark-2:#2a1808;
-            --gourmet-text:#2d241c;
-            --gourmet-muted:#6f6255;
-            --gourmet-border:#ecd9bf;
-            --gourmet-success:#16a34a;
-            --gourmet-danger:#dc2626;
-            --gourmet-shadow:0 18px 44px rgba(79,43,8,.10);
+            --store-primary:#111827;
+            --store-primary-soft:#1f2937;
+            --store-accent:#374151;
+            --store-bg:#f8fafc;
+            --store-card:#ffffff;
+            --store-text:#111827;
+            --store-muted:#6b7280;
+            --store-border:#e5e7eb;
+            --store-success:#16a34a;
+            --store-danger:#dc2626;
+            --store-warning:#d97706;
+            --store-info:#2563eb;
+            --store-shadow:0 18px 44px rgba(15,23,42,.08);
         }
 
-        .gourmet-products-page{
-            color:var(--gourmet-text);
+        .store-products-page{
+            color:var(--store-text);
         }
 
-        .gp-hero{
+        .sp-hero{
             position:relative;
             overflow:hidden;
             border-radius:28px;
             padding:1.8rem 1.6rem;
             color:#fff;
             background:
-                radial-gradient(900px 420px at 0% 0%, rgba(245,158,11,.16), transparent 60%),
-                linear-gradient(135deg, #251508 0%, #1f1307 55%, #361a06 100%);
-            box-shadow:0 22px 54px rgba(0,0,0,.16);
+                radial-gradient(900px 420px at 0% 0%, rgba(255,255,255,.08), transparent 60%),
+                linear-gradient(135deg, #111827 0%, #1f2937 55%, #374151 100%);
+            box-shadow:0 22px 54px rgba(15,23,42,.18);
             margin-bottom:1.5rem;
         }
 
-        .gp-hero:after{
+        .sp-hero:after{
             content:"";
             position:absolute;
             right:-70px;
             top:-70px;
             width:220px;
             height:220px;
-            background:radial-gradient(circle, rgba(255,209,138,.16) 0%, rgba(255,209,138,0) 70%);
+            background:radial-gradient(circle, rgba(255,255,255,.10) 0%, rgba(255,255,255,0) 70%);
             pointer-events:none;
         }
 
-        .gp-hero > *{
+        .sp-hero > *{
             position:relative;
             z-index:2;
         }
 
-        .gp-badge{
+        .sp-badge{
             display:inline-flex;
             align-items:center;
             gap:.45rem;
@@ -63,11 +63,11 @@
             font-weight:800;
             background:rgba(255,255,255,.10);
             border:1px solid rgba(255,255,255,.14);
-            color:#ffe8c6;
+            color:#e5e7eb;
             margin-bottom:.9rem;
         }
 
-        .gp-hero h1{
+        .sp-hero h1{
             font-size:clamp(1.9rem,3vw,2.7rem);
             line-height:1.08;
             font-weight:900;
@@ -76,15 +76,15 @@
             color:#fff;
         }
 
-        .gp-hero p{
-            color:#f4e4cb;
+        .sp-hero p{
+            color:#e5e7eb;
             line-height:1.72;
             font-size:1rem;
             margin:0;
             max-width:760px;
         }
 
-        .gp-hero-top{
+        .sp-hero-top{
             display:flex;
             justify-content:space-between;
             align-items:flex-start;
@@ -92,9 +92,9 @@
             flex-wrap:wrap;
         }
 
-        .btn-g-main{
-            background:linear-gradient(135deg,var(--gourmet-primary),var(--gourmet-accent));
-            color:#23160a !important;
+        .btn-sp-main{
+            background:#fff;
+            color:#111827 !important;
             padding:.95rem 1.35rem;
             font-size:1rem;
             border-radius:999px;
@@ -105,154 +105,154 @@
             align-items:center;
             justify-content:center;
             border:none;
-            box-shadow:0 12px 28px rgba(245,158,11,.28);
+            box-shadow:0 12px 28px rgba(255,255,255,.18);
             transition:all .22s ease;
             white-space:nowrap;
         }
 
-        .btn-g-main:hover{
+        .btn-sp-main:hover{
             transform:translateY(-2px);
-            background:linear-gradient(135deg,var(--gourmet-primary-dark),var(--gourmet-accent));
+            background:#f9fafb;
         }
 
-        .gp-tools{
+        .sp-tools{
             margin-bottom:1.5rem;
         }
 
-        .gp-tools-card{
+        .sp-tools-card{
             background:#fff;
-            border:1px solid var(--gourmet-border);
+            border:1px solid var(--store-border);
             border-radius:24px;
-            box-shadow:var(--gourmet-shadow);
+            box-shadow:var(--store-shadow);
             padding:1.2rem;
         }
 
-        .gp-tools-head{
+        .sp-tools-head{
             margin-bottom:1rem;
         }
 
-        .gp-tools-head h2{
+        .sp-tools-head h2{
             font-size:1.1rem;
             font-weight:900;
-            color:var(--gourmet-dark);
+            color:var(--store-text);
             margin:0 0 .2rem;
         }
 
-        .gp-tools-head p{
+        .sp-tools-head p{
             margin:0;
-            color:var(--gourmet-muted);
+            color:var(--store-muted);
             line-height:1.6;
         }
 
-        .gp-tool-item{
+        .sp-tool-item{
             display:block;
             text-decoration:none;
             color:inherit;
             height:100%;
         }
 
-        .gp-tool-box{
+        .sp-tool-box{
             height:100%;
-            background:linear-gradient(180deg,#fff 0%, #fff8ef 100%);
-            border:1px solid #efdec7;
+            background:linear-gradient(180deg,#fff 0%, #f8fafc 100%);
+            border:1px solid var(--store-border);
             border-radius:20px;
             padding:1.15rem 1rem;
             transition:all .2s ease;
-            box-shadow:0 10px 24px rgba(91,52,11,.06);
+            box-shadow:0 10px 24px rgba(15,23,42,.05);
         }
 
-        .gp-tool-box:hover{
+        .sp-tool-box:hover{
             transform:translateY(-3px);
-            box-shadow:0 18px 34px rgba(91,52,11,.10);
+            box-shadow:0 18px 34px rgba(15,23,42,.08);
         }
 
-        .gp-tool-box i{
+        .sp-tool-box i{
             font-size:1.4rem;
-            color:var(--gourmet-primary-dark);
+            color:var(--store-primary);
             margin-bottom:.7rem;
         }
 
-        .gp-tool-box strong{
+        .sp-tool-box strong{
             display:block;
             font-size:1rem;
-            color:var(--gourmet-dark);
+            color:var(--store-text);
             margin-bottom:.25rem;
         }
 
-        .gp-tool-box span{
+        .sp-tool-box span{
             display:block;
-            color:var(--gourmet-muted);
+            color:var(--store-muted);
             font-size:.92rem;
             line-height:1.55;
         }
 
-        .gp-card{
+        .sp-card{
             background:#fff;
-            border:1px solid var(--gourmet-border);
+            border:1px solid var(--store-border);
             border-radius:24px;
-            box-shadow:var(--gourmet-shadow);
+            box-shadow:var(--store-shadow);
             overflow:hidden;
         }
 
-        .gp-card-body{
+        .sp-card-body{
             padding:1.25rem;
         }
 
-        .gp-table{
+        .sp-table{
             margin-bottom:0;
         }
 
-        .gp-table thead th{
-            border-bottom:1px solid #efdec7;
-            color:var(--gourmet-dark);
+        .sp-table thead th{
+            border-bottom:1px solid var(--store-border);
+            color:var(--store-text);
             font-size:.92rem;
             font-weight:800;
             text-transform:uppercase;
             letter-spacing:.02em;
-            background:#fffaf3;
+            background:#f8fafc;
             padding:1rem .85rem;
             white-space:nowrap;
         }
 
-        .gp-table tbody td{
+        .sp-table tbody td{
             vertical-align:middle;
             padding:1rem .85rem;
-            border-color:#f3e5d1;
+            border-color:#eef2f7;
         }
 
-        .gp-table tbody tr:hover{
-            background:#fffdf9;
+        .sp-table tbody tr:hover{
+            background:#fbfcfe;
         }
 
-        .gp-product-name{
+        .sp-product-name{
             font-weight:800;
-            color:var(--gourmet-dark);
+            color:var(--store-text);
             margin-bottom:.15rem;
         }
 
-        .gp-product-slug{
+        .sp-product-slug{
             font-size:.85rem;
-            color:var(--gourmet-muted);
+            color:var(--store-muted);
             word-break:break-word;
         }
 
-        .gp-thumb{
+        .sp-thumb{
             width:60px;
             height:60px;
             object-fit:cover;
             border-radius:12px;
-            border:1px solid #f0dcc1;
-            box-shadow:0 8px 20px rgba(91,52,11,.08);
+            border:1px solid #e5e7eb;
+            box-shadow:0 8px 20px rgba(15,23,42,.05);
             background:#fff;
         }
 
-        .gp-thumb-empty{
+        .sp-thumb-empty{
             width:60px;
             height:60px;
             border-radius:12px;
-            border:1px dashed #e6d1b3;
-            background:#fff8ef;
-            color:#9b8a78;
+            border:1px dashed #d1d5db;
+            background:#f8fafc;
+            color:#9ca3af;
             display:flex;
             align-items:center;
             justify-content:center;
@@ -262,22 +262,22 @@
             line-height:1.2;
         }
 
-        .gp-price{
+        .sp-price{
             font-weight:800;
-            color:var(--gourmet-dark);
+            color:var(--store-text);
         }
 
-        .gp-muted{
-            color:var(--gourmet-muted);
+        .sp-muted{
+            color:var(--store-muted);
         }
 
-        .gp-badges{
+        .sp-badges{
             display:flex;
             flex-wrap:wrap;
             gap:.35rem;
         }
 
-        .gp-badge-status{
+        .sp-badge-status{
             display:inline-flex;
             align-items:center;
             justify-content:center;
@@ -289,50 +289,62 @@
             border:1px solid transparent;
         }
 
-        .gp-active{
+        .sp-active{
             background:rgba(22,163,74,.12);
             color:#166534;
             border-color:rgba(22,163,74,.18);
         }
 
-        .gp-draft{
-            background:rgba(245,158,11,.16);
-            color:#8a5300;
-            border-color:rgba(245,158,11,.22);
+        .sp-draft{
+            background:rgba(217,119,6,.12);
+            color:#92400e;
+            border-color:rgba(217,119,6,.20);
         }
 
-        .gp-inactive{
+        .sp-inactive{
             background:rgba(107,114,128,.12);
             color:#4b5563;
             border-color:rgba(107,114,128,.18);
         }
 
-        .gp-public{
-            background:rgba(59,130,246,.12);
+        .sp-public{
+            background:rgba(37,99,235,.10);
             color:#1d4ed8;
-            border-color:rgba(59,130,246,.18);
+            border-color:rgba(37,99,235,.18);
         }
 
-        .gp-private{
-            background:rgba(31,19,7,.10);
-            color:#3f2a15;
-            border-color:rgba(31,19,7,.14);
+        .sp-private{
+            background:rgba(17,24,39,.08);
+            color:#374151;
+            border-color:rgba(17,24,39,.12);
         }
 
-        .gp-featured{
-            background:rgba(251,146,60,.16);
-            color:#9a3412;
-            border-color:rgba(251,146,60,.22);
+        .sp-featured{
+            background:rgba(99,102,241,.10);
+            color:#4338ca;
+            border-color:rgba(99,102,241,.18);
         }
 
-        .gp-actions{
+        .sp-fixed{
+            background:rgba(17,24,39,.08);
+            color:#111827;
+            border-color:rgba(17,24,39,.12);
+        }
+
+        .sp-variable{
+            background:rgba(124,58,237,.12);
+            color:#6d28d9;
+            border-color:rgba(124,58,237,.18);
+        }
+
+        .sp-actions{
             display:flex;
             flex-wrap:wrap;
             gap:.45rem;
             justify-content:flex-end;
         }
 
-        .gp-btn{
+        .sp-btn{
             display:inline-flex;
             align-items:center;
             justify-content:center;
@@ -346,169 +358,175 @@
             border:1px solid transparent;
         }
 
-        .gp-btn-dark{
-            background:#fff8ef;
-            border-color:#ead2ad;
-            color:var(--gourmet-dark);
+        .sp-btn-dark{
+            background:#f8fafc;
+            border-color:#dbe3ea;
+            color:var(--store-text);
         }
 
-        .gp-btn-dark:hover{
-            background:#ffefcf;
-            color:var(--gourmet-dark);
+        .sp-btn-dark:hover{
+            background:#eef2f7;
+            color:var(--store-text);
         }
 
-        .gp-btn-primary{
-            background:#fff3df;
-            border-color:#f1cf98;
-            color:#8a5300;
+        .sp-btn-primary{
+            background:#eef2ff;
+            border-color:#c7d2fe;
+            color:#3730a3;
         }
 
-        .gp-btn-primary:hover{
-            background:#ffe6bc;
-            color:#7a4500;
+        .sp-btn-primary:hover{
+            background:#e0e7ff;
+            color:#312e81;
         }
 
-        .gp-btn-danger{
-            background:#fff1f1;
-            border-color:#f3c6c6;
+        .sp-btn-danger{
+            background:#fff1f2;
+            border-color:#fecdd3;
             color:#b91c1c;
         }
 
-        .gp-btn-danger:hover{
-            background:#ffe2e2;
+        .sp-btn-danger:hover{
+            background:#ffe4e6;
             color:#991b1b;
         }
 
-        .gp-empty{
+        .sp-empty{
             padding:4rem 1.5rem;
             text-align:center;
         }
 
-        .gp-empty-icon{
+        .sp-empty-icon{
             width:76px;
             height:76px;
             border-radius:22px;
-            background:linear-gradient(135deg,#fff3df,#fff8ef);
-            border:1px solid #efd7b0;
-            color:var(--gourmet-primary-dark);
+            background:linear-gradient(135deg,#f8fafc,#ffffff);
+            border:1px solid #e5e7eb;
+            color:var(--store-primary);
             display:flex;
             align-items:center;
             justify-content:center;
             font-size:2rem;
             margin:0 auto 1rem;
-            box-shadow:0 12px 28px rgba(91,52,11,.08);
+            box-shadow:0 12px 28px rgba(15,23,42,.06);
         }
 
-        .gp-empty h5{
+        .sp-empty h5{
             font-size:1.25rem;
             font-weight:900;
-            color:var(--gourmet-dark);
+            color:var(--store-text);
             margin-bottom:.5rem;
         }
 
-        .gp-empty p{
-            color:var(--gourmet-muted);
+        .sp-empty p{
+            color:var(--store-muted);
             margin-bottom:1.2rem;
         }
 
         @media (max-width: 991px){
-            .gp-hero-top{
+            .sp-hero-top{
                 flex-direction:column;
                 align-items:flex-start;
             }
         }
 
         @media (max-width: 768px){
-            .gp-hero{
+            .sp-hero{
                 padding:1.35rem 1rem;
                 border-radius:22px;
             }
 
-            .gp-card,
-            .gp-tools-card{
+            .sp-card,
+            .sp-tools-card{
                 border-radius:20px;
             }
 
-            .gp-card-body,
-            .gp-tools-card{
+            .sp-card-body,
+            .sp-tools-card{
                 padding:1rem;
             }
 
-            .gp-actions{
+            .sp-actions{
                 justify-content:flex-start;
             }
 
-            .btn-g-main{
+            .btn-sp-main{
                 width:100%;
             }
         }
     </style>
 
-    <section class="gp-hero">
-        <div class="gp-hero-top">
+    <section class="sp-hero">
+        <div class="sp-hero-top">
             <div>
-                <span class="gp-badge">
-                    <i class="fa-solid fa-burger"></i> Store Catalog
+                <span class="sp-badge">
+                    <i class="fa-solid fa-store"></i> Store Catalog
                 </span>
                 <h1>Store Products</h1>
-                <p>Manage your gourmet catalog, create products, and organize categories and attributes from one place.</p>
+                <p>Manage fixed-price and variable products, organize categories, and maintain a clean reusable catalog from one central area.</p>
             </div>
 
             <div>
-                <a href="{{ path('panel/planner-hub/store/products/create') }}" class="btn-g-main">
+                <a href="{{ path('panel/planner-hub/store/products/create') }}" class="btn-sp-main">
                     <i class="fa-solid fa-plus"></i> Create Product
                 </a>
             </div>
         </div>
     </section>
 
-    <section class="gp-tools">
-        <div class="gp-tools-card">
-            <div class="gp-tools-head">
+    <section class="sp-tools">
+        <div class="sp-tools-card">
+            <div class="sp-tools-head">
                 <h2>Catalog shortcuts</h2>
-                <p>Use this area to move quickly between products, categories, and attribute setup.</p>
+                <p>Products are now the center of the flow. Categories and attributes stay available as support modules.</p>
             </div>
 
             <div class="row g-3">
-                 
+                <div class="col-md-4">
+                    <a href="{{ path('panel/planner-hub/store/products/create') }}" class="sp-tool-item">
+                        <div class="sp-tool-box">
+                            <i class="fa-solid fa-box-open"></i>
+                            <strong>Create product</strong>
+                            <span>Start a new fixed or variable product directly from the catalog.</span>
+                        </div>
+                    </a>
+                </div>
 
-                <div class="col-md-6">
-                    <a href="{{ path('panel/planner-hub/store/categories/home') }}" class="gp-tool-item">
-                        <div class="gp-tool-box">
+                <div class="col-md-4">
+                    <a href="{{ path('panel/planner-hub/store/categories/home') }}" class="sp-tool-item">
+                        <div class="sp-tool-box">
                             <i class="fa-solid fa-tags"></i>
                             <strong>Categories</strong>
-                            <span>Organize the catalog with clear product groups.</span>
+                            <span>Organize the catalog with clean product groups and landing structure.</span>
                         </div>
                     </a>
                 </div>
 
-                <div class="col-md-6">
-                    <a href="{{ path('panel/planner-hub/store/attributes/home') }}" class="gp-tool-item">
-                        <div class="gp-tool-box">
+                <div class="col-md-4">
+                    <a href="{{ path('panel/planner-hub/store/attributes/home') }}" class="sp-tool-item">
+                        <div class="sp-tool-box">
                             <i class="fa-solid fa-sliders"></i>
                             <strong>Attributes</strong>
-                            <span>Define options like size, diet type, and variants.</span>
+                            <span>Manage reusable global attributes and values used in details or variations.</span>
                         </div>
                     </a>
                 </div>
-
-               
             </div>
         </div>
     </section>
 
-    <div class="gp-card">
-        <div class="gp-card-body">
+    <div class="sp-card">
+        <div class="sp-card-body">
             {% if products|length > 0 %}
                 <div class="table-responsive">
-                    <table class="table gp-table align-middle">
+                    <table class="table sp-table align-middle">
                         <thead>
                             <tr>
                                 <th style="min-width:90px;">Image</th>
                                 <th style="min-width:240px;">Product</th>
+                                <th style="min-width:110px;">Type</th>
                                 <th style="min-width:120px;">SKU</th>
-                                <th style="min-width:120px;">Price</th>
-                                <th style="min-width:120px;">Promo</th>
+                                <th style="min-width:160px;">Price</th>
                                 <th style="min-width:100px;">Stock</th>
                                 <th style="min-width:120px;">Status</th>
                                 <th style="min-width:170px;">Visibility</th>
@@ -520,73 +538,93 @@
                                 <tr>
                                     <td>
                                         {% if p.main_image %}
-                                            <img src="{{ p.main_image }}" alt="{{ p.name }}" class="gp-thumb">
+                                            <img src="{{ p.main_image }}" alt="{{ p.name }}" class="sp-thumb">
                                         {% else %}
-                                            <div class="gp-thumb-empty">No Img</div>
+                                            <div class="sp-thumb-empty">No Img</div>
                                         {% endif %}
                                     </td>
 
                                     <td>
-                                        <div class="gp-product-name">{{ p.name }}</div>
+                                        <div class="sp-product-name">{{ p.name }}</div>
                                         {% if p.slug %}
-                                            <div class="gp-product-slug">{{ p.slug }}</div>
+                                            <div class="sp-product-slug">{{ p.slug }}</div>
                                         {% endif %}
                                     </td>
 
                                     <td>
-                                        <span class="gp-muted">{{ p.sku ?: '—' }}</span>
-                                    </td>
-
-                                    <td>
-                                        <span class="gp-price">${{ p.price|number_format(2, '.', ',') }}</span>
-                                    </td>
-
-                                    <td>
-                                        {% if p.promo_price %}
-                                            <span class="gp-price">${{ p.promo_price|number_format(2, '.', ',') }}</span>
+                                        {% if p.product_type == 'VARIABLE' %}
+                                            <span class="sp-badge-status sp-variable">VARIABLE</span>
                                         {% else %}
-                                            <span class="gp-muted">—</span>
+                                            <span class="sp-badge-status sp-fixed">FIXED</span>
                                         {% endif %}
                                     </td>
 
                                     <td>
-                                        <strong>{{ p.stock_quantity }}</strong>
+                                        <span class="sp-muted">{{ p.sku ?: '—' }}</span>
+                                    </td>
+
+                                    <td>
+                                        {% if p.product_type == 'VARIABLE' %}
+                                            {% if p.min_price is defined and p.max_price is defined %}
+                                                {% if p.min_price == p.max_price %}
+                                                    <span class="sp-price">${{ p.min_price|number_format(2, '.', ',') }}</span>
+                                                {% else %}
+                                                    <span class="sp-price">${{ p.min_price|number_format(2, '.', ',') }} - ${{ p.max_price|number_format(2, '.', ',') }}</span>
+                                                {% endif %}
+                                            {% else %}
+                                                <span class="sp-muted">—</span>
+                                            {% endif %}
+                                        {% else %}
+                                            {% if p.display_price is defined %}
+                                                <span class="sp-price">${{ p.display_price|number_format(2, '.', ',') }}</span>
+                                            {% else %}
+                                                <span class="sp-price">${{ p.price|number_format(2, '.', ',') }}</span>
+                                            {% endif %}
+                                        {% endif %}
+                                    </td>
+
+                                    <td>
+                                        {% if p.product_type == 'VARIABLE' %}
+                                            <span class="sp-muted">By variation</span>
+                                        {% else %}
+                                            <strong>{{ p.stock_quantity }}</strong>
+                                        {% endif %}
                                     </td>
 
                                     <td>
                                         {% if p.status == 'ACTIVE' %}
-                                            <span class="gp-badge-status gp-active">ACTIVE</span>
+                                            <span class="sp-badge-status sp-active">ACTIVE</span>
                                         {% elseif p.status == 'DRAFT' %}
-                                            <span class="gp-badge-status gp-draft">DRAFT</span>
+                                            <span class="sp-badge-status sp-draft">DRAFT</span>
                                         {% else %}
-                                            <span class="gp-badge-status gp-inactive">INACTIVE</span>
+                                            <span class="sp-badge-status sp-inactive">INACTIVE</span>
                                         {% endif %}
                                     </td>
 
                                     <td>
-                                        <div class="gp-badges">
+                                        <div class="sp-badges">
                                             {% if p.is_public %}
-                                                <span class="gp-badge-status gp-public">PUBLIC</span>
+                                                <span class="sp-badge-status sp-public">PUBLIC</span>
                                             {% else %}
-                                                <span class="gp-badge-status gp-private">PRIVATE</span>
+                                                <span class="sp-badge-status sp-private">PRIVATE</span>
                                             {% endif %}
 
                                             {% if p.is_featured %}
-                                                <span class="gp-badge-status gp-featured">FEATURED</span>
+                                                <span class="sp-badge-status sp-featured">FEATURED</span>
                                             {% endif %}
                                         </div>
                                     </td>
 
                                     <td class="text-end">
-                                        <div class="gp-actions">
-                                            <a href="{{ path('panel/planner-hub/store/products/details') }}?id={{ p.id }}" class="gp-btn gp-btn-dark">
+                                        <div class="sp-actions">
+                                            <a href="{{ path('panel/planner-hub/store/products/details') }}?id={{ p.id }}" class="sp-btn sp-btn-dark">
                                                 Details
                                             </a>
-                                            <a href="{{ path('panel/planner-hub/store/products/edit') }}?id={{ p.id }}" class="gp-btn gp-btn-primary">
+                                            <a href="{{ path('panel/planner-hub/store/products/edit') }}?id={{ p.id }}" class="sp-btn sp-btn-primary">
                                                 Edit
                                             </a>
                                             <a href="{{ path('panel/planner-hub/store/products/delete') }}?id={{ p.id }}"
-                                               class="gp-btn gp-btn-danger"
+                                               class="sp-btn sp-btn-danger"
                                                onclick="return confirm('Are you sure you want to delete this product?');">
                                                 Delete
                                             </a>
@@ -598,13 +636,13 @@
                     </table>
                 </div>
             {% else %}
-                <div class="gp-empty">
-                    <div class="gp-empty-icon">
-                        <i class="fa-solid fa-burger"></i>
+                <div class="sp-empty">
+                    <div class="sp-empty-icon">
+                        <i class="fa-solid fa-store"></i>
                     </div>
                     <h5>No products created yet</h5>
-                    <p>Start by creating your first store product and then organize your categories and attributes from this same area.</p>
-                    <a href="{{ path('panel/planner-hub/store/products/create') }}" class="btn-g-main">
+                    <p>Start by creating your first store product. From there you can define whether it is fixed-price or variable and then organize categories and attributes as support modules.</p>
+                    <a href="{{ path('panel/planner-hub/store/products/create') }}" class="btn-sp-main">
                         <i class="fa-solid fa-plus"></i> Create Product
                     </a>
                 </div>
