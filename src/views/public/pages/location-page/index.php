@@ -1,9 +1,7 @@
 <?php
 
 use App\Repositories\LocationPagesRepository;
-use App\Responses\TemplateResponse;
-
-require_once __DIR__ . '/../../../../vendor/autoload.php';
+use App\Utils\TemplateResponse;
 
 $repo = new LocationPagesRepository();
 
@@ -30,9 +28,35 @@ $page->faqs = !empty($page->faq_json) ? json_decode($page->faq_json, true) : [];
 $page->dynamic_blocks = !empty($page->dynamic_blocks_json) ? json_decode($page->dynamic_blocks_json, true) : [];
 $page->schema = !empty($page->schema_json) ? json_decode($page->schema_json, true) : null;
 
-$template = new TemplateResponse('public/pages/location-page/index.twig', [
-    'page' => $page,
-    'show_whatsapp' => true,
-]);
+if (empty($page->dynamic_blocks) && ($page->template_key ?? '') === 'location-home-luxe') {
+    $page->dynamic_blocks = [
+        [
+            'type' => 'info',
+            'title' => 'Quick Information',
+            'items' => [
+                ['label' => 'Phone', 'value' => '+1 305-204-5427'],
+                ['label' => 'Email', 'value' => 'info@vnvevents.com'],
+                ['label' => 'Hours', 'value' => 'Mon - Fri 10 AM - 5 PM'],
+            ]
+        ],
+        [
+            'type' => 'testimonials',
+            'title' => 'What Clients Say',
+            'enabled' => true,
+            'items' => [
+                ['quote' => 'VNV Events made our wedding weekend feel like a luxury production.', 'name' => 'Sofia M.', 'role' => 'Bride'],
+                ['quote' => 'Every detail felt intentional and elegant from start to finish.', 'name' => 'Carla R.', 'role' => 'Corporate Client']
+            ]
+        ],
+        [
+            'type' => 'map',
+            'title' => 'Address',
+            'address' => '10258 NW 47th St, Sunrise, FL 33351'
+        ]
+    ];
+}
 
-$template->send();
+echo TemplateResponse::render(__DIR__ . '/index.twig', [
+    'page' => $page,
+    'show_whatsapp' => true
+]);

@@ -219,6 +219,7 @@ class Kernel
             'privacy',
             'about',
             'services',
+            'locations',
             'venues',
             'vendors',
             'pages',

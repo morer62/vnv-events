@@ -2,6 +2,14 @@
 
 {% block style %}
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/trumbowyg@2.27.3/dist/ui/trumbowyg.min.css">
+<style>
+    .lp-builder-card{border:1px solid #e5e7eb;border-radius:12px;background:#fff;}
+    .lp-builder-toolbar{display:flex;flex-wrap:wrap;gap:.5rem;margin-bottom:.8rem;}
+    .lp-builder-block{border:1px solid #dbe4ea;border-radius:10px;padding:12px;background:#f8fbfc;}
+    .lp-builder-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.6rem;}
+    .lp-builder-small{font-size:.8rem;color:#6b7280;}
+    @media (max-width: 768px){.lp-builder-grid{grid-template-columns:1fr;}}
+</style>
 {% endblock %}
 
 {% block body %}
@@ -32,7 +40,20 @@
 
             <div class="col-md-4 mb-3">
                 <label class="form-label">Template Key</label>
-                <input type="text" name="template_key" class="form-control" value="{{ page.template_key }}">
+                <select name="template_key" class="form-select" id="template-key-select">
+                    <option value="location-home-luxe" {{ page.template_key == 'location-home-luxe' ? 'selected' : '' }}>Home Luxe (recommended)</option>
+                    <option value="location-default" {{ page.template_key == 'location-default' ? 'selected' : '' }}>Location Default</option>
+                    <option value="location-corporate" {{ page.template_key == 'location-corporate' ? 'selected' : '' }}>Corporate Minimal</option>
+                </select>
+            </div>
+
+            <div class="col-12 mb-3">
+                <div class="lp-builder-card p-3">
+                    <h5 class="mb-2">Wedding Glamour Design Controls</h5>
+                    <p class="text-muted mb-3">Edit your visual style directly here. This `Custom CSS` is applied on the public location page.</p>
+                    <label class="form-label">Custom CSS</label>
+                    <textarea name="custom_css" class="form-control" rows="8">{{ page.custom_css }}</textarea>
+                </div>
             </div>
 
             <div class="col-md-4 mb-3">
@@ -135,22 +156,24 @@
 
             <div class="col-12 mb-3">
                 <label class="form-label">Dynamic Blocks JSON</label>
-                <textarea name="dynamic_blocks_json" class="form-control" rows="6">{{ page.dynamic_blocks_json }}</textarea>
+                <div class="lp-builder-card p-3">
+                    <div class="lp-builder-toolbar">
+                        <button type="button" class="btn btn-sm btn-outline-primary" data-add-block="text">+ Text</button>
+                        <button type="button" class="btn btn-sm btn-outline-primary" data-add-block="images">+ Images</button>
+                        <button type="button" class="btn btn-sm btn-outline-primary" data-add-block="info">+ Info</button>
+                        <button type="button" class="btn btn-sm btn-outline-primary" data-add-block="testimonials">+ Testimonials</button>
+                        <button type="button" class="btn btn-sm btn-outline-primary" data-add-block="links">+ Links</button>
+                        <button type="button" class="btn btn-sm btn-outline-primary" data-add-block="map">+ Map</button>
+                    </div>
+                    <div id="dynamicBlocksBuilder" class="d-flex flex-column gap-2"></div>
+                    <div class="lp-builder-small mt-2">You can reorder, edit and remove blocks. JSON is generated automatically.</div>
+                </div>
+                <textarea name="dynamic_blocks_json" id="dynamicBlocksJson" class="form-control mt-2" rows="6">{{ page.dynamic_blocks_json }}</textarea>
             </div>
 
             <div class="col-12 mb-3">
                 <label class="form-label">Schema JSON</label>
                 <textarea name="schema_json" class="form-control" rows="6">{{ page.schema_json }}</textarea>
-            </div>
-
-            <div class="col-12 mb-3">
-                <label class="form-label">Custom CSS</label>
-                <textarea name="custom_css" class="form-control" rows="4">{{ page.custom_css }}</textarea>
-            </div>
-
-            <div class="col-12 mb-3">
-                <label class="form-label">Custom JS</label>
-                <textarea name="custom_js" class="form-control" rows="4">{{ page.custom_js }}</textarea>
             </div>
 
             <div class="col-12 mb-4">
@@ -178,6 +201,193 @@
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     $('#content-editor').trumbowyg();
+
+    const blocksContainer = document.getElementById('dynamicBlocksBuilder');
+    const blocksJsonInput = document.getElementById('dynamicBlocksJson');
+    const customCssInput = document.querySelector('[name="custom_css"]');
+    const templateSelect = document.getElementById('template-key-select');
+    const googleMapsApiKey = '{{ env.GOOGLE_MAPS_API_KEY|default("") }}';
+
+    const DEFAULT_TEMPLATE_CSS = {
+        'location-home-luxe': `@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&family=Playfair+Display:wght@600;700;800&display=swap');
+:root{
+  --vnv-primary:#5EC6C4;
+  --vnv-primary-dark:#49acab;
+  --vnv-luxe-gold:#c5a059;
+  --vnv-luxe-gold-soft:#f0d4a0;
+  --vnv-gold-gradient:linear-gradient(135deg,#bf953f 0%,#fcf6ba 45%,#b38728 100%);
+  --vnv-luxe-dark:#0b0f11;
+  --vnv-luxe-dark-soft:#151c20;
+  --vnv-luxe-light:#f8fafb;
+  --vnv-luxe-text:#d3dbe1;
+}
+body{font-family:'Manrope',system-ui,-apple-system,'Segoe UI',sans-serif;background:var(--vnv-luxe-dark);color:var(--vnv-luxe-light);}
+h1,h2,h3,h4,.lp-title,.luxe-title{font-family:'Playfair Display','Times New Roman',serif;letter-spacing:.01em;}
+p,li,span{color:var(--vnv-luxe-text);}
+.lp-hero::after{background:radial-gradient(circle at top right, rgba(94,198,196,.22), transparent 36%);}
+.lp-badge{background:rgba(94,198,196,.14)!important;color:var(--vnv-primary)!important;border:1px solid rgba(94,198,196,.36);}
+.lp-title{text-shadow:0 6px 26px rgba(0,0,0,.38);}
+.lp-card{border:1px solid rgba(197,160,89,.26)!important;border-radius:20px;background:linear-gradient(160deg,#ffffff,#fbfbfd);box-shadow:0 18px 38px rgba(8,11,13,.12);}
+.lp-card:hover{transform:translateY(-4px);box-shadow:0 24px 48px rgba(8,11,13,.18)!important;border-color:rgba(197,160,89,.45)!important;}
+.lp-img{cursor:zoom-in;}
+.lp-testimonial-item{
+  border:1px solid rgba(197,160,89,.34);
+  border-radius:18px;
+  padding:18px;
+  background:linear-gradient(145deg,rgba(197,160,89,.14),rgba(94,198,196,.08));
+}
+.luxe-title,.lp-block-title{color:var(--vnv-luxe-gold);letter-spacing:.02em;}`
+    };
+
+    function blockTemplate(type, payload) {
+        return `
+            <div class="lp-builder-block" data-block>
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <strong>${type.toUpperCase()}</strong>
+                    <div class="d-flex gap-1">
+                        <button type="button" class="btn btn-sm btn-outline-secondary" data-move="up">↑</button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary" data-move="down">↓</button>
+                        <button type="button" class="btn btn-sm btn-outline-danger" data-remove>×</button>
+                    </div>
+                </div>
+                <div class="lp-builder-grid">
+                    <div><label class="form-label">Type</label><input class="form-control" data-field="type" value="${type}" readonly></div>
+                    <div><label class="form-label">Title</label><input class="form-control" data-field="title" value="${payload.title || ''}"></div>
+                    <div style="grid-column:1 / -1;"><label class="form-label">Content</label><textarea class="form-control" data-field="content" rows="2">${payload.content || ''}</textarea></div>
+                    <div><label class="form-label">Address</label><input class="form-control" data-field="address" value="${payload.address || ''}"></div>
+                    <div><label class="form-label">Latitude</label><input class="form-control" data-field="lat" value="${payload.lat || ''}"></div>
+                    <div><label class="form-label">Longitude</label><input class="form-control" data-field="lng" value="${payload.lng || ''}"></div>
+                    <div><label class="form-label">Image URL</label><input class="form-control" data-field="image_url" value="${payload.image_url || ''}"></div>
+                    <div><label class="form-label">Columns</label><input class="form-control" data-field="columns" value="${payload.columns || 3}"></div>
+                    <div><label class="form-label">Items JSON</label><textarea class="form-control" data-field="items" rows="2">${payload.items ? JSON.stringify(payload.items) : ''}</textarea></div>
+                    <div><label class="form-label">Links JSON</label><textarea class="form-control" data-field="links" rows="2">${payload.links ? JSON.stringify(payload.links) : ''}</textarea></div>
+                    <div><label class="form-label">Images JSON</label><textarea class="form-control" data-field="images" rows="2">${payload.images ? JSON.stringify(payload.images) : ''}</textarea></div>
+                </div>
+            </div>
+        `;
+    }
+
+    function addBlock(type, payload = {}) {
+        const div = document.createElement('div');
+        div.innerHTML = blockTemplate(type, payload);
+        blocksContainer.appendChild(div.firstElementChild);
+        syncBlocks();
+    }
+
+    function parseJsonField(raw) {
+        const text = String(raw || '').trim();
+        if (!text) return [];
+        try { return JSON.parse(text); } catch (e) { return []; }
+    }
+
+    function syncBlocks() {
+        const blocks = Array.from(blocksContainer.querySelectorAll('[data-block]')).map(function (el) {
+            const out = {};
+            el.querySelectorAll('[data-field]').forEach(function (f) { out[f.dataset.field] = f.value; });
+            out.columns = parseInt(out.columns || '3', 10) || 3;
+            if (out.items) out.items = parseJsonField(out.items);
+            if (out.links) out.links = parseJsonField(out.links);
+            if (out.images) out.images = parseJsonField(out.images);
+            if (out.lat !== '') out.lat = parseFloat(out.lat) || '';
+            if (out.lng !== '') out.lng = parseFloat(out.lng) || '';
+            return out;
+        });
+        blocksJsonInput.value = JSON.stringify(blocks, null, 2);
+    }
+
+    function applyTemplateCssIfEmpty() {
+        if (!customCssInput || !templateSelect) return;
+        const css = DEFAULT_TEMPLATE_CSS[templateSelect.value] || '';
+        if (customCssInput.value.trim() === '' && css) {
+            customCssInput.value = css;
+        }
+    }
+
+    function initMapAutocompleteInBuilder() {
+        if (!window.google || !google.maps || !google.maps.places) return;
+        const mapBlocks = Array.from(blocksContainer.querySelectorAll('[data-block]')).filter(function (block) {
+            const typeInput = block.querySelector('[data-field="type"]');
+            return typeInput && typeInput.value === 'map';
+        });
+
+        mapBlocks.forEach(function (block) {
+            const addressInput = block.querySelector('[data-field="address"]');
+            const latInput = block.querySelector('[data-field="lat"]');
+            const lngInput = block.querySelector('[data-field="lng"]');
+            if (!addressInput || addressInput.dataset.mapAutocompleteReady === '1') return;
+
+            const autocomplete = new google.maps.places.Autocomplete(addressInput, {
+                fields: ['formatted_address', 'geometry'],
+                types: ['geocode']
+            });
+            autocomplete.addListener('place_changed', function () {
+                const place = autocomplete.getPlace();
+                if (!place || !place.geometry || !place.geometry.location) return;
+                if (place.formatted_address) addressInput.value = place.formatted_address;
+                if (latInput) latInput.value = String(place.geometry.location.lat());
+                if (lngInput) lngInput.value = String(place.geometry.location.lng());
+                syncBlocks();
+            });
+
+            addressInput.dataset.mapAutocompleteReady = '1';
+        });
+    }
+
+    function loadGoogleMapsIfNeeded() {
+        if (!googleMapsApiKey) return;
+        if (window.google && window.google.maps && window.google.maps.places) {
+            initMapAutocompleteInBuilder();
+            return;
+        }
+        if (document.getElementById('vnv-admin-maps-js')) return;
+        const script = document.createElement('script');
+        script.id = 'vnv-admin-maps-js';
+        script.src = `https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(googleMapsApiKey)}&libraries=places`;
+        script.async = true;
+        script.defer = true;
+        script.onload = initMapAutocompleteInBuilder;
+        document.head.appendChild(script);
+    }
+
+    document.querySelectorAll('[data-add-block]').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            addBlock(btn.dataset.addBlock, {});
+            initMapAutocompleteInBuilder();
+        });
+    });
+
+    blocksContainer.addEventListener('input', syncBlocks);
+    blocksContainer.addEventListener('click', function (event) {
+        const block = event.target.closest('[data-block]');
+        if (!block) return;
+        if (event.target.closest('[data-remove]')) {
+            block.remove();
+            syncBlocks();
+            return;
+        }
+        const moveBtn = event.target.closest('[data-move]');
+        if (!moveBtn) return;
+        if (moveBtn.dataset.move === 'up' && block.previousElementSibling) {
+            blocksContainer.insertBefore(block, block.previousElementSibling);
+        }
+        if (moveBtn.dataset.move === 'down' && block.nextElementSibling) {
+            blocksContainer.insertBefore(block.nextElementSibling, block);
+        }
+        syncBlocks();
+    });
+
+    try {
+        const initial = JSON.parse(blocksJsonInput.value || '[]');
+        if (Array.isArray(initial)) {
+            initial.forEach(function (block) { addBlock(block.type || 'text', block || {}); });
+        }
+    } catch (e) {}
+
+    if (templateSelect) {
+        templateSelect.addEventListener('change', applyTemplateCssIfEmpty);
+    }
+    applyTemplateCssIfEmpty();
+    loadGoogleMapsIfNeeded();
 });
 </script>
 {% endblock %}

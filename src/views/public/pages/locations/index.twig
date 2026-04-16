@@ -1,0 +1,294 @@
+{% extends "templates/base.twig" %}
+
+{% block title %}Locations | VNV Events{% endblock %}
+{% block meta_description %}Explore VNV Events service locations and city pages across South Florida.{% endblock %}
+
+{% block body %}
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,700;0,800;1,700&display=swap');
+    :root{
+        --loc-primary:#5EC6C4;
+        --loc-primary-deep:#3da9a6;
+        --loc-gold:#c5a059;
+        --loc-gold-soft:rgba(197,160,89,.22);
+        --loc-gold-gradient:linear-gradient(135deg,#bf953f 0%,#fcf6ba 45%,#b38728 100%);
+        --loc-dark:#0a0d0e;
+        --loc-muted:#6a7276;
+        --loc-bg:#eef2f4;
+        --loc-bg2:#e4eaed;
+    }
+    .loc-page{
+        --grain:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+        background-color:var(--loc-bg);
+        background-image:
+            radial-gradient(ellipse 120% 80% at 50% -20%, rgba(94,198,196,.14), transparent 55%),
+            radial-gradient(ellipse 70% 50% at 100% 40%, var(--loc-gold-soft), transparent 50%),
+            radial-gradient(ellipse 60% 45% at 0% 80%, rgba(15,20,22,.06), transparent 45%),
+            var(--grain);
+        padding:48px 0 88px;
+        font-family:'Plus Jakarta Sans',sans-serif;
+        min-height:72vh;
+    }
+    .loc-container{max-width:1180px;margin:0 auto;padding:0 18px;}
+    .loc-head{
+        position:relative;border-radius:28px;padding:38px 40px 34px;
+        background:
+            linear-gradient(155deg,rgba(255,255,255,.06) 0%,transparent 42%),
+            linear-gradient(165deg,#0c1012 0%,#151c1f 48%,#0f1416 100%);
+        color:#fff;
+        box-shadow:0 28px 70px rgba(0,0,0,.22),inset 0 1px 0 rgba(255,255,255,.06);
+        margin-bottom:28px;overflow:hidden;
+    }
+    .loc-head::before{
+        content:'';position:absolute;inset:0;border-radius:inherit;padding:1px;z-index:0;
+        background:linear-gradient(135deg,rgba(197,160,89,.55),rgba(94,198,196,.25),transparent 55%,rgba(197,160,89,.2));
+        -webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);
+        mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);
+        -webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none;
+    }
+    .loc-head::after{
+        content:'';position:absolute;top:-40%;right:-15%;width:55%;height:120%;z-index:0;
+        background:radial-gradient(circle,rgba(94,198,196,.12) 0%,transparent 62%);
+        pointer-events:none;
+    }
+    .loc-head-inner{position:relative;z-index:1;}
+    .loc-eyebrow{
+        display:inline-flex;align-items:center;gap:8px;font-size:.72rem;font-weight:800;
+        letter-spacing:.22em;text-transform:uppercase;color:rgba(197,160,89,.95);margin-bottom:12px;
+    }
+    .loc-eyebrow i{font-size:.65rem;opacity:.85;}
+    .loc-head h1{
+        font-family:'Playfair Display',serif;font-size:clamp(2.1rem,4.2vw,3.35rem);
+        margin:0 0 12px;font-weight:800;line-height:1.12;letter-spacing:-.02em;
+    }
+    .loc-head h1 em{font-style:italic;font-weight:700;color:rgba(255,255,255,.92);}
+    .loc-head > .loc-head-inner > p{margin:0;color:rgba(255,255,255,.76);max-width:640px;line-height:1.85;font-size:1.02rem;}
+    .loc-head-actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:22px;}
+    .loc-btn{
+        display:inline-flex;align-items:center;justify-content:center;gap:10px;text-decoration:none;
+        border:none;border-radius:999px;padding:13px 22px;font-size:.74rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;transition:.28s ease;cursor:pointer;
+    }
+    .loc-btn-gold{background:var(--loc-gold-gradient);color:#0f1214;}
+    .loc-btn-gold:hover{transform:translateY(-2px);box-shadow:0 16px 34px rgba(197,160,89,.28);}
+    .loc-btn-ghost{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.28);color:#fff;}
+    .loc-btn-ghost:hover{background:#fff;color:#10171a;border-color:#fff;}
+    .loc-toolbar{
+        display:flex;flex-wrap:wrap;align-items:center;gap:14px 20px;margin-bottom:22px;
+        padding:16px 20px;background:#fff;border:1px solid #e2e8f0;border-radius:20px;
+        box-shadow:0 10px 32px rgba(15,23,42,.06);
+    }
+    .loc-toolbar-search{flex:1;min-width:220px;}
+    .loc-search{
+        display:flex;align-items:center;gap:12px;width:100%;
+        background:#f8fafc;border:1px solid #cbd5e1;border-radius:999px;padding:4px 8px 4px 16px;
+        transition:border-color .2s,box-shadow .2s;
+    }
+    .loc-search:focus-within{
+        border-color:var(--loc-primary-deep);
+        box-shadow:0 0 0 3px rgba(94,198,196,.2);
+        background:#fff;
+    }
+    .loc-search i{color:#64748b;font-size:1rem;}
+    .loc-search input{
+        flex:1;min-width:0;width:100%;max-width:100%;background:transparent;border:0;outline:0;color:#0f172a;
+        font-size:1rem;font-weight:500;padding:12px 8px;line-height:1.3;-webkit-appearance:none;appearance:none;
+    }
+    .loc-search input::placeholder{color:#94a3b8;}
+    .loc-search-meta{font-size:.85rem;color:var(--loc-muted);white-space:nowrap;font-weight:600;}
+    .loc-search-meta strong{color:var(--loc-primary-deep);font-weight:800;}
+
+    .loc-pill-row{
+        display:flex;flex-wrap:wrap;gap:10px;margin-bottom:26px;align-items:center;
+    }
+    .loc-pills{display:flex;flex-wrap:wrap;gap:8px;}
+    .loc-pill{
+        display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:999px;
+        background:#fff;border:1px solid #dde5e8;font-size:.75rem;font-weight:700;color:#475569;
+        box-shadow:0 4px 14px rgba(0,0,0,.04);
+    }
+    .loc-pill i{color:var(--loc-primary-deep);font-size:.72rem;}
+
+    .loc-grid{
+        display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px;
+    }
+    @media (max-width: 980px){.loc-grid{grid-template-columns:repeat(2,minmax(0,1fr));}}
+    @media (max-width: 640px){.loc-grid{grid-template-columns:1fr;}}
+    .loc-card{
+        text-decoration:none;color:inherit;background:#fff;border-radius:20px;border:1px solid #e3ebee;
+        box-shadow:0 14px 36px rgba(15,23,42,.07);overflow:hidden;display:flex;flex-direction:column;
+        transition:transform .28s ease,box-shadow .28s ease,border-color .28s ease;
+    }
+    .loc-card:hover{
+        transform:translateY(-5px);
+        box-shadow:0 22px 48px rgba(15,23,42,.12);
+        border-color:rgba(94,198,196,.35);
+    }
+    .loc-card[hidden]{display:none!important;}
+    .loc-card-image-wrap{display:block;position:relative;overflow:hidden;}
+    .loc-card-image-wrap::after{
+        content:'';position:absolute;inset:0;background:linear-gradient(to top,rgba(15,20,22,.35),transparent 45%);
+        opacity:.85;transition:opacity .3s;
+    }
+    .loc-card:hover .loc-card-image-wrap::after{opacity:1;}
+    .loc-card-image{width:100%;height:180px;object-fit:cover;background:linear-gradient(135deg,#dfe8eb,#eef3f5);transition:transform .5s ease;}
+    .loc-card:hover .loc-card-image{transform:scale(1.04);}
+    .loc-card-body{padding:16px 18px 18px;display:flex;flex-direction:column;flex:1;}
+    .loc-badge{
+        display:inline-flex;align-items:center;padding:6px 10px;border-radius:999px;background:#ecfdff;color:#0f766e;
+        font-size:.72rem;font-weight:800;letter-spacing:.05em;text-transform:uppercase;margin-bottom:10px;width:fit-content;
+    }
+    .loc-title{
+        font-size:1.08rem;font-weight:800;color:#0f172a;line-height:1.32;margin-bottom:8px;
+        text-decoration:none;display:block;transition:color .2s;
+    }
+    .loc-title:hover{color:var(--loc-primary-deep);}
+    .loc-sub{font-size:.93rem;color:var(--loc-muted);line-height:1.65;margin-bottom:4px;}
+    .loc-meta{display:flex;gap:8px;flex-wrap:wrap;margin-top:auto;padding-top:10px;}
+    .loc-chip{
+        display:inline-flex;align-items:center;padding:5px 10px;border-radius:999px;background:#f8fafc;border:1px solid #e2e8f0;
+        font-size:.74rem;color:#334155;font-weight:700;
+    }
+    .loc-empty,.loc-no-results{
+        border:1px dashed #c5ced4;border-radius:20px;padding:40px 28px;text-align:center;background:rgba(255,255,255,.75);
+        color:#64748b;backdrop-filter:blur(4px);
+    }
+    .loc-no-results h3{font-size:1.1rem;color:#334155;margin:0 0 8px;font-weight:800;}
+    .loc-card-actions{display:flex;gap:10px;margin-top:14px;padding-top:14px;border-top:1px dashed #e2e8f0;}
+    .loc-link-btn{
+        flex:1;display:inline-flex;justify-content:center;align-items:center;text-decoration:none;border-radius:999px;
+        padding:11px 14px;font-size:.72rem;font-weight:800;letter-spacing:.05em;text-transform:uppercase;transition:.22s ease;border:none;cursor:pointer;font-family:inherit;
+    }
+    .loc-link-main{background:#11181a;color:#fff;}
+    .loc-link-main:hover{background:#000;color:#fff;}
+    .loc-link-request{background:#ecfdff;color:#0f766e;border:1px solid #b9f2ef;}
+    .loc-link-request:hover{background:#def9f8;}
+    @media (max-width: 640px){
+        .loc-page{padding-top:28px;padding-bottom:64px;}
+        .loc-head{padding:26px 22px 24px;border-radius:22px;}
+        .loc-head-actions{flex-direction:column;align-items:stretch;}
+        .loc-btn{justify-content:center;}
+    }
+</style>
+
+<section class="loc-page">
+    <div class="loc-container">
+        <div class="loc-head">
+            <div class="loc-head-inner">
+                <div class="loc-eyebrow"><i class="fa-solid fa-location-dot" aria-hidden="true"></i> South Florida</div>
+                <h1>VNV Event <em>Locations</em></h1>
+                <p>Discover where we craft unforgettable celebrations — curated city guides, local insight, and the same luxury standards in every market we serve.</p>
+                <div class="loc-head-actions">
+                    <a href="#" data-vnv-open-request class="loc-btn loc-btn-gold">Start New Request</a>
+                    <a href="tel:+13052045427" class="loc-btn loc-btn-ghost">Call (305) 204-5427</a>
+                </div>
+            </div>
+        </div>
+
+        {% if pages|length > 0 %}
+        <div class="loc-toolbar">
+            <div class="loc-toolbar-search">
+                <label class="visually-hidden" for="loc-search-input">Search locations</label>
+                <div class="loc-search" role="search">
+                    <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+                    <input type="text" id="loc-search-input" name="loc_q" inputmode="search" enterkeyhint="search" autocomplete="off" placeholder="Search by city, county, or location name…" data-loc-search-input>
+                </div>
+            </div>
+            <p class="loc-search-meta" data-loc-search-hint aria-live="polite"></p>
+        </div>
+
+        <div class="loc-pill-row">
+            <div class="loc-pills">
+                <span class="loc-pill"><i class="fa-solid fa-wand-magic-sparkles" aria-hidden="true"></i> Luxury planning</span>
+                <span class="loc-pill"><i class="fa-solid fa-champagne-glasses" aria-hidden="true"></i> Weddings &amp; events</span>
+                <span class="loc-pill"><i class="fa-solid fa-utensils" aria-hidden="true"></i> Catering &amp; production</span>
+            </div>
+        </div>
+
+        <div class="loc-grid" data-loc-grid>
+            {% for p in pages %}
+                {% set q = (p.title|default('') ~ ' ' ~ p.city|default('') ~ ' ' ~ p.county|default('') ~ ' ' ~ p.state|default('') ~ ' ' ~ p.excerpt|default(''))|lower|trim %}
+                <article class="loc-card" data-loc-card data-loc-search="{{ q|e('html_attr') }}">
+                    <a class="loc-card-image-wrap" href="{{ path(p.slug) }}" tabindex="-1" aria-hidden="true">
+                        {% if p.hero_image %}
+                            <img class="loc-card-image" src="{{ p.hero_image }}" alt="">
+                        {% else %}
+                            <div class="loc-card-image" role="img" aria-label=""></div>
+                        {% endif %}
+                    </a>
+                    <div class="loc-card-body">
+                        <span class="loc-badge">Location</span>
+                        <a class="loc-title" href="{{ path(p.slug) }}">{{ p.title }}</a>
+                        <div class="loc-sub">{{ p.excerpt ?: 'Explore details and services in this area.' }}</div>
+                        <div class="loc-meta">
+                            {% if p.city %}<span class="loc-chip">{{ p.city }}</span>{% endif %}
+                            {% if p.county %}<span class="loc-chip">{{ p.county }}</span>{% endif %}
+                            {% if p.state %}<span class="loc-chip">{{ p.state }}</span>{% endif %}
+                        </div>
+                        <div class="loc-card-actions">
+                            <a class="loc-link-btn loc-link-main" href="{{ path(p.slug) }}">View location</a>
+                            <button type="button" data-vnv-open-request class="loc-link-btn loc-link-request">Request</button>
+                        </div>
+                    </div>
+                </article>
+            {% endfor %}
+        </div>
+        <div class="loc-no-results" data-loc-empty hidden>
+            <h3>No locations match</h3>
+            <p>Try another city, county, or keyword — or <a href="#" data-vnv-open-request>tell us where you’re planning</a> and we’ll help.</p>
+        </div>
+        {% else %}
+            <div class="loc-empty">No published locations available yet.</div>
+        {% endif %}
+    </div>
+</section>
+
+{% if pages|length > 0 %}
+<script>
+(function(){
+    var root = document.querySelector('.loc-page');
+    if (!root) return;
+    var input = root.querySelector('[data-loc-search-input]');
+    var cards = root.querySelectorAll('[data-loc-card]');
+    var empty = root.querySelector('[data-loc-empty]');
+    var hint = root.querySelector('[data-loc-search-hint]');
+    if (!input || !cards.length) return;
+
+    var total = cards.length;
+
+    function norm(s){ return (s || '').toLowerCase().replace(/\s+/g, ' ').trim(); }
+
+    function refreshHint(n, q){
+        if (!hint) return;
+        if (!q) {
+            hint.innerHTML = 'Showing <strong>' + total + '</strong> location' + (total === 1 ? '' : 's');
+        } else if (n === 0) {
+            hint.innerHTML = 'No locations match your search';
+        } else {
+            hint.innerHTML = '<strong>' + n + '</strong> location' + (n === 1 ? ' matches' : 's match') + ' your search';
+        }
+    }
+
+    function apply(){
+        var q = norm(input.value);
+        var n = 0;
+        for (var i = 0; i < cards.length; i++) {
+            var hay = norm(cards[i].getAttribute('data-loc-search') || '');
+            var show = !q || hay.indexOf(q) !== -1;
+            cards[i].hidden = !show;
+            if (show) n++;
+        }
+        if (empty) empty.hidden = n > 0;
+        refreshHint(n, q);
+    }
+
+    input.addEventListener('input', apply);
+    input.addEventListener('keydown', function(e){ if (e.key === 'Enter') e.preventDefault(); });
+    apply();
+})();
+</script>
+{% endif %}
+
+{% include "templates/components/publicEventRequestModal.html.twig" with {
+    request_form_action: "/api/public/event-request"
+} %}
+{% endblock %}
