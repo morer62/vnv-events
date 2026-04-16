@@ -8,6 +8,183 @@ use App\Utils\TemplateResponse;
 
 $router = new Router();
 
+function getDefaultTemplateCss(string $templateKey): string
+{
+    if ($templateKey === 'location-home-luxe') {
+        return <<<CSS
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&family=Playfair+Display:wght@600;700;800&display=swap');
+:root{
+  --vnv-primary:#5EC6C4;
+  --vnv-primary-dark:#49acab;
+  --vnv-luxe-gold:#c5a059;
+  --vnv-luxe-gold-soft:#f0d4a0;
+  --vnv-gold-gradient:linear-gradient(135deg,#bf953f 0%,#fcf6ba 45%,#b38728 100%);
+  --vnv-luxe-dark:#0b0f11;
+  --vnv-luxe-dark-soft:#151c20;
+  --vnv-luxe-light:#f8fafb;
+  --vnv-luxe-text:#d3dbe1;
+}
+body{
+  font-family:'Manrope',system-ui,-apple-system,'Segoe UI',sans-serif;
+  background:var(--vnv-luxe-dark);
+  color:var(--vnv-luxe-light);
+}
+h1,h2,h3,h4,.lp-title,.luxe-title{
+  font-family:'Playfair Display','Times New Roman',serif;
+  letter-spacing:.01em;
+}
+p,li,span{color:var(--vnv-luxe-text);}
+.lp-hero::after{background:radial-gradient(circle at top right, rgba(94,198,196,.22), transparent 36%);}
+.lp-badge{background:rgba(94,198,196,.14)!important;color:var(--vnv-primary)!important;border:1px solid rgba(94,198,196,.36);}
+.lp-title{text-shadow:0 6px 26px rgba(0,0,0,.38);}
+.lp-chip{border:1px solid rgba(197,160,89,.48)!important;color:#fff!important;background:rgba(197,160,89,.12);}
+.lp-card{
+  border:1px solid rgba(197,160,89,.26)!important;
+  border-radius:20px;
+  background:linear-gradient(160deg,#ffffff,#fbfbfd);
+  box-shadow:0 18px 38px rgba(8,11,13,.12);
+}
+.lp-card:hover{
+  transform:translateY(-4px);
+  box-shadow:0 24px 48px rgba(8,11,13,.18)!important;
+  border-color:rgba(197,160,89,.45)!important;
+}
+.lp-block-title{color:#10181d!important;}
+.lp-content h2,.lp-content h3{color:#10181d!important;}
+.lp-content a{color:#0f8f8b;font-weight:700;}
+.lp-link-item{border-color:rgba(94,198,196,.24)!important;}
+.lp-link-item:hover{border-color:rgba(197,160,89,.46)!important;background:#fffaf1;}
+.lp-info{border-color:rgba(94,198,196,.28)!important;background:linear-gradient(165deg,#fff,#f8fcfc);}
+.lp-info .k{color:#0f8f8b!important;}
+.lp-info .v{color:#0f172a!important;}
+.lp-img{cursor:zoom-in;}
+.lp-img:hover{box-shadow:0 20px 38px rgba(0,0,0,.22)!important;}
+.lp-testimonial-item{
+  border:1px solid rgba(197,160,89,.34);
+  border-radius:18px;
+  padding:18px;
+  background:linear-gradient(145deg,rgba(197,160,89,.14),rgba(94,198,196,.08));
+}
+.lp-testimonial-item:hover{box-shadow:0 18px 30px rgba(12,18,22,.16);}
+.luxe-title,.lp-block-title{color:var(--vnv-luxe-gold);letter-spacing:.02em;}
+.lp-faq .accordion-button{font-weight:700;color:#10181d;}
+.lp-faq .accordion-button:not(.collapsed){background:rgba(197,160,89,.12);color:#10181d;}
+.lp-lightbox-overlay{background:rgba(8,11,13,.9)!important;}
+CSS;
+    }
+
+    return '';
+}
+
+function getDefaultDynamicBlocksJson(string $templateKey): ?string
+{
+    if ($templateKey !== 'location-home-luxe') {
+        return null;
+    }
+
+    $blocks = [
+        [
+            'type' => 'info',
+            'title' => 'Quick Information',
+            'items' => [
+                ['label' => 'Phone', 'value' => '+1 305-204-5427'],
+                ['label' => 'Email', 'value' => 'info@vnvevents.com'],
+                ['label' => 'Hours', 'value' => 'Mon - Fri 10 AM - 5 PM'],
+                ['label' => 'Saturday', 'value' => '10 AM - 2 PM'],
+                ['label' => 'Sunday', 'value' => 'Closed'],
+                ['label' => 'Address', 'value' => '10258 NW 47th St, Sunrise, FL 33351']
+            ]
+        ],
+        [
+            'type' => 'images',
+            'title' => 'Gallery',
+            'columns' => 3,
+            'images' => []
+        ],
+        [
+            'type' => 'testimonials',
+            'title' => 'What Clients Say',
+            'enabled' => true,
+            'items' => [
+                [
+                    'quote' => 'VNV Events made our wedding weekend look and feel like a luxury production.',
+                    'name' => 'Sofia M.',
+                    'role' => 'Bride'
+                ],
+                [
+                    'quote' => 'From timeline to guest experience, every detail felt intentional and elegant.',
+                    'name' => 'Carla R.',
+                    'role' => 'Corporate Client'
+                ],
+                [
+                    'quote' => 'Professional team, impeccable execution, and a truly glamorous setup.',
+                    'name' => 'Alyssa D.',
+                    'role' => 'Private Event Host'
+                ]
+            ]
+        ],
+        [
+            'type' => 'map',
+            'title' => 'Address',
+            'address' => '10258 NW 47th St, Sunrise, FL 33351'
+        ]
+    ];
+
+    return json_encode($blocks, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+}
+
+function normalizeDynamicBlocksJson(?string $raw): ?string
+{
+    $raw = trim((string)$raw);
+    if ($raw === '') {
+        return null;
+    }
+
+    $decoded = json_decode($raw, true);
+    if (!is_array($decoded)) {
+        return null;
+    }
+
+    foreach ($decoded as &$block) {
+        if (!is_array($block)) {
+            $block = ['type' => 'text', 'title' => '', 'content' => ''];
+            continue;
+        }
+
+        $type = trim((string)($block['type'] ?? 'text'));
+        $block['type'] = $type !== '' ? $type : 'text';
+        $block['title'] = (string)($block['title'] ?? '');
+        $block['content'] = (string)($block['content'] ?? '');
+        $block['address'] = (string)($block['address'] ?? '');
+        $block['image_url'] = (string)($block['image_url'] ?? '');
+        $block['columns'] = max(1, min(4, (int)($block['columns'] ?? 3)));
+        $block['lat'] = isset($block['lat']) && $block['lat'] !== '' ? (float)$block['lat'] : null;
+        $block['lng'] = isset($block['lng']) && $block['lng'] !== '' ? (float)$block['lng'] : null;
+        $block['enabled'] = !isset($block['enabled']) || (bool)$block['enabled'];
+
+        $items = $block['items'] ?? [];
+        if (!is_array($items)) $items = [];
+        $links = $block['links'] ?? [];
+        if (!is_array($links)) $links = [];
+        $images = $block['images'] ?? [];
+        if (!is_array($images)) $images = [];
+
+        if ($block['type'] === 'images' && empty($images) && $block['image_url'] !== '') {
+            $images = [[
+                'url' => $block['image_url'],
+                'alt' => $block['title'] !== '' ? $block['title'] : 'Location image'
+            ]];
+        }
+
+        $block['items'] = array_values($items);
+        $block['links'] = array_values($links);
+        $block['images'] = array_values($images);
+    }
+    unset($block);
+
+    return json_encode($decoded, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+}
+
 $router->get(function () {
     $repo = new LocationPagesRepository();
     $id = (int)($_GET['id'] ?? 0);
@@ -104,9 +281,17 @@ $router->post(function () {
         LocationUtils::redirectInternal("panel/cms/location-pages/edit?id=" . $id);
     }
 
-    if ($dynamicBlocksJson !== '' && json_decode($dynamicBlocksJson, true) === null) {
+    $dynamicBlocksJson = normalizeDynamicBlocksJson($dynamicBlocksJson);
+    if (trim($_POST['dynamic_blocks_json'] ?? '') !== '' && $dynamicBlocksJson === null) {
         MessageUtil::setMessage("Dynamic Blocks JSON is invalid.");
         LocationUtils::redirectInternal("panel/cms/location-pages/edit?id=" . $id);
+    }
+
+    if ($customCss === '') {
+        $customCss = getDefaultTemplateCss($templateKey);
+    }
+    if ($dynamicBlocksJson === null) {
+        $dynamicBlocksJson = getDefaultDynamicBlocksJson($templateKey);
     }
 
     if ($schemaJson !== '' && json_decode($schemaJson, true) === null) {

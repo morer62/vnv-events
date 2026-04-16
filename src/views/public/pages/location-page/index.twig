@@ -1,4 +1,4 @@
-{% extends "base.twig" %}
+{% extends "templates/base.twig" %}
 
 {% block title %}
     {{ page.meta_title ?: page.title ~ ' | VNV Events' }}
@@ -33,82 +33,339 @@
 {% endblock %}
 
 {% block body %}
-    <section class="container py-5">
-        <div class="row justify-content-center">
-            <div class="col-lg-10">
-                {% if page.hero_image %}
-                    <div class="mb-4">
-                        <img
-                            src="{{ page.hero_image }}"
-                            alt="{{ page.title }}"
-                            class="img-fluid rounded-4 w-100"
-                            style="max-height: 420px; object-fit: cover;"
-                        >
-                    </div>
-                {% endif %}
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&family=Playfair+Display:wght@600;700;800&display=swap');
+    :root{
+        --lp-primary:#5EC6C4;
+        --lp-gold:#c5a059;
+        --lp-dark:#0a0c0c;
+        --lp-dark-soft:#141818;
+        --lp-light:#fff;
+        --lp-marble:#f4f7f8;
+        --lp-muted:rgba(255,255,255,.78);
+    }
+    .lp-wrap{background:var(--lp-dark);color:#f3f5f6;}
+    .lp-wrap{font-family:'Manrope',system-ui,-apple-system,'Segoe UI',sans-serif;}
+    .lp-hero{
+        min-height:78vh;display:flex;align-items:center;position:relative;overflow:hidden;
+        background:
+            linear-gradient(90deg, rgba(10,12,12,.86) 0%, rgba(10,12,12,.62) 46%, rgba(10,12,12,.34) 100%),
+            url('{{ page.hero_image ?: asset_for('assets/images/vnv-gourmet-hero.jpg') }}') center/cover no-repeat;
+    }
+    .lp-hero::after{
+        content:"";position:absolute;inset:0;pointer-events:none;
+        background:radial-gradient(circle at top right, rgba(94,198,196,.16), transparent 34%);
+    }
+    .lp-hero-inner{position:relative;z-index:2;max-width:1140px;margin:0 auto;padding:50px 16px;}
+    .lp-badge{
+        display:inline-flex;align-items:center;gap:8px;padding:10px 16px;border-radius:999px;
+        background:rgba(94,198,196,.1);color:var(--lp-primary);font-size:.76rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;
+    }
+    .lp-title{
+        font-family:'Playfair Display','Times New Roman',serif;
+        font-size:clamp(2.3rem,5vw,4.4rem);line-height:1.02;margin:16px 0 16px;font-weight:800;max-width:920px;
+    }
+    .lp-sub{max-width:760px;color:var(--lp-muted);font-size:1.05rem;line-height:1.8;}
+    .lp-cta-row{display:flex;flex-wrap:wrap;gap:12px;margin-top:24px;}
+    .lp-btn{
+        display:inline-flex;align-items:center;justify-content:center;gap:10px;
+        border:none;border-radius:999px;padding:13px 22px;font-weight:800;font-size:.82rem;
+        letter-spacing:.08em;text-transform:uppercase;text-decoration:none;transition:.25s ease;
+    }
+    .lp-btn-gold{background:linear-gradient(135deg,#bf953f 0%,#fcf6ba 45%,#b38728 100%);color:#0f1112;}
+    .lp-btn-gold:hover{transform:translateY(-3px);box-shadow:0 16px 28px rgba(197,160,89,.3);}
+    .lp-btn-ghost{background:transparent;border:1px solid rgba(255,255,255,.26);color:#fff;}
+    .lp-btn-ghost:hover{background:#fff;color:#121719;}
+    .lp-meta{display:flex;flex-wrap:wrap;gap:10px;margin-top:22px;}
+    .lp-chip{padding:8px 12px;border-radius:999px;border:1px solid rgba(255,255,255,.2);font-size:.8rem;font-weight:700;color:#fff;}
+    .lp-section{padding:76px 0;}
+    .lp-white{background:var(--lp-marble);color:#11181a;}
+    .lp-container{max-width:1140px;margin:0 auto;padding:0 16px;}
+    .lp-card{
+        background:#fff;border:1px solid rgba(17,24,26,.08);border-radius:22px;box-shadow:0 16px 36px rgba(0,0,0,.08);padding:24px;
+        transition:transform .28s ease, box-shadow .28s ease, border-color .28s ease;
+    }
+    .lp-card:hover{
+        transform:translateY(-4px);
+        box-shadow:0 24px 44px rgba(0,0,0,.14);
+        border-color:rgba(214,174,103,.45);
+    }
+    .lp-content{line-height:1.8;color:#334155;}
+    .lp-content h2,.lp-content h3,.lp-block-title{color:#111827;}
+    .lp-content h2,.lp-content h3,.lp-block-title{font-family:'Playfair Display','Times New Roman',serif;}
+    .lp-grid{display:grid;gap:14px;}
+    .lp-grid.cols-2{grid-template-columns:repeat(2,minmax(0,1fr));}
+    .lp-grid.cols-3{grid-template-columns:repeat(3,minmax(0,1fr));}
+    .lp-grid.cols-4{grid-template-columns:repeat(4,minmax(0,1fr));}
+    .lp-img{width:100%;height:220px;object-fit:cover;border-radius:16px;border:1px solid #dbe5ea;transition:transform .35s ease, box-shadow .35s ease;cursor:zoom-in;}
+    .lp-img:hover{transform:scale(1.03);box-shadow:0 14px 28px rgba(0,0,0,.18);}
+    .lp-link-list{display:grid;gap:10px;}
+    .lp-link-item{
+        display:flex;justify-content:space-between;gap:10px;align-items:center;padding:12px 14px;border-radius:12px;
+        background:#fff;border:1px solid #dbe5ea;color:#0f172a;text-decoration:none;font-weight:700;
+    }
+    .lp-info-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;}
+    .lp-info{
+        background:#fff;border:1px solid #dbe5ea;border-radius:14px;padding:12px;
+    }
+    .lp-info .k{font-size:.76rem;color:#64748b;text-transform:uppercase;font-weight:800;letter-spacing:.04em;}
+    .lp-info .v{font-size:1rem;color:#0f172a;font-weight:900;margin-top:2px;}
+    .lp-map-wrap{display:block;}
+    .lp-map-canvas{height:340px;border-radius:14px;border:1px solid #dbe5ea;background:#eef3f6;}
+    .lp-faq .accordion-item{border-radius:10px;overflow:hidden;margin-bottom:10px;}
+    .lp-testimonial-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;}
+    .lp-testimonial-item{
+        border:1px solid #e5edf2;
+        border-radius:16px;
+        padding:16px;
+        background:#fff;
+        transition:transform .28s ease, box-shadow .28s ease, border-color .28s ease;
+    }
+    .lp-testimonial-item:hover{
+        transform:translateY(-5px);
+        border-color:rgba(214,174,103,.5);
+        box-shadow:0 18px 32px rgba(0,0,0,.12);
+    }
+    .lp-testimonial-quote{font-size:.98rem;line-height:1.75;color:#334155;margin-bottom:14px;}
+    .lp-testimonial-name{font-weight:800;color:#0f172a;}
+    .lp-testimonial-role{font-size:.86rem;color:#64748b;}
+    .lp-lightbox-overlay{
+        position:fixed;inset:0;z-index:3000;background:rgba(6,9,11,.88);
+        display:none;align-items:center;justify-content:center;padding:24px;
+    }
+    .lp-lightbox-overlay.is-open{display:flex;}
+    .lp-lightbox-dialog{position:relative;max-width:min(1100px,95vw);max-height:90vh;}
+    .lp-lightbox-image{max-width:100%;max-height:86vh;border-radius:16px;box-shadow:0 26px 54px rgba(0,0,0,.44);}
+    .lp-lightbox-close{
+        position:absolute;top:-12px;right:-12px;border:none;border-radius:999px;width:40px;height:40px;
+        background:linear-gradient(135deg,#bf953f,#b38728);color:#111;font-size:1.1rem;font-weight:900;cursor:pointer;
+    }
+    @media (max-width: 991px){
+        .lp-info-grid{grid-template-columns:repeat(2,minmax(0,1fr));}
+        .lp-grid.cols-3,.lp-grid.cols-4{grid-template-columns:repeat(2,minmax(0,1fr));}
+        .lp-testimonial-grid{grid-template-columns:repeat(2,minmax(0,1fr));}
+    }
+    @media (max-width: 640px){
+        .lp-section{padding:48px 0;}
+        .lp-info-grid,.lp-grid.cols-2,.lp-grid.cols-3,.lp-grid.cols-4,.lp-testimonial-grid{grid-template-columns:1fr;}
+    }
+</style>
+{% if page.custom_css %}
+<style>{{ page.custom_css|raw }}</style>
+{% endif %}
 
-                <div class="mb-4">
-                    <span class="badge bg-dark mb-3">
-                        {{ page.category ?: 'Location' }}
-                    </span>
-
-                    <h1 class="display-5 fw-bold mb-3">
-                        {{ page.hero_title ?: page.title }}
-                    </h1>
-
-                    {% if page.hero_subtitle %}
-                        <p class="lead text-muted mb-0">
-                            {{ page.hero_subtitle }}
-                        </p>
-                    {% elseif page.excerpt %}
-                        <p class="lead text-muted mb-0">
-                            {{ page.excerpt }}
-                        </p>
-                    {% endif %}
-                </div>
-
-                {% if page.content_long %}
-                    <div class="mb-5">
-                        {{ page.content_long|raw }}
-                    </div>
-                {% endif %}
-
-                {% if page.faqs is not empty %}
-                    <div class="mt-5">
-                        <h2 class="h3 mb-4">Frequently Asked Questions</h2>
-
-                        <div class="accordion" id="locationFaqAccordion">
-                            {% for faq in page.faqs %}
-                                <div class="accordion-item">
-                                    <h2 class="accordion-header" id="faqHeading{{ loop.index }}">
-                                        <button
-                                            class="accordion-button {{ not loop.first ? 'collapsed' : '' }}"
-                                            type="button"
-                                            data-bs-toggle="collapse"
-                                            data-bs-target="#faqCollapse{{ loop.index }}"
-                                            aria-expanded="{{ loop.first ? 'true' : 'false' }}"
-                                            aria-controls="faqCollapse{{ loop.index }}"
-                                        >
-                                            {{ faq.question ?? '' }}
-                                        </button>
-                                    </h2>
-
-                                    <div
-                                        id="faqCollapse{{ loop.index }}"
-                                        class="accordion-collapse collapse {{ loop.first ? 'show' : '' }}"
-                                        aria-labelledby="faqHeading{{ loop.index }}"
-                                        data-bs-parent="#locationFaqAccordion"
-                                    >
-                                        <div class="accordion-body">
-                                            {{ faq.answer ?? '' }}
-                                        </div>
-                                    </div>
-                                </div>
-                            {% endfor %}
-                        </div>
-                    </div>
-                {% endif %}
+<main class="lp-wrap">
+    <section class="lp-hero">
+        <div class="lp-hero-inner">
+            <span class="lp-badge">VNV Events · {{ page.category ?: 'Location' }}</span>
+            <h1 class="lp-title">{{ page.hero_title ?: page.title }}</h1>
+            <p class="lp-sub">{{ page.hero_subtitle ?: page.excerpt }}</p>
+            <div class="lp-cta-row">
+                <a href="#" data-vnv-open-request class="lp-btn lp-btn-gold">Request Your Event</a>
+                <a href="tel:+13052045427" class="lp-btn lp-btn-ghost">Call (305) 204-5427</a>
+            </div>
+            <div class="lp-meta">
+                {% if page.city %}<span class="lp-chip">{{ page.city }}</span>{% endif %}
+                {% if page.county %}<span class="lp-chip">{{ page.county }}</span>{% endif %}
+                {% if page.state %}<span class="lp-chip">{{ page.state }}</span>{% endif %}
             </div>
         </div>
     </section>
+
+    <section class="lp-section lp-white">
+        <div class="lp-container">
+            {% if page.content_long %}
+                <div class="lp-card lp-content mb-4">{{ page.content_long|raw }}</div>
+            {% endif %}
+
+            {% for block in page.dynamic_blocks %}
+                {% set blockType = block.type|default('text') %}
+                <div class="lp-card mb-4">
+                    {% if block.title %}<h3 class="lp-block-title mb-3">{{ block.title }}</h3>{% endif %}
+
+                    {% if blockType == 'text' %}
+                        <div class="lp-content">{{ block.content|default('')|raw }}</div>
+                    {% endif %}
+
+                    {% if blockType == 'image' %}
+                        {% if block.image_url %}<img class="lp-img lp-img-zoomable" src="{{ block.image_url }}" alt="{{ block.title ?: page.title }}">{% endif %}
+                        {% if block.content %}<p class="mt-3 mb-0 text-muted">{{ block.content }}</p>{% endif %}
+                    {% endif %}
+
+                    {% if blockType == 'images' %}
+                        {% set images = block.images|default([]) %}
+                        {% if images is empty and block.image_url %}
+                            {% set images = [{ 'url': block.image_url, 'alt': block.title ?: page.title }] %}
+                        {% endif %}
+                        {% set cols = block.columns|default(3) %}
+                        <div class="lp-grid cols-{{ cols }}">
+                            {% for image in images %}
+                                <img class="lp-img lp-img-zoomable" src="{{ image.url|default(image) }}" alt="{{ image.alt|default(page.title) }}">
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+
+                    {% if blockType == 'info' %}
+                        {% set items = block.items|default([]) %}
+                        <div class="lp-info-grid">
+                            {% for item in items %}
+                                <div class="lp-info">
+                                    <div class="k">{{ item.label|default('Info') }}</div>
+                                    <div class="v">{{ item.value|default('') }}</div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+
+                    {% if blockType == 'links' %}
+                        {% set links = block.links|default([]) %}
+                        <div class="lp-link-list">
+                            {% for l in links %}
+                                <a class="lp-link-item" href="{{ l.url|default('#') }}" {% if l.new_tab %}target="_blank"{% endif %}>
+                                    <span>{{ l.label|default(l.url|default('Open')) }}</span>
+                                    <span>→</span>
+                                </a>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+
+                    {% if blockType == 'testimonials' and block.enabled|default(true) %}
+                        {% set testimonials = block.items|default([]) %}
+                        <div class="lp-testimonial-grid">
+                            {% for t in testimonials %}
+                                <article class="lp-testimonial-item">
+                                    <p class="lp-testimonial-quote">"{{ t.quote|default(t.content|default(t.value|default('Exceptional experience with VNV Events.'))) }}"</p>
+                                    <div class="lp-testimonial-name">{{ t.name|default('VNV Events Client') }}</div>
+                                    {% if t.role|default('') %}<div class="lp-testimonial-role">{{ t.role }}</div>{% endif %}
+                                </article>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+
+                    {% if blockType == 'map' %}
+                        <div class="lp-map-wrap">
+                            <div class="lp-map-canvas"
+                                 data-map
+                                 data-lat="{{ block.lat|default('') }}"
+                                 data-lng="{{ block.lng|default('') }}"
+                                 data-address="{{ block.address|default(page.city ~ ', ' ~ page.state) }}"></div>
+                        </div>
+                    {% endif %}
+                </div>
+            {% endfor %}
+
+            {% if page.faqs is not empty %}
+                <div class="lp-card lp-faq">
+                    <h3 class="lp-block-title mb-3">Frequently Asked Questions</h3>
+                    <div class="accordion" id="locationFaqAccordion">
+                        {% for faq in page.faqs %}
+                            <div class="accordion-item">
+                                <h2 class="accordion-header" id="faqHeading{{ loop.index }}">
+                                    <button class="accordion-button {{ not loop.first ? 'collapsed' : '' }}"
+                                            type="button"
+                                            data-bs-toggle="collapse"
+                                            data-bs-target="#faqCollapse{{ loop.index }}">
+                                        {{ faq.question ?? '' }}
+                                    </button>
+                                </h2>
+                                <div id="faqCollapse{{ loop.index }}"
+                                     class="accordion-collapse collapse {{ loop.first ? 'show' : '' }}"
+                                     data-bs-parent="#locationFaqAccordion">
+                                    <div class="accordion-body">{{ faq.answer ?? '' }}</div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </section>
+</main>
+
+<div class="lp-lightbox-overlay" id="lpLightbox" aria-hidden="true">
+    <div class="lp-lightbox-dialog">
+        <button type="button" class="lp-lightbox-close" id="lpLightboxClose" aria-label="Close image">✕</button>
+        <img src="" alt="" class="lp-lightbox-image" id="lpLightboxImage">
+    </div>
+</div>
+
+{% include "templates/components/publicEventRequestModal.html.twig" with {
+    request_form_action: "/api/public/event-request"
+} %}
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const lightbox = document.getElementById('lpLightbox');
+    const lightboxImage = document.getElementById('lpLightboxImage');
+    const lightboxClose = document.getElementById('lpLightboxClose');
+    const zoomableImages = Array.from(document.querySelectorAll('.lp-img-zoomable'));
+
+    function closeLightbox() {
+        if (!lightbox) return;
+        lightbox.classList.remove('is-open');
+        lightbox.setAttribute('aria-hidden', 'true');
+    }
+
+    if (lightbox && lightboxImage && zoomableImages.length) {
+        zoomableImages.forEach(function (img) {
+            img.addEventListener('click', function () {
+                lightboxImage.src = img.getAttribute('src') || '';
+                lightboxImage.alt = img.getAttribute('alt') || 'Gallery image';
+                lightbox.classList.add('is-open');
+                lightbox.setAttribute('aria-hidden', 'false');
+            });
+        });
+        if (lightboxClose) {
+            lightboxClose.addEventListener('click', closeLightbox);
+        }
+        lightbox.addEventListener('click', function (event) {
+            if (event.target === lightbox) closeLightbox();
+        });
+        document.addEventListener('keydown', function (event) {
+            if (event.key === 'Escape') closeLightbox();
+        });
+    }
+
+    const mapEls = Array.from(document.querySelectorAll('[data-map]'));
+    if (!mapEls.length || !window.google || !google.maps) return;
+
+    mapEls.forEach(function (mapEl) {
+        const initialLat = parseFloat(mapEl.dataset.lat || '0');
+        const initialLng = parseFloat(mapEl.dataset.lng || '0');
+        const initialAddress = mapEl.dataset.address || '';
+
+        const fallbackCenter = { lat: 25.7617, lng: -80.1918 };
+        const center = (!Number.isNaN(initialLat) && !Number.isNaN(initialLng) && initialLat && initialLng)
+            ? { lat: initialLat, lng: initialLng }
+            : fallbackCenter;
+
+        const map = new google.maps.Map(mapEl, {
+            center: center,
+            zoom: 13,
+            mapTypeControl: false,
+            streetViewControl: false,
+            fullscreenControl: false
+        });
+        const marker = new google.maps.Marker({ map: map, position: center });
+        const geocoder = new google.maps.Geocoder();
+
+        function geocodeAndCenter(address) {
+            if (!address) return;
+            geocoder.geocode({ address: address }, function (results, status) {
+                if (status !== 'OK' || !results || !results.length) return;
+                const loc = results[0].geometry.location;
+                map.setCenter(loc);
+                marker.setPosition(loc);
+            });
+        }
+
+        if (initialAddress && (!initialLat || !initialLng)) {
+            geocodeAndCenter(initialAddress);
+        }
+    });
+});
+</script>
+{% if page.custom_js %}
+<script>{{ page.custom_js|raw }}</script>
+{% endif %}
 {% endblock %}
