@@ -36,13 +36,7 @@ function eventRequestMailTo(): string
     return '';
 }
 
-function eventRequestFailSilently(): void
-{
-    MessageUtil::setMessage('Your request could not be processed. Please try again.', 'Validation', 'warning');
-    eventRequestRedirectBack();
-}
-
-function eventRequestVerifyRecaptcha(string $token, string $expectedAction = 'event_request'): bool
+function eventRequestVerifyRecaptcha(string $token): bool
 {
     $secret = trim((string)($_ENV['GOOGLE_RECAPTCHA_SECRET'] ?? ''));
     if ($secret === '' || $token === '') {
@@ -78,52 +72,26 @@ function eventRequestVerifyRecaptcha(string $token, string $expectedAction = 'ev
 
     $success = (bool)($result['success'] ?? false);
     $score   = (float)($result['score'] ?? 0);
-    $action  = (string)($result['action'] ?? '');
 
     if (!$success) {
         return false;
     }
 
-    if ($action !== '' && $action !== $expectedAction) {
-        return false;
-    }
-
-    return $score >= 0.5;
+    return $score >= 0.3;
 }
 
 $router->post(function () {
-    $eventAddress = trim((string)($_POST['event_address'] ?? ''));
-    $eventDate = trim((string)($_POST['event_date'] ?? ''));
-    $eventTime = trim((string)($_POST['event_time'] ?? ''));
-    $guestCount = (int)($_POST['guest_count'] ?? 0);
-    $fullName = trim((string)($_POST['full_name'] ?? ''));
-    $email = trim((string)($_POST['email'] ?? ''));
-    $phone = trim((string)($_POST['phone'] ?? ''));
-    $details = trim((string)($_POST['details'] ?? ''));
-    $formSource = trim((string)($_POST['form_source'] ?? 'public_home_modal'));
-    $servicesRaw = (string)($_POST['selected_services'] ?? '[]');
-
-    $honeypot = trim((string)($_POST['company_website'] ?? ''));
+    $eventAddress   = trim((string)($_POST['event_address'] ?? ''));
+    $eventDate      = trim((string)($_POST['event_date'] ?? ''));
+    $eventTime      = trim((string)($_POST['event_time'] ?? ''));
+    $guestCount     = (int)($_POST['guest_count'] ?? 0);
+    $fullName       = trim((string)($_POST['full_name'] ?? ''));
+    $email          = trim((string)($_POST['email'] ?? ''));
+    $phone          = trim((string)($_POST['phone'] ?? ''));
+    $details        = trim((string)($_POST['details'] ?? ''));
+    $formSource     = trim((string)($_POST['form_source'] ?? 'public_home_modal'));
+    $servicesRaw    = (string)($_POST['selected_services'] ?? '[]');
     $recaptchaToken = trim((string)($_POST['g_recaptcha_token'] ?? ''));
-    $formLoadedAt = (int)($_POST['form_loaded_at'] ?? 0);
-
-    if ($honeypot !== '') {
-        eventRequestFailSilently();
-    }
-
-    if ($formLoadedAt <= 0) {
-        eventRequestFailSilently();
-    }
-
-    $elapsedMs = ((int)round(microtime(true) * 1000)) - $formLoadedAt;
-    if ($elapsedMs < 5000) {
-        eventRequestFailSilently();
-    }
-
-    if (!eventRequestVerifyRecaptcha($recaptchaToken, 'event_request')) {
-        MessageUtil::setMessage('Security verification failed. Please try again.', 'Security', 'warning');
-        eventRequestRedirectBack();
-    }
 
     if ($eventAddress === '' || $eventDate === '' || $eventTime === '' || $fullName === '' || $email === '' || $phone === '') {
         MessageUtil::setMessage('Please complete required fields before sending your request.', 'Validation', 'warning');
@@ -132,6 +100,11 @@ $router->post(function () {
 
     if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
         MessageUtil::setMessage('Please enter a valid email address.', 'Validation', 'warning');
+        eventRequestRedirectBack();
+    }
+
+    if (!eventRequestVerifyRecaptcha($recaptchaToken)) {
+        MessageUtil::setMessage('Security verification failed. Please try again.', 'Security', 'warning');
         eventRequestRedirectBack();
     }
 

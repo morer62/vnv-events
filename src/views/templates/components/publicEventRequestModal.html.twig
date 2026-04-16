@@ -19,12 +19,6 @@
             <input type="hidden" name="selected_services" id="vnvSelectedServicesInput">
             <input type="hidden" name="form_source" value="public_home_modal">
             <input type="hidden" name="g_recaptcha_token" id="vnvRecaptchaToken">
-            <input type="hidden" name="form_loaded_at" id="vnvFormLoadedAt">
-
-            <div class="vnv-hp-field" aria-hidden="true">
-                <label for="company_website">Leave this field empty</label>
-                <input type="text" name="company_website" id="company_website" tabindex="-1" autocomplete="off">
-            </div>
 
             <div class="vnv-request-modal__head">
                 <h2 id="vnvRequestModalTitle">Plan your event in seconds</h2>
@@ -38,7 +32,6 @@
                 <span data-vnv-step-dot="4"></span>
             </div>
 
-            {# STEP 1 #}
             <section class="vnv-request-step is-active" data-vnv-step="1">
                 <div class="vnv-request-panel">
                     <h3>1) Where is your event?</h3>
@@ -75,7 +68,6 @@
                 </div>
             </section>
 
-            {# STEP 2 #}
             <section class="vnv-request-step" data-vnv-step="2">
                 <div class="vnv-request-panel">
                     <h3>2) What services do you need?</h3>
@@ -161,7 +153,6 @@
                 </div>
             </section>
 
-            {# STEP 3 #}
             <section class="vnv-request-step" data-vnv-step="3">
                 <div class="vnv-request-panel">
                     <h3>3) Event details & contact</h3>
@@ -248,7 +239,6 @@
                 </div>
             </section>
 
-            {# STEP 4 #}
             <section class="vnv-request-step" data-vnv-step="4">
                 <div class="vnv-request-panel">
                     <h3>4) One more thing before we send it</h3>
@@ -739,16 +729,6 @@
     background: rgba(255,255,255,0.1);
 }
 
-.vnv-hp-field{
-    position:absolute !important;
-    left:-9999px !important;
-    width:1px !important;
-    height:1px !important;
-    overflow:hidden !important;
-    opacity:0 !important;
-    pointer-events:none !important;
-}
-
 body.vnv-request-lock{
     overflow: hidden;
 }
@@ -832,9 +812,6 @@ body.vnv-request-lock{
     const phoneInput = document.getElementById('vnv_phone');
     const miniMapEl = document.getElementById('vnvRequestMiniMap');
     const recaptchaTokenInput = document.getElementById('vnvRecaptchaToken');
-    const honeypotInput = document.getElementById('company_website');
-    const formLoadedAtInput = document.getElementById('vnvFormLoadedAt');
-    const formStartedAt = Date.now();
 
     let currentStep = 1;
     const selectedServices = new Set();
@@ -843,19 +820,6 @@ body.vnv-request-lock{
     let requestGeocoder = null;
     let requestAutocomplete = null;
     let lastLatLng = null;
-    let humanSignals = 0;
-
-    if (formLoadedAtInput) {
-        formLoadedAtInput.value = String(formStartedAt);
-    }
-
-    document.addEventListener('click', function () {
-        humanSignals++;
-    }, { passive: true });
-
-    document.addEventListener('keydown', function () {
-        humanSignals++;
-    }, { passive: true });
 
     function setFieldError(field, message) {
         if (!field) return false;
@@ -1238,21 +1202,6 @@ body.vnv-request-lock{
 
         if (!validateStep(3)) {
             goToStep(3);
-            return;
-        }
-
-        if (honeypotInput && honeypotInput.value.trim() !== '') {
-            return;
-        }
-
-        const elapsed = Date.now() - formStartedAt;
-        if (elapsed < 5000) {
-            alert('Please take a moment to review your details before sending.');
-            return;
-        }
-
-        if (humanSignals < 2) {
-            alert('Please review your request before sending.');
             return;
         }
 
