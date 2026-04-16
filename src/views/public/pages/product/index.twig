@@ -209,6 +209,13 @@
         align-items:end;
     }
 
+    .pp-catalog-grid{
+        display:grid;
+        grid-template-columns:1fr;
+        gap:12px;
+        align-items:end;
+    }
+
     .pp-variation-preview{
         margin-top:14px;
         display:none;
@@ -403,6 +410,7 @@
         }
 
         .pp-purchase-grid,
+        .pp-catalog-grid,
         .pp-variation-meta{
             grid-template-columns:1fr;
         }
@@ -477,13 +485,21 @@
                             {% endif %}
                         </div>
 
-                        <div class="pp-price-note" id="product-price-note">
-                            {% if product.product_type == 'VARIABLE' %}
-                                Select an option to see the exact price.
-                            {% else %}
-                                Ready to purchase.
-                            {% endif %}
-                        </div>
+                        {% if product.short_description %}
+                            <div class="pp-helper" style="margin-top:0; margin-bottom:14px;">
+                                {{ product.short_description }}
+                            </div>
+                        {% endif %}
+
+                        {% if store_active %}
+                            <div class="pp-price-note" id="product-price-note">
+                                {% if product.product_type == 'VARIABLE' %}
+                                    Select an option to see the exact price.
+                                {% else %}
+                                    Ready to purchase.
+                                {% endif %}
+                            </div>
+                        {% endif %}
                     </div>
 
                     <div class="pp-meta">
@@ -492,42 +508,138 @@
                             <div class="pp-meta-value">{{ product.sku ?: '—' }}</div>
                         </div>
 
-                        {% if product.product_type == 'FIXED' %}
-                            <div class="pp-meta-card">
-                                <div class="pp-meta-label">Stock</div>
-                                <div class="pp-meta-value">{{ product.stock_quantity ?: 0 }}</div>
-                            </div>
-                            <div class="pp-meta-card">
-                                <div class="pp-meta-label">Min Qty</div>
-                                <div class="pp-meta-value">{{ product.min_purchase_qty ?: 1 }}</div>
-                            </div>
-                        {% else %}
-                            <div class="pp-meta-card">
-                                <div class="pp-meta-label">Variations</div>
-                                <div class="pp-meta-value">{{ product.variations|length }}</div>
-                            </div>
-                            <div class="pp-meta-card">
-                                <div class="pp-meta-label">Price Range</div>
-                                <div class="pp-meta-value">
-                                    {% if product.min_price == product.max_price %}
-                                        ${{ product.min_price|number_format(2, '.', ',') }}
-                                    {% else %}
-                                        ${{ product.min_price|number_format(2, '.', ',') }} - ${{ product.max_price|number_format(2, '.', ',') }}
-                                    {% endif %}
+                        {% if store_active %}
+                            {% if product.product_type == 'FIXED' %}
+                                <div class="pp-meta-card">
+                                    <div class="pp-meta-label">Stock</div>
+                                    <div class="pp-meta-value">{{ product.stock_quantity ?: 0 }}</div>
                                 </div>
-                            </div>
+                                <div class="pp-meta-card">
+                                    <div class="pp-meta-label">Min Qty</div>
+                                    <div class="pp-meta-value">{{ product.min_purchase_qty ?: 1 }}</div>
+                                </div>
+                            {% else %}
+                                <div class="pp-meta-card">
+                                    <div class="pp-meta-label">Variations</div>
+                                    <div class="pp-meta-value">{{ product.variations|length }}</div>
+                                </div>
+                                <div class="pp-meta-card">
+                                    <div class="pp-meta-label">Price Range</div>
+                                    <div class="pp-meta-value">
+                                        {% if product.min_price == product.max_price %}
+                                            ${{ product.min_price|number_format(2, '.', ',') }}
+                                        {% else %}
+                                            ${{ product.min_price|number_format(2, '.', ',') }} - ${{ product.max_price|number_format(2, '.', ',') }}
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            {% endif %}
+                        {% else %}
+                            {% if product.product_type == 'VARIABLE' %}
+                                <div class="pp-meta-card">
+                                    <div class="pp-meta-label">Variations</div>
+                                    <div class="pp-meta-value">{{ product.variations|length }}</div>
+                                </div>
+                                <div class="pp-meta-card">
+                                    <div class="pp-meta-label">Price Range</div>
+                                    <div class="pp-meta-value">
+                                        {% if product.min_price == product.max_price %}
+                                            ${{ product.min_price|number_format(2, '.', ',') }}
+                                        {% else %}
+                                            ${{ product.min_price|number_format(2, '.', ',') }} - ${{ product.max_price|number_format(2, '.', ',') }}
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            {% endif %}
                         {% endif %}
                     </div>
 
-                    <div class="pp-purchase-box">
-                        <form id="public-product-form">
-                            <input type="hidden" name="id_product" value="{{ product.id }}">
-                            <input type="hidden" name="id_product_variation" id="selected-variation-id" value="">
-                            <input type="hidden" name="selected_unit_price" id="selected-unit-price" value="{{ product.display_price|default(product.min_price)|default(0) }}">
+                    {% if store_active %}
+                        <div class="pp-purchase-box">
+                            <form id="public-product-form">
+                                <input type="hidden" name="id_product" value="{{ product.id }}">
+                                <input type="hidden" name="id_product_variation" id="selected-variation-id" value="">
+                                <input type="hidden" name="selected_unit_price" id="selected-unit-price" value="{{ product.display_price|default(product.min_price)|default(0) }}">
 
-                            <div class="pp-purchase-grid">
-                                <div>
-                                    {% if product.product_type == 'VARIABLE' %}
+                                <div class="pp-purchase-grid">
+                                    <div>
+                                        {% if product.product_type == 'VARIABLE' %}
+                                            <label class="pp-form-label">Choose an option</label>
+                                            <select class="pp-select" id="variation-select">
+                                                <option value="">Select a variation</option>
+                                                {% for variation in product.variations|default([]) %}
+                                                    <option
+                                                        value="{{ variation.id }}"
+                                                        data-name="{{ variation.name|e('html_attr') }}"
+                                                        data-price="{{ variation.effective_price }}"
+                                                        data-stock="{{ variation.stock_quantity|default(0) }}"
+                                                        data-min="{{ variation.min_purchase_qty|default(1) }}"
+                                                        data-max="{{ variation.max_purchase_qty is not null ? variation.max_purchase_qty : '' }}"
+                                                        data-options='{{ variation.attribute_values|json_encode|e('html_attr') }}'
+                                                    >
+                                                        {{ variation.name }} — ${{ variation.effective_price|number_format(2, '.', ',') }}
+                                                    </option>
+                                                {% endfor %}
+                                            </select>
+                                        {% else %}
+                                            <label class="pp-form-label">Product</label>
+                                            <input type="text" class="pp-input" value="{{ product.name }}" disabled>
+                                        {% endif %}
+                                    </div>
+
+                                    <div>
+                                        <label class="pp-form-label">Quantity</label>
+                                        <input
+                                            type="number"
+                                            id="product-qty"
+                                            class="pp-input"
+                                            min="{{ product.min_purchase_qty|default(1) }}"
+                                            value="{{ product.min_purchase_qty|default(1) }}"
+                                            {% if product.product_type == 'FIXED' and product.max_purchase_qty %}
+                                                max="{{ product.max_purchase_qty }}"
+                                            {% endif %}
+                                        >
+                                    </div>
+                                </div>
+
+                                <div class="pp-variation-preview" id="variation-preview">
+                                    <div class="pp-variation-meta" id="variation-meta"></div>
+                                </div>
+
+                                <div class="pp-actions">
+                                    <button
+                                        type="button"
+                                        class="pp-btn pp-btn-main"
+                                        id="add-to-cart-btn"
+                                        data-id="{{ product.id }}"
+                                        data-name="{{ product.name|e('html_attr') }}"
+                                        data-slug="{{ product.slug|default('')|e('html_attr') }}"
+                                        data-short-description="{{ (product.short_description ?: '')|e('html_attr') }}"
+                                        data-description="{{ (product.description ?: '')|e('html_attr') }}"
+                                        data-main-image="{{ (product.main_image ?: '')|e('html_attr') }}"
+                                        data-price="{{ product.display_price|default(product.min_price)|default(0) }}"
+                                        data-stock-quantity="{{ product.stock_quantity|default(0) }}"
+                                        data-min-purchase-qty="{{ product.min_purchase_qty|default(1) }}"
+                                        data-max-purchase-qty="{{ product.max_purchase_qty is not null ? product.max_purchase_qty : '' }}"
+                                        data-sku="{{ product.sku|default('')|e('html_attr') }}"
+                                        data-product-type="{{ product.product_type|default('FIXED') }}"
+                                    >
+                                        Add to cart
+                                    </button>
+
+                                    <a href="{{ path('store/cart') }}" class="pp-btn pp-btn-light">Go to cart</a>
+                                </div>
+
+                                <div class="pp-helper">
+                                    Choose quantity and, if needed, a variation. The next cart step can now receive standard product data instead of meal-plan data.
+                                </div>
+                            </form>
+                        </div>
+                    {% else %}
+                        {% if product.product_type == 'VARIABLE' %}
+                            <div class="pp-purchase-box">
+                                <div class="pp-catalog-grid">
+                                    <div>
                                         <label class="pp-form-label">Choose an option</label>
                                         <select class="pp-select" id="variation-select">
                                             <option value="">Select a variation</option>
@@ -536,69 +648,22 @@
                                                     value="{{ variation.id }}"
                                                     data-name="{{ variation.name|e('html_attr') }}"
                                                     data-price="{{ variation.effective_price }}"
-                                                    data-stock="{{ variation.stock_quantity|default(0) }}"
-                                                    data-min="{{ variation.min_purchase_qty|default(1) }}"
-                                                    data-max="{{ variation.max_purchase_qty is not null ? variation.max_purchase_qty : '' }}"
                                                     data-options='{{ variation.attribute_values|json_encode|e('html_attr') }}'
                                                 >
                                                     {{ variation.name }} — ${{ variation.effective_price|number_format(2, '.', ',') }}
                                                 </option>
                                             {% endfor %}
                                         </select>
-                                    {% else %}
-                                        <label class="pp-form-label">Product</label>
-                                        <input type="text" class="pp-input" value="{{ product.name }}" disabled>
-                                    {% endif %}
+                                    </div>
                                 </div>
 
-                                <div>
-                                    <label class="pp-form-label">Quantity</label>
-                                    <input
-                                        type="number"
-                                        id="product-qty"
-                                        class="pp-input"
-                                        min="{{ product.min_purchase_qty|default(1) }}"
-                                        value="{{ product.min_purchase_qty|default(1) }}"
-                                        {% if product.product_type == 'FIXED' and product.max_purchase_qty %}
-                                            max="{{ product.max_purchase_qty }}"
-                                        {% endif %}
-                                    >
+                                <div class="pp-variation-preview" id="variation-preview">
+                                    <div class="pp-variation-meta" id="variation-meta"></div>
                                 </div>
                             </div>
-
-                            <div class="pp-variation-preview" id="variation-preview">
-                                <div class="pp-variation-meta" id="variation-meta"></div>
-                            </div>
-
-                            <div class="pp-actions">
-                                <button
-                                    type="button"
-                                    class="pp-btn pp-btn-main"
-                                    id="add-to-cart-btn"
-                                    data-id="{{ product.id }}"
-                                    data-name="{{ product.name|e('html_attr') }}"
-                                    data-slug="{{ product.slug|default('')|e('html_attr') }}"
-                                    data-short-description="{{ (product.short_description ?: '')|e('html_attr') }}"
-                                    data-description="{{ (product.description ?: '')|e('html_attr') }}"
-                                    data-main-image="{{ (product.main_image ?: '')|e('html_attr') }}"
-                                    data-price="{{ product.display_price|default(product.min_price)|default(0) }}"
-                                    data-stock-quantity="{{ product.stock_quantity|default(0) }}"
-                                    data-min-purchase-qty="{{ product.min_purchase_qty|default(1) }}"
-                                    data-max-purchase-qty="{{ product.max_purchase_qty is not null ? product.max_purchase_qty : '' }}"
-                                    data-sku="{{ product.sku|default('')|e('html_attr') }}"
-                                    data-product-type="{{ product.product_type|default('FIXED') }}"
-                                >
-                                    Add to cart
-                                </button>
-
-                                <a href="{{ path('store/cart') }}" class="pp-btn pp-btn-light">Go to cart</a>
-                            </div>
-
-                            <div class="pp-helper">
-                                Choose quantity and, if needed, a variation. The next cart step can now receive standard product data instead of meal-plan data.
-                            </div>
-                        </form>
-                    </div>
+                        {% endif %}
+                    {% endif %}
+ 
                 </div>
             </div>
         </section>
@@ -670,6 +735,7 @@
     {% endif %}
 </main>
 
+{% if store_active %}
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     const CART_KEY = 'store_cart_selection';
@@ -884,4 +950,69 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 });
 </script>
+{% else %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const variationSelect = document.getElementById('variation-select');
+    const variationPreview = document.getElementById('variation-preview');
+    const variationMeta = document.getElementById('variation-meta');
+    const priceDisplay = document.getElementById('product-price-display');
+
+    function renderVariationCatalog(option) {
+        if (!option || !option.value) {
+            variationPreview.style.display = 'none';
+            variationMeta.innerHTML = '';
+
+            {% if product.product_type == 'VARIABLE' %}
+                {% if product.min_price == product.max_price %}
+                    priceDisplay.textContent = '${{ product.min_price|number_format(2, '.', ',') }}';
+                {% else %}
+                    priceDisplay.textContent = 'From ${{ product.min_price|number_format(2, '.', ',') }}';
+                {% endif %}
+            {% endif %}
+
+            return;
+        }
+
+        const price = parseFloat(option.dataset.price || '0');
+        const name = option.dataset.name || '';
+        let options = [];
+
+        try {
+            options = JSON.parse(option.dataset.options || '[]');
+        } catch (e) {
+            options = [];
+        }
+
+        priceDisplay.textContent = '$' + price.toFixed(2);
+
+        const mapped = Array.isArray(options)
+            ? options.map(item => `${item.attribute_name}: ${item.attribute_value}`).join('<br>')
+            : '';
+
+        variationMeta.innerHTML = `
+            <div class="pp-variation-meta-item">
+                <div class="pp-variation-meta-label">Selected Option</div>
+                <div class="pp-variation-meta-value">${name || 'Variation selected'}</div>
+            </div>
+            <div class="pp-variation-meta-item">
+                <div class="pp-variation-meta-label">Price</div>
+                <div class="pp-variation-meta-value">$${price.toFixed(2)}</div>
+            </div>
+            <div class="pp-variation-meta-item">
+                <div class="pp-variation-meta-label">Mapping</div>
+                <div class="pp-variation-meta-value">${mapped || 'No mapping'}</div>
+            </div>
+        `;
+        variationPreview.style.display = 'block';
+    }
+
+    if (variationSelect) {
+        variationSelect.addEventListener('change', function () {
+            renderVariationCatalog(this.options[this.selectedIndex]);
+        });
+    }
+});
+</script>
+{% endif %}
 {% endblock %}

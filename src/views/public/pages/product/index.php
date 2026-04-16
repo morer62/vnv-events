@@ -35,7 +35,11 @@ $relatedProducts = method_exists($productsRepository, 'getPublicRelatedProducts'
     ? $productsRepository->getPublicRelatedProducts((int)$product->id, 8)
     : [];
 
+$storeActiveRaw = $_ENV['STORE_ACTIVE'] ?? getenv('STORE_ACTIVE') ?? 'YES';
+$storeActive = strtoupper(trim((string)$storeActiveRaw)) === 'YES';
+
 echo TemplateResponse::render(__DIR__ . "/index.twig", [
     'product' => $product,
-    'related_products' => $relatedProducts
+    'related_products' => $relatedProducts,
+    'store_active' => $storeActive
 ]);
