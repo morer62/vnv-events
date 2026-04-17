@@ -1,0 +1,1053 @@
+{% set sponsor_form_action = sponsor_form_action|default('/api/public/sponsor-request') %}
+
+<div class="vnv-request-modal" id="vnvSponsorModal" aria-hidden="true">
+    <div class="vnv-request-modal__backdrop" data-vnv-sponsor-close></div>
+
+    <div class="vnv-request-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="vnvSponsorModalTitle">
+        <button type="button" class="vnv-request-modal__close" data-vnv-sponsor-close aria-label="Close">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+
+        <div class="vnv-request-modal__brand">Become a sponsor</div>
+
+        <form
+            id="vnvSponsorForm"
+            class="vnv-request-modal__form"
+            method="post"
+            action="{{ sponsor_form_action }}"
+        >
+            <input type="hidden" name="selected_events" id="vnvSelectedSponsorEventsInput">
+            <input type="hidden" name="selected_packages" id="vnvSelectedSponsorPackagesInput">
+            <input type="hidden" name="form_source" value="public_sponsor_modal">
+            <input type="hidden" name="recaptcha_token" id="vnvSponsorRecaptchaToken" value="">
+
+            <div class="vnv-request-modal__head">
+                <h2 id="vnvSponsorModalTitle">Sponsor with VNV Events</h2>
+                <p>Tell us what events and packages interest you.</p>
+            </div>
+
+            <div class="vnv-request-progress">
+                <span class="is-active" data-vnv-sponsor-step-dot="1"></span>
+                <span data-vnv-sponsor-step-dot="2"></span>
+                <span data-vnv-sponsor-step-dot="3"></span>
+                <span data-vnv-sponsor-step-dot="4"></span>
+            </div>
+
+            {# STEP 1 #}
+            <section class="vnv-request-step is-active" data-vnv-sponsor-step="1">
+                <div class="vnv-request-panel">
+
+                    <div class="vnv-request-cta">
+                        <div class="vnv-request-cta__icon">
+                            <i class="fa-solid fa-headset"></i>
+                        </div>
+
+                        <div class="vnv-request-cta__content">
+                            <strong>Need more details first?</strong>
+                            <p class="vnv-request-cta__text">
+                                Call us Monday to Friday, 9:00 AM to 6:00 PM ET.
+                            </p>
+
+                            <a href="tel:+13052045427" class="vnv-request-cta__button">
+                                <i class="fa-solid fa-phone"></i>
+                                Call (305) 204-5427
+                            </a>
+                        </div>
+                    </div>
+
+                    <h3>1) Select the events you would like to sponsor</h3>
+
+                    <div class="vnv-request-service-group">
+                        <div class="vnv-request-pill-list vnv-request-pill-list--cards">
+                            <button type="button" class="vnv-request-pill vnv-request-pill--event" data-event="The Vow & Vine Experience">
+                                <span class="vnv-request-pill__title">The Vow & Vine Experience</span>
+                                <span class="vnv-request-pill__meta">Wedding-focused signature experience</span>
+                            </button>
+
+                            <button type="button" class="vnv-request-pill vnv-request-pill--event" data-event="The Morning Break">
+                                <span class="vnv-request-pill__title">The Morning Break</span>
+                                <span class="vnv-request-pill__meta">Bi-weekly mommy & daddy retreat</span>
+                            </button>
+
+                            <button type="button" class="vnv-request-pill vnv-request-pill--event" data-event="Corporate & Community Experiences">
+                                <span class="vnv-request-pill__title">Corporate & Community Experiences</span>
+                                <span class="vnv-request-pill__meta">Branded activations and local events</span>
+                            </button>
+
+                            <button type="button" class="vnv-request-pill vnv-request-pill--event" data-event="Seasonal & Special Editions">
+                                <span class="vnv-request-pill__title">Seasonal & Special Editions</span>
+                                <span class="vnv-request-pill__meta">Holiday and limited-edition experiences</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="vnv-request-selected" id="vnvSelectedSponsorEventsPreview">
+                        No events selected yet.
+                    </div>
+
+                    <div class="vnv-request-actions vnv-request-actions--end">
+                        <button type="button" class="vnv-request-btn vnv-request-btn--primary" data-vnv-sponsor-next>
+                            Next
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            {# STEP 2 #}
+            <section class="vnv-request-step" data-vnv-sponsor-step="2">
+                <div class="vnv-request-panel">
+                    <h3>2) Which sponsor packages interest you?</h3>
+
+                    <div class="vnv-request-service-group">
+                        <div class="vnv-request-pill-list vnv-request-pill-list--cards">
+                            <button type="button" class="vnv-request-pill vnv-request-pill--package" data-package="Title Sponsor">
+                                <span class="vnv-request-pill__title">Title Sponsor</span>
+                                <span class="vnv-request-pill__meta">Top-tier visibility and premium brand placement</span>
+                            </button>
+
+                            <button type="button" class="vnv-request-pill vnv-request-pill--package" data-package="Presenting Sponsor">
+                                <span class="vnv-request-pill__title">Presenting Sponsor</span>
+                                <span class="vnv-request-pill__meta">Strong positioning across event communications</span>
+                            </button>
+
+                            <button type="button" class="vnv-request-pill vnv-request-pill--package" data-package="Supporting Sponsor">
+                                <span class="vnv-request-pill__title">Supporting Sponsor</span>
+                                <span class="vnv-request-pill__meta">Brand participation with curated exposure</span>
+                            </button>
+
+                            <button type="button" class="vnv-request-pill vnv-request-pill--package" data-package="In-Kind Sponsor">
+                                <span class="vnv-request-pill__title">In-Kind Sponsor</span>
+                                <span class="vnv-request-pill__meta">Product or service contribution partnership</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="vnv-request-offers vnv-request-offers--single">
+                        <div class="vnv-request-offer-card">
+                            <div class="vnv-request-offer-icon">
+                                <i class="fa-solid fa-handshake-angle"></i>
+                            </div>
+                            <h4>How sponsorship works</h4>
+                            <p>
+                                Choose the package level that fits your brand goals. We will review your interest,
+                                confirm availability by event, and follow up with the matching opportunities.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="vnv-request-selected" id="vnvSelectedSponsorPackagesPreview">
+                        No sponsor packages selected yet.
+                    </div>
+
+                    <div class="vnv-request-actions">
+                        <button type="button" class="vnv-request-btn vnv-request-btn--ghost" data-vnv-sponsor-prev>
+                            Back
+                        </button>
+                        <button type="button" class="vnv-request-btn vnv-request-btn--primary" data-vnv-sponsor-next>
+                            Next
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            {# STEP 3 #}
+            <section class="vnv-request-step" data-vnv-sponsor-step="3">
+                <div class="vnv-request-panel">
+                    <h3>3) Company and contact details</h3>
+
+                    <div class="vnv-request-grid vnv-request-grid--two">
+                        <div>
+                            <label class="vnv-request-label" for="vnv_sponsor_company">Company</label>
+                            <input id="vnv_sponsor_company" name="company" type="text" class="vnv-request-input" required>
+                        </div>
+
+                        <div>
+                            <label class="vnv-request-label" for="vnv_sponsor_role">Your role / title</label>
+                            <input id="vnv_sponsor_role" name="role" type="text" class="vnv-request-input" required>
+                        </div>
+
+                        <div>
+                            <label class="vnv-request-label" for="vnv_sponsor_name">Full name</label>
+                            <input id="vnv_sponsor_name" name="full_name" type="text" class="vnv-request-input" required>
+                        </div>
+
+                        <div>
+                            <label class="vnv-request-label" for="vnv_sponsor_email">Email</label>
+                            <input id="vnv_sponsor_email" name="email" type="email" class="vnv-request-input" required>
+                        </div>
+
+                        <div>
+                            <label class="vnv-request-label" for="vnv_sponsor_phone">Phone</label>
+                            <input
+                                id="vnv_sponsor_phone"
+                                name="phone"
+                                type="tel"
+                                inputmode="numeric"
+                                maxlength="14"
+                                class="vnv-request-input"
+                                placeholder="(305) 555-5555"
+                                required
+                            >
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="vnv-request-label" for="vnv_sponsor_notes">Observations / notes</label>
+                        <textarea
+                            id="vnv_sponsor_notes"
+                            name="details"
+                            rows="5"
+                            class="vnv-request-textarea"
+                            placeholder="Tell us about your brand, goals, preferred events, target audience, products, activation ideas, or anything else we should know."
+                        ></textarea>
+                    </div>
+
+                    <div class="vnv-request-actions">
+                        <button type="button" class="vnv-request-btn vnv-request-btn--ghost" data-vnv-sponsor-prev>
+                            Back
+                        </button>
+                        <button type="button" class="vnv-request-btn vnv-request-btn--primary" data-vnv-sponsor-next>
+                            Next
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            {# STEP 4 #}
+            <section class="vnv-request-step" data-vnv-sponsor-step="4">
+                <div class="vnv-request-panel">
+                    <h3>4) Review before sending</h3>
+
+                    <div class="vnv-request-step4-copy">
+                        <p>
+                            Please confirm your selection before submitting. Our team will review your request
+                            and contact you with the next steps.
+                        </p>
+                    </div>
+
+                    <div class="vnv-request-summary">
+                        <div>
+                            <small>Selected events</small>
+                            <strong id="vnvSponsorSummaryEvents">No events selected yet.</strong>
+                        </div>
+                        <div>
+                            <small>Sponsor packages</small>
+                            <strong id="vnvSponsorSummaryPackages">No sponsor packages selected yet.</strong>
+                        </div>
+                    </div>
+
+                    <div class="vnv-request-actions">
+                        <button type="button" class="vnv-request-btn vnv-request-btn--ghost" data-vnv-sponsor-prev>
+                            Back
+                        </button>
+                        <button type="submit" class="vnv-request-btn vnv-request-btn--primary" id="vnvSendSponsorRequestBtn">
+                            <span class="vnv-send-label">Send Sponsor Request</span>
+                            <span class="vnv-send-loading d-none">
+                                <i class="fa-solid fa-spinner fa-spin"></i>
+                                Sending...
+                            </span>
+                        </button>
+                    </div>
+                </div>
+            </section>
+        </form>
+    </div>
+</div>
+
+<style>
+.vnv-request-cta{
+    display:flex;
+    gap:16px;
+    align-items:center;
+    background:linear-gradient(135deg, #33c3c0, #5EC6C4);
+    border-radius:18px;
+    padding:16px;
+    margin-bottom:18px;
+    color:#041019;
+    box-shadow:0 15px 35px rgba(0,0,0,0.25);
+}
+
+.vnv-request-cta__icon{
+    width:60px;
+    height:60px;
+    border-radius:16px;
+    background:rgba(0,0,0,0.15);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:1.5rem;
+}
+
+.vnv-request-cta__content strong{
+    display:block;
+    font-size:1.1rem;
+    font-weight:900;
+    margin-bottom:4px;
+}
+
+.vnv-request-cta__content p{
+    margin:0 0 10px;
+    font-size:0.95rem;
+    line-height:1.4;
+}
+
+.vnv-request-cta__button{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    background:#041019;
+    color:#fff;
+    padding:10px 16px;
+    border-radius:999px;
+    font-weight:900;
+    text-decoration:none;
+    transition:0.2s ease;
+}
+
+.vnv-request-cta__button:hover{
+    transform:scale(1.03);
+    box-shadow:0 10px 20px rgba(0,0,0,0.3);
+}
+
+.vnv-request-modal{
+    position:fixed;
+    inset:0;
+    z-index:3000;
+    display:none;
+}
+
+.vnv-request-modal.is-open{
+    display:block;
+}
+
+.vnv-request-modal__backdrop{
+    position:absolute;
+    inset:0;
+    background:rgba(3, 7, 15, 0.72);
+    backdrop-filter:blur(8px);
+}
+
+.vnv-request-modal__dialog{
+    position:relative;
+    width:min(1080px, calc(100% - 32px));
+    max-height:calc(100vh - 24px);
+    margin:12px auto;
+    overflow-y:auto;
+    border-radius:22px;
+    background:linear-gradient(180deg, #040814 0%, #08101d 100%);
+    border:1px solid rgba(94, 198, 196, 0.18);
+    box-shadow:0 30px 90px rgba(0,0,0,0.45);
+    padding:28px 28px 34px;
+    color:#fff;
+    box-sizing:border-box;
+}
+
+.vnv-request-modal__dialog::after{
+    content:"";
+    display:block;
+    height:10px;
+}
+
+.vnv-request-modal__brand{
+    font-size:1rem;
+    font-weight:900;
+    color:#ffffff;
+    margin-bottom:18px;
+}
+
+.vnv-request-modal__close{
+    position:absolute;
+    top:18px;
+    right:18px;
+    width:46px;
+    height:46px;
+    border-radius:50%;
+    border:1px solid rgba(255,255,255,0.18);
+    background:#d93672;
+    color:#fff;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:1.2rem;
+    cursor:pointer;
+}
+
+.vnv-request-modal__head{
+    text-align:center;
+    margin-bottom:18px;
+}
+
+.vnv-request-modal__head h2{
+    font-size:clamp(2rem, 4vw, 3.2rem);
+    font-weight:800;
+    margin:0 0 8px;
+    color:#fff;
+}
+
+.vnv-request-modal__head p{
+    margin:0;
+    color:rgba(255,255,255,0.72);
+    font-size:1.08rem;
+}
+
+.vnv-request-progress{
+    display:flex;
+    justify-content:center;
+    gap:10px;
+    margin:0 0 28px;
+}
+
+.vnv-request-progress span{
+    width:12px;
+    height:12px;
+    border-radius:50%;
+    background:rgba(255,255,255,0.18);
+    transition:.25s ease;
+}
+
+.vnv-request-progress span.is-active{
+    background:#33c3c0;
+    box-shadow:0 0 0 6px rgba(51,195,192,0.14);
+}
+
+.vnv-request-step{
+    display:none;
+}
+
+.vnv-request-step.is-active{
+    display:block;
+}
+
+.vnv-request-panel{
+    background:linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.02));
+    border-radius:20px;
+    padding:22px;
+    border:1px solid rgba(255,255,255,0.05);
+}
+
+.vnv-request-panel h3{
+    margin:0 0 20px;
+    font-size:clamp(1.7rem, 3vw, 2.5rem);
+    font-weight:800;
+    color:#fff;
+}
+
+.vnv-request-grid{
+    display:grid;
+    gap:16px;
+}
+
+.vnv-request-grid--two{
+    grid-template-columns:1fr 1fr;
+}
+
+.vnv-request-label{
+    display:block;
+    margin-bottom:8px;
+    font-weight:700;
+    color:#e8edf8;
+}
+
+.vnv-request-input,
+.vnv-request-textarea{
+    width:100%;
+    border-radius:14px;
+    border:1px solid rgba(94, 198, 196, 0.16);
+    background:rgba(3, 10, 20, 0.9);
+    color:#fff;
+    padding:14px 16px;
+    outline:none;
+    transition:.2s ease;
+    box-sizing:border-box;
+}
+
+.vnv-request-input::placeholder,
+.vnv-request-textarea::placeholder{
+    color:rgba(255,255,255,0.35);
+}
+
+.vnv-request-input:focus,
+.vnv-request-textarea:focus{
+    border-color:rgba(94, 198, 196, 0.45);
+    box-shadow:0 0 0 4px rgba(94,198,196,0.08);
+}
+
+.vnv-request-service-group{
+    margin-bottom:22px;
+}
+
+.vnv-request-pill-list{
+    display:flex;
+    flex-wrap:wrap;
+    gap:10px;
+}
+
+.vnv-request-pill-list--cards{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:14px;
+}
+
+.vnv-request-pill{
+    border:1px solid rgba(94, 198, 196, 0.18);
+    background:rgba(3, 10, 20, 0.78);
+    color:#fff;
+    border-radius:18px;
+    padding:16px;
+    font-weight:700;
+    line-height:1.2;
+    cursor:pointer;
+    transition:.2s ease;
+    text-align:left;
+    min-height:96px;
+}
+
+.vnv-request-pill:hover,
+.vnv-request-pill.is-active{
+    background:#0f2330;
+    border-color:#33c3c0;
+    color:#fff;
+    box-shadow:0 8px 18px rgba(0,0,0,0.18);
+}
+
+.vnv-request-pill__title{
+    display:block;
+    font-size:1rem;
+    font-weight:800;
+    margin-bottom:6px;
+}
+
+.vnv-request-pill__meta{
+    display:block;
+    font-size:0.9rem;
+    color:rgba(255,255,255,0.72);
+    line-height:1.45;
+}
+
+.vnv-request-selected{
+    margin-top:8px;
+    padding:14px 16px;
+    border-radius:14px;
+    background:rgba(255,255,255,0.03);
+    color:rgba(255,255,255,0.72);
+    border:1px solid rgba(255,255,255,0.05);
+}
+
+.vnv-request-step4-copy{
+    margin-bottom:18px;
+}
+
+.vnv-request-step4-copy p{
+    margin:0;
+    color:rgba(255,255,255,0.78);
+    font-size:1.05rem;
+}
+
+.vnv-request-offers{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:18px;
+    margin-bottom:20px;
+}
+
+.vnv-request-offers--single{
+    grid-template-columns:1fr;
+}
+
+.vnv-request-offer-card{
+    border-radius:18px;
+    padding:20px;
+    background:linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));
+    border:1px solid rgba(255,255,255,0.05);
+}
+
+.vnv-request-offer-icon{
+    width:54px;
+    height:54px;
+    border-radius:16px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:rgba(197,160,89,0.12);
+    color:#d8b768;
+    font-size:1.35rem;
+    margin-bottom:12px;
+}
+
+.vnv-request-offer-card h4{
+    margin:0 0 8px;
+    font-size:1.15rem;
+    color:#fff;
+    font-weight:800;
+}
+
+.vnv-request-offer-card p{
+    margin:0;
+    color:rgba(255,255,255,0.68);
+}
+
+.vnv-request-summary{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:16px;
+    margin-bottom:18px;
+}
+
+.vnv-request-summary > div{
+    background:rgba(255,255,255,0.03);
+    border:1px solid rgba(255,255,255,0.05);
+    border-radius:16px;
+    padding:16px;
+}
+
+.vnv-request-summary small{
+    display:block;
+    margin-bottom:6px;
+    color:rgba(255,255,255,0.46);
+    text-transform:uppercase;
+    letter-spacing:1.2px;
+    font-size:0.74rem;
+}
+
+.vnv-request-summary strong{
+    color:#fff;
+    font-size:1rem;
+    line-height:1.4;
+}
+
+.vnv-request-actions{
+    margin-top:22px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:12px;
+}
+
+.vnv-request-actions--end{
+    justify-content:flex-end;
+}
+
+.vnv-request-btn{
+    border:none;
+    border-radius:14px;
+    padding:14px 24px;
+    font-weight:900;
+    font-size:1rem;
+    cursor:pointer;
+    transition:.2s ease;
+}
+
+.vnv-request-btn--primary{
+    background:#33c3c0;
+    color:#041019;
+}
+
+.vnv-request-btn--primary:hover{
+    transform:translateY(-1px);
+    filter:brightness(1.04);
+}
+
+.vnv-request-btn--ghost{
+    background:rgba(255,255,255,0.06);
+    color:#fff;
+    border:1px solid rgba(255,255,255,0.08);
+}
+
+.vnv-request-btn--ghost:hover{
+    background:rgba(255,255,255,0.1);
+}
+
+.vnv-request-btn.is-loading{
+    opacity:.85;
+    cursor:not-allowed;
+}
+
+.vnv-send-loading{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+}
+
+.d-none{
+    display:none !important;
+}
+
+body.vnv-request-lock{
+    overflow:hidden;
+}
+
+@media (max-width: 991px){
+    .vnv-request-modal__dialog{
+        width:min(100% - 18px, 100%);
+        padding:20px 16px calc(120px + env(safe-area-inset-bottom, 0px));
+        max-height:calc(100vh - 12px);
+        margin:6px auto;
+    }
+
+    .vnv-request-modal__dialog::after{
+        height:calc(70px + env(safe-area-inset-bottom, 0px));
+    }
+
+    .vnv-request-grid--two,
+    .vnv-request-pill-list--cards,
+    .vnv-request-summary,
+    .vnv-request-offers{
+        grid-template-columns:1fr;
+    }
+
+    .vnv-request-panel{
+        padding:18px 16px 26px;
+    }
+
+    .vnv-request-actions{
+        flex-direction:column;
+        align-items:stretch;
+        padding-bottom:env(safe-area-inset-bottom, 0px);
+    }
+
+    .vnv-request-btn{
+        width:100%;
+    }
+
+    .vnv-request-cta{
+        flex-direction:column;
+        align-items:flex-start;
+    }
+
+    .vnv-request-cta__button{
+        width:100%;
+        justify-content:center;
+    }
+}
+</style>
+
+{% if env.RECAPTCHA_SITE_KEY is defined and env.RECAPTCHA_SITE_KEY %}
+<script src="https://www.google.com/recaptcha/api.js?render={{ env.RECAPTCHA_SITE_KEY }}"></script>
+{% endif %}
+
+<script>
+(function () {
+    const modal = document.getElementById('vnvSponsorModal');
+    const form = document.getElementById('vnvSponsorForm');
+    if (!modal || !form) return;
+
+    function normalizeActionUrl() {
+        const rawAction = form.getAttribute('action') || '';
+        if (!rawAction || !rawAction.startsWith('/api/public/')) return;
+
+        const pathParts = window.location.pathname.split('/').filter(Boolean);
+        if (!pathParts.length) return;
+
+        const appBase = pathParts[0];
+        if (!appBase || appBase === 'api') return;
+
+        form.setAttribute('action', '/' + appBase + rawAction);
+    }
+
+    const openers = document.querySelectorAll('[data-vnv-open-sponsor]');
+    const closers = modal.querySelectorAll('[data-vnv-sponsor-close]');
+    const steps = Array.from(modal.querySelectorAll('[data-vnv-sponsor-step]'));
+    const dots = Array.from(modal.querySelectorAll('[data-vnv-sponsor-step-dot]'));
+    const nextButtons = modal.querySelectorAll('[data-vnv-sponsor-next]');
+    const prevButtons = modal.querySelectorAll('[data-vnv-sponsor-prev]');
+    const eventButtons = modal.querySelectorAll('[data-event]');
+    const packageButtons = modal.querySelectorAll('[data-package]');
+
+    const selectedEventsInput = document.getElementById('vnvSelectedSponsorEventsInput');
+    const selectedPackagesInput = document.getElementById('vnvSelectedSponsorPackagesInput');
+    const selectedEventsPreview = document.getElementById('vnvSelectedSponsorEventsPreview');
+    const selectedPackagesPreview = document.getElementById('vnvSelectedSponsorPackagesPreview');
+    const summaryEvents = document.getElementById('vnvSponsorSummaryEvents');
+    const summaryPackages = document.getElementById('vnvSponsorSummaryPackages');
+
+    const phoneInput = document.getElementById('vnv_sponsor_phone');
+    const sendBtn = document.getElementById('vnvSendSponsorRequestBtn');
+    const sendLabel = sendBtn ? sendBtn.querySelector('.vnv-send-label') : null;
+    const sendLoading = sendBtn ? sendBtn.querySelector('.vnv-send-loading') : null;
+    const recaptchaTokenInput = document.getElementById('vnvSponsorRecaptchaToken');
+
+    let currentStep = 1;
+    let sponsorRecaptchaSubmitting = false;
+    const selectedEvents = new Set();
+    const selectedPackages = new Set();
+
+    function setFieldError(field, message) {
+        if (!field) return false;
+        field.setCustomValidity(message || '');
+        if (message) field.reportValidity();
+        return !message;
+    }
+
+    function clearFieldError(field) {
+        if (!field) return;
+        field.setCustomValidity('');
+    }
+
+    function openModal() {
+        modal.classList.add('is-open');
+        modal.setAttribute('aria-hidden', 'false');
+        document.body.classList.add('vnv-request-lock');
+    }
+
+    function closeModal() {
+        modal.classList.remove('is-open');
+        modal.setAttribute('aria-hidden', 'true');
+        document.body.classList.remove('vnv-request-lock');
+    }
+
+    function goToStep(step) {
+        currentStep = step;
+        steps.forEach((el, index) => {
+            el.classList.toggle('is-active', index + 1 === step);
+        });
+        dots.forEach((dot, index) => {
+            dot.classList.toggle('is-active', index + 1 === step);
+        });
+
+        if (step === 4) {
+            updateSummary();
+        }
+    }
+
+    function updateEventsSelection() {
+        const items = Array.from(selectedEvents);
+        selectedEventsInput.value = JSON.stringify(items);
+        const text = items.length ? items.join(', ') : 'No events selected yet.';
+        selectedEventsPreview.textContent = text;
+        summaryEvents.textContent = text;
+    }
+
+    function updatePackagesSelection() {
+        const items = Array.from(selectedPackages);
+        selectedPackagesInput.value = JSON.stringify(items);
+        const text = items.length ? items.join(', ') : 'No sponsor packages selected yet.';
+        selectedPackagesPreview.textContent = text;
+        summaryPackages.textContent = text;
+    }
+
+    function updateSummary() {
+        updateEventsSelection();
+        updatePackagesSelection();
+    }
+
+    function formatPhoneNumber(value) {
+        const digits = (value || '').replace(/\D/g, '').slice(0, 10);
+
+        if (digits.length === 0) return '';
+        if (digits.length < 4) return '(' + digits;
+        if (digits.length < 7) return '(' + digits.slice(0, 3) + ') ' + digits.slice(3);
+        return '(' + digits.slice(0, 3) + ') ' + digits.slice(3, 6) + '-' + digits.slice(6, 10);
+    }
+
+    function validatePhoneField() {
+        if (!phoneInput || !phoneInput.value.trim()) {
+            return setFieldError(phoneInput, 'Phone is required.');
+        }
+
+        const digits = phoneInput.value.replace(/\D/g, '');
+        if (digits.length !== 10) {
+            return setFieldError(phoneInput, 'Please enter a valid phone number.');
+        }
+
+        return setFieldError(phoneInput, '');
+    }
+
+    function validateStep(step) {
+        if (step === 1) {
+            if (!selectedEvents.size) {
+                selectedEventsPreview.textContent = 'Please select at least one event.';
+                selectedEventsPreview.style.color = '#ffb9b9';
+                return false;
+            }
+            selectedEventsPreview.style.color = 'rgba(255,255,255,0.72)';
+        }
+
+        if (step === 2) {
+            if (!selectedPackages.size) {
+                selectedPackagesPreview.textContent = 'Please select at least one sponsor package.';
+                selectedPackagesPreview.style.color = '#ffb9b9';
+                return false;
+            }
+            selectedPackagesPreview.style.color = 'rgba(255,255,255,0.72)';
+        }
+
+        if (step === 3) {
+            const requiredIds = [
+                'vnv_sponsor_company',
+                'vnv_sponsor_role',
+                'vnv_sponsor_name',
+                'vnv_sponsor_email',
+                'vnv_sponsor_phone'
+            ];
+
+            for (const id of requiredIds) {
+                const field = document.getElementById(id);
+                if (field && !field.value.trim()) {
+                    field.focus();
+                    return false;
+                }
+            }
+
+            if (!validatePhoneField()) return false;
+        }
+
+        return true;
+    }
+
+    function setSubmitLoading(loading) {
+        if (sendBtn) {
+            sendBtn.disabled = !!loading;
+            sendBtn.classList.toggle('is-loading', !!loading);
+        }
+        if (sendLabel) sendLabel.classList.toggle('d-none', !!loading);
+        if (sendLoading) sendLoading.classList.toggle('d-none', !loading);
+    }
+
+    function getRecaptchaToken() {
+        return new Promise(function(resolve, reject) {
+            const siteKey = '{{ env.RECAPTCHA_SITE_KEY|default('') }}';
+
+            if (!siteKey) {
+                resolve('');
+                return;
+            }
+
+            if (!window.grecaptcha || typeof window.grecaptcha.ready !== 'function') {
+                reject(new Error('grecaptcha_not_available'));
+                return;
+            }
+
+            window.grecaptcha.ready(function() {
+                window.grecaptcha.execute(siteKey, { action: 'public_sponsor_request' })
+                    .then(function(token) {
+                        resolve(token || '');
+                    })
+                    .catch(function(error) {
+                        reject(error);
+                    });
+            });
+        });
+    }
+
+    openers.forEach(btn => {
+        btn.addEventListener('click', function (e) {
+            e.preventDefault();
+            openModal();
+        });
+    });
+
+    closers.forEach(btn => {
+        btn.addEventListener('click', closeModal);
+    });
+
+    modal.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') closeModal();
+    });
+
+    nextButtons.forEach(btn => {
+        btn.addEventListener('click', function () {
+            if (!validateStep(currentStep)) return;
+            if (currentStep < 4) goToStep(currentStep + 1);
+        });
+    });
+
+    prevButtons.forEach(btn => {
+        btn.addEventListener('click', function () {
+            if (currentStep > 1) goToStep(currentStep - 1);
+        });
+    });
+
+    eventButtons.forEach(btn => {
+        btn.addEventListener('click', function () {
+            const value = this.getAttribute('data-event');
+            if (!value) return;
+
+            if (selectedEvents.has(value)) {
+                selectedEvents.delete(value);
+                this.classList.remove('is-active');
+            } else {
+                selectedEvents.add(value);
+                this.classList.add('is-active');
+            }
+
+            updateEventsSelection();
+        });
+    });
+
+    packageButtons.forEach(btn => {
+        btn.addEventListener('click', function () {
+            const value = this.getAttribute('data-package');
+            if (!value) return;
+
+            if (selectedPackages.has(value)) {
+                selectedPackages.delete(value);
+                this.classList.remove('is-active');
+            } else {
+                selectedPackages.add(value);
+                this.classList.add('is-active');
+            }
+
+            updatePackagesSelection();
+        });
+    });
+
+    if (phoneInput) {
+        phoneInput.addEventListener('input', function () {
+            const start = this.selectionStart || 0;
+            const oldLength = this.value.length;
+            this.value = formatPhoneNumber(this.value);
+            clearFieldError(phoneInput);
+
+            const newLength = this.value.length;
+            const newPos = start + (newLength - oldLength);
+            try {
+                this.setSelectionRange(newPos, newPos);
+            } catch (e) {}
+        });
+
+        phoneInput.addEventListener('blur', function () {
+            this.value = formatPhoneNumber(this.value);
+            validatePhoneField();
+        });
+    }
+
+    form.addEventListener('submit', function (e) {
+        updateSummary();
+
+        if (!validateStep(3)) {
+            e.preventDefault();
+            goToStep(3);
+            return;
+        }
+
+        if (sponsorRecaptchaSubmitting) {
+            return;
+        }
+
+        const siteKey = '{{ env.RECAPTCHA_SITE_KEY|default('') }}';
+        if (!siteKey) {
+            return;
+        }
+
+        e.preventDefault();
+        setSubmitLoading(true);
+
+        getRecaptchaToken()
+            .then(function(token) {
+                if (recaptchaTokenInput) {
+                    recaptchaTokenInput.value = token;
+                }
+                sponsorRecaptchaSubmitting = true;
+                form.submit();
+            })
+            .catch(function() {
+                setSubmitLoading(false);
+                alert('Security verification failed. Please try again.');
+            });
+    });
+
+    normalizeActionUrl();
+    updateSummary();
+    goToStep(1);
+})();
+</script>

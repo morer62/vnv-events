@@ -1,733 +1,892 @@
 {% extends "templates/base.twig" %}
 
-{% block title %}
-    VNV Events Productions
-{% endblock %}
+{% set show_whatsapp = true %}
 
-{% block meta_description %}
-    Discover VNV Events Productions: signature experiences built around business, culture, nostalgia, family lifestyle, and meaningful community connection.
+{% block styles %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@200;300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,700;0,900;1,700;1,900&display=swap" rel="stylesheet">
+
+<style>
+:root {
+    --vnv-primary: #5EC6C4;
+    --vnv-primary-dark: #4aa8a6;
+    --vnv-gold: #c5a059;
+    --vnv-gold-gradient: linear-gradient(135deg, #bf953f 0%, #fcf6ba 45%, #b38728 100%);
+    --vnv-dark-deep: #0a0c0c;
+    --vnv-dark-soft: #141818;
+    --vnv-dark-card: #1b2021;
+    --vnv-light: #ffffff;
+    --vnv-marble: #f4f7f8;
+    --vnv-text-dark: #11181a;
+    --vnv-text-light: #f3f5f6;
+    --vnv-text-muted: rgba(255,255,255,.74);
+    --vnv-text-muted-dark: #536063;
+    --vnv-border: rgba(255,255,255,.08);
+    --vnv-shadow-lg: 0 40px 100px rgba(0,0,0,.24);
+}
+
+html { scroll-behavior: smooth; }
+
+html, body {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
+}
+
+body {
+    background: var(--vnv-dark-deep);
+    color: var(--vnv-text-light);
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    line-height: 1.8;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+}
+
+*, *::before, *::after {
+    box-sizing: border-box;
+}
+
+h1, h2, h3, h4, h5 {
+    font-family: 'Playfair Display', serif;
+}
+
+.text-vnv { color: var(--vnv-primary) !important; }
+.text-gold {
+    background: var(--vnv-gold-gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+.letter-spacing-lg { letter-spacing: 4px; }
+
+.vnv-btn {
+    padding: 18px 30px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    transition: all .35s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    text-decoration: none;
+    border: none;
+    cursor: pointer;
+    font-size: .78rem;
+    border-radius: 999px;
+}
+
+.btn-gold-vnv {
+    background: var(--vnv-gold-gradient);
+    color: #000 !important;
+}
+.btn-gold-vnv:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 20px 40px rgba(197,160,89,.22);
+}
+
+.btn-outline-vnv {
+    border: 2px solid var(--vnv-primary);
+    color: var(--vnv-primary) !important;
+    background: transparent;
+}
+.btn-outline-vnv:hover {
+    background: var(--vnv-primary);
+    color: #fff !important;
+}
+
+.btn-ghost-white {
+    border: 1px solid rgba(255,255,255,.16);
+    color: #fff !important;
+    background: transparent;
+}
+.btn-ghost-white:hover {
+    background: #fff;
+    color: #000 !important;
+}
+
+.section-vnv {
+    padding: 120px 0;
+    position: relative;
+}
+
+.vnv-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 18px;
+    border-radius: 999px;
+    background: rgba(94,198,196,.1);
+    color: var(--vnv-primary);
+    font-size: .74rem;
+    letter-spacing: 2px;
+    font-weight: 800;
+    text-transform: uppercase;
+}
+
+.vnv-breadcrumbs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    font-size: .88rem;
+    color: rgba(255,255,255,.6);
+    margin-top: 18px;
+}
+.vnv-breadcrumbs a {
+    color: rgba(255,255,255,.76);
+    text-decoration: none;
+}
+.vnv-breadcrumbs span.sep {
+    opacity: .4;
+}
+
+.hero-productions {
+    position: relative;
+    min-height: 92vh;
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+    background:
+        linear-gradient(90deg, rgba(10,12,12,.90) 0%, rgba(10,12,12,.72) 42%, rgba(10,12,12,.44) 100%),
+        url('{{ asset_for('assets/images/productions/hero-productions.jpg') }}') center/cover no-repeat;
+}
+
+.hero-productions::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+        radial-gradient(circle at top right, rgba(94,198,196,.16), transparent 28%),
+        radial-gradient(circle at bottom left, rgba(197,160,89,.12), transparent 24%);
+    pointer-events: none;
+}
+
+.hero-productions-inner {
+    position: relative;
+    z-index: 2;
+    width: 100%;
+}
+
+.hero-productions h1 {
+    font-size: clamp(3rem, 6vw, 5.5rem);
+    line-height: 1.02;
+    margin: 20px 0 28px;
+    max-width: 980px;
+}
+
+.hero-productions p.hero-copy {
+    font-size: 1.08rem;
+    color: var(--vnv-text-muted);
+    max-width: 760px;
+    margin-bottom: 20px;
+}
+
+.hero-cta-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin: 32px 0 28px;
+}
+
+.section-white {
+    background: var(--vnv-marble);
+    color: var(--vnv-text-dark);
+}
+
+.section-dark {
+    background: var(--vnv-dark-deep);
+    color: var(--vnv-text-light);
+}
+
+.section-heading {
+    max-width: 940px;
+    margin-bottom: 55px;
+}
+.section-heading h2 {
+    font-size: clamp(2.2rem, 4vw, 4.3rem);
+    line-height: 1.04;
+    margin: 16px 0 18px;
+}
+.section-dark .section-heading p {
+    color: var(--vnv-text-muted);
+}
+.section-white .section-heading p {
+    color: #5a6669;
+}
+
+.production-card {
+    display: grid;
+    grid-template-columns: 360px 1fr;
+    gap: 26px;
+    align-items: stretch;
+    border-radius: 30px;
+    padding: 22px;
+    height: 100%;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 20px 60px rgba(0,0,0,.10);
+}
+
+.section-dark .production-card,
+.section-dark .sponsor-tier-card,
+.section-dark .sponsor-feature-card,
+.section-dark .location-card {
+    background: linear-gradient(145deg, rgba(28,34,35,.95) 0%, rgba(16,18,18,.96) 100%);
+    border: 1px solid rgba(255,255,255,.07);
+}
+
+.section-white .production-card,
+.section-white .why-card,
+.section-white .studio-card {
+    background: #fff;
+    border: 1px solid rgba(17,24,26,.08);
+}
+
+.production-media {
+    min-height: 280px;
+    border-radius: 22px;
+    overflow: hidden;
+    background: #dfe7e9;
+}
+
+.production-media img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.production-body {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.production-body h3,
+.sponsor-tier-card h4,
+.sponsor-feature-card h4,
+.location-card h4,
+.why-card h4,
+.studio-card h4 {
+    margin-bottom: 16px;
+}
+
+.section-dark .production-body h3,
+.section-dark .sponsor-tier-card h4,
+.section-dark .sponsor-feature-card h4,
+.section-dark .location-card h4 {
+    color: #fff;
+}
+
+.section-white .production-body h3,
+.section-white .why-card h4,
+.section-white .studio-card h4 {
+    color: var(--vnv-text-dark);
+}
+
+.production-body h3 {
+    font-size: 2.05rem;
+    line-height: 1.04;
+}
+
+.production-body p,
+.section-dark .sponsor-tier-card p,
+.section-dark .sponsor-tier-card li,
+.section-dark .sponsor-feature-card p,
+.section-dark .sponsor-feature-card li,
+.section-dark .location-card p,
+.section-dark .location-card li {
+    color: var(--vnv-text-muted);
+}
+
+.section-white .production-body p,
+.section-white .why-card p,
+.section-white .studio-card p,
+.section-white .why-card li,
+.section-white .studio-card li {
+    color: #485457;
+}
+
+.production-points,
+.sponsor-tier-card ul,
+.sponsor-feature-card ul,
+.location-card ul,
+.why-card ul,
+.studio-card ul {
+    list-style: none;
+    padding-left: 0;
+    margin: 0;
+}
+
+.production-points li,
+.sponsor-tier-card ul li,
+.sponsor-feature-card ul li,
+.location-card ul li,
+.why-card ul li,
+.studio-card ul li {
+    position: relative;
+    padding-left: 22px;
+    margin-bottom: 8px;
+}
+
+.production-points li::before,
+.sponsor-tier-card ul li::before,
+.sponsor-feature-card ul li::before,
+.location-card ul li::before,
+.why-card ul li::before,
+.studio-card ul li::before {
+    content: "";
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--vnv-gold);
+    position: absolute;
+    left: 0;
+    top: 12px;
+}
+
+.production-top-actions,
+.sponsor-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin: 0 0 18px;
+}
+
+.call-strip {
+    margin-top: 22px;
+    padding-top: 18px;
+}
+.section-dark .call-strip {
+    border-top: 1px solid rgba(255,255,255,.08);
+}
+.section-white .call-strip {
+    border-top: 1px solid rgba(17,24,26,.08);
+}
+.call-strip a {
+    color: var(--vnv-primary);
+    text-decoration: none;
+    font-weight: 800;
+    letter-spacing: 1px;
+}
+
+.sponsor-hero-grid {
+    display: grid;
+    grid-template-columns: 340px 1fr;
+    gap: 26px;
+    align-items: stretch;
+    margin-bottom: 30px;
+}
+
+.sponsor-feature-card,
+.sponsor-tier-card,
+.location-card,
+.why-card,
+.studio-card {
+    border-radius: 28px;
+    padding: 30px;
+    height: 100%;
+}
+
+.sponsor-side-list ul {
+    margin-top: 18px;
+}
+
+.sponsor-packages-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 22px;
+}
+
+.sponsor-price {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 14px;
+    border-radius: 999px;
+    background: rgba(197,160,89,.14);
+    color: var(--vnv-gold);
+    font-weight: 800;
+    letter-spacing: 1px;
+    margin-bottom: 14px;
+}
+
+.sponsor-note {
+    margin-top: 18px;
+    font-size: .95rem;
+    color: rgba(255,255,255,.64);
+}
+
+.studio-wrap {
+    display: grid;
+    grid-template-columns: 1fr 420px;
+    gap: 26px;
+    align-items: stretch;
+}
+
+.studio-visual {
+    border-radius: 28px;
+    overflow: hidden;
+    min-height: 420px;
+    background:
+        linear-gradient(180deg, rgba(0,0,0,.08), rgba(0,0,0,.22)),
+        url('{{ asset_for('assets/images/productions/studio-sunrise.jpg') }}') center/cover no-repeat;
+    border: 1px solid rgba(17,24,26,.08);
+}
+
+@media (max-width: 1199px) {
+    .production-card {
+        grid-template-columns: 300px 1fr;
+    }
+
+    .studio-wrap,
+    .sponsor-hero-grid,
+    .sponsor-packages-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 991px) {
+    .hero-productions {
+        min-height: auto;
+        padding: 120px 0 80px;
+        background-position: center center;
+    }
+
+    .production-card {
+        grid-template-columns: 1fr;
+    }
+
+    .production-media {
+        min-height: 240px;
+    }
+}
+
+@media (max-width: 767px) {
+    .section-vnv {
+        padding: 90px 0;
+    }
+
+    .hero-productions h1 {
+        font-size: 2.7rem;
+    }
+
+    .vnv-btn {
+        width: 100%;
+    }
+
+    .production-card,
+    .sponsor-tier-card,
+    .sponsor-feature-card,
+    .location-card,
+    .why-card,
+    .studio-card {
+        padding: 22px;
+    }
+
+    .production-body h3 {
+        font-size: 1.75rem;
+    }
+}
+</style>
 {% endblock %}
 
 {% block body %}
-<style>
-    :root{
-        --vep-bg:#f6f3ec;
-        --vep-card:#ffffff;
-        --vep-text:#1d140b;
-        --vep-muted:#6f6255;
-        --vep-border:#e6d7bf;
-        --vep-dark:#1a120b;
-        --vep-accent:#b98b2f;
-        --vep-accent-2:#d9b76a;
-        --vep-green:#748c2b;
-        --vep-shadow:0 18px 44px rgba(42,25,10,.08);
-        --vep-shadow-strong:0 24px 56px rgba(42,25,10,.14);
-    }
 
-    body{
-        background:linear-gradient(180deg,#fbf8f2 0%, #f4efe6 100%);
-        color:var(--vep-text);
-    }
+{% include "templates/layout/publicHeaderVnv.html.twig" %}
 
-    .vep-wrap{
-        max-width:1280px;
-        margin:0 auto;
-        padding:2rem 1rem 4rem;
-    }
+<section class="hero-productions">
+    <div class="container hero-productions-inner">
+        <span class="vnv-badge">VNV Events Productions</span>
 
-    .vep-section{
-        margin-bottom:1.5rem;
-    }
+        <h1>Curated event concepts with <span class="text-gold">community, elegance and sponsor value</span></h1>
 
-    .vep-hero{
-        position:relative;
-        overflow:hidden;
-        border-radius:34px;
-        padding:3.6rem 1.6rem 3.2rem;
-        background:
-            radial-gradient(900px 420px at 0% 0%, rgba(255,255,255,.07), transparent 60%),
-            linear-gradient(135deg,#0f1115 0%, #1b2230 52%, #293241 100%);
-        color:#fff;
-        box-shadow:0 28px 64px rgba(15,17,21,.18);
-    }
-
-    .vep-hero::before{
-        content:"";
-        position:absolute;
-        inset:auto -100px -110px auto;
-        width:320px;
-        height:320px;
-        background:radial-gradient(circle, rgba(185,139,47,.20) 0%, rgba(185,139,47,0) 70%);
-        pointer-events:none;
-    }
-
-    .vep-hero::after{
-        content:"";
-        position:absolute;
-        left:-90px;
-        top:-90px;
-        width:260px;
-        height:260px;
-        background:radial-gradient(circle, rgba(255,255,255,.10) 0%, rgba(255,255,255,0) 70%);
-        pointer-events:none;
-    }
-
-    .vep-hero > *{
-        position:relative;
-        z-index:2;
-    }
-
-    .vep-badge{
-        display:inline-flex;
-        align-items:center;
-        gap:.5rem;
-        padding:.58rem .95rem;
-        border-radius:999px;
-        font-size:.88rem;
-        font-weight:900;
-        background:rgba(255,255,255,.10);
-        border:1px solid rgba(255,255,255,.14);
-        color:#f3f4f6;
-        margin-bottom:1rem;
-    }
-
-    .vep-hero-grid{
-        display:grid;
-        grid-template-columns:1.15fr .85fr;
-        gap:1.4rem;
-        align-items:center;
-    }
-
-    .vep-hero-copy h1{
-        font-size:clamp(2.4rem,5vw,4.5rem);
-        line-height:1.01;
-        letter-spacing:-.05em;
-        font-weight:900;
-        margin:0 0 .9rem;
-        max-width:820px;
-    }
-
-    .vep-highlight{
-        color:#f2c76d;
-    }
-
-    .vep-hero-copy p{
-        max-width:820px;
-        color:#e7e5e4;
-        line-height:1.85;
-        font-size:1.05rem;
-        margin:0 0 1.5rem;
-    }
-
-    .vep-hero-actions{
-        display:flex;
-        flex-wrap:wrap;
-        gap:.8rem;
-    }
-
-    .vep-btn{
-        display:inline-flex;
-        align-items:center;
-        justify-content:center;
-        gap:.5rem;
-        text-decoration:none;
-        border-radius:999px;
-        padding:1rem 1.35rem;
-        font-weight:900;
-        transition:all .2s ease;
-    }
-
-    .vep-btn-main{
-        background:#fff;
-        color:#111827;
-        box-shadow:0 12px 28px rgba(255,255,255,.18);
-    }
-
-    .vep-btn-main:hover{
-        transform:translateY(-2px);
-        background:#f9fafb;
-        color:#111827;
-    }
-
-    .vep-btn-soft{
-        background:rgba(255,255,255,.08);
-        border:1px solid rgba(255,255,255,.16);
-        color:#fff;
-    }
-
-    .vep-btn-soft:hover{
-        transform:translateY(-2px);
-        color:#fff;
-        background:rgba(255,255,255,.12);
-    }
-
-    .vep-hero-panel{
-        background:rgba(255,255,255,.08);
-        border:1px solid rgba(255,255,255,.12);
-        border-radius:24px;
-        padding:1.15rem;
-        backdrop-filter:blur(8px);
-        box-shadow:0 12px 28px rgba(0,0,0,.12);
-    }
-
-    .vep-hero-panel h3{
-        font-size:1rem;
-        font-weight:900;
-        margin-bottom:.75rem;
-        color:#fff;
-    }
-
-    .vep-mini-list{
-        display:grid;
-        gap:.75rem;
-        margin:0;
-        padding:0;
-        list-style:none;
-    }
-
-    .vep-mini-list li{
-        padding:.75rem .85rem;
-        border-radius:16px;
-        background:rgba(255,255,255,.06);
-        color:#e5e7eb;
-        line-height:1.6;
-        font-size:.95rem;
-        border:1px solid rgba(255,255,255,.08);
-    }
-
-    .vep-intro{
-        background:#fff;
-        border:1px solid var(--vep-border);
-        border-radius:26px;
-        box-shadow:var(--vep-shadow);
-        padding:1.6rem;
-    }
-
-    .vep-intro h2{
-        font-size:1.5rem;
-        font-weight:900;
-        margin-bottom:.55rem;
-        color:var(--vep-dark);
-    }
-
-    .vep-intro p{
-        margin:0;
-        color:var(--vep-muted);
-        line-height:1.9;
-    }
-
-    .vep-events-head{
-        text-align:center;
-        margin-bottom:1.2rem;
-    }
-
-    .vep-events-head h2{
-        font-size:clamp(2rem,4vw,3rem);
-        font-weight:900;
-        letter-spacing:-.04em;
-        color:var(--vep-dark);
-        margin-bottom:.65rem;
-    }
-
-    .vep-events-head p{
-        max-width:820px;
-        margin:0 auto;
-        color:var(--vep-muted);
-        line-height:1.85;
-        font-size:1.03rem;
-    }
-
-    .vep-grid{
-        display:grid;
-        grid-template-columns:repeat(2,minmax(0,1fr));
-        gap:1.25rem;
-    }
-
-    .vep-card{
-        background:#fff;
-        border:1px solid var(--vep-border);
-        border-radius:28px;
-        overflow:hidden;
-        box-shadow:var(--vep-shadow);
-        display:flex;
-        flex-direction:column;
-        height:100%;
-    }
-
-    .vep-card-image-wrap{
-        position:relative;
-        overflow:hidden;
-    }
-
-    .vep-card-image{
-        width:100%;
-        height:290px;
-        object-fit:cover;
-        background:#ece8e0;
-        display:block;
-    }
-
-    .vep-card-overlay{
-        position:absolute;
-        left:16px;
-        bottom:16px;
-        display:inline-flex;
-        align-items:center;
-        padding:.52rem .82rem;
-        border-radius:999px;
-        background:rgba(17,24,39,.78);
-        color:#fff;
-        font-size:.78rem;
-        font-weight:900;
-        backdrop-filter:blur(8px);
-    }
-
-    .vep-card-body{
-        padding:1.35rem;
-        display:flex;
-        flex-direction:column;
-        height:100%;
-    }
-
-    .vep-card-tag{
-        display:inline-flex;
-        align-items:center;
-        padding:.45rem .8rem;
-        border-radius:999px;
-        background:#faf7f1;
-        border:1px solid var(--vep-border);
-        color:#5f554a;
-        font-size:.78rem;
-        font-weight:900;
-        margin-bottom:.85rem;
-        width:max-content;
-    }
-
-    .vep-card h3{
-        font-size:1.42rem;
-        font-weight:900;
-        line-height:1.08;
-        margin:0 0 .7rem;
-        color:var(--vep-dark);
-    }
-
-    .vep-card p{
-        color:var(--vep-muted);
-        line-height:1.82;
-        margin-bottom:1rem;
-        font-size:.98rem;
-    }
-
-    .vep-list{
-        margin:0 0 1rem;
-        padding-left:1.1rem;
-        color:#4b5563;
-    }
-
-    .vep-list li{
-        margin-bottom:.48rem;
-        line-height:1.65;
-    }
-
-    .vep-card-foot{
-        display:flex;
-        flex-wrap:wrap;
-        gap:.65rem;
-        margin-top:auto;
-    }
-
-    .vep-chip{
-        display:inline-flex;
-        align-items:center;
-        padding:.46rem .78rem;
-        border-radius:999px;
-        background:#faf7f1;
-        border:1px solid var(--vep-border);
-        color:#3f3327;
-        font-size:.76rem;
-        font-weight:900;
-    }
-
-    .vep-sponsor{
-        background:linear-gradient(135deg,#ffffff 0%, #f8f4ec 100%);
-        border:1px solid var(--vep-border);
-        border-radius:28px;
-        box-shadow:var(--vep-shadow);
-        padding:1.6rem;
-    }
-
-    .vep-sponsor-top{
-        display:grid;
-        grid-template-columns:1fr .9fr;
-        gap:1.2rem;
-        align-items:start;
-        margin-bottom:1.15rem;
-    }
-
-    .vep-sponsor h2{
-        font-size:1.6rem;
-        font-weight:900;
-        margin-bottom:.55rem;
-        color:var(--vep-dark);
-    }
-
-    .vep-sponsor p{
-        color:var(--vep-muted);
-        line-height:1.85;
-        margin:0;
-        max-width:860px;
-    }
-
-    .vep-sponsor-highlight{
-        background:linear-gradient(135deg,#1b2230 0%, #283548 100%);
-        color:#fff;
-        border-radius:24px;
-        padding:1.15rem;
-        box-shadow:0 18px 38px rgba(15,23,42,.14);
-    }
-
-    .vep-sponsor-highlight strong{
-        display:block;
-        font-size:1.05rem;
-        margin-bottom:.35rem;
-        color:#fff;
-    }
-
-    .vep-sponsor-highlight span{
-        color:#e5e7eb;
-        line-height:1.75;
-        font-size:.95rem;
-    }
-
-    .vep-sponsor-grid{
-        display:grid;
-        grid-template-columns:repeat(3,minmax(0,1fr));
-        gap:1rem;
-    }
-
-    .vep-sponsor-box{
-        background:#fff;
-        border:1px solid var(--vep-border);
-        border-radius:22px;
-        padding:1.05rem;
-        box-shadow:0 10px 24px rgba(42,25,10,.05);
-    }
-
-    .vep-sponsor-box strong{
-        display:block;
-        color:var(--vep-dark);
-        font-size:1rem;
-        margin-bottom:.28rem;
-    }
-
-    .vep-sponsor-box span{
-        display:block;
-        color:var(--vep-muted);
-        line-height:1.7;
-        font-size:.94rem;
-    }
-
-    .vep-cta{
-        background:
-            radial-gradient(700px 280px at 0% 0%, rgba(255,255,255,.08), transparent 60%),
-            linear-gradient(135deg,#131a24 0%, #1e293b 55%, #334155 100%);
-        border:1px solid rgba(255,255,255,.06);
-        border-radius:30px;
-        box-shadow:var(--vep-shadow-strong);
-        padding:2rem 1.5rem;
-        text-align:center;
-        color:#fff;
-    }
-
-    .vep-cta h2{
-        font-size:1.8rem;
-        font-weight:900;
-        margin-bottom:.55rem;
-        color:#fff;
-    }
-
-    .vep-cta p{
-        max-width:760px;
-        margin:0 auto 1.25rem;
-        color:#e5e7eb;
-        line-height:1.85;
-    }
-
-    .vep-cta-actions{
-        display:flex;
-        justify-content:center;
-        gap:.8rem;
-        flex-wrap:wrap;
-    }
-
-    @media (max-width: 991px){
-        .vep-hero-grid,
-        .vep-sponsor-top,
-        .vep-grid,
-        .vep-sponsor-grid{
-            grid-template-columns:1fr;
-        }
-    }
-
-    @media (max-width: 640px){
-        .vep-wrap{
-            padding-top:1.2rem;
-        }
-
-        .vep-hero{
-            padding:2.2rem 1rem;
-            border-radius:24px;
-        }
-
-        .vep-card-image{
-            height:230px;
-        }
-
-        .vep-hero-actions,
-        .vep-cta-actions{
-            flex-direction:column;
-        }
-
-        .vep-btn{
-            width:100%;
-        }
-    }
-</style>
-
-<main class="vep-wrap">
-
-    <section class="vep-section vep-hero">
-        <div class="vep-badge">
-            <i class="fa-solid fa-star"></i>
-            VNV Events Productions
-        </div>
-
-        <div class="vep-hero-grid">
-            <div class="vep-hero-copy">
-                <h1>
-                    Signature experiences designed to <span class="vep-highlight">connect people, brands, and culture</span>
-                </h1>
-                <p>
-                    VNV Events Productions brings together business, lifestyle, nostalgia, wellness, and community through original concepts created to feel intentional, elevated, and memorable. These are not generic events — they are platforms where people connect, sponsors gain visibility, and experiences feel curated from the first impression to the final detail.
-                </p>
-
-                <div class="vep-hero-actions">
-                    <a href="#events" class="vep-btn vep-btn-main">
-                        <i class="fa-solid fa-calendar-days"></i>
-                        Explore Events
-                    </a>
-                    <a href="/new-request" class="vep-btn vep-btn-soft">
-                        <i class="fa-solid fa-handshake"></i>
-                        Sponsor or Collaborate
-                    </a>
-                </div>
-            </div>
-
-            <div class="vep-hero-panel">
-                <h3>What makes these productions different</h3>
-                <ul class="vep-mini-list">
-                    <li>Original concepts with clear audience identity</li>
-                    <li>Professional environments built for sponsor visibility</li>
-                    <li>Stronger aesthetics, smoother execution, and meaningful community value</li>
-                    <li>Flexible formats: business, lifestyle, nostalgia, family, and wellness</li>
-                </ul>
-            </div>
-        </div>
-    </section>
-
-    <section class="vep-section vep-intro">
-        <h2>A growing collection of original event concepts</h2>
-        <p>
-            Each production is built with its own personality and purpose, while keeping one common standard: strong aesthetics, intentional programming, thoughtful sponsor integration, and real audience value. Some are designed for networking and business growth, others for lifestyle, nostalgia, or emotional reset — but all are meant to feel distinctive and professionally executed.
+        <p class="hero-copy">
+            VNV Events Productions is built around recurring experiences that bring people together through style, music, conversation, food and elevated brand-friendly moments.
         </p>
-    </section>
 
-    <section class="vep-section">
-        <div class="vep-events-head">
-            <h2>Current event concepts</h2>
+        <p class="hero-copy">
+            From refined business gatherings to immersive lifestyle concepts, each production is built to create memorable experiences while opening the door to meaningful sponsor integration.
+        </p>
+        <div class="hero-cta-row">
+            <a href="#event-models" class="vnv-btn btn-gold-vnv">Explore Events</a>
+            
+             <a href="#" data-vnv-open-sponsor class="vnv-btn btn-gold-vnv">Sponsor Inquiry</a>
+   
+            <a href="tel:+13052045427" class="vnv-btn btn-outline-vnv">Call (305) 204-5427</a>
+        </div>
+
+        <div class="vnv-breadcrumbs">
+            <a href="{{ path('/') }}">Home</a>
+            <span class="sep">/</span>
+            <span>VNV Events Productions</span>
+        </div>
+    </div>
+</section>
+
+<section class="section-vnv section-white" id="event-models">
+    <div class="container">
+        <div class="section-heading">
+            <span class="vnv-badge">Event Models</span>
+            <h2>Four signature experiences for <span class="text-vnv">four different audiences</span></h2>
             <p>
-                From refined networking environments to immersive lifestyle formats, these concepts are designed to grow as recognizable VNV productions with room for sponsors, collaborators, and brand activations.
+                I replaced B2B Live with Vanguard Business Gala, because today that concept already has a stronger standalone identity and a clearer high-end positioning than the old B2B reference.  
             </p>
         </div>
 
-        <section id="events" class="vep-grid">
+        <div class="row g-4">
+            <div class="col-12">
+                <div class="production-card">
+                    <div class="production-media">
+                        <img src="{{ asset_for('assets/images/productions/vanguard-business-gala.jpg') }}" alt="Vanguard Business Gala by VNV Events">
+                    </div>
+                    <div class="production-body">
+                        <div>
+                            <div class="production-top-actions">
+                                <a href="{{ path('vnv-events-productions/vanguard-business-gala') }}" class="vnv-btn btn-gold-vnv">View Event</a>
+                            </div>
 
-            <article class="vep-card">
-                <div class="vep-card-image-wrap">
-                    <img src="{{ asset_for('assets/images/productions/vanguarg-business-gala.jpg') }}" alt="Vanguarg Business Gala" class="vep-card-image">
-                    <span class="vep-card-overlay">Flagship Networking Experience</span>
-                </div>
-                <div class="vep-card-body">
-                    <span class="vep-card-tag">Business • Prestige • Connections</span>
-                    <h3>Vanguarg Business Gala</h3>
-                    <p>
-                        An elevated evening designed for entrepreneurs, executives, and decision-makers who value meaningful connection in a polished environment. This concept points toward a refined dinner-driven experience with curated speakers, elegant production, and high-value networking.
-                    </p>
-                    <ul class="vep-list">
-                        <li>Premium audience and elevated atmosphere</li>
-                        <li>Ideal for sponsors seeking prestige and visibility</li>
-                        <li>Built for strong conversations and long-term brand positioning</li>
-                    </ul>
-                    <div class="vep-card-foot">
-                        <span class="vep-chip">T.B.A.</span>
-                        <span class="vep-chip">Formal Gala</span>
-                        <span class="vep-chip">Business Audience</span>
+                            <h3>Vanguard Business Gala</h3>
+                            <p>
+                                A private, high-level evening designed to connect South Florida decision makers through refined networking, seated dinner and three featured speakers.
+                            </p>
+
+                            <ul class="production-points">
+                                <li>Curated audience of founders, investors, executives and key leaders</li>
+                                <li>Seated dinner paired with business, technology and leadership insight</li>
+                                <li>Classic lounge close with elevated energy, never a festival feel</li>
+                            </ul>
+                        </div>
+
+                        <div class="call-strip">
+                            <a href="{{ path('vnv-events-productions/vanguard-business-gala') }}">Go to Vanguard Business Gala landing</a>
+                        </div>
                     </div>
                 </div>
-            </article>
+            </div>
 
-            <article class="vep-card">
-                <div class="vep-card-image-wrap">
-                    <img src="{{ asset_for('assets/images/productions/b2b-live.jpg') }}" alt="B2B Live" class="vep-card-image">
-                    <span class="vep-card-overlay">Business • Trends • Technology</span>
-                </div>
-                <div class="vep-card-body">
-                    <span class="vep-card-tag">Networking • Expo • Innovation</span>
-                    <h3>B2B Live</h3>
-                    <p>
-                        A dynamic platform where brands, founders, and professionals come together to exchange ideas, discover trends, and build strategic relationships. B2B Live is meant to feel modern, practical, and highly interactive — more than a networking event, it is a live business ecosystem.
-                    </p>
-                    <ul class="vep-list">
-                        <li>Networking opportunities with local businesses and professionals</li>
-                        <li>Strong exhibitor and sponsor potential</li>
-                        <li>Speaking segments, activations, and collaborative visibility</li>
-                    </ul>
-                    <div class="vep-card-foot">
-                        <span class="vep-chip">Expo Style</span>
-                        <span class="vep-chip">Business Growth</span>
-                        <span class="vep-chip">Tech & Trends</span>
+            <div class="col-12">
+                <div class="production-card">
+                    <div class="production-media">
+                        <img src="{{ asset_for('assets/images/productions/retro-glam.jpg') }}" alt="VNV Retro Glam event">
+                    </div>
+                    <div class="production-body">
+                        <div>
+                            <div class="production-top-actions">
+                                <a href="{{ path('vnv-events-productions/retro-glam') }}" class="vnv-btn btn-gold-vnv">View Event</a>
+                            </div>
+
+                            <h3>VNV Retro Glam</h3>
+                            <p>
+                                An immersive music-and-style concept inspired by the 70s, 80s and 90s, built for nostalgia, visual impact and strong social energy.
+                            </p>
+
+                            <ul class="production-points">
+                                <li>Perfect for lifestyle brands and visual sponsor moments</li>
+                                <li>Built around themed environments, music and memory-triggering design</li>
+                                <li>Highly shareable, playful and stylish without losing polish</li>
+                            </ul>
+                        </div>
+
+                        <div class="call-strip">
+                            <a href="{{ path('vnv-events-productions/retro-glam') }}">Go to Retro Glam landing</a>
+                        </div>
                     </div>
                 </div>
-            </article>
+            </div>
 
-            <article class="vep-card">
-                <div class="vep-card-image-wrap">
-                    <img src="{{ asset_for('assets/images/productions/retro-glam-session.jpg') }}" alt="Retro Glam Session" class="vep-card-image">
-                    <span class="vep-card-overlay">Music • Style • Nostalgia</span>
-                </div>
-                <div class="vep-card-body">
-                    <span class="vep-card-tag">Immersive • Lifestyle • Visual Identity</span>
-                    <h3>Retro Glam Session</h3>
-                    <p>
-                        A vibrant immersive experience inspired by the visual and musical energy of the 70s, 80s, and 90s. Retro Glam Session is designed to feel cinematic, stylish, highly shareable, and sponsor-friendly.
-                    </p>
-                    <ul class="vep-list">
-                        <li>Strong visual identity and immersive atmosphere</li>
-                        <li>Ideal for lifestyle, beauty, fashion, and entertainment partnerships</li>
-                        <li>Built around nostalgia, glamour, and interactive energy</li>
-                    </ul>
-                    <div class="vep-card-foot">
-                        <span class="vep-chip">Retro</span>
-                        <span class="vep-chip">Immersive</span>
-                        <span class="vep-chip">Lifestyle</span>
+            <div class="col-12">
+                <div class="production-card">
+                    <div class="production-media">
+                        <img src="{{ asset_for('assets/images/productions/flavor-fusion-fest.jpg') }}" alt="Flavor Fusion Fest by VNV Events">
+                    </div>
+                    <div class="production-body">
+                        <div>
+                            <div class="production-top-actions">
+                                <a href="{{ path('vnv-events-productions/flavor-fusion-fest') }}" class="vnv-btn btn-gold-vnv">View Event</a>
+                            </div>
+
+                            <h3>Flavor Fusion Fest</h3>
+                            <p>
+                                A food, beverage and live-experience format that celebrates local flavor, artisanal pairings and sponsor-friendly community traffic.
+                            </p>
+
+                            <ul class="production-points">
+                                <li>Strong fit for food, beverage and hospitality brands</li>
+                                <li>Can blend tastings, exhibitor presence, music and community energy</li>
+                                <li>Designed for discovery, hospitality and sensory appeal</li>
+                            </ul>
+                        </div>
+
+                        <div class="call-strip">
+                            <a href="{{ path('vnv-events-productions/flavor-fusion-fest') }}">Go to Flavor Fusion Fest landing</a>
+                        </div>
                     </div>
                 </div>
-            </article>
+            </div>
 
-            <article class="vep-card">
-                <div class="vep-card-image-wrap">
-                    <img src="{{ asset_for('assets/images/productions/mommy-and-daddy-break.jpg') }}" alt="Mommy and Daddy Break" class="vep-card-image">
-                    <span class="vep-card-overlay">Parents • Lifestyle • Recharge</span>
-                </div>
-                <div class="vep-card-body">
-                    <span class="vep-card-tag">Parents • Community • Reset</span>
-                    <h3>Mommy and Daddy Break</h3>
-                    <p>
-                        A concept designed for parents who need room to reconnect, unwind, and enjoy a quality experience outside of the daily routine. It blends relaxation, casual conversation, music, and thoughtful sponsor-led comfort moments.
-                    </p>
-                    <ul class="vep-list">
-                        <li>Perfect for family-oriented brands and wellness partnerships</li>
-                        <li>Can blend leisure, conversation, and curated sponsor moments</li>
-                        <li>Built around connection, recharge, and premium casual energy</li>
-                    </ul>
-                    <div class="vep-card-foot">
-                        <span class="vep-chip">Parents</span>
-                        <span class="vep-chip">Lifestyle</span>
-                        <span class="vep-chip">Community</span>
+            <div class="col-12">
+                <div class="production-card">
+                    <div class="production-media">
+                        <img src="{{ asset_for('assets/images/productions/mommy-and-daddy-break.jpg') }}" alt="Mommy and Daddy Break by VNV Events">
+                    </div>
+                    <div class="production-body">
+                        <div>
+                            <div class="production-top-actions">
+                                <a href="{{ path('vnv-events-productions/mommy-and-daddy-break') }}" class="vnv-btn btn-gold-vnv">View Event</a>
+                            </div>
+
+                            <h3>Mommy and Daddy Break</h3>
+                            <p>
+                                A biweekly concept designed for parents who need room to reconnect, unwind and enjoy a quality experience outside of the daily routine.
+                            </p>
+
+                            <ul class="production-points">
+                                <li>Perfect for family-oriented brands and wellness partnerships</li>
+                                <li>Blends leisure, conversation, music and sponsor-led comfort moments</li>
+                                <li>Built around recharge, connection and premium casual energy</li>
+                            </ul>
+                        </div>
+
+                        <div class="call-strip">
+                            <a href="{{ path('vnv-events-productions/mommy-and-daddy-break') }}">Go to Mommy and Daddy Break landing</a>
+                        </div>
                     </div>
                 </div>
-            </article>
+            </div>
+        </div>
+    </div>
+</section>
 
-            <article class="vep-card">
-                <div class="vep-card-image-wrap">
-                    <img src="{{ asset_for('assets/images/productions/the-morning-break.jpg') }}" alt="The Morning Break - A Biweekly Mommy and Daddy Retreat" class="vep-card-image">
-                    <span class="vep-card-overlay">Morning Reset • Wellness • Parents</span>
-                </div>
-                <div class="vep-card-body">
-                    <span class="vep-card-tag">Biweekly Retreat • 3 Hours • Recharge</span>
-                    <h3>The Morning Break – A Biweekly Mommy and Daddy Retreat</h3>
-                    <p>
-                        A three-hour morning escape designed for parents who need a real reset. Guests drop off the kids, take a breath, enjoy a curated environment, sip something good, connect with other parents, and leave feeling lighter than they arrived.
-                    </p>
-                    <ul class="vep-list">
-                        <li>Built for biweekly rhythm and repeat attendance</li>
-                        <li>Ideal for sponsors in wellness, self-care, food, and family lifestyle</li>
-                        <li>Can include breakfast, coffee, mini massages, and sponsor activations</li>
-                        <li>Designed to feel restorative, social, and beautifully produced</li>
-                    </ul>
-                    <div class="vep-card-foot">
-                        <span class="vep-chip">Morning Event</span>
-                        <span class="vep-chip">Wellness</span>
-                        <span class="vep-chip">Family Lifestyle</span>
-                    </div>
-                </div>
-            </article>
+<section class="section-vnv section-dark" id="sponsorships">
+    <div class="container">
+        <div class="section-heading">
+            <span class="vnv-badge">2026–2027 Sponsorship Packages</span>
+            <h2>Sponsorship opportunities designed for <span class="text-gold">visibility, positioning and real connection</span></h2>
+            <p>
+                Partner with VNV Events and place your brand inside experiences built around business, lifestyle, hospitality and community. These packages are designed to give sponsors more than exposure — they create real touchpoints with the right audience.
+            </p>
+        </div>
 
-        </section>
-    </section>
-
-    <section class="vep-section vep-sponsor">
-        <div class="vep-sponsor-top">
-            <div>
-                <h2>Sponsorships, collaborations, and brand integrations</h2>
+        <div class="sponsor-hero-grid">
+            <div class="sponsor-feature-card sponsor-side-list">
+                <h4>Where your brand can show up</h4>
                 <p>
-                    These productions are not just events. They are platforms for visibility, storytelling, activation, and real audience connection. Depending on the concept, sponsors can step in through immersive brand moments, hosted experiences, product placement, service sampling, exhibitor presence, or full co-branded support.
+                    Partner with VNV Events and showcase your brand across some of South Florida’s most creative and community-driven experiences.
                 </p>
+
+                <ul>
+                    <li>Vanguard Business Gala — elevated networking, refined seated dinner and 3 featured speakers</li>
+                    <li>Retro Glam — immersive retro experience with strong visual and social moments</li>
+                    <li>Flavor Fusion Fest — local cuisine, artisanal beverages and live community energy</li>
+                    <li>Mommy and Daddy Break — wellness, comfort and family-oriented sponsor alignment</li>
+                </ul>
             </div>
 
-            <div class="vep-sponsor-highlight">
-                <strong>Especially strong for:</strong>
-                <span>
-                    wellness brands, food and beverage partners, beauty and self-care concepts, family services, business tools, media partners, and brands looking for more meaningful in-person engagement.
-                </span>
+            <div class="sponsor-feature-card">
+                <div class="sponsor-price">
+                    <i class="fa-solid fa-camera-retro"></i>
+                    Sponsored Photo Booth Experience — $1,690
+                </div>
+
+                <h4>Signature visual integration</h4>
+                <p>
+                    One of the strongest offers from your current page. It is easy to understand, highly visual and naturally sponsor-friendly.  
+                </p>
+
+                <ul>
+                    <li>Available for Vanguard Business Gala, Flavor Fusion Fest and Retro Glam</li>
+                    <li>Exclusive branding of one themed photo booth area</li>
+                    <li>Choose from custom backdrop concepts</li>
+                    <li>Logo integration in booth design, photo overlays and printing</li>
+                    <li>Recognition in signage, digital guide and website</li>
+                    <li>4 VIP tickets included</li>
+                </ul>
+
+                <div class="sponsor-actions" style="margin-top:22px;">
+                    <a href="#" data-vnv-open-sponsor class="vnv-btn btn-gold-vnv">Sponsor Inquiry</a>
+                </div>
             </div>
         </div>
 
-        <div class="vep-sponsor-grid">
-            <div class="vep-sponsor-box">
-                <strong>For sponsors</strong>
-                <span>
-                    Position your brand inside experiences designed to feel elevated, intentional, and memorable — with room for visibility, content creation, activations, and direct audience interaction.
-                </span>
+        <div class="sponsor-packages-grid">
+            <div class="sponsor-tier-card">
+                <div class="sponsor-price">
+                    <i class="fa-solid fa-puzzle-piece"></i>
+                    Standard Exhibitor Package — $460
+                </div>
+
+                <h4>Exhibitor visibility with practical value</h4>
+                <ul>
+                    <li>Best fit for Flavor Fusion Fest and selected business-forward editions</li>
+                    <li>8×8 ft exhibitor space (table or booth option)</li>
+                    <li>Listing in printed and digital event guide</li>
+                    <li>Logo placement on sponsor webpage</li>
+                    <li>2 general admission tickets included</li>
+                </ul>
             </div>
 
-            <div class="vep-sponsor-box">
-                <strong>For collaborators</strong>
-                <span>
-                    We welcome aligned vendors, media partners, speakers, exhibitors, wellness practitioners, and creative collaborators who can add value and strengthen the experience.
-                </span>
+            <div class="sponsor-tier-card">
+                <div class="sponsor-price">
+                    <i class="fa-solid fa-microphone"></i>
+                    Speaker Add-On — $220
+                </div>
+
+                <h4>Thought leadership without a full booth package</h4>
+                <ul>
+                    <li>Great fit for business-driven and educational event formats</li>
+                    <li>Speaking slot during conference or workshop segment</li>
+                    <li>Recognition in printed program and social graphics</li>
+                    <li>On-stage business mention</li>
+                    <li>1 additional VIP ticket included</li>
+                </ul>
             </div>
 
-            <div class="vep-sponsor-box">
-                <strong>For recurring concepts</strong>
-                <span>
-                    Retreat-style events like <em>The Morning Break</em> open the door to repeat sponsor presence, ongoing community touchpoints, and stronger long-term brand recall.
-                </span>
+            <div class="sponsor-tier-card">
+                <div class="sponsor-price">
+                    <i class="fa-solid fa-rocket"></i>
+                    Emerging Entrepreneur Package — $120
+                </div>
+
+                <h4>Accessible entry point for newer brands</h4>
+                <ul>
+                    <li>Works across all VNV production formats</li>
+                    <li>Logo featured on main booth design and event banner</li>
+                    <li>Recognition in event marketing emails</li>
+                    <li>Spotlight interview featured on website</li>
+                    <li>1 VIP + 2 General Admission tickets included</li>
+                </ul>
+            </div>
+
+            <div class="sponsor-tier-card">
+                <div class="sponsor-price">
+                    <i class="fa-solid fa-building-columns"></i>
+                    Premium Booth or Anchor Integration
+                </div>
+
+                <h4>For brands that want stronger positioning</h4>
+                <ul>
+                    <li>Best aligned with Vanguard Business Gala and flagship editions</li>
+                    <li>Primary booth placement or enhanced lounge presence</li>
+                    <li>Featured placement on website and digital materials</li>
+                    <li>Higher-touch hospitality and guest interaction opportunities</li>
+                    <li>Ideal for brands that want more than logo exposure</li>
+                </ul>
             </div>
         </div>
-    </section>
 
-    <section class="vep-section vep-cta">
-        <h2>Interested in sponsoring, collaborating, or activating inside a production?</h2>
-        <p>
-            If you want to explore sponsorship opportunities, exhibitor space, branded moments, product sampling, or media collaboration, reach out and we can discuss which production best fits your brand and goals.
+        <p class="sponsor-note">
+            Package availability may vary by event, format and audience size. Custom sponsor integrations are also available for brands looking for a more tailored presence.
         </p>
+    </div>
+</section>
 
-        <div class="vep-cta-actions">
-            <a href="/new-request" class="vep-btn vep-btn-main">Request Information</a>
-            <a href="/contact" class="vep-btn vep-btn-soft">Contact VNV Events</a>
+<section class="section-vnv section-white">
+    <div class="container">
+        <div class="section-heading">
+            <span class="vnv-badge">Why It Works</span>
+            <h2>Not just standalone nights — <span class="text-vnv">recurring ecosystems</span></h2>
+            <p>
+                The real strength here is that these are not random events. They can become recurring platforms where guests, brands and community keep meeting under the VNV umbrella.
+            </p>
         </div>
-    </section>
 
-</main>
+        <div class="row g-4">
+            <div class="col-lg-4">
+                <div class="why-card">
+                    <h4>Community-led</h4>
+                    <p>
+                        Each production is designed to gather a specific audience in a way that feels intentional, warm and naturally social.
+                    </p>
+                </div>
+            </div>
+
+            <div class="col-lg-4">
+                <div class="why-card">
+                    <h4>Sponsor-friendly</h4>
+                    <p>
+                        Sponsors are not just placed in the room. They can become part of the moment, the hospitality and the memory.
+                    </p>
+                </div>
+            </div>
+
+            <div class="col-lg-4">
+                <div class="why-card">
+                    <h4>Visually memorable</h4>
+                    <p>
+                        The concepts are built to look good, feel elevated and generate repeat interest both in person and online.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="section-vnv section-dark">
+    <div class="container">
+        <div class="studio-wrap">
+            <div class="location-card">
+                <span class="vnv-badge">Sunrise, Florida</span>
+                <h4 style="font-size:2.3rem; margin-top:18px;">Where the concepts and sponsor conversations begin</h4>
+                <p>
+                    The location block was also part of the original productions page, so I kept it here as a trust anchor and operational base for meetings, tours and partnership conversations.  
+
+                <ul>
+                    <li>Courtyard Business Center, 10258 NW 47th St, Sunrise, FL 33351</li>
+                    <li>Great for sponsor meetings, planning sessions and production walkthroughs</li>
+                    <li>Central to the VNV ecosystem of events, studio and hospitality</li>
+                </ul>
+
+                <div class="call-strip">
+                    <a href="tel:+13052045427">Call Now (305) 204-5427</a>
+                </div>
+
+                <div class="production-top-actions" style="margin-top:22px;">
+                    <a href="https://maps.app.goo.gl/" target="_blank" class="vnv-btn btn-gold-vnv">Get Directions</a>
+                    <a href="mailto:info@vnvevents.com" class="vnv-btn btn-ghost-white">Email Us</a>
+                </div>
+            </div>
+
+            <div class="studio-visual"></div>
+        </div>
+    </div>
+</section>
+
+{% include "templates/components/publicEventRequestModal.html.twig" with {
+    request_form_action: "/api/public/event-request"
+} %}
+
+{% include "templates/components/publicSponsorRequestModal.html.twig" with {
+    sponsor_form_action: "/api/public/sponsor-request"
+} %}
+
+{% include "templates/layout/publicFooterVnv.html.twig" %} 
+
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+
+<script>
+if (typeof gsap !== 'undefined' && typeof ScrollTrigger !== 'undefined') {
+    const isMobile = window.innerWidth <= 767;
+
+    if (!isMobile) {
+        gsap.registerPlugin(ScrollTrigger);
+
+        gsap.utils.toArray('.production-card, .sponsor-tier-card, .sponsor-feature-card, .why-card, .location-card').forEach((card) => {
+            gsap.from(card, {
+                scrollTrigger: {
+                    trigger: card,
+                    start: "top 88%"
+                },
+                y: 36,
+                opacity: 0,
+                duration: 0.9,
+                ease: "power3.out"
+            });
+        });
+    }
+}
+</script>
 {% endblock %}
