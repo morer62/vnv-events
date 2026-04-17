@@ -137,7 +137,7 @@ $router->post(function () {
 
             $variationPrice = $variationPriceRaw !== '' ? (float)$variationPriceRaw : 0;
             if ($variationPrice <= 0) {
-                MessageUtil::setMessage("Each variation must have a price greater than zero.");
+                MessageUtil::setMessage("Each variation must have a price greater than zero. Variation #" . ($i + 1) . " is missing a valid price.");
                 LocationUtils::redirectInternal("panel/planner-hub/store/products/create");
             }
 

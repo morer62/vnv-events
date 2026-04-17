@@ -179,19 +179,19 @@
             <p class="text-muted mb-0">Products are now the main entry point. Choose fixed or variable pricing and build the catalog from here.</p>
         </div>
         <div class="store-inline-actions">
-            <a href="/panel/planner-hub/store/products/home" class="btn btn-outline-secondary">
+            <a href="{{ path('panel/planner-hub/store/products/home') }}" class="btn btn-outline-secondary">
                 ← Back to Products
             </a>
-            <a href="/panel/planner-hub/store/attributes/home" class="btn btn-outline-dark">
+            <a href="{{ path('panel/planner-hub/store/attributes/home') }}" class="btn btn-outline-dark">
                 Attributes
             </a>
-            <a href="/panel/planner-hub/store/attribute-values/home" class="btn btn-outline-dark">
+            <a href="{{ path('panel/planner-hub/store/attribute-values/home') }}" class="btn btn-outline-dark">
                 Attribute Values
             </a>
         </div>
     </div>
 
-    <form method="post" enctype="multipart/form-data">
+    <form method="post" enctype="multipart/form-data" id="product-create-form">
         <div class="store-section-card">
             <div class="card-body">
                 <div class="store-section-title">Basic Information</div>
@@ -377,8 +377,8 @@
                         <div class="store-section-subtitle mb-0">Use these for product details, filters or supporting information. These do not control price by themselves.</div>
                     </div>
                     <div class="store-inline-actions">
-                        <a href="/panel/planner-hub/store/attributes/create" class="btn btn-outline-dark btn-sm">+ New Attribute</a>
-                        <a href="/panel/planner-hub/store/attribute-values/create" class="btn btn-outline-dark btn-sm">+ New Value</a>
+                        <a href="{{ path('panel/planner-hub/store/attributes/create') }}" class="btn btn-outline-dark btn-sm">+ New Attribute</a>
+                        <a href="{{ path('panel/planner-hub/store/attribute-values/create') }}" class="btn btn-outline-dark btn-sm">+ New Value</a>
                     </div>
                 </div>
 
@@ -428,7 +428,7 @@
                     <button type="submit" class="btn btn-success">
                         Save Product
                     </button>
-                    <a href="/panel/planner-hub/store/products/home" class="btn btn-outline-secondary">
+                    <a href="{{ path('panel/planner-hub/store/products/home') }}" class="btn btn-outline-secondary">
                         Cancel
                     </a>
                 </div>
@@ -556,6 +556,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     const productTypeInput = document.getElementById('product_type_input');
+    const productCreateForm = document.getElementById('product-create-form');
     const typeCards = document.querySelectorAll('[data-product-type-card]');
     const fixedCard = document.getElementById('fixed-fields-card');
     const variableCard = document.getElementById('variable-fields-card');
@@ -635,6 +636,30 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     refreshVariationNumbers();
+
+    if (productCreateForm) {
+        productCreateForm.addEventListener('submit', function (event) {
+            if (productTypeInput.value !== 'VARIABLE') {
+                return;
+            }
+
+            const variationRows = variationsContainer.querySelectorAll('.store-variation-card');
+            for (let idx = 0; idx < variationRows.length; idx++) {
+                const row = variationRows[idx];
+                const priceInput = row.querySelector('input[name^="variation_price["]');
+                const priceValue = priceInput ? parseFloat(priceInput.value) : 0;
+
+                if (!priceInput || Number.isNaN(priceValue) || priceValue <= 0) {
+                    event.preventDefault();
+                    alert('Each variation must have a price greater than zero. Please complete variation #' + (idx + 1) + '.');
+                    if (priceInput) {
+                        priceInput.focus();
+                    }
+                    return;
+                }
+            }
+        });
+    }
 });
 </script>
 {% endblock %}
