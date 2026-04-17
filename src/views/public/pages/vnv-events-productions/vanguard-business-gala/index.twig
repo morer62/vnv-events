@@ -1,0 +1,640 @@
+{% extends "templates/base.twig" %}
+
+{% set show_whatsapp = true %}
+
+{% block styles %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@200;300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,700;0,900;1,700;1,900&display=swap" rel="stylesheet">
+
+<style>
+:root {
+    --vnv-primary: #5EC6C4;
+    --vnv-primary-dark: #4aa8a6;
+    --vnv-gold: #c5a059;
+    --vnv-gold-gradient: linear-gradient(135deg, #bf953f 0%, #fcf6ba 45%, #b38728 100%);
+    --vnv-dark-deep: #0a0c0c;
+    --vnv-dark-soft: #141818;
+    --vnv-dark-card: #171b1c;
+    --vnv-light: #ffffff;
+    --vnv-marble: #f4f7f8;
+    --vnv-text-dark: #11181a;
+    --vnv-text-light: #f3f5f6;
+    --vnv-text-muted: rgba(255,255,255,.74);
+    --vnv-text-muted-dark: #536063;
+    --vnv-border: rgba(255,255,255,.08);
+    --vnv-shadow-lg: 0 40px 100px rgba(0,0,0,.24);
+}
+
+html { scroll-behavior: smooth; }
+
+html, body {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
+}
+
+body {
+    background: var(--vnv-dark-deep);
+    color: var(--vnv-text-light);
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    line-height: 1.8;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+}
+
+*, *::before, *::after {
+    box-sizing: border-box;
+}
+
+h1, h2, h3, h4, h5 {
+    font-family: 'Playfair Display', serif;
+}
+
+.text-vnv { color: var(--vnv-primary) !important; }
+.text-gold {
+    background: var(--vnv-gold-gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+.letter-spacing-lg { letter-spacing: 4px; }
+
+.vnv-btn {
+    padding: 18px 30px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    transition: all .35s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    text-decoration: none;
+    border: none;
+    cursor: pointer;
+    font-size: .78rem;
+    border-radius: 999px;
+}
+
+.btn-gold-vnv {
+    background: var(--vnv-gold-gradient);
+    color: #000 !important;
+}
+.btn-gold-vnv:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 20px 40px rgba(197,160,89,.22);
+}
+
+.btn-outline-vnv {
+    border: 2px solid var(--vnv-primary);
+    color: var(--vnv-primary) !important;
+    background: transparent;
+}
+.btn-outline-vnv:hover {
+    background: var(--vnv-primary);
+    color: #fff !important;
+}
+
+.btn-ghost-white {
+    border: 1px solid rgba(255,255,255,.16);
+    color: #fff !important;
+    background: transparent;
+}
+.btn-ghost-white:hover {
+    background: #fff;
+    color: #000 !important;
+}
+
+.section-vnv {
+    padding: 120px 0;
+    position: relative;
+}
+
+.section-white {
+    background: var(--vnv-marble);
+    color: var(--vnv-text-dark);
+}
+
+.section-dark {
+    background: var(--vnv-dark-deep);
+    color: var(--vnv-text-light);
+}
+
+.vnv-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 18px;
+    border-radius: 999px;
+    background: rgba(94,198,196,.1);
+    color: var(--vnv-primary);
+    font-size: .74rem;
+    letter-spacing: 2px;
+    font-weight: 800;
+    text-transform: uppercase;
+}
+
+.vnv-breadcrumbs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    font-size: .88rem;
+    color: rgba(255,255,255,.6);
+    margin-top: 18px;
+}
+.vnv-breadcrumbs a {
+    color: rgba(255,255,255,.76);
+    text-decoration: none;
+}
+.vnv-breadcrumbs span.sep {
+    opacity: .4;
+}
+
+.event-hero {
+    position: relative;
+    min-height: 92vh;
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+    background:
+        linear-gradient(90deg, rgba(10,12,12,.92) 0%, rgba(10,12,12,.76) 40%, rgba(10,12,12,.44) 100%),
+        url('{{ asset_for('assets/images/productions/vanguard-business-gala-hero.jpg') }}') center/cover no-repeat;
+}
+
+.event-hero::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+        radial-gradient(circle at top right, rgba(94,198,196,.14), transparent 28%),
+        radial-gradient(circle at bottom left, rgba(197,160,89,.14), transparent 24%);
+    pointer-events: none;
+}
+
+.event-hero__inner {
+    position: relative;
+    z-index: 2;
+    width: 100%;
+}
+
+.event-hero h1 {
+    font-size: clamp(3rem, 6vw, 5.2rem);
+    line-height: 1.02;
+    margin: 20px 0 24px;
+    max-width: 900px;
+}
+
+.event-hero .hero-copy {
+    font-size: 1.08rem;
+    color: var(--vnv-text-muted);
+    max-width: 760px;
+    margin-bottom: 18px;
+}
+
+.hero-cta-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin: 34px 0 28px;
+}
+
+.section-heading {
+    max-width: 940px;
+    margin-bottom: 55px;
+}
+.section-heading h2 {
+    font-size: clamp(2.2rem, 4vw, 4.3rem);
+    line-height: 1.04;
+    margin: 16px 0 18px;
+}
+.section-dark .section-heading p {
+    color: var(--vnv-text-muted);
+}
+.section-white .section-heading p {
+    color: #5a6669;
+}
+
+.experience-grid,
+.agenda-list,
+.info-grid,
+.sponsor-grid {
+    display: grid;
+    gap: 22px;
+}
+
+.experience-grid {
+    grid-template-columns: 1fr 1fr;
+}
+
+.info-grid,
+.sponsor-grid {
+    grid-template-columns: 1fr 1fr;
+}
+
+.card-vnv,
+.agenda-card {
+    border-radius: 30px;
+    padding: 30px;
+    box-shadow: 0 20px 60px rgba(0,0,0,.10);
+}
+
+.section-dark .card-vnv,
+.section-dark .agenda-card {
+    background: linear-gradient(145deg, rgba(28,34,35,.95) 0%, rgba(16,18,18,.96) 100%);
+    border: 1px solid rgba(255,255,255,.07);
+}
+
+.section-white .card-vnv {
+    background: #fff;
+    border: 1px solid rgba(17,24,26,.08);
+}
+
+.card-vnv h3,
+.agenda-card h3,
+.card-vnv h4 {
+    margin-bottom: 14px;
+}
+
+.section-dark .card-vnv h3,
+.section-dark .card-vnv h4,
+.section-dark .agenda-card h3 {
+    color: #fff;
+}
+
+.section-white .card-vnv h3,
+.section-white .card-vnv h4 {
+    color: var(--vnv-text-dark);
+}
+
+.card-vnv p,
+.agenda-card p {
+    margin: 0;
+}
+
+.section-dark .card-vnv p,
+.section-dark .agenda-card p {
+    color: var(--vnv-text-muted);
+}
+
+.section-white .card-vnv p {
+    color: #485457;
+}
+
+.card-icon {
+    width: 58px;
+    height: 58px;
+    border-radius: 18px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 18px;
+    background: rgba(197,160,89,.12);
+    color: var(--vnv-gold);
+    font-size: 1.2rem;
+}
+
+.agenda-list {
+    grid-template-columns: 1fr;
+}
+
+.agenda-card {
+    display: grid;
+    grid-template-columns: 190px 1fr;
+    gap: 30px;
+    align-items: start;
+}
+
+.agenda-time {
+    color: #e3b76c;
+    font-size: 1.15rem;
+    font-weight: 800;
+    line-height: 1.2;
+}
+
+.agenda-card h3 {
+    font-size: 1.9rem;
+    line-height: 1.05;
+}
+
+.detail-list {
+    list-style: none;
+    padding-left: 0;
+    margin: 0;
+}
+
+.detail-list li {
+    position: relative;
+    padding-left: 22px;
+    margin-bottom: 8px;
+}
+
+.detail-list li::before {
+    content: "";
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--vnv-gold);
+    position: absolute;
+    left: 0;
+    top: 12px;
+}
+
+.call-strip {
+    margin-top: 22px;
+    padding-top: 18px;
+    border-top: 1px solid rgba(255,255,255,.08);
+}
+.call-strip a {
+    color: var(--vnv-primary);
+    text-decoration: none;
+    font-weight: 800;
+    letter-spacing: 1px;
+}
+
+.event-visual {
+    min-height: 420px;
+    border-radius: 30px;
+    overflow: hidden;
+    background:
+        linear-gradient(180deg, rgba(0,0,0,.10), rgba(0,0,0,.24)),
+        url('{{ asset_for('assets/images/productions/vanguard-business-gala-detail.jpg') }}') center/cover no-repeat;
+    border: 1px solid rgba(255,255,255,.08);
+}
+
+@media (max-width: 1199px) {
+    .experience-grid,
+    .info-grid,
+    .sponsor-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 991px) {
+    .event-hero {
+        min-height: auto;
+        padding: 120px 0 80px;
+        background-position: center center;
+    }
+
+    .agenda-card {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+
+    .event-visual {
+        min-height: 300px;
+    }
+}
+
+@media (max-width: 767px) {
+    .section-vnv {
+        padding: 90px 0;
+    }
+
+    .event-hero h1 {
+        font-size: 2.7rem;
+    }
+
+    .vnv-btn {
+        width: 100%;
+    }
+
+    .card-vnv,
+    .agenda-card {
+        padding: 22px;
+    }
+
+    .agenda-card h3 {
+        font-size: 1.55rem;
+    }
+}
+</style>
+{% endblock %}
+
+{% block body %}
+
+{% include "templates/layout/publicHeaderVnv.html.twig" %}
+
+<section class="event-hero">
+    <div class="container event-hero__inner">
+        <span class="vnv-badge">VNV Events Productions</span>
+
+        <h1>Vanguard Business Gala</h1>
+
+        <p class="hero-copy">
+            A private evening designed for South Florida founders, executives, investors and decision makers who value a room with the right people, a structured flow and space for real conversations.
+        </p>
+
+        <p class="hero-copy">
+            This is not a loud expo and not a rushed mixer. It is a 4-hour experience built around curated networking, a seated dinner, 3 featured speakers and an elegant lounge close.
+        </p>
+
+        <div class="hero-cta-row">
+            <a href="#agenda" class="vnv-btn btn-gold-vnv">View Agenda</a>
+            <a href="#experience" class="vnv-btn btn-outline-vnv">The Experience</a>
+            <a href="#" data-vnv-open-sponsor class="vnv-btn btn-outline-vnv">Sponsor Inquiry</a>
+        </div>
+
+        <div class="vnv-breadcrumbs">
+            <a href="{{ path('/') }}">Home</a>
+            <span class="sep">/</span>
+            <a href="{{ path('vnv-events-productions') }}">VNV Events Productions</a>
+            <span class="sep">/</span>
+            <span>Vanguard Business Gala</span>
+        </div>
+    </div>
+</section>
+
+<section class="section-vnv section-white" id="experience">
+    <div class="container">
+        <div class="section-heading">
+            <span class="vnv-badge">The Experience</span>
+            <h2>A business evening designed to feel <span class="text-vnv">clear, structured and worth attending</span></h2>
+            <p>
+                Vanguard Business Gala is built around what guests actually experience from the moment they arrive: the quality of the room, the flow of introductions, the seated dinner, the featured speakers, and the final lounge-style close. It is a business event designed to feel structured, comfortable and worth the time.
+            </p>
+        </div>
+
+        <div class="experience-grid">
+            <div class="card-vnv">
+                <div class="card-icon"><i class="fa-solid fa-user-group"></i></div>
+                <h3>Curated arrival and networking</h3>
+                <p>
+                    After the networking reception, the event shifts into a seated dinner format. This gives the night more structure and allows guests to slow down, settle in and focus on the conversations, the speakers and the overall experience.
+                </p>
+            </div>
+
+            <div class="card-vnv">
+                <div class="card-icon"><i class="fa-solid fa-utensils"></i></div>
+                <h3>Seated dinner with substance</h3>
+                <p>
+                    This part of the night is slower, more focused and more useful. Guests sit down, dinner is served, and the room shifts from introductions to listening, learning and conversation around real business, technology and leadership topics. 
+                </p>
+            </div>
+
+            <div class="card-vnv">
+                <div class="card-icon"><i class="fa-solid fa-microphone-lines"></i></div>
+                <h3>Three featured speakers</h3>
+                <p>
+                    The speaker segment is built around practical business, leadership and innovation topics. Instead of turning the night into a long conference, the speakers are part of the flow and give the event a clear center with useful ideas and strong stage presence.
+                </p>
+            </div>
+
+            <div class="card-vnv">
+                <div class="card-icon"><i class="fa-solid fa-champagne-glasses"></i></div>
+                <h3>Classic lounge close</h3>
+                <p>
+                    The final part of the event opens the room again, but with polish. Music leans into 70s, 80s, 90s and adult contemporary, keeping the energy elegant and social rather than chaotic. It is designed to help people stay, talk, reconnect and close the night well.  
+                </p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="section-vnv section-dark" id="agenda">
+    <div class="container">
+        <div class="section-heading">
+            <span class="vnv-badge">Agenda</span>
+            <h2>A 4-hour flow that moves with purpose</h2>
+            <p>
+                The current Vanguard Business Gala agenda runs from 6:00 PM to 10:00 PM, with cocktail networking, a short welcome transition, a seated dinner with 3 featured speakers, and a lounge-style farewell.  
+        </div>
+
+        <div class="agenda-list">
+            <div class="agenda-card">
+                <div class="agenda-time">6:00 – 7:20 PM</div>
+                <div>
+                    <h3>Cocktail & Curated Networking</h3>
+                    <p>
+                        Welcome reception, brand experiences and intentional introductions as guests settle in and the room begins to connect. 
+                    </p>
+                </div>
+            </div>
+
+            <div class="agenda-card">
+                <div class="agenda-time">7:20 – 7:30 PM</div>
+                <div>
+                    <h3>Welcome & Transition</h3>
+                    <p>
+                        A brief opening moment that sets the tone and moves the room from the reception flow into the seated dinner experience. 
+                    </p>
+                </div>
+            </div>
+
+            <div class="agenda-card">
+                <div class="agenda-time">7:30 – 8:45 PM</div>
+                <div>
+                    <h3>Seated Dinner & 3 Featured Speakers</h3>
+                    <p>
+                        Dinner is served while the stage content focuses on emerging trends in business, technology and leadership. 
+                    </p>
+                </div>
+            </div>
+
+            <div class="agenda-card">
+                <div class="agenda-time">8:45 – 10:00 PM</div>
+                <div>
+                    <h3>Classic Lounge Party & Farewell</h3>
+                    <p>
+                        A polished closing block with classic favorites, adult contemporary music and a more relaxed atmosphere for final conversations.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="section-vnv section-white">
+    <div class="container">
+        <div class="section-heading">
+            <span class="vnv-badge">What Makes It Valuable</span>
+            <h2>Why this format works for guests and sponsors</h2>
+            <p>
+                The existing Vanguard site presents the gala as invitation-oriented, quality-controlled and capacity-limited, with sponsorships built around booth-focused integrations and branded experiences. 
+            </p>
+        </div>
+
+        <div class="info-grid">
+            <div class="card-vnv">
+                <h4>For guests</h4>
+                <ul class="detail-list">
+                    <li>Clear 4-hour format that respects people’s time</li>
+                    <li>Business-first room instead of random traffic</li>
+                    <li>Dinner, speakers and lounge in one coherent flow</li>
+                    <li>Better setting for real introductions and follow-up</li>
+                </ul>
+            </div>
+
+            <div class="card-vnv">
+                <h4>For sponsor brands</h4>
+                <ul class="detail-list">
+                    <li>Brand visibility inside a curated and professional environment</li>
+                    <li>Natural touchpoints during arrival, transitions and closing moments</li>
+                    <li>Strong fit for premium local services, finance, hospitality, tech and real estate</li>
+                    <li>Better opportunity for real interaction than passive logo placement alone</li>
+                </ul>
+
+                
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="section-vnv section-dark">
+    <div class="container">
+        <div class="sponsor-grid">
+            <div class="card-vnv">
+                 <span class="vnv-badge">Sponsor Visibility</span>
+                    <h3 style="margin-top:18px;">Sponsor visibility that feels natural</h3>
+                    <p>
+                        Sponsorship inside Vanguard Business Gala is designed to feel natural. The goal is not to overload the event with branding, but to create the right moments for visibility, interaction and meaningful presence inside a high-quality room.
+                    </p>
+
+                    <div class="call-strip">
+                        <a href="#" data-vnv-open-sponsor>Open sponsor form</a>
+                    </div>
+
+                    <div style="margin-top:24px;">
+                        <a href="#" data-vnv-open-sponsor class="vnv-btn btn-gold-vnv">Sponsor Inquiry</a>
+                    </div>
+            </div>
+
+            <div class="event-visual"></div>
+        </div>
+    </div>
+</section>
+
+{% include "templates/components/publicSponsorRequestModal.html.twig" with {
+    sponsor_form_action: "/api/public/sponsor-request"
+} %}
+
+{% include "templates/layout/publicFooterVnv.html.twig" %}
+
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+
+<script>
+if (typeof gsap !== 'undefined' && typeof ScrollTrigger !== 'undefined') {
+    const isMobile = window.innerWidth <= 767;
+
+    if (!isMobile) {
+        gsap.registerPlugin(ScrollTrigger);
+
+        gsap.utils.toArray('.card-vnv, .agenda-card, .event-visual').forEach((card) => {
+            gsap.from(card, {
+                scrollTrigger: {
+                    trigger: card,
+                    start: "top 88%"
+                },
+                y: 36,
+                opacity: 0,
+                duration: 0.9,
+                ease: "power3.out"
+            });
+        });
+    }
+}
+</script>
+{% endblock %}
