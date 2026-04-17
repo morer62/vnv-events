@@ -68,10 +68,45 @@ $router->get(function () {
 
 $router->post(function () {
     $productsRepo = new StoreProductsRepository();
+    $logDir = LocationUtils::getRootLocation() . '/.logs';
+    if (!is_dir($logDir)) {
+        @mkdir($logDir, 0777, true);
+    }
+
+    $logFile = $logDir . '/app_error_' . date('Y-m-d') . '.log';
+    if (!file_exists($logFile)) {
+        @touch($logFile);
+    }
+
+    $logContext = '[STORE_PRODUCTS_EDIT]';
+    $logDebug = static function (string $message, array $extra = []) use ($logDir, $logFile, $logContext): void {
+        $payload = [
+            'ts' => date('Y-m-d H:i:s'),
+            'message' => $message,
+        ];
+
+        if (!empty($extra)) {
+            $payload['extra'] = $extra;
+        }
+
+        $line = $logContext . ' ' . json_encode($payload, JSON_UNESCAPED_UNICODE) . PHP_EOL;
+        $written = @file_put_contents($logFile, $line, FILE_APPEND);
+
+        if ($written === false) {
+            error_log($line);
+            error_log($logContext . ' Failed writing to log file: ' . $logFile . ' (dir: ' . $logDir . ')');
+        }
+    };
 
     $id = intval($_POST['id'] ?? 0);
+    $logDebug('POST received', [
+        'id' => $id,
+        'post_keys' => array_keys($_POST ?? []),
+        'has_main_image' => FileUtils::hasFile($_FILES, 'main_image'),
+    ]);
 
     if ($id <= 0) {
+        $logDebug('Validation failed: invalid product id', ['id' => $id]);
         MessageUtil::setMessage("Invalid product.");
         LocationUtils::redirectInternal("panel/planner-hub/store/products/home");
     }
@@ -79,6 +114,7 @@ $router->post(function () {
     $existingProduct = $productsRepo->getOne(['id' => $id]);
 
     if (!$existingProduct) {
+        $logDebug('Validation failed: product not found', ['id' => $id]);
         MessageUtil::setMessage("Product not found.");
         LocationUtils::redirectInternal("panel/planner-hub/store/products/home");
     }
@@ -109,31 +145,45 @@ $router->post(function () {
     $attributeValues = $_POST['attribute_values'] ?? [];
 
     if ($name === '') {
+        $logDebug('Validation failed: empty product name', ['id' => $id]);
         MessageUtil::setMessage("Product name is required.");
         LocationUtils::redirectInternal("panel/planner-hub/store/products/edit?id=" . $id);
     }
 
     if ($productType === StoreProductsRepository::PRODUCT_TYPE_FIXED && $price <= 0) {
-        MessageUtil::setMessage("Fixed products must have a price greater than zero.");
+        $logDebug('Validation failed: fixed price <= 0', [
+            'id' => $id,
+            'price_raw' => $priceRaw,
+            'price' => $price,
+        ]);
+        MessageUtil::setMessage("Fixed products must have a price greater than zero. Please enter a valid price to update this product.");
         LocationUtils::redirectInternal("panel/planner-hub/store/products/edit?id=" . $id);
     }
 
     if ($stockQuantity < 0) {
+        $logDebug('Validation failed: stock < 0', ['id' => $id, 'stock_quantity' => $stockQuantity]);
         MessageUtil::setMessage("Stock cannot be negative.");
         LocationUtils::redirectInternal("panel/planner-hub/store/products/edit?id=" . $id);
     }
 
     if ($minPurchaseQty <= 0) {
+        $logDebug('Validation failed: min_purchase_qty <= 0', ['id' => $id, 'min_purchase_qty' => $minPurchaseQty]);
         MessageUtil::setMessage("Minimum purchase quantity must be at least 1.");
         LocationUtils::redirectInternal("panel/planner-hub/store/products/edit?id=" . $id);
     }
 
     if ($maxPurchaseQty !== null && $maxPurchaseQty > 0 && $maxPurchaseQty < $minPurchaseQty) {
+        $logDebug('Validation failed: max_purchase_qty < min_purchase_qty', [
+            'id' => $id,
+            'min_purchase_qty' => $minPurchaseQty,
+            'max_purchase_qty' => $maxPurchaseQty,
+        ]);
         MessageUtil::setMessage("Maximum purchase quantity cannot be lower than minimum purchase quantity.");
         LocationUtils::redirectInternal("panel/planner-hub/store/products/edit?id=" . $id);
     }
 
     if ($sku !== '' && $productsRepo->skuExists($sku, $id)) {
+        $logDebug('Validation failed: duplicated SKU', ['id' => $id, 'sku' => $sku]);
         MessageUtil::setMessage("SKU already exists.");
         LocationUtils::redirectInternal("panel/planner-hub/store/products/edit?id=" . $id);
     }
@@ -289,19 +339,48 @@ $router->post(function () {
         'updated_at' => date('Y-m-d H:i:s')
     ];
 
-    $ok = $productsRepo->updateProductWithRelations(
-        $id,
-        $productData,
-        is_array($categoryIds) ? $categoryIds : [],
-        is_array($attributeValues) ? $attributeValues : [],
-        $variations
-    );
+    $logDebug('Calling updateProductWithRelations', [
+        'id' => $id,
+        'product_type' => $productType,
+        'price' => $productData['price'],
+        'promo_price' => $productData['promo_price'],
+        'stock_quantity' => $productData['stock_quantity'],
+        'categories_count' => is_array($categoryIds) ? count($categoryIds) : 0,
+        'attribute_groups_count' => is_array($attributeValues) ? count($attributeValues) : 0,
+        'variations_count' => count($variations),
+    ]);
+
+    try {
+        $ok = $productsRepo->updateProductWithRelations(
+            $id,
+            $productData,
+            is_array($categoryIds) ? $categoryIds : [],
+            is_array($attributeValues) ? $attributeValues : [],
+            $variations
+        );
+    } catch (\Throwable $e) {
+        $logDebug('Exception during updateProductWithRelations', [
+            'id' => $id,
+            'error' => $e->getMessage(),
+            'file' => $e->getFile(),
+            'line' => $e->getLine(),
+        ]);
+        MessageUtil::setMessage("Product could not be updated. Check logs for details.");
+        LocationUtils::redirectInternal("panel/planner-hub/store/products/edit?id=" . $id);
+    }
+
+    $logDebug('updateProductWithRelations result', [
+        'id' => $id,
+        'ok' => (bool)$ok,
+    ]);
 
     if (!$ok) {
+        $logDebug('Update failed: repository returned false', ['id' => $id]);
         MessageUtil::setMessage("Product could not be updated.");
         LocationUtils::redirectInternal("panel/planner-hub/store/products/edit?id=" . $id);
     }
 
+    $logDebug('Update success', ['id' => $id]);
     MessageUtil::setMessage("Product updated successfully.");
     LocationUtils::redirectInternal("panel/planner-hub/store/products/home");
 });

@@ -191,7 +191,7 @@
         </div>
     </div>
 
-    <form method="post" enctype="multipart/form-data">
+    <form method="post" enctype="multipart/form-data" id="product-edit-form">
         <input type="hidden" name="id" value="{{ product.id }}">
 
         <div class="store-section-card">
@@ -676,9 +676,22 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     const productTypeInput = document.getElementById('product_type_input');
+    const productEditForm = document.getElementById('product-edit-form');
     const typeCards = document.querySelectorAll('[data-product-type-card]');
     const fixedCard = document.getElementById('fixed-fields-card');
     const variableCard = document.getElementById('variable-fields-card');
+    const fixedPriceInput = document.querySelector('input[name="price"]');
+
+    function setSectionFieldsEnabled(sectionElement, enabled) {
+        if (!sectionElement) {
+            return;
+        }
+
+        const fields = sectionElement.querySelectorAll('input, select, textarea, button');
+        fields.forEach(field => {
+            field.disabled = !enabled;
+        });
+    }
 
     function toggleProductType(type) {
         productTypeInput.value = type;
@@ -690,9 +703,19 @@ document.addEventListener('DOMContentLoaded', function () {
         if (type === 'VARIABLE') {
             fixedCard.style.display = 'none';
             variableCard.style.display = 'block';
+            setSectionFieldsEnabled(fixedCard, false);
+            setSectionFieldsEnabled(variableCard, true);
+            if (fixedPriceInput) {
+                fixedPriceInput.required = false;
+            }
         } else {
             fixedCard.style.display = 'block';
             variableCard.style.display = 'none';
+            setSectionFieldsEnabled(fixedCard, true);
+            setSectionFieldsEnabled(variableCard, false);
+            if (fixedPriceInput) {
+                fixedPriceInput.required = true;
+            }
         }
     }
 
@@ -758,6 +781,40 @@ document.addEventListener('DOMContentLoaded', function () {
 
     if (addVariationBtn) {
         addVariationBtn.addEventListener('click', addVariationRow);
+    }
+
+    if (productEditForm) {
+        productEditForm.addEventListener('submit', function (event) {
+            if (productTypeInput.value === 'FIXED') {
+                const fixedPriceValue = fixedPriceInput ? parseFloat(fixedPriceInput.value) : 0;
+                if (!fixedPriceInput || Number.isNaN(fixedPriceValue) || fixedPriceValue <= 0) {
+                    event.preventDefault();
+                    alert('Fixed products must have a price greater than zero.');
+                    if (fixedPriceInput) {
+                        fixedPriceInput.focus();
+                    }
+                    return;
+                }
+
+                return;
+            }
+
+            const variationRows = variationsContainer.querySelectorAll('.store-variation-card');
+            for (let idx = 0; idx < variationRows.length; idx++) {
+                const row = variationRows[idx];
+                const priceInput = row.querySelector('input[name^="variation_price["]');
+                const priceValue = priceInput ? parseFloat(priceInput.value) : 0;
+
+                if (!priceInput || Number.isNaN(priceValue) || priceValue <= 0) {
+                    event.preventDefault();
+                    alert('Each variation must have a price greater than zero. Please complete variation #' + (idx + 1) + '.');
+                    if (priceInput) {
+                        priceInput.focus();
+                    }
+                    return;
+                }
+            }
+        });
     }
 
     bindRemoveButtons(document);
