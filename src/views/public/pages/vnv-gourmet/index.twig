@@ -30,6 +30,12 @@
 
 html { scroll-behavior: smooth; }
 
+html, body {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
+}
+
 body {
     background: var(--vnv-dark-deep);
     color: var(--vnv-text-light);
@@ -37,6 +43,10 @@ body {
     line-height: 1.8;
     -webkit-font-smoothing: antialiased;
     overflow-x: hidden;
+}
+
+*, *::before, *::after {
+    box-sizing: border-box;
 }
 
 h1, h2, h3, h4, h5, .luxury-font {
@@ -168,14 +178,14 @@ h1, h2, h3, h4, h5, .luxury-font {
     font-size: 1.08rem;
     color: var(--vnv-text-muted);
     max-width: 760px;
-    margin-bottom: 34px;
+    margin-bottom: 20px;
 }
 
 .hero-cta-row {
     display: flex;
     flex-wrap: wrap;
     gap: 16px;
-    margin-bottom: 28px;
+    margin: 32px 0 28px;
 }
 
 .section-white {
@@ -204,106 +214,141 @@ h1, h2, h3, h4, h5, .luxury-font {
     color: #5a6669;
 }
 
-.menu-card {
+.service-showcase-card {
+    display: grid;
+    grid-template-columns: 320px 1fr;
+    gap: 26px;
+    align-items: stretch;
     border-radius: 30px;
-    padding: 34px 30px;
+    padding: 22px;
     height: 100%;
     position: relative;
     overflow: hidden;
     box-shadow: 0 20px 60px rgba(0,0,0,.10);
 }
 
-.section-dark .menu-card,
+.section-dark .service-showcase-card,
 .section-dark .holiday-card,
 .section-dark .mini-card,
-.section-dark .contact-card {
+.section-dark .contact-card,
+.section-dark .avomeal-card {
     background: linear-gradient(145deg, rgba(28,34,35,.95) 0%, rgba(16,18,18,.96) 100%);
     border: 1px solid rgba(255,255,255,.07);
 }
 
-.section-white .menu-card,
+.section-white .service-showcase-card,
 .section-white .holiday-card,
 .section-white .mini-card,
-.section-white .instagram-card {
+.section-white .instagram-card,
+.section-white .feature-box,
+.section-white .avomeal-card {
     background: #fff;
     border: 1px solid rgba(17,24,26,.08);
 }
 
-.menu-card h3,
+.service-showcase-media {
+    min-height: 260px;
+    border-radius: 22px;
+    overflow: hidden;
+    background: #dfe7e9;
+}
+
+.service-showcase-media img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.service-showcase-body {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.service-showcase-body h3,
 .holiday-card h4,
 .mini-card h4,
 .contact-card h4,
 .instagram-card h4,
-.feature-copy h3 {
-    margin-bottom: 18px;
+.feature-copy h3,
+.avomeal-copy h3 {
+    margin-bottom: 16px;
 }
 
-.section-dark .menu-card h3,
+.section-dark .service-showcase-body h3,
 .section-dark .holiday-card h4,
 .section-dark .mini-card h4,
-.section-dark .contact-card h4 {
+.section-dark .contact-card h4,
+.section-dark .avomeal-copy h3 {
     color: #fff;
 }
 
-.section-white .menu-card h3,
+.section-white .service-showcase-body h3,
 .section-white .holiday-card h4,
 .section-white .mini-card h4,
 .section-white .instagram-card h4,
-.section-white .feature-copy h3 {
+.section-white .feature-copy h3,
+.section-white .avomeal-copy h3 {
     color: var(--vnv-text-dark);
 }
 
-.menu-card h3 {
+.service-showcase-body h3 {
     font-size: 2rem;
+    line-height: 1.05;
 }
 
-.menu-card h4 {
-    color: var(--vnv-primary);
-    font-size: 1.15rem;
-    margin: 26px 0 12px;
-}
-
-.section-dark .menu-card p,
+.service-showcase-body p,
 .section-dark .holiday-card p,
 .section-dark .mini-card p,
 .section-dark .contact-card p,
-.section-dark .menu-card li,
 .section-dark .holiday-card li,
 .section-dark .mini-card li,
-.section-dark .contact-card li {
+.section-dark .contact-card li,
+.section-dark .avomeal-copy p,
+.section-dark .avomeal-copy li {
     color: var(--vnv-text-muted);
 }
 
-.section-white .menu-card p,
+.section-white .service-showcase-body p,
 .section-white .holiday-card p,
 .section-white .mini-card p,
 .section-white .instagram-card p,
-.section-white .menu-card li,
 .section-white .holiday-card li,
-.section-white .mini-card li {
+.section-white .mini-card li,
+.section-white .feature-copy p,
+.section-white .feature-copy li,
+.section-white .avomeal-copy p,
+.section-white .avomeal-copy li {
     color: #485457;
 }
 
-.menu-card ul,
+.service-points,
 .holiday-card ul,
 .mini-card ul,
-.contact-card ul {
+.contact-card ul,
+.feature-copy ul,
+.avomeal-copy ul {
     list-style: none;
     padding-left: 0;
     margin: 0;
 }
 
-.menu-card ul li,
+.service-points li,
 .holiday-card ul li,
-.mini-card ul li {
+.mini-card ul li,
+.feature-copy ul li,
+.avomeal-copy ul li {
     position: relative;
     padding-left: 22px;
     margin-bottom: 8px;
 }
 
-.menu-card ul li::before,
+.service-points li::before,
 .holiday-card ul li::before,
-.mini-card ul li::before {
+.mini-card ul li::before,
+.feature-copy ul li::before,
+.avomeal-copy ul li::before {
     content: "";
     width: 8px;
     height: 8px;
@@ -314,16 +359,17 @@ h1, h2, h3, h4, h5, .luxury-font {
     top: 12px;
 }
 
+.service-top-actions,
 .menu-top-actions {
     display: flex;
     flex-wrap: wrap;
     gap: 12px;
-    margin: 0 0 22px;
+    margin: 0 0 18px;
 }
 
 .call-strip {
     margin-top: 22px;
-    padding-top: 20px;
+    padding-top: 18px;
 }
 .section-dark .call-strip {
     border-top: 1px solid rgba(255,255,255,.08);
@@ -346,24 +392,18 @@ h1, h2, h3, h4, h5, .luxury-font {
     border-radius: 34px;
     overflow: hidden;
     box-shadow: 0 20px 60px rgba(0,0,0,.12);
-    border: 1px solid rgba(17,24,26,.08);
-    background: #fff;
 }
 
 .feature-visual {
     min-height: 100%;
     background:
         linear-gradient(180deg, rgba(0,0,0,.10), rgba(0,0,0,.20)),
-        url('{{ asset_for('assets/images/vnv-gourmet-corporate.jpg') }}') center/cover no-repeat;
+        url('{{ asset_for('assets/images/service_photos/pasta_station_2.jpg') }}') center/cover no-repeat;
 }
 
 .feature-copy {
     padding: 60px 50px;
     color: var(--vnv-text-dark);
-}
-.feature-copy p,
-.feature-copy li {
-    color: #4d595c;
 }
 .feature-copy ul {
     list-style: none;
@@ -387,10 +427,45 @@ h1, h2, h3, h4, h5, .luxury-font {
 .holiday-card,
 .mini-card,
 .contact-card,
-.instagram-card {
+.instagram-card,
+.avomeal-card {
     border-radius: 28px;
     padding: 30px;
     height: 100%;
+}
+
+.avomeal-grid {
+    display: grid;
+    grid-template-columns: 1.1fr .9fr;
+    gap: 28px;
+    align-items: stretch;
+}
+
+.avomeal-visuals {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+}
+
+.avomeal-shot {
+    border-radius: 24px;
+    overflow: hidden;
+    min-height: 260px;
+    background: #dfe7e9;
+    box-shadow: 0 18px 50px rgba(0,0,0,.12);
+}
+
+.avomeal-shot img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.avomeal-copy ul {
+    list-style: none;
+    padding-left: 0;
+    margin: 18px 0 0;
 }
 
 .instagram-visual {
@@ -424,6 +499,16 @@ h1, h2, h3, h4, h5, .luxury-font {
     text-decoration: none;
 }
 
+@media (max-width: 1199px) {
+    .service-showcase-card {
+        grid-template-columns: 260px 1fr;
+    }
+
+    .avomeal-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
 @media (max-width: 991px) {
     .hero-gourmet {
         min-height: auto;
@@ -437,6 +522,18 @@ h1, h2, h3, h4, h5, .luxury-font {
 
     .instagram-card {
         padding: 32px;
+    }
+
+    .service-showcase-card {
+        grid-template-columns: 1fr;
+    }
+
+    .service-showcase-media {
+        min-height: 240px;
+    }
+
+    .avomeal-visuals {
+        grid-template-columns: 1fr;
     }
 }
 
@@ -453,12 +550,17 @@ h1, h2, h3, h4, h5, .luxury-font {
         width: 100%;
     }
 
-    .menu-card,
+    .service-showcase-card,
     .mini-card,
     .holiday-card,
     .contact-card,
-    .instagram-card {
-        padding: 24px;
+    .instagram-card,
+    .avomeal-card {
+        padding: 22px;
+    }
+
+    .service-showcase-body h3 {
+        font-size: 1.75rem;
     }
 }
 </style>
@@ -472,27 +574,28 @@ h1, h2, h3, h4, h5, .luxury-font {
     <div class="container hero-gourmet-inner">
         <span class="vnv-badge">VNV Gourmet</span>
 
-        <h1>Event Catering Services in <span class="text-gold">South Florida</span></h1>
+        <h1>Chef-driven catering, stations and <span class="text-gold">staffing for South Florida events</span></h1>
 
         <p class="hero-copy">
-            At VNV Events, we’re passionate about providing exceptional catering services that elevate any event. Our team of expert caterers excels in a variety of offerings, from corporate catering tailored to your business needs to BBQ catering for your family gatherings.
+            Explore live stations, buffet-style favorites, premium appetizers, desserts, sushi boats and event staffing designed to make your celebration feel polished, flavorful and easy to manage.
         </p>
 
         <p class="hero-copy">
-            Our personalized solutions range from delightful breakfast catering and Brunch to elegant wedding catering , all designed to ensure your event is as exceptional as it deserves to be.
+            From private parties and weddings to office lunches and team appreciation events, VNV Gourmet helps shape the food experience while the rest of your event comes together.
         </p>
 
         <div class="hero-cta-row">
             <a href="tel:+13052045427" class="vnv-btn btn-gold-vnv">Call Now (305) 204 5427</a>
-            <a href="#menu-services" class="vnv-btn btn-outline-vnv">Menu and Services</a>
+            <a href="https://vnvevents.com/product-category/catering-services/" class="vnv-btn btn-outline-vnv">Price &amp; Menu</a>
+            <a href="#" data-vnv-open-request class="vnv-btn btn-outline-vnv">New Request</a>
         </div>
 
         <div class="vnv-breadcrumbs">
-            <a href="#">Home</a>
+            <a href="{{ path('/') }}">Home</a>
             <span class="sep">/</span>
-            <a href="#">Our Services</a>
+            <a href="{{ path('/#services') }}">Our Services</a>
             <span class="sep">/</span>
-            <span>Event Catering Services &amp; Corporate Meal Plans</span>
+            <span>VNV Gourmet</span>
         </div>
     </div>
 </section>
@@ -501,292 +604,262 @@ h1, h2, h3, h4, h5, .luxury-font {
     <div class="container">
         <div class="section-heading">
             <span class="vnv-badge">Menu and Services</span>
-            <h2>Menu and <span class="text-vnv">Services</span></h2>
+            <h2>Food experiences your guests will actually <span class="text-vnv">remember</span></h2>
+            <p>
+                We trimmed the copy and pushed the visual part forward so people can immediately feel the style of each service before they dive into details.
+            </p>
         </div>
 
         <div class="row g-4">
-            <div class="col-lg-6">
-                <div class="menu-card">
-                    <h3>Entree &amp; Sides</h3>
-
-                    <div class="menu-top-actions">
-                        <a href="#" class="vnv-btn btn-gold-vnv">Price &amp; Details</a>
-                        <a href="#" class="vnv-btn btn-outline-vnv">Menu &amp; Details</a>
+            <div class="col-12">
+                <div class="service-showcase-card">
+                    <div class="service-showcase-media">
+                        <img src="{{ asset_for('assets/images/service_photos/appetizers.jpg') }}" alt="VNV Gourmet appetizers">
                     </div>
-
-                    <p>Includes two Sides and Salad</p>
-
-                    <ul>
-                        <li>Herb Crusted Baked Salmon</li>
-                        <li>Chicken Shawarma Wraps with Tzatziki Sauce</li>
-                        <li>Eggplant Parmesan with Fresh Basil</li>
-                        <li>Shrimp Scampi with Garlic and White Wine</li>
-                        <li>Pork Tenderloin Medallions with Apple Chutney</li>
-                        <li>Classic Margherita Pizza</li>
-                        <li>Traditional Beef Lasagna</li>
-                        <li>Cheeseburger</li>
-                        <li>Crispy Fried Calamari</li>
-                        <li>Grilled Teriyaki Chicken</li>
-                        <li>Beef Tenderloin Sliders with Caramelized Onions</li>
-                        <li>Jamaican Jerk Chicken</li>
-                        <li>BBQ Pulled Pork Tacos</li>
-                        <li>Lemon-Herb Baked Salmon</li>
-                        <li>Grilled Filet Mignon with Red Wine Reduction</li>
-                    </ul>
-
-                    <h4>Sides:</h4>
-                    <ul>
-                        <li>Roasted Garlic Mashed Potatoes</li>
-                        <li>Garlic Bread</li>
-                        <li>Roasted Sweet Potatoes with Cinnamon</li>
-                        <li>Grilled Asparagus with Lemon Zest</li>
-                        <li>White Rice</li>
-                        <li>Grilled Vegetables</li>
-                        <li>Stuffed Mushrooms</li>
-                    </ul>
-
-                    <h4>Salads</h4>
-                    <ul>
-                        <li>Quinoa Salad with Roasted Vegetables</li>
-                        <li>Caesar Salad</li>
-                        <li>Greek Salad</li>
-                        <li>Spinach and Strawberry Salad</li>
-                    </ul>
-
-                    <div class="call-strip">
-                        <a href="tel:+13052045427">Call Now (305) 204 5427</a>
+                    <div class="service-showcase-body">
+                        <div>
+                            <div class="service-top-actions">
+                                <a href="https://vnvevents.com/product/hors-doeuvres-21-77-per-guest-min-25/" class="vnv-btn btn-gold-vnv">Price &amp; Details</a>
+                            </div>
+                            <h3>Appetizers</h3>
+                            <p>Perfect when you want elegant bites, guest-friendly flow and a strong first impression without going full plated dinner.</p>
+                            <ul class="service-points">
+                                <li>Select 7 appetizers per guest package</li>
+                                <li>Great for cocktail hours, socials and elevated mingling</li>
+                                <li>Includes favorites like tequeños, sliders, ceviche and crostini</li>
+                            </ul>
+                        </div>
+                        <div class="call-strip">
+                            <a href="tel:+13052045427">Call Now (305) 204 5427</a>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <div class="col-lg-6">
-                <div class="menu-card">
-                    <h3>Brunch Specials</h3>
-
-                    <div class="menu-top-actions">
-                        <a href="#" class="vnv-btn btn-gold-vnv">Price &amp; Details</a>
+            <div class="col-12">
+                <div class="service-showcase-card">
+                    <div class="service-showcase-media">
+                        <img src="{{ asset_for('assets/images/service_photos/brunch_tation.jpg') }}" alt="VNV Gourmet brunch station">
                     </div>
-
-                    <ul>
-                        <li>Our brunch includes a live chef on-site for a 2-hour service, preparing select stations for your guests. Please choose two stations from the options below.</li>
-                        <li>Salad Bar</li>
-                        <li>Live Pancake Station (Chef included)</li>
-                        <li>Live Omelet Station (Chef included)</li>
-                        <li>Live Crepes Station (Chef included)</li>
-                        <li>Fresh Seasonal Fruit Display</li>
-                    </ul>
-
-                    <h4>Add-On Suggestions:</h4>
-                    <ul>
-                        <li>Servers and Staffing</li>
-                        <li>Charcuterie Board</li>
-                        <li>Seafood Display</li>
-                        <li>Sweet Table</li>
-                        <li>Chocolate Fondue Station</li>
-                        <li>Ice Cream Station</li>
-                        <li>Coffee Bar (1 attendant included)</li>
-                        <li>Bar &amp; Bartender Services</li>
-                        <li>Rental Services (tables, chairs, tents, decorations)</li>
-                        <li>Dj Services</li>
-                    </ul>
-
-                    <div class="call-strip">
-                        <a href="tel:+13052045427">Call Now (305) 204 5427</a>
+                    <div class="service-showcase-body">
+                        <div>
+                            <div class="service-top-actions">
+                                <a href="https://vnvevents.com/product/brunch-specials/" class="vnv-btn btn-gold-vnv">Price &amp; Details</a>
+                            </div>
+                            <h3>Brunch Specials</h3>
+                            <p>Designed for showers, daytime celebrations and stylish corporate mornings where variety and presentation matter as much as flavor.</p>
+                            <ul class="service-points">
+                                <li>Choose two or three stations</li>
+                                <li>Live pancake and omelet options available</li>
+                                <li>Fresh fruit, pastries and breakfast staples included</li>
+                            </ul>
+                        </div>
+                        <div class="call-strip">
+                            <a href="tel:+13052045427">Call Now (305) 204 5427</a>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <div class="col-lg-6">
-                <div class="menu-card">
-                    <h3>Taco Station</h3>
-
-                    <div class="menu-top-actions">
-                        <a href="#" class="vnv-btn btn-gold-vnv">Price &amp; Details</a>
+            <div class="col-12">
+                <div class="service-showcase-card">
+                    <div class="service-showcase-media">
+                        <img src="{{ asset_for('assets/images/service_photos/crepes_station_1.jpg') }}" alt="VNV Gourmet crepes station">
                     </div>
-
-                    <ul>
-                        <li>A variety of authentic Mexican dishes prepared fresh on-site</li>
-                        <li>Taco and Burrito Bar</li>
-                        <li>Select 2 proteins: Carnitas, Chicken, or Steak</li>
-                        <li>Sides available: Rice, Beans, Cheese, Guacamole, Onion, Cilantro, and Pico de Gallo</li>
-                        <li>2 hours of live chefs interacting with guests and preparing customized dishes</li>
-                    </ul>
-
-                    <div class="call-strip">
-                        <a href="tel:+13052045427">Call Now (305) 204 5427</a>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-lg-6">
-                <div class="menu-card">
-                    <h3>Crepes Station</h3>
-
-                    <div class="menu-top-actions">
-                        <a href="#" class="vnv-btn btn-gold-vnv">Price &amp; Details</a>
-                    </div>
-
-                    <ul>
-                        <li>Variety of sweet and savory crepes made fresh on-site</li>
-                        <li>Choice of 2 fillings for sweet crepes (Nutella, strawberries, whipped cream)</li>
-                        <li>Choice of 2 fillings for savory crepes (ham, cheese, spinach, or chicken</li>
-                        <li>Buffet setup with elegant décor matching your event theme</li>
-                        <li>2 hours of live chefs who interact with your guests and customize each dish.</li>
-                    </ul>
-
-                    <div class="call-strip">
-                        <a href="tel:+13052045427">Call Now (305) 204 5427</a>
+                    <div class="service-showcase-body">
+                        <div>
+                            <div class="service-top-actions">
+                                <a href="https://vnvevents.com/product/crepes-station-1999-per-guest-25-guest-minimum-buffet-style/" class="vnv-btn btn-gold-vnv">Price &amp; Details</a>
+                            </div>
+                            <h3>Crepes Station</h3>
+                            <p>One of the most visual services we offer. Guests love the live interaction, and the setup instantly feels custom and memorable.</p>
+                            <ul class="service-points">
+                                <li>Sweet and savory crepes made on-site</li>
+                                <li>Guest-facing chef experience</li>
+                                <li>Elegant setup that adapts to the event theme</li>
+                            </ul>
+                        </div>
+                        <div class="call-strip">
+                            <a href="tel:+13052045427">Call Now (305) 204 5427</a>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <div class="col-lg-6">
-                <div class="menu-card">
-                    <h3>Pizza Station</h3>
-
-                    <div class="menu-top-actions">
-                        <a href="#" class="vnv-btn btn-gold-vnv">Price &amp; Details</a>
-                        <a href="#" class="vnv-btn btn-outline-vnv">Details</a>
+            <div class="col-12">
+                <div class="service-showcase-card">
+                    <div class="service-showcase-media">
+                        <img src="{{ asset_for('assets/images/service_photos/pasta_station_1.jpg') }}" alt="VNV Gourmet pasta station">
                     </div>
-
-                    <ul>
-                        <li>Selection of Freshly Made Pizzas: Offering a variety of crusts and toppings to suit different tastes.</li>
-                        <li>Choice of Sauces: Including classic marinara, creamy Alfredo, and pesto.</li>
-                        <li>Fresh Toppings: Guests can customize with a range of meats, vegetables, and cheeses.</li>
-                        <li>Live Chef Interaction: Our chefs prepare pizzas on-site, allowing each guest to customize their dish.</li>
-                        <li>2 hours of live chefs who interact with your guests and customize each dish.</li>
-                    </ul>
-                </div>
-            </div>
-
-            <div class="col-lg-6">
-                <div class="menu-card">
-                    <h3>Pasta Station</h3>
-
-                    <div class="menu-top-actions">
-                        <a href="#" class="vnv-btn btn-gold-vnv">Price &amp; Details</a>
-                    </div>
-
-                    <ul>
-                        <li>3 variety of pastas</li>
-                        <li>3 Classic and innovative sauces prepared on the spot</li>
-                        <li>A selection of fresh ingredients 02 proteins</li>
-                        <li>Buffet Setups and Decorations</li>
-                        <li>2 hours of live chefs who interact with your guests and customize each dish.</li>
-                    </ul>
-
-                    <div class="call-strip">
-                        <a href="tel:+13052045427">Call Now (305) 204 5427</a>
+                    <div class="service-showcase-body">
+                        <div>
+                            <div class="service-top-actions">
+                                <a href="https://vnvevents.com/product/pasta-station/" class="vnv-btn btn-gold-vnv">Price &amp; Details</a>
+                            </div>
+                            <h3>Pasta Station</h3>
+                            <p>A strong choice when you want comfort, volume and a live service feel without losing elegance.</p>
+                            <ul class="service-points">
+                                <li>Three pasta varieties and live-prepared sauces</li>
+                                <li>Fresh toppings and protein options</li>
+                                <li>Ideal for weddings, corporate events and private parties</li>
+                            </ul>
+                        </div>
+                        <div class="call-strip">
+                            <a href="tel:+13052045427">Call Now (305) 204 5427</a>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <div class="col-lg-6">
-                <div class="menu-card">
-                    <h3>Paella &amp; Tapas Station</h3>
-
-                    <div class="menu-top-actions">
-                        <a href="#" class="vnv-btn btn-gold-vnv">Price &amp; Details</a>
+            <div class="col-12">
+                <div class="service-showcase-card">
+                    <div class="service-showcase-media">
+                        <img src="{{ asset_for('assets/images/service_photos/pizza_station.jpg') }}" alt="VNV Gourmet pizza station">
                     </div>
-
-                    <ul>
-                        <li>Authentic Spanish paella cooked live, with options for seafood, chicken, or vegetarian</li>
-                        <li>Selection of traditional tapas: Patatas bravas, jamón ibérico, croquetas, and more</li>
-                        <li>Customizable toppings and ingredients to suit guest preferences</li>
-                        <li>Elegant buffet setup with themed decorations for a Spanish-inspired atmosphere</li>
-                        <li>2 hours of live chefs who interact with your guests and customize each dish.</li>
-                    </ul>
-
-                    <div class="call-strip">
-                        <a href="tel:+13052045427">Call Now (305) 204 5427</a>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-lg-6">
-                <div class="menu-card">
-                    <h3>appetizers</h3>
-
-                    <div class="menu-top-actions">
-                        <a href="#" class="vnv-btn btn-gold-vnv">Price &amp; Details</a>
-                    </div>
-
-                    <p>A complementary setup of a 6-ft table. If needed, additional servers can be added for an extra cost to assist with serving the appetizers to your guests.</p>
-
-                    <ul>
-                        <li>Pulled Pork Sliders with BBQ Sauce</li>
-                        <li>Crostata Pizza Bites</li>
-                        <li>Venezuelan Tequeños with Sweet and Sour Sauce</li>
-                        <li>Mozzarella Sticks whit Marinara Sauce</li>
-                        <li>Chips with Salsa and Guacamole</li>
-                        <li>Argentinian Empanada</li>
-                        <li>Charcuterie and Cheese Board</li>
-                        <li>Mac and Cheese bites</li>
-                        <li>Beef Slides with Chimichurri Sauce</li>
-                        <li>Bacon-Wrapped Dates with Goat Cheese</li>
-                        <li>Chicken wings with BBQ Sauce</li>
-                        <li>Vegetables or Pork Asian Spring Rolls</li>
-                        <li>Vegetable Spring Rolls with Sweet Chili Dipping Sauce</li>
-                        <li>Beef Meatballs with Marinara Sauce</li>
-                        <li>Shrimp Cocktail Shooters</li>
-                        <li>Mixed Seafood Ceviche</li>
-                        <li>Bruschetta with Tomato, Basil, and Mozzarella</li>
-                        <li>Smoked Salmon Crostini with Dill Cream Cheese</li>
-                        <li>Prosciuto-Wrapped asparagus with balsamic</li>
-                    </ul>
-
-                    <div class="call-strip">
-                        <a href="tel:+13052045427">Call Now (305) 204 5427</a>
+                    <div class="service-showcase-body">
+                        <div>
+                            <div class="service-top-actions">
+                                <a href="https://vnvevents.com/product/pizza-station/" class="vnv-btn btn-gold-vnv">Price &amp; Details</a>
+                            </div>
+                            <h3>Pizza Station</h3>
+                            <p>Interactive, family-friendly and easy to love. A smart fit for birthdays, school events, relaxed socials and corporate teams.</p>
+                            <ul class="service-points">
+                                <li>Freshly made pizzas with customizable toppings</li>
+                                <li>Great balance of speed and guest interaction</li>
+                                <li>Works especially well for casual-luxury events</li>
+                            </ul>
+                        </div>
+                        <div class="call-strip">
+                            <a href="tel:+13052045427">Call Now (305) 204 5427</a>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <div class="col-lg-6">
-                <div class="menu-card">
-                    <h3>Sushi Boat Packages</h3>
-
-                    <div class="menu-top-actions">
-                        <a href="#" class="vnv-btn btn-gold-vnv">Price &amp; Details</a>
-                        <a href="#" class="vnv-btn btn-outline-vnv">Click for Details</a>
+            <div class="col-12">
+                <div class="service-showcase-card">
+                    <div class="service-showcase-media">
+                        <img src="{{ asset_for('assets/images/service_photos/paella_station.jpg') }}" alt="VNV Gourmet paella station">
                     </div>
-
-                    <p>Elevate your next event with VNV Events. Whether you crave the classic elegance of gourmet bites or the stunning visual of our iconic Sushi Boats, we have the perfect collection for you.</p>
-
-                    <ul>
-                        <li>1. THE SIGNATURE COLLECTION (Classic Variety) - 7 Handcrafted Gourmet Appetizers per person.</li>
-                        <li>2. THE OCEAN BLUE COLLECTION (Sushi Experience) 7 Gourmet Pieces Total: 4 Signature Sushi Pieces (Displayed on our iconic Sushi Boats). 3 Premium Appetizers of your choice.</li>
-                    </ul>
+                    <div class="service-showcase-body">
+                        <div>
+                            <div class="service-top-actions">
+                                <a href="https://vnvevents.com/product/paella-tapas-station-from-27-77-per-guest-min-25/" class="vnv-btn btn-gold-vnv">Price &amp; Details</a>
+                            </div>
+                            <h3>Paella &amp; Tapas Station</h3>
+                            <p>For hosts who want the service itself to feel like part of the show. Rich color, strong aroma and a more immersive atmosphere.</p>
+                            <ul class="service-points">
+                                <li>Authentic paella cooked live</li>
+                                <li>Spanish-inspired tapas support the experience</li>
+                                <li>Best for upscale social and cultural-style celebrations</li>
+                            </ul>
+                        </div>
+                        <div class="call-strip">
+                            <a href="tel:+13052045427">Call Now (305) 204 5427</a>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <div class="col-lg-6">
-                <div class="menu-card">
-                    <h3>D e s s e r t s</h3>
-
-                    <div class="menu-top-actions">
-                        <a href="#" class="vnv-btn btn-gold-vnv">Price &amp; Details</a>
-                        <a href="#" class="vnv-btn btn-outline-vnv">Details</a>
+            <div class="col-12">
+                <div class="service-showcase-card">
+                    <div class="service-showcase-media">
+                        <img src="{{ asset_for('assets/images/service_photos/tacos.jpg') }}" alt="VNV Gourmet taco station">
                     </div>
-
-                    <p>Complementary setup of a 6-ft sweet table if need it</p>
-
-                    <ul>
-                        <li>Mini Chocolate Mousse Cups</li>
-                        <li>Fruit Skewers with Yogurt Dip</li>
-                        <li>Key Lime Pie Bites</li>
-                        <li>Tiramisu Cups</li>
-                        <li>Baklava Bites</li>
-                        <li>Chocolate-Dipped Cannoli</li>
-                        <li>Apple Pie</li>
-                        <li>Macarons</li>
-                        <li>Milojas</li>
-                        <li>Cake Pops</li>
-                        <li>Chocolate Truffle</li>
-                        <li>Strawberry tartlets</li>
-                    </ul>
+                    <div class="service-showcase-body">
+                        <div>
+                            <div class="service-top-actions">
+                                <a href="https://vnvevents.com/product/taco-station/" class="vnv-btn btn-gold-vnv">Price &amp; Details</a>
+                            </div>
+                            <h3>Taco Station</h3>
+                            <p>Fast-moving, colorful and guest-friendly. Great when you want flavor, energy and a more relaxed but still curated service style.</p>
+                            <ul class="service-points">
+                                <li>Choose proteins and classic toppings</li>
+                                <li>Live chef interaction for a more custom feel</li>
+                                <li>Excellent for birthdays, offices and backyard events</li>
+                            </ul>
+                        </div>
+                        <div class="call-strip">
+                            <a href="tel:+13052045427">Call Now (305) 204 5427</a>
+                        </div>
+                    </div>
                 </div>
             </div>
 
+            <div class="col-12">
+                <div class="service-showcase-card">
+                    <div class="service-showcase-media">
+                        <img src="{{ asset_for('assets/images/service_photos/sushi_station.jpg') }}" alt="VNV Gourmet sushi boat packages">
+                    </div>
+                    <div class="service-showcase-body">
+                        <div>
+                            <div class="service-top-actions">
+                                <a href="https://vnvevents.com/product/hors-doeuvres-21-77-per-guest-min-25/" class="vnv-btn btn-gold-vnv">Price &amp; Details</a>
+                            </div>
+                            <h3>Sushi Boat Packages</h3>
+                            <p>One of the most visual premium options in the catalog. Perfect when the food setup also needs to feel photogenic and elevated.</p>
+                            <ul class="service-points">
+                                <li>Signature sushi presentation on iconic boats</li>
+                                <li>Great for luxury birthdays, launches and intimate events</li>
+                                <li>Pairs beautifully with premium appetizer styling</li>
+                            </ul>
+                        </div>
+                        <div class="call-strip">
+                            <a href="tel:+13052045427">Call Now (305) 204 5427</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-12">
+                <div class="service-showcase-card">
+                    <div class="service-showcase-media">
+                        <img src="{{ asset_for('assets/images/service_photos/dessert_station_1.jpg') }}" alt="VNV Gourmet dessert station">
+                    </div>
+                    <div class="service-showcase-body">
+                        <div>
+                            <div class="service-top-actions">
+                                <a href="https://vnvevents.com/product/d-e-s-s-e-r-t-s-19-00-per-guest-min-25/" class="vnv-btn btn-gold-vnv">Price &amp; Details</a>
+                            </div>
+                            <h3>Dessert Station</h3>
+                            <p>A beautiful finishing layer for events that need sweetness, visual variety and an extra “wow” table moment.</p>
+                            <ul class="service-points">
+                                <li>Mini-format desserts for cleaner service</li>
+                                <li>Includes a decorated sweet table if needed</li>
+                                <li>Works as a stand-alone add-on or part of a larger menu</li>
+                            </ul>
+                        </div>
+                        <div class="call-strip">
+                            <a href="tel:+13052045427">Call Now (305) 204 5427</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-12">
+                <div class="service-showcase-card">
+                    <div class="service-showcase-media">
+                        <img src="{{ asset_for('assets/images/service_photos/pasta_station_2.jpg') }}" alt="VNV Gourmet entrees and sides">
+                    </div>
+                    <div class="service-showcase-body">
+                        <div>
+                            <div class="service-top-actions">
+                                <a href="https://vnvevents.com/product/vnv-events-entree-sides-from-18-00-per-guest-min-25/" class="vnv-btn btn-gold-vnv">Price &amp; Details</a>
+                            </div>
+                            <h3>Entrée &amp; Sides</h3>
+                            <p>Best when you want a fuller meal structure with more traditional event catering support and broad guest appeal.</p>
+                            <ul class="service-points">
+                                <li>Entrées paired with sides and salad</li>
+                                <li>Flexible enough for social and corporate events</li>
+                                <li>Ideal for guests who expect a more complete meal format</li>
+                            </ul>
+                        </div>
+                        <div class="call-strip">
+                            <a href="tel:+13052045427">Call Now (305) 204 5427</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </section>
@@ -794,34 +867,27 @@ h1, h2, h3, h4, h5, .luxury-font {
 <section class="section-vnv section-dark">
     <div class="container">
         <div class="section-heading">
-            <span class="vnv-badge">Seasonal Holiday Menus</span>
-            <h2>Holiday and seasonal <span class="text-gold">selections</span></h2>
+            <span class="vnv-badge">Seasonal and Corporate</span>
+            <h2>Corporate programs, seasonal menus and <span class="text-gold">repeat-friendly catering</span></h2>
+            <p>
+                This is the part that helps clients understand you are not only doing party food — you also have structured options for offices, recurring events and special seasons.
+            </p>
         </div>
 
         <div class="row g-4">
             <div class="col-lg-6">
                 <div class="holiday-card">
-                    <h4>Thanksgiving Feast</h4>
-                    <ul>
-                        <li>Whole herb-roasted turkey</li>
-                        <li>Honey–pineapple glazed ham</li>
-                        <li>Mashed potatoes with gravy</li>
-                        <li>House stuffing</li>
-                        <li>Roasted fall vegetables</li>
-                        <li>Cranberry sauce</li>
-                        <li>Warm dinner rolls</li>
-                        <li>Mini pumpkin cheesecakes</li>
-                    </ul>
+                    <h4>Corporate Team Appreciation Catering</h4>
+                    <p>Built for recurring office lunches, employee appreciation moments and cleaner service for groups of 50+.</p>
 
-                    <h4 style="margin-top:24px;">Christmas &amp; Holiday Celebration</h4>
+                    <div class="menu-top-actions">
+                        <a href="https://vnvevents.com/product/corporate-team-appreciation-catering-22-5-p-p-min-50/" class="vnv-btn btn-gold-vnv">Menu &amp; Details</a>
+                    </div>
+
                     <ul>
-                        <li>Carved honey-glazed ham</li>
-                        <li>Roasted pork loin</li>
-                        <li>Creamy pasta with festive sauces</li>
-                        <li>House stuffing</li>
-                        <li>Truffle mashed potatoes</li>
-                        <li>Garlic bread</li>
-                        <li>Yule log cake</li>
+                        <li>Choose one curated station per event</li>
+                        <li>Transparent pricing and fast service flow</li>
+                        <li>Strong fit for monthly or bi-monthly office gatherings</li>
                     </ul>
 
                     <div class="call-strip">
@@ -832,35 +898,17 @@ h1, h2, h3, h4, h5, .luxury-font {
 
             <div class="col-lg-6">
                 <div class="holiday-card">
-                    <h4>Easter Spring Brunch</h4>
+                    <h4>Seasonal Holiday Catering</h4>
+                    <p>When the calendar matters as much as the menu, seasonal packages help make the event feel timely, warm and more thoughtfully styled.</p>
                     <ul>
-                        <li>Fresh waffles</li>
-                        <li>Omelet Station</li>
-                        <li>Seasonal fruit displays</li>
-                        <li>Cuban pastries</li>
-                        <li>Baggels Station</li>
+                        <li>Thanksgiving and holiday celebration formats</li>
+                        <li>Spring brunch and Mother’s Day friendly options</li>
+                        <li>Great add-on path for corporate and family hosting</li>
                     </ul>
 
-                    <h4 style="margin-top:24px;">Mother’s Day Floral Brunch</h4>
-                    <ul>
-                        <li>Lemon–herb chicken</li>
-                        <li>Pasta with alfredo &amp; vodka sauce</li>
-                        <li>Mediterranean rice</li>
-                        <li>Strawberry–feta salad</li>
-                        <li>Fresh assorted pastries</li>
-                    </ul>
-
-                    <h4 style="margin-top:24px;">4th of July All-American BBQ</h4>
-                    <ul>
-                        <li>Cheese Burgers</li>
-                        <li>Hot dogs</li>
-                        <li>BBQ wings</li>
-                        <li>Cornbread</li>
-                        <li>Mac &amp; cheese</li>
-                        <li>Potato salad</li>
-                        <li>Fresh watermelon</li>
-                        <li>Mini apple pies</li>
-                    </ul>
+                    <div class="menu-top-actions" style="margin-top:18px;">
+                        <a href="https://vnvevents.com/product/seasonal-holiday-catering-minimum-15-guests-pricing-is-per-person/" class="vnv-btn btn-outline-vnv">See Catering Catalog</a>
+                    </div>
 
                     <div class="call-strip">
                         <a href="tel:+13052045427">Call Now (305) 204 5427</a>
@@ -878,30 +926,22 @@ h1, h2, h3, h4, h5, .luxury-font {
                 <div class="col-lg-5 feature-visual"></div>
                 <div class="col-lg-7">
                     <div class="feature-copy">
-                        <span class="vnv-badge">Corporate Team Appreciation Catering</span>
-                        <h3>Corporate Team Appreciation Catering</h3>
+                        <span class="vnv-badge">Staffing &amp; Beverage Support</span>
+                        <h3>Food is only part of the experience.</h3>
+
+                        <p>
+                            If the event needs smoother flow, better guest attention and a cleaner hospitality finish, pair your food service with the right support team.
+                        </p>
 
                         <div class="menu-top-actions">
-                            <a href="#" class="vnv-btn btn-gold-vnv">Menu &amp; Details</a>
+                            <a href="https://vnvevents.com/product/professional-servers/" class="vnv-btn btn-gold-vnv">Professional Servers</a>
+                            <a href="https://vnvevents.com/product/drinks-bartender-40-per-hour-bar-setup-for-just-80-per-event/" class="vnv-btn btn-outline-vnv">Bartenders</a>
                         </div>
 
-                        <p>Choose one curated station, ideal for corporate gatherings of 50+ guests.</p>
-
                         <ul>
-                            <li>Minimum: 50 guests</li>
-                            <li>Buffet Setups and Decorations</li>
-                            <li>1 Hour Chef Service</li>
-                            <li>One price, no surprises</li>
-                            <li>Fast service for large teams</li>
-                        </ul>
-
-                        <h4 style="margin-top:24px;color:var(--vnv-text-dark);">Select one of our five food stations.</h4>
-                        <ul>
-                            <li>Pasta Station</li>
-                            <li>Paella Station</li>
-                            <li>Pizza Station</li>
-                            <li>Brunch Station</li>
-                            <li>Mexican Station</li>
+                            <li>Uniformed professional servers for guest-facing hospitality</li>
+                            <li>Bartenders for weddings, birthdays and corporate bar service</li>
+                            <li>Easy upgrade path when you want the whole event to feel more complete</li>
                         </ul>
 
                         <div class="call-strip">
@@ -918,70 +958,58 @@ h1, h2, h3, h4, h5, .luxury-font {
     <div class="container">
         <div class="section-heading">
             <span class="vnv-badge">Additional Services</span>
-            <h2>Additional <span class="text-vnv">Services</span></h2>
+            <h2>Connect gourmet with the rest of your <span class="text-vnv">event experience</span></h2>
+            <p>
+                I connected these to the matching service categories so visitors can jump from food into planning, entertainment, décor and media without getting lost.
+            </p>
         </div>
 
         <div class="row g-4">
             <div class="col-md-6 col-xl-4">
                 <div class="mini-card">
-                    <h4>Staffing</h4>
-                    <p>We provide professional staff to attend to your guests and ensure your event runs smoothly.</p>
-                    <a href="#" class="vnv-btn btn-outline-vnv">More Info</a>
+                    <h4>Planner &amp; Coordinator</h4>
+                    <p>When the menu is only one part of a bigger event and you need timeline, flow and execution support.</p>
+                    <a href="https://vnvevents.com/product-category/event-planners-and-coordinator/" class="vnv-btn btn-outline-vnv">More Info</a>
                 </div>
             </div>
 
             <div class="col-md-6 col-xl-4">
                 <div class="mini-card">
                     <h4>Decoration</h4>
-                    <p>Our team will handle all aspects of event decoration to create the perfect ambiance.</p>
-                    <a href="#" class="vnv-btn btn-outline-vnv">More Info</a>
+                    <p>Backdrops, balloons, floral touches and visual styling that elevate the perception of the whole setup.</p>
+                    <a href="https://vnvevents.com/product-category/balloons-and-flower/" class="vnv-btn btn-outline-vnv">More Info</a>
                 </div>
             </div>
 
             <div class="col-md-6 col-xl-4">
                 <div class="mini-card">
-                    <h4>Setup</h4>
-                    <p>We manage the setup process, ensuring everything is perfectly arranged for your event.</p>
-                    <a href="#" class="vnv-btn btn-outline-vnv">More Info</a>
+                    <h4>Rentals &amp; Setup</h4>
+                    <p>Tables, chairs, linens and the physical foundation that helps the food setup feel organized and intentional.</p>
+                    <a href="https://vnvevents.com/product-category/rental-services/" class="vnv-btn btn-outline-vnv">More Info</a>
                 </div>
             </div>
 
             <div class="col-md-6 col-xl-4">
                 <div class="mini-card">
-                    <h4>Cleaning Service</h4>
-                    <p>We provide thorough cleaning services during and after the event to maintain a pristine environment.</p>
+                    <h4>DJ &amp; Entertainment</h4>
+                    <p>Great food lands even better when the energy, timing and atmosphere are handled by the right music team.</p>
+                    <a href="https://vnvevents.com/product-category/dj-services-live-music/" class="vnv-btn btn-outline-vnv">More Info</a>
                 </div>
             </div>
 
             <div class="col-md-6 col-xl-4">
                 <div class="mini-card">
-                    <h4>Entertainment</h4>
-                    <p>We offer a variety of entertainment options to keep your guests engaged and entertained.</p>
-                    <a href="#" class="vnv-btn btn-outline-vnv">More Info</a>
+                    <h4>Photo Booth, Photo &amp; Video</h4>
+                    <p>Capture the plated moments, guest reactions and branded content opportunities around your event.</p>
+                    <a href="https://vnvevents.com/product-category/photo-video-booths/" class="vnv-btn btn-outline-vnv">More Info</a>
                 </div>
             </div>
 
             <div class="col-md-6 col-xl-4">
                 <div class="mini-card">
-                    <h4>Event Planner</h4>
-                    <p>Our experienced event planners will work with you to design and execute a flawless event.</p>
-                    <a href="#" class="vnv-btn btn-outline-vnv">More Info</a>
-                </div>
-            </div>
-
-            <div class="col-md-6 col-xl-6">
-                <div class="mini-card">
-                    <h4>Event Coordinators</h4>
-                    <p>We provide day-of coordination to ensure every detail is handled smoothly.</p>
-                    <a href="#" class="vnv-btn btn-outline-vnv">More Info</a>
-                </div>
-            </div>
-
-            <div class="col-md-6 col-xl-6">
-                <div class="mini-card">
-                    <h4>Photobooth, Photography and Video Service</h4>
-                    <p>Our professional photographers will capture every special moment of your event.</p>
-                    <a href="#" class="vnv-btn btn-outline-vnv">More Info</a>
+                    <h4>Event Staffing</h4>
+                    <p>Add servers and hospitality support when service style matters as much as the menu itself.</p>
+                    <a href="https://vnvevents.com/product/professional-servers/" class="vnv-btn btn-outline-vnv">More Info</a>
                 </div>
             </div>
         </div>
@@ -994,12 +1022,59 @@ h1, h2, h3, h4, h5, .luxury-font {
 
 <section class="section-vnv section-white">
     <div class="container">
+        <div class="section-heading">
+            <span class="vnv-badge">Avomeal by VNV Events</span>
+            <h2>Need weekly meal prep too? Meet <span class="text-vnv">Avomeal</span></h2>
+            <p>
+                This gives VNV Gourmet a cleaner bridge into the meal prep side without confusing the catering offer.
+            </p>
+        </div>
+
+        <div class="avomeal-grid">
+            <div class="avomeal-card">
+                <div class="avomeal-copy">
+                    <h3>Chef-prepared meal prep for South Florida routines.</h3>
+                    <p>
+                        If the client is not planning an event but still wants food support, Avomeal is the easier weekly path: chef-prepared meals, free delivery and a flexible structure that feels easy to maintain.
+                    </p>
+
+                    <ul>
+                        <li>Start with 5 meals for $75 per week</li>
+                        <li>$15 each additional meal</li>
+                        <li>Free South Florida delivery</li>
+                        <li>Pause or resume anytime</li>
+                    </ul>
+
+                    <div class="menu-top-actions" style="margin-top:24px;">
+                        <a href="https://avomeal.com/" class="vnv-btn btn-gold-vnv">Visit Avomeal</a>
+                        <a href="https://avomeal.com/" class="vnv-btn btn-outline-vnv">Start Meal Plan</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="avomeal-visuals">
+                <div class="avomeal-shot">
+                    <img src="{{ asset_for('assets/images/service_photos/avomeal_1.png') }}" alt="Avomeal meal prep">
+                </div>
+                <div class="avomeal-shot">
+                    <img src="{{ asset_for('assets/images/service_photos/avomeal_2.png') }}" alt="Avomeal weekly meals">
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="section-vnv section-white">
+    <div class="container">
         <div class="row g-4 align-items-center">
             <div class="col-lg-6">
                 <div class="instagram-card">
                     <span class="vnv-badge">Visit our Instagram Gallery</span>
-                    <h4 style="font-size:2.3rem;">Learn more about our VNV Events creative process and previous work, and be part of our digital community.</h4>
-                    <a href="https://www.instagram.com/" target="_blank" class="vnv-btn btn-gold-vnv">Click Here</a>
+                    <h4 style="font-size:2.3rem;">See the setups, the stations, the styling and the kind of event atmosphere we build in real life.</h4>
+                    <p>
+                        This section stays important because a lot of people decide with their eyes first. Let them see the scale, finish and presentation.
+                    </p>
+                    <a href="https://www.instagram.com/vnv_events/" target="_blank" class="vnv-btn btn-gold-vnv">View Instagram</a>
                 </div>
             </div>
             <div class="col-lg-6">
@@ -1009,7 +1084,9 @@ h1, h2, h3, h4, h5, .luxury-font {
     </div>
 </section>
 
- 
+{% include "templates/components/publicEventRequestModal.html.twig" with {
+    request_form_action: "/api/public/event-request"
+} %}
 
 {% include "templates/layout/publicFooterVnv.html.twig" %}
 
@@ -1023,7 +1100,7 @@ h1, h2, h3, h4, h5, .luxury-font {
 if (typeof gsap !== 'undefined' && typeof ScrollTrigger !== 'undefined') {
     gsap.registerPlugin(ScrollTrigger);
 
-    gsap.utils.toArray('.menu-card, .holiday-card, .mini-card, .contact-card, .instagram-card').forEach((card) => {
+    gsap.utils.toArray('.service-showcase-card, .holiday-card, .mini-card, .contact-card, .instagram-card, .avomeal-card').forEach((card) => {
         gsap.from(card, {
             scrollTrigger: {
                 trigger: card,
@@ -1045,6 +1122,20 @@ if (typeof gsap !== 'undefined' && typeof ScrollTrigger !== 'undefined') {
         opacity: 0,
         duration: 1.1,
         ease: "power3.out"
+    });
+
+    gsap.utils.toArray('.avomeal-shot').forEach((shot, index) => {
+        gsap.from(shot, {
+            scrollTrigger: {
+                trigger: shot,
+                start: "top 90%"
+            },
+            y: 32,
+            opacity: 0,
+            duration: 0.8,
+            delay: index * 0.08,
+            ease: "power3.out"
+        });
     });
 }
 </script>
