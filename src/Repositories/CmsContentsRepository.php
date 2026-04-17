@@ -40,8 +40,8 @@ class CmsContentsRepository extends BaseRepository
             SELECT 
                 c.*,
                 t.name AS template_name,
-                t.template_key,
-                t.type AS template_type
+                NULL AS template_key,
+                NULL AS template_type
             FROM `{$this->table}` c
             LEFT JOIN `cms_templates` t ON t.id = c.id_template
             WHERE c.type = :type
@@ -62,10 +62,10 @@ class CmsContentsRepository extends BaseRepository
             SELECT 
                 c.*,
                 t.name AS template_name,
-                t.template_key,
-                t.type AS template_type,
-                t.preview_html,
-                t.template_structure_json
+                NULL AS template_key,
+                NULL AS template_type,
+                NULL AS preview_html,
+                NULL AS template_structure_json
             FROM `{$this->table}` c
             LEFT JOIN `cms_templates` t ON t.id = c.id_template
             WHERE c.id = :id
@@ -85,8 +85,8 @@ class CmsContentsRepository extends BaseRepository
             SELECT 
                 c.*,
                 t.name AS template_name,
-                t.template_key,
-                t.type AS template_type
+                NULL AS template_key,
+                NULL AS template_type
             FROM `{$this->table}` c
             LEFT JOIN `cms_templates` t ON t.id = c.id_template
             WHERE c.slug = :slug
@@ -110,8 +110,8 @@ class CmsContentsRepository extends BaseRepository
             SELECT 
                 c.*,
                 t.name AS template_name,
-                t.template_key,
-                t.type AS template_type
+                NULL AS template_key,
+                NULL AS template_type
             FROM `{$this->table}` c
             LEFT JOIN `cms_templates` t ON t.id = c.id_template
             WHERE c.type = :type
@@ -169,8 +169,8 @@ class CmsContentsRepository extends BaseRepository
             SELECT 
                 c.*,
                 t.name AS template_name,
-                t.template_key,
-                t.type AS template_type
+                NULL AS template_key,
+                NULL AS template_type
             FROM `{$this->table}` c
             LEFT JOIN `cms_templates` t ON t.id = c.id_template
             WHERE c.is_homepage = 1

@@ -50,9 +50,10 @@ if (!empty($content->content_json)) {
 }
 
 // Render
-return TemplateResponse::render(__DIR__ . "/index.twig", [
+echo TemplateResponse::render(__DIR__ . "/index.twig", [
     "page" => $content,
     "route" => $route,
     "content_json" => $contentJson,
     "show_whatsapp" => true,
 ]);
+exit;

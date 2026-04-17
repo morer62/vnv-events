@@ -22,7 +22,7 @@ $router->get(function () {
         SELECT 
             c.*,
             t.name AS template_name,
-            t.template_key,
+            NULL AS template_key,
             bc.name AS blog_category_name,
             bc.slug AS blog_category_slug
         FROM cms_contents c

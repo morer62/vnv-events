@@ -17,9 +17,9 @@ function blogPostSlugify(string $text): string
     $text = trim($text);
     $text = strtolower($text);
     $text = preg_replace('/[^a-z0-9\-_\s]/', '', $text);
-    $text = preg_replace('/[\s]+/', '-', $text);
-    $text = preg_replace('/-+/', '-', $text);
-    return trim($text, '-');
+    $text = preg_replace('/[\s\-]+/', '_', $text);
+    $text = preg_replace('/_+/', '_', $text);
+    return trim($text, '_');
 }
 
 $router->get(function () {
