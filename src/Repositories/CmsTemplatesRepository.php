@@ -22,12 +22,20 @@ class CmsTemplatesRepository extends BaseRepository
 
     public function getActive(): array
     {
-        $this->db->query("
-            SELECT *
-            FROM `{$this->table}`
-            WHERE `status` = 'ACTIVE'
-            ORDER BY `name` ASC
-        ");
+        if ($this->hasStatusColumn()) {
+            $this->db->query("
+                SELECT *
+                FROM `{$this->table}`
+                WHERE `status` = 'ACTIVE'
+                ORDER BY `name` ASC
+            ");
+        } else {
+            $this->db->query("
+                SELECT *
+                FROM `{$this->table}`
+                ORDER BY `name` ASC
+            ");
+        }
 
         return $this->db->fetchAll() ?: [];
     }
@@ -77,16 +85,35 @@ class CmsTemplatesRepository extends BaseRepository
 
     public function getByType(string $type): array
     {
-        $this->db->query("
-            SELECT *
-            FROM `{$this->table}`
-            WHERE `type` = :type
-            AND `status` = 'ACTIVE'
-            ORDER BY `name` ASC
-        ");
+        if ($this->hasStatusColumn()) {
+            $this->db->query("
+                SELECT *
+                FROM `{$this->table}`
+                WHERE `type` = :type
+                AND `status` = 'ACTIVE'
+                ORDER BY `name` ASC
+            ");
+        } else {
+            $this->db->query("
+                SELECT *
+                FROM `{$this->table}`
+                WHERE `type` = :type
+                ORDER BY `name` ASC
+            ");
+        }
 
         $this->db->bind(':type', $type);
 
         return $this->db->fetchAll() ?: [];
+    }
+
+    private function hasStatusColumn(): bool
+    {
+        try {
+            $this->db->query("SHOW COLUMNS FROM `{$this->table}` LIKE 'status'");
+            return (bool)$this->db->fetchOne();
+        } catch (\Throwable $e) {
+            return false;
+        }
     }
 }

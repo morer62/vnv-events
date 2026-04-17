@@ -210,13 +210,13 @@
             <div class="cms-grid">
                 <div class="cms-field">
                     <label class="cms-label">Name *</label>
-                    <input type="text" name="name" class="cms-input" value="{{ old.name }}" required>
+                    <input type="text" id="category-name-input" name="name" class="cms-input" value="{{ old.name }}" required>
                 </div>
 
                 <div class="cms-field">
                     <label class="cms-label">Slug</label>
-                    <input type="text" name="slug" class="cms-input" value="{{ old.slug }}">
-                    <div class="cms-help">If left empty, it will be generated from the name.</div>
+                    <input type="text" id="category-slug-input" name="slug" class="cms-input" value="{{ old.slug }}">
+                    <div class="cms-help">Generated from the name using underscore separators (example: my_category_name). You can edit it manually if needed.</div>
                 </div>
 
                 <div class="cms-field full">
@@ -276,4 +276,43 @@
         </div>
     </form>
 </div>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const nameInput = document.getElementById('category-name-input');
+    const slugInput = document.getElementById('category-slug-input');
+
+    if (!nameInput || !slugInput) {
+        return;
+    }
+
+    let slugTouchedManually = slugInput.value.trim() !== '';
+
+    function slugify(text) {
+        return String(text || '')
+            .trim()
+            .toLowerCase()
+            .replace(/[^a-z0-9\-_\s]/g, '')
+            .replace(/[\s-]+/g, '_')
+            .replace(/_+/g, '_')
+            .replace(/^_+|_+$/g, '');
+    }
+
+    nameInput.addEventListener('input', function () {
+        if (slugTouchedManually) {
+            return;
+        }
+
+        slugInput.value = slugify(nameInput.value);
+    });
+
+    slugInput.addEventListener('input', function () {
+        const currentValue = slugInput.value.trim();
+        slugTouchedManually = currentValue !== '' && currentValue !== slugify(nameInput.value);
+    });
+
+    slugInput.addEventListener('blur', function () {
+        slugInput.value = slugify(slugInput.value);
+    });
+});
+</script>
 {% endblock %}

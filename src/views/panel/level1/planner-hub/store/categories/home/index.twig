@@ -276,6 +276,16 @@
             background:#e0e7ff;
         }
 
+        .sc-btn-info{
+            background:#eff6ff;
+            border-color:#bfdbfe;
+            color:#1d4ed8;
+        }
+
+        .sc-btn-info:hover{
+            background:#dbeafe;
+        }
+
         .sc-btn-danger{
             background:#fff1f2;
             border-color:#fecdd3;
@@ -443,6 +453,11 @@
 
                                     <td class="text-end">
                                         <div class="sc-actions">
+                                            {% if c.slug %}
+                                                <a href="{{ path('product-category/' ~ c.slug) }}" class="sc-btn sc-btn-info" target="_blank" rel="noopener noreferrer">
+                                                    Public View
+                                                </a>
+                                            {% endif %}
                                             <a href="{{ path('panel/planner-hub/store/categories/edit') }}?id={{ c.id }}" class="sc-btn sc-btn-primary">
                                                 Edit
                                             </a>

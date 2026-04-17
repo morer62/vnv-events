@@ -24,14 +24,32 @@ class BlogCategoriesRepository extends BaseRepository
 
     public function getActive(): array
     {
-        $this->db->query("
-            SELECT *
-            FROM `{$this->table}`
-            WHERE `status` = 'ACTIVE'
-            ORDER BY `name` ASC
-        ");
+        if ($this->hasStatusColumn()) {
+            $this->db->query("
+                SELECT *
+                FROM `{$this->table}`
+                WHERE `status` = 'ACTIVE'
+                ORDER BY `name` ASC
+            ");
+        } else {
+            $this->db->query("
+                SELECT *
+                FROM `{$this->table}`
+                ORDER BY `name` ASC
+            ");
+        }
 
         return $this->db->fetchAll() ?: [];
+    }
+
+    private function hasStatusColumn(): bool
+    {
+        try {
+            $this->db->query("SHOW COLUMNS FROM `{$this->table}` LIKE 'status'");
+            return (bool)$this->db->fetchOne();
+        } catch (\Throwable $e) {
+            return false;
+        }
     }
 
     public function getBySlug(string $slug): ?object
@@ -53,7 +71,7 @@ class BlogCategoriesRepository extends BaseRepository
         $query = "
             SELECT COUNT(*) AS total
             FROM `{$this->table}`
-            WHERE `slug` = :slug
+            WHERE LOWER(`slug`) = LOWER(:slug)
         ";
 
         if ($excludeId > 0) {

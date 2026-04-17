@@ -117,7 +117,7 @@
                                         <a href="{{ path('panel/cms/blog/blog-posts/edit') }}?id={{ item.id }}" class="cms-btn cms-btn-light">Edit</a>
                                         <a href="{{ path('panel/cms/pages/preview') }}?id={{ item.id }}" class="cms-btn cms-btn-light">Preview</a>
                                         {% if item.main_route and item.main_route.route %}
-                                            <a href="{{ item.main_route.route }}" target="_blank" class="cms-btn cms-btn-light">Open</a>
+                                            <a href="{{ path(item.main_route.route|trim('/')) }}" target="_blank" class="cms-btn cms-btn-light">Open</a>
                                         {% endif %}
                                     </div>
                                 </td>

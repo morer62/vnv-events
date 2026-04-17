@@ -66,10 +66,11 @@ if (!empty($post->id_blog_category)) {
 }
 
 // Render
-return TemplateResponse::render(__DIR__ . "/index.twig", [
+echo TemplateResponse::render(__DIR__ . "/index.twig", [
     "post" => $post,
     "route" => $route,
     "category" => $category,
     "content_json" => $contentJson,
     "show_whatsapp" => true,
 ]);
+exit;

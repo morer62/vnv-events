@@ -2,6 +2,7 @@
 
 use App\Repositories\BlogCategoriesRepository;
 use App\Repositories\Connection;
+use App\Utils\LocationUtils;
 use App\Utils\TemplateResponse;
 
 $db = new Connection();
@@ -30,29 +31,59 @@ if (!$category || ($category->status ?? null) !== 'ACTIVE') {
     exit;
 }
 
-// Buscar posts publicados de esa categoría con su ruta principal
-$db->query("
-    SELECT 
-        c.*,
-        r.route AS main_route
-    FROM cms_contents c
-    LEFT JOIN cms_routes r 
-        ON r.id_content = c.id
-       AND r.is_main = 1
-       AND r.language = c.language
-       AND r.status = 'ACTIVE'
-    WHERE c.type = 'post'
-      AND c.status = 'PUBLISHED'
-      AND c.language = 'en'
-      AND c.id_blog_category = :cat
-    ORDER BY c.published_at DESC, c.id DESC
-");
+// Buscar posts publicados de esa categoría con su ruta principal.
+// Si el esquema CMS no está migrado aún (tabla cms_contents/cms_routes), evitamos romper la página.
+$posts = [];
+try {
+    $db->query("SHOW TABLES LIKE :table_name");
+    $db->bind(':table_name', 'cms_contents');
+    $hasCmsContents = (bool)$db->fetchOne();
 
-$db->bind(':cat', (int)$category->id);
+    if (!$hasCmsContents) {
+        throw new \RuntimeException("Missing table cms_contents in current database.");
+    }
 
-$posts = $db->fetchAll() ?: [];
+    $db->query("SHOW COLUMNS FROM cms_contents LIKE :column_name");
+    $db->bind(':column_name', 'status');
+    $hasContentsStatus = (bool)$db->fetchOne();
 
-return TemplateResponse::render(__DIR__ . "/index.twig", [
+    $db->query("SHOW COLUMNS FROM cms_routes LIKE :column_name");
+    $db->bind(':column_name', 'status');
+    $hasRoutesStatus = (bool)$db->fetchOne();
+
+    $contentsStatusFilter = $hasContentsStatus ? " AND c.status = 'PUBLISHED'" : "";
+    $routesStatusFilter = $hasRoutesStatus ? " AND r.status = 'ACTIVE'" : "";
+
+    $db->query("
+        SELECT 
+            c.*,
+            r.route AS main_route
+        FROM cms_contents c
+        LEFT JOIN cms_routes r 
+            ON r.id_content = c.id
+           AND r.is_main = 1
+           AND r.language = c.language
+           {$routesStatusFilter}
+        WHERE c.type = 'post'
+          AND c.language = 'en'
+          AND c.id_blog_category = :cat
+          {$contentsStatusFilter}
+        ORDER BY c.published_at DESC, c.id DESC
+    ");
+
+    $db->bind(':cat', (int)$category->id);
+    $posts = $db->fetchAll() ?: [];
+} catch (\Throwable $e) {
+    $logFile = LocationUtils::getRootLocation() . '/.logs/app_error_' . date('Y-m-d') . '.log';
+    error_log(
+        '[PUBLIC_BLOG_CATEGORY] Failed fetching posts for category slug "' . $slug . '": ' . $e->getMessage() . PHP_EOL,
+        3,
+        $logFile
+    );
+}
+
+echo TemplateResponse::render(__DIR__ . "/index.twig", [
     "category" => $category,
     "posts"    => $posts,
 ]);
+exit;
