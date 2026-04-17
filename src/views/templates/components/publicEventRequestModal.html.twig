@@ -18,7 +18,9 @@
         >
             <input type="hidden" name="selected_services" id="vnvSelectedServicesInput">
             <input type="hidden" name="form_source" value="public_home_modal">
-            <input type="hidden" name="g_recaptcha_token" id="vnvRecaptchaToken">
+
+            {# NUEVO: token recaptcha #}
+            <input type="hidden" name="recaptcha_token" id="vnvRecaptchaToken" value="">
 
             <div class="vnv-request-modal__head">
                 <h2 id="vnvRequestModalTitle">Plan your event in seconds</h2>
@@ -32,6 +34,7 @@
                 <span data-vnv-step-dot="4"></span>
             </div>
 
+            {# STEP 1 #}
             <section class="vnv-request-step is-active" data-vnv-step="1">
                 <div class="vnv-request-panel">
                     <h3>1) Where is your event?</h3>
@@ -68,6 +71,7 @@
                 </div>
             </section>
 
+            {# STEP 2 #}
             <section class="vnv-request-step" data-vnv-step="2">
                 <div class="vnv-request-panel">
                     <h3>2) What services do you need?</h3>
@@ -153,6 +157,7 @@
                 </div>
             </section>
 
+            {# STEP 3 #}
             <section class="vnv-request-step" data-vnv-step="3">
                 <div class="vnv-request-panel">
                     <h3>3) Event details & contact</h3>
@@ -239,6 +244,7 @@
                 </div>
             </section>
 
+            {# STEP 4 #}
             <section class="vnv-request-step" data-vnv-step="4">
                 <div class="vnv-request-panel">
                     <h3>4) One more thing before we send it</h3>
@@ -767,20 +773,30 @@ body.vnv-request-lock{
     }
 }
 </style>
- 
-<script src="https://www.google.com/recaptcha/api.js?render=6LcHRbssAAAAAHqRxCgnGgoUVQlnEOMCjgQhMAxs"></script>
+
+{# NUEVO: script de recaptcha, sin tocar el resto #}
+{% if env.RECAPTCHA_SITE_KEY is defined and env.RECAPTCHA_SITE_KEY %}
+<script src="https://www.google.com/recaptcha/api.js?render={{ env.RECAPTCHA_SITE_KEY }}"></script>
+{% endif %}
 
 <script>
-(function () { 
-    const RECAPTCHA_SITE_KEY = '6LcHRbssAAAAAHqRxCgnGgoUVQlnEOMCjgQhMAxs';
-
+(function () {
     const modal = document.getElementById('vnvRequestModal');
     const form = document.getElementById('vnvRequestForm');
     if (!modal || !form) return;
 
-   function normalizeActionUrl() {
-    return;
-}
+    function normalizeActionUrl() {
+        const rawAction = form.getAttribute('action') || '';
+        if (!rawAction || !rawAction.startsWith('/api/public/')) return;
+
+        const pathParts = window.location.pathname.split('/').filter(Boolean);
+        if (!pathParts.length) return;
+
+        const appBase = pathParts[0];
+        if (!appBase || appBase === 'api') return;
+
+        form.setAttribute('action', '/' + appBase + rawAction);
+    }
 
     const openers = document.querySelectorAll('[data-vnv-open-request]');
     const closers = modal.querySelectorAll('[data-vnv-request-close]');
@@ -804,6 +820,13 @@ body.vnv-request-lock{
     const miniMapEl = document.getElementById('vnvRequestMiniMap');
     const recaptchaTokenInput = document.getElementById('vnvRecaptchaToken');
 
+    const AUTO_OPEN_STORAGE_KEY = 'vnv_request_modal_last_auto_open_at';
+    const AUTO_OPEN_HOURS_RAW = Number('{{ env.REQUEST_MODAL_AUTO_OPEN_HOURS|default(24) }}');
+    const AUTO_OPEN_HOURS = Number.isFinite(AUTO_OPEN_HOURS_RAW) && AUTO_OPEN_HOURS_RAW > 0
+        ? AUTO_OPEN_HOURS_RAW
+        : 24;
+    const AUTO_OPEN_INTERVAL_MS = AUTO_OPEN_HOURS * 60 * 60 * 1000;
+
     let currentStep = 1;
     const selectedServices = new Set();
     let requestMap = null;
@@ -811,6 +834,7 @@ body.vnv-request-lock{
     let requestGeocoder = null;
     let requestAutocomplete = null;
     let lastLatLng = null;
+    let vnvRecaptchaSubmitting = false;
 
     function setFieldError(field, message) {
         if (!field) return false;
@@ -837,6 +861,16 @@ body.vnv-request-lock{
         modal.classList.remove('is-open');
         modal.setAttribute('aria-hidden', 'true');
         document.body.classList.remove('vnv-request-lock');
+    }
+
+    function isRootPath() {
+        const parts = window.location.pathname.split('/').filter(Boolean);
+        if (!parts.length) return true;
+        return parts.length === 1;
+    }
+
+    function shouldAutoOpenNow() {
+        return isRootPath();
     }
 
     function goToStep(step) {
@@ -1080,20 +1114,36 @@ body.vnv-request-lock{
         return true;
     }
 
+    function setSubmitLoading(loading) {
+        if (sendRequestBtn) {
+            sendRequestBtn.disabled = !!loading;
+            sendRequestBtn.classList.toggle('is-loading', !!loading);
+        }
+        if (sendLabel) sendLabel.classList.toggle('d-none', !!loading);
+        if (sendLoading) sendLoading.classList.toggle('d-none', !loading);
+    }
+
     function getRecaptchaToken() {
-        return new Promise(function (resolve) {
-            if (!window.grecaptcha || !RECAPTCHA_SITE_KEY) {
+        return new Promise(function(resolve, reject) {
+            const siteKey = '{{ env.RECAPTCHA_SITE_KEY|default('') }}';
+
+            if (!siteKey) {
                 resolve('');
                 return;
             }
 
-            window.grecaptcha.ready(function () {
-                window.grecaptcha.execute(RECAPTCHA_SITE_KEY, { action: 'event_request' })
-                    .then(function (token) {
+            if (!window.grecaptcha || typeof window.grecaptcha.ready !== 'function') {
+                reject(new Error('grecaptcha_not_available'));
+                return;
+            }
+
+            window.grecaptcha.ready(function() {
+                window.grecaptcha.execute(siteKey, { action: 'public_event_request' })
+                    .then(function(token) {
                         resolve(token || '');
                     })
-                    .catch(function () {
-                        resolve('');
+                    .catch(function(error) {
+                        reject(error);
                     });
             });
         });
@@ -1187,32 +1237,47 @@ body.vnv-request-lock{
         });
     }
 
-    form.addEventListener('submit', async function (e) {
-        e.preventDefault();
+    form.addEventListener('submit', function (e) {
         updateSummary();
 
         if (!validateStep(3)) {
+            e.preventDefault();
             goToStep(3);
             return;
         }
 
-        if (sendRequestBtn) {
-            sendRequestBtn.disabled = true;
-            sendRequestBtn.classList.add('is-loading');
-        }
-        if (sendLabel) sendLabel.classList.add('d-none');
-        if (sendLoading) sendLoading.classList.remove('d-none');
-
-        const token = await getRecaptchaToken();
-        if (recaptchaTokenInput) {
-            recaptchaTokenInput.value = token;
+        if (vnvRecaptchaSubmitting) {
+            return;
         }
 
-        form.submit();
+        const siteKey = '{{ env.RECAPTCHA_SITE_KEY|default('') }}';
+        if (!siteKey) {
+            return;
+        }
+
+        e.preventDefault();
+        setSubmitLoading(true);
+
+        getRecaptchaToken()
+            .then(function(token) {
+                if (recaptchaTokenInput) {
+                    recaptchaTokenInput.value = token;
+                }
+                vnvRecaptchaSubmitting = true;
+                form.submit();
+            })
+            .catch(function() {
+                setSubmitLoading(false);
+                alert('Security verification failed. Please try again.');
+            });
     });
 
-   
+    normalizeActionUrl();
     waitForGoogleAndInit();
     goToStep(1);
+
+    if (shouldAutoOpenNow()) {
+        openModal();
+    }
 })();
 </script>

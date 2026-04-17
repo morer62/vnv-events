@@ -36,75 +36,144 @@ function eventRequestMailTo(): string
     return '';
 }
 
-function eventRequestVerifyRecaptcha(string $token): bool
+function eventRequestRecaptchaSecret(): string
 {
-    $secret = trim((string)($_ENV['GOOGLE_RECAPTCHA_SECRET'] ?? ''));
+    return trim((string)($_ENV['RECAPTCHA_SECRET_KEY'] ?? ''));
+}
 
-    error_log('reCAPTCHA token received: ' . ($token !== '' ? 'YES' : 'NO'));
-    error_log('reCAPTCHA secret loaded: ' . ($secret !== '' ? 'YES' : 'NO'));
+function eventRequestRecaptchaMinScore(): float
+{
+    $value = $_ENV['RECAPTCHA_MIN_SCORE'] ?? 0.5;
+    $score = is_numeric($value) ? (float)$value : 0.5;
 
-    if ($secret === '' || $token === '') {
-        return false;
+    if ($score < 0) {
+        return 0.0;
     }
 
-    $payload = http_build_query([
+    if ($score > 1) {
+        return 1.0;
+    }
+
+    return $score;
+}
+
+function eventRequestVerifyRecaptcha(string $token, string $remoteIp = ''): array
+{
+    $secret = eventRequestRecaptchaSecret();
+    $minScore = eventRequestRecaptchaMinScore();
+
+    if ($secret === '') {
+        return [
+            'success' => false,
+            'message' => 'Missing RECAPTCHA_SECRET_KEY.',
+            'score' => null,
+            'response' => null,
+        ];
+    }
+
+    if ($token === '') {
+        return [
+            'success' => false,
+            'message' => 'Missing recaptcha token.',
+            'score' => null,
+            'response' => null,
+        ];
+    }
+
+    $payload = [
         'secret'   => $secret,
         'response' => $token,
-        'remoteip' => $_SERVER['REMOTE_ADDR'] ?? '',
-    ]);
+    ];
+
+    if ($remoteIp !== '') {
+        $payload['remoteip'] = $remoteIp;
+    }
+
+    $postData = http_build_query($payload);
 
     $options = [
         'http' => [
             'method'  => 'POST',
             'header'  => "Content-type: application/x-www-form-urlencoded\r\n",
-            'content' => $payload,
+            'content' => $postData,
             'timeout' => 10,
         ],
     ];
 
     $context = stream_context_create($options);
-    $response = @file_get_contents('https://www.google.com/recaptcha/api/siteverify', false, $context);
+    $result = @file_get_contents('https://www.google.com/recaptcha/api/siteverify', false, $context);
 
-    error_log('reCAPTCHA raw response: ' . ($response !== false ? $response : 'FALSE'));
-
-    if ($response === false) {
-        return false;
+    if ($result === false) {
+        return [
+            'success' => false,
+            'message' => 'Could not contact Google reCAPTCHA.',
+            'score' => null,
+            'response' => null,
+        ];
     }
 
-    $result = json_decode($response, true);
+    $decoded = json_decode($result, true);
 
-    if (!is_array($result)) {
-        error_log('reCAPTCHA decoded response invalid');
-        return false;
+    if (!is_array($decoded)) {
+        return [
+            'success' => false,
+            'message' => 'Invalid reCAPTCHA response.',
+            'score' => null,
+            'response' => $result,
+        ];
     }
 
-    error_log('reCAPTCHA success: ' . (($result['success'] ?? false) ? 'YES' : 'NO'));
-    error_log('reCAPTCHA score: ' . (string)($result['score'] ?? 'NULL'));
-    error_log('reCAPTCHA action: ' . (string)($result['action'] ?? 'NULL'));
-    error_log('reCAPTCHA errors: ' . json_encode($result['error-codes'] ?? []));
-
-    $success = (bool)($result['success'] ?? false);
-    $score   = (float)($result['score'] ?? 0);
+    $success = (bool)($decoded['success'] ?? false);
+    $score = isset($decoded['score']) && is_numeric($decoded['score']) ? (float)$decoded['score'] : null;
+    $action = trim((string)($decoded['action'] ?? ''));
 
     if (!$success) {
-        return false;
+        return [
+            'success' => false,
+            'message' => 'Google rejected the reCAPTCHA token.',
+            'score' => $score,
+            'response' => $decoded,
+        ];
     }
 
-    return $score >= 0.3;
+    if ($action !== '' && $action !== 'public_event_request') {
+        return [
+            'success' => false,
+            'message' => 'Invalid reCAPTCHA action.',
+            'score' => $score,
+            'response' => $decoded,
+        ];
+    }
+
+    if ($score !== null && $score < $minScore) {
+        return [
+            'success' => false,
+            'message' => 'Low reCAPTCHA score.',
+            'score' => $score,
+            'response' => $decoded,
+        ];
+    }
+
+    return [
+        'success' => true,
+        'message' => 'ok',
+        'score' => $score,
+        'response' => $decoded,
+    ];
 }
 
 $router->post(function () {
-    $eventAddress   = trim((string)($_POST['event_address'] ?? ''));
-    $eventDate      = trim((string)($_POST['event_date'] ?? ''));
-    $eventTime      = trim((string)($_POST['event_time'] ?? ''));
-    $guestCount     = (int)($_POST['guest_count'] ?? 0);
-    $fullName       = trim((string)($_POST['full_name'] ?? ''));
-    $email          = trim((string)($_POST['email'] ?? ''));
-    $phone          = trim((string)($_POST['phone'] ?? ''));
-    $details        = trim((string)($_POST['details'] ?? ''));
-    $formSource     = trim((string)($_POST['form_source'] ?? 'public_home_modal'));
-    $servicesRaw    = (string)($_POST['selected_services'] ?? '[]');
-    $recaptchaToken = trim((string)($_POST['g_recaptcha_token'] ?? ''));
+    $eventAddress = trim((string)($_POST['event_address'] ?? ''));
+    $eventDate = trim((string)($_POST['event_date'] ?? ''));
+    $eventTime = trim((string)($_POST['event_time'] ?? ''));
+    $guestCount = (int)($_POST['guest_count'] ?? 0);
+    $fullName = trim((string)($_POST['full_name'] ?? ''));
+    $email = trim((string)($_POST['email'] ?? ''));
+    $phone = trim((string)($_POST['phone'] ?? ''));
+    $details = trim((string)($_POST['details'] ?? ''));
+    $formSource = trim((string)($_POST['form_source'] ?? 'public_home_modal'));
+    $servicesRaw = (string)($_POST['selected_services'] ?? '[]');
+    $recaptchaToken = trim((string)($_POST['recaptcha_token'] ?? ''));
 
     if ($eventAddress === '' || $eventDate === '' || $eventTime === '' || $fullName === '' || $email === '' || $phone === '') {
         MessageUtil::setMessage('Please complete required fields before sending your request.', 'Validation', 'warning');
@@ -116,7 +185,19 @@ $router->post(function () {
         eventRequestRedirectBack();
     }
 
-    if (!eventRequestVerifyRecaptcha($recaptchaToken)) {
+    $recaptchaCheck = eventRequestVerifyRecaptcha(
+        $recaptchaToken,
+        (string)($_SERVER['REMOTE_ADDR'] ?? '')
+    );
+
+    if (!$recaptchaCheck['success']) {
+        error_log(
+            'Public event request reCAPTCHA failed: '
+            . $recaptchaCheck['message']
+            . ' | score=' . var_export($recaptchaCheck['score'], true)
+            . ' | response=' . json_encode($recaptchaCheck['response'])
+        );
+
         MessageUtil::setMessage('Security verification failed. Please try again.', 'Security', 'warning');
         eventRequestRedirectBack();
     }
@@ -157,6 +238,7 @@ $router->post(function () {
             <tr><td style="padding:8px;border:1px solid #e5e7eb;"><strong>Guest count</strong></td><td style="padding:8px;border:1px solid #e5e7eb;">' . ($guestCount > 0 ? (string)$guestCount : 'Not provided') . '</td></tr>
             <tr><td style="padding:8px;border:1px solid #e5e7eb;"><strong>Event address</strong></td><td style="padding:8px;border:1px solid #e5e7eb;">' . htmlspecialchars($eventAddress) . '</td></tr>
             <tr><td style="padding:8px;border:1px solid #e5e7eb;"><strong>Form source</strong></td><td style="padding:8px;border:1px solid #e5e7eb;">' . htmlspecialchars($formSource) . '</td></tr>
+            <tr><td style="padding:8px;border:1px solid #e5e7eb;"><strong>reCAPTCHA score</strong></td><td style="padding:8px;border:1px solid #e5e7eb;">' . htmlspecialchars((string)($recaptchaCheck['score'] ?? 'n/a')) . '</td></tr>
         </table>
         <div style="margin-top:14px;">
             <strong>Selected services</strong>
@@ -171,7 +253,6 @@ $router->post(function () {
     try {
         $emailService = new EmailService();
         $sent = $emailService->sendSimpleEmail($mailTo, $subject, $body, true);
-
         if (!$sent) {
             MessageUtil::setMessage('Could not send your request email. Please try again.', 'Email', 'error');
             eventRequestRedirectBack();
