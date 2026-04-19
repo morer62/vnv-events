@@ -563,6 +563,90 @@ h1, h2, h3, h4, h5, .luxury-font {
         font-size: 1.75rem;
     }
 }
+
+.trust-bar-vnv {
+    background: var(--vnv-dark-soft);
+    border-top: 1px solid rgba(94,198,196,.15);
+    border-bottom: 1px solid rgba(94,198,196,.15);
+    padding: 22px 0;
+}
+.trust-bar-grid {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 12px 40px;
+    text-align: center;
+}
+.trust-bar-item strong {
+    display: block;
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--vnv-primary);
+    font-family: 'Plus Jakarta Sans', sans-serif;
+}
+.trust-bar-item span {
+    font-size: .78rem;
+    color: var(--vnv-text-muted);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+
+.metric-strip-vnv {
+    background: var(--vnv-dark-deep);
+    padding: 100px 0;
+    border-bottom: 1px solid var(--vnv-border);
+}
+
+.metric-strip-vnv .row > div {
+    display: flex;
+    justify-content: center;
+}
+
+.metric-item {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    text-align: left;
+}
+
+.metric-val {
+    font-size: 4.5rem;
+    font-weight: 900;
+    color: var(--vnv-primary);
+    line-height: 1;
+    margin: 0;
+    flex: 0 0 auto;
+}
+
+.metric-label {
+    letter-spacing: 5px;
+    font-weight: 700;
+    opacity: 0.5;
+    font-size: 0.7rem;
+    line-height: 1.5;
+    margin: 0;
+    text-align: left;
+}
+
+.metric-logo-block {
+    min-height: 180px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}
+
+.metric-logo-vnv {
+    width: min(280px, 82%);
+    max-width: 280px;
+    height: auto;
+    display: block;
+    margin: 0 auto;
+    opacity: .98;
+}
 </style>
 {% endblock %}
 
@@ -574,7 +658,10 @@ h1, h2, h3, h4, h5, .luxury-font {
     <div class="container hero-gourmet-inner">
         <span class="vnv-badge">VNV Gourmet</span>
 
-        <h1>Chef-driven catering, stations and <span class="text-gold">staffing for South Florida events</span></h1>
+        <h1>Live Chef Stations & Event Catering
+        <span class="text-gold">South Florida · From $19/Person</span></h1>
+
+        
 
         <p class="hero-copy">
             Explore live stations, buffet-style favorites, premium appetizers, desserts, sushi boats and event staffing designed to make your celebration feel polished, flavorful and easy to manage.
@@ -600,13 +687,55 @@ h1, h2, h3, h4, h5, .luxury-font {
     </div>
 </section>
 
+
+
+<section class="metric-strip-vnv text-center">
+    <div class="container">
+        <div class="row g-4 justify-content-center">
+            <div class="col-12 col-lg-3">
+                <div class="metric-item">
+                    <h3 class="metric-val">5+</h3>
+                    <p class="metric-label">YEARS OF EXPERIENCE</p>
+                </div>
+            </div>
+
+            <div class="col-12 col-lg-3">
+                <div class="metric-item">
+                    <h3 class="metric-val">200+</h3>
+                    <p class="metric-label">EVENTS PER YEAR</p>
+                </div>
+            </div>
+
+            <div class="col-12 col-lg-3">
+                <div class="metric-item">
+                    <h3 class="metric-val">5.0</h3>
+                    <p class="metric-label">GOOGLE STARTS REVIEWS</p>
+                </div>
+            </div>
+
+            <div class="col-12 col-lg-3">
+                <div class="metric-logo-block">
+                    <img class="metric-logo-vnv" 
+                         src="{{ asset_for('assets/images/planner-hub-logo-positive.png') }}" 
+                         alt="VNV Events"  loading="lazy" decoding="async">
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+ 
+
 <section class="section-vnv section-white" id="menu-services">
     <div class="container">
         <div class="section-heading">
             <span class="vnv-badge">Menu and Services</span>
             <h2>Food experiences your guests will actually <span class="text-vnv">remember</span></h2>
             <p>
-                We trimmed the copy and pushed the visual part forward so people can immediately feel the style of each service before they dive into details.
+                From live pasta and paella stations to sushi boats and dessert 
+                tables — every service is designed to give your guests a 
+                memorable food experience, not just a meal.
             </p>
         </div>
 
@@ -614,7 +743,7 @@ h1, h2, h3, h4, h5, .luxury-font {
             <div class="col-12">
                 <div class="service-showcase-card">
                     <div class="service-showcase-media">
-                        <img src="{{ asset_for('assets/images/service_photos/appetizers.webp') }}" alt="VNV Gourmet appetizers"  >
+                        <img   loading="lazy" decoding="async" src="{{ asset_for('assets/images/service_photos/appetizers.webp') }}" alt="VNV Gourmet appetizers"  >
                     </div>
                     <div class="service-showcase-body">
                         <div>
@@ -639,7 +768,7 @@ h1, h2, h3, h4, h5, .luxury-font {
             <div class="col-12">
                 <div class="service-showcase-card">
                     <div class="service-showcase-media">
-                        <img src="{{ asset_for('assets/images/service_photos/brunch_tation.webp') }}" alt="VNV Gourmet brunch station"  >
+                        <img   loading="lazy" decoding="async" src="{{ asset_for('assets/images/service_photos/brunch_tation.webp') }}" alt="VNV Gourmet brunch station"  >
                     </div>
                     <div class="service-showcase-body">
                         <div>
@@ -664,7 +793,7 @@ h1, h2, h3, h4, h5, .luxury-font {
             <div class="col-12">
                 <div class="service-showcase-card">
                     <div class="service-showcase-media">
-                        <img src="{{ asset_for('assets/images/service_photos/crepes_station_1.webp') }}" alt="VNV Gourmet crepes station"  >
+                        <img  loading="lazy" decoding="async" src="{{ asset_for('assets/images/service_photos/crepes_station_1.webp') }}" alt="VNV Gourmet crepes station"  >
                     </div>
                     <div class="service-showcase-body">
                         <div>
@@ -689,7 +818,7 @@ h1, h2, h3, h4, h5, .luxury-font {
             <div class="col-12">
                 <div class="service-showcase-card">
                     <div class="service-showcase-media">
-                        <img src="{{ asset_for('assets/images/service_photos/pasta_station_1.webp') }}" alt="VNV Gourmet pasta station"  >
+                        <img  loading="lazy" decoding="async" src="{{ asset_for('assets/images/service_photos/pasta_station_1.webp') }}" alt="VNV Gourmet pasta station"  >
                     </div>
                     <div class="service-showcase-body">
                         <div>
@@ -714,7 +843,7 @@ h1, h2, h3, h4, h5, .luxury-font {
             <div class="col-12">
                 <div class="service-showcase-card">
                     <div class="service-showcase-media">
-                        <img src="{{ asset_for('assets/images/service_photos/pizza_station.webp') }}" alt="VNV Gourmet pizza station"  >
+                        <img  loading="lazy" decoding="async" src="{{ asset_for('assets/images/service_photos/pizza_station.webp') }}" alt="VNV Gourmet pizza station"  >
                     </div>
                     <div class="service-showcase-body">
                         <div>
@@ -739,7 +868,7 @@ h1, h2, h3, h4, h5, .luxury-font {
             <div class="col-12">
                 <div class="service-showcase-card">
                     <div class="service-showcase-media">
-                        <img src="{{ asset_for('assets/images/service_photos/paella_station.webp') }}" alt="VNV Gourmet paella station"  >
+                        <img  loading="lazy" decoding="async" src="{{ asset_for('assets/images/service_photos/paella_station.webp') }}" alt="VNV Gourmet paella station"  >
                     </div>
                     <div class="service-showcase-body">
                         <div>
@@ -764,7 +893,7 @@ h1, h2, h3, h4, h5, .luxury-font {
             <div class="col-12">
                 <div class="service-showcase-card">
                     <div class="service-showcase-media">
-                        <img src="{{ asset_for('assets/images/service_photos/tacos.webp') }}" alt="VNV Gourmet taco station"  >
+                        <img   loading="lazy" decoding="async" src="{{ asset_for('assets/images/service_photos/tacos.webp') }}" alt="VNV Gourmet taco station"  >
                     </div>
                     <div class="service-showcase-body">
                         <div>
@@ -789,7 +918,7 @@ h1, h2, h3, h4, h5, .luxury-font {
             <div class="col-12">
                 <div class="service-showcase-card">
                     <div class="service-showcase-media">
-                        <img src="{{ asset_for('assets/images/service_photos/sushi.webp') }}" alt="VNV Gourmet sushi boat packages" >
+                        <img  loading="lazy" decoding="async" src="{{ asset_for('assets/images/service_photos/sushi.webp') }}" alt="VNV Gourmet sushi boat packages" >
                     </div>
                     <div class="service-showcase-body">
                         <div>
@@ -814,7 +943,7 @@ h1, h2, h3, h4, h5, .luxury-font {
             <div class="col-12">
                 <div class="service-showcase-card">
                     <div class="service-showcase-media">
-                        <img src="{{ asset_for('assets/images/service_photos/dessert_station_2.webp') }}" alt="VNV Gourmet dessert station"  >
+                        <img  loading="lazy" decoding="async" src="{{ asset_for('assets/images/service_photos/dessert_station_2.webp') }}" alt="VNV Gourmet dessert station"  >
                     </div>
                     <div class="service-showcase-body">
                         <div>
@@ -839,7 +968,7 @@ h1, h2, h3, h4, h5, .luxury-font {
             <div class="col-12">
                 <div class="service-showcase-card">
                     <div class="service-showcase-media">
-                        <img src="{{ asset_for('assets/images/service_photos/pasta_station_2.webp') }}" alt="VNV Gourmet entrees and sides"  >
+                        <img  loading="lazy" decoding="async" src="{{ asset_for('assets/images/service_photos/pasta_station_2.webp') }}" alt="VNV Gourmet entrees and sides"  >
                     </div>
                     <div class="service-showcase-body">
                         <div>
@@ -870,7 +999,9 @@ h1, h2, h3, h4, h5, .luxury-font {
             <span class="vnv-badge">Seasonal and Corporate</span>
             <h2>Corporate programs, seasonal menus and <span class="text-gold">repeat-friendly catering</span></h2>
             <p>
-                This is the part that helps clients understand you are not only doing party food — you also have structured options for offices, recurring events and special seasons.
+                Beyond parties — we serve offices, HR teams and recurring 
+                corporate events with transparent pricing and professional 
+                setup every time.
             </p>
         </div>
 
@@ -960,7 +1091,9 @@ h1, h2, h3, h4, h5, .luxury-font {
             <span class="vnv-badge">Additional Services</span>
             <h2>Connect gourmet with the rest of your <span class="text-vnv">event experience</span></h2>
             <p>
-                I connected these to the matching service categories so visitors can jump from food into planning, entertainment, décor and media without getting lost.
+                VNV Gourmet is your entry point to a complete event. Add 
+                planning, décor, DJ, photo and rentals — all from one team, 
+                one quote, zero coordination stress.
             </p>
         </div>
 
@@ -1054,10 +1187,10 @@ h1, h2, h3, h4, h5, .luxury-font {
 
             <div class="avomeal-visuals">
                 <div class="avomeal-shot">
-                    <img src="{{ asset_for('assets/images/service_photos/avomeal_1.png') }}" alt="Avomeal meal prep"   >
+                    <img  loading="lazy" decoding="async" src="{{ asset_for('assets/images/service_photos/avomeal_1.png') }}" alt="Avomeal meal prep"   >
                 </div>
                 <div class="avomeal-shot">
-                    <img src="{{ asset_for('assets/images/service_photos/avomeal_2.png') }}" alt="Avomeal weekly meals"   >
+                    <img  loading="lazy" decoding="async" src="{{ asset_for('assets/images/service_photos/avomeal_2.png') }}" alt="Avomeal weekly meals"   >
                 </div>
             </div>
         </div>
