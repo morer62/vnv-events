@@ -737,19 +737,6 @@ body.vnv-request-lock{
     const form = document.getElementById('vnvSponsorForm');
     if (!modal || !form) return;
 
-    function normalizeActionUrl() {
-        const rawAction = form.getAttribute('action') || '';
-        if (!rawAction || !rawAction.startsWith('/api/public/')) return;
-
-        const pathParts = window.location.pathname.split('/').filter(Boolean);
-        if (!pathParts.length) return;
-
-        const appBase = pathParts[0];
-        if (!appBase || appBase === 'api') return;
-
-        form.setAttribute('action', '/' + appBase + rawAction);
-    }
-
     const openers = document.querySelectorAll('[data-vnv-open-sponsor]');
     const closers = modal.querySelectorAll('[data-vnv-sponsor-close]');
     const steps = Array.from(modal.querySelectorAll('[data-vnv-sponsor-step]'));
@@ -1052,7 +1039,6 @@ body.vnv-request-lock{
             });
     });
 
-    normalizeActionUrl();
     updateSummary();
     goToStep(1);
 })();
