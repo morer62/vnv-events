@@ -1,0 +1,214 @@
+{% extends 'templates/base.twig' %}
+
+{% block body %}
+<section class="vnv-success-page">
+    <div class="container">
+        <div class="vnv-success-card">
+            <div class="vnv-success-badge">
+                <i class="fa-solid fa-check"></i>
+            </div>
+
+            <p class="vnv-success-eyebrow">VNV Events</p>
+            <h1>Your request was sent successfully</h1>
+            <p class="vnv-success-text">
+                Thank you for reaching out. Our team received your request and will review the details soon.
+            </p>
+
+            <div class="vnv-success-boxes">
+                <div class="vnv-success-box">
+                    <strong>What happens next?</strong>
+                    <p>
+                        We’ll review your information and follow up with the next step based on your request.
+                    </p>
+                </div>
+
+                <div class="vnv-success-box">
+                    <strong>Need faster help?</strong>
+                    <p>
+                        If your request is time-sensitive, you can also call us directly and we’ll be happy to assist you.
+                    </p>
+                </div>
+            </div>
+
+            <div class="vnv-success-actions">
+                <a href="{{ path('/') }}" class="vnv-success-btn vnv-success-btn--primary">
+                    <i class="fa-solid fa-house"></i>
+                    Back to Home
+                </a>
+
+                <a href="tel:+13052045427" class="vnv-success-btn vnv-success-btn--ghost">
+                    <i class="fa-solid fa-phone"></i>
+                    Call (305) 204-5427
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<style>
+.vnv-success-page{
+    position: relative;
+    min-height: calc(100vh - 120px);
+    padding: 110px 0 80px;
+    background:
+        radial-gradient(circle at top left, rgba(51,195,192,0.14), transparent 30%),
+        radial-gradient(circle at bottom right, rgba(216,183,104,0.12), transparent 28%),
+        linear-gradient(180deg, #040814 0%, #08101d 100%);
+    overflow: hidden;
+}
+
+.vnv-success-page::before{
+    content:"";
+    position:absolute;
+    inset:0;
+    background:
+        linear-gradient(135deg, rgba(255,255,255,0.02) 0%, transparent 40%),
+        linear-gradient(315deg, rgba(255,255,255,0.015) 0%, transparent 45%);
+    pointer-events:none;
+}
+
+.vnv-success-card{
+    position: relative;
+    z-index: 1;
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 42px 34px;
+    border-radius: 28px;
+    background: linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.025));
+    border: 1px solid rgba(94, 198, 196, 0.16);
+    box-shadow: 0 30px 80px rgba(0,0,0,0.38);
+    color: #fff;
+    text-align: center;
+}
+
+.vnv-success-badge{
+    width: 86px;
+    height: 86px;
+    margin: 0 auto 22px;
+    border-radius: 50%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size: 2rem;
+    background: linear-gradient(135deg, #33c3c0, #5EC6C4);
+    color: #041019;
+    box-shadow: 0 18px 40px rgba(51,195,192,0.28);
+}
+
+.vnv-success-eyebrow{
+    margin: 0 0 10px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    font-size: 0.8rem;
+    font-weight: 800;
+    color: #5EC6C4;
+}
+
+.vnv-success-card h1{
+    margin: 0 0 14px;
+    font-size: clamp(2rem, 4vw, 3.3rem);
+    line-height: 1.08;
+    font-weight: 900;
+    color: #fff;
+}
+
+.vnv-success-text{
+    max-width: 680px;
+    margin: 0 auto 28px;
+    font-size: 1.08rem;
+    line-height: 1.7;
+    color: rgba(255,255,255,0.78);
+}
+
+.vnv-success-boxes{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+    margin: 0 0 30px;
+    text-align: left;
+}
+
+.vnv-success-box{
+    border-radius: 18px;
+    padding: 20px;
+    background: rgba(255,255,255,0.035);
+    border: 1px solid rgba(255,255,255,0.06);
+}
+
+.vnv-success-box strong{
+    display:block;
+    margin-bottom: 8px;
+    font-size: 1rem;
+    font-weight: 800;
+    color: #fff;
+}
+
+.vnv-success-box p{
+    margin: 0;
+    color: rgba(255,255,255,0.72);
+    line-height: 1.6;
+}
+
+.vnv-success-actions{
+    display:flex;
+    justify-content:center;
+    gap: 14px;
+    flex-wrap: wrap;
+}
+
+.vnv-success-btn{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    gap: 10px;
+    min-width: 210px;
+    padding: 14px 22px;
+    border-radius: 999px;
+    text-decoration:none;
+    font-weight: 900;
+    transition: .2s ease;
+}
+
+.vnv-success-btn--primary{
+    background: #33c3c0;
+    color: #041019;
+}
+
+.vnv-success-btn--primary:hover{
+    transform: translateY(-1px);
+    filter: brightness(1.04);
+    color: #041019;
+}
+
+.vnv-success-btn--ghost{
+    background: rgba(255,255,255,0.06);
+    color: #fff;
+    border: 1px solid rgba(255,255,255,0.09);
+}
+
+.vnv-success-btn--ghost:hover{
+    background: rgba(255,255,255,0.1);
+    color: #fff;
+}
+
+@media (max-width: 991px){
+    .vnv-success-page{
+        padding: 90px 0 60px;
+    }
+
+    .vnv-success-card{
+        padding: 34px 18px;
+        border-radius: 22px;
+    }
+
+    .vnv-success-boxes{
+        grid-template-columns: 1fr;
+    }
+
+    .vnv-success-btn{
+        width: 100%;
+        min-width: 0;
+    }
+}
+</style>
+{% endblock %}

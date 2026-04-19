@@ -17,6 +17,11 @@ function sponsorRequestRedirectBack(): void
     LocationUtils::redirectTo($fallback);
 }
 
+function sponsorRequestRedirectSuccess(): void
+{
+    LocationUtils::redirectTo(LocationUtils::pathFor('sucess-request'));
+}
+
 function sponsorRequestMailTo(): string
 {
     $candidates = [
@@ -322,8 +327,8 @@ $router->post(function () {
         sponsorRequestRedirectBack();
     }
 
-    MessageUtil::setMessage('Your sponsor request was sent successfully. We will contact you soon.');
-    sponsorRequestRedirectBack();
+    MessageUtil::setMessage('Your sponsor request was sent successfully.', 'Success', 'success');
+    sponsorRequestRedirectSuccess();
 });
 
 $router->run();

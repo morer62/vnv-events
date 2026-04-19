@@ -17,6 +17,11 @@ function eventRequestRedirectBack(): void
     LocationUtils::redirectTo($fallback);
 }
 
+function eventRequestRedirectSuccess(): void
+{
+    LocationUtils::redirectTo(LocationUtils::pathFor('sucess-request'));
+}
+
 function eventRequestMailTo(): string
 {
     $candidates = [
@@ -263,8 +268,8 @@ $router->post(function () {
         eventRequestRedirectBack();
     }
 
-    MessageUtil::setMessage('Your request was sent successfully. We will contact you soon.');
-    eventRequestRedirectBack();
+    MessageUtil::setMessage('Your request was sent successfully.', 'Success', 'success');
+    eventRequestRedirectSuccess();
 });
 
 $router->run();
