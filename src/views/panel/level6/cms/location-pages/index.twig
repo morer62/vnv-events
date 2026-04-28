@@ -66,6 +66,14 @@
                                                 Edit
                                             </a>
 
+                                            <form method="post" class="d-inline" onsubmit="return confirm('Duplicate this location page?');">
+                                                <input type="hidden" name="id" value="{{ p.id }}">
+                                                <input type="hidden" name="action" value="duplicate">
+                                                <button type="submit" class="btn btn-sm btn-info">
+                                                    Duplicate
+                                                </button>
+                                            </form>
+
                                             {% if p.status == 'PUBLISHED' %}
                                                 <form method="post" class="d-inline">
                                                     <input type="hidden" name="id" value="{{ p.id }}">
