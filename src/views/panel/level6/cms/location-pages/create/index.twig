@@ -8,13 +8,46 @@
     .lp-builder-block{border:1px solid #dbe4ea;border-radius:10px;padding:12px;background:#f8fbfc;}
     .lp-builder-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.6rem;}
     .lp-builder-small{font-size:.8rem;color:#6b7280;}
+    .lp-ai-btn{
+        background:linear-gradient(120deg,#bf953f 0%,#f5df9a 45%,#a67c2e 100%);
+        color:#161819;border:0;font-weight:700;box-shadow:0 10px 24px rgba(191,149,63,.28);
+    }
+    .lp-ai-btn:hover{color:#090a0a;transform:translateY(-1px);}
+    .lp-ai-modal .modal-content{
+        border:1px solid rgba(197,160,89,.45);
+        border-radius:16px;
+        background:linear-gradient(145deg,#0d1217,#111c24);
+        color:#f8fafb;
+    }
+    .lp-ai-modal .form-control,.lp-ai-modal .form-select{
+        background:#18252f;border:1px solid #29414f;color:#eef5f8;
+    }
+    .lp-ai-loader{
+        display:none;
+        align-items:center;
+        gap:.65rem;
+        color:#f6d48c;
+        font-weight:700;
+        margin-top:.7rem;
+    }
+    .lp-ai-loader.show{display:flex;}
+    .lp-ai-dot{
+        width:8px;height:8px;border-radius:50%;
+        background:#f0d4a0;animation:lpAiPulse 1.2s infinite ease-in-out;
+    }
+    .lp-ai-dot:nth-child(2){animation-delay:.2s;}
+    .lp-ai-dot:nth-child(3){animation-delay:.4s;}
+    @keyframes lpAiPulse{0%,100%{opacity:.3;transform:translateY(0)}50%{opacity:1;transform:translateY(-3px)}}
     @media (max-width: 768px){.lp-builder-grid{grid-template-columns:1fr;}}
 </style>
 {% endblock %}
 
 {% block body %}
 <div class="container py-4">
-    <h1 class="h3 mb-4">Create Location Page</h1>
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
+        <h1 class="h3 mb-0">Create Location Page</h1>
+        <button type="button" class="btn lp-ai-btn" data-bs-toggle="modal" data-bs-target="#aiLocationModal">Generate with AI</button>
+    </div>
 
     <form method="post" class="card shadow-lg border-0 p-4">
         <div class="row">
@@ -187,6 +220,37 @@
         </div>
     </form>
 </div>
+
+<div class="modal fade lp-ai-modal" id="aiLocationModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-0">
+                <h5 class="modal-title">AI Location Assistant</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-3 text-light-emphasis">Enter location and slug. AI will fill all fields and your dynamic blocks.</p>
+                <div class="mb-3">
+                    <label class="form-label">Location</label>
+                    <input type="text" class="form-control" id="aiLocationInput" placeholder="Sunrise, Florida">
+                </div>
+                <div class="mb-2">
+                    <label class="form-label">Slug</label>
+                    <input type="text" class="form-control" id="aiSlugInput" placeholder="sunrise">
+                </div>
+                <div id="aiLoader" class="lp-ai-loader">
+                    <span>Thinking</span>
+                    <span class="lp-ai-dot"></span><span class="lp-ai-dot"></span><span class="lp-ai-dot"></span>
+                </div>
+                <div id="aiError" class="text-danger small mt-2 d-none"></div>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-outline-light" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn lp-ai-btn" id="aiGenerateBtn">Generate content</button>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}
 
 {% block scripts %}
@@ -224,36 +288,84 @@ document.addEventListener('DOMContentLoaded', function () {
     const excerptInput = document.querySelector('[name="excerpt"]');
     const contentLongInput = document.querySelector('[name="content_long"]');
     const googleMapsApiKey = '{{ env.GOOGLE_MAPS_API_KEY|default("") }}';
+    const aiLocationInput = document.getElementById('aiLocationInput');
+    const aiSlugInput = document.getElementById('aiSlugInput');
+    const aiGenerateBtn = document.getElementById('aiGenerateBtn');
+    const aiLoader = document.getElementById('aiLoader');
+    const aiError = document.getElementById('aiError');
+    const faqJsonInput = document.querySelector('[name="faq_json"]');
+    const schemaJsonInput = document.querySelector('[name="schema_json"]');
+    const metaTitleInput = document.querySelector('[name="meta_title"]');
+    const metaKeywordsInput = document.querySelector('[name="meta_keywords"]');
+    const metaDescriptionInput = document.querySelector('[name="meta_description"]');
+    const ogTitleInput = document.querySelector('[name="og_title"]');
+    const ogImageInput = document.querySelector('[name="og_image"]');
+    const ogDescriptionInput = document.querySelector('[name="og_description"]');
+    const canonicalInput = document.querySelector('[name="canonical_url"]');
+    const categoryInput = document.querySelector('[name="category"]');
+    const cityInput = document.querySelector('[name="city"]');
+    const countyInput = document.querySelector('[name="county"]');
+    const stateInput = document.querySelector('[name="state"]');
+    const primaryKeywordInput = document.querySelector('[name="primary_keyword"]');
+    const secondaryKeywordsInput = document.querySelector('[name="secondary_keywords"]');
+    const heroImageInput = document.querySelector('[name="hero_image"]');
 
     const DEFAULT_TEMPLATE_CSS = {
         'location-home-luxe': `@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&family=Playfair+Display:wght@600;700;800&display=swap');
 :root{
-  --vnv-primary:#5EC6C4;
-  --vnv-primary-dark:#49acab;
-  --vnv-luxe-gold:#c5a059;
-  --vnv-luxe-gold-soft:#f0d4a0;
-  --vnv-gold-gradient:linear-gradient(135deg,#bf953f 0%,#fcf6ba 45%,#b38728 100%);
-  --vnv-luxe-dark:#0b0f11;
-  --vnv-luxe-dark-soft:#151c20;
-  --vnv-luxe-light:#f8fafb;
-  --vnv-luxe-text:#d3dbe1;
+  --vnv-primary:#78d8d3;
+  --vnv-primary-dark:#4aaea9;
+  --vnv-luxe-gold:#d3ad62;
+  --vnv-luxe-gold-soft:#f5dcaa;
+  --vnv-gold-gradient:linear-gradient(140deg,#bf953f 0%,#f9e7b4 40%,#ad7f2a 100%);
+  --vnv-luxe-dark:#05080b;
+  --vnv-luxe-dark-soft:#0d151c;
+  --vnv-luxe-light:#f8fbfd;
+  --vnv-luxe-text:#d6e0e8;
 }
-body{font-family:'Manrope',system-ui,-apple-system,'Segoe UI',sans-serif;background:var(--vnv-luxe-dark);color:var(--vnv-luxe-light);}
+body{font-family:'Manrope',system-ui,-apple-system,'Segoe UI',sans-serif;background:radial-gradient(1100px 520px at 82% -10%,rgba(211,173,98,.12),transparent 48%),var(--vnv-luxe-dark);color:var(--vnv-luxe-light);}
 h1,h2,h3,h4,.lp-title,.luxe-title{font-family:'Playfair Display','Times New Roman',serif;letter-spacing:.01em;}
 p,li,span{color:var(--vnv-luxe-text);}
-.lp-hero::after{background:radial-gradient(circle at top right, rgba(94,198,196,.22), transparent 36%);}
-.lp-badge{background:rgba(94,198,196,.14)!important;color:var(--vnv-primary)!important;border:1px solid rgba(94,198,196,.36);}
-.lp-title{text-shadow:0 6px 26px rgba(0,0,0,.38);}
-.lp-card{border:1px solid rgba(197,160,89,.26)!important;border-radius:20px;background:linear-gradient(160deg,#ffffff,#fbfbfd);box-shadow:0 18px 38px rgba(8,11,13,.12);}
-.lp-card:hover{transform:translateY(-4px);box-shadow:0 24px 48px rgba(8,11,13,.18)!important;border-color:rgba(197,160,89,.45)!important;}
+.lp-hero{background-position:center center!important;background-size:cover!important;}
+.lp-hero::before{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(90deg,rgba(5,8,11,.9) 0%,rgba(5,8,11,.68) 46%,rgba(5,8,11,.35) 100%);}
+.lp-hero::after{background:radial-gradient(circle at 84% 8%, rgba(211,173,98,.24), transparent 42%);}
+.lp-hero-inner{position:relative;z-index:2;}
+.lp-badge{background:rgba(211,173,98,.12)!important;color:var(--vnv-luxe-gold-soft)!important;border:1px solid rgba(211,173,98,.45);backdrop-filter:blur(2px);}
+.lp-title{color:#fff;text-shadow:0 10px 35px rgba(0,0,0,.55);max-width:840px;}
+.lp-sub{max-width:700px;color:#d9e1e7!important;}
+.lp-chip{border:1px solid rgba(211,173,98,.48)!important;color:#fff!important;background:rgba(211,173,98,.08);}
+.lp-btn-gold{background:var(--vnv-gold-gradient)!important;box-shadow:0 12px 26px rgba(191,149,63,.34);}
+.lp-btn-ghost{border:1px solid rgba(230,236,241,.35)!important;background:rgba(7,11,15,.24)!important;}
+.lp-card{border:1px solid rgba(211,173,98,.24)!important;border-radius:22px;background:linear-gradient(165deg,#071018,#091420);box-shadow:0 18px 44px rgba(1,4,7,.42);}
+.lp-card:hover{transform:translateY(-4px);box-shadow:0 24px 52px rgba(0,0,0,.48)!important;border-color:rgba(211,173,98,.5)!important;}
+.lp-block-title{color:var(--vnv-luxe-gold)!important;text-transform:uppercase;letter-spacing:.08em;font-size:.9rem;}
+.lp-content,.lp-content p,.lp-content li{color:#d7e1e8!important;}
+.lp-content h2,.lp-content h3{color:#f8fbfd!important;}
+.lp-content a{color:#9de5de;font-weight:700;}
+.lp-link-item{border:1px solid rgba(120,216,211,.28)!important;background:rgba(7,14,20,.68)!important;color:#eef4f7!important;}
+.lp-link-item:hover{border-color:rgba(211,173,98,.5)!important;background:rgba(16,24,32,.95)!important;}
+.lp-info{border:1px solid rgba(211,173,98,.24)!important;background:linear-gradient(160deg,rgba(6,12,18,.88),rgba(8,15,22,.95));}
+.lp-info .k{color:#f0dcb2!important;}
+.lp-info .v{color:#f4f8fb!important;}
 .lp-img{cursor:zoom-in;}
+.lp-map-canvas{border:1px solid rgba(211,173,98,.34)!important;filter:saturate(1.08) contrast(1.05);}
 .lp-testimonial-item{
-  border:1px solid rgba(197,160,89,.34);
+  border:1px solid rgba(211,173,98,.32);
   border-radius:18px;
   padding:18px;
-  background:linear-gradient(145deg,rgba(197,160,89,.14),rgba(94,198,196,.08));
+  background:linear-gradient(145deg,rgba(211,173,98,.1),rgba(120,216,211,.07));
 }
-.luxe-title,.lp-block-title{color:var(--vnv-luxe-gold);letter-spacing:.02em;}`
+.lp-testimonial-item:hover{box-shadow:0 18px 34px rgba(0,0,0,.36);}
+.lp-testimonial-quote{color:#e3ebf2!important;}
+.lp-testimonial-name{color:#fff!important;}
+.lp-testimonial-role{color:#e4c98f!important;}
+.luxe-title,.lp-block-title{color:var(--vnv-luxe-gold);letter-spacing:.02em;}
+.lp-faq .accordion-item{background:rgba(7,12,18,.75)!important;border:1px solid rgba(211,173,98,.22)!important;}
+.lp-faq .accordion-button{font-weight:700;color:#edf4f7;background:rgba(9,14,20,.86);}
+.lp-faq .accordion-button:not(.collapsed){background:rgba(211,173,98,.14);color:#f8e2b8;}
+.lp-faq .accordion-body{color:#d5dfe7;background:rgba(7,12,18,.88);}
+@media (max-width:991px){.lp-title{font-size:clamp(1.9rem,6vw,2.8rem);}.lp-hero{padding-top:4.75rem;padding-bottom:4.25rem;}}
+@media (max-width:640px){.lp-card{border-radius:16px;}.lp-testimonial-item{padding:14px;border-radius:14px;}.lp-chip{font-size:.78rem;}}`
     };
 
     function blockTemplate(type, payload) {
@@ -288,6 +400,21 @@ p,li,span{color:var(--vnv-luxe-text);}
         const div = document.createElement('div');
         div.innerHTML = blockTemplate(type, payload);
         blocksContainer.appendChild(div.firstElementChild);
+        syncBlocks();
+    }
+
+    function clearBlocks() {
+        blocksContainer.innerHTML = '';
+        syncBlocks();
+    }
+
+    function renderBlocksFromJson(blocks) {
+        clearBlocks();
+        (Array.isArray(blocks) ? blocks : []).forEach(function (block) {
+            const b = block && typeof block === 'object' ? block : {};
+            addBlock(String(b.type || 'text'), b);
+        });
+        initMapAutocompleteInBuilder();
         syncBlocks();
     }
 
@@ -383,6 +510,102 @@ p,li,span{color:var(--vnv-luxe-text);}
         document.head.appendChild(script);
     }
 
+    function setFieldValue(el, value) {
+        if (!el) return;
+        el.value = value == null ? '' : String(value);
+    }
+
+    function setAiLoading(loading) {
+        aiGenerateBtn.disabled = loading;
+        aiLoader.classList.toggle('show', loading);
+    }
+
+    function setAiError(msg) {
+        if (!msg) {
+            aiError.textContent = '';
+            aiError.classList.add('d-none');
+            return;
+        }
+        aiError.textContent = msg;
+        aiError.classList.remove('d-none');
+    }
+
+    async function generateWithAI() {
+        const location = (aiLocationInput.value || '').trim();
+        const slugValue = (aiSlugInput.value || '').trim();
+
+        if (!location || !slugValue) {
+            setAiError('Location and slug are required.');
+            return;
+        }
+
+        setAiError('');
+        setAiLoading(true);
+
+        try {
+            const params = new URLSearchParams();
+            params.set('action', 'ai_generate_location_page');
+            params.set('location', location);
+            params.set('slug', slugValue);
+            params.set('template_key', templateSelect.value || 'location-home-luxe');
+            params.set('dynamic_blocks_json', blocksJsonInput.value || '[]');
+
+            const response = await fetch(window.location.href, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' },
+                body: params.toString()
+            });
+            const result = await response.json();
+            if (!response.ok || !result.ok) {
+                throw new Error((result && result.message) ? result.message : 'AI generation failed.');
+            }
+
+            const data = result.data || {};
+            setFieldValue(titleInput, data.title);
+            setFieldValue(slugInput, data.slug);
+            slugInput.dataset.edited = '1';
+            setFieldValue(categoryInput, data.category || 'location');
+            setFieldValue(cityInput, data.city);
+            setFieldValue(countyInput, data.county);
+            setFieldValue(stateInput, data.state || 'Florida');
+            setFieldValue(heroTitleInput, data.hero_title);
+            setFieldValue(heroSubtitleInput, data.hero_subtitle);
+            setFieldValue(excerptInput, data.excerpt);
+            setFieldValue(contentLongInput, data.content_long);
+            setFieldValue(primaryKeywordInput, data.primary_keyword);
+            setFieldValue(secondaryKeywordsInput, data.secondary_keywords);
+            setFieldValue(heroImageInput, data.hero_image);
+            setFieldValue(metaTitleInput, data.meta_title);
+            setFieldValue(metaKeywordsInput, data.meta_keywords);
+            setFieldValue(metaDescriptionInput, data.meta_description);
+            setFieldValue(ogTitleInput, data.og_title);
+            setFieldValue(ogImageInput, data.og_image);
+            setFieldValue(ogDescriptionInput, data.og_description);
+            setFieldValue(canonicalInput, data.canonical_url);
+            if (data.custom_css && String(data.custom_css).trim()) {
+                setFieldValue(customCssInput, data.custom_css);
+            }
+            setFieldValue(faqJsonInput, JSON.stringify(data.faq_json || [], null, 2));
+            setFieldValue(schemaJsonInput, JSON.stringify(data.schema_json || {}, null, 2));
+
+            if (Array.isArray(data.dynamic_blocks_json)) {
+                renderBlocksFromJson(data.dynamic_blocks_json);
+            }
+
+            if (window.jQuery && $('#content-editor').length) {
+                $('#content-editor').trumbowyg('html', contentLongInput.value || '');
+            }
+
+            const modalEl = document.getElementById('aiLocationModal');
+            const modalInstance = window.bootstrap ? bootstrap.Modal.getOrCreateInstance(modalEl) : null;
+            if (modalInstance) modalInstance.hide();
+        } catch (err) {
+            setAiError(err.message || 'AI generation failed.');
+        } finally {
+            setAiLoading(false);
+        }
+    }
+
     document.querySelectorAll('[data-add-block]').forEach(function (btn) {
         btn.addEventListener('click', function () {
             addBlock(btn.dataset.addBlock, {});
@@ -426,6 +649,10 @@ p,li,span{color:var(--vnv-luxe-text);}
     blocksJsonInput.addEventListener('input', function () {
         // allow manual JSON edits
     });
+
+    if (aiGenerateBtn) {
+        aiGenerateBtn.addEventListener('click', generateWithAI);
+    }
 
     applyTemplateCssIfEmpty();
     fillLuxeCopyIfEmpty();
