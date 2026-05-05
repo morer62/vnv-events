@@ -338,6 +338,7 @@
     .lp-map-info-shell .lp-map-wrap,.lp-map-info-shell .lp-info-grid{height:100%;}
     .lp-testimonials-shell{position:relative;}
     .lp-testimonials-shell .lp-gallery-nav{top:44%;}
+    .lp-testimonial-item.is-hidden{display:none;}
     .lp-services-wrap{
         margin:0 0 14px;
         padding:22px;
@@ -767,18 +768,18 @@
                 {% endif %}
                 <div class="lp-card mb-4 lp-testimonials-shell">
                     <h3 class="lp-block-title mb-3">{{ testimonialBlock.title|default('What Our Clients Say') }}</h3>
-                    <button type="button" class="lp-gallery-nav left" aria-label="Previous">‹</button>
-                    <button type="button" class="lp-gallery-nav right" aria-label="Next">›</button>
-                    <div class="lp-testimonial-grid">
-                        {% for t in testimonials|slice(0,3) %}
-                            <article class="lp-testimonial-item">
+                    <button type="button" class="lp-gallery-nav left js-testimonial-prev" aria-label="Previous">‹</button>
+                    <button type="button" class="lp-gallery-nav right js-testimonial-next" aria-label="Next">›</button>
+                    <div class="lp-testimonial-grid js-testimonial-carousel">
+                        {% for t in testimonials|slice(0,8) %}
+                            <article class="lp-testimonial-item js-testimonial-item">
                                 <p class="lp-testimonial-quote">"{{ t.quote|default(t.content|default(t.value|default('Exceptional experience with VNV Events.'))) }}"</p>
                                 <div class="lp-testimonial-name">{{ t.name|default('VNV Events Client') }}</div>
                                 {% if t.role|default('') %}<div class="lp-testimonial-role">{{ t.role }}</div>{% endif %}
                             </article>
                         {% endfor %}
                     </div>
-                    <div class="lp-dots"><span class="active"></span><span></span><span></span><span></span></div>
+                    <div class="lp-dots js-testimonial-dots"></div>
                 </div>
             {% endif %}
 
@@ -886,42 +887,165 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     const mapEls = Array.from(document.querySelectorAll('[data-map]'));
-    if (!mapEls.length || !window.google || !google.maps) return;
+    let mapsInitialized = false;
 
-    mapEls.forEach(function (mapEl) {
-        const initialLat = parseFloat(mapEl.dataset.lat || '0');
-        const initialLng = parseFloat(mapEl.dataset.lng || '0');
-        const initialAddress = mapEl.dataset.address || '';
+    function initLocationMaps() {
+        if (mapsInitialized) return true;
+        if (!mapEls.length || !window.google || !google.maps) return false;
 
-        const fallbackCenter = { lat: 25.7617, lng: -80.1918 };
-        const center = (!Number.isNaN(initialLat) && !Number.isNaN(initialLng) && initialLat && initialLng)
-            ? { lat: initialLat, lng: initialLng }
-            : fallbackCenter;
+        mapEls.forEach(function (mapEl) {
+            if (mapEl.dataset.mapReady === '1') return;
 
-        const map = new google.maps.Map(mapEl, {
-            center: center,
-            zoom: 13,
-            mapTypeControl: false,
-            streetViewControl: false,
-            fullscreenControl: false
-        });
-        const marker = new google.maps.Marker({ map: map, position: center });
-        const geocoder = new google.maps.Geocoder();
+            const initialLat = parseFloat(mapEl.dataset.lat || '0');
+            const initialLng = parseFloat(mapEl.dataset.lng || '0');
+            const initialAddress = mapEl.dataset.address || '';
 
-        function geocodeAndCenter(address) {
-            if (!address) return;
-            geocoder.geocode({ address: address }, function (results, status) {
-                if (status !== 'OK' || !results || !results.length) return;
-                const loc = results[0].geometry.location;
-                map.setCenter(loc);
-                marker.setPosition(loc);
+            const fallbackCenter = { lat: 25.7617, lng: -80.1918 };
+            const center = (!Number.isNaN(initialLat) && !Number.isNaN(initialLng) && initialLat && initialLng)
+                ? { lat: initialLat, lng: initialLng }
+                : fallbackCenter;
+
+            const map = new google.maps.Map(mapEl, {
+                center: center,
+                zoom: 13,
+                mapTypeControl: false,
+                streetViewControl: false,
+                fullscreenControl: false
             });
-        }
+            const marker = new google.maps.Marker({ map: map, position: center });
+            const geocoder = new google.maps.Geocoder();
 
-        if (initialAddress && (!initialLat || !initialLng)) {
-            geocodeAndCenter(initialAddress);
-        }
-    });
+            function geocodeAndCenter(address) {
+                if (!address) return;
+                geocoder.geocode({ address: address }, function (results, status) {
+                    if (status !== 'OK' || !results || !results.length) return;
+                    const loc = results[0].geometry.location;
+                    map.setCenter(loc);
+                    marker.setPosition(loc);
+                });
+            }
+
+            if (initialAddress && (!initialLat || !initialLng)) {
+                geocodeAndCenter(initialAddress);
+            }
+
+            // Ensure a proper render when the map API arrives after first paint.
+            setTimeout(function () {
+                google.maps.event.trigger(map, 'resize');
+                map.setCenter(marker.getPosition());
+            }, 80);
+
+            mapEl.dataset.mapReady = '1';
+        });
+
+        mapsInitialized = true;
+        return true;
+    }
+
+    if (!initLocationMaps()) {
+        let tries = 0;
+        const maxTries = 60; // ~9 seconds
+        const timer = setInterval(function () {
+            tries += 1;
+            if (initLocationMaps() || tries >= maxTries) {
+                clearInterval(timer);
+            }
+        }, 150);
+    }
+
+    window.addEventListener('load', initLocationMaps);
+
+    function initTestimonialCarousels() {
+        const shells = Array.from(document.querySelectorAll('.lp-testimonials-shell'));
+        if (!shells.length) return;
+
+        shells.forEach(function (shell) {
+            const items = Array.from(shell.querySelectorAll('.js-testimonial-item'));
+            const prevBtn = shell.querySelector('.js-testimonial-prev');
+            const nextBtn = shell.querySelector('.js-testimonial-next');
+            const dotsWrap = shell.querySelector('.js-testimonial-dots');
+            if (items.length <= 3) return;
+
+            let currentPage = 0;
+            let autoTimer = null;
+
+            function getPerView() {
+                if (window.innerWidth <= 640) return 1;
+                if (window.innerWidth <= 991) return 2;
+                return 3;
+            }
+
+            function getPageCount(perView) {
+                return Math.max(1, Math.ceil(items.length / perView));
+            }
+
+            function renderDots(pageCount) {
+                if (!dotsWrap) return;
+                dotsWrap.innerHTML = '';
+                for (let i = 0; i < pageCount; i += 1) {
+                    const dot = document.createElement('span');
+                    if (i === currentPage) dot.classList.add('active');
+                    dot.addEventListener('click', function () {
+                        currentPage = i;
+                        update();
+                        restartAuto();
+                    });
+                    dotsWrap.appendChild(dot);
+                }
+            }
+
+            function update() {
+                const perView = getPerView();
+                const pageCount = getPageCount(perView);
+                if (currentPage >= pageCount) currentPage = 0;
+                const start = currentPage * perView;
+                const end = start + perView;
+
+                items.forEach(function (item, idx) {
+                    item.classList.toggle('is-hidden', !(idx >= start && idx < end));
+                });
+
+                const dots = dotsWrap ? Array.from(dotsWrap.querySelectorAll('span')) : [];
+                if (!dots.length || dots.length !== pageCount) {
+                    renderDots(pageCount);
+                } else {
+                    dots.forEach(function (dot, idx) {
+                        dot.classList.toggle('active', idx === currentPage);
+                    });
+                }
+            }
+
+            function next() {
+                const pageCount = getPageCount(getPerView());
+                currentPage = (currentPage + 1) % pageCount;
+                update();
+            }
+
+            function prev() {
+                const pageCount = getPageCount(getPerView());
+                currentPage = (currentPage - 1 + pageCount) % pageCount;
+                update();
+            }
+
+            function startAuto() {
+                if (autoTimer) clearInterval(autoTimer);
+                autoTimer = setInterval(next, 5500);
+            }
+
+            function restartAuto() {
+                startAuto();
+            }
+
+            if (nextBtn) nextBtn.addEventListener('click', function () { next(); restartAuto(); });
+            if (prevBtn) prevBtn.addEventListener('click', function () { prev(); restartAuto(); });
+            window.addEventListener('resize', update);
+
+            update();
+            startAuto();
+        });
+    }
+
+    initTestimonialCarousels();
 });
 </script>
 {% if page.custom_js %}

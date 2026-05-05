@@ -28,6 +28,8 @@ class LocationPageAIService
         ['quote' => 'Their team transformed our venue into a refined, unforgettable experience for guests.', 'name' => 'Mariana L.', 'role' => 'Social Event Host'],
         ['quote' => 'Planning felt effortless. Every milestone was organized, elegant and right on time.', 'name' => 'Daniel K.', 'role' => 'Groom'],
         ['quote' => 'Exceptional communication and flawless production from concept to final toast.', 'name' => 'Vanessa T.', 'role' => 'Brand Manager'],
+        ['quote' => 'The decor direction and production quality exceeded every expectation we had.', 'name' => 'Isabella N.', 'role' => 'Bride'],
+        ['quote' => 'Our executive event looked world-class and ran smoothly from start to finish.', 'name' => 'Michael R.', 'role' => 'Operations Director'],
     ];
 
     /**
@@ -56,7 +58,7 @@ class LocationPageAIService
 
         $payload = [
             'model' => self::MODEL,
-            'temperature' => 0.7,
+            'temperature' => 0.9,
             'response_format' => ['type' => 'json_object'],
             'messages' => [
                 [
@@ -171,7 +173,17 @@ class LocationPageAIService
 
         $title = trim((string)($raw['title'] ?? ''));
         if ($title === '') {
-            $title = 'Event Venues in ' . ($location !== '' ? $location : 'South Florida');
+            $title = self::buildDistinctSeoTitle($city, $state, $safeSlug !== '' ? $safeSlug : $location);
+        }
+
+        $heroTitle = trim((string)($raw['hero_title'] ?? ''));
+        if ($heroTitle === '') {
+            $heroTitle = self::buildDistinctHeroTitle($city, $state, $safeSlug !== '' ? $safeSlug : $location);
+        }
+
+        $heroSubtitle = trim((string)($raw['hero_subtitle'] ?? ''));
+        if ($heroSubtitle === '') {
+            $heroSubtitle = self::buildDistinctHeroSubtitle($city, $safeSlug !== '' ? $safeSlug : $location);
         }
 
         return [
@@ -181,8 +193,8 @@ class LocationPageAIService
             'city' => $city,
             'county' => $county,
             'state' => $state,
-            'hero_title' => trim((string)($raw['hero_title'] ?? '')) ?: ('High-level Event Planner Agency in ' . ($city !== '' ? $city : 'South Florida') . ', ' . $state),
-            'hero_subtitle' => trim((string)($raw['hero_subtitle'] ?? '')) ?: 'The event you imagine, brought to life with premium planning, production and elevated guest experiences.',
+            'hero_title' => $heroTitle,
+            'hero_subtitle' => $heroSubtitle,
             'excerpt' => trim((string)($raw['excerpt'] ?? '')) ?: ('Luxury wedding, social and corporate event planning in ' . ($city !== '' ? $city : 'South Florida') . ', ' . $state . '.'),
             'content_long' => trim((string)($raw['content_long'] ?? '')) ?: self::buildDefaultMainContent($city, $state),
             'primary_keyword' => trim((string)($raw['primary_keyword'] ?? '')),
@@ -265,7 +277,7 @@ class LocationPageAIService
                 if (!is_array($items)) {
                     $items = [];
                 }
-                if (count($items) < 6) $items = self::DEFAULT_TESTIMONIALS;
+                if (count($items) < 8) $items = self::DEFAULT_TESTIMONIALS;
                 $block['items'] = array_values($items);
                 $block['enabled'] = !isset($block['enabled']) || (bool)$block['enabled'];
             }
@@ -446,5 +458,59 @@ class LocationPageAIService
             'lat' => (float)$result['lat'],
             'lng' => (float)$result['lng'],
         ];
+    }
+
+    private static function buildDistinctSeoTitle(string $city, string $state, string $seed): string
+    {
+        $cityLabel = $city !== '' ? $city : 'South Florida';
+        $stateLabel = $state !== '' ? $state : 'Florida';
+        $variants = [
+            'High-level Event Planner Agency in %s, %s',
+            'Premier Wedding & Corporate Event Agency in %s, %s',
+            'Boutique Luxury Event Planning in %s, %s',
+            '%s, %s Event Planning for Elevated Celebrations',
+        ];
+        $idx = self::seedIndex($seed . '|seo_title', count($variants));
+        return sprintf($variants[$idx], $cityLabel, $stateLabel);
+    }
+
+    private static function buildDistinctHeroTitle(string $city, string $state, string $seed): string
+    {
+        $cityLabel = $city !== '' ? $city : 'South Florida';
+        $stateLabel = $state !== '' ? $state : 'Florida';
+        $variants = [
+            'High-level Event Planner Agency in %s, %s',
+            'Premier Event Design & Planning Team in %s, %s',
+            'Luxury Event Production Agency in %s, %s',
+            'Elevated Celebrations Curated in %s, %s',
+        ];
+        $idx = self::seedIndex($seed . '|hero_title', count($variants));
+        return sprintf($variants[$idx], $cityLabel, $stateLabel);
+    }
+
+    private static function buildDistinctHeroSubtitle(string $city, string $seed): string
+    {
+        $cityLabel = $city !== '' ? $city : 'South Florida';
+        $variants = [
+            'The event you imagine, brought to life with refined planning and flawless execution.',
+            'From concept to final toast, we craft polished experiences your guests will remember.',
+            'Elegant design, seamless coordination, and white-glove service for unforgettable celebrations.',
+            'Sophisticated planning and production tailored for weddings, socials, and corporate events.',
+            'We transform your vision into an elevated experience with style, precision, and warmth.',
+        ];
+        $idx = self::seedIndex($seed . '|hero_subtitle|' . $cityLabel, count($variants));
+        return $variants[$idx];
+    }
+
+    private static function seedIndex(string $seed, int $max): int
+    {
+        if ($max <= 1) {
+            return 0;
+        }
+        $hash = crc32(strtolower(trim($seed)));
+        if ($hash < 0) {
+            $hash = -$hash;
+        }
+        return $hash % $max;
     }
 }
