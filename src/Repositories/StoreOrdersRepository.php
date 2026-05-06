@@ -186,6 +186,27 @@ class StoreOrdersRepository extends BaseRepository
         return $this->db->fetchAll();
     }
 
+    public function getByOwnerAndDateRange(
+        int $ownerId,
+        string $fromDateTime,
+        string $toDateTime,
+        int $limit = 250
+    ): array {
+        $this->db->query("
+            SELECT *
+            FROM {$this->table}
+            WHERE id_owner = :id_owner
+              AND created_at BETWEEN :from_dt AND :to_dt
+            ORDER BY created_at DESC
+            LIMIT :limit
+        ");
+        $this->db->bind(':id_owner', $ownerId, \PDO::PARAM_INT);
+        $this->db->bind(':from_dt', $fromDateTime);
+        $this->db->bind(':to_dt', $toDateTime);
+        $this->db->bind(':limit', $limit, \PDO::PARAM_INT);
+        return $this->db->fetchAll();
+    }
+
     public function markAsPaid(int $orderId): bool
     {
         return $this->update([
