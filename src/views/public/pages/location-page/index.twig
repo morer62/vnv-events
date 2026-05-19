@@ -153,12 +153,480 @@
 {% if page.custom_css %}
 <style>{{ page.custom_css|raw }}</style>
 {% endif %}
+<style>
+    /* Keep hero image visible even with aggressive custom CSS overrides */
+    main.lp-wrap > section.lp-hero{
+        background:
+            linear-gradient(90deg, rgba(5,8,11,.9) 0%, rgba(5,8,11,.7) 44%, rgba(5,8,11,.38) 100%),
+            url('{{ page.hero_image ?: asset_for('assets/images/vnv-gourmet-hero.jpg') }}') center/cover no-repeat !important;
+    }
+</style>
+<style>
+    /* Mock-accurate luxe refinement layer */
+    :root{
+        --lp-mock-bg:#04090f;
+        --lp-mock-bg-soft:#07111b;
+        --lp-mock-gold:#cfa75b;
+        --lp-mock-gold-soft:#f0d7a2;
+        --lp-mock-border:rgba(207,167,91,.28);
+    }
+    .lp-wrap{
+        background:
+            radial-gradient(1200px 520px at 85% -8%,rgba(207,167,91,.1),transparent 52%),
+            repeating-linear-gradient(120deg, rgba(255,255,255,.012) 0 2px, transparent 2px 14px),
+            var(--lp-mock-bg);
+    }
+    .lp-wrap::before{
+        content:"";
+        position:fixed;
+        inset:0;
+        pointer-events:none;
+        background:
+            radial-gradient(900px 460px at 90% 0%, rgba(207,167,91,.08), transparent 60%),
+            radial-gradient(780px 420px at 10% 20%, rgba(94,198,196,.05), transparent 60%);
+        z-index:0;
+    }
+    .lp-wrap > *{position:relative;z-index:1;}
+    .lp-hero{
+        min-height:640px;
+        border-bottom:1px solid var(--lp-mock-border);
+        box-shadow:inset 0 -120px 140px rgba(3,8,14,.85);
+        position:relative;
+        overflow:hidden;
+    }
+    .lp-hero::after{
+        content:"";
+        position:absolute;
+        inset:0;
+        pointer-events:none;
+        background:
+            linear-gradient(90deg, rgba(4,7,10,.84) 0%, rgba(4,7,10,.55) 45%, rgba(4,7,10,.18) 100%),
+            radial-gradient(circle at 88% 16%, rgba(240,215,162,.18), transparent 42%);
+    }
+    .lp-hero-inner{max-width:1280px;padding:58px 24px 68px;position:relative;z-index:2;}
+    .lp-badge{
+        background:rgba(207,167,91,.12)!important;
+        color:var(--lp-mock-gold-soft)!important;
+        border:1px solid rgba(207,167,91,.42)!important;
+        letter-spacing:.09em;
+        box-shadow:0 0 0 1px rgba(207,167,91,.12), 0 8px 20px rgba(2,6,10,.45);
+        position:relative;
+        padding-left:34px;
+    }
+    .lp-badge::before{
+        content:"✦";
+        position:absolute;
+        left:13px;
+        top:50%;
+        transform:translateY(-52%);
+        color:var(--lp-mock-gold-soft);
+        font-size:.72rem;
+    }
+    .lp-title{
+        font-size:clamp(2.45rem,5.4vw,4.75rem);
+        max-width:820px;
+        margin-top:20px;
+        margin-bottom:14px;
+        text-shadow:0 14px 36px rgba(0,0,0,.58);
+    }
+    .lp-title .lp-accent{
+        background:linear-gradient(135deg,#c29343 0%,#f4deaa 52%,#aa7e2a 100%);
+        -webkit-background-clip:text;
+        background-clip:text;
+        color:transparent;
+        text-shadow:none;
+    }
+    .lp-sub{max-width:690px;font-size:1.03rem;line-height:1.78;color:#d6dde4;}
+    .lp-sub::first-letter{
+        font-family:'Playfair Display','Times New Roman',serif;
+        font-size:1.22em;
+        color:var(--lp-mock-gold-soft);
+    }
+    .lp-btn{padding:13px 22px;border-radius:12px;transition:transform .25s ease, box-shadow .25s ease, border-color .25s ease, background .25s ease;}
+    .lp-btn-gold{
+        background:linear-gradient(135deg,#c29343 0%,#f4deaa 46%,#aa7e2a 100%);
+        box-shadow:0 10px 28px rgba(194,147,67,.35);
+        border:1px solid rgba(255,231,177,.34);
+    }
+    .lp-btn-gold:hover{transform:translateY(-2px);box-shadow:0 16px 30px rgba(194,147,67,.4);}
+    .lp-btn-ghost{
+        border:1px solid rgba(236,241,246,.33);
+        background:rgba(5,11,16,.28);
+    }
+    .lp-btn-ghost:hover{transform:translateY(-2px);border-color:rgba(246,226,177,.44);background:rgba(10,17,24,.62);}
+    .lp-chip{
+        border-color:rgba(207,167,91,.46)!important;
+        background:rgba(207,167,91,.08)!important;
+    }
+    .lp-section{
+        background:var(--lp-mock-bg)!important;
+        padding:34px 0 58px;
+    }
+    .lp-white{background:var(--lp-mock-bg)!important;color:#eef4f8;}
+    .lp-container{max-width:1280px;padding:0 18px;}
+    .lp-card{
+        background:linear-gradient(165deg,#06101a,#081522)!important;
+        border:1px solid var(--lp-mock-border)!important;
+        border-radius:16px;
+        box-shadow:0 14px 34px rgba(0,0,0,.38);
+        position:relative;
+        overflow:hidden;
+        transition:transform .3s ease, box-shadow .3s ease, border-color .3s ease;
+    }
+    .lp-card::before{
+        content:"";
+        position:absolute;
+        left:0;right:0;top:0;height:1px;
+        background:linear-gradient(90deg,transparent,rgba(240,215,162,.58),transparent);
+        pointer-events:none;
+    }
+    .lp-card::after{
+        content:"";
+        position:absolute;
+        inset:auto -10% -45% -10%;
+        height:60%;
+        background:radial-gradient(ellipse at center, rgba(207,167,91,.11), transparent 70%);
+        pointer-events:none;
+    }
+    .lp-card:hover{
+        transform:translateY(-3px);
+        border-color:rgba(240,215,162,.38)!important;
+        box-shadow:0 22px 46px rgba(0,0,0,.45);
+    }
+    .lp-dynamic-layout{
+        display:grid;
+        grid-template-columns:repeat(12,minmax(0,1fr));
+        gap:14px;
+    }
+    .lp-split-feature{
+        display:grid;
+        grid-template-columns:1fr 1fr;
+        gap:0;
+        position:relative;
+    }
+    .lp-split-col{padding:22px 24px;}
+    .lp-split-col + .lp-split-col{border-left:1px solid rgba(207,167,91,.24);}
+    .lp-split-star{
+        position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+        width:22px;height:22px;border-radius:999px;
+        display:flex;align-items:center;justify-content:center;
+        color:#f5ddb0;font-size:1.05rem;
+        text-shadow:0 0 14px rgba(245,221,176,.5);
+        background:radial-gradient(circle,rgba(245,221,176,.18),transparent 70%);
+    }
+    .lp-gallery-frame{position:relative;}
+    .lp-gallery-label{
+        text-align:center;color:var(--lp-mock-gold);text-transform:uppercase;letter-spacing:.14em;
+        font-size:.78rem;font-weight:800;margin-bottom:12px;
+    }
+    .lp-gallery-label::before,.lp-gallery-label::after{
+        content:"";display:inline-block;vertical-align:middle;width:120px;height:1px;
+        background:linear-gradient(90deg,transparent,rgba(207,167,91,.52));margin:0 10px;
+    }
+    .lp-gallery-nav{
+        position:absolute;top:50%;transform:translateY(-50%);
+        width:36px;height:36px;border-radius:999px;border:1px solid rgba(207,167,91,.46);
+        background:rgba(6,12,19,.86);color:#f0d7a2;font-size:1.2rem;line-height:1;
+        display:flex;align-items:center;justify-content:center;
+    }
+    .lp-gallery-nav.left{left:-18px;}
+    .lp-gallery-nav.right{right:-18px;}
+    .lp-dots{display:flex;justify-content:center;gap:8px;margin-top:10px;}
+    .lp-dots span{width:8px;height:8px;border-radius:999px;background:rgba(255,255,255,.3);}
+    .lp-dots span.active{background:#f0d7a2;}
+    .lp-map-info-shell{display:grid;grid-template-columns:1.15fr 1fr;gap:12px;}
+    .lp-map-info-shell .lp-map-wrap,.lp-map-info-shell .lp-info-grid{height:100%;}
+    .lp-testimonials-shell{position:relative;}
+    .lp-testimonials-shell .lp-gallery-nav{top:44%;}
+    .lp-testimonial-item.is-hidden{display:none;}
+    .lp-services-wrap{
+        margin:0 0 14px;
+        padding:22px;
+        border-radius:16px;
+        border:1px solid var(--lp-mock-border);
+        background:linear-gradient(165deg,#06101a,#081522);
+        box-shadow:0 14px 34px rgba(0,0,0,.34);
+        position:relative;
+        overflow:hidden;
+    }
+    .lp-services-wrap::before{
+        content:"";
+        position:absolute;
+        top:0;left:0;right:0;height:2px;
+        background:linear-gradient(90deg,transparent,rgba(240,215,162,.76),transparent);
+    }
+    .lp-services-wrap::after{
+        content:"";
+        position:absolute;
+        width:220px;height:220px;right:-70px;top:-90px;
+        background:radial-gradient(circle, rgba(207,167,91,.18), transparent 65%);
+        pointer-events:none;
+    }
+    .lp-services-head{
+        display:flex;
+        align-items:center;
+        justify-content:space-between;
+        gap:12px;
+        margin-bottom:18px;
+        padding-bottom:12px;
+        border-bottom:1px solid rgba(207,167,91,.2);
+    }
+    .lp-services-title{
+        margin:0;
+        color:#f8fafc;
+        font-family:'Playfair Display','Times New Roman',serif;
+        font-size:clamp(1.45rem,2vw,2rem);
+    }
+    .lp-services-kicker{
+        margin:0;
+        color:var(--lp-mock-gold);
+        font-size:.78rem;
+        text-transform:uppercase;
+        letter-spacing:.14em;
+        font-weight:800;
+    }
+    .lp-services-grid{
+        display:grid;
+        grid-template-columns:repeat(2,minmax(0,1fr));
+        gap:12px;
+    }
+    .lp-service-item{
+        border:1px solid rgba(207,167,91,.24);
+        border-radius:14px;
+        background:linear-gradient(160deg,rgba(8,15,23,.86),rgba(8,14,20,.66));
+        padding:16px 16px 16px 52px;
+        position:relative;
+        transition:transform .25s ease, box-shadow .25s ease, border-color .25s ease;
+    }
+    .lp-service-item::after{
+        content:attr(data-service-icon);
+        position:absolute;
+        left:16px;
+        top:18px;
+        width:24px;
+        height:24px;
+        border-radius:999px;
+        border:1px solid rgba(240,215,162,.52);
+        background:radial-gradient(circle at 35% 30%, rgba(240,215,162,.45), rgba(194,147,67,.12));
+        box-shadow:inset 0 0 0 1px rgba(255,240,203,.24);
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        color:#f7ddb0;
+        font-size:.76rem;
+        line-height:1;
+    }
+    .lp-service-item::before{
+        content:"";
+        position:absolute;
+        top:0;left:0;right:0;height:1px;
+        background:linear-gradient(90deg,rgba(240,215,162,.22),transparent);
+    }
+    .lp-service-item:nth-child(odd){transform:translateY(-2px);}
+    .lp-service-item:nth-child(even){transform:translateY(2px);}
+    .lp-service-item:hover{
+        transform:translateY(-3px);
+        border-color:rgba(240,215,162,.44);
+        box-shadow:0 16px 30px rgba(0,0,0,.38);
+    }
+    .lp-service-number{
+        color:var(--lp-mock-gold-soft);
+        font-weight:800;
+        font-size:.78rem;
+        letter-spacing:.09em;
+    }
+    .lp-service-name{
+        margin:6px 0 8px;
+        color:#fff;
+        font-size:1.02rem;
+        font-weight:800;
+    }
+    .lp-service-copy{
+        margin:0 0 12px;
+        color:#d5dee6;
+        line-height:1.72;
+        font-size:.94rem;
+    }
+    .lp-service-cta{
+        text-decoration:none;
+        color:var(--lp-mock-gold-soft);
+        text-transform:uppercase;
+        letter-spacing:.08em;
+        font-size:.76rem;
+        font-weight:800;
+    }
+    .lp-service-cta:hover{color:#fff2d2;}
+    .lp-service-name::after{
+        content:"";
+        display:block;
+        width:42px;
+        height:1px;
+        margin-top:6px;
+        background:linear-gradient(90deg,rgba(240,215,162,.62),transparent);
+    }
+    .lp-block{grid-column:span 12;}
+    .lp-block-map,.lp-block-info{grid-column:span 6;}
+    .lp-block-images,.lp-block-testimonials,.lp-block-text,.lp-block-links,.lp-block-image{grid-column:span 12;}
+    .lp-content{color:#d6dfe7;}
+    .lp-content h2,.lp-content h3{
+        color:#f7fafc;
+        font-size:clamp(1.6rem,2.2vw,2.15rem);
+        margin-bottom:10px;
+        text-wrap:balance;
+    }
+    .lp-content h2{
+        position:relative;
+        padding-left:14px;
+    }
+    .lp-content h2::before{
+        content:"";
+        position:absolute;
+        left:0;top:.25em;bottom:.25em;width:2px;
+        background:linear-gradient(180deg,rgba(240,215,162,.72),rgba(240,215,162,.12));
+        border-radius:999px;
+    }
+    .lp-content ul{padding-left:1.1rem;}
+    .lp-content li{margin-bottom:.48rem;}
+    .lp-block-title{
+        color:var(--lp-mock-gold)!important;
+        text-transform:uppercase;
+        letter-spacing:.12em;
+        font-size:.84rem;
+        font-family:'Manrope',system-ui,sans-serif;
+        margin-bottom:14px!important;
+        display:flex;
+        align-items:center;
+        gap:10px;
+    }
+    .lp-block-title::before{
+        content:"✧";
+        color:rgba(240,215,162,.88);
+        font-size:.86rem;
+    }
+    .lp-block-title::after{
+        content:"";
+        height:1px;
+        flex:1;
+        background:linear-gradient(90deg,rgba(207,167,91,.52),transparent);
+    }
+    .lp-grid{gap:12px;}
+    .lp-img{
+        border-radius:14px;
+        border:1px solid rgba(207,167,91,.22)!important;
+        height:250px;
+        transition:transform .35s ease, box-shadow .35s ease, border-color .35s ease;
+    }
+    .lp-img:hover{
+        transform:translateY(-3px) scale(1.01);
+        border-color:rgba(240,215,162,.52)!important;
+        box-shadow:0 20px 38px rgba(0,0,0,.45);
+    }
+    .lp-info-grid{gap:0;border:1px solid var(--lp-mock-border);border-radius:14px;overflow:hidden;}
+    .lp-info{
+        border:0!important;
+        border-right:1px solid rgba(207,167,91,.22)!important;
+        border-bottom:1px solid rgba(207,167,91,.18)!important;
+        border-radius:0!important;
+        background:rgba(5,11,18,.58)!important;
+        min-height:102px;
+        display:flex;
+        flex-direction:column;
+        justify-content:center;
+    }
+    .lp-info .k{color:var(--lp-mock-gold-soft)!important;font-size:.72rem;}
+    .lp-info .v{color:#f4f8fb!important;font-weight:800;}
+    .lp-map-canvas{
+        border-radius:14px;
+        border:1px solid var(--lp-mock-border)!important;
+        filter:saturate(1.05) brightness(.86);
+    }
+    .lp-testimonial-grid{gap:12px;}
+    .lp-testimonial-item{
+        background:rgba(6,12,18,.82)!important;
+        border:1px solid rgba(207,167,91,.34)!important;
+        border-radius:16px!important;
+        position:relative;
+    }
+    .lp-testimonial-item::before{
+        content:"“";
+        position:absolute;
+        top:8px;left:12px;
+        font-size:2rem;
+        line-height:1;
+        color:rgba(240,215,162,.44);
+        font-family:'Playfair Display','Times New Roman',serif;
+    }
+    .lp-testimonial-quote{color:#dfe7ef!important;font-size:.99rem;padding-top:14px;}
+    .lp-testimonial-name{color:#fff!important;font-size:1.03rem;}
+    .lp-testimonial-role{color:var(--lp-mock-gold)!important;}
+    .lp-faq .accordion-item{
+        border:1px solid var(--lp-mock-border)!important;
+        background:rgba(6,12,18,.76)!important;
+        backdrop-filter:blur(3px);
+    }
+    .lp-faq .accordion-button{
+        background:rgba(8,14,20,.84)!important;
+        color:#f0f5f9!important;
+        border:none;
+    }
+    .lp-faq .accordion-button:not(.collapsed){
+        background:linear-gradient(135deg,rgba(207,167,91,.24),rgba(207,167,91,.08))!important;
+        color:#f5e1b6!important;
+    }
+    .lp-faq .accordion-body{background:rgba(5,10,16,.92)!important;color:#d8e1e9!important;}
+    .lp-faq .accordion-button:focus{box-shadow:0 0 0 .14rem rgba(207,167,91,.28)!important;}
+    .lp-faq .accordion-button::after{
+        filter:brightness(1.2) sepia(1) hue-rotate(340deg) saturate(2.4);
+    }
+    @media (prefers-reduced-motion:no-preference){
+        .lp-badge::before{animation:lpSpark 3.4s ease-in-out infinite;}
+        .lp-services-kicker{animation:lpGlow 2.8s ease-in-out infinite;}
+    }
+    @keyframes lpSpark{
+        0%,100%{opacity:.55;transform:translateY(-52%) scale(1);}
+        50%{opacity:1;transform:translateY(-52%) scale(1.18);}
+    }
+    @keyframes lpGlow{
+        0%,100%{text-shadow:0 0 0 rgba(240,215,162,0);}
+        50%{text-shadow:0 0 12px rgba(240,215,162,.45);}
+    }
+    @media (max-width: 991px){
+        .lp-hero{min-height:560px;}
+        .lp-hero-inner{padding:48px 18px 56px;}
+        .lp-title{font-size:clamp(2.1rem,8vw,3.35rem);}
+        .lp-img{height:220px;}
+        .lp-block-map,.lp-block-info{grid-column:span 12;}
+        .lp-split-feature{grid-template-columns:1fr;}
+        .lp-split-col + .lp-split-col{border-left:0;border-top:1px solid rgba(207,167,91,.24);}
+        .lp-split-star{display:none;}
+        .lp-map-info-shell{grid-template-columns:1fr;}
+        .lp-gallery-nav.left{left:8px;}
+        .lp-gallery-nav.right{right:8px;}
+    }
+    @media (max-width: 640px){
+        .lp-hero{min-height:500px;}
+        .lp-cta-row{gap:10px;}
+        .lp-btn{width:100%;}
+        .lp-chip{font-size:.76rem;}
+        .lp-card{padding:18px;}
+        .lp-info{min-height:86px;}
+        .lp-img{height:200px;}
+        .lp-services-grid{grid-template-columns:1fr;}
+        .lp-service-item:nth-child(odd),
+        .lp-service-item:nth-child(even){transform:none;}
+    }
+</style>
 
 <main class="lp-wrap">
     <section class="lp-hero">
         <div class="lp-hero-inner">
             <span class="lp-badge">VNV Events · {{ page.category ?: 'Location' }}</span>
-            <h1 class="lp-title">{{ page.hero_title ?: page.title }}</h1>
+            {% set heroDisplay = page.hero_title ?: page.title %}
+            {% if page.city %}
+                {% set cityStateText = page.city ~ (page.state ? ', ' ~ page.state : '') %}
+                {% set heroDisplay = heroDisplay|replace({ (cityStateText): '<span class="lp-accent">' ~ cityStateText ~ '</span>' }) %}
+            {% endif %}
+            <h1 class="lp-title">{{ heroDisplay|raw }}</h1>
             <p class="lp-sub">{{ page.hero_subtitle ?: page.excerpt }}</p>
             <div class="lp-cta-row">
                 <a href="#" data-vnv-open-request class="lp-btn lp-btn-gold">Request Your Event</a>
@@ -174,85 +642,177 @@
 
     <section class="lp-section lp-white">
         <div class="lp-container">
+            {% set fixedServices = [
+                {'n':'01','icon':'✦','name':'Planner & Coordinator','copy':'Refined event planning and event-day coordination for weddings, social events and corporate functions.'},
+                {'n':'02','icon':'✶','name':'Catering & Bartender','copy':'Gourmet food experiences, staffed service, drink planning and polished presentation for intimate or large events.'},
+                {'n':'03','icon':'✿','name':'Décor & Floral Design','copy':'Floral arrangements, statement pieces and space styling designed to create a memorable visual impact.'},
+                {'n':'04','icon':'♫','name':'DJ Services','copy':'Music direction and energy led by professionals with years of experience shaping celebrations and dance floors.'},
+                {'n':'05','icon':'◉','name':'Photography & Videography','copy':'Photography and videography services that preserve the atmosphere, details and story behind every event.'},
+                {'n':'06','icon':'◇','name':'Rentals','copy':'Tables, chairs, linens, tents and essential event pieces selected to support both aesthetics and functionality.'}
+            ] %}
+            <section class="lp-services-wrap">
+                <div class="lp-services-head">
+                    <p class="lp-services-kicker">What We Offer</p>
+                    <h2 class="lp-services-title">Services We Offer</h2>
+                </div>
+                <div class="lp-services-grid">
+                    {% for service in fixedServices %}
+                        <article class="lp-service-item" data-service-icon="{{ service.icon }}">
+                            <div class="lp-service-number">{{ service.n }}</div>
+                            <h3 class="lp-service-name">{{ service.name }}</h3>
+                            <p class="lp-service-copy">{{ service.copy }}</p>
+                            <a href="#" data-vnv-open-request class="lp-service-cta">Request Service →</a>
+                        </article>
+                    {% endfor %}
+                </div>
+            </section>
+
+            {% set whoBlock = null %}
+            {% set offerBlock = null %}
+            {% set galleryBlock = null %}
+            {% set mapBlock = null %}
+            {% set infoBlock = null %}
+            {% set testimonialBlock = null %}
+            {% set otherBlocks = [] %}
+
+            {% for block in page.dynamic_blocks %}
+                {% set blockType = block.type|default('text') %}
+                {% if blockType == 'text' and whoBlock is null %}
+                    {% set whoBlock = block %}
+                {% elseif blockType == 'text' and offerBlock is null %}
+                    {% set offerBlock = block %}
+                {% elseif blockType == 'images' and galleryBlock is null %}
+                    {% set galleryBlock = block %}
+                {% elseif blockType == 'map' and mapBlock is null %}
+                    {% set mapBlock = block %}
+                {% elseif blockType == 'info' and infoBlock is null %}
+                    {% set infoBlock = block %}
+                {% elseif blockType == 'testimonials' and testimonialBlock is null %}
+                    {% set testimonialBlock = block %}
+                {% else %}
+                    {% set otherBlocks = otherBlocks|merge([block]) %}
+                {% endif %}
+            {% endfor %}
+
+            {% if whoBlock or offerBlock %}
+                <div class="lp-card mb-4">
+                    <div class="lp-split-feature">
+                        <div class="lp-split-col">
+                            <h3 class="lp-block-title mb-3">{{ whoBlock.title|default('Who We Are') }}</h3>
+                            <div class="lp-content">{{ whoBlock.content|default('')|raw }}</div>
+                        </div>
+                        <div class="lp-split-col">
+                            <h3 class="lp-block-title mb-3">{{ offerBlock.title|default('What We Offer in This Location') }}</h3>
+                            <div class="lp-content">{{ offerBlock.content|default('')|raw }}</div>
+                        </div>
+                        <span class="lp-split-star">✶</span>
+                    </div>
+                </div>
+            {% endif %}
+
+            {% if galleryBlock %}
+                {% set images = galleryBlock.images|default([]) %}
+                {% if images is empty and galleryBlock.image_url %}
+                    {% set images = [{ 'url': galleryBlock.image_url, 'alt': galleryBlock.title ?: page.title }] %}
+                {% endif %}
+                <div class="lp-card mb-4 lp-gallery-frame">
+                    <div class="lp-gallery-label">{{ galleryBlock.title|default('Unforgettable Moments') }}</div>
+                    <button type="button" class="lp-gallery-nav left" aria-label="Previous">‹</button>
+                    <button type="button" class="lp-gallery-nav right" aria-label="Next">›</button>
+                    <div class="lp-grid cols-3">
+                        {% for image in images|slice(0,3) %}
+                            <img class="lp-img lp-img-zoomable" src="{{ image.url|default(image) }}" alt="{{ image.alt|default(page.title) }}">
+                        {% endfor %}
+                    </div>
+                    <div class="lp-dots"><span class="active"></span><span></span><span></span><span></span></div>
+                </div>
+            {% endif %}
+
+            {% if mapBlock or infoBlock %}
+                <div class="lp-card mb-4">
+                    <div class="lp-map-info-shell">
+                        <div class="lp-map-wrap">
+                            <div class="lp-map-canvas"
+                                 data-map
+                                 data-lat="{{ mapBlock.lat|default('') }}"
+                                 data-lng="{{ mapBlock.lng|default('') }}"
+                                 data-address="{{ mapBlock.address|default(page.city ~ ', ' ~ page.state) }}"></div>
+                        </div>
+                        <div>
+                            {% set items = infoBlock.items|default([]) %}
+                            <div class="lp-info-grid">
+                                {% for item in items %}
+                                    <div class="lp-info">
+                                        <div class="k">{{ item.label|default('Info') }}</div>
+                                        <div class="v">{{ item.value|default('') }}</div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+
+            {% if testimonialBlock and testimonialBlock.enabled|default(true) %}
+                {% set testimonials = testimonialBlock.items|default([]) %}
+                {% set testimonialFallback = [
+                    {'quote':'VNV Events made our wedding weekend look and feel like a luxury production.','name':'Sofia M.','role':'Bride'},
+                    {'quote':'From timeline to guest experience, every detail felt intentional and elegant.','name':'Carla R.','role':'Corporate Client'},
+                    {'quote':'Professional team, impeccable execution, and a truly glamorous setup.','name':'Alyssa D.','role':'Private Event Host'},
+                    {'quote':'Their team transformed our venue into a refined, unforgettable experience for guests.','name':'Mariana L.','role':'Social Event Host'},
+                    {'quote':'Planning felt effortless. Every milestone was organized, elegant and right on time.','name':'Daniel K.','role':'Groom'},
+                    {'quote':'Exceptional communication and flawless production from concept to final toast.','name':'Vanessa T.','role':'Brand Manager'}
+                ] %}
+                {% if testimonials|length < 6 %}
+                    {% set testimonials = testimonialFallback %}
+                {% endif %}
+                <div class="lp-card mb-4 lp-testimonials-shell">
+                    <h3 class="lp-block-title mb-3">{{ testimonialBlock.title|default('What Our Clients Say') }}</h3>
+                    <button type="button" class="lp-gallery-nav left js-testimonial-prev" aria-label="Previous">‹</button>
+                    <button type="button" class="lp-gallery-nav right js-testimonial-next" aria-label="Next">›</button>
+                    <div class="lp-testimonial-grid js-testimonial-carousel">
+                        {% for t in testimonials|slice(0,8) %}
+                            <article class="lp-testimonial-item js-testimonial-item">
+                                <p class="lp-testimonial-quote">"{{ t.quote|default(t.content|default(t.value|default('Exceptional experience with VNV Events.'))) }}"</p>
+                                <div class="lp-testimonial-name">{{ t.name|default('VNV Events Client') }}</div>
+                                {% if t.role|default('') %}<div class="lp-testimonial-role">{{ t.role }}</div>{% endif %}
+                            </article>
+                        {% endfor %}
+                    </div>
+                    <div class="lp-dots js-testimonial-dots"></div>
+                </div>
+            {% endif %}
+
             {% if page.content_long %}
                 <div class="lp-card lp-content mb-4">{{ page.content_long|raw }}</div>
             {% endif %}
 
-            {% for block in page.dynamic_blocks %}
-                {% set blockType = block.type|default('text') %}
-                <div class="lp-card mb-4">
-                    {% if block.title %}<h3 class="lp-block-title mb-3">{{ block.title }}</h3>{% endif %}
-
-                    {% if blockType == 'text' %}
-                        <div class="lp-content">{{ block.content|default('')|raw }}</div>
-                    {% endif %}
-
-                    {% if blockType == 'image' %}
-                        {% if block.image_url %}<img class="lp-img lp-img-zoomable" src="{{ block.image_url }}" alt="{{ block.title ?: page.title }}">{% endif %}
-                        {% if block.content %}<p class="mt-3 mb-0 text-muted">{{ block.content }}</p>{% endif %}
-                    {% endif %}
-
-                    {% if blockType == 'images' %}
-                        {% set images = block.images|default([]) %}
-                        {% if images is empty and block.image_url %}
-                            {% set images = [{ 'url': block.image_url, 'alt': block.title ?: page.title }] %}
+            {% if otherBlocks is not empty %}
+                <div class="lp-dynamic-layout">
+                {% for block in otherBlocks %}
+                    {% set blockType = block.type|default('text') %}
+                    <div class="lp-card lp-block lp-block-{{ blockType }} mb-0">
+                        {% if block.title %}<h3 class="lp-block-title mb-3">{{ block.title }}</h3>{% endif %}
+                        {% if blockType == 'text' %}
+                            <div class="lp-content">{{ block.content|default('')|raw }}</div>
                         {% endif %}
-                        {% set cols = block.columns|default(3) %}
-                        <div class="lp-grid cols-{{ cols }}">
-                            {% for image in images %}
-                                <img class="lp-img lp-img-zoomable" src="{{ image.url|default(image) }}" alt="{{ image.alt|default(page.title) }}">
-                            {% endfor %}
-                        </div>
-                    {% endif %}
-
-                    {% if blockType == 'info' %}
-                        {% set items = block.items|default([]) %}
-                        <div class="lp-info-grid">
-                            {% for item in items %}
-                                <div class="lp-info">
-                                    <div class="k">{{ item.label|default('Info') }}</div>
-                                    <div class="v">{{ item.value|default('') }}</div>
-                                </div>
-                            {% endfor %}
-                        </div>
-                    {% endif %}
-
-                    {% if blockType == 'links' %}
-                        {% set links = block.links|default([]) %}
-                        <div class="lp-link-list">
-                            {% for l in links %}
-                                <a class="lp-link-item" href="{{ l.url|default('#') }}" {% if l.new_tab %}target="_blank"{% endif %}>
-                                    <span>{{ l.label|default(l.url|default('Open')) }}</span>
-                                    <span>→</span>
-                                </a>
-                            {% endfor %}
-                        </div>
-                    {% endif %}
-
-                    {% if blockType == 'testimonials' and block.enabled|default(true) %}
-                        {% set testimonials = block.items|default([]) %}
-                        <div class="lp-testimonial-grid">
-                            {% for t in testimonials %}
-                                <article class="lp-testimonial-item">
-                                    <p class="lp-testimonial-quote">"{{ t.quote|default(t.content|default(t.value|default('Exceptional experience with VNV Events.'))) }}"</p>
-                                    <div class="lp-testimonial-name">{{ t.name|default('VNV Events Client') }}</div>
-                                    {% if t.role|default('') %}<div class="lp-testimonial-role">{{ t.role }}</div>{% endif %}
-                                </article>
-                            {% endfor %}
-                        </div>
-                    {% endif %}
-
-                    {% if blockType == 'map' %}
-                        <div class="lp-map-wrap">
-                            <div class="lp-map-canvas"
-                                 data-map
-                                 data-lat="{{ block.lat|default('') }}"
-                                 data-lng="{{ block.lng|default('') }}"
-                                 data-address="{{ block.address|default(page.city ~ ', ' ~ page.state) }}"></div>
-                        </div>
-                    {% endif %}
+                        {% if blockType == 'image' and block.image_url %}
+                            <img class="lp-img lp-img-zoomable" src="{{ block.image_url }}" alt="{{ block.title ?: page.title }}">
+                        {% endif %}
+                        {% if blockType == 'links' %}
+                            {% set links = block.links|default([]) %}
+                            <div class="lp-link-list">
+                                {% for l in links %}
+                                    <a class="lp-link-item" href="{{ l.url|default('#') }}" {% if l.new_tab %}target="_blank"{% endif %}>
+                                        <span>{{ l.label|default(l.url|default('Open')) }}</span><span>→</span>
+                                    </a>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                {% endfor %}
                 </div>
-            {% endfor %}
+            {% endif %}
 
             {% if page.faqs is not empty %}
                 <div class="lp-card lp-faq">
@@ -327,42 +887,165 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     const mapEls = Array.from(document.querySelectorAll('[data-map]'));
-    if (!mapEls.length || !window.google || !google.maps) return;
+    let mapsInitialized = false;
 
-    mapEls.forEach(function (mapEl) {
-        const initialLat = parseFloat(mapEl.dataset.lat || '0');
-        const initialLng = parseFloat(mapEl.dataset.lng || '0');
-        const initialAddress = mapEl.dataset.address || '';
+    function initLocationMaps() {
+        if (mapsInitialized) return true;
+        if (!mapEls.length || !window.google || !google.maps) return false;
 
-        const fallbackCenter = { lat: 25.7617, lng: -80.1918 };
-        const center = (!Number.isNaN(initialLat) && !Number.isNaN(initialLng) && initialLat && initialLng)
-            ? { lat: initialLat, lng: initialLng }
-            : fallbackCenter;
+        mapEls.forEach(function (mapEl) {
+            if (mapEl.dataset.mapReady === '1') return;
 
-        const map = new google.maps.Map(mapEl, {
-            center: center,
-            zoom: 13,
-            mapTypeControl: false,
-            streetViewControl: false,
-            fullscreenControl: false
-        });
-        const marker = new google.maps.Marker({ map: map, position: center });
-        const geocoder = new google.maps.Geocoder();
+            const initialLat = parseFloat(mapEl.dataset.lat || '0');
+            const initialLng = parseFloat(mapEl.dataset.lng || '0');
+            const initialAddress = mapEl.dataset.address || '';
 
-        function geocodeAndCenter(address) {
-            if (!address) return;
-            geocoder.geocode({ address: address }, function (results, status) {
-                if (status !== 'OK' || !results || !results.length) return;
-                const loc = results[0].geometry.location;
-                map.setCenter(loc);
-                marker.setPosition(loc);
+            const fallbackCenter = { lat: 25.7617, lng: -80.1918 };
+            const center = (!Number.isNaN(initialLat) && !Number.isNaN(initialLng) && initialLat && initialLng)
+                ? { lat: initialLat, lng: initialLng }
+                : fallbackCenter;
+
+            const map = new google.maps.Map(mapEl, {
+                center: center,
+                zoom: 13,
+                mapTypeControl: false,
+                streetViewControl: false,
+                fullscreenControl: false
             });
-        }
+            const marker = new google.maps.Marker({ map: map, position: center });
+            const geocoder = new google.maps.Geocoder();
 
-        if (initialAddress && (!initialLat || !initialLng)) {
-            geocodeAndCenter(initialAddress);
-        }
-    });
+            function geocodeAndCenter(address) {
+                if (!address) return;
+                geocoder.geocode({ address: address }, function (results, status) {
+                    if (status !== 'OK' || !results || !results.length) return;
+                    const loc = results[0].geometry.location;
+                    map.setCenter(loc);
+                    marker.setPosition(loc);
+                });
+            }
+
+            if (initialAddress && (!initialLat || !initialLng)) {
+                geocodeAndCenter(initialAddress);
+            }
+
+            // Ensure a proper render when the map API arrives after first paint.
+            setTimeout(function () {
+                google.maps.event.trigger(map, 'resize');
+                map.setCenter(marker.getPosition());
+            }, 80);
+
+            mapEl.dataset.mapReady = '1';
+        });
+
+        mapsInitialized = true;
+        return true;
+    }
+
+    if (!initLocationMaps()) {
+        let tries = 0;
+        const maxTries = 60; // ~9 seconds
+        const timer = setInterval(function () {
+            tries += 1;
+            if (initLocationMaps() || tries >= maxTries) {
+                clearInterval(timer);
+            }
+        }, 150);
+    }
+
+    window.addEventListener('load', initLocationMaps);
+
+    function initTestimonialCarousels() {
+        const shells = Array.from(document.querySelectorAll('.lp-testimonials-shell'));
+        if (!shells.length) return;
+
+        shells.forEach(function (shell) {
+            const items = Array.from(shell.querySelectorAll('.js-testimonial-item'));
+            const prevBtn = shell.querySelector('.js-testimonial-prev');
+            const nextBtn = shell.querySelector('.js-testimonial-next');
+            const dotsWrap = shell.querySelector('.js-testimonial-dots');
+            if (items.length <= 3) return;
+
+            let currentPage = 0;
+            let autoTimer = null;
+
+            function getPerView() {
+                if (window.innerWidth <= 640) return 1;
+                if (window.innerWidth <= 991) return 2;
+                return 3;
+            }
+
+            function getPageCount(perView) {
+                return Math.max(1, Math.ceil(items.length / perView));
+            }
+
+            function renderDots(pageCount) {
+                if (!dotsWrap) return;
+                dotsWrap.innerHTML = '';
+                for (let i = 0; i < pageCount; i += 1) {
+                    const dot = document.createElement('span');
+                    if (i === currentPage) dot.classList.add('active');
+                    dot.addEventListener('click', function () {
+                        currentPage = i;
+                        update();
+                        restartAuto();
+                    });
+                    dotsWrap.appendChild(dot);
+                }
+            }
+
+            function update() {
+                const perView = getPerView();
+                const pageCount = getPageCount(perView);
+                if (currentPage >= pageCount) currentPage = 0;
+                const start = currentPage * perView;
+                const end = start + perView;
+
+                items.forEach(function (item, idx) {
+                    item.classList.toggle('is-hidden', !(idx >= start && idx < end));
+                });
+
+                const dots = dotsWrap ? Array.from(dotsWrap.querySelectorAll('span')) : [];
+                if (!dots.length || dots.length !== pageCount) {
+                    renderDots(pageCount);
+                } else {
+                    dots.forEach(function (dot, idx) {
+                        dot.classList.toggle('active', idx === currentPage);
+                    });
+                }
+            }
+
+            function next() {
+                const pageCount = getPageCount(getPerView());
+                currentPage = (currentPage + 1) % pageCount;
+                update();
+            }
+
+            function prev() {
+                const pageCount = getPageCount(getPerView());
+                currentPage = (currentPage - 1 + pageCount) % pageCount;
+                update();
+            }
+
+            function startAuto() {
+                if (autoTimer) clearInterval(autoTimer);
+                autoTimer = setInterval(next, 5500);
+            }
+
+            function restartAuto() {
+                startAuto();
+            }
+
+            if (nextBtn) nextBtn.addEventListener('click', function () { next(); restartAuto(); });
+            if (prevBtn) prevBtn.addEventListener('click', function () { prev(); restartAuto(); });
+            window.addEventListener('resize', update);
+
+            update();
+            startAuto();
+        });
+    }
+
+    initTestimonialCarousels();
 });
 </script>
 {% if page.custom_js %}

@@ -270,13 +270,13 @@ $router->post(function () {
         $userId = (int) $_POST["resend_email"];
         $targetUser = $repo->getOne(["id" => $userId]);
         
-        if ($targetUser && $targetUser->password_updated == 0) {
+        if ($targetUser) {
             $temporaryPassword = generateTemporaryPassword();
             $hashedPassword = \App\Services\HashService::hashPassword($temporaryPassword);
             
             $repo->update([
                 "password" => $hashedPassword,
-                "password_updated" => 0
+                "password_updated" => 1
             ], ["id" => $userId]);
             
             $subject = "Your Temporary Password - VNV Venue";

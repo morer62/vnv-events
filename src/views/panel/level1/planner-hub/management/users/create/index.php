@@ -21,17 +21,6 @@ use App\Services\UserInstitutionService;
 use App\Repositories\InstitutionProfileRepository;
 use App\Repositories\UserInstitutionsRepository;
 
-function generateTemporaryPassword(): string
-{
-    $length = 12;
-    $characters = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%';
-    $password = '';
-    for ($i = 0; $i < $length; $i++) {
-        $password .= $characters[random_int(0, strlen($characters) - 1)];
-    }
-    return $password;
-}
-
 function sendAccountPasswordEmail(int $ownerId, string $email, string $name, string $password, string $userType): bool
 {
     try {
@@ -334,7 +323,20 @@ $router->post(function () {
         LocationUtils::reload();
     }
     
-    $password = generateTemporaryPassword();
+    $passIn = trim((string) ($_POST["password"] ?? ""));
+    $passConfirmIn = trim((string) ($_POST["password_confirm"] ?? ""));
+    $defaultPlain = "12345";
+
+    if ($passIn === "" && $passConfirmIn === "") {
+        $password = $defaultPlain;
+        $passwordConfirm = $defaultPlain;
+    } elseif ($passIn !== "" && $passConfirmIn !== "") {
+        $password = $passIn;
+        $passwordConfirm = $passConfirmIn;
+    } else {
+        MessageUtil::setMessage("Error: Enter both password and confirmation, or leave both empty to use the default (12345, digits 1–5).");
+        LocationUtils::reload();
+    }
 
     if (!empty($_POST["associate_client_id"])) {
         $clientId = (int)$_POST["associate_client_id"];
@@ -380,6 +382,11 @@ $router->post(function () {
         }
         
         LocationUtils::redirectInternal("panel/planner-hub/management/users");
+    }
+
+    if ($password !== $passwordConfirm) {
+        MessageUtil::setMessage("Error: Passwords must match.");
+        LocationUtils::reload();
     }
 
     $hourlyRate = null;

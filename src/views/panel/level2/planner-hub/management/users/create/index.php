@@ -21,17 +21,6 @@ use App\Services\UserInstitutionService;
 use App\Repositories\InstitutionProfileRepository;
 use App\Repositories\UserInstitutionsRepository;
 
-function generateTemporaryPassword(): string
-{
-    $length = 12;
-    $characters = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%';
-    $password = '';
-    for ($i = 0; $i < $length; $i++) {
-        $password .= $characters[random_int(0, strlen($characters) - 1)];
-    }
-    return $password;
-}
-
 function sendTemporaryPasswordEmail(string $email, string $name, string $temporaryPassword, string $userType): bool
 {
     try {
@@ -72,7 +61,7 @@ function sendTemporaryPasswordEmail(string $email, string $name, string $tempora
                     </div>
                     
                     <div class='warning'>
-                        <p><strong>⚠️ Important:</strong> This is a temporary password. You will be required to change it on your first login for security purposes.</p>
+                        <p><strong>⚠️ Important:</strong> This is a temporary password. We recommend changing it after your first login from your account settings.</p>
                     </div>
                     
                     <p>Click the button below to access the login page:</p>
@@ -346,9 +335,22 @@ $router->post(function () {
         LocationUtils::reload();
     }
     
-    $temporaryPassword = generateTemporaryPassword();
-    $password = $temporaryPassword;
-    $passwordConfirm = $temporaryPassword;
+    $passIn = trim((string) ($_POST["password"] ?? ""));
+    $passConfirmIn = trim((string) ($_POST["password_confirm"] ?? ""));
+    $defaultPlain = "12345";
+
+    if ($passIn === "" && $passConfirmIn === "") {
+        $password = $defaultPlain;
+        $passwordConfirm = $defaultPlain;
+        $temporaryPassword = $password;
+    } elseif ($passIn !== "" && $passConfirmIn !== "") {
+        $password = $passIn;
+        $passwordConfirm = $passConfirmIn;
+        $temporaryPassword = $password;
+    } else {
+        MessageUtil::setMessage("Error: Enter both password and confirmation, or leave both empty to use the default (12345, digits 1–5).");
+        LocationUtils::reload();
+    }
     if (!empty($_POST["associate_client_id"])) {
         $clientId = (int)$_POST["associate_client_id"];
         $assocRepo->create($clientId, $currentOwnerId);
@@ -452,7 +454,7 @@ $router->post(function () {
             }
             
             sendTemporaryPasswordEmail($_POST["email"], $_POST["name"], $temporaryPassword, $_POST["level"]);
-            MessageUtil::setMessage("Team member reactivated and assigned to you. Temporary password sent to their email.");
+            MessageUtil::setMessage("Team member reactivated and assigned to you.");
         } elseif ((int)$inactiveUser->level === 5) {
             $userRepo->reactivateUser($inactiveUser->id, 1, [
                 "name" => $_POST["name"],
@@ -464,7 +466,7 @@ $router->post(function () {
             $assocRepo->create($inactiveUser->id, $currentOwnerId);
             
             sendTemporaryPasswordEmail($_POST["email"], $_POST["name"], $temporaryPassword, $_POST["level"]);
-            MessageUtil::setMessage("Client reactivated and associated to your account. Temporary password sent to their email.");
+            MessageUtil::setMessage("Client reactivated and associated to your account.");
         }
         LocationUtils::redirectInternal("panel/planner-hub/management/users");
     }
@@ -543,7 +545,7 @@ $router->post(function () {
                 if ($success) {
                     $categoryId = $categoryRepo->getLastId();
                 } else {
-                    MessageUtil::setMessage("User created successfully. Temporary password sent to their email. Note: CRM lead not created due to error creating category.");
+                    MessageUtil::setMessage("User created successfully. Note: CRM lead not created due to error creating category.");
                     LocationUtils::redirectInternal("panel/planner-hub/management/users");
                 }
             }
@@ -559,12 +561,12 @@ $router->post(function () {
                     ...LoginService::getUserIdAsArray(true),
                     ...LoginService::getOwnerAsArray()
                 ]);
-                MessageUtil::setMessage("User created successfully, added to CRM, and temporary password sent to their email.");
+                MessageUtil::setMessage("User created successfully and added to CRM.");
             } else {
-                MessageUtil::setMessage("User created successfully and temporary password sent to their email. Note: CRM lead not created due to missing category.");
+                MessageUtil::setMessage("User created successfully. Note: CRM lead not created due to missing category.");
             }
         } else {
-            MessageUtil::setMessage("User created successfully and temporary password sent to their email.");
+            MessageUtil::setMessage("User created successfully.");
         }
         $_SESSION["new_client_for_estimate"] = [
             "id" => $userId,
@@ -575,12 +577,12 @@ $router->post(function () {
         LocationUtils::redirectInternal("panel/planner-hub/management/users/create");
     } elseif ($_POST["level"] == 4) {
         if (isset($_POST["role_id"]) && !empty($_POST["role_id"])) {
-            MessageUtil::setMessage("Team member created successfully with role assigned. Temporary password sent to their email.");
+            MessageUtil::setMessage("Team member created successfully with role assigned.");
         } else {
-            MessageUtil::setMessage("Team member created successfully. Temporary password sent to their email.");
+            MessageUtil::setMessage("Team member created successfully.");
         }
     } else {
-        MessageUtil::setMessage("User created successfully and temporary password sent to their email.");
+        MessageUtil::setMessage("User created successfully.");
     }
 
     LocationUtils::redirectInternal("panel/planner-hub/management/users");

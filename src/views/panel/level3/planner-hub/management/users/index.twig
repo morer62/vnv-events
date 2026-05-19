@@ -102,16 +102,12 @@
                                         </form>
                                     </td>
                                     <td>
-                                        {% if member.password_updated == 0 %}
-                                            <form method="post" class="d-inline">
-                                                <input type="hidden" name="resend_email" value="{{ member.id }}">
-                                                <button type="submit" class="btn btn-sm btn-outline-primary" onclick="return confirm('Are you sure you want to resend the temporary password email to {{ member.email }}?')">
-                                                    📧 Resend Email
-                                                </button>
-                                            </form>
-                                        {% else %}
-                                            <span class="text-muted">✅ Validated</span>
-                                        {% endif %}
+                                        <form method="post" class="d-inline">
+                                            <input type="hidden" name="resend_email" value="{{ member.id }}">
+                                            <button type="submit" class="btn btn-sm btn-outline-primary" onclick="return confirm('Are you sure you want to resend the temporary password email to {{ member.email }}?')">
+                                                📧 Resend Email
+                                            </button>
+                                        </form>
                                     </td>
                                     <td>
                                         <a href="{{ path('panel/planner-hub/management/users/edit?id=' ~ member.id) }}" class="btn btn-sm btn-outline-warning">✏️ Edit</a>
@@ -167,16 +163,12 @@
                                     <td>{{ client.email }}</td>
                                     <td>{{ client.phone }}</td>
                                     <td>
-                                        {% if client.password_updated == 0 %}
-                                            <form method="post" class="d-inline">
-                                                <input type="hidden" name="resend_email" value="{{ client.id }}">
-                                                <button type="submit" class="btn btn-sm btn-outline-primary" onclick="return confirm('Are you sure you want to resend the temporary password email to {{ client.email }}?')">
-                                                    📧 Resend Email
-                                                </button>
-                                            </form>
-                                        {% else %}
-                                            <span class="text-muted">✅ Validated</span>
-                                        {% endif %}
+                                        <form method="post" class="d-inline">
+                                            <input type="hidden" name="resend_email" value="{{ client.id }}">
+                                            <button type="submit" class="btn btn-sm btn-outline-primary" onclick="return confirm('Are you sure you want to resend the temporary password email to {{ client.email }}?')">
+                                                📧 Resend Email
+                                            </button>
+                                        </form>
                                     </td>
                                     <td>
                                         <a href="{{ path('panel/planner-hub/management/users/edit?id=' ~ client.id) }}" class="btn btn-sm btn-outline-warning">✏️ Edit</a>
