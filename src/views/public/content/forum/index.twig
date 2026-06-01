@@ -402,7 +402,7 @@
                         </a>
                     {% endif %}
                 {% else %}
-                    <a href="{{ path('signup') }}" class="btn btn-primary-custom me-2">Join</a>
+                    <a href="{{ path('signup') }}?level=5" class="btn btn-primary-custom me-2">Join</a>
                     <a href="{{ path('login') }}" class="btn btn-outline-custom">Sign In</a>
                 {% endif %}
             </div>
@@ -417,19 +417,19 @@
         <div class="col-lg-8">
             <!-- Filter Tabs -->
             <div class="filter-tabs">
-                <a href="{{ path('forum') }}{% if selectedCategory %}?category={{ selectedCategory.id }}&filter=recent{% else %}?filter=recent{% endif %}" 
+                <a href="{{ path('forums') }}{% if selectedCategory %}?category={{ selectedCategory.id }}&filter=recent{% else %}?filter=recent{% endif %}"
                    class="filter-tab {% if currentFilter == 'recent' or not currentFilter %}active{% endif %}">
                     Recent discussions
                 </a>
-                <a href="{{ path('forum') }}{% if selectedCategory %}?category={{ selectedCategory.id }}&filter=comments{% else %}?filter=comments{% endif %}" 
+                <a href="{{ path('forums') }}{% if selectedCategory %}?category={{ selectedCategory.id }}&filter=comments{% else %}?filter=comments{% endif %}"
                    class="filter-tab {% if currentFilter == 'comments' %}active{% endif %}">
                     Recent comments
                 </a>
-                <a href="{{ path('forum') }}{% if selectedCategory %}?category={{ selectedCategory.id }}&filter=popular{% else %}?filter=popular{% endif %}" 
+                <a href="{{ path('forums') }}{% if selectedCategory %}?category={{ selectedCategory.id }}&filter=popular{% else %}?filter=popular{% endif %}"
                    class="filter-tab {% if currentFilter == 'popular' %}active{% endif %}">
                     Most popular
                 </a>
-                <a href="{{ path('forum') }}{% if selectedCategory %}?category={{ selectedCategory.id }}&filter=views{% else %}?filter=views{% endif %}" 
+                <a href="{{ path('forums') }}{% if selectedCategory %}?category={{ selectedCategory.id }}&filter=views{% else %}?filter=views{% endif %}"
                    class="filter-tab {% if currentFilter == 'views' %}active{% endif %}">
                     Most views
                 </a>
@@ -438,7 +438,7 @@
             <!-- Topics List -->
             {% if topics %}
                 {% for topic in topics %}
-                <a href="{{ path('forum/topic') }}?id={{ topic.id }}" class="topic-card">
+                <a href="{{ path('forums/' ~ topic.slug ~ '/') }}" class="topic-card">
                     <div class="topic-card-content">
                         {% if topic.first_image %}
                         <div class="topic-image-container">
@@ -576,7 +576,7 @@
             <div class="category-sidebar">
                 <h5 class="fw-bold mb-3">Categories</h5>
                 
-                <a href="{{ path('forum') }}" class="category-item {% if not selectedCategory %}active{% endif %}">
+                <a href="{{ path('forums') }}" class="category-item {% if not selectedCategory %}active{% endif %}">
                     <span class="category-icon">📁</span>
                     <div class="flex-grow-1">
                         <div class="fw-bold">All Categories</div>
@@ -585,7 +585,7 @@
                 </a>
 
                 {% for category in categories %}
-                <a href="{{ path('forum') }}?category={{ category.id }}" class="category-item {% if selectedCategory and selectedCategory.id == category.id %}active{% endif %}">
+                <a href="{{ path('forums') }}?category={{ category.id }}" class="category-item {% if selectedCategory and selectedCategory.id == category.id %}active{% endif %}">
                     <span class="category-icon">{{ category.icon|default('📁') }}</span>
                     <div class="flex-grow-1">
                         <div class="fw-bold">{{ category.name }}</div>
@@ -627,7 +627,7 @@
             <div class="stats-card mt-4 text-center">
                 <h6 class="fw-bold mb-2" style="color: #111827;">Join Our Community</h6>
                 <p class="small mb-3" style="color: #6b7280;">Connect with thousands of event professionals</p>
-                <a href="{{ path('signup') }}" class="btn btn-primary-custom w-100 mb-2">Sign Up</a>
+                <a href="{{ path('signup') }}?level=5" class="btn btn-primary-custom w-100 mb-2">Sign Up</a>
                 <a href="{{ path('login') }}" class="btn btn-outline-custom w-100">Log In</a>
             </div>
             {% endif %}

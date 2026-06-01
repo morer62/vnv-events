@@ -173,7 +173,7 @@
         ✅ Session running for <strong id="elapsed-time"></strong>.
       </div>
 
-      <form method="post" class="d-grid">
+      <form method="post" class="d-grid" id="clockStartForm">
         <input type="hidden" name="action" value="end">
         <input type="hidden" name="location_lat" />
         <input type="hidden" name="location_long" />
@@ -216,7 +216,10 @@
 {% block scripts %}
 <script>
 document.addEventListener('DOMContentLoaded', () => {
-  document.getElementById("session_tz").value = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  const timezoneInput = document.getElementById("session_tz");
+  if (timezoneInput) {
+    timezoneInput.value = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  }
 
 {% if activeLog %}
   const startStr = "{{ activeLog.start_time|e }}";
@@ -242,16 +245,55 @@ document.addEventListener('DOMContentLoaded', () => {
   setInterval(updateElapsed, 1000);
 {% endif %}
 
-  setLocationFields();
-});
+  setLocationFields().catch(() => {});
 
-async function setLocationFields() {
-  if ("geolocation" in navigator) {
-    navigator.geolocation.getCurrentPosition((position) => {
-      document.querySelector("input[name='location_lat']").value = position.coords.latitude;
-      document.querySelector("input[name='location_long']").value = position.coords.longitude;
+  const clockStartForm = document.getElementById('clockStartForm');
+  if (clockStartForm) {
+    clockStartForm.addEventListener('submit', async (event) => {
+      event.preventDefault();
+
+      try {
+        await setLocationFields(clockStartForm);
+        const latitude = clockStartForm.querySelector("input[name='location_lat']").value;
+        const longitude = clockStartForm.querySelector("input[name='location_long']").value;
+
+        if (!latitude || !longitude) {
+          throw new Error('Location unavailable');
+        }
+
+        clockStartForm.submit();
+      } catch (error) {
+        alert('Location permission is required to start the clock. Please allow location access and try again.');
+      }
     });
   }
+});
+
+function setLocationFields(form = document.querySelector("form")) {
+  return new Promise((resolve, reject) => {
+    if (!("geolocation" in navigator) || !form) {
+      reject(new Error('Geolocation is not available'));
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition((position) => {
+      const latInput = form.querySelector("input[name='location_lat']");
+      const longInput = form.querySelector("input[name='location_long']");
+
+      if (latInput && longInput) {
+        latInput.value = position.coords.latitude;
+        longInput.value = position.coords.longitude;
+      }
+
+      resolve(position);
+    }, (error) => {
+      reject(error);
+    }, {
+      enableHighAccuracy: true,
+      timeout: 10000,
+      maximumAge: 0
+    });
+  });
 }
 
 function openNotesModal() {

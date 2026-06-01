@@ -81,7 +81,7 @@
       font-size:clamp(2rem,4vw,3.15rem);
       line-height:1.04;
       font-weight:900;
-      letter-spacing:-1px;
+      letter-spacing:0;
       margin-bottom:.8rem;
       max-width:860px;
     }
@@ -157,7 +157,7 @@
       font-weight:900;
       font-size:clamp(1.6rem,3vw,2.3rem);
       line-height:1.12;
-      letter-spacing:-.5px;
+      letter-spacing:0;
       margin-bottom:.5rem;
       color:#15181a;
     }
@@ -269,6 +269,103 @@
       color:#f6f1e8;
     }
 
+    .vnv-request-board{
+      margin-top:2rem;
+      background:linear-gradient(135deg,#0B0B0C 0%, #15181a 100%);
+      border:1px solid rgba(94,198,196,.16);
+      border-radius:26px;
+      padding:1.35rem;
+      box-shadow:var(--vnv-shadow-soft);
+      color:#fff;
+    }
+
+    .vnv-request-board__head{
+      display:flex;
+      justify-content:space-between;
+      gap:1rem;
+      align-items:flex-start;
+      flex-wrap:wrap;
+      margin-bottom:1rem;
+    }
+
+    .vnv-request-board h2{
+      margin:0 0 .3rem;
+      font-size:1.35rem;
+      font-weight:900;
+      color:#fff;
+    }
+
+    .vnv-request-board p{
+      margin:0;
+      color:#c9d2d2;
+    }
+
+    .vnv-request-count{
+      border-radius:999px;
+      padding:.55rem .85rem;
+      background:rgba(94,198,196,.14);
+      border:1px solid rgba(94,198,196,.22);
+      color:#8ee0de;
+      font-weight:900;
+      white-space:nowrap;
+    }
+
+    .vnv-request-list{
+      display:grid;
+      grid-template-columns:repeat(auto-fit, minmax(260px, 1fr));
+      gap:.85rem;
+    }
+
+    .vnv-request-card{
+      background:rgba(255,255,255,.06);
+      border:1px solid rgba(255,255,255,.09);
+      border-radius:18px;
+      padding:1rem;
+    }
+
+    .vnv-request-card__top{
+      display:flex;
+      justify-content:space-between;
+      gap:.75rem;
+      margin-bottom:.65rem;
+    }
+
+    .vnv-request-card strong{
+      display:block;
+      color:#fff;
+      font-size:1rem;
+    }
+
+    .vnv-request-card small,
+    .vnv-request-card div{
+      color:#d8dedf;
+      font-size:.86rem;
+      line-height:1.5;
+    }
+
+    .vnv-request-card__date{
+      color:var(--vnv-gold);
+      font-weight:900;
+      white-space:nowrap;
+    }
+
+    .vnv-request-card__services{
+      margin:.65rem 0;
+      color:#8ee0de;
+      font-size:.84rem;
+    }
+
+    .vnv-request-archive{
+      width:100%;
+      border:1px solid rgba(255,255,255,.14);
+      background:rgba(255,255,255,.08);
+      color:#fff;
+      border-radius:999px;
+      padding:.58rem .8rem;
+      font-weight:800;
+      margin-top:.8rem;
+    }
+
     .vnv-final{
       margin-top:2rem;
       background:linear-gradient(135deg,#121516 0%, #1b2022 100%);
@@ -323,10 +420,10 @@
   font-size:clamp(2rem,4vw,3.15rem);
   line-height:1.04;
   font-weight:900;
-  letter-spacing:-1px;
+  letter-spacing:0;
   margin-bottom:.8rem;
   max-width:860px;
-  color:#fff; /* 🔥 ESTE ES EL FIX */
+  color:#fff;
 }
   </style>
 
@@ -350,6 +447,10 @@
     <div class="vnv-hero-actions">
       <a href="{{ path('panel/planner-hub/management/orders') }}" class="btn-vnv-main">
         <i class="fa-solid fa-clipboard-list"></i> Open Orders
+      </a>
+
+      <a href="{{ path('panel/planner-hub/management/orders/calendar') }}" class="btn-vnv-light">
+        <i class="fa-solid fa-calendar-days"></i> Order Calendar
       </a>
 
       <a href="{{ path('panel/planner-hub/management/crm') }}" class="btn-vnv-light">
@@ -426,6 +527,11 @@
         <span>Payroll</span>
       </a>
 
+      <a href="{{ path('panel/planner-hub/management/orders/calendar') }}" class="vnv-mini-card">
+        <i class="fa-solid fa-calendar-days"></i>
+        <span>Calendar</span>
+      </a>
+
       <a href="{{ path('panel/planner-hub/management/storage') }}" class="vnv-mini-card">
         <i class="fa-solid fa-boxes-stacked"></i>
         <span>Inventory</span>
@@ -441,10 +547,62 @@
         <span>Planner Tools</span>
       </a>
 
+      <a href="{{ path('panel/cms') }}" class="vnv-mini-card">
+        <i class="fa-solid fa-file-pen"></i>
+        <span>CMS</span>
+      </a>
+
+      <a href="{{ path('panel/seo-center') }}" class="vnv-mini-card">
+        <i class="fa-solid fa-magnifying-glass-chart"></i>
+        <span>SEO Center</span>
+      </a>
+
       <a href="{{ path('panel/settings') }}" class="vnv-mini-card">
         <i class="fa-solid fa-sliders"></i>
         <span>Settings</span>
       </a>
+    </div>
+  </section>
+
+  <section class="vnv-request-board">
+    <div class="vnv-request-board__head">
+      <div>
+        <h2>New event requests</h2>
+        <p>Requests submitted from the public popup or client dashboard. Archive them once the team has converted or handled the order.</p>
+      </div>
+      <div class="vnv-request-count">{{ eventRequestsCount|default(0) }} active</div>
+    </div>
+
+    <div class="vnv-request-list">
+      {% for request in eventRequests|default([]) %}
+        {% set services = request.selected_services ? request.selected_services|json_decode : [] %}
+        <article class="vnv-request-card">
+          <div class="vnv-request-card__top">
+            <div>
+              <strong>{{ request.full_name }}</strong>
+              <small>{{ request.email }}{% if request.phone %} · {{ request.phone }}{% endif %}</small>
+            </div>
+            <span class="vnv-request-card__date">{{ request.event_date|date('M j') }}</span>
+          </div>
+          <div>{{ request.event_time|date('g:i A') }} · {{ request.event_address }}</div>
+          {% if services %}
+            <div class="vnv-request-card__services">{{ services|slice(0, 4)|join(', ') }}</div>
+          {% endif %}
+          {% if request.details %}
+            <small>{{ request.details|slice(0, 140) }}{% if request.details|length > 140 %}...{% endif %}</small>
+          {% endif %}
+          <form method="post">
+            <input type="hidden" name="action" value="archive_event_request">
+            <input type="hidden" name="event_request_id" value="{{ request.id }}">
+            <button type="submit" class="vnv-request-archive" onclick="return confirm('Archive this event request?')">Archive request</button>
+          </form>
+        </article>
+      {% else %}
+        <article class="vnv-request-card">
+          <strong>No active event requests yet.</strong>
+          <small>New popup submissions will appear here for Level 1 follow-up.</small>
+        </article>
+      {% endfor %}
     </div>
   </section>
 

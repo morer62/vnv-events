@@ -61,7 +61,7 @@ class MusicSessionRepository extends BaseRepository
         return $result ?: null;
     }
 
-    public function getPublicSessionsByPlatform(?string $platform = null, ?string $search = null): array
+    public function getPublicSessionsByPlatform(?string $platform = null, ?string $search = null, ?int $categoryId = null): array
     {
         $sql = "
             SELECT DISTINCT
@@ -83,6 +83,10 @@ class MusicSessionRepository extends BaseRepository
         if ($search && !empty(trim($search))) {
             $conditions[] = "(ms.title LIKE :search OR ms.description LIKE :search OR msk.keyword LIKE :search)";
         }
+
+        if ($categoryId !== null && $categoryId > 0) {
+            $conditions[] = "ms.id_category = :category_id";
+        }
         
         if (!empty($conditions)) {
             $sql .= " AND " . implode(" AND ", $conditions);
@@ -100,6 +104,10 @@ class MusicSessionRepository extends BaseRepository
             $searchTerm = "%" . trim($search) . "%";
             $this->db->bind(":search", $searchTerm);
         }
+
+        if ($categoryId !== null && $categoryId > 0) {
+            $this->db->bind(":category_id", $categoryId);
+        }
         
         $sessions = $this->db->fetchAll();
         
@@ -109,6 +117,43 @@ class MusicSessionRepository extends BaseRepository
         }
         
         return $sessions;
+    }
+
+    public function getPublicCategoriesWithCounts(?string $platform = null, ?string $search = null): array
+    {
+        $sql = "
+            SELECT
+                msc.id,
+                msc.name,
+                COUNT(DISTINCT ms.id) AS sessions_count
+            FROM music_sessions_categories msc
+            INNER JOIN {$this->table} ms ON ms.id_category = msc.id AND ms.is_active = 1
+            LEFT JOIN music_sessions_keywords_relations mskr ON ms.id = mskr.id_session
+            LEFT JOIN music_sessions_keywords msk ON mskr.id_keyword = msk.id
+            WHERE 1 = 1
+        ";
+
+        if ($platform && in_array(strtolower($platform), ['youtube', 'soundcloud', 'spotify'])) {
+            $sql .= " AND ms.platform = :platform";
+        }
+
+        if ($search && trim($search) !== '') {
+            $sql .= " AND (ms.title LIKE :search OR ms.description LIKE :search OR msk.keyword LIKE :search)";
+        }
+
+        $sql .= " GROUP BY msc.id, msc.name ORDER BY msc.name ASC";
+
+        $this->db->query($sql);
+
+        if ($platform && in_array(strtolower($platform), ['youtube', 'soundcloud', 'spotify'])) {
+            $this->db->bind(":platform", strtolower($platform));
+        }
+
+        if ($search && trim($search) !== '') {
+            $this->db->bind(":search", "%" . trim($search) . "%");
+        }
+
+        return $this->db->fetchAll();
     }
 
     /**

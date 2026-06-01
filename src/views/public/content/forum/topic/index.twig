@@ -144,8 +144,8 @@
     <div class="container">
         <nav aria-label="breadcrumb" class="mb-3">
             <ol class="breadcrumb mb-0">
-                <li class="breadcrumb-item"><a href="{{ path('forum') }}" class="text-white">Forum</a></li>
-                <li class="breadcrumb-item"><a href="{{ path('forum') }}?category={{ topic.id_category }}" class="text-white">{{ topic.category_name }}</a></li>
+                <li class="breadcrumb-item"><a href="{{ path('forums') }}" class="text-white">Forums</a></li>
+                <li class="breadcrumb-item"><a href="{{ path('forums') }}?category={{ topic.id_category }}" class="text-white">{{ topic.category_name }}</a></li>
                 <li class="breadcrumb-item active text-white-50">{{ topic.title|slice(0, 40) }}...</li>
             </ol>
         </nav>
@@ -201,7 +201,7 @@
                 <!-- Content -->
                 <div class="col-md-10">
                     <div class="mb-3" style="font-size: 1rem; line-height: 1.7; color: #374151;">
-                        {{ topic.content|nl2br|raw }}
+                        {{ topic.content|e|nl2br }}
                     </div>
 
                     <!-- Attachments -->
@@ -287,7 +287,7 @@
                 {% endif %}
 
                 <div class="mb-3" style="line-height: 1.7; color: #374151;">
-                    {{ reply.content|nl2br|raw }}
+                    {{ reply.content|e|nl2br }}
                 </div>
 
                 <div class="d-flex align-items-center gap-3 text-muted small">
@@ -298,7 +298,7 @@
                         <i data-feather="heart" style="width: 14px; height: 14px;"></i>
                         <span id="reply-likes-count-{{ reply.id }}">{{ reply.likes_count }}</span>
                     </button>
-                    {% if user and not topic.is_locked %}
+                    {% if canReply and not topic.is_locked and topic.allow_replies|default(1) %}
                     <button class="btn btn-link btn-sm text-decoration-none p-0" onclick="showReplyForm({{ reply.id }}, '{{ reply.user_name }}')">
                         <i data-feather="corner-up-left" style="width: 14px; height: 14px;"></i> Reply
                     </button>
@@ -316,10 +316,15 @@
 
     <!-- Reply Form -->
     {% if user %}
-        {% if not topic.is_locked %}
+        {% if not canReply %}
+        <div class="alert alert-info mt-4">
+            This public discussion accepts replies from Level 5 client community accounts.
+        </div>
+        {% elseif not topic.is_locked and topic.allow_replies|default(1) %}
         <div class="reply-form mt-4">
             <h5 class="fw-bold mb-3" style="color: #1f2937;">Add Your Reply</h5>
             <form method="POST" id="replyForm">
+                <input type="hidden" name="csrf_token" value="{{ get_csrf() }}">
                 <input type="hidden" name="topic_id" value="{{ topic.id }}">
                 <input type="hidden" name="parent_reply_id" id="parentReplyId" value="">
                 
@@ -341,6 +346,9 @@
                 <button type="submit" class="btn btn-primary-custom">
                     <i data-feather="send"></i> Post Reply
                 </button>
+                {% if replyRequiresApproval %}
+                    <div class="form-text mt-2">Replies are reviewed before they appear publicly.</div>
+                {% endif %}
             </form>
         </div>
         {% else %}
@@ -352,11 +360,53 @@
     <div class="alert alert-light border mt-4 text-center p-4">
         <i data-feather="info" style="width: 32px; height: 32px;" class="text-muted mb-2"></i>
         <p class="mb-3">Please log in to participate in this discussion</p>
-        <a href="{{ path('login') }}" class="btn btn-primary-custom me-2">Log In</a>
-        <a href="{{ path('signup') }}" class="btn btn-outline-custom">Sign Up</a>
+        <button type="button" class="btn btn-primary-custom me-2" data-bs-toggle="modal" data-bs-target="#forumQuickSignupModal">Create quick account</button>
+        <a href="{{ path('login') }}" class="btn btn-outline-custom">Log In</a>
     </div>
     {% endif %}
 </div>
+
+{% if not user %}
+<div class="modal fade" id="forumQuickSignupModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Join this discussion</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="forumQuickSignupForm">
+                <div class="modal-body">
+                    <input type="hidden" name="csrf_token" value="{{ get_csrf() }}">
+                    <input type="hidden" name="redirect" value="{{ seo.canonical|default(path('forums/' ~ topic.slug ~ '/')) }}">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">First name</label>
+                            <input type="text" name="name" class="form-control" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Last name</label>
+                            <input type="text" name="lastname" class="form-control" required>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Email</label>
+                            <input type="email" name="email" class="form-control" required>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Password</label>
+                            <input type="password" name="password" class="form-control" minlength="8" required>
+                        </div>
+                    </div>
+                    <div class="alert alert-danger d-none mt-3 mb-0" id="forumQuickSignupError"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary-custom">Create account and stay here</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endif %}
 
 <style>
 .btn-primary-custom {
@@ -497,6 +547,35 @@ function toggleLike(type, id) {
         }
     })
     .catch(error => console.error('Error:', error));
+}
+
+const quickSignupForm = document.getElementById('forumQuickSignupForm');
+if (quickSignupForm) {
+    quickSignupForm.addEventListener('submit', function (event) {
+        event.preventDefault();
+        const errorBox = document.getElementById('forumQuickSignupError');
+        errorBox.classList.add('d-none');
+        errorBox.textContent = '';
+
+        fetch('{{ path("api/forum/quick-signup") }}', {
+            method: 'POST',
+            body: new FormData(quickSignupForm),
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (!data.success) {
+                errorBox.textContent = data.message || 'Could not create the account.';
+                errorBox.classList.remove('d-none');
+                return;
+            }
+            window.location.href = data.redirect || window.location.href;
+        })
+        .catch(() => {
+            errorBox.textContent = 'Could not create the account.';
+            errorBox.classList.remove('d-none');
+        });
+    });
 }
 </script>
 {% endblock %}

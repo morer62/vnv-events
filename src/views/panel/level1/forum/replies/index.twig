@@ -1,0 +1,60 @@
+{% extends 'templates/base.admin.twig' %}
+
+{% block body %}
+{% set csrf_token = get_csrf() %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 fw-bold mb-1">Forum Reply Moderation</h1>
+            <div class="text-muted">{{ topic.title }}</div>
+        </div>
+        <a href="{{ path('panel/forum') }}" class="btn btn-outline-secondary">Back</a>
+    </div>
+
+    <div class="card border-0 shadow-sm">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th>User</th>
+                        <th>Reply</th>
+                        <th>Status</th>
+                        <th>Date</th>
+                        <th class="text-end">Moderate</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for reply in replies %}
+                        <tr>
+                            <td>
+                                <strong>{{ reply.user_name }} {{ reply.user_lastname }}</strong>
+                                <div class="small text-muted">{{ reply.user_email }}</div>
+                            </td>
+                            <td style="max-width:560px;">{{ reply.content|e|nl2br }}</td>
+                            <td>
+                                <span class="badge {% if reply.status|default('APPROVED') == 'APPROVED' %}bg-success{% elseif reply.status|default('PENDING') == 'PENDING' %}bg-warning text-dark{% else %}bg-secondary{% endif %}">
+                                    {{ reply.status|default(reply.is_approved ? 'APPROVED' : 'PENDING') }}
+                                </span>
+                            </td>
+                            <td>{{ reply.created_at|date('M d, Y g:i A') }}</td>
+                            <td class="text-end">
+                                <form method="POST" class="d-inline-flex gap-1">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                                    <input type="hidden" name="reply_id" value="{{ reply.id }}">
+                                    <button class="btn btn-sm btn-outline-success" name="status" value="APPROVED">Approve</button>
+                                    <button class="btn btn-sm btn-outline-secondary" name="status" value="HIDDEN">Hide</button>
+                                    <button class="btn btn-sm btn-outline-danger" name="status" value="DELETED">Delete</button>
+                                </form>
+                            </td>
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <td colspan="5" class="text-center py-5 text-muted">No replies yet.</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

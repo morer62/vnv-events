@@ -1,6 +1,8 @@
 <?php
 
+use App\Repositories\EventRequestRepository;
 use App\Services\EmailService;
+use App\Services\LoginService;
 use App\Utils\LocationUtils;
 use App\Utils\MessageUtil;
 use App\Utils\Router;
@@ -19,6 +21,11 @@ function eventRequestRedirectBack(): void
 
 function eventRequestRedirectSuccess(): void
 {
+    $session = LoginService::getSession();
+    if ($session && (int)$session->getLevel() === 5) {
+        LocationUtils::redirectInternal('panel/home');
+    }
+
     LocationUtils::redirectTo(LocationUtils::pathFor('sucess-request'));
 }
 
@@ -39,6 +46,21 @@ function eventRequestMailTo(): string
     }
 
     return '';
+}
+
+function eventRequestOwnerId(): int
+{
+    $envOwner = (int)($_ENV['VNV_EVENTS_OWNER_ID'] ?? 0);
+    if ($envOwner > 0) {
+        return $envOwner;
+    }
+
+    $session = LoginService::getSession();
+    if ($session && (int)$session->getOwner() > 0) {
+        return (int)$session->getOwner();
+    }
+
+    return 1;
 }
 
 function eventRequestRecaptchaSecret(): string
@@ -218,13 +240,35 @@ $router->post(function () {
         return $service !== '';
     }));
 
-    $mailTo = eventRequestMailTo();
-    if ($mailTo === '') {
-        MessageUtil::setMessage('No destination email configured for event requests. Set EVENT_REQUEST_EMAIL in .env.', 'Configuration', 'error');
+    $sessionUser = LoginService::getSession();
+    $ownerId = eventRequestOwnerId();
+    $requestId = null;
+
+    try {
+        $requestRepo = new EventRequestRepository();
+        $requestId = $requestRepo->createFromPublicForm([
+            'id_owner' => $ownerId,
+            'id_user' => $sessionUser ? (int)$sessionUser->getId() : null,
+            'full_name' => $fullName,
+            'email' => $email,
+            'phone' => $phone,
+            'event_address' => $eventAddress,
+            'event_date' => $eventDate,
+            'event_time' => $eventTime,
+            'guest_count' => $guestCount > 0 ? $guestCount : null,
+            'selected_services' => json_encode($services, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE),
+            'details' => $details,
+            'form_source' => $formSource,
+            'status' => 'NEW',
+            'is_archived' => 0,
+        ]);
+    } catch (\Throwable $e) {
+        error_log('Public event request save error: ' . $e->getMessage());
+        MessageUtil::setMessage('Could not save your request. Please try again.', 'Request', 'error');
         eventRequestRedirectBack();
     }
 
-    $subject = 'New Event Request - ' . $fullName;
+    $subject = 'New VNV Event Request #' . $requestId . ' - ' . $fullName;
 
     $servicesHtml = $services
         ? '<ul style="margin:8px 0 0;padding-left:18px;"><li>' . implode('</li><li>', array_map('htmlspecialchars', $services)) . '</li></ul>'
@@ -233,8 +277,9 @@ $router->post(function () {
     $body = '
     <div style="font-family:Arial,sans-serif;line-height:1.55;color:#111827;max-width:760px;margin:0 auto;">
         <h2 style="margin:0 0 10px;">New event request received</h2>
-        <p style="margin:0 0 16px;color:#4b5563;">A visitor completed the public event request modal.</p>
+        <p style="margin:0 0 16px;color:#4b5563;">A visitor/client completed the VNV Events request popup. This request is now saved in the Level 1 dashboard.</p>
         <table style="width:100%;border-collapse:collapse;">
+            <tr><td style="padding:8px;border:1px solid #e5e7eb;"><strong>Request ID</strong></td><td style="padding:8px;border:1px solid #e5e7eb;">' . htmlspecialchars((string)$requestId) . '</td></tr>
             <tr><td style="padding:8px;border:1px solid #e5e7eb;"><strong>Full name</strong></td><td style="padding:8px;border:1px solid #e5e7eb;">' . htmlspecialchars($fullName) . '</td></tr>
             <tr><td style="padding:8px;border:1px solid #e5e7eb;"><strong>Email</strong></td><td style="padding:8px;border:1px solid #e5e7eb;">' . htmlspecialchars($email) . '</td></tr>
             <tr><td style="padding:8px;border:1px solid #e5e7eb;"><strong>Phone</strong></td><td style="padding:8px;border:1px solid #e5e7eb;">' . htmlspecialchars($phone) . '</td></tr>
@@ -257,8 +302,12 @@ $router->post(function () {
 
     try {
         $emailService = new EmailService();
-        $sent = $emailService->sendSimpleEmail($mailTo, $subject, $body, true);
-        if (!$sent) {
+        $results = $emailService->sendBulkEmail([
+            ['email' => 'info@vnvevents.com', 'name' => 'VNV Events'],
+            ['email' => 'contact@vnvevents.com', 'name' => 'VNV Events'],
+        ], $subject, $body, true);
+
+        if (!in_array(true, $results, true)) {
             MessageUtil::setMessage('Could not send your request email. Please try again.', 'Email', 'error');
             eventRequestRedirectBack();
         }

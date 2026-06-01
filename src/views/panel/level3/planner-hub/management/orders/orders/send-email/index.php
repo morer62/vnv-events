@@ -48,7 +48,7 @@ $router->post(function () {
             'orderId' => $orderId,
             'subject' => $subject,
             'body' => $body,
-            'companyName' => 'Planner Hub'
+            'companyName' => 'VNV Events'
         ];
         
         // Get template path

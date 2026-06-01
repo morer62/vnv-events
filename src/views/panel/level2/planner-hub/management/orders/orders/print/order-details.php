@@ -77,7 +77,7 @@ $pdf = new VnvPDF($institution ? (array)$institution : []);
 
 
 $pdf->SetTitle('Order Summary - VNV-' . $order->id);
-$pdf->SetAuthor('Ophyra');
+$pdf->SetAuthor('VNV Events');
 $pdf->SetCreator('VNV System');
 $pdf->AddPage();
 

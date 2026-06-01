@@ -14,6 +14,7 @@
 
                 <div class="card-body p-4">
                     <form method="POST" enctype="multipart/form-data">
+                        <input type="hidden" name="csrf_token" value="{{ get_csrf() }}">
                         <!-- Category -->
                         <div class="mb-4">
                             <label for="category_id" class="form-label fw-bold">
@@ -50,6 +51,39 @@
                             <div class="form-text">Share your thoughts, questions, or insights</div>
                         </div>
 
+                        <div class="row">
+                            <div class="col-md-7 mb-4">
+                                <label for="slug" class="form-label fw-bold">Public URL Slug</label>
+                                <input type="text" name="slug" id="slug" class="form-control" placeholder="best-wedding-venues-in-miami">
+                                <div class="form-text">Leave blank to generate it from the title.</div>
+                            </div>
+                            <div class="col-md-5 mb-4">
+                                <label for="status" class="form-label fw-bold">Status</label>
+                                <select name="status" id="status" class="form-select">
+                                    <option value="PUBLISHED">Published</option>
+                                    <option value="DRAFT">Draft</option>
+                                    <option value="PAUSED">Paused</option>
+                                    <option value="ARCHIVED">Archived</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="excerpt" class="form-label fw-bold">Excerpt</label>
+                            <textarea name="excerpt" id="excerpt" class="form-control" rows="3" placeholder="Short public summary for listings and SEO."></textarea>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-4">
+                                <label for="seo_title" class="form-label fw-bold">SEO Title</label>
+                                <input type="text" name="seo_title" id="seo_title" class="form-control" maxlength="255">
+                            </div>
+                            <div class="col-md-6 mb-4">
+                                <label for="seo_description" class="form-label fw-bold">SEO Description</label>
+                                <input type="text" name="seo_description" id="seo_description" class="form-control" maxlength="255">
+                            </div>
+                        </div>
+
                         <!-- Attachments -->
                         <div class="mb-4">
                             <label for="attachments" class="form-label fw-bold">
@@ -71,11 +105,17 @@
                                     📌 Pin this topic (it will appear at the top of the category)
                                 </label>
                             </div>
+                            <div class="form-check mt-2">
+                                <input type="checkbox" name="allow_replies" id="allow_replies" class="form-check-input" value="1" checked>
+                                <label for="allow_replies" class="form-check-label">
+                                    Allow Level 5 users to reply
+                                </label>
+                            </div>
                         </div>
 
                         <!-- Actions -->
                         <div class="d-flex justify-content-between">
-                            <a href="{{ path('forum') }}" class="btn btn-outline-secondary">
+                            <a href="{{ path('panel/forum') }}" class="btn btn-outline-secondary">
                                 <i data-feather="x"></i> Cancel
                             </a>
                             <button type="submit" class="btn btn-primary">

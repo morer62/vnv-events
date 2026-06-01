@@ -82,6 +82,23 @@ class StoreCategoriesRepository extends BaseRepository
         return $this->getAllBy(['status' => self::STATUS_ACTIVE]);
     }
 
+    public function getPublicSitemapEntries(int $limit = 1000): array
+    {
+        $this->db->query("
+            SELECT id, name, slug, description, meta_title, meta_description, updated_at, created_at
+            FROM {$this->table}
+            WHERE status = :status
+              AND slug IS NOT NULL
+              AND slug != ''
+            ORDER BY updated_at DESC, created_at DESC
+            LIMIT :limit
+        ");
+        $this->db->bind(':status', self::STATUS_ACTIVE);
+        $this->db->bind(':limit', $limit, \PDO::PARAM_INT);
+
+        return $this->db->fetchAll() ?: [];
+    }
+
     private function ensureContentColumns(): void
     {
         $columnsToEnsure = [

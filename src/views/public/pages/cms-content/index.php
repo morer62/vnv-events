@@ -3,6 +3,7 @@
 use App\Repositories\CmsContentsRepository;
 use App\Repositories\CmsRoutesRepository;
 use App\Repositories\Connection;
+use App\Services\PublicSeoService;
 use App\Utils\TemplateResponse;
 
 $db = new Connection();
@@ -54,6 +55,9 @@ echo TemplateResponse::render(__DIR__ . "/index.twig", [
     "page" => $content,
     "route" => $route,
     "content_json" => $contentJson,
+    "internal_links" => PublicSeoService::defaultInternalLinks(),
+    "seo" => PublicSeoService::contentSeo($content, $route, 'page'),
+    "schemaJson" => PublicSeoService::pageSchema($content, $route, $contentJson),
     "show_whatsapp" => true,
 ]);
 exit;

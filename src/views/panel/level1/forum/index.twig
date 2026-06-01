@@ -65,9 +65,10 @@
                     {% for topic in topics %}
                     <tr>
                         <td>
-                            <a href="{{ path('forum/topic') }}?id={{ topic.id }}" class="text-decoration-none fw-bold" target="_blank">
+                            <a href="{{ path('forums/' ~ topic.slug ~ '/') }}" class="text-decoration-none fw-bold" target="_blank">
                                 {{ topic.title }}
                             </a>
+                            <div class="small text-muted">/forums/{{ topic.slug }}/</div>
                         </td>
                         <td>
                             <span class="badge" style="background-color: {{ topic.category_color }};">
@@ -89,8 +90,13 @@
                             {% if topic.is_locked %}
                                 <span class="badge bg-secondary">Locked</span>
                             {% endif %}
-                            {% if not topic.is_pinned and not topic.is_locked %}
-                                <span class="badge bg-success">Active</span>
+                            {% if topic.status|default('PUBLISHED') == 'PUBLISHED' and topic.is_approved %}
+                                <span class="badge bg-success">Published</span>
+                            {% else %}
+                                <span class="badge bg-light text-dark border">{{ topic.status|default('DRAFT') }}</span>
+                            {% endif %}
+                            {% if topic.pending_replies|default(0) > 0 %}
+                                <span class="badge bg-danger">{{ topic.pending_replies }} pending</span>
                             {% endif %}
                         </td>
                         <td>{{ topic.created_at|date('M d, Y') }}</td>
@@ -108,6 +114,14 @@
                                         onclick="toggleLock({{ topic.id }})" title="Toggle Lock">
                                     <i data-feather="lock" style="width: 14px;"></i>
                                 </button>
+                                <button type="button" class="btn btn-outline-success"
+                                        onclick="togglePublish({{ topic.id }})" title="Publish/Unpublish">
+                                    <i data-feather="eye" style="width: 14px;"></i>
+                                </button>
+                                <a href="{{ path('panel/forum/replies') }}?id={{ topic.id }}"
+                                   class="btn btn-outline-info" title="Moderate replies">
+                                    <i data-feather="message-circle" style="width: 14px;"></i>
+                                </a>
                                 <button type="button" class="btn btn-outline-danger" 
                                         onclick="deleteTopic({{ topic.id }})" title="Delete">
                                     <i data-feather="trash-2" style="width: 14px;"></i>
@@ -131,6 +145,7 @@
 
 <!-- Hidden Forms -->
 <form id="actionForm" method="POST" style="display: none;">
+    <input type="hidden" name="csrf_token" value="{{ get_csrf() }}">
     <input type="hidden" name="action" id="actionType">
     <input type="hidden" name="topic_id" id="topicId">
 </form>
@@ -147,6 +162,14 @@ function togglePin(topicId) {
 function toggleLock(topicId) {
     if (confirm('Toggle lock status for this topic?')) {
         document.getElementById('actionType').value = 'toggle_lock';
+        document.getElementById('topicId').value = topicId;
+        document.getElementById('actionForm').submit();
+    }
+}
+
+function togglePublish(topicId) {
+    if (confirm('Publish or unpublish this topic?')) {
+        document.getElementById('actionType').value = 'toggle_publish';
         document.getElementById('topicId').value = topicId;
         document.getElementById('actionForm').submit();
     }

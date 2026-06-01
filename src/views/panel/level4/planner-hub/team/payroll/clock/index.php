@@ -189,11 +189,19 @@ $router->post(callback: function () use ($repo, $user): void {
             LocationUtils::reload();
         }
 
+        $latitude = trim((string)($_POST["location_lat"] ?? ""));
+        $longitude = trim((string)($_POST["location_long"] ?? ""));
+
+        if (!is_numeric($latitude) || !is_numeric($longitude)) {
+            MessageUtil::setMessage("Location permission is required to start the clock. Please allow location access and try again.");
+            LocationUtils::reload();
+        }
+
         $repo->startNow(
             $user->getId(),
             $currentInstitutionOwner,
-            $_POST["location_lat"]  ?? null,
-            $_POST["location_long"] ?? null
+            $latitude,
+            $longitude
         );
 
         $memberName = $user->getName() . ' ' . $user->getLastname();

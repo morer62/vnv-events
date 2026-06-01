@@ -1,6 +1,7 @@
 <?php
 
 use App\Repositories\LocationPagesRepository;
+use App\Services\PublicSeoService;
 use App\Utils\TemplateResponse;
 
 $repo = new LocationPagesRepository();
@@ -27,6 +28,10 @@ $page->gallery = !empty($page->gallery_json) ? json_decode($page->gallery_json, 
 $page->faqs = !empty($page->faq_json) ? json_decode($page->faq_json, true) : [];
 $page->dynamic_blocks = !empty($page->dynamic_blocks_json) ? json_decode($page->dynamic_blocks_json, true) : [];
 $page->schema = !empty($page->schema_json) ? json_decode($page->schema_json, true) : null;
+$nearbyPages = array_values(array_filter($repo->getAllPublished(), function ($item) use ($page) {
+    return ($item->slug ?? '') !== ($page->slug ?? '') && (int)($item->is_indexable ?? 1) === 1;
+}));
+$nearbyPages = array_slice($nearbyPages, 0, 6);
 
 if (empty($page->dynamic_blocks) && ($page->template_key ?? '') === 'location-home-luxe') {
     $page->dynamic_blocks = [
@@ -58,5 +63,9 @@ if (empty($page->dynamic_blocks) && ($page->template_key ?? '') === 'location-ho
 
 echo TemplateResponse::render(__DIR__ . '/index.twig', [
     'page' => $page,
+    'nearby_pages' => $nearbyPages,
+    'internal_links' => PublicSeoService::defaultInternalLinks(),
+    'seo' => PublicSeoService::locationSeo($page),
+    'schemaJson' => PublicSeoService::locationSchema($page, is_array($page->faqs) ? $page->faqs : []),
     'show_whatsapp' => true
 ]);

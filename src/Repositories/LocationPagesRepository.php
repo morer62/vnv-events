@@ -122,4 +122,17 @@ class LocationPagesRepository extends BaseRepository
 
         return $this->db->fetchAll() ?: [];
     }
+
+    public function getAllIndexablePublished(): array
+    {
+        $this->db->query("
+            SELECT *
+            FROM {$this->table}
+            WHERE status = 'PUBLISHED'
+              AND is_indexable = 1
+            ORDER BY updated_at DESC, published_at DESC, created_at DESC
+        ");
+
+        return $this->db->fetchAll() ?: [];
+    }
 }

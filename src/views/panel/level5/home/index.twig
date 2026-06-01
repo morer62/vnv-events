@@ -81,7 +81,7 @@
       font-size:clamp(2rem,4vw,3.05rem);
       line-height:1.04;
       font-weight:900;
-      letter-spacing:-1px;
+      letter-spacing:0;
       margin-bottom:.8rem;
       max-width:860px;
     }
@@ -156,7 +156,7 @@
       font-weight:900;
       font-size:clamp(1.6rem,3vw,2.3rem);
       line-height:1.12;
-      letter-spacing:-.5px;
+      letter-spacing:0;
       margin-bottom:.5rem;
       color:#15181a;
     }
@@ -379,10 +379,10 @@
   font-size:clamp(2rem,4vw,3.15rem);
   line-height:1.04;
   font-weight:900;
-  letter-spacing:-1px;
+  letter-spacing:0;
   margin-bottom:.8rem;
   max-width:860px;
-  color:#fff; /* 🔥 ESTE ES EL FIX */
+  color:#fff;
 }
   </style>
 
@@ -408,7 +408,7 @@
         <i class="fa-solid fa-file-invoice"></i> View Orders
       </a>
 
-      <a href="{{ path('search/multimedia-sessions/main') }}" class="btn-vnv-light">
+      <a href="{{ path('search/music-sessions/main') }}" class="btn-vnv-light">
         <i class="fa-solid fa-music"></i> Music Sessions
       </a>
     </div>
@@ -445,7 +445,7 @@
           <p>
             Open your VNV music sessions and enjoy curated content designed to complement the brand experience.
           </p>
-          <a href="{{ path('search/multimedia-sessions/main') }}" class="vnv-link-btn">
+          <a href="{{ path('search/music-sessions/main') }}" class="vnv-link-btn">
             Open Sessions <i class="fa-solid fa-arrow-right"></i>
           </a>
         </div>
@@ -497,6 +497,11 @@
         <span>Chat</span>
       </a>
 
+      <a href="{{ path('forums') }}" class="vnv-mini-card">
+        <i class="fa-solid fa-users"></i>
+        <span>Forums</span>
+      </a>
+
       <a href="{{ path('panel/settings') }}" class="vnv-mini-card">
         <i class="fa-solid fa-sliders"></i>
         <span>Settings</span>
@@ -538,4 +543,12 @@
   </section>
 
 </main>
+{% endblock %}
+
+{% block aside %}
+  {{ parent() }}
+  {% include "templates/components/publicEventRequestModal.html.twig" with {
+    request_form_action: "/api/public/event-request",
+    request_form_source: "level5_dashboard"
+  } %}
 {% endblock %}

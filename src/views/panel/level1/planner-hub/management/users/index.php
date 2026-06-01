@@ -279,16 +279,16 @@ $router->post(function () {
                 "password_updated" => 1
             ], ["id" => $userId]);
             
-            $subject = "Your Temporary Password - VNV Venue";
+            $subject = "Your Temporary Password - VNV Events";
             $message = "
-                <h2>Welcome to VNV Venue!</h2>
+                <h2>Welcome to VNV Events!</h2>
                 <p>Hello {$targetUser->name},</p>
                 <p>A new temporary password has been generated for your account:</p>
                 <p><strong>Email:</strong> {$targetUser->email}</p>
                 <p><strong>Temporary Password:</strong> {$temporaryPassword}</p>
                 <p>Please log in using these credentials and set your permanent password.</p>
                 <p><a href='" . \App\Utils\LocationUtils::getBasePath() . "/login' style='background-color: #007bff; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;'>Login Now</a></p>
-                <p>Best regards,<br>VNV Venue Team</p>
+                <p>Best regards,<br>VNV Events Team</p>
             ";
             
             $emailService = new EmailService();

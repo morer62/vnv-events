@@ -10,6 +10,7 @@ use App\Utils\LocationUtils;
 use App\Utils\MessageUtil;
 use App\Utils\UserContext;
 use App\Utils\FileUtils;
+use App\Utils\CSRF;
 
 $router = new Router();
 
@@ -50,11 +51,18 @@ $router->get(function () {
 
 $router->post(function () {
     $user = LoginService::getSession();
+    CSRF::validateCSRF();
 
     $topicId = $_POST['topic_id'] ?? null;
     $categoryId = $_POST['category_id'] ?? null;
     $title = trim($_POST['title'] ?? '');
     $content = trim($_POST['content'] ?? '');
+    $excerpt = trim($_POST['excerpt'] ?? '');
+    $slugInput = trim($_POST['slug'] ?? '');
+    $status = $_POST['status'] ?? 'PUBLISHED';
+    $allowReplies = isset($_POST['allow_replies']) ? 1 : 0;
+    $seoTitle = trim($_POST['seo_title'] ?? '');
+    $seoDescription = trim($_POST['seo_description'] ?? '');
     $isPinned = isset($_POST['is_pinned']) ? 1 : 0;
     $isLocked = isset($_POST['is_locked']) ? 1 : 0;
 
@@ -65,12 +73,23 @@ $router->post(function () {
     }
 
     $topicRepo = new ForumTopicRepository();
+    $currentTopic = $topicRepo->getOne(['id' => $topicId]);
+    $slug = $slugInput !== '' ? $topicRepo->generateUniqueSlug($slugInput, (int)$topicId) : ($currentTopic->slug ?? $topicRepo->generateUniqueSlug($title, (int)$topicId));
+    $isPublished = $status === 'PUBLISHED';
     $topicRepo->update([
         'id_category' => $categoryId,
         'title' => $title,
+        'slug' => $slug,
+        'excerpt' => $excerpt,
         'content' => $content,
+        'status' => $status,
+        'allow_replies' => $allowReplies,
+        'seo_title' => $seoTitle,
+        'seo_description' => $seoDescription,
         'is_pinned' => $isPinned,
-        'is_locked' => $isLocked
+        'is_locked' => $isLocked || !$allowReplies ? 1 : 0,
+        'is_approved' => $isPublished ? 1 : 0,
+        'published_at' => $isPublished ? ($currentTopic->published_at ?? date('Y-m-d H:i:s')) : null,
     ], ['id' => $topicId]);
 
     // Handle new file uploads to Cloudinary
@@ -138,7 +157,7 @@ $router->post(function () {
     }
 
     MessageUtil::setMessage("✅ Topic updated successfully!");
-    LocationUtils::redirectInternal("forum/topic?id=" . $topicId);
+    LocationUtils::redirectInternal("forums/" . $slug);
 });
 
 $router->run();

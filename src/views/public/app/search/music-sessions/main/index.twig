@@ -49,6 +49,55 @@
     color: white;
 }
 
+.category-navigation {
+    max-width: 1100px;
+    margin: 0 auto 2rem;
+}
+
+.category-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+    gap: 1rem;
+}
+
+.category-card {
+    display: block;
+    padding: 1rem;
+    border-radius: 16px;
+    text-decoration: none;
+    color: #111827;
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 10px 28px rgba(15, 23, 42, .06);
+    transition: .2s ease;
+}
+
+.category-card:hover,
+.category-card.active {
+    transform: translateY(-2px);
+    border-color: #26a69a;
+    color: #111827;
+    box-shadow: 0 16px 34px rgba(38, 166, 154, .16);
+}
+
+.category-card strong {
+    display: block;
+    font-size: 1rem;
+}
+
+.category-card span {
+    color: #64748b;
+    font-size: .86rem;
+}
+
+.vnv-empty-state {
+    padding: 1.2rem;
+    border: 1px dashed #cbd5e1;
+    border-radius: 14px;
+    background: #f8fafc;
+    color: #64748b;
+}
+
 .search-box {
     max-width: 600px;
     margin: 0 auto 2rem;
@@ -364,6 +413,9 @@
     <div class="search-box">
         <form method="get" action="{{ path('search/music-sessions/main') }}" class="search-input-group" id="searchForm">
             <input type="hidden" name="platform" value="{{ selected_platform }}" id="platformInput">
+            {% if selected_category %}
+                <input type="hidden" name="category" value="{{ selected_category }}">
+            {% endif %}
             <input type="text" 
                    name="search" 
                    placeholder="Search by title, description, or keywords..." 
@@ -388,7 +440,25 @@
     </div>
     
     <div id="resultsContainer">
-    {% if sessions|length > 0 %}
+    <div class="category-navigation">
+        <h2 class="h5 text-center fw-bold mb-3">Choose a category</h2>
+        <div class="category-grid">
+            {% for category in categories %}
+                <a class="category-card {{ selected_category == category.id ? 'active' : '' }}" href="{{ path('search/music-sessions/main') }}?platform={{ selected_platform }}&category={{ category.id }}{% if search_query %}&search={{ search_query|url_encode }}{% endif %}">
+                    <strong>{{ category.name }}</strong>
+                    <span>{{ category.sessions_count }} session{{ category.sessions_count == 1 ? '' : 's' }}</span>
+                </a>
+            {% else %}
+                <div class="vnv-empty-state">No music categories are available for this platform yet.</div>
+            {% endfor %}
+        </div>
+    </div>
+
+    {% if not selected_category %}
+        <div class="text-center text-muted my-5">
+            Select a category above to load a focused set of music sessions.
+        </div>
+    {% elseif sessions|length > 0 %}
         <div class="sessions-grid">
             {% for session in sessions %}
                 <div class="session-card">
@@ -451,7 +521,7 @@
                 {% if search_query %}
                     No music sessions found matching "{{ search_query }}" on {{ selected_platform|upper }}.
                 {% else %}
-                    No music sessions available for {{ selected_platform|upper }} at the moment.
+                    No music sessions available in this category for {{ selected_platform|upper }} at the moment.
                 {% endif %}
             </p>
             <p class="mt-3">

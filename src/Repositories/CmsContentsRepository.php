@@ -127,6 +127,36 @@ class CmsContentsRepository extends BaseRepository
         return $this->db->fetchAll() ?: [];
     }
 
+    public function getPublishedSitemapEntries(string $language = 'en'): array
+    {
+        $query = "
+            SELECT
+                c.id,
+                c.type,
+                c.title,
+                c.slug,
+                c.canonical_url,
+                c.robots,
+                c.published_at,
+                c.updated_at,
+                c.created_at,
+                r.route
+            FROM `{$this->table}` c
+            INNER JOIN `cms_routes` r ON r.id_content = c.id AND r.is_main = 1
+            WHERE c.status = 'PUBLISHED'
+              AND c.language = :language
+              AND c.type IN ('page', 'post')
+              AND (c.robots IS NULL OR LOWER(c.robots) NOT LIKE '%noindex%')
+              AND (r.status IS NULL OR r.status = 'ACTIVE')
+            ORDER BY c.updated_at DESC, c.published_at DESC, c.id DESC
+        ";
+
+        $this->db->query($query);
+        $this->db->bind(':language', $language);
+
+        return $this->db->fetchAll() ?: [];
+    }
+
     public function slugExists(string $slug, ?int $ownerId = null, string $language = 'en', int $excludeId = 0): bool
     {
         $query = "

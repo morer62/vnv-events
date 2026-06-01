@@ -10,6 +10,7 @@ use App\Utils\LocationUtils;
 use App\Utils\MessageUtil;
 use App\Utils\UserContext;
 use App\Utils\FileUtils;
+use App\Utils\CSRF;
 
 $router = new Router();
 
@@ -31,10 +32,17 @@ $router->get(function () {
 
 $router->post(function () {
     $user = LoginService::getSession();
+    CSRF::validateCSRF();
 
     $categoryId = $_POST['category_id'] ?? null;
     $title = trim($_POST['title'] ?? '');
     $content = trim($_POST['content'] ?? '');
+    $excerpt = trim($_POST['excerpt'] ?? '');
+    $slugInput = trim($_POST['slug'] ?? '');
+    $status = $_POST['status'] ?? 'PUBLISHED';
+    $allowReplies = isset($_POST['allow_replies']) ? 1 : 0;
+    $seoTitle = trim($_POST['seo_title'] ?? '');
+    $seoDescription = trim($_POST['seo_description'] ?? '');
     $isPinned = isset($_POST['is_pinned']) ? 1 : 0;
 
     if (!$categoryId || empty($title) || empty($content)) {
@@ -44,17 +52,27 @@ $router->post(function () {
     }
 
     $topicRepo = new ForumTopicRepository();
+    $slug = $slugInput !== '' ? $topicRepo->generateUniqueSlug($slugInput) : $topicRepo->generateUniqueSlug($title);
+    $isPublished = $status === 'PUBLISHED';
     $success = $topicRepo->add([
+        'id_owner' => $user->getOwner(),
         'id_category' => $categoryId,
         'id_user' => $user->getId(),
         'title' => $title,
+        'slug' => $slug,
+        'excerpt' => $excerpt,
         'content' => $content,
+        'status' => $status,
+        'allow_replies' => $allowReplies,
+        'seo_title' => $seoTitle,
+        'seo_description' => $seoDescription,
         'is_pinned' => $isPinned,
-        'is_locked' => 0,
-        'is_approved' => 1,
+        'is_locked' => $allowReplies ? 0 : 1,
+        'is_approved' => $isPublished ? 1 : 0,
         'views_count' => 0,
         'replies_count' => 0,
-        'likes_count' => 0
+        'likes_count' => 0,
+        'published_at' => $isPublished ? date('Y-m-d H:i:s') : null,
     ]);
 
     if (!$success) {
@@ -138,7 +156,7 @@ $router->post(function () {
     error_log("=== FORUM UPLOAD END ===");
 
     MessageUtil::setMessage("✅ Topic created successfully!");
-    LocationUtils::redirectInternal("forum/topic?id=" . $topicId);
+    LocationUtils::redirectInternal("forums/" . $slug);
 });
 
 $router->run();

@@ -104,6 +104,10 @@
         display:flex;justify-content:space-between;gap:10px;align-items:center;padding:12px 14px;border-radius:12px;
         background:#fff;border:1px solid #dbe5ea;color:#0f172a;text-decoration:none;font-weight:700;
     }
+    .lp-breadcrumbs,.lp-internal-links{display:flex;flex-wrap:wrap;gap:8px;align-items:center;}
+    .lp-breadcrumbs a,.lp-internal-links a{color:inherit;text-decoration:none;}
+    .lp-breadcrumbs{margin-bottom:14px;color:rgba(255,255,255,.78);font-size:.86rem;}
+    .lp-internal-links{margin-top:18px;}
     .lp-info-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;}
     .lp-info{
         background:#fff;border:1px solid #dbe5ea;border-radius:14px;padding:12px;
@@ -620,6 +624,13 @@
 <main class="lp-wrap">
     <section class="lp-hero">
         <div class="lp-hero-inner">
+            <nav class="lp-breadcrumbs" aria-label="Breadcrumb">
+                <a href="/">Home</a>
+                <span>/</span>
+                <a href="/locations/">Locations</a>
+                <span>/</span>
+                <span>{{ page.city ?: page.title }}</span>
+            </nav>
             <span class="lp-badge">VNV Events · {{ page.category ?: 'Location' }}</span>
             {% set heroDisplay = page.hero_title ?: page.title %}
             {% if page.city %}
@@ -637,6 +648,13 @@
                 {% if page.county %}<span class="lp-chip">{{ page.county }}</span>{% endif %}
                 {% if page.state %}<span class="lp-chip">{{ page.state }}</span>{% endif %}
             </div>
+            {% if internal_links is defined and internal_links is not empty %}
+                <nav class="lp-internal-links" aria-label="Related VNV Events links">
+                    {% for link in internal_links|slice(0,5) %}
+                        <a class="lp-chip" href="{{ link.url }}">{{ link.label }}</a>
+                    {% endfor %}
+                </nav>
+            {% endif %}
         </div>
     </section>
 
@@ -834,6 +852,19 @@
                                     <div class="accordion-body">{{ faq.answer ?? '' }}</div>
                                 </div>
                             </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endif %}
+
+            {% if nearby_pages is defined and nearby_pages is not empty %}
+                <div class="lp-card mt-4">
+                    <h3 class="lp-block-title mb-3">Nearby Service Areas</h3>
+                    <div class="lp-link-list">
+                        {% for nearby in nearby_pages %}
+                            <a class="lp-link-item" href="/{{ nearby.slug }}/">
+                                <span>{{ nearby.city ?: nearby.title }}</span><span>→</span>
+                            </a>
                         {% endfor %}
                     </div>
                 </div>

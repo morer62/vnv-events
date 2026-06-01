@@ -222,6 +222,8 @@ class Kernel
             'locations',
             'venues',
             'vendors',
+            'forums',
+            'forum',
             'pages',
             'content',
             'auth',
@@ -335,6 +337,23 @@ class Kernel
             // Rutas de afiliado
             if (count($urlViews) >= 2 && $urlViews[0] === 'r') {
                 $this->handleAffiliateRoute($urlViews[1]);
+            }
+
+            if ($urlViews[0] === 'forums') {
+                if (count($urlViews) === 1) {
+                    $forumListView = LocationUtils::getRootLocation()
+                        . "/src/views/public/content/forum/index.php";
+
+                    $this->includeResolvedFileAndExit($forumListView);
+                }
+
+                if (count($urlViews) === 2 && !empty($urlViews[1])) {
+                    $GLOBALS['forum_topic_slug'] = $urlViews[1];
+                    $forumTopicView = LocationUtils::getRootLocation()
+                        . "/src/views/public/content/forum/topic/index.php";
+
+                    $this->includeResolvedFileAndExit($forumTopicView);
+                }
             }
 
             // Location pages dinámicas por slug raíz

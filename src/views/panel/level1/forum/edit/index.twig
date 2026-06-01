@@ -14,6 +14,7 @@
 
                 <div class="card-body p-4">
                     <form method="POST" enctype="multipart/form-data">
+                        <input type="hidden" name="csrf_token" value="{{ get_csrf() }}">
                         <input type="hidden" name="topic_id" value="{{ topic.id }}">
 
                         <!-- Category -->
@@ -39,6 +40,26 @@
                                    value="{{ topic.title }}" maxlength="500" required>
                         </div>
 
+                        <div class="row">
+                            <div class="col-md-7 mb-4">
+                                <label for="slug" class="form-label fw-bold">Public URL Slug</label>
+                                <input type="text" name="slug" id="slug" class="form-control" value="{{ topic.slug|default('') }}">
+                            </div>
+                            <div class="col-md-5 mb-4">
+                                <label for="status" class="form-label fw-bold">Status</label>
+                                <select name="status" id="status" class="form-select">
+                                    {% for status in ['PUBLISHED','DRAFT','PAUSED','ARCHIVED'] %}
+                                        <option value="{{ status }}" {% if topic.status|default('PUBLISHED') == status %}selected{% endif %}>{{ status|title }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="excerpt" class="form-label fw-bold">Excerpt</label>
+                            <textarea name="excerpt" id="excerpt" class="form-control" rows="3">{{ topic.excerpt|default('') }}</textarea>
+                        </div>
+
                         <!-- Content -->
                         <div class="mb-4">
                             <label for="content" class="form-label fw-bold">
@@ -46,6 +67,17 @@
                             </label>
                             <textarea name="content" id="content" class="form-control" 
                                       rows="12" required>{{ topic.content }}</textarea>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-4">
+                                <label for="seo_title" class="form-label fw-bold">SEO Title</label>
+                                <input type="text" name="seo_title" id="seo_title" class="form-control" value="{{ topic.seo_title|default('') }}" maxlength="255">
+                            </div>
+                            <div class="col-md-6 mb-4">
+                                <label for="seo_description" class="form-label fw-bold">SEO Description</label>
+                                <input type="text" name="seo_description" id="seo_description" class="form-control" value="{{ topic.seo_description|default('') }}" maxlength="255">
+                            </div>
                         </div>
 
                         <!-- Existing Attachments -->
@@ -105,6 +137,12 @@
                                 <input type="checkbox" name="is_locked" id="is_locked" class="form-check-input" value="1" {% if topic.is_locked %}checked{% endif %}>
                                 <label for="is_locked" class="form-check-label">
                                     🔒 Lock this topic (prevent new replies)
+                                </label>
+                            </div>
+                            <div class="form-check mt-2">
+                                <input type="checkbox" name="allow_replies" id="allow_replies" class="form-check-input" value="1" {% if topic.allow_replies|default(1) %}checked{% endif %}>
+                                <label for="allow_replies" class="form-check-label">
+                                    Allow Level 5 users to reply
                                 </label>
                             </div>
                         </div>

@@ -4,6 +4,7 @@ use App\Services\LoginService;
 use App\Repositories\ForumCategoryRepository;
 use App\Repositories\ForumTopicRepository;
 use App\Repositories\ForumAttachmentRepository;
+use App\Services\PublicSeoService;
 use App\Utils\Router;
 use App\Utils\TemplateResponse;
 
@@ -69,7 +70,28 @@ $router->get(function () {
         "currentPage" => $page,
         "totalPages" => $totalPages,
         "currentFilter" => $filter,
-        "pageTitle" => "Community Forum"
+        "pageTitle" => "Community Forum",
+        "seo" => PublicSeoService::forumListSeo(),
+        "schemaJson" => [
+            '@context' => 'https://schema.org',
+            '@graph' => [
+                [
+                    '@type' => 'WebPage',
+                    '@id' => 'https://vnvevents.com/forums/#webpage',
+                    'url' => 'https://vnvevents.com/forums/',
+                    'name' => 'VNV Events Community Forums',
+                    'description' => 'Public VNV Events community discussions for event planning questions and ideas.',
+                ],
+                [
+                    '@type' => 'BreadcrumbList',
+                    '@id' => 'https://vnvevents.com/forums/#breadcrumb',
+                    'itemListElement' => [
+                        ['@type' => 'ListItem', 'position' => 1, 'name' => 'Home', 'item' => 'https://vnvevents.com/'],
+                        ['@type' => 'ListItem', 'position' => 2, 'name' => 'Forums', 'item' => 'https://vnvevents.com/forums/'],
+                    ],
+                ],
+            ],
+        ],
     ]);
 });
 

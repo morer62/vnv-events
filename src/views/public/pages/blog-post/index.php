@@ -4,6 +4,7 @@ use App\Repositories\BlogCategoriesRepository;
 use App\Repositories\CmsContentsRepository;
 use App\Repositories\CmsRoutesRepository;
 use App\Repositories\Connection;
+use App\Services\PublicSeoService;
 use App\Utils\TemplateResponse;
 
 $db = new Connection();
@@ -71,6 +72,9 @@ echo TemplateResponse::render(__DIR__ . "/index.twig", [
     "route" => $route,
     "category" => $category,
     "content_json" => $contentJson,
+    "internal_links" => PublicSeoService::defaultInternalLinks(),
+    "seo" => PublicSeoService::contentSeo($post, $route, 'post'),
+    "schemaJson" => PublicSeoService::blogSchema($post, $route, $category),
     "show_whatsapp" => true,
 ]);
 exit;

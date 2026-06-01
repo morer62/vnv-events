@@ -7,7 +7,11 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 
-    <title>{% block title %}VNV Events | Full-Service Luxury Event Planning & Catering Studio in South Florida{% endblock %}</title>
+    {% set page_seo = seo|default({}) %}
+    {% set default_title = 'VNV Events | Full-Service Luxury Event Planning & Catering Studio in South Florida' %}
+    {% set title_value = page_seo.title|default(block('title') is defined ? block('title')|striptags|trim : default_title) %}
+
+    <title>{{ title_value ?: default_title }}</title>
 
 
 <!-- Google Tag Manager -->
@@ -36,11 +40,13 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 
     {% set default_og_image = site_logo %}
 
-    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
-    <meta name="googlebot" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
-    <meta name="bingbot" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+    {% set robots_value = page_seo.robots|default('index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1') %}
+    <meta name="robots" content="{{ robots_value }}">
+    <meta name="googlebot" content="{{ robots_value }}">
+    <meta name="bingbot" content="{{ robots_value }}">
 
-    <meta name="description" content="{% block meta_description %}{{ default_description }}{% endblock %}">
+    {% set description_value = page_seo.description|default(block('meta_description') is defined ? block('meta_description')|striptags|trim : default_description) %}
+    <meta name="description" content="{{ description_value ?: default_description }}">
     <meta name="keywords" content="{% block meta_keywords %}{{ default_keywords }}{% endblock %}">
     <meta name="author" content="VNV Events">
     <meta name="publisher" content="VNV Events">
@@ -56,7 +62,8 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
     {# -------------------------------------------------------
        CANONICAL / FAVICON / APP ICONS
        ------------------------------------------------------- #}
-    <link rel="canonical" href="{% block canonical %}{{ site_url }}{% endblock %}">
+    {% set canonical_value = page_seo.canonical|default(block('canonical') is defined ? block('canonical')|striptags|trim : site_url) %}
+    <link rel="canonical" href="{{ canonical_value ?: site_url }}">
     <link rel="icon" type="image/png" href="{{ site_favicon }}">
     <link rel="shortcut icon" href="{{ site_favicon }}">
     <link rel="apple-touch-icon" href="{{ site_favicon }}">
@@ -80,18 +87,23 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
        OPEN GRAPH / SOCIAL
        ------------------------------------------------------- #}
     <meta property="og:site_name" content="VNV Events">
-    <meta property="og:type" content="{% block og_type %}website{% endblock %}">
-    <meta property="og:title" content="{% block og_title %}VNV Events | Full-Service Luxury Event Planning & Catering Studio in South Florida{% endblock %}">
-    <meta property="og:description" content="{% block og_description %}{{ default_description }}{% endblock %}">
-    <meta property="og:url" content="{% block og_url %}{{ site_url }}{% endblock %}">
-    <meta property="og:image" content="{% block og_image %}{{ default_og_image }}{% endblock %}">
-    <meta property="og:image:alt" content="{% block og_image_alt %}VNV Events logo {% endblock %}">
+    {% set og_type_value = page_seo.og_type|default(block('og_type') is defined ? block('og_type')|striptags|trim : 'website') %}
+    {% set og_title_value = page_seo.title|default(block('og_title') is defined ? block('og_title')|striptags|trim : title_value) %}
+    {% set og_description_value = page_seo.description|default(block('og_description') is defined ? block('og_description')|striptags|trim : description_value) %}
+    {% set og_url_value = page_seo.canonical|default(block('og_url') is defined ? block('og_url')|striptags|trim : canonical_value) %}
+    {% set og_image_value = page_seo.og_image|default(block('og_image') is defined ? block('og_image')|striptags|trim : default_og_image) %}
+    <meta property="og:type" content="{{ og_type_value ?: 'website' }}">
+    <meta property="og:title" content="{{ og_title_value ?: default_title }}">
+    <meta property="og:description" content="{{ og_description_value ?: default_description }}">
+    <meta property="og:url" content="{{ og_url_value ?: site_url }}">
+    <meta property="og:image" content="{{ og_image_value ?: default_og_image }}">
+    <meta property="og:image:alt" content="{{ page_seo.og_image_alt|default(block('og_image_alt') is defined ? block('og_image_alt')|striptags|trim : 'VNV Events logo') }}">
     <meta property="og:locale" content="en_US">
 
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="{% block twitter_title %}VNV Events | Full-Service Luxury Event Planning & Catering Studio in South Florida{% endblock %}">
-    <meta name="twitter:description" content="{% block twitter_description %}{{ default_description }}{% endblock %}">
-    <meta name="twitter:image" content="{% block twitter_image %}{{ default_og_image }}{% endblock %}">
+    <meta name="twitter:title" content="{{ page_seo.title|default(block('twitter_title') is defined ? block('twitter_title')|striptags|trim : title_value) }}">
+    <meta name="twitter:description" content="{{ page_seo.description|default(block('twitter_description') is defined ? block('twitter_description')|striptags|trim : description_value) }}">
+    <meta name="twitter:image" content="{{ page_seo.og_image|default(block('twitter_image') is defined ? block('twitter_image')|striptags|trim : og_image_value) }}">
 
     {# -------------------------------------------------------
        LOCAL / GEO SIGNALS
@@ -580,7 +592,11 @@ body::before{
        Google supports Organization / LocalBusiness and uses
        structured data to understand entities and site names.
        ------------------------------------------------------- #}
-    <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Organization","@id":"https://vnvevents.com/#organization","name":"VNV Events","alternateName":["VNV Events Broward","VNV Events South Florida","VNV Events Broward County Florida"],"url":"https://vnvevents.com","logo":{"@type":"ImageObject","url":"{{ site_logo }}"},"image":"{{ site_logo }}","email":"info@vnvevents.com","telephone":"+1 305-204-5427","description":"VNV Events is a Broward County event company providing full-service weddings, corporate events, private parties, catering, DJs, photo booth rentals, and event production across Broward County and South Florida.","areaServed":[{"@type":"AdministrativeArea","name":"Broward County, Florida"},{"@type":"AdministrativeArea","name":"Miami-Dade County, Florida"},{"@type":"AdministrativeArea","name":"Palm Beach County, Florida"},{"@type":"City","name":"Fort Lauderdale, Florida"},{"@type":"City","name":"Hollywood, Florida"},{"@type":"City","name":"Pembroke Pines, Florida"},{"@type":"City","name":"Miramar, Florida"},{"@type":"City","name":"Sunrise, Florida"},{"@type":"City","name":"Plantation, Florida"},{"@type":"City","name":"Davie, Florida"},{"@type":"City","name":"Coral Springs, Florida"},{"@type":"City","name":"Weston, Florida"},{"@type":"City","name":"Pompano Beach, Florida"},{"@type":"City","name":"Deerfield Beach, Florida"},{"@type":"City","name":"Coconut Creek, Florida"},{"@type":"City","name":"Tamarac, Florida"},{"@type":"City","name":"Lauderhill, Florida"},{"@type":"City","name":"Oakland Park, Florida"},{"@type":"City","name":"Wilton Manors, Florida"},{"@type":"City","name":"Hallandale Beach, Florida"},{"@type":"City","name":"Miami, Florida"},{"@type":"City","name":"Miami Beach, Florida"},{"@type":"City","name":"Boca Raton, Florida"},{"@type":"City","name":"Delray Beach, Florida"},{"@type":"City","name":"West Palm Beach, Florida"}],"contactPoint":[{"@type":"ContactPoint","telephone":"+1 305-204-5427","contactType":"sales","areaServed":["Broward County, Florida","Miami-Dade County, Florida","Palm Beach County, Florida"],"availableLanguage":["English","Spanish"]},{"@type":"ContactPoint","telephone":"+1 305-204-5427","contactType":"customer service","areaServed":["Broward County, Florida","Miami-Dade County, Florida","Palm Beach County, Florida"],"availableLanguage":["English","Spanish"]}],"knowsAbout":["Event planning Broward County","Wedding planning Broward County","Corporate events Broward County","Private parties Broward County","Catering Broward County","Wedding catering Broward County","DJ services Broward County","Photo booth rentals Broward County","Event production Broward County","South Florida event services"]},{"@type":"WebSite","@id":"https://vnvevents.com/#website","url":"https://vnvevents.com","name":"VNV Events","alternateName":"VNV Events Broward County","publisher":{"@id":"https://vnvevents.com/#organization"},"inLanguage":"en-US"},{"@type":["LocalBusiness","ProfessionalService"],"@id":"https://vnvevents.com/#localbusiness","name":"VNV Events","url":"https://vnvevents.com","image":"{{ site_logo }}","logo":"{{ site_logo }}","telephone":"+1 305-204-5427","email":"info@vnvevents.com","priceRange":"$$$","currenciesAccepted":"USD","paymentAccepted":"Cash,Credit Card,Debit Card,Zelle,Bank Transfer","description":"Broward County full-service event company for weddings, corporate events, private celebrations, catering, DJ entertainment, photo booth rentals, and event production, also serving South Florida.","serviceArea":[{"@type":"City","name":"Coconut Creek, Florida"},{"@type":"City","name":"Cooper City, Florida"},{"@type":"City","name":"Coral Springs, Florida"},{"@type":"City","name":"Dania Beach, Florida"},{"@type":"City","name":"Davie, Florida"},{"@type":"City","name":"Deerfield Beach, Florida"},{"@type":"City","name":"Fort Lauderdale, Florida"},{"@type":"City","name":"Hallandale Beach, Florida"},{"@type":"City","name":"Hillsboro Beach, Florida"},{"@type":"City","name":"Hollywood, Florida"},{"@type":"City","name":"Lauderdale-by-the-Sea, Florida"},{"@type":"City","name":"Lauderdale Lakes, Florida"},{"@type":"City","name":"Lauderhill, Florida"},{"@type":"City","name":"Lazy Lake, Florida"},{"@type":"City","name":"Lighthouse Point, Florida"},{"@type":"City","name":"Margate, Florida"},{"@type":"City","name":"Miramar, Florida"},{"@type":"City","name":"North Lauderdale, Florida"},{"@type":"City","name":"Oakland Park, Florida"},{"@type":"City","name":"Parkland, Florida"},{"@type":"City","name":"Pembroke Park, Florida"},{"@type":"City","name":"Pembroke Pines, Florida"},{"@type":"City","name":"Plantation, Florida"},{"@type":"City","name":"Pompano Beach, Florida"},{"@type":"City","name":"Sea Ranch Lakes, Florida"},{"@type":"City","name":"Southwest Ranches, Florida"},{"@type":"City","name":"Sunrise, Florida"},{"@type":"City","name":"Tamarac, Florida"},{"@type":"City","name":"West Park, Florida"},{"@type":"City","name":"Weston, Florida"},{"@type":"City","name":"Wilton Manors, Florida"},{"@type":"AdministrativeArea","name":"Broward County, Florida"},{"@type":"AdministrativeArea","name":"Miami-Dade County, Florida"},{"@type":"AdministrativeArea","name":"Palm Beach County, Florida"}],"hasOfferCatalog":{"@type":"OfferCatalog","name":"VNV Events Services","itemListElement":[{"@type":"OfferCatalog","name":"Event Planning and Coordination","itemListElement":[{"@type":"Service","name":"Wedding Planning"},{"@type":"Service","name":"Day-Of Coordination"},{"@type":"Service","name":"Corporate Event Planning"},{"@type":"Service","name":"Private Event Planning"}]},{"@type":"OfferCatalog","name":"Food and Catering","itemListElement":[{"@type":"Service","name":"Wedding Catering"},{"@type":"Service","name":"Corporate Catering"},{"@type":"Service","name":"Private Event Catering"},{"@type":"Service","name":"Food Stations and Event Dining"}]},{"@type":"OfferCatalog","name":"Entertainment and Guest Experience","itemListElement":[{"@type":"Service","name":"DJ Services"},{"@type":"Service","name":"Photo Booth Rentals"},{"@type":"Service","name":"Live Entertainment Coordination"}]},{"@type":"OfferCatalog","name":"Production","itemListElement":[{"@type":"Service","name":"Event Production"},{"@type":"Service","name":"Event Setup and Logistics"},{"@type":"Service","name":"Vendor Coordination"}]}]}},{"@type":"Service","@id":"https://vnvevents.com/#service-broward-events","name":"Event Planning in Broward County, Florida","serviceType":"Event Planning","provider":{"@id":"https://vnvevents.com/#organization"},"description":"Full-service event planning in Broward County for weddings, private events, and company functions.","areaServed":[{"@type":"AdministrativeArea","name":"Broward County, Florida"},{"@type":"City","name":"Fort Lauderdale, Florida"},{"@type":"City","name":"Hollywood, Florida"},{"@type":"City","name":"Pembroke Pines, Florida"},{"@type":"City","name":"Miramar, Florida"},{"@type":"City","name":"Sunrise, Florida"},{"@type":"City","name":"Plantation, Florida"},{"@type":"City","name":"Davie, Florida"},{"@type":"City","name":"Coral Springs, Florida"},{"@type":"City","name":"Weston, Florida"},{"@type":"City","name":"Pompano Beach, Florida"},{"@type":"City","name":"Deerfield Beach, Florida"}],"availableChannel":{"@type":"ServiceChannel","serviceUrl":"https://vnvevents.com","servicePhone":"+1 305-204-5427"}},{"@type":"Service","@id":"https://vnvevents.com/#service-broward-weddings","name":"Wedding Services in Broward County, Florida","serviceType":"Wedding Planning and Wedding Services","provider":{"@id":"https://vnvevents.com/#organization"},"description":"Wedding planning, catering, DJ services, photo booth rentals, and event coordination in Broward County, Florida.","areaServed":[{"@type":"AdministrativeArea","name":"Broward County, Florida"},{"@type":"City","name":"Fort Lauderdale, Florida"},{"@type":"City","name":"Hollywood, Florida"},{"@type":"City","name":"Pembroke Pines, Florida"},{"@type":"City","name":"Miramar, Florida"},{"@type":"City","name":"Sunrise, Florida"},{"@type":"City","name":"Plantation, Florida"},{"@type":"City","name":"Davie, Florida"},{"@type":"City","name":"Coral Springs, Florida"},{"@type":"City","name":"Weston, Florida"}],"availableChannel":{"@type":"ServiceChannel","serviceUrl":"https://vnvevents.com","servicePhone":"+1 305-204-5427"}},{"@type":"Service","@id":"https://vnvevents.com/#service-broward-corporate","name":"Corporate Event Services in Broward County, Florida","serviceType":"Corporate Event Planning and Catering","provider":{"@id":"https://vnvevents.com/#organization"},"description":"Corporate event planning, food service, guest experience, and event support for businesses across Broward County, Florida.","areaServed":[{"@type":"AdministrativeArea","name":"Broward County, Florida"},{"@type":"City","name":"Fort Lauderdale, Florida"},{"@type":"City","name":"Sunrise, Florida"},{"@type":"City","name":"Plantation, Florida"},{"@type":"City","name":"Davie, Florida"},{"@type":"City","name":"Pembroke Pines, Florida"},{"@type":"City","name":"Miramar, Florida"},{"@type":"City","name":"Coral Springs, Florida"},{"@type":"City","name":"Weston, Florida"},{"@type":"City","name":"Pompano Beach, Florida"}],"availableChannel":{"@type":"ServiceChannel","serviceUrl":"https://vnvevents.com","servicePhone":"+1 305-204-5427"}},{"@type":"Service","@id":"https://vnvevents.com/#service-south-florida","name":"South Florida Event Services","serviceType":"Event Services","provider":{"@id":"https://vnvevents.com/#organization"},"description":"VNV Events serves Broward County first and also works across Miami-Dade County and Palm Beach County for weddings, private events, and corporate functions.","areaServed":[{"@type":"AdministrativeArea","name":"Broward County, Florida"},{"@type":"AdministrativeArea","name":"Miami-Dade County, Florida"},{"@type":"AdministrativeArea","name":"Palm Beach County, Florida"}],"availableChannel":{"@type":"ServiceChannel","serviceUrl":"https://vnvevents.com","servicePhone":"+1 305-204-5427"}}]}</script>
+    {% if schemaJson is defined and schemaJson %}
+        <script type="application/ld+json">{{ schemaJson|json_encode(320)|raw }}</script>
+    {% else %}
+        <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Organization","@id":"https://vnvevents.com/#organization","name":"VNV Events","url":"https://vnvevents.com","logo":{"@type":"ImageObject","url":"{{ site_logo }}"},"email":"info@vnvevents.com","telephone":"+1 305-204-5427"},{"@type":"WebSite","@id":"https://vnvevents.com/#website","url":"https://vnvevents.com","name":"VNV Events","publisher":{"@id":"https://vnvevents.com/#organization"},"inLanguage":"en-US"}]}</script>
+    {% endif %}
 </head>
 <body>
 

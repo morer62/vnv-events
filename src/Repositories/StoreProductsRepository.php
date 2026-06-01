@@ -205,6 +205,24 @@ class StoreProductsRepository extends BaseRepository
         return $this->appendComputedPricingToProducts($rows);
     }
 
+    public function getPublicSitemapEntries(int $limit = 1000): array
+    {
+        $this->db->query("
+            SELECT id, name, slug, short_description, updated_at, created_at
+            FROM {$this->table}
+            WHERE status = :status
+              AND is_public = 1
+              AND slug IS NOT NULL
+              AND slug != ''
+            ORDER BY updated_at DESC, created_at DESC
+            LIMIT :limit
+        ");
+        $this->db->bind(':status', self::STATUS_ACTIVE);
+        $this->db->bind(':limit', $limit, \PDO::PARAM_INT);
+
+        return $this->db->fetchAll() ?: [];
+    }
+
     public function getPublicByCategory(int $categoryId, int $limit = 120): array
 {
     $sql = "

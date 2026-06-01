@@ -75,12 +75,16 @@
 	<h2 class="3 mb-4">📦 Orders Dashboard </h2>
 	{{ macros.breadcrumb2() }}
 
-	<div class="d-flex justify-content-between mb-3">
+	<div class="d-flex flex-column flex-xl-row justify-content-between gap-3 mb-3">
 		<a class="btn btn-dark" href="{{ path(current_location ~ '/create') }}">
 			<i data-feather="plus"></i>
 			Create new estimate	
 		</a>
 		<div class="d-flex gap-2">
+			<a class="btn btn-primary" href="{{ path('/panel/planner-hub/management/orders/calendar') }}">
+				<i data-feather="calendar"></i>
+				Calendar View
+			</a>
 			<a class="btn btn-outline-info" href="{{ path('/panel/planner-hub/management/orders/orders/reminders') }}">
 				<i data-feather="mail"></i>
 				Reminders
@@ -96,7 +100,7 @@
 		</div>
 	</div>
 
-	<section class="card">
+	<section class="card vnv-panel-card">
 		<div class="card-body">
 
 			<form method="get" class="row mb-4">
@@ -144,7 +148,7 @@
 				
 				<div class="tab-pane fade show active" id="orders-content" role="tabpanel" aria-labelledby="orders-tab">
 					<div class="table-responsive">
-						<table id="ordersTable" class="table table-striped table-bordered align-middle text-center" style="min-width: 768px;">
+						<table id="ordersTable" class="table table-striped table-bordered align-middle text-center vnv-table" style="min-width: 768px;">
 							<thead>
 								<tr>
 									<th>ID</th>

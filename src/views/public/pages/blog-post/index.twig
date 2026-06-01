@@ -316,6 +316,14 @@
                     </div>
                 {% endif %}
 
+                {% if internal_links is defined and internal_links is not empty %}
+                    <nav class="blog-post-back" aria-label="Related VNV Events links">
+                        {% for link in internal_links %}
+                            <a href="{{ link.url }}" class="me-2 mb-2">{{ link.label }}</a>
+                        {% endfor %}
+                    </nav>
+                {% endif %}
+
                 <div class="blog-post-back">
                     {% if category %}
                         <a href="{{ path('category/blog/' ~ category.slug ~ '/') }}">← Back to {{ category.name }}</a>
@@ -327,8 +335,4 @@
         </div>
     </div>
 </section>
-
-{% if post.schema_json %}
-    <script type="application/ld+json">{{ post.schema_json|raw }}</script>
-{% endif %}
 {% endblock %}

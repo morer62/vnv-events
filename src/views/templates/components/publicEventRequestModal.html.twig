@@ -1,4 +1,5 @@
 {% set request_form_action = request_form_action|default('/api/public/event-request') %}
+{% set request_form_source = request_form_source|default('public_home_modal') %}
 
 <div class="vnv-request-modal" id="vnvRequestModal" aria-hidden="true">
     <div class="vnv-request-modal__backdrop" data-vnv-request-close></div>
@@ -17,7 +18,7 @@
             action="{{ request_form_action }}"
         >
             <input type="hidden" name="selected_services" id="vnvSelectedServicesInput">
-            <input type="hidden" name="form_source" value="public_home_modal">
+            <input type="hidden" name="form_source" value="{{ request_form_source }}">
 
             {# NUEVO: token recaptcha #}
             <input type="hidden" name="recaptcha_token" id="vnvRecaptchaToken" value="">

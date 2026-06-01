@@ -1,24 +1,27 @@
 <?php
 
-use App\Services\LoginService;
-use App\Repositories\ForumTopicRepository;
-use App\Repositories\ForumReplyRepository;
-use App\Repositories\ForumLikeRepository;
 use App\Repositories\ForumAttachmentRepository;
-use App\Utils\Router;
-use App\Utils\TemplateResponse;
+use App\Repositories\ForumLikeRepository;
+use App\Repositories\ForumReplyRepository;
+use App\Repositories\ForumTopicRepository;
+use App\Services\LoginService;
+use App\Services\PublicSeoService;
+use App\Utils\CSRF;
 use App\Utils\LocationUtils;
 use App\Utils\MessageUtil;
+use App\Utils\Router;
+use App\Utils\TemplateResponse;
 
 $router = new Router();
 
 $router->get(function () {
     $user = LoginService::getSession();
     $topicId = $_GET['id'] ?? null;
+    $topicSlug = $GLOBALS['forum_topic_slug'] ?? ($_GET['slug'] ?? null);
 
-    if (!$topicId) {
+    if (!$topicId && !$topicSlug) {
         MessageUtil::setMessage("Topic not found.");
-        LocationUtils::redirectInternal("forum");
+        LocationUtils::redirectInternal("forums");
         return;
     }
 
@@ -27,31 +30,29 @@ $router->get(function () {
     $likeRepo = new ForumLikeRepository();
     $attachmentRepo = new ForumAttachmentRepository();
 
-    $topic = $topicRepo->getTopicWithAuthor((int)$topicId);
+    $topic = $topicSlug
+        ? $topicRepo->getPublishedBySlug((string)$topicSlug)
+        : $topicRepo->getTopicWithAuthor((int)$topicId);
 
-    if (!$topic || !$topic->is_approved) {
+    if (!$topic || !(int)$topic->is_approved || ($topic->status ?? 'PUBLISHED') !== 'PUBLISHED') {
         MessageUtil::setMessage("Topic not found.");
-        LocationUtils::redirectInternal("forum");
+        LocationUtils::redirectInternal("forums");
         return;
     }
 
-    $topicRepo->incrementViewCount((int)$topicId);
+    $topicId = (int)$topic->id;
+    $topicRepo->incrementViewCount($topicId);
 
-    $replies = $replyRepo->getRepliesWithNested((int)$topicId);
-    $attachments = $attachmentRepo->getAttachmentsByTopic((int)$topicId);
-    
-    // DEBUG
-    error_log("Topic ID: " . $topicId);
-    error_log("Attachments count: " . count($attachments));
-    error_log("Attachments data: " . json_encode($attachments));
+    $replies = $replyRepo->getRepliesWithNested($topicId);
+    $attachments = $attachmentRepo->getAttachmentsByTopic($topicId);
 
     $userLikedTopic = false;
     $userLikedReplies = [];
 
     if ($user) {
-        $userLikedTopic = $likeRepo->hasUserLikedTopic($user->getId(), (int)$topicId);
+        $userLikedTopic = $likeRepo->hasUserLikedTopic((int)$user->getId(), $topicId);
         foreach ($replies as $reply) {
-            if ($likeRepo->hasUserLikedReply($user->getId(), (int)$reply->id)) {
+            if ($likeRepo->hasUserLikedReply((int)$user->getId(), (int)$reply->id)) {
                 $userLikedReplies[] = (int)$reply->id;
             }
         }
@@ -63,16 +64,28 @@ $router->get(function () {
         "replies" => $replies,
         "attachments" => $attachments,
         "userLikedTopic" => $userLikedTopic,
-        "userLikedReplies" => $userLikedReplies
+        "userLikedReplies" => $userLikedReplies,
+        "canReply" => $user && in_array((int)$user->getLevel(), [1, 5], true),
+        "replyRequiresApproval" => filter_var($_ENV['FORUM_REPLIES_REQUIRE_APPROVAL'] ?? 'false', FILTER_VALIDATE_BOOLEAN),
+        "seo" => PublicSeoService::forumTopicSeo($topic),
+        "schemaJson" => PublicSeoService::forumTopicSchema($topic),
     ]);
 });
 
 $router->post(function () {
     $user = LoginService::getSession();
-    
+
     if (!$user) {
         MessageUtil::setMessage("You must be logged in to reply.");
-        LocationUtils::redirectInternal("login");
+        LocationUtils::redirectInternal("forums");
+        return;
+    }
+
+    CSRF::validateCSRF();
+
+    if (!in_array((int)$user->getLevel(), [1, 5], true)) {
+        MessageUtil::setMessage("Only client community accounts can reply to public forum topics.");
+        LocationUtils::redirectInternal("forums");
         return;
     }
 
@@ -80,33 +93,37 @@ $router->post(function () {
     $content = trim($_POST['content'] ?? '');
     $parentReplyId = !empty($_POST['parent_reply_id']) ? (int)$_POST['parent_reply_id'] : null;
 
-    if (!$topicId || empty($content)) {
+    if (!$topicId || $content === '') {
         MessageUtil::setMessage("Please provide a reply.");
-        LocationUtils::redirectInternal("forum/topic?id=" . $topicId);
+        LocationUtils::redirectInternal("forums");
         return;
     }
 
     $topicRepo = new ForumTopicRepository();
     $topic = $topicRepo->getOne(['id' => $topicId]);
 
-    if (!$topic || $topic->is_locked) {
+    if (!$topic || (int)$topic->is_locked || (int)($topic->allow_replies ?? 1) !== 1) {
         MessageUtil::setMessage("This topic is locked.");
-        LocationUtils::redirectInternal("forum/topic?id=" . $topicId);
+        LocationUtils::redirectInternal("forums/" . ($topic->slug ?? ''));
         return;
     }
 
-    $replyRepo = new ForumReplyRepository();
-    $replyRepo->add([
-        'id_topic' => $topicId,
-        'id_user' => $user->getId(),
-        'id_parent_reply' => $parentReplyId,
-        'content' => $content,
-        'is_approved' => 1
-    ]);
+    $requireApproval = filter_var($_ENV['FORUM_REPLIES_REQUIRE_APPROVAL'] ?? 'false', FILTER_VALIDATE_BOOLEAN);
+    $approved = (int)$user->getLevel() === 1 || !$requireApproval;
 
-    MessageUtil::setMessage("✅ Reply added successfully!");
-    LocationUtils::redirectInternal("forum/topic?id=" . $topicId);
+    $replyRepo = new ForumReplyRepository();
+    $replyRepo->createReply(
+        (int)$topicId,
+        (int)$user->getId(),
+        $content,
+        $parentReplyId,
+        (int)($topic->id_owner ?? $user->getOwner()),
+        $approved
+    );
+    $topicRepo->refreshReplyStats((int)$topicId);
+
+    MessageUtil::setMessage($approved ? "Reply added successfully!" : "Reply submitted and waiting for approval.");
+    LocationUtils::redirectInternal("forums/" . ($topic->slug ?? ''));
 });
 
 $router->run();
-

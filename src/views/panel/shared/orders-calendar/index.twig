@@ -1,0 +1,218 @@
+{% extends 'templates/base.admin.twig' %}
+{% import 'templates/macros.twig' as macros %}
+
+{% block style %}
+<style>
+.vnv-calendar-shell {
+    display: grid;
+    gap: 1rem;
+}
+.vnv-calendar-toolbar,
+.vnv-calendar-day,
+.vnv-no-time {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    box-shadow: 0 8px 24px rgba(15, 23, 42, .05);
+}
+.vnv-calendar-toolbar {
+    padding: 1rem;
+}
+.vnv-calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(160px, 1fr));
+    gap: .8rem;
+    overflow-x: auto;
+    padding-bottom: .4rem;
+}
+.vnv-calendar-day {
+    min-height: 260px;
+    padding: .85rem;
+}
+.vnv-calendar-day__label {
+    font-weight: 800;
+    color: #111827;
+    margin-bottom: .75rem;
+}
+.vnv-order-card {
+    display: block;
+    text-decoration: none;
+    color: #111827;
+    border-left: 4px solid #5ec6c4;
+    background: #f8fafc;
+    border-radius: 8px;
+    padding: .7rem;
+    margin-bottom: .65rem;
+}
+.vnv-order-card:hover {
+    background: #eef8f8;
+    color: #0f172a;
+}
+.vnv-order-time {
+    font-size: .78rem;
+    font-weight: 800;
+    color: #247170;
+}
+.vnv-order-title {
+    font-weight: 800;
+    line-height: 1.3;
+}
+.vnv-order-meta {
+    color: #64748b;
+    font-size: .78rem;
+}
+.vnv-status {
+    display: inline-flex;
+    max-width: 100%;
+    border-radius: 999px;
+    padding: .18rem .5rem;
+    font-size: .72rem;
+    font-weight: 800;
+    background: #111827;
+    color: #fff;
+}
+.vnv-no-time {
+    padding: 1rem;
+}
+@media (max-width: 991px) {
+    .vnv-calendar-grid {
+        grid-template-columns: repeat(7, minmax(220px, 1fr));
+    }
+}
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="container-fluid py-4 vnv-page-shell">
+    {{ macros.breadcrumb2() }}
+
+    <div class="vnv-page-header">
+        <div>
+            <h1 class="h3 fw-bold mb-1">Order Calendar</h1>
+            <p class="mb-0">VNV Events operational schedule for {{ calendar.week_start|date('M d') }} - {{ calendar.week_end|date('M d, Y') }}.</p>
+        </div>
+        <div class="vnv-action-bar">
+            <a class="btn vnv-btn-ghost" href="{{ path(listUrl) }}">List View</a>
+            <a class="btn vnv-btn-primary" href="{{ path(calendarUrl) }}">Calendar View</a>
+        </div>
+    </div>
+
+    <section class="vnv-calendar-toolbar mb-3">
+        <form method="get" class="row g-3 align-items-end">
+            <div class="col-md-3">
+                <label class="form-label">Week</label>
+                <input type="date" name="week" class="form-control" value="{{ calendar.week_start }}">
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">Search client</label>
+                <input type="text" name="search" class="form-control" value="{{ search|default('') }}" placeholder="Name or email">
+            </div>
+            <div class="col-md-5 d-flex flex-wrap gap-2">
+                <button type="submit" class="btn btn-primary">Apply</button>
+                <a class="btn btn-outline-secondary" href="{{ path(calendarUrl) }}?week={{ calendar.previous_week }}">Previous</a>
+                <a class="btn btn-outline-secondary" href="{{ path(calendarUrl) }}">Today</a>
+                <a class="btn btn-outline-secondary" href="{{ path(calendarUrl) }}?week={{ calendar.next_week }}">Next</a>
+            </div>
+        </form>
+    </section>
+
+    <div class="vnv-calendar-shell">
+        <div class="vnv-calendar-grid">
+            {% for day in calendar.days %}
+                <section class="vnv-calendar-day">
+                    <div class="vnv-calendar-day__label">{{ day.label }}</div>
+                    {% for order in day.orders %}
+                        <button type="button" class="vnv-order-card text-start border-0 w-100" data-vnv-order-details='{{ order.details|json_encode|e('html_attr') }}'>
+                            <div class="vnv-order-time">{{ order.time }}</div>
+                            <div class="vnv-order-title">{{ order.client }}</div>
+                            <div class="vnv-order-meta">{{ order.title }}</div>
+                            {% if order.address %}
+                                <div class="vnv-order-meta">{{ order.address }}</div>
+                            {% endif %}
+                            <span class="vnv-status mt-2">{{ order.status }}</span>
+                        </button>
+                    {% else %}
+                        <p class="text-muted small mb-0">No orders.</p>
+                    {% endfor %}
+                </section>
+            {% endfor %}
+        </div>
+
+        <section class="vnv-no-time">
+            <h2 class="h6 fw-bold mb-3">No time assigned</h2>
+            <div class="row g-2">
+                {% for order in calendar.no_time %}
+                    <div class="col-md-6 col-xl-4">
+                        <button type="button" class="vnv-order-card mb-0 text-start border-0 w-100" data-vnv-order-details='{{ order.details|json_encode|e('html_attr') }}'>
+                            <div class="vnv-order-title">{{ order.client }}</div>
+                            <div class="vnv-order-meta">{{ order.date|date('M d, Y') }} - {{ order.title }}</div>
+                            <span class="vnv-status mt-2">{{ order.status }}</span>
+                        </button>
+                    </div>
+                {% else %}
+                    <div class="col-12">
+                        <p class="text-muted mb-0">All scheduled orders in this week have a time.</p>
+                    </div>
+                {% endfor %}
+            </div>
+        </section>
+    </div>
+</div>
+
+<div class="modal fade" id="vnvOrderCalendarModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Order details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="vnvOrderCalendarModalBody"></div>
+            <div class="modal-footer">
+                <a href="#" class="btn vnv-btn-primary" id="vnvOrderCalendarModalLink">Open Full View</a>
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const modalElement = document.getElementById('vnvOrderCalendarModal');
+    const body = document.getElementById('vnvOrderCalendarModalBody');
+    const link = document.getElementById('vnvOrderCalendarModalLink');
+    if (!modalElement || !body || !link || !window.bootstrap) return;
+
+    const modal = new bootstrap.Modal(modalElement);
+    const esc = (value) => String(value || '').replace(/[&<>"']/g, (char) => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#039;'
+    }[char]));
+
+    document.querySelectorAll('[data-vnv-order-details]').forEach((button) => {
+        button.addEventListener('click', function () {
+            const data = JSON.parse(this.dataset.vnvOrderDetails || '{}');
+            link.href = data.url || '#';
+            body.innerHTML = `
+                <div class="row g-3">
+                    <div class="col-md-6"><strong>Order</strong><br>${esc(data.id)}</div>
+                    <div class="col-md-6"><strong>Status</strong><br>${esc(data.status || 'ORDER')}</div>
+                    <div class="col-md-6"><strong>Client / Company</strong><br>${esc(data.client || 'N/A')}</div>
+                    <div class="col-md-6"><strong>Email</strong><br>${esc(data.email || 'N/A')}</div>
+                    <div class="col-md-6"><strong>Event date</strong><br>${esc(data.eventDate || 'N/A')}</div>
+                    <div class="col-md-6"><strong>Time</strong><br>${esc(data.time || 'No time assigned')}</div>
+                    <div class="col-12"><strong>Address</strong><br>${esc(data.address || 'N/A')}</div>
+                    <div class="col-md-6"><strong>Created</strong><br>${esc(data.createdAt || 'N/A')}</div>
+                    <div class="col-md-6"><strong>Workflow</strong><br>${esc(data.workflow || 'N/A')}</div>
+                </div>
+            `;
+            modal.show();
+        });
+    });
+});
+</script>
+{% endblock %}
