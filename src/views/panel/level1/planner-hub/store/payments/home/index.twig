@@ -1,16 +1,17 @@
 {% extends 'templates/base.admin.twig' %}
 
 {% block body %}
-<div class="container-fluid">
-    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+<div class="container-fluid vnv-page-shell store-payments-page">
+    <div class="vnv-page-header">
         <div>
-            <h1 class="h3 mb-1">Store Payments</h1>
-            <p class="text-muted mb-0">Track gourmet checkout payments and statuses.</p>
+            <p class="vnv-kicker">Avomeal Finance</p>
+            <h1>Store Payments</h1>
+            <p>Track Avomeal checkout payments, payment method, order links and status.</p>
         </div>
-        <a href="{{ path('panel/planner-hub/store/orders/home') }}" class="btn btn-outline-dark">Go to Orders</a>
+        <a href="{{ path('panel/planner-hub/store/orders/home') }}" class="btn vnv-btn-ghost">Go to Orders</a>
     </div>
 
-    <div class="card shadow-sm border-0 mb-4">
+    <div class="card vnv-panel-card mb-4">
         <div class="card-body">
             <form method="get" class="row g-3">
                 <div class="col-md-2">
@@ -47,11 +48,11 @@
         </div>
     </div>
 
-    <div class="card shadow-sm border-0">
+    <div class="card vnv-panel-card">
         <div class="card-body">
             {% if payments|length > 0 %}
                 <div class="table-responsive">
-                    <table class="table table-hover align-middle">
+                    <table class="table table-hover align-middle vnv-table">
                         <thead>
                             <tr>
                                 <th>Payment #</th>
@@ -114,7 +115,7 @@
                     </table>
                 </div>
             {% else %}
-                <div class="text-center py-5">
+                <div class="vnv-empty-state text-center py-5">
                     <h5 class="mb-2">No payments found</h5>
                     <p class="text-muted mb-0">No store payments match your current filters.</p>
                 </div>
@@ -123,4 +124,3 @@
     </div>
 </div>
 {% endblock %}
-

@@ -6,6 +6,7 @@ use App\Utils\LocationUtils;
 use App\Utils\MessageUtil;
 use App\Utils\TemplateResponse;
 use App\Utils\Router;
+use App\Services\TeamMemberContractService;
 
 $router = new Router();
 $repo = new PayrollTimeLogsRepository();
@@ -64,6 +65,11 @@ $router->post(callback: function () use ($repo, $user): void {
     if ($action === "start") {
         if (count($logs) > 0) {
             MessageUtil::setMessage("You already started a session.");
+            LocationUtils::reload();
+        }
+
+        if ($user->getLevel() === 4 && !(new TeamMemberContractService())->isClockInAllowed($user->getId(), (int)$currentOwnerId)) {
+            MessageUtil::setMessage("Tu contrato todavia no ha sido validado. Abre Mi contrato para firmarlo o contacta al administrador antes de iniciar tu reloj.");
             LocationUtils::reload();
         }
 

@@ -4,6 +4,7 @@ use App\Entity\User;
 use App\Repositories\UserRepository;
 use App\Repositories\UserRolesRepository;
 use App\Services\AppleService\AppleSignInService;
+use App\Services\ApiAuthService;
 use App\Services\GoogleAuthService;
 use App\Services\LoginService;
 use App\Utils\Cors;
@@ -119,7 +120,9 @@ function setSession($user, $permissions): User
         $permissions,
         $user->allow_chat_with_clients ?? 0,
         $user->membership_type ?? 'FREE',
-        $user->is_active ?? 1
+        $user->is_active ?? 1,
+        $user->google_id ?? null,
+        $user->google_token ?? null
     );
     LoginService::setSession($userEntity);
 
@@ -127,10 +130,11 @@ function setSession($user, $permissions): User
 }
 
 $router->post(function () {
-    $email = trim($_POST["email"] ?? "");
-    $password = $_POST["password"] ?? "";
-    $googleToken = $_POST["google_token"] ?? "";
-    $appleToken = $_POST["apple_credentials"] ?? "";
+    $body = ApiAuthService::bodyFromJsonOrPost();
+    $email = trim($body["email"] ?? "");
+    $password = $body["password"] ?? "";
+    $googleToken = $body["google_token"] ?? "";
+    $appleToken = $body["apple_credentials"] ?? "";
     $userEntity = null;
 
     try {
@@ -171,25 +175,21 @@ $router->post(function () {
         $repo->updateApiToken($userEntity->getId(), $token);
 
         // Guardar expo_token si viene
-        $expo_token = trim($_POST["expo_token"] ?? "");
+        $expo_token = trim((string)($body["expo_token"] ?? ($body["expo_push_token"] ?? "")));
+        $expoTokenSaved = false;
         if ($expo_token !== "" && strtolower($expo_token) !== "undefined") {
-            $repo->updateExpoToken($userEntity->getId(), $expo_token);
+            if (ApiAuthService::isValidExpoToken($expo_token)) {
+                $repo->updateExpoToken($userEntity->getId(), $expo_token);
+                $expoTokenSaved = true;
+            }
         }
 
         return JsonResponse::createResponse([
             "success" => true,
             "token" => $token,
-            "user" => [
-                "id" => $userEntity->getId(),
-                "name" => $userEntity->getName(),
-                "lastname" => $userEntity->getLastname(),
-                "email" => $userEntity->getEmail(),
-                "phone" => $userEntity->getPhone(),
-                "phone_validation" => $userEntity->getPhoneValidation(),
-                "membership_due_date" => $userEntity->getMembershipDueDate(),
-                "level" => $userEntity->getLevel(),
-                "id_owner" => $userEntity->getOwner(),
-            ]
+            "api_token" => $token,
+            "expo_token_saved" => $expoTokenSaved,
+            "user" => ApiAuthService::userPayload($userEntity),
         ]);
 
     } catch (Exception $e) {

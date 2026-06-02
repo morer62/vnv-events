@@ -1,0 +1,296 @@
+{% extends 'templates/base.admin.twig' %}
+{% set csrf_token = get_csrf() %}
+
+{% block body %}
+<div class="container-fluid py-4">
+  <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3 mb-4">
+    <div>
+      <span class="text-uppercase text-muted small fw-semibold">Human approval required</span>
+      <h1 class="h3 fw-bold mb-1">AI Content Review</h1>
+      <p class="text-muted mb-0">Drafts for blog posts and location pages only. Nothing generated here becomes public without approval and manual publish.</p>
+    </div>
+    {% if unlocked %}
+      <form method="post">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        <input type="hidden" name="action" value="lock">
+        <button class="btn btn-outline-secondary" type="submit">Lock Review</button>
+      </form>
+    {% endif %}
+  </div>
+
+  {% for warning in warnings %}
+    <div class="alert alert-warning">{{ warning }}</div>
+  {% endfor %}
+
+  {% if not unlocked %}
+    <div class="card border-0 shadow-sm">
+      <div class="card-body" style="max-width: 520px;">
+        <h2 class="h5 mb-3">Unlock review panel</h2>
+        <form method="post">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+          <input type="hidden" name="action" value="unlock">
+          <label class="form-label">Review password</label>
+          <input type="password" name="review_password" class="form-control mb-3" autocomplete="current-password" required>
+          <button class="btn btn-primary" type="submit">Unlock for review</button>
+        </form>
+      </div>
+    </div>
+  {% else %}
+    <div class="row g-4">
+      <div class="col-xl-4">
+        <div class="card border-0 shadow-sm mb-4">
+          <div class="card-header bg-white border-bottom">
+            <h2 class="h5 mb-0">Daily Settings</h2>
+          </div>
+          <div class="card-body">
+            <form method="post">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+              <input type="hidden" name="action" value="save_settings">
+              <input type="hidden" name="site_key" value="{{ siteKey }}">
+
+              <div class="row g-3">
+                <div class="col-12">
+                  <label class="form-label">Site</label>
+                  <select class="form-select" name="site_key">
+                    <option value="avomeal" {{ siteKey == 'avomeal' ? 'selected' : '' }}>Avomeal</option>
+                    <option value="vnv_events" {{ siteKey == 'vnv_events' ? 'selected' : '' }}>VNV Events</option>
+                  </select>
+                </div>
+                <div class="col-6">
+                  <label class="form-label">Blog drafts/day</label>
+                  <input type="number" min="0" max="10" name="daily_blog_count" class="form-control" value="{{ settings.daily_blog_count }}">
+                </div>
+                <div class="col-6">
+                  <label class="form-label">Location drafts/day</label>
+                  <input type="number" min="0" max="25" name="daily_location_count" class="form-control" value="{{ settings.daily_location_count }}">
+                </div>
+                <div class="col-6">
+                  <label class="form-label">Language</label>
+                  <input type="text" name="default_language" class="form-control" value="{{ settings.default_language }}">
+                </div>
+                <div class="col-6">
+                  <label class="form-label">Max pending</label>
+                  <input type="number" min="1" max="500" name="max_pending_drafts" class="form-control" value="{{ settings.max_pending_drafts }}">
+                </div>
+                <div class="col-12">
+                  <label class="form-label">Priority services</label>
+                  <textarea name="priority_services" class="form-control" rows="3">{{ settings.priority_services }}</textarea>
+                </div>
+                <div class="col-12">
+                  <label class="form-label">Priority cities</label>
+                  <textarea name="priority_cities" class="form-control" rows="3">{{ settings.priority_cities }}</textarea>
+                </div>
+                <div class="col-4">
+                  <label class="form-label">State</label>
+                  <input type="text" name="location_state" class="form-control" value="{{ settings.location_state }}">
+                </div>
+                <div class="col-8 d-flex align-items-end">
+                  <div>
+                    <div class="form-check">
+                      <input class="form-check-input" type="checkbox" name="enabled" value="1" id="enabled" {{ settings.enabled ? 'checked' : '' }}>
+                      <label class="form-check-label" for="enabled">Enable cron generation</label>
+                    </div>
+                    <div class="form-check">
+                      <input class="form-check-input" type="checkbox" name="cloudinary_enabled" value="1" id="cloudinary" {{ settings.cloudinary_enabled ? 'checked' : '' }}>
+                      <label class="form-check-label" for="cloudinary">Cloudinary enabled</label>
+                    </div>
+                    <div class="form-check">
+                      <input class="form-check-input" type="checkbox" name="reddit_sources_enabled" value="1" id="reddit" {{ settings.reddit_sources_enabled ? 'checked' : '' }}>
+                      <label class="form-check-label" for="reddit">Reddit/source research enabled</label>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="alert alert-light border mt-3 mb-3">
+                Auto publish is forced off and approval is forced on for this phase.
+              </div>
+              <button class="btn btn-primary w-100" type="submit">Save settings</button>
+            </form>
+
+            <form method="post" class="mt-3">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+              <input type="hidden" name="action" value="generate_daily">
+              <input type="hidden" name="site_key" value="{{ siteKey }}">
+              <button class="btn btn-outline-success w-100" type="submit" {{ tablesReady ? '' : 'disabled' }}>Generate Daily Drafts Now</button>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-xl-8">
+        <div class="card border-0 shadow-sm mb-4">
+          <div class="card-header bg-white border-bottom">
+            <h2 class="h5 mb-0">Draft Queue</h2>
+          </div>
+          <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+              <thead>
+                <tr>
+                  <th>Draft</th>
+                  <th>Type</th>
+                  <th>Status</th>
+                  <th>Site</th>
+                  <th class="text-end">Open</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for draft in drafts %}
+                  <tr>
+                    <td>
+                      <div class="fw-semibold">{{ draft.title }}</div>
+                      <div class="text-muted small">{{ draft.slug }}{% if draft.city %} · {{ draft.city }}, {{ draft.state }}{% endif %}</div>
+                    </td>
+                    <td>{{ draft.content_type }}</td>
+                    <td><span class="badge bg-{{ draft.status == 'APPROVED' ? 'success' : (draft.status == 'PUBLISHED' ? 'primary' : (draft.status == 'REJECTED' ? 'danger' : 'warning text-dark')) }}">{{ draft.status }}</span></td>
+                    <td>{{ draft.site_key }}</td>
+                    <td class="text-end">
+                      <a class="btn btn-sm btn-outline-primary" href="{{ path('panel/ai-content/review', {'draft_id': draft.id, 'site_key': siteKey}) }}">Review</a>
+                    </td>
+                  </tr>
+                {% else %}
+                  <tr>
+                    <td colspan="5"><div class="text-muted p-3">No AI drafts yet.</div></td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {% if selectedDraft %}
+          <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white border-bottom d-flex justify-content-between align-items-start gap-3">
+              <div>
+                <h2 class="h5 mb-1">{{ selectedDraft.title }}</h2>
+                <div class="text-muted small">{{ selectedDraft.content_type }} · {{ selectedDraft.status }} · {{ selectedDraft.slug }}</div>
+              </div>
+              {% if selectedDraft.status == 'APPROVED' %}
+                <form method="post">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                  <input type="hidden" name="action" value="publish">
+                  <input type="hidden" name="draft_id" value="{{ selectedDraft.id }}">
+                  <button class="btn btn-success" type="submit">Publish</button>
+                </form>
+              {% endif %}
+            </div>
+            <div class="card-body">
+              <form method="post" class="mb-4">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                <input type="hidden" name="draft_id" value="{{ selectedDraft.id }}">
+                <div class="row g-3 mb-3">
+                  <div class="col-md-8">
+                    <label class="form-label">Title</label>
+                    <input type="text" name="title" class="form-control" value="{{ selectedDraft.title }}">
+                  </div>
+                  <div class="col-md-4">
+                    <label class="form-label">Slug</label>
+                    <input type="text" name="slug" class="form-control" value="{{ selectedDraft.slug }}">
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label">Topic</label>
+                    <input type="text" name="topic" class="form-control" value="{{ selectedDraft.topic }}">
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label">Service</label>
+                    <input type="text" name="service_name" class="form-control" value="{{ selectedDraft.service_name }}">
+                  </div>
+                  <div class="col-md-4">
+                    <label class="form-label">City</label>
+                    <input type="text" name="city" class="form-control" value="{{ selectedDraft.city }}">
+                  </div>
+                  <div class="col-md-2">
+                    <label class="form-label">State</label>
+                    <input type="text" name="state" class="form-control" value="{{ selectedDraft.state }}">
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label">Featured image URL</label>
+                    <input type="text" name="featured_image_url" class="form-control" value="{{ selectedDraft.featured_image_url }}">
+                  </div>
+                  <div class="col-12">
+                    <label class="form-label">Excerpt</label>
+                    <textarea name="excerpt" class="form-control" rows="2">{{ selectedDraft.excerpt }}</textarea>
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label">Meta title</label>
+                    <input type="text" name="meta_title" class="form-control" value="{{ selectedDraft.meta_title }}">
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label">Meta description</label>
+                    <textarea name="meta_description" class="form-control" rows="2">{{ selectedDraft.meta_description }}</textarea>
+                  </div>
+                  <div class="col-12">
+                    <label class="form-label">Meta keywords</label>
+                    <input type="text" name="meta_keywords" class="form-control" value="{{ selectedDraft.meta_keywords }}">
+                  </div>
+                  <div class="col-12">
+                    <label class="form-label">Body HTML</label>
+                    <textarea name="body_html" class="form-control font-monospace" rows="12">{{ selectedDraft.body_html }}</textarea>
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label">Schema JSON</label>
+                    <textarea name="schema_json" class="form-control font-monospace" rows="7">{{ selectedDraft.schema_json }}</textarea>
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label">FAQ JSON</label>
+                    <textarea name="faq_json" class="form-control font-monospace" rows="7">{{ selectedDraft.faq_json }}</textarea>
+                  </div>
+                  <div class="col-12">
+                    <label class="form-label">Thumbnail prompt</label>
+                    <textarea name="thumbnail_prompt" class="form-control" rows="2">{{ selectedDraft.thumbnail_prompt }}</textarea>
+                  </div>
+                </div>
+                <label class="form-label">Feedback</label>
+                <textarea name="feedback" class="form-control mb-3" rows="3" placeholder="Notes for revision, rejection, or approval">{{ selectedDraft.review_feedback }}</textarea>
+                <button class="btn btn-outline-secondary mb-3" name="action" value="save_draft_edits" type="submit">Save edits</button>
+                <div class="border rounded p-3 mb-3">
+                  {{ selectedDraft.body_html|raw }}
+                </div>
+                <div class="d-flex flex-wrap gap-2">
+                  <button class="btn btn-success" name="action" value="approve" type="submit">Approve</button>
+                  <button class="btn btn-outline-warning" name="action" value="request_revision" type="submit">Request Changes</button>
+                  <button class="btn btn-outline-primary" name="action" value="regenerate" type="submit">Regenerate</button>
+                  <button class="btn btn-outline-danger" name="action" value="reject" type="submit">Reject</button>
+                  <button class="btn btn-outline-secondary" name="action" value="archive" type="submit">Archive</button>
+                </div>
+              </form>
+
+              <form method="post" enctype="multipart/form-data" class="border rounded p-3 mb-4">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                <input type="hidden" name="action" value="upload_voice_note">
+                <input type="hidden" name="draft_id" value="{{ selectedDraft.id }}">
+                <label class="form-label">Voice note</label>
+                <input type="file" name="voice_note" class="form-control mb-2" accept="audio/*">
+                <button class="btn btn-outline-secondary" type="submit">Upload voice note</button>
+                {% if selectedDraft.voice_note_path %}
+                  <div class="mt-3">
+                    <audio controls src="{{ selectedDraft.voice_note_path }}" class="w-100"></audio>
+                    <div class="small text-muted">Transcription pending.</div>
+                  </div>
+                {% endif %}
+              </form>
+
+              <div>
+                <h3 class="h6">Review history</h3>
+                <div class="list-group">
+                  {% for review in reviews %}
+                    <div class="list-group-item">
+                      <div class="d-flex justify-content-between">
+                        <strong>{{ review.action }}</strong>
+                        <span class="text-muted small">{{ review.created_at }}</span>
+                      </div>
+                      {% if review.feedback %}<div class="mt-1">{{ review.feedback }}</div>{% endif %}
+                    </div>
+                  {% else %}
+                    <div class="text-muted">No review history yet.</div>
+                  {% endfor %}
+                </div>
+              </div>
+            </div>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

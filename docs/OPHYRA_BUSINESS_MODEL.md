@@ -1,6 +1,6 @@
 # OPHYRA_BUSINESS_MODEL.md
 
-> VNV Events repository note: this document is retained as Ophyra platform/business-model reference. It is not the primary product model for VNV Events. VNV Events is an operating event-services business, not a generic SaaS account being sold from this repo.
+> Avomeal web note: this document is retained as Ophyra platform/business-model reference. It is not the primary product model for Avomeal. Avomeal is a food/store brand under VNV Events owner `2`, not a generic SaaS account being sold from this repo.
 
 ## 1. Purpose of this document
 
@@ -23,7 +23,7 @@ It should be used as the source of truth for:
 
 This document complements `docs/AGENTS.md`.
 
-`docs/AGENTS.md` is the ecosystem entry point and explains how Ophyra relates to VNV Events, Avomeal / VNV Gourmet, Jonnys Media and the related mobile apps.
+`docs/AGENTS.md` is the ecosystem entry point and explains how Ophyra relates to VNV Events, Avomeal, Jonnys Media and the related mobile apps.
 
 This document explains what Ophyra sells and how the product should behave commercially.
 
@@ -100,7 +100,7 @@ Ophyra evolved from an internal architecture used to build projects such as:
 
 Those projects already exist and can continue operating independently.
 
-Avomeal can also be operated from the centralized Ophyra database as a separate Business Operation when it is scoped to its own owner/company and uses Store + Delivery with nutrition, weekly menu and meal-subscription extensions. That model is documented in `docs/AVOMEAL_OPHYRA_INTEGRATION_MODEL.md`.
+Avomeal currently operates as a food/store brand under the confirmed VNV Events owner scope `2`, using Store + Delivery patterns with nutrition, weekly menu and meal-subscription extensions. That model is documented in `docs/AVOMEAL_OPHYRA_INTEGRATION_MODEL.md`.
 
 Ophyra should now evolve as its own software product.
 
@@ -263,7 +263,7 @@ Ophyra Base includes:
 Base operational flow:
 
 ```text
-Lead → Client → Order → Contract → Signature → Team Execution → Basic Payroll
+Lead â†’ Client â†’ Order â†’ Contract â†’ Signature â†’ Team Execution â†’ Basic Payroll
 ```
 
 The base plan should not feel like an empty panel.
@@ -394,7 +394,7 @@ It may be reconsidered in the future, but it should not be promoted or sold as a
 
 Basic chat is part of Team.
 
-Do not sell “Advanced Chat” as a separate module.
+Do not sell â€œAdvanced Chatâ€ as a separate module.
 
 ### Advanced File Management
 
@@ -404,7 +404,7 @@ Do not introduce it as a module until its scope is defined.
 
 ### Advanced Reports
 
-There should not be a separate “Advanced Reports” module at this stage.
+There should not be a separate â€œAdvanced Reportsâ€ module at this stage.
 
 Each active module should include useful and visually polished reports by default.
 
@@ -731,7 +731,7 @@ They should not be broken to force a perfect shared architecture.
 
 They may continue running as independent systems based on the original architecture.
 
-Avomeal has a supported centralization path: it can use Ophyra Store + Delivery as the base and add nutrition, meal-prep, weekly menu, subscriptions and delivery-zone structures while staying separate from VNV Events by `id_owner`.
+Avomeal has a supported centralization path: it can use Ophyra Store + Delivery as the base and add nutrition, meal-prep, weekly menu, subscriptions and delivery-zone structures while staying scoped to the confirmed VNV Events owner `2`.
 
 Ophyra should evolve as its own SaaS product.
 
@@ -784,7 +784,7 @@ Do not complicate the model with:
 
 Final strategic phrase:
 
-> Ophyra starts with the operational core: CRM, Clients, Team, Orders, Contracts, Signatures, Basic Payroll and Business Profile. Then the business adds only the modules it actually needs — inventory, store, delivery, tracking, AI or event registration.
+> Ophyra starts with the operational core: CRM, Clients, Team, Orders, Contracts, Signatures, Basic Payroll and Business Profile. Then the business adds only the modules it actually needs â€” inventory, store, delivery, tracking, AI or event registration.
 
 ## Administrative control and reporting
 

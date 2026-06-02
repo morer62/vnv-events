@@ -54,27 +54,42 @@ class StoreAttributeValuesRepository extends BaseRepository
 
     public function getByAttribute(int $attributeId): array
     {
+        return $this->getByAttributeScoped($attributeId);
+    }
+
+    public function getByAttributeScoped(int $attributeId, ?int $ownerId = null): array
+    {
+        $ownerSql = $ownerId !== null && $ownerId > 0 ? "AND id_owner = :id_owner" : "";
         $this->db->query("
             SELECT * 
             FROM {$this->table}
             WHERE id_attribute = :id_attribute
+              {$ownerSql}
             ORDER BY sort_order ASC, value ASC
         ");
         $this->db->bind(':id_attribute', $attributeId);
+        if ($ownerSql !== '') {
+            $this->db->bind(':id_owner', $ownerId, \PDO::PARAM_INT);
+        }
         return $this->db->fetchAll();
     }
 
-    public function getActiveByAttribute(int $attributeId): array
+    public function getActiveByAttribute(int $attributeId, ?int $ownerId = null): array
     {
+        $ownerSql = $ownerId !== null && $ownerId > 0 ? "AND id_owner = :id_owner" : "";
         $this->db->query("
             SELECT * 
             FROM {$this->table}
             WHERE id_attribute = :id_attribute
               AND status = :status
+              {$ownerSql}
             ORDER BY sort_order ASC, value ASC
         ");
         $this->db->bind(':id_attribute', $attributeId);
         $this->db->bind(':status', self::STATUS_ACTIVE);
+        if ($ownerSql !== '') {
+            $this->db->bind(':id_owner', $ownerId, \PDO::PARAM_INT);
+        }
         return $this->db->fetchAll();
     }
 }

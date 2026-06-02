@@ -2,8 +2,12 @@
 
 namespace App\Repositories;
 
+use App\Repositories\Concerns\SiteScopedRepositoryTrait;
+
 class StoreOrdersRepository extends BaseRepository
 {
+    use SiteScopedRepositoryTrait;
+
     const PAYMENT_PENDING = 'PENDING';
     const PAYMENT_PAID = 'PAID';
     const PAYMENT_FAILED = 'FAILED';
@@ -23,6 +27,7 @@ class StoreOrdersRepository extends BaseRepository
     protected array $fields = [
         'id',
         'id_owner',
+        'site_key',
         'id_user',
         'id_cart',
         'public_token',
@@ -113,15 +118,23 @@ class StoreOrdersRepository extends BaseRepository
         return bin2hex(random_bytes(32));
     }
 
-    public function getByPublicToken(string $token): ?object
+    public function add(array $data): bool
     {
+        return parent::add($this->withDefaultSiteKey($data));
+    }
+
+    public function getByPublicToken(string $token, ?string $siteKey = null): ?object
+    {
+        $siteSql = $this->siteScopeSql($siteKey);
         $this->db->query("
             SELECT *
             FROM {$this->table}
             WHERE public_token = :public_token
+              {$siteSql}
             LIMIT 1
         ");
         $this->db->bind(':public_token', $token);
+        $this->bindSiteScope($siteKey);
 
         $result = $this->db->fetchOne();
         return $result ?: null;
@@ -141,22 +154,25 @@ class StoreOrdersRepository extends BaseRepository
         return $result ?: null;
     }
 
-    public function getAllByOwner(int $ownerId, int $limit = 100): array
+    public function getAllByOwner(int $ownerId, int $limit = 100, ?string $siteKey = null): array
     {
+        $siteSql = $this->siteScopeSql($siteKey);
         $this->db->query("
             SELECT *
             FROM {$this->table}
             WHERE id_owner = :id_owner
+            {$siteSql}
             ORDER BY id DESC
             LIMIT :limit
         ");
         $this->db->bind(':id_owner', $ownerId, \PDO::PARAM_INT);
+        $this->bindSiteScope($siteKey);
         $this->db->bind(':limit', $limit, \PDO::PARAM_INT);
 
         return $this->db->fetchAll();
     }
 
-    public function getRecentByOwnerAndStatuses(int $ownerId, array $statuses, int $limit = 50): array
+    public function getRecentByOwnerAndStatuses(int $ownerId, array $statuses, int $limit = 50, ?string $siteKey = null): array
     {
         $statuses = array_values(array_unique(array_filter(array_map('trim', $statuses))));
         if (!$statuses) {
@@ -168,15 +184,18 @@ class StoreOrdersRepository extends BaseRepository
             $holders[] = ':status_' . $i;
         }
 
+        $siteSql = $this->siteScopeSql($siteKey);
         $this->db->query("
             SELECT *
             FROM {$this->table}
             WHERE id_owner = :id_owner
               AND status IN (" . implode(',', $holders) . ")
+              {$siteSql}
             ORDER BY created_at DESC
             LIMIT :limit
         ");
         $this->db->bind(':id_owner', $ownerId, \PDO::PARAM_INT);
+        $this->bindSiteScope($siteKey);
 
         foreach ($statuses as $i => $status) {
             $this->db->bind(':status_' . $i, $status);
@@ -190,17 +209,21 @@ class StoreOrdersRepository extends BaseRepository
         int $ownerId,
         string $fromDateTime,
         string $toDateTime,
-        int $limit = 250
+        int $limit = 250,
+        ?string $siteKey = null
     ): array {
+        $siteSql = $this->siteScopeSql($siteKey);
         $this->db->query("
             SELECT *
             FROM {$this->table}
             WHERE id_owner = :id_owner
               AND created_at BETWEEN :from_dt AND :to_dt
+              {$siteSql}
             ORDER BY created_at DESC
             LIMIT :limit
         ");
         $this->db->bind(':id_owner', $ownerId, \PDO::PARAM_INT);
+        $this->bindSiteScope($siteKey);
         $this->db->bind(':from_dt', $fromDateTime);
         $this->db->bind(':to_dt', $toDateTime);
         $this->db->bind(':limit', $limit, \PDO::PARAM_INT);
@@ -381,37 +404,53 @@ class StoreOrdersRepository extends BaseRepository
         return $this->add($data);
     }
 
-    public function getAllByUser(int $userId, int $limit = 100): array
+    public function getAllByUser(int $userId, int $limit = 100, ?int $ownerId = null, ?string $siteKey = null): array
     {
+        $ownerSql = $ownerId !== null && $ownerId > 0 ? "AND id_owner = :id_owner" : "";
+        $siteSql = $this->siteScopeSql($siteKey);
         $this->db->query("
             SELECT *
             FROM {$this->table}
             WHERE id_user = :id_user
+              {$ownerSql}
+              {$siteSql}
             ORDER BY id DESC
             LIMIT :limit
         ");
         $this->db->bind(':id_user', $userId, \PDO::PARAM_INT);
+        if ($ownerSql !== '') {
+            $this->db->bind(':id_owner', $ownerId, \PDO::PARAM_INT);
+        }
+        $this->bindSiteScope($siteKey);
         $this->db->bind(':limit', $limit, \PDO::PARAM_INT);
 
         return $this->db->fetchAll();
     }
 
-    public function getAllByGuestEmail(string $email, int $limit = 100): array
+    public function getAllByGuestEmail(string $email, int $limit = 100, ?int $ownerId = null, ?string $siteKey = null): array
     {
+        $ownerSql = $ownerId !== null && $ownerId > 0 ? "AND id_owner = :id_owner" : "";
+        $siteSql = $this->siteScopeSql($siteKey);
         $this->db->query("
             SELECT *
             FROM {$this->table}
             WHERE guest_email = :guest_email
+              {$ownerSql}
+              {$siteSql}
             ORDER BY id DESC
             LIMIT :limit
         ");
         $this->db->bind(':guest_email', $email);
+        if ($ownerSql !== '') {
+            $this->db->bind(':id_owner', $ownerId, \PDO::PARAM_INT);
+        }
+        $this->bindSiteScope($siteKey);
         $this->db->bind(':limit', $limit, \PDO::PARAM_INT);
 
         return $this->db->fetchAll();
     }
 
-    public function hasAnyPaidOrderForCustomer(int $ownerId, ?int $userId, ?string $email): bool
+    public function hasAnyPaidOrderForCustomer(int $ownerId, ?int $userId, ?string $email, ?string $siteKey = null): bool
     {
         $userId = $userId ? (int)$userId : 0;
         $email = strtolower(trim((string)$email));
@@ -420,11 +459,13 @@ class StoreOrdersRepository extends BaseRepository
             return false;
         }
 
+        $siteSql = $this->siteScopeSql($siteKey);
         $sql = "
             SELECT 1
             FROM {$this->table}
             WHERE id_owner = :id_owner
               AND payment_status = :payment_status
+              {$siteSql}
               AND (
                 (:id_user > 0 AND id_user = :id_user)
                 OR (:guest_email <> '' AND LOWER(guest_email) = :guest_email)
@@ -434,6 +475,7 @@ class StoreOrdersRepository extends BaseRepository
 
         $this->db->query($sql);
         $this->db->bind(':id_owner', $ownerId, \PDO::PARAM_INT);
+        $this->bindSiteScope($siteKey);
         $this->db->bind(':payment_status', self::PAYMENT_PAID);
         $this->db->bind(':id_user', $userId, \PDO::PARAM_INT);
         $this->db->bind(':guest_email', $email);

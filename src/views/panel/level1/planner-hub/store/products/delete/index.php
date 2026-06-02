@@ -6,6 +6,7 @@ use App\Repositories\StoreProductsRepository;
 use App\Repositories\StoreProductsCategoriesRepository;
 use App\Repositories\StoreProductsAttributesRepository;
 use App\Utils\FileUtils;
+use App\Utils\AvomealContext;
 use App\Utils\LocationUtils;
 use App\Utils\MessageUtil;
 use App\Utils\Router;
@@ -17,6 +18,7 @@ $router->get(function () {
     $productsCategoriesRepo = new StoreProductsCategoriesRepository();
     $productsAttributesRepo = new StoreProductsAttributesRepository();
     $nutritionRepo = new StoreProductsNutritionRepository();
+    $ownerId = AvomealContext::ownerId();
 
     $id = intval($_GET['id'] ?? 0);
 
@@ -25,7 +27,7 @@ $router->get(function () {
         LocationUtils::redirectInternal("panel/planner-hub/store/products/home");
     }
 
-    $product = $productsRepo->getOne(['id' => $id]);
+    $product = $productsRepo->getOne(['id' => $id, 'id_owner' => $ownerId]);
 
     if (!$product) {
         MessageUtil::setMessage("Product not found.");
@@ -37,8 +39,10 @@ $router->get(function () {
         SELECT COUNT(*) AS total
         FROM store_order_items
         WHERE id_product = :id_product
+          AND id_owner = :id_owner
     ");
     $db->bind(':id_product', $id);
+    $db->bind(':id_owner', $ownerId);
     $rel = $db->fetchOne();
 
     if ((int)($rel->total ?? 0) > 0) {

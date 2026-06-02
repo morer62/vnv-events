@@ -1,6 +1,6 @@
 # Order Access Payment Flows
 
-> VNV Events repository note: this document is active for VNV Events where public order-access, payment, signature and client order links are used. Keep VNV Events customer experience and owner scope in mind.
+> Avomeal web note: this document is active for inherited public payment behavior. Avomeal Store checkout/payment flows should stay separate from event-service order-access links unless explicitly integrated.
 
 This document explains the public payment links under `src/views/public/order-access`.
 

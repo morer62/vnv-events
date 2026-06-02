@@ -1,0 +1,123 @@
+<?php
+
+namespace App\Services;
+
+use App\Repositories\InstitutionProfileRepository;
+use App\Repositories\TeamMemberContractsRepository;
+use App\Repositories\UserRepository;
+use App\Utils\FileUtils;
+use Dompdf\Dompdf;
+use Dompdf\Options;
+
+class TeamMemberContractPdfGenerator
+{
+    /**
+     * @return array{file_path: string, hash: string}
+     */
+    public static function generateAndSave(int $contractId, ?string $userTimestamp = null, ?string $signatureImagePath = null): array
+    {
+        $contractRepo = new TeamMemberContractsRepository();
+        $userRepo = new UserRepository();
+        $institutionRepo = new InstitutionProfileRepository();
+
+        $contract = $contractRepo->getById($contractId);
+        if (!$contract) {
+            throw new \RuntimeException('Team member contract not found.');
+        }
+
+        $member = $userRepo->getOneWithoutOwnership(['id' => (int)$contract->team_member_id]);
+        $owner = $userRepo->getOneWithoutOwnership(['id' => (int)$contract->id_owner]);
+        $institution = $institutionRepo->getByOwner((int)$contract->id_owner);
+
+        $timestamp = $userTimestamp ? date('F j, Y - g:i A', strtotime($userTimestamp)) : date('F j, Y - g:i A');
+        $ip = ($_SERVER['REMOTE_ADDR'] ?? '') === '::1' ? '127.0.0.1' : ($_SERVER['REMOTE_ADDR'] ?? 'Unknown');
+        $browser = $_SERVER['HTTP_USER_AGENT'] ?? 'Unknown';
+        $snapshot = $contract->contract_snapshot_html ?: '<p>No contract content assigned.</p>';
+        $signatureBlock = '<div class="signature-line">Electronically signed</div>';
+
+        if ($signatureImagePath) {
+            $signatureBlock .= '<div class="signature-image-note">Signature image captured and stored with this contract record.</div>';
+        }
+
+        $institutionName = htmlspecialchars($institution->company_name ?? $institution->name ?? 'VNV Events');
+        $memberName = htmlspecialchars(trim(($member->name ?? '') . ' ' . ($member->lastname ?? '')));
+        $memberEmail = htmlspecialchars($member->email ?? '');
+        $ownerName = htmlspecialchars(trim(($owner->name ?? '') . ' ' . ($owner->lastname ?? '')));
+
+        $html = '
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <style>
+                @page { margin: 48px; }
+                body { font-family: Arial, sans-serif; color: #152026; font-size: 10px; }
+                .header { border-bottom: 4px solid #4c6b7d; padding-bottom: 14px; margin-bottom: 20px; }
+                .title { font-size: 22px; font-weight: bold; margin: 0 0 4px; }
+                .muted { color: #687782; }
+                .grid { display: table; width: 100%; margin: 16px 0; }
+                .row { display: table-row; }
+                .cell { display: table-cell; width: 33%; border: 1px solid #d6dde3; padding: 10px; background: #f8f9fa; vertical-align: top; }
+                .label { font-weight: bold; margin-bottom: 4px; }
+                .content { font-size: 11px; line-height: 1.55; margin-top: 18px; }
+                .certificate { margin-top: 28px; padding: 12px; border: 1px solid #4c6b7d; background: #f0f4f8; font-size: 8px; }
+                .signature-line { font-weight: bold; font-size: 12px; margin-top: 6px; }
+                .signature-image-note { font-size: 8px; color: #687782; margin-top: 4px; }
+            </style>
+        </head>
+        <body>
+            <div class="header">
+                <div class="title">Team Member Contract</div>
+                <div class="muted">Contract #' . (int)$contract->id . ' | ' . $institutionName . '</div>
+            </div>
+
+            <div class="grid">
+                <div class="row">
+                    <div class="cell">
+                        <div class="label">Team Member</div>
+                        <div>' . $memberName . '</div>
+                        <div>' . $memberEmail . '</div>
+                    </div>
+                    <div class="cell">
+                        <div class="label">Business</div>
+                        <div>' . $institutionName . '</div>
+                        <div>Owner: ' . $ownerName . '</div>
+                    </div>
+                    <div class="cell">
+                        <div class="label">Signature</div>
+                        ' . $signatureBlock . '
+                        <div>' . htmlspecialchars($timestamp) . '</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="content">' . $snapshot . '</div>
+
+            <div class="certificate">
+                <div><strong>Signature Certificate</strong></div>
+                <div>Contract ID: ' . (int)$contract->id . '</div>
+                <div>Signer: ' . $memberName . ' | ' . $memberEmail . '</div>
+                <div>Signed at: ' . htmlspecialchars($timestamp) . ' signer local time</div>
+                <div>IP: ' . htmlspecialchars($ip) . '</div>
+                <div>User agent: ' . htmlspecialchars(substr($browser, 0, 200)) . '</div>
+                <div style="margin-top: 6px;">By signing, the signer agrees that this electronic signature has the same legal effect as a handwritten signature.</div>
+            </div>
+        </body>
+        </html>';
+
+        $options = new Options();
+        $options->set('isHtml5ParserEnabled', true);
+        $options->set('defaultFont', 'Arial');
+
+        $dompdf = new Dompdf($options);
+        $dompdf->loadHtml($html, 'UTF-8');
+        $dompdf->setPaper('A4');
+        $dompdf->render();
+
+        $content = $dompdf->output();
+
+        return [
+            'file_path' => FileUtils::saveFileFromContent($content, 'documents_team_member_contracts', 'pdf'),
+            'hash' => hash('sha256', $content),
+        ];
+    }
+}

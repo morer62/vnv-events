@@ -2,6 +2,7 @@
 
 use App\Repositories\StoreCategoriesRepository;
 use App\Repositories\StoreProductsRepository;
+use App\Utils\AvomealContext;
 use App\Utils\TemplateResponse;
 
 $url = trim($_GET['url'] ?? '', '/');
@@ -16,8 +17,9 @@ if (!$slug) {
 
 $categoriesRepository = new StoreCategoriesRepository();
 $productsRepository = new StoreProductsRepository();
+$ownerId = AvomealContext::ownerId();
 
-$category = $categoriesRepository->getBySlug($slug);
+$category = $categoriesRepository->getPublicBySlug($slug, $ownerId);
 
 if (!$category || ($category->status ?? null) !== StoreCategoriesRepository::STATUS_ACTIVE) {
     http_response_code(404);
@@ -25,7 +27,7 @@ if (!$category || ($category->status ?? null) !== StoreCategoriesRepository::STA
     exit;
 }
 
-$products = $productsRepository->getPublicByCategory((int)$category->id, 120);
+$products = $productsRepository->getPublicByCategory((int)$category->id, 120, $ownerId);
 
 $blocks = [];
 if (!empty($category->page_builder_json)) {

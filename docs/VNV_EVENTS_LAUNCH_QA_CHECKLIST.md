@@ -1,8 +1,10 @@
 # VNV Events Launch QA Checklist
 
+> Avomeal web note: this checklist is retained as VNV Events reference. For the current Avomeal sprint, use `docs/DATABASE_SCOPE.md`, `docs/STORE_MODEL.md`, `docs/HOMEPAGE_POSITIONING.md` and `docs/NEXT_AGENT_HANDOFF.md`.
+
 This checklist is the final launch gate for this repository.
 
-VNV Events is the active operating brand. Ophyra, Avomeal/VNV Gourmet, VNV Venues and Planner Hub references are historical or technical references unless a specific route is still active for VNV Events.
+VNV Events is the active operating brand. Ophyra, Avomeal, VNV Venues and Planner Hub references are historical or technical references unless a specific route is still active for VNV Events.
 
 ## Required Before Public Launch
 

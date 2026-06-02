@@ -1,6 +1,6 @@
 # Ophyra Immediate Launch Tasks
 
-> VNV Events repository note: this checklist belongs to Ophyra. Do not use it as the active VNV Events launch checklist; use `docs/VNV_EVENTS_LAUNCH_QA_CHECKLIST.md` and `docs/VNV_EVENTS_LAUNCH_READINESS.md`.
+> Avomeal web note: this checklist belongs to Ophyra. Do not use it as the active Avomeal launch checklist; use `docs/NEXT_AGENT_HANDOFF.md`, `docs/DATABASE_SCOPE.md` and `docs/STORE_MODEL.md`.
 
 ## Purpose
 

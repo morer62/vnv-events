@@ -26,8 +26,8 @@ function downloadStoreOrderLabelPdf(int $orderId): void
     $items = $itemsRepo->getByOrder($orderId);
 
     $pdf = new \TCPDF('P', 'mm', [80, 140], true, 'UTF-8', false);
-    $pdf->SetCreator('VNV Gourmet');
-    $pdf->SetAuthor('VNV Gourmet');
+    $pdf->SetCreator('Avomeal');
+    $pdf->SetAuthor('Avomeal');
     $pdf->SetTitle('Store Label #' . $orderId);
     $pdf->SetMargins(4, 4, 4);
     $pdf->SetAutoPageBreak(true, 4);
@@ -43,7 +43,7 @@ function downloadStoreOrderLabelPdf(int $orderId): void
         $pdf->SetY(22);
     } else {
         $pdf->SetFont('helvetica', 'B', 12);
-        $pdf->Cell(0, 5, 'VNV Gourmet', 0, 1, 'C');
+        $pdf->Cell(0, 5, 'Avomeal', 0, 1, 'C');
     }
 
     $pdf->SetFont('helvetica', '', 8);
@@ -134,16 +134,16 @@ function downloadStoreOrderLabelPdf(int $orderId): void
     $pdf->Cell(0, 6, 'Total paid: $' . number_format((float)($order->total ?? 0), 2), 0, 1, 'R');
     $pdf->Ln(1);
 
-    $siteUrl = 'https://www.vnvgourmet.com/';
+    $siteUrl = 'https://vnvevents.com/store/';
     $pdf->SetFont('helvetica', '', 8);
-    $pdf->MultiCell(42, 8, "Thank you for choosing VNV Gourmet.\nEnjoy your meals and have a great day.", 0, 'L', false, 0, '', '', true);
+    $pdf->MultiCell(42, 8, "Thank you for choosing Avomeal.\nEnjoy your meals and have a great day.", 0, 'L', false, 0, '', '', true);
     $style = ['border' => 0, 'padding' => 0, 'fgcolor' => [0, 0, 0], 'bgcolor' => false];
     $pdf->write2DBarcode($siteUrl, 'QRCODE,H', 55, $pdf->GetY() - 1, 18, 18, $style, 'N');
     $pdf->SetXY(50, $pdf->GetY() + 18);
     $pdf->SetFont('helvetica', '', 6.5);
-    $pdf->Cell(26, 4, 'vnvgourmet.com', 0, 1, 'C');
+    $pdf->Cell(26, 4, 'vnvevents.com', 0, 1, 'C');
 
-    $pdf->Output('vnv-gourmet-label-order-' . $orderId . '.pdf', 'D');
+    $pdf->Output('avomeal-label-order-' . $orderId . '.pdf', 'D');
 }
 
 $router->get(function () {

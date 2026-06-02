@@ -1,6 +1,6 @@
 # Ophyra Admin User, Modules and Reports Control
 
-> VNV Events repository note: this is inherited Ophyra/platform reference material. In this repo, apply it only when a VNV Events Level 1/admin route explicitly uses the same reporting or module-control behavior. Do not let Ophyra SaaS billing language override VNV Events launch workflows.
+> Avomeal web note: this is inherited Ophyra/platform reference material. In this repo, apply it only when Avomeal needs the same admin/reporting behavior under owner `2`. Do not let Ophyra SaaS billing language override Avomeal store/food workflows.
 
 ## Two reporting contexts
 

@@ -1,130 +1,188 @@
-# AGENTS.md - VNV Events Agent Entry Point
+# AGENTS.md - Avomeal Web Entry Point
 
-Este archivo es la puerta de entrada para cualquier agente, desarrollador o IA que trabaje en este repositorio.
+Este archivo es la entrada principal para cualquier agente, desarrollador o IA que trabaje en este repositorio.
 
-## Contexto actual obligatorio
+## Contexto Actual Obligatorio
 
-Este repositorio debe tratarse primero como **VNV Events**, no como Ophyra SaaS generico.
+Este repositorio debe tratarse primero como **Avomeal Web**.
 
-VNV Events es la empresa real de eventos que opera publicamente en:
+No es Ophyra generico. No es VNV Events completo. Avomeal es la marca/operacion de comida conectada a VNV Events y trabaja sobre la misma base de datos operativa.
+
+## Correccion De Naming
+
+La marca real/publica es **Avomeal**.
+
+**VNV Gourmet** fue un nombre temporal/codename usado antes del lanzamiento. Puede aparecer todavia en rutas tecnicas, assets, carpetas, referencias historicas o repositorios heredados, pero no debe usarse como marca publica ni como nombre principal en textos, metadata, SEO, documentacion operativa o copy visible.
+
+El business ID confirmado para Avomeal en esta estructura es:
 
 ```text
-https://vnvevents.com
+id_user_business = 2
+AVOMEAL_BUSINESS_USER_ID=2
+VNV_EVENTS_OWNER_ID=2
 ```
 
-Ophyra, Avomeal/VNV Gourmet, VNV Venues y Planner Hub pueden aparecer en rutas, documentos o codigo heredado. Esas referencias son contexto historico o tecnico salvo que una tarea pida tocar explicitamente esos sistemas.
+Ese ID corresponde al business owner principal de VNV Events y debe usarse para scoping de productos, categorias, carritos, pedidos, pagos, suscripciones, delivery, clientes y reportes de Avomeal.
 
-Para trabajo de lanzamiento en este repo, prioriza:
+La visibilidad publica del sitio se controla aparte con:
 
-* Level 1: dueno/admin de VNV Events.
-* Level 4: team members.
-* Level 5: clientes y usuarios publicos registrados.
-* Level 6: CMS/marketing cuando aplique.
-* Ordenes, solicitudes de eventos, clientes, equipo, chat, payroll/time clock, CMS, landing pages, locaciones, blog, foros, catalogo/store, sesiones musicales, SEO Center y archivos publicos SEO/AI.
+```text
+site_key = avomeal
+```
 
-La documentacion completa vive dentro de `/docs`. Antes de tocar codigo, rutas, endpoints, vistas, base de datos, mobile apps o branding, lee este archivo y luego abre los documentos relevantes dentro de `/docs`.
+`id_owner = 2` indica ownership/operacion. No significa automaticamente que todo ese contenido deba mostrarse en Avomeal. Para contenido publico, configuracion SMTP/payment provider, CMS, locaciones, foros y catalogo, usar `site_key = avomeal` o un scope compartido documentado (`shared`, `global`, `all_sites`). Ver `docs/SITE_SCOPE_MODEL.md`.
 
-## Idea central
+## Identidad Comercial
 
-Ophyra es el proyecto padre/original y la referencia estructural del ecosistema, pero no todos los proyectos derivados deben tratarse como si fueran el mismo producto.
+Avomeal debe explicarse como una marca gastronomica amplia, no solo como meal prep.
 
-Estos proyectos comparten historia, patrones tecnicos, codigo base o parte de la arquitectura, pero representan marcas y plataformas distintas:
+Pilares comerciales actuales:
 
-| Proyecto | Repo / dominio | Rol en el ecosistema |
-| --- | --- | --- |
-| VNV Events | Este repo, `morer62/vnv-events`, `vnvevents.com` | Empresa de eventos, servicios, clientes, ordenes, equipo y ejecucion operativa. |
-| Ophyra | Referencia heredada/relacionada | Plataforma modular de operaciones y referencia central. |
-| Avomeal / VNV Gourmet | `morer62/VNV_Gourmet`, `avomeal.com` | Marca de comida, delivery, meals, kits gastronomicos, productos, ordenes y clientes. |
-| Jonnys Media | `jonnys.media` | Marca personal/profesional del desarrollador y lider tecnico del ecosistema. |
-| Avomeal mobile app | `morer62/vnv-gourmet-app` | App Expo/React Native conectada a Avomeal/VNV Gourmet. |
-| VNV Events mobile app | `morer62/vnv-mobile-app` | App Expo/React Native conectada a VNV Events. |
+1. **Meal Preps**
+   - comidas preparadas,
+   - pedidos semanales,
+   - productos listos para organizar la semana,
+   - posibles suscripciones o pedidos recurrentes.
 
-No trates todos estos repositorios como un solo producto. Ophyra puede funcionar como referencia, central administrativa o base compartida, pero VNV Events, Avomeal y Jonnys Media mantienen identidad, branding, dominio, navegacion, experiencia visual y proposito de negocio propios.
+2. **Holiday Menus**
+   - Thanksgiving,
+   - Christmas,
+   - New Year,
+   - Valentine's,
+   - Mother's Day,
+   - Father's Day,
+   - corporate holiday meals,
+   - family celebrations.
 
-## Orden de lectura recomendado
+3. **Party Boxes**
+   - appetizers,
+   - sweets,
+   - party snacks,
+   - dessert boxes,
+   - themed boxes,
+   - small event food kits,
+   - dinner kits,
+   - celebration boxes.
 
-1. `docs/VNV_EVENTS_LAUNCH_READINESS.md` cuando el trabajo sea sobre este repositorio VNV Events.
-2. `docs/README.md`
-3. `docs/ECOSYSTEM_OVERVIEW.md`
-4. `docs/OPHYRA_BUSINESS_MODEL.md`
-5. Documento especifico del proyecto que vas a tocar:
-   - `docs/VNV_EVENTS_PROJECT_CONTEXT.md`
-   - `docs/AVOMEAL_PROJECT_CONTEXT.md`
-   - `docs/JONNYS_MEDIA_PROJECT_CONTEXT.md`
-   - `docs/MOBILE_APPS_ECOSYSTEM.md`
-6. Documentos de flujo segun el area:
-   - `docs/USER_COMPANY_ACCESS_MODEL.md`
-   - `docs/STORE_COMMERCE_FLOW.md`
-   - `docs/TEAM_CHAT_DELIVERY_OPERATIONS.md`
-   - `docs/MOBILE_API_NOTIFICATIONS_FLOW.md`
-   - `docs/ADMIN_USER_MODULE_REPORTS_CONTROL.md`
-   - `docs/OPHYRA_COMMERCIAL_LAUNCH_READINESS.md`
-   - `docs/OPHYRA_IMMEDIATE_LAUNCH_TASKS.md`
-   - `docs/OPHYRA_BILLING_AUTOMATION.md`
-   - `docs/OPHYRA_SUPPORT_TEAM_PLAYBOOK.md`
-   - `docs/ORDER_ACCESS_PAYMENT_FLOWS.md`
+Tambien puede tener productos sueltos, cenas tematicas, catering-style kits, store checkout y suscripciones.
 
-## Modelo de usuarios por proyecto
+Regla comercial visible:
 
-En Ophyra, el modelo actual incluye:
+```text
+$65 minimum order
+```
 
-* Level 1: super admin / Ophyra Global Admin / operaciones centrales.
-* Level 2: Business Owner / Account Owner.
-* Level 3: legacy.
-* Level 4: team member / empleado / colaborador.
-* Level 5: cliente final.
-* Level 6: marketing / CMS / funciones especificas.
+## Relacion Entre Proyectos
 
-En proyectos derivados como VNV Events, Avomeal / VNV Gourmet y otras marcas independientes, la estructura fue simplificada:
+Estos proyectos son hermanos y comparten historia, arquitectura, base de datos o patrones:
 
-* Level 1: dueno/admin principal de la marca.
-* Level 4: team member / empleado / colaborador.
-* Level 5: cliente.
-* Level 6: usuario relacionado con marketing o funciones especificas.
+| Proyecto | Rol |
+| --- | --- |
+| Ophyra | Plataforma padre/referencia arquitectonica y futura integracion administrativa. |
+| VNV Events | Business owner / parent operation para este scope. |
+| Avomeal | Store/food brand bajo VNV Events con branding propio. |
+| VNV Events mobile app | App conectada a los flujos de eventos/clientes/equipo. |
+| Avomeal mobile app | App conectada a clientes, pedidos, store, suscripciones y notificaciones de Avomeal. |
 
-En esos proyectos derivados, no asumas que Level 2 y Level 3 siguen siendo parte activa del flujo principal. Pueden existir por herencia historica, pero normalmente se ignoran o quedan como legacy.
+Avomeal conserva su branding publico, pero opera bajo el owner `2`.
 
-## Reglas de identidad
+## Regla Critica De Base De Datos Compartida
 
-* Ophyra no es VNV Events.
-* Ophyra no es Avomeal.
-* VNV Events no es Avomeal.
-* Jonnys Media no es un cliente generico del sistema.
-* Las apps moviles no contienen la logica central del negocio; normalmente conectan login, signup, dashboard, WebView, token de sesion y notificaciones con el backend/web.
-* El signup web pertenece al flujo comercial de Ophyra y sirve para registrar nuevos negocios/clientes comerciales. El signup movil no pertenece al flujo comercial de Ophyra; existe unicamente para registrar o asociar clientes finales de una marca especifica, usando `id_user_business` o el identificador equivalente. Ophyra debe mantenerse como plataforma web para registro, billing, membresias, modulos y afiliados.
-* Billing Automation debe tratarse como un sistema integrado: Stripe webhook, renovacion de Ophyra Base, renovacion de add-ons, fallos de pago/dunning, `payments_all`, comisiones afiliadas, logs e intervencion manual de Level 1. No implementar esas piezas como parches separados.
+No consultar ni modificar data global sin scope.
 
-Cuando trabajes en una marca, respeta su dominio, lenguaje, visuales, rutas, publico y flujo operativo.
+Toda operacion relevante debe filtrar por el campo de ownership real:
 
-## Reglas tecnicas criticas
+```text
+id_owner
+id_user_business
+business_id
+company_id
+```
+
+En este schema actual, `id_owner = 2` identifica ownership/operacion y `site_key = avomeal` identifica visibilidad/configuracion del sitio Avomeal.
+
+Si una tabla no tiene campo de scope, documenta el riesgo antes de modificar. No inventes ownership ni migres datos automaticamente.
+
+## Areas Activas
+
+Prioriza:
+
+- public Avomeal home,
+- Store/catalog,
+- products,
+- categories,
+- meal preps,
+- holiday menus,
+- party boxes,
+- cart,
+- checkout,
+- orders,
+- subscriptions,
+- customers,
+- payments,
+- delivery zones/tracking,
+- SEO,
+- mobile app compatibility.
+
+## Reglas Tecnicas
 
 Antes de modificar, confirma:
 
-* que modulo o marca estas tocando,
-* que usuario/nivel lo usa,
-* que tabla o endpoint afecta,
-* si hay impacto en mobile/WebView,
-* si hay impacto en pagos,
-* si hay impacto en clientes, ordenes o chat,
-* si el cambio afecta una marca distinta,
-* si la respuesta JSON ya es consumida por una app movil.
+- que la ruta pertenece a Avomeal o a un modulo compartido,
+- que la query respeta `id_user_business = 2` / `id_owner = 2` y, si es publica/configuracion por marca, `site_key = avomeal`,
+- que no rompe VNV Events,
+- que no cambia endpoints usados por mobile sin compatibilidad,
+- que no mezcla Store revenue con Ophyra SaaS revenue,
+- que no convierte clientes finales en business owners.
 
 No modificar sin justificacion fuerte:
 
-* Kernel / Router,
-* `BaseRepository`,
-* `UserRepository`,
-* login/auth,
-* endpoints API usados por mobile,
-* pagos,
-* Affiliate/referral logic,
-* rutas publicas existentes,
-* estructura JSON usada por apps moviles.
+- Kernel / Router,
+- `BaseRepository`,
+- `UserRepository`,
+- login/auth,
+- endpoints API usados por mobile,
+- pagos,
+- estructura JSON consumida por apps,
+- tablas compartidas sin SQL revisado.
 
-Si necesitas cambiar una respuesta API usada por mobile, agrega campos nuevos en lugar de eliminar o renombrar campos existentes.
+## Orden De Lectura
 
-## Principio de trabajo
+```text
+docs/README.md
+docs/AVOMEAL_CONTEXT.md
+docs/DATABASE_SCOPE.md
+docs/STORE_MODEL.md
+docs/PRODUCT_MODEL.md
+docs/PRODUCT_VISIBILITY.md
+docs/SUBSCRIPTIONS_AND_ORDERS.md
+docs/ORDERS_AND_TEAM_WORKFLOW.md
+docs/CLIENT_FLOW.md
+docs/SUBSCRIPTIONS.md
+docs/CMS_AND_PUBLIC_CONTENT.md
+docs/HOMEPAGE_POSITIONING.md
+docs/VNV_EVENTS_RELATIONSHIP.md
+docs/OPHYRA_FUTURE_INTEGRATION.md
+docs/NEXT_AGENT_HANDOFF.md
+```
 
-Cambios pequenos, controlados, reversibles y faciles de probar.
+## Principio Principal
 
-Si tienes duda, lee primero el documento de contexto del proyecto dentro de `/docs` y revisa un modulo similar antes de editar.
+Avomeal debe crecer como food/store brand dentro del ecosistema sin romper VNV Events, sin leer/escribir data global y sin diluirse como Ophyra generico.
+## AI Content Assistant
+
+Do not allow AI-generated content to publish without human approval.
+
+First phase AI content work is limited to blog posts and location pages. Do not extend the assistant to service landing pages, forums, products, campaigns or store content unless the user explicitly starts a later phase.
+
+In this VNV Events repo, the default AI content profile is:
+
+```text
+AI_CONTENT_SITE_KEY=vnv_events
+```
+
+The same implementation is portable to Avomeal by switching:
+
+```text
+AI_CONTENT_SITE_KEY=avomeal
+```

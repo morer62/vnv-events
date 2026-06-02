@@ -1,6 +1,7 @@
 <?php
 
 use App\Repositories\StoreAttributesRepository;
+use App\Utils\AvomealContext;
 use App\Utils\LocationUtils;
 use App\Utils\MessageUtil;
 use App\Utils\Router;
@@ -14,6 +15,7 @@ $router->get(function () {
 
 $router->post(function () {
     $repo = new StoreAttributesRepository();
+    $ownerId = AvomealContext::ownerId();
 
     $name = trim($_POST['name'] ?? '');
     $status = trim($_POST['status'] ?? StoreAttributesRepository::STATUS_ACTIVE);
@@ -26,6 +28,7 @@ $router->post(function () {
     $slug = $repo->generateUniqueSlug($name);
 
     $ok = $repo->add([
+        'id_owner' => $ownerId,
         'name' => $name,
         'slug' => $slug,
         'status' => $status

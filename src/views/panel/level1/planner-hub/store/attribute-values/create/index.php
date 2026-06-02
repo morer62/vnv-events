@@ -2,6 +2,7 @@
 
 use App\Repositories\StoreAttributesRepository;
 use App\Repositories\StoreAttributeValuesRepository;
+use App\Utils\AvomealContext;
 use App\Utils\LocationUtils;
 use App\Utils\MessageUtil;
 use App\Utils\Router;
@@ -11,6 +12,7 @@ $router = new Router();
 
 $router->get(function () {
     $attributeRepo = new StoreAttributesRepository();
+    $ownerId = AvomealContext::ownerId();
 
     $idAttribute = intval($_GET['id_attribute'] ?? 0);
 
@@ -19,7 +21,7 @@ $router->get(function () {
         LocationUtils::redirectInternal("panel/planner-hub/store/attributes/home");
     }
 
-    $attribute = $attributeRepo->getOne(['id' => $idAttribute]);
+    $attribute = $attributeRepo->getOne(['id' => $idAttribute, 'id_owner' => $ownerId]);
 
     if (!$attribute) {
         MessageUtil::setMessage("Attribute not found.");
@@ -34,6 +36,7 @@ $router->get(function () {
 $router->post(function () {
     $attributeRepo = new StoreAttributesRepository();
     $repo = new StoreAttributeValuesRepository();
+    $ownerId = AvomealContext::ownerId();
 
     $idAttribute = intval($_POST['id_attribute'] ?? 0);
     $value = trim($_POST['value'] ?? '');
@@ -45,7 +48,7 @@ $router->post(function () {
         LocationUtils::redirectInternal("panel/planner-hub/store/attributes/home");
     }
 
-    $attribute = $attributeRepo->getOne(['id' => $idAttribute]);
+    $attribute = $attributeRepo->getOne(['id' => $idAttribute, 'id_owner' => $ownerId]);
 
     if (!$attribute) {
         MessageUtil::setMessage("Attribute not found.");
@@ -60,6 +63,7 @@ $router->post(function () {
     $slug = $repo->generateUniqueSlug($idAttribute, $value);
 
     $ok = $repo->add([
+        'id_owner' => $ownerId,
         'id_attribute' => $idAttribute,
         'value' => $value,
         'slug' => $slug,

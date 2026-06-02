@@ -7,6 +7,7 @@ use App\Utils\MessageUtil;
 use App\Utils\TemplateResponse;
 use App\Utils\Router;
 use App\Services\NotificationService;
+use App\Services\TeamMemberContractService;
 use App\Services\UserInstitutionService;
 use App\Repositories\InstitutionProfileRepository;
 use App\Repositories\UserInstitutionsRepository;
@@ -186,6 +187,11 @@ $router->post(callback: function () use ($repo, $user): void {
     if ($action === "start") {
         if (count($logs) > 0) {
             MessageUtil::setMessage("You already started a session.");
+            LocationUtils::reload();
+        }
+
+        if ($isLevel4 && !(new TeamMemberContractService())->isClockInAllowed($user->getId(), (int)$currentInstitutionOwner)) {
+            MessageUtil::setMessage("Tu contrato todavia no ha sido validado. Abre Mi contrato para firmarlo o contacta al administrador antes de iniciar tu reloj.");
             LocationUtils::reload();
         }
 

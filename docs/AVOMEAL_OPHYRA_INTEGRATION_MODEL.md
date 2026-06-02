@@ -1,21 +1,21 @@
-# Avomeal / VNV Gourmet Integration Model
+# Avomeal Integration Model
 
-> VNV Events repository note: this is Avomeal/VNV Gourmet reference material. Keep it for shared Store, delivery, nutrition or owner-scope lessons, but do not treat Avomeal as the active product in this repo. VNV Events remains the current launch brand.
+> Current Avomeal note: Avomeal is now treated as the active food/store brand in this repo. It uses the same database universe as VNV Events and the confirmed business scope is `id_user_business = 2` / `id_owner = 2`.
 
 ## Purpose
 
-This document defines how Avomeal / VNV Gourmet should operate from the centralized Ophyra database without becoming a second Level 1 system and without creating a parallel Store.
+This document defines how Avomeal should operate from the shared VNV Events/Ophyra-style database without becoming a separate unscoped system and without creating a parallel Store.
 
-Avomeal is modeled as a separate Business Operation inside Ophyra:
+Avomeal is modeled as a food/store brand under the VNV Events business owner:
 
 ```text
-Ophyra Global Admin
-VNV Events Operations
-Avomeal Operations
+VNV Events owner scope: 2
+Avomeal food/store operation
+Future Ophyra visibility/integration
 jonnys.media Operations, future
 ```
 
-Level 1 remains the single super admin. Level 1 can operate VNV Events and Avomeal from separate owner/company contexts while still managing Ophyra globally.
+Level 1 remains the business/admin owner. Avomeal and VNV Events share the confirmed business scope `2`; separation is handled by brand, Store structure, product/category organization and careful owner-scoped queries, not by a separate Avomeal database.
 
 ## Reference Sources
 
@@ -30,11 +30,11 @@ docs/TEAM_CHAT_DELIVERY_OPERATIONS.md
 docs/MOBILE_API_NOTIFICATIONS_FLOW.md
 ```
 
-The VNV_Gourmet repository is treated as a functional reference, not as code to copy blindly.
+The legacy VNV_Gourmet repository name is treated as a historical/technical reference. The public brand direction is Avomeal, and the reference repo should not be copied blindly.
 
-## What VNV_Gourmet Shows
+## What Avomeal Shows
 
-VNV_Gourmet is already centered around a meal-prep Store experience:
+Avomeal is already centered around a meal-prep Store experience:
 
 * Level 1 home is focused on products, orders and people.
 * Level 4 home is role-based for general support, kitchen/preparation and delivery.
@@ -135,11 +135,11 @@ id_owner = operational scope on Store, orders, payments, payroll and tasks
 
 Recommended setup:
 
-* VNV Events has its own owner ID and `institution_profile`.
-* Avomeal has its own owner ID and `institution_profile`.
+* VNV Events has the confirmed owner ID `2` and `institution_profile`.
+* Avomeal operates under that same confirmed owner scope in this structure.
 * Level 1 can access both contexts.
 * Reports must filter by `id_owner`.
-* Products, Store orders, payments, subscriptions and delivery data must never mix across owners.
+* Products, Store orders, payments, subscriptions and delivery data must never be queried globally without owner scope.
 
 No historical Avomeal data should be migrated automatically until an import plan is reviewed.
 
@@ -212,7 +212,7 @@ panel/planner-hub/store/payments/home?operation=avomeal
 panel/planner-hub/store/coupons/home?operation=avomeal
 ```
 
-The context does not mutate the login session owner. It resolves the selected operation owner and passes that owner ID into Store repositories/controllers explicitly. This keeps Avomeal from becoming a separate Level 1 account and prevents Avomeal data from mixing with VNV Events data.
+The context should not mutate the login session owner. It should resolve the Avomeal business owner as `2` from configuration and pass that owner ID into Store repositories/controllers explicitly. This keeps Avomeal from becoming a separate Level 1 account and prevents global Store reads.
 
 ## Product Mapping
 
@@ -353,7 +353,7 @@ store_payments
 
 Rules:
 
-* The payment provider belongs to the Avomeal owner/company.
+* The payment provider belongs to the confirmed business owner/company scope `2`.
 * Stripe, Square and PayPal should reuse the existing Store checkout pattern.
 * Do not create a separate Avomeal checkout.
 * Do not write card numbers or CVV to Ophyra.
@@ -372,12 +372,12 @@ Team Members:
 
 * Level 4 can work for Avomeal through `user_institutions`.
 * Store-specific role is stored in `store_user_roles`.
-* `general`, `kitchen` and `delivery` are the key Avomeal roles from VNV_Gourmet.
+* `general`, `kitchen` and `delivery` are the key Avomeal roles from Avomeal.
 * Team Members should use the unified work model described in `docs/TEAM_CHAT_DELIVERY_OPERATIONS.md`.
 
 ## Reports
 
-Avomeal reports must be Business Operations reports scoped to Avomeal's owner ID.
+Avomeal reports must be Business Operations reports scoped to owner ID `2`.
 
 Avomeal reports can include:
 
@@ -416,7 +416,7 @@ It does not import historical data.
 Ophyra resolves Avomeal's owner/company in this order:
 
 1. `AVOMEAL_OWNER_ID` from `.env`, if configured.
-2. An `institution_profile` whose `company_name`, `business_nature` or `business_operation_type` indicates Avomeal, VNV Gourmet, meal prep or nutrition.
+2. An `institution_profile` whose `company_name`, `business_nature` or `business_operation_type` indicates Avomeal, meal prep or nutrition.
 3. Manual query-string override with `operation_owner_id={id}` for controlled admin testing.
 
 VNV Events resolves from `VNV_EVENTS_OWNER_ID`, `STORE_OWNER_ID` or the current Level 1 owner fallback.
@@ -440,8 +440,8 @@ store_delivery_location_logs.id_owner
 
 Recommended Avomeal migration phases:
 
-1. Create or identify the Avomeal owner/company in central Ophyra.
-2. Create `institution_profile` for Avomeal.
+1. Confirm the VNV Events owner/company ID `2` exists.
+2. Confirm Avomeal public branding and Store configuration use owner `2`.
 3. Configure Avomeal payment provider in `payment_providers_credentials`.
 4. Run `db/avomeal_ophyra_integration.sql`.
 5. Import categories and products into `store_categories` and `store_products`.
@@ -456,7 +456,7 @@ Recommended Avomeal migration phases:
 
 Level 1 Ophyra Global Admin:
 
-* Confirm Avomeal appears as a separate operation/company.
+* Confirm Avomeal appears as a food/store brand under owner `2`.
 * Confirm VNV Events and Avomeal reports stay separate.
 * Confirm Ophyra platform metrics do not include Avomeal Store sales.
 
@@ -477,7 +477,7 @@ Public / customer:
 * Add meals to cart.
 * Apply coupon.
 * Checkout with the Avomeal payment provider.
-* Confirm Store order and payment are created with Avomeal owner ID.
+* Confirm Store order and payment are created with owner ID `2`.
 * Confirm Level 5 sees the order and selling business.
 
 Delivery:

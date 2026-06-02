@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Repositories\SmtpCredentialsRepository;
+use App\Utils\SiteContext;
 use PHPMailer\PHPMailer\PHPMailer;
 
 class EmailServiceFactory
@@ -11,24 +12,7 @@ class EmailServiceFactory
     {
         try {
             $repo = new SmtpCredentialsRepository();
-            $all = $repo->getAllByOwner($ownerId, 1, 200);
-            $configs = $all['data'] ?? [];
-
-            $selected = null;
-            foreach ($configs as $cfg) {
-                if ((int)($cfg->is_default ?? 0) === 1 && (int)($cfg->is_active ?? 0) === 1) {
-                    $selected = $cfg;
-                    break;
-                }
-            }
-            if (!$selected) {
-                foreach ($configs as $cfg) {
-                    if ((int)($cfg->is_active ?? 0) === 1) {
-                        $selected = $cfg;
-                        break;
-                    }
-                }
-            }
+            $selected = $repo->getConfiguredForOwner($ownerId, SiteContext::siteKey());
 
             if (!$selected) {
                 $fallback = new EmailService();
@@ -158,7 +142,7 @@ class EmailServiceFactory
             ];
 
             $fromEmail = (string)($smtp->from_email ?? '');
-            $fromName = (string)($smtp->from_name ?? 'VNV Gourmet');
+            $fromName = (string)($smtp->from_name ?? 'Avomeal');
             if ($fromEmail === '') {
                 return ['success' => false, 'message' => 'From email is missing in SMTP config.'];
             }
@@ -180,4 +164,3 @@ class EmailServiceFactory
         }
     }
 }
-

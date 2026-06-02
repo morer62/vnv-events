@@ -1,6 +1,6 @@
 # Ophyra Final Stabilization QA
 
-> VNV Events repository note: this is inherited stabilization reference. Translate only relevant owner-scoped, order, Store, payment, mobile or QA lessons into VNV Events workflows.
+> Avomeal web note: this is inherited stabilization reference. Translate only relevant owner-scoped, Store, payment, mobile or QA lessons into Avomeal workflows.
 
 ## Purpose
 

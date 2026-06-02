@@ -2,8 +2,12 @@
 
 namespace App\Repositories;
 
+use App\Repositories\Concerns\SiteScopedRepositoryTrait;
+
 class StoreSubscriptionsRepository extends BaseRepository
 {
+    use SiteScopedRepositoryTrait;
+
     const STATUS_ACTIVE = 'ACTIVE';
     const STATUS_PAUSED = 'PAUSED';
     const STATUS_CANCELLED = 'CANCELLED';
@@ -15,6 +19,7 @@ class StoreSubscriptionsRepository extends BaseRepository
     protected array $fields = [
         'id',
         'id_owner',
+        'site_key',
         'id_user',
         'id_store_order',
         'archive',
@@ -44,6 +49,11 @@ class StoreSubscriptionsRepository extends BaseRepository
         $this->ensureExtraColumns();
     }
 
+    public function add(array $data): bool
+    {
+        return parent::add($this->withDefaultSiteKey($data));
+    }
+
     private function ensureExtraColumns(): void
     {
         $columns = [
@@ -64,72 +74,95 @@ class StoreSubscriptionsRepository extends BaseRepository
         }
     }
 
-    public function getByEmail(string $email): array
+    public function getByEmail(string $email, ?string $siteKey = null): array
     {
+        $siteSql = $this->siteScopeSql($siteKey);
         $this->db->query("
             SELECT *
             FROM {$this->table}
             WHERE email = :email
               AND COALESCE(archive, 0) = 0
+              {$siteSql}
             ORDER BY id DESC
         ");
         $this->db->bind(':email', $email);
+        $this->bindSiteScope($siteKey);
 
         return $this->db->fetchAll();
     }
 
-    public function getActiveByEmail(string $email): ?object
+    public function getActiveByEmail(string $email, ?int $ownerId = null, ?string $siteKey = null): ?object
     {
+        $ownerSql = $ownerId !== null && $ownerId > 0 ? "AND id_owner = :id_owner" : "";
+        $siteSql = $this->siteScopeSql($siteKey);
         $this->db->query("
             SELECT *
             FROM {$this->table}
             WHERE email = :email
               AND status = :status
               AND COALESCE(archive, 0) = 0
+              {$ownerSql}
+              {$siteSql}
             ORDER BY id DESC
             LIMIT 1
         ");
         $this->db->bind(':email', $email);
         $this->db->bind(':status', self::STATUS_ACTIVE);
+        if ($ownerSql !== '') {
+            $this->db->bind(':id_owner', $ownerId, \PDO::PARAM_INT);
+        }
+        $this->bindSiteScope($siteKey);
 
         $result = $this->db->fetchOne();
         return $result ?: null;
     }
 
-    public function getByUser(int $userId): array
+    public function getByUser(int $userId, ?string $siteKey = null): array
     {
+        $siteSql = $this->siteScopeSql($siteKey);
         $this->db->query("
             SELECT *
             FROM {$this->table}
             WHERE id_user = :id_user
               AND COALESCE(archive, 0) = 0
+              {$siteSql}
             ORDER BY id DESC
         ");
         $this->db->bind(':id_user', $userId);
+        $this->bindSiteScope($siteKey);
 
         return $this->db->fetchAll();
     }
 
-    public function getActiveByUser(int $userId): ?object
+    public function getActiveByUser(int $userId, ?int $ownerId = null, ?string $siteKey = null): ?object
     {
+        $ownerSql = $ownerId !== null && $ownerId > 0 ? "AND id_owner = :id_owner" : "";
+        $siteSql = $this->siteScopeSql($siteKey);
         $this->db->query("
             SELECT *
             FROM {$this->table}
             WHERE id_user = :id_user
               AND status = :status
               AND COALESCE(archive, 0) = 0
+              {$ownerSql}
+              {$siteSql}
             ORDER BY id DESC
             LIMIT 1
         ");
         $this->db->bind(':id_user', $userId);
         $this->db->bind(':status', self::STATUS_ACTIVE);
+        if ($ownerSql !== '') {
+            $this->db->bind(':id_owner', $ownerId, \PDO::PARAM_INT);
+        }
+        $this->bindSiteScope($siteKey);
 
         $result = $this->db->fetchOne();
         return $result ?: null;
     }
 
-    public function getDueForCharge(string $date): array
+    public function getDueForCharge(string $date, ?string $siteKey = null): array
     {
+        $siteSql = $this->siteScopeSql($siteKey);
         $this->db->query("
             SELECT *
             FROM {$this->table}
@@ -137,10 +170,12 @@ class StoreSubscriptionsRepository extends BaseRepository
               AND COALESCE(archive, 0) = 0
               AND next_charge_date IS NOT NULL
               AND next_charge_date <= :charge_date
+              {$siteSql}
             ORDER BY next_charge_date ASC
         ");
         $this->db->bind(':status', self::STATUS_ACTIVE);
         $this->db->bind(':charge_date', $date);
+        $this->bindSiteScope($siteKey);
 
         return $this->db->fetchAll();
     }
@@ -247,33 +282,49 @@ class StoreSubscriptionsRepository extends BaseRepository
         }
     }
 
-    public function getAllByUser(int $userId, int $limit = 100): array
+    public function getAllByUser(int $userId, int $limit = 100, ?int $ownerId = null, ?string $siteKey = null): array
 {
+    $ownerSql = $ownerId !== null && $ownerId > 0 ? "AND id_owner = :id_owner" : "";
+    $siteSql = $this->siteScopeSql($siteKey);
     $this->db->query("
         SELECT *
         FROM {$this->table}
         WHERE id_user = :id_user
           AND COALESCE(archive, 0) = 0
+          {$ownerSql}
+          {$siteSql}
         ORDER BY id DESC
         LIMIT :limit
     ");
     $this->db->bind(':id_user', $userId);
+    if ($ownerSql !== '') {
+        $this->db->bind(':id_owner', $ownerId, \PDO::PARAM_INT);
+    }
+    $this->bindSiteScope($siteKey);
     $this->db->bind(':limit', $limit, \PDO::PARAM_INT);
 
     return $this->db->fetchAll();
 }
 
-public function getAllByEmail(string $email, int $limit = 100): array
+public function getAllByEmail(string $email, int $limit = 100, ?int $ownerId = null, ?string $siteKey = null): array
 {
+    $ownerSql = $ownerId !== null && $ownerId > 0 ? "AND id_owner = :id_owner" : "";
+    $siteSql = $this->siteScopeSql($siteKey);
     $this->db->query("
         SELECT *
         FROM {$this->table}
         WHERE email = :email
           AND COALESCE(archive, 0) = 0
+          {$ownerSql}
+          {$siteSql}
         ORDER BY id DESC
         LIMIT :limit
     ");
     $this->db->bind(':email', $email);
+    if ($ownerSql !== '') {
+        $this->db->bind(':id_owner', $ownerId, \PDO::PARAM_INT);
+    }
+    $this->bindSiteScope($siteKey);
     $this->db->bind(':limit', $limit, \PDO::PARAM_INT);
 
     return $this->db->fetchAll();

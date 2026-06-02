@@ -19,32 +19,13 @@ use App\Services\StripeService;
 use App\Services\LoginService;
 use App\Services\StoreCouponService;
 use App\Utils\LocationUtils;
+use App\Utils\AvomealContext;
 
 $router = new Router();
 
 function getStoreOwnerId(): int
 {
-    $envOwner = intval($_ENV['STORE_OWNER_ID'] ?? 0);
-    if ($envOwner > 0) {
-        return $envOwner;
-    }
-
-    $envFallback = intval($_ENV['DEFAULT_OWNER_ID'] ?? 0);
-    if ($envFallback > 0) {
-        return $envFallback;
-    }
-
-    try {
-        $userRepo = new UserRepository();
-        $owners = $userRepo->getAllBy(['level' => 1], ['id'], 1);
-        $first = $owners[0] ?? null;
-        if ($first && isset($first->id)) {
-            return (int)$first->id;
-        }
-    } catch (\Throwable $e) {
-    }
-
-    return 0;
+    return AvomealContext::ownerId();
 }
 
 function getSquareApiBaseUrl(string $environment): string
@@ -579,11 +560,11 @@ $router->post(function () {
     $cart = null;
 
     if ($sessionToken !== '') {
-        $cart = $cartsRepo->getBySessionToken($sessionToken);
+        $cart = $cartsRepo->getBySessionToken($sessionToken, $ownerId);
     }
 
     if (!$cart && $recoveryToken !== '') {
-        $cart = $cartsRepo->getByRecoveryToken($recoveryToken);
+        $cart = $cartsRepo->getByRecoveryToken($recoveryToken, $ownerId);
     }
 
     if (!$cart) {
@@ -679,6 +660,7 @@ $router->post(function () {
     $subtotal = round($subtotal, 2);
     $discount = round((float)($cart->coupon_discount ?? 0), 2);
     $total = round($subtotal - $discount, 2);
+    $minimumOrderAmount = AvomealContext::minimumOrderAmount();
     $couponCodeFromCart = trim((string)($cart->coupon_code ?? ''));
     $couponIdFromCart = (int)($cart->id_coupon ?? 0);
 
@@ -954,6 +936,14 @@ $router->post(function () {
         return;
     }
 
+    if ($action === 'pay' && $total < $minimumOrderAmount) {
+        echo json_encode([
+            "success" => false,
+            "message" => "Avomeal minimum order is $" . number_format($minimumOrderAmount, 2) . ". Please add more items before checkout."
+        ]);
+        return;
+    }
+
     $providersRepo = new PaymentProvidersRepository();
     $activeProvider = $providersRepo->getActiveProviderForOwner($ownerId);
     $providerType = $activeProvider ? (string)($activeProvider->provider_type ?? '') : '';
@@ -1031,6 +1021,14 @@ $router->post(function () {
     } else {
         $discount = 0;
         $total = $subtotal;
+    }
+
+    if ($total < $minimumOrderAmount) {
+        echo json_encode([
+            "success" => false,
+            "message" => "Avomeal minimum order is $" . number_format($minimumOrderAmount, 2) . ". Please add more items before checkout."
+        ]);
+        return;
     }
 
     if ($guestName === '' || $guestEmail === '') {

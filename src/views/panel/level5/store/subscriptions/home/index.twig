@@ -1,7 +1,7 @@
 {% extends 'templates/base.admin.twig' %}
 
 {% block body %}
-<div class="container-fluid">
+<div class="container-fluid vnv-page-shell store-subscriptions-page">
     <style>
         #selectedMealsEditor {
             max-height: 420px;
@@ -10,22 +10,23 @@
         }
     </style>
 
-    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <div class="vnv-page-header">
         <div>
-            <h1 class="h3 mb-1">My Gourmet Subscriptions</h1>
-            <p class="text-muted mb-0">Review your recurring gourmet meal plans.</p>
+            <p class="vnv-kicker">Client Dashboard</p>
+            <h1>My Avomeal Subscriptions</h1>
+            <p>Review recurring Avomeal meal plans, upcoming renewals and selected meals.</p>
         </div>
 
-        <a href="{{ path('/meal-plans') }}" class="btn btn-outline-dark">
+        <a href="{{ path('/meal-plans') }}" class="btn vnv-btn-primary">
             Order More Meals
         </a>
     </div>
 
-    <div class="card shadow-sm border-0">
+    <div class="card vnv-panel-card">
         <div class="card-body">
             {% if subscriptions|length > 0 %}
                 <div class="table-responsive">
-                    <table class="table align-middle">
+                    <table class="table align-middle vnv-table">
                         <thead>
                             <tr>
                                 <th>ID</th>
@@ -151,9 +152,9 @@
                     </table>
                 </div>
             {% else %}
-                <div class="text-center py-5">
+                <div class="vnv-empty-state text-center py-5">
                     <h5 class="mb-2">No subscriptions yet</h5>
-                    <p class="text-muted mb-3">You do not have any gourmet subscriptions yet.</p>
+                    <p class="text-muted mb-3">You do not have any Avomeal subscriptions yet.</p>
                     <a href="{{ path('/meal-plans') }}" class="btn btn-primary">
                         Start My Meal Plan
                     </a>

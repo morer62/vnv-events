@@ -1,5 +1,7 @@
 # VNV Events SEO / AI Control Center
 
+> Avomeal web note: this SEO Center reference is useful for public SEO files, but Avomeal public SEO should describe meal preps, holiday menus, party boxes, subscriptions and the `$65 minimum order`.
+
 ## Purpose
 
 The SEO / AI Control Center provides manual regeneration for public SEO and AI context files:

@@ -2,13 +2,18 @@
 
 namespace App\Repositories;
 
+use App\Repositories\Concerns\SiteScopedRepositoryTrait;
+
 class CmsContentsRepository extends BaseRepository
 {
+    use SiteScopedRepositoryTrait;
+
     protected string $table = "cms_contents";
 
     protected array $fields = [
         'id',
         'id_owner',
+        'site_key',
         'id_template',
         'id_blog_category',
         'type',
@@ -34,8 +39,14 @@ class CmsContentsRepository extends BaseRepository
         'updated_at',
     ];
 
-    public function getAllByType(string $type, string $language = 'en'): array
+    public function add(array $data): bool
     {
+        return parent::add($this->withDefaultSiteKey($data));
+    }
+
+    public function getAllByType(string $type, string $language = 'en', ?string $siteKey = null): array
+    {
+        $siteSql = $this->siteScopeSql($siteKey, 'c');
         $query = "
             SELECT 
                 c.*,
@@ -46,12 +57,14 @@ class CmsContentsRepository extends BaseRepository
             LEFT JOIN `cms_templates` t ON t.id = c.id_template
             WHERE c.type = :type
               AND c.language = :language
+              {$siteSql}
             ORDER BY c.id DESC
         ";
 
         $this->db->query($query);
         $this->db->bind(':type', $type);
         $this->db->bind(':language', $language);
+        $this->bindSiteScope($siteKey);
 
         return $this->db->fetchAll() ?: [];
     }
@@ -79,8 +92,9 @@ class CmsContentsRepository extends BaseRepository
         return $result ?: null;
     }
 
-    public function getBySlugTypeAndLanguage(string $slug, string $type = 'page', string $language = 'en'): ?object
+    public function getBySlugTypeAndLanguage(string $slug, string $type = 'page', string $language = 'en', ?string $siteKey = null): ?object
     {
+        $siteSql = $this->publicVisibilitySql('cms_content', $siteKey, 'c');
         $query = "
             SELECT 
                 c.*,
@@ -92,6 +106,7 @@ class CmsContentsRepository extends BaseRepository
             WHERE c.slug = :slug
               AND c.type = :type
               AND c.language = :language
+              {$siteSql}
             LIMIT 1
         ";
 
@@ -99,13 +114,15 @@ class CmsContentsRepository extends BaseRepository
         $this->db->bind(':slug', $slug);
         $this->db->bind(':type', $type);
         $this->db->bind(':language', $language);
+        $this->bindSiteScope($siteKey);
 
         $result = $this->db->fetchOne();
         return $result ?: null;
     }
 
-    public function getPublishedByType(string $type, string $language = 'en'): array
+    public function getPublishedByType(string $type, string $language = 'en', ?string $siteKey = null): array
     {
+        $siteSql = $this->publicVisibilitySql('cms_content', $siteKey, 'c');
         $query = "
             SELECT 
                 c.*,
@@ -117,18 +134,21 @@ class CmsContentsRepository extends BaseRepository
             WHERE c.type = :type
               AND c.language = :language
               AND c.status = 'PUBLISHED'
+              {$siteSql}
             ORDER BY c.published_at DESC, c.id DESC
         ";
 
         $this->db->query($query);
         $this->db->bind(':type', $type);
         $this->db->bind(':language', $language);
+        $this->bindSiteScope($siteKey);
 
         return $this->db->fetchAll() ?: [];
     }
 
-    public function getPublishedSitemapEntries(string $language = 'en'): array
+    public function getPublishedSitemapEntries(string $language = 'en', ?string $siteKey = null): array
     {
+        $siteSql = $this->publicVisibilitySql('cms_content', $siteKey, 'c');
         $query = "
             SELECT
                 c.id,
@@ -148,11 +168,13 @@ class CmsContentsRepository extends BaseRepository
               AND c.type IN ('page', 'post')
               AND (c.robots IS NULL OR LOWER(c.robots) NOT LIKE '%noindex%')
               AND (r.status IS NULL OR r.status = 'ACTIVE')
+              {$siteSql}
             ORDER BY c.updated_at DESC, c.published_at DESC, c.id DESC
         ";
 
         $this->db->query($query);
         $this->db->bind(':language', $language);
+        $this->bindSiteScope($siteKey);
 
         return $this->db->fetchAll() ?: [];
     }
@@ -193,8 +215,9 @@ class CmsContentsRepository extends BaseRepository
         return $result && (int)$result->total > 0;
     }
 
-    public function getHomepage(string $language = 'en'): ?object
+    public function getHomepage(string $language = 'en', ?string $siteKey = null): ?object
     {
+        $siteSql = $this->publicVisibilitySql('cms_content', $siteKey, 'c');
         $query = "
             SELECT 
                 c.*,
@@ -205,11 +228,13 @@ class CmsContentsRepository extends BaseRepository
             LEFT JOIN `cms_templates` t ON t.id = c.id_template
             WHERE c.is_homepage = 1
               AND c.language = :language
+              {$siteSql}
             LIMIT 1
         ";
 
         $this->db->query($query);
         $this->db->bind(':language', $language);
+        $this->bindSiteScope($siteKey);
 
         $result = $this->db->fetchOne();
         return $result ?: null;

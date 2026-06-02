@@ -6,6 +6,7 @@ use App\Repositories\StoreProductsRepository;
 use App\Repositories\StoreProductVariationsRepository;
 use App\Services\StoreCouponService;
 use App\Services\LoginService;
+use App\Utils\AvomealContext;
 use App\Utils\Router;
 use App\Utils\TemplateResponse;
 
@@ -24,6 +25,7 @@ $router->post(function () {
     $cartItemsRepo = new StoreCartItemsRepository();
 
     $payload = json_decode(file_get_contents("php://input"), true);
+    $ownerId = AvomealContext::ownerId();
 
     if (!$payload || !is_array($payload)) {
         echo json_encode([
@@ -63,7 +65,7 @@ $router->post(function () {
             continue;
         }
 
-        $product = $productsRepo->getPublicById($productId);
+        $product = $productsRepo->getPublicById($productId, $ownerId);
 
         if (!$product) {
             continue;
@@ -169,7 +171,7 @@ $router->post(function () {
     if ($couponCode !== '') {
         try {
             $couponResult = $couponService->validateAndCalculate(
-                2,
+                $ownerId,
                 $couponCode,
                 $subtotal,
                 $pricingMode,
@@ -204,13 +206,13 @@ $router->post(function () {
         $sessionToken = $cartsRepo->generateToken();
     }
 
-    $cart = $cartsRepo->getBySessionToken($sessionToken);
+    $cart = $cartsRepo->getBySessionToken($sessionToken, $ownerId);
 
     if (!$cart) {
         $recoveryToken = $cartsRepo->generateToken();
 
         $ok = $cartsRepo->add([
-            'id_owner' => 2,
+            'id_owner' => $ownerId,
             'id_user' => $userId,
             'session_token' => $sessionToken,
             'recovery_token' => $recoveryToken,
@@ -286,6 +288,7 @@ $router->post(function () {
 
     foreach ($cleanItems as $item) {
         $ok = $cartItemsRepo->add([
+            'id_owner' => $ownerId,
             'id_cart' => $cartId,
             'id_product' => $item['id_product'],
             'id_product_variation' => $item['id_product_variation'],

@@ -2,14 +2,19 @@
 
 namespace App\Repositories;
 
+use App\Repositories\Concerns\SiteScopedRepositoryTrait;
+
 class StoreOrderItemsRepository extends BaseRepository
 {
+    use SiteScopedRepositoryTrait;
+
     const PRICING_PAYG = 'PAYG';
     const PRICING_SUBSCRIPTION = 'SUBSCRIPTION';
 
     protected array $fields = [
         'id',
         'id_owner',
+        'site_key',
         'id_store_order',
         'id_product',
         'id_product_variation',
@@ -28,6 +33,11 @@ class StoreOrderItemsRepository extends BaseRepository
         $this->table = "store_order_items";
         $this->db = new Connection();
         $this->ensureVariationColumns();
+    }
+
+    public function add(array $data): bool
+    {
+        return parent::add($this->withDefaultSiteKey($data));
     }
 
     private function ensureVariationColumns(): void

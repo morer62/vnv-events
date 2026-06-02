@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Store Subscription Renewals Cron Job (VNV Gourmet)
+ * Store Subscription Renewals Cron Job (Avomeal)
  *
  * - Charges ACTIVE subscriptions only when next_charge_date is due
  * - Creates a store order + order items + payment record
@@ -9,7 +9,7 @@
  * - Creates admin notification on failure
  *
  * Suggested schedule: daily (e.g., 2:10 AM)
- * Command: php C:\xampp\htdocs\VNV_Gourmet\src\cron\store-subscription-renewals.php
+ * Command: php C:\xampp\htdocs\Avomeal\src\cron\store-subscription-renewals.php
  */
 
 declare(strict_types=1);
@@ -535,7 +535,7 @@ foreach ($due as $sub) {
             (string)$card->token,
             $amountCents,
             (string)($order->guest_email ?? $email),
-            "VNV Gourmet Subscription Renewal - Subscription #{$subId}",
+            "Avomeal Subscription Renewal - Subscription #{$subId}",
             $squareCustomerIdForCardOnFile
         );
     }
@@ -583,4 +583,3 @@ foreach ($due as $sub) {
 
 logLine("Done. processed={$processed}, successful={$successful}, failed={$failed}, skipped={$skipped}");
 logLine("=== Store Subscription Renewals completed ===");
-

@@ -20,19 +20,35 @@ $router->post(function () {
 
     try {
         $forgotPasswordService = new ForgotPasswordService();
-        $success = $forgotPasswordService->sendResetLink($email);
+        $result = $forgotPasswordService->sendResetLink($email);
 
-        if ($success) {
+        if ($result === true) {
             return JsonResponse::createResponse([
                 "success" => true,
                 "message" => "If an account exists with that email, a reset link has been sent."
             ]);
-        } else {
+        }
+
+        if ($result === "google_account") {
             return JsonResponse::createResponse([
                 "success" => false,
-                "message" => "An error occurred while sending the reset link. Please try again."
+                "oauth_account" => "google",
+                "message" => "This account was created with Google. Please sign in with Google instead."
             ]);
         }
+
+        if ($result === "apple_account") {
+            return JsonResponse::createResponse([
+                "success" => false,
+                "oauth_account" => "apple",
+                "message" => "This account was created with Apple. Please sign in with Apple instead."
+            ]);
+        }
+
+        return JsonResponse::createResponse([
+            "success" => false,
+            "message" => "An error occurred while sending the reset link. Please try again."
+        ]);
     } catch (Exception $e) {
         return JsonResponse::createResponse([
             "success" => false,

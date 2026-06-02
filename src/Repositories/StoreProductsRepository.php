@@ -2,8 +2,12 @@
 
 namespace App\Repositories;
 
+use App\Repositories\Concerns\SiteScopedRepositoryTrait;
+
 class StoreProductsRepository extends BaseRepository
 {
+    use SiteScopedRepositoryTrait;
+
     const STATUS_ACTIVE = 'ACTIVE';
     const STATUS_INACTIVE = 'INACTIVE';
     const STATUS_DRAFT = 'DRAFT';
@@ -13,6 +17,8 @@ class StoreProductsRepository extends BaseRepository
 
     protected array $fields = [
         'id',
+        'id_owner',
+        'site_key',
         'name',
         'slug',
         'sku',
@@ -135,15 +141,33 @@ class StoreProductsRepository extends BaseRepository
         return $this->db->fetchOne() !== false;
     }
 
-   public function getBySlug(string $slug): ?object
+    public function add(array $data): bool
+    {
+        return parent::add($this->withDefaultSiteKey($data));
+    }
+
+    public function update(array $data, array $criteriaVals): bool
+    {
+        return parent::update($data, $criteriaVals);
+    }
+
+   public function getBySlug(string $slug, ?int $ownerId = null, ?string $siteKey = null): ?object
 {
+    $ownerSql = $ownerId !== null && $ownerId > 0 ? "AND id_owner = :id_owner" : "";
+    $siteSql = $this->siteScopeSql($siteKey);
     $this->db->query("
         SELECT *
         FROM {$this->table}
         WHERE slug = CONVERT(:slug USING latin1)
+        {$ownerSql}
+        {$siteSql}
         LIMIT 1
     ");
     $this->db->bind(':slug', $slug);
+    if ($ownerSql !== '') {
+        $this->db->bind(':id_owner', $ownerId, \PDO::PARAM_INT);
+    }
+    $this->bindSiteScope($siteKey);
     $result = $this->db->fetchOne();
     return $result ?: null;
 }
@@ -187,17 +211,61 @@ class StoreProductsRepository extends BaseRepository
     return $this->appendComputedPricingToProducts($rows);
 }
 
-    public function getActivePublic(int $limit = 500): array
+    public function getAllByOwner(int $ownerId, array $columns = [], int $limit = 0, ?string $siteKey = null): array
     {
+        $selectedColumns = '*';
+
+        if (!empty($columns)) {
+            $safeColumns = array_filter(array_map('trim', array_map('strval', $columns)));
+            if (!empty($safeColumns)) {
+                $selectedColumns = implode(', ', $safeColumns);
+            }
+        }
+
+        $sql = "
+            SELECT {$selectedColumns}
+            FROM {$this->table}
+            WHERE id_owner = :id_owner
+            {$this->siteScopeSql($siteKey)}
+            ORDER BY id DESC
+        ";
+
+        if ($limit > 0) {
+            $sql .= " LIMIT :limit";
+        }
+
+        $this->db->query($sql);
+        $this->db->bind(':id_owner', $ownerId, \PDO::PARAM_INT);
+        $this->bindSiteScope($siteKey);
+
+        if ($limit > 0) {
+            $this->db->bind(':limit', $limit, \PDO::PARAM_INT);
+        }
+
+        $rows = $this->db->fetchAll();
+
+        return $this->appendComputedPricingToProducts($rows);
+    }
+
+    public function getActivePublic(int $limit = 500, ?int $ownerId = null, ?string $siteKey = null): array
+    {
+        $ownerSql = $ownerId !== null && $ownerId > 0 ? "AND id_owner = :id_owner" : "";
+        $siteSql = $this->publicVisibilitySql('store_product', $siteKey);
         $this->db->query("
             SELECT *
             FROM {$this->table}
             WHERE status = :status
               AND is_public = 1
+              {$ownerSql}
+              {$siteSql}
             ORDER BY is_featured DESC, id DESC
             LIMIT :limit
         ");
         $this->db->bind(':status', self::STATUS_ACTIVE);
+        if ($ownerSql !== '') {
+            $this->db->bind(':id_owner', $ownerId, \PDO::PARAM_INT);
+        }
+        $this->bindSiteScope($siteKey);
         $this->db->bind(':limit', $limit, \PDO::PARAM_INT);
 
         $rows = $this->db->fetchAll();
@@ -205,8 +273,15 @@ class StoreProductsRepository extends BaseRepository
         return $this->appendComputedPricingToProducts($rows);
     }
 
-    public function getPublicSitemapEntries(int $limit = 1000): array
+    public function getPublicActiveProducts(int $limit = 500, ?int $ownerId = null, ?string $siteKey = null): array
     {
+        return $this->getActivePublic($limit, $ownerId, $siteKey);
+    }
+
+    public function getPublicSitemapEntries(int $limit = 1000, ?int $ownerId = null, ?string $siteKey = null): array
+    {
+        $ownerSql = $ownerId !== null && $ownerId > 0 ? "AND id_owner = :id_owner" : "";
+        $siteSql = $this->publicVisibilitySql('store_product', $siteKey);
         $this->db->query("
             SELECT id, name, slug, short_description, updated_at, created_at
             FROM {$this->table}
@@ -214,17 +289,25 @@ class StoreProductsRepository extends BaseRepository
               AND is_public = 1
               AND slug IS NOT NULL
               AND slug != ''
+              {$ownerSql}
+              {$siteSql}
             ORDER BY updated_at DESC, created_at DESC
             LIMIT :limit
         ");
         $this->db->bind(':status', self::STATUS_ACTIVE);
+        if ($ownerSql !== '') {
+            $this->db->bind(':id_owner', $ownerId, \PDO::PARAM_INT);
+        }
+        $this->bindSiteScope($siteKey);
         $this->db->bind(':limit', $limit, \PDO::PARAM_INT);
 
         return $this->db->fetchAll() ?: [];
     }
 
-    public function getPublicByCategory(int $categoryId, int $limit = 120): array
+    public function getPublicByCategory(int $categoryId, int $limit = 120, ?int $ownerId = null, ?string $siteKey = null): array
 {
+    $ownerSql = $ownerId !== null && $ownerId > 0 ? "AND sp.id_owner = :id_owner" : "";
+    $siteSql = $this->publicVisibilitySql('store_product', $siteKey, 'sp');
     $sql = "
         SELECT sp.*
         FROM {$this->table} sp
@@ -232,6 +315,8 @@ class StoreProductsRepository extends BaseRepository
         WHERE spc.id_category = :id_category
           AND sp.status = :status
           AND sp.is_public = 1
+          {$ownerSql}
+          {$siteSql}
         ORDER BY sp.is_featured DESC, sp.id DESC
     ";
 
@@ -242,6 +327,10 @@ class StoreProductsRepository extends BaseRepository
     $this->db->query($sql);
     $this->db->bind(':id_category', $categoryId, \PDO::PARAM_INT);
     $this->db->bind(':status', self::STATUS_ACTIVE);
+    if ($ownerSql !== '') {
+        $this->db->bind(':id_owner', $ownerId, \PDO::PARAM_INT);
+    }
+    $this->bindSiteScope($siteKey);
 
     if ($limit > 0) {
         $this->db->bind(':limit', $limit, \PDO::PARAM_INT);
@@ -252,18 +341,26 @@ class StoreProductsRepository extends BaseRepository
     return $this->appendComputedPricingToProducts($rows);
 }
 
-    public function getPublicById(int $id): ?object
+    public function getPublicById(int $id, ?int $ownerId = null, ?string $siteKey = null): ?object
     {
+        $ownerSql = $ownerId !== null && $ownerId > 0 ? "AND id_owner = :id_owner" : "";
+        $siteSql = $this->publicVisibilitySql('store_product', $siteKey);
         $this->db->query("
             SELECT *
             FROM {$this->table}
             WHERE id = :id
               AND status = :status
               AND is_public = 1
+              {$ownerSql}
+              {$siteSql}
             LIMIT 1
         ");
         $this->db->bind(':id', $id, \PDO::PARAM_INT);
         $this->db->bind(':status', self::STATUS_ACTIVE);
+        if ($ownerSql !== '') {
+            $this->db->bind(':id_owner', $ownerId, \PDO::PARAM_INT);
+        }
+        $this->bindSiteScope($siteKey);
 
         $product = $this->db->fetchOne();
         if (!$product) {
@@ -273,18 +370,26 @@ class StoreProductsRepository extends BaseRepository
         return $this->appendComputedPricingToProduct($product);
     }
 
-    public function getPublicBySlug(string $slug): ?object
+    public function getPublicBySlug(string $slug, ?int $ownerId = null, ?string $siteKey = null): ?object
 {
+    $ownerSql = $ownerId !== null && $ownerId > 0 ? "AND id_owner = :id_owner" : "";
+    $siteSql = $this->publicVisibilitySql('store_product', $siteKey);
     $this->db->query("
         SELECT *
         FROM {$this->table}
         WHERE slug = CONVERT(:slug USING latin1)
           AND status = :status
           AND is_public = 1
+          {$ownerSql}
+          {$siteSql}
         LIMIT 1
     ");
     $this->db->bind(':slug', $slug);
     $this->db->bind(':status', self::STATUS_ACTIVE);
+    if ($ownerSql !== '') {
+        $this->db->bind(':id_owner', $ownerId, \PDO::PARAM_INT);
+    }
+    $this->bindSiteScope($siteKey);
 
     $product = $this->db->fetchOne();
     if (!$product) {
@@ -376,9 +481,9 @@ class StoreProductsRepository extends BaseRepository
         return $product;
     }
 
-    public function getFullPublicProductDetails(int $id): ?object
+    public function getFullPublicProductDetails(int $id, ?int $ownerId = null): ?object
     {
-        $product = $this->getPublicById($id);
+        $product = $this->getPublicById($id, $ownerId);
         if (!$product) {
             return null;
         }
@@ -496,6 +601,8 @@ class StoreProductsRepository extends BaseRepository
         $productsAttributesRepo = new StoreProductsAttributesRepository();
         $variationsRepo = new StoreProductVariationsRepository();
         $variationValuesRepo = new StoreProductVariationValuesRepository();
+        $product = $this->getOne(['id' => $productId]);
+        $productOwnerId = (int)($product->id_owner ?? 0);
 
         $productsCategoriesRepo->deleteByProduct($productId);
         $productsAttributesRepo->deleteByProduct($productId);
@@ -504,7 +611,12 @@ class StoreProductsRepository extends BaseRepository
 
         $categoryIds = array_values(array_unique(array_filter(array_map('intval', $categoryIds))));
         foreach ($categoryIds as $categoryId) {
-            $category = $categoriesRepo->getOne(['id' => $categoryId]);
+            $categoryCriteria = ['id' => $categoryId];
+            if ($productOwnerId > 0) {
+                $categoryCriteria['id_owner'] = $productOwnerId;
+            }
+
+            $category = $categoriesRepo->getOne($categoryCriteria);
             if (!$category) {
                 continue;
             }
@@ -525,7 +637,12 @@ class StoreProductsRepository extends BaseRepository
                 continue;
             }
 
-            $attribute = $attributesRepo->getOne(['id' => $attributeId]);
+            $attributeCriteria = ['id' => $attributeId];
+            if ($productOwnerId > 0) {
+                $attributeCriteria['id_owner'] = $productOwnerId;
+            }
+
+            $attribute = $attributesRepo->getOne($attributeCriteria);
             if (!$attribute) {
                 continue;
             }

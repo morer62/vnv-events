@@ -7,6 +7,7 @@ use App\Services\UserInstitutionService;
 use App\Repositories\InstitutionProfileRepository;
 use App\Repositories\StoreUserRolesRepository;
 use App\Utils\LocationUtils;
+use App\Utils\AvomealContext;
 
 $router = new Router();
 
@@ -15,6 +16,7 @@ $router->get(function () {
     $userInstitutionService = new UserInstitutionService();
     $institutionRepo = new InstitutionProfileRepository();
     $storeUserRolesRepo = new StoreUserRolesRepository();
+    $avomealOwnerId = AvomealContext::ownerId();
 
     $currentInstitutionId = $_SESSION['current_institution_id'] ?? null;
     $currentInstitution = null;
@@ -22,13 +24,16 @@ $router->get(function () {
 
     if ($currentInstitutionId) {
         $currentInstitution = $institutionRepo->getById($currentInstitutionId);
+        if ($currentInstitution && (int)($currentInstitution->id_owner ?? 0) !== $avomealOwnerId) {
+            $currentInstitution = null;
+        }
     }
 
     if (!$currentInstitution) {
-        $primaryInstitution = $userInstitutionService->getUserPrimaryInstitution($user->getId());
-        if ($primaryInstitution) {
-            $currentInstitution = $institutionRepo->getById($primaryInstitution->institution_id);
-            $_SESSION['current_institution_id'] = $primaryInstitution->institution_id;
+        $candidateInstitution = $institutionRepo->getByOwner($avomealOwnerId);
+        if ($candidateInstitution) {
+            $currentInstitution = $candidateInstitution;
+            $_SESSION['current_institution_id'] = $candidateInstitution->id;
         }
     }
 

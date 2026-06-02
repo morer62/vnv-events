@@ -1,6 +1,6 @@
 # Ophyra Public Conversion Funnel
 
-> VNV Events repository note: this describes Ophyra public acquisition. Do not use it as VNV Events landing-page copy. VNV Events public pages should speak as an event planning and production business.
+> Avomeal web note: this describes Ophyra public acquisition. Do not use it as Avomeal landing-page copy. Avomeal public pages should speak as a food, prepared-meal, holiday-menu and party-box brand.
 
 ## Purpose
 

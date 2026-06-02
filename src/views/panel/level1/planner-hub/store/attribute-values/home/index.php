@@ -2,6 +2,7 @@
 
 use App\Repositories\StoreAttributesRepository;
 use App\Repositories\StoreAttributeValuesRepository;
+use App\Utils\AvomealContext;
 use App\Utils\LocationUtils;
 use App\Utils\MessageUtil;
 use App\Utils\Router;
@@ -13,6 +14,7 @@ $router->get(function () {
 
     $attributeRepo = new StoreAttributesRepository();
     $valuesRepo = new StoreAttributeValuesRepository();
+    $ownerId = AvomealContext::ownerId();
 
     $idAttribute = intval($_GET['id_attribute'] ?? 0);
 
@@ -21,7 +23,7 @@ $router->get(function () {
         LocationUtils::redirectInternal("panel/planner-hub/store/attributes/home");
     }
 
-    $attribute = $attributeRepo->getOne(['id' => $idAttribute]);
+    $attribute = $attributeRepo->getOne(['id' => $idAttribute, 'id_owner' => $ownerId]);
 
     if (!$attribute) {
         MessageUtil::setMessage("Attribute not found.");
@@ -30,7 +32,7 @@ $router->get(function () {
 
     return TemplateResponse::render(__DIR__ . "/index.twig", [
         "attribute" => $attribute,
-        "values" => $valuesRepo->getByAttribute($idAttribute)
+        "values" => $valuesRepo->getByAttributeScoped($idAttribute, $ownerId)
     ]);
 });
 

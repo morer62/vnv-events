@@ -1,6 +1,6 @@
 # Ophyra Support Team Playbook
 
-> VNV Events repository note: this is Ophyra support reference. For VNV Events launch support, adapt only the operational QA habits, not the SaaS customer/account language.
+> Avomeal web note: this is Ophyra support reference. For Avomeal launch support, adapt only the operational QA habits, not the SaaS customer/account language.
 
 ## Purpose
 

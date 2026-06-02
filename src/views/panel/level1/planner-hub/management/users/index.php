@@ -110,12 +110,22 @@ $router->get(function () {
             $teamMembersById[$member->id] = $member;
         }
         $teamMembers = array_values($teamMembersById);
+
+        $memberLatestContracts = [];
+        if ($teamMembers) {
+            $contractRepo = new \App\Repositories\TeamMemberContractsRepository();
+            $memberLatestContracts = $contractRepo->getLatestByMembers(
+                array_map(fn($member) => (int)$member->id, $teamMembers),
+                (int)$currentOwnerId
+            );
+        }
         
         $clients = $clientsUsersRepo->getClientsByOwner($currentOwnerId, $filters);
         
         $currentInstitution = $userInstitutionService->getCurrentInstitutionContext($user->getId());
     } else {
         $currentInstitution = null;
+        $memberLatestContracts = [];
     }
 
     $availableInstitutions = $userInstitutionService->getUserAvailableInstitutions($user->getId());
@@ -131,7 +141,8 @@ $router->get(function () {
         "filter_client_name" => $clientName,
         "filter_client_email" => $clientEmail,
         "current_institution" => $currentInstitution,
-        "available_institutions" => $availableInstitutions
+        "available_institutions" => $availableInstitutions,
+        "member_latest_contracts" => $memberLatestContracts
     ]);
 });
 

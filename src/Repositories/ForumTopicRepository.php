@@ -2,32 +2,42 @@
 
 namespace App\Repositories;
 
+use App\Repositories\Concerns\SiteScopedRepositoryTrait;
+
 class ForumTopicRepository extends BaseRepository
 {
+    use SiteScopedRepositoryTrait;
+
     public function __construct()
     {
         $this->table = "forum_topics";
         $this->db = new Connection();
     }
 
-    public function getTopicsByCategory(int $categoryId, int $limit = 20, int $offset = 0, string $filter = 'recent'): array
+    public function add(array $data): bool
     {
+        return parent::add($this->withDefaultSiteKey($data));
+    }
+
+    public function getTopicsByCategory(int $categoryId, int $limit = 20, int $offset = 0, string $filter = 'recent', ?string $siteKey = null): array
+    {
+        $siteSql = $this->publicVisibilitySql('forum_topic', $siteKey, 't');
         switch ($filter) {
             case 'comments':
                 $orderBy = 'ORDER BY t.is_pinned DESC, t.last_reply_at DESC, t.created_at DESC';
-                $whereClause = "WHERE t.id_category = :category_id AND t.is_approved = 1 AND COALESCE(t.status, 'PUBLISHED') = 'PUBLISHED' AND t.last_reply_at IS NOT NULL";
+                $whereClause = "WHERE t.id_category = :category_id AND t.is_approved = 1 AND COALESCE(t.status, 'PUBLISHED') = 'PUBLISHED' AND t.last_reply_at IS NOT NULL {$siteSql}";
                 break;
             case 'popular':
                 $orderBy = 'ORDER BY t.is_pinned DESC, t.likes_count DESC, t.replies_count DESC, t.views_count DESC';
-                $whereClause = "WHERE t.id_category = :category_id AND t.is_approved = 1 AND COALESCE(t.status, 'PUBLISHED') = 'PUBLISHED'";
+                $whereClause = "WHERE t.id_category = :category_id AND t.is_approved = 1 AND COALESCE(t.status, 'PUBLISHED') = 'PUBLISHED' {$siteSql}";
                 break;
             case 'views':
                 $orderBy = 'ORDER BY t.is_pinned DESC, t.views_count DESC, t.created_at DESC';
-                $whereClause = "WHERE t.id_category = :category_id AND t.is_approved = 1 AND COALESCE(t.status, 'PUBLISHED') = 'PUBLISHED'";
+                $whereClause = "WHERE t.id_category = :category_id AND t.is_approved = 1 AND COALESCE(t.status, 'PUBLISHED') = 'PUBLISHED' {$siteSql}";
                 break;
             default:
                 $orderBy = 'ORDER BY t.is_pinned DESC, t.created_at DESC';
-                $whereClause = "WHERE t.id_category = :category_id AND t.is_approved = 1 AND COALESCE(t.status, 'PUBLISHED') = 'PUBLISHED'";
+                $whereClause = "WHERE t.id_category = :category_id AND t.is_approved = 1 AND COALESCE(t.status, 'PUBLISHED') = 'PUBLISHED' {$siteSql}";
                 break;
         }
 
@@ -50,6 +60,7 @@ class ForumTopicRepository extends BaseRepository
             LIMIT :limit OFFSET :offset
         ");
         $this->db->bind(':category_id', $categoryId);
+        $this->bindSiteScope($siteKey);
         $this->db->bind(':limit', $limit);
         $this->db->bind(':offset', $offset);
         return $this->db->fetchAll();
@@ -75,8 +86,9 @@ class ForumTopicRepository extends BaseRepository
         return $this->db->fetchOne();
     }
 
-    public function getPublishedBySlug(string $slug): object|bool
+    public function getPublishedBySlug(string $slug, ?string $siteKey = null): object|bool
     {
+        $siteSql = $this->publicVisibilitySql('forum_topic', $siteKey, 't');
         $this->db->query("
             SELECT
                 t.*,
@@ -92,9 +104,11 @@ class ForumTopicRepository extends BaseRepository
             WHERE t.slug = :slug
               AND t.is_approved = 1
               AND COALESCE(t.status, 'PUBLISHED') = 'PUBLISHED'
+              {$siteSql}
             LIMIT 1
         ");
         $this->db->bind(':slug', trim(strtolower($slug)));
+        $this->bindSiteScope($siteKey);
         return $this->db->fetchOne();
     }
 
@@ -107,8 +121,9 @@ class ForumTopicRepository extends BaseRepository
         return $this->getPublishedBySlug((string)$value);
     }
 
-    public function getRecentTopics(int $limit = 10, int $offset = 0): array
+    public function getRecentTopics(int $limit = 10, int $offset = 0, ?string $siteKey = null): array
     {
+        $siteSql = $this->publicVisibilitySql('forum_topic', $siteKey, 't');
         $this->db->query("
             SELECT 
                 t.*,
@@ -120,27 +135,33 @@ class ForumTopicRepository extends BaseRepository
             INNER JOIN users u ON u.id = t.id_user
             INNER JOIN forum_categories c ON c.id = t.id_category
             WHERE t.is_approved = 1 AND COALESCE(t.status, 'PUBLISHED') = 'PUBLISHED'
+              {$siteSql}
             ORDER BY t.is_pinned DESC, t.created_at DESC
             LIMIT :limit OFFSET :offset
         ");
+        $this->bindSiteScope($siteKey);
         $this->db->bind(':limit', $limit);
         $this->db->bind(':offset', $offset);
         return $this->db->fetchAll();
     }
 
-    public function countAllTopics(): int
+    public function countAllTopics(?string $siteKey = null): int
     {
+        $siteSql = $this->publicVisibilitySql('forum_topic', $siteKey);
         $this->db->query("
             SELECT COUNT(*) as total 
             FROM {$this->table} 
             WHERE is_approved = 1 AND COALESCE(status, 'PUBLISHED') = 'PUBLISHED'
+              {$siteSql}
         ");
+        $this->bindSiteScope($siteKey);
         $result = $this->db->fetchOne();
         return $result ? (int)$result->total : 0;
     }
 
-    public function getPopularTopics(int $limit = 10, int $offset = 0): array
+    public function getPopularTopics(int $limit = 10, int $offset = 0, ?string $siteKey = null): array
     {
+        $siteSql = $this->publicVisibilitySql('forum_topic', $siteKey, 't');
         $this->db->query("
             SELECT 
                 t.*,
@@ -152,16 +173,19 @@ class ForumTopicRepository extends BaseRepository
             INNER JOIN users u ON u.id = t.id_user
             INNER JOIN forum_categories c ON c.id = t.id_category
             WHERE t.is_approved = 1 AND COALESCE(t.status, 'PUBLISHED') = 'PUBLISHED'
+              {$siteSql}
             ORDER BY t.is_pinned DESC, t.likes_count DESC, t.replies_count DESC, t.views_count DESC
             LIMIT :limit OFFSET :offset
         ");
+        $this->bindSiteScope($siteKey);
         $this->db->bind(':limit', $limit);
         $this->db->bind(':offset', $offset);
         return $this->db->fetchAll();
     }
 
-    public function getRecentCommentsTopics(int $limit = 10, int $offset = 0): array
+    public function getRecentCommentsTopics(int $limit = 10, int $offset = 0, ?string $siteKey = null): array
     {
+        $siteSql = $this->publicVisibilitySql('forum_topic', $siteKey, 't');
         $this->db->query("
             SELECT 
                 t.*,
@@ -173,27 +197,33 @@ class ForumTopicRepository extends BaseRepository
             INNER JOIN users u ON u.id = t.id_user
             INNER JOIN forum_categories c ON c.id = t.id_category
             WHERE t.is_approved = 1 AND COALESCE(t.status, 'PUBLISHED') = 'PUBLISHED' AND t.last_reply_at IS NOT NULL
+              {$siteSql}
             ORDER BY t.is_pinned DESC, t.last_reply_at DESC
             LIMIT :limit OFFSET :offset
         ");
+        $this->bindSiteScope($siteKey);
         $this->db->bind(':limit', $limit);
         $this->db->bind(':offset', $offset);
         return $this->db->fetchAll();
     }
 
-    public function countRecentCommentsTopics(): int
+    public function countRecentCommentsTopics(?string $siteKey = null): int
     {
+        $siteSql = $this->publicVisibilitySql('forum_topic', $siteKey);
         $this->db->query("
             SELECT COUNT(*) as total 
             FROM {$this->table} 
             WHERE is_approved = 1 AND COALESCE(status, 'PUBLISHED') = 'PUBLISHED' AND last_reply_at IS NOT NULL
+              {$siteSql}
         ");
+        $this->bindSiteScope($siteKey);
         $result = $this->db->fetchOne();
         return $result ? (int)$result->total : 0;
     }
 
-    public function getMostViewedTopics(int $limit = 10, int $offset = 0): array
+    public function getMostViewedTopics(int $limit = 10, int $offset = 0, ?string $siteKey = null): array
     {
+        $siteSql = $this->publicVisibilitySql('forum_topic', $siteKey, 't');
         $this->db->query("
             SELECT 
                 t.*,
@@ -205,9 +235,11 @@ class ForumTopicRepository extends BaseRepository
             INNER JOIN users u ON u.id = t.id_user
             INNER JOIN forum_categories c ON c.id = t.id_category
             WHERE t.is_approved = 1 AND COALESCE(t.status, 'PUBLISHED') = 'PUBLISHED'
+              {$siteSql}
             ORDER BY t.is_pinned DESC, t.views_count DESC, t.created_at DESC
             LIMIT :limit OFFSET :offset
         ");
+        $this->bindSiteScope($siteKey);
         $this->db->bind(':limit', $limit);
         $this->db->bind(':offset', $offset);
         return $this->db->fetchAll();
@@ -220,8 +252,9 @@ class ForumTopicRepository extends BaseRepository
         $this->db->execute();
     }
 
-    public function searchTopics(string $query, int $limit = 20): array
+    public function searchTopics(string $query, int $limit = 20, ?string $siteKey = null): array
     {
+        $siteSql = $this->publicVisibilitySql('forum_topic', $siteKey, 't');
         $this->db->query("
             SELECT 
                 t.*,
@@ -235,23 +268,28 @@ class ForumTopicRepository extends BaseRepository
             WHERE t.is_approved = 1 
             AND COALESCE(t.status, 'PUBLISHED') = 'PUBLISHED'
             AND (t.title LIKE :query OR t.content LIKE :query)
+            {$siteSql}
             ORDER BY t.created_at DESC
             LIMIT :limit
         ");
         $searchQuery = '%' . $query . '%';
         $this->db->bind(':query', $searchQuery);
+        $this->bindSiteScope($siteKey);
         $this->db->bind(':limit', $limit);
         return $this->db->fetchAll();
     }
 
-    public function countByCategory(int $categoryId): int
+    public function countByCategory(int $categoryId, ?string $siteKey = null): int
     {
+        $siteSql = $this->publicVisibilitySql('forum_topic', $siteKey);
         $this->db->query("
             SELECT COUNT(*) as total 
             FROM {$this->table} 
             WHERE id_category = :category_id AND is_approved = 1 AND COALESCE(status, 'PUBLISHED') = 'PUBLISHED'
+              {$siteSql}
         ");
         $this->db->bind(':category_id', $categoryId);
+        $this->bindSiteScope($siteKey);
         $result = $this->db->fetchOne();
         return $result ? (int)$result->total : 0;
     }
@@ -372,8 +410,9 @@ class ForumTopicRepository extends BaseRepository
         $this->db->execute();
     }
 
-    public function getPublishedSitemapEntries(): array
+    public function getPublishedSitemapEntries(?string $siteKey = null): array
     {
+        $siteSql = $this->publicVisibilitySql('forum_topic', $siteKey);
         $this->db->query("
             SELECT id, title, slug, updated_at, published_at, created_at
             FROM {$this->table}
@@ -381,8 +420,10 @@ class ForumTopicRepository extends BaseRepository
               AND COALESCE(status, 'PUBLISHED') = 'PUBLISHED'
               AND slug IS NOT NULL
               AND slug != ''
+              {$siteSql}
             ORDER BY updated_at DESC, published_at DESC, created_at DESC
         ");
+        $this->bindSiteScope($siteKey);
 
         return $this->db->fetchAll() ?: [];
     }

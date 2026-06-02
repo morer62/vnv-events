@@ -1,6 +1,6 @@
 # Ophyra Commercial Launch Readiness
 
-> VNV Events repository note: this is Ophyra commercial launch reference. Use it only for inherited signup, billing, module or support behavior. The current launch readiness target is VNV Events.
+> Avomeal web note: this is Ophyra commercial launch reference. Use it only for inherited signup, billing, module or support behavior. The current launch readiness target is Avomeal store under owner `2`.
 
 ## Purpose
 
@@ -20,7 +20,7 @@ Jonnys Media as an operating brand inside Ophyra.
 The full external project ecosystem.
 ```
 
-VNV Events is used only as a real operational reference because it already receives benefits from the system. Avomeal / VNV Gourmet may be mentioned only as a related brand that can operate through scoped Store/Delivery flows, but it is not the center of this audit.
+VNV Events is used only as a real operational reference because it already receives benefits from the system. Avomeal may be mentioned only as a related brand that can operate through scoped Store/Delivery flows, but it is not the center of this audit.
 
 Main question:
 
@@ -469,7 +469,7 @@ Related admin areas:
 /panel/home
 ```
 
-Level 1 can monitor VNV Events Operations where those operations are scoped by owner/company context. Other brands such as Avomeal / VNV Gourmet can be connected only when explicitly scoped, but they are not part of this Ophyra commercial launch readiness question.
+Level 1 can monitor VNV Events Operations where those operations are scoped by owner/company context. Other brands such as Avomeal can be connected only when explicitly scoped, but they are not part of this Ophyra commercial launch readiness question.
 
 ## 8. Comparison With VNV Events
 

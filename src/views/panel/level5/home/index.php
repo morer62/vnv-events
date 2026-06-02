@@ -7,6 +7,7 @@ use App\Utils\Router;
 use App\Utils\TemplateResponse;
 use App\Utils\LocationUtils;
 use App\Utils\MessageUtil;
+use App\Utils\AvomealContext;
 
 $router = new Router();
 
@@ -15,15 +16,16 @@ $router->get(function () {
     $user = LoginService::getSession();
 
     $subscriptionsRepo = new StoreSubscriptionsRepository();
+    $ownerId = AvomealContext::ownerId();
     $userId = $user ? (int)$user->getId() : 0;
     $email = $user && method_exists($user, 'getEmail') ? (string)$user->getEmail() : '';
 
     $subscriptions = [];
     if ($userId > 0) {
-        $subscriptions = $subscriptionsRepo->getAllByUser($userId, 10);
+        $subscriptions = $subscriptionsRepo->getAllByUser($userId, 10, $ownerId);
     }
     if ((!$subscriptions || count($subscriptions) === 0) && trim($email) !== '') {
-        $subscriptions = $subscriptionsRepo->getAllByEmail($email, 10);
+        $subscriptions = $subscriptionsRepo->getAllByEmail($email, 10, $ownerId);
     }
 
     $currentSubscription = $subscriptions[0] ?? null;
@@ -49,7 +51,7 @@ $router->post(function () {
         }
 
         $repo = new StoreSubscriptionsRepository();
-        $subscription = $repo->getOne(['id' => $subscriptionId]);
+        $subscription = $repo->getOne(['id' => $subscriptionId, 'id_owner' => AvomealContext::ownerId()]);
         if (!$subscription) {
             MessageUtil::setMessage('Subscription not found.');
             LocationUtils::redirectInternal("panel/home");

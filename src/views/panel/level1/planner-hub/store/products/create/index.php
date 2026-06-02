@@ -5,6 +5,7 @@ use App\Repositories\StoreAttributeValuesRepository;
 use App\Repositories\StoreCategoriesRepository;
 use App\Repositories\StoreProductsRepository;
 use App\Utils\FileUtils;
+use App\Utils\AvomealContext;
 use App\Utils\LocationUtils;
 use App\Utils\MessageUtil;
 use App\Utils\Router;
@@ -17,14 +18,15 @@ $router->get(function () {
     $attributesRepo = new StoreAttributesRepository();
     $attributeValuesRepo = new StoreAttributeValuesRepository();
 
-    $attributes = $attributesRepo->getActive();
+    $ownerId = AvomealContext::ownerId();
+    $attributes = $attributesRepo->getActive($ownerId);
 
     foreach ($attributes as $attribute) {
-        $attribute->values = $attributeValuesRepo->getActiveByAttribute((int)$attribute->id);
+        $attribute->values = $attributeValuesRepo->getActiveByAttribute((int)$attribute->id, $ownerId);
     }
 
     return TemplateResponse::render(__DIR__ . "/index.twig", [
-        "categories" => $categoriesRepo->getActive(),
+        "categories" => $categoriesRepo->getActive($ownerId),
         "attributes" => $attributes,
         "product_types" => [
             StoreProductsRepository::PRODUCT_TYPE_FIXED,
@@ -35,6 +37,7 @@ $router->get(function () {
 
 $router->post(function () {
     $productsRepo = new StoreProductsRepository();
+    $ownerId = AvomealContext::ownerId();
 
     $name = trim($_POST['name'] ?? '');
     $slugInput = trim($_POST['slug'] ?? '');
@@ -210,6 +213,7 @@ $router->post(function () {
     $slug = $productsRepo->generateUniqueSlug($slugBase);
 
     $productData = [
+        'id_owner' => $ownerId,
         'name' => $name,
         'slug' => $slug,
         'sku' => $sku !== '' ? $sku : null,

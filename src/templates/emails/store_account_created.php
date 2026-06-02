@@ -4,7 +4,7 @@ $clientName = $templateData['clientName'] ?? 'Customer';
 $email = $templateData['email'] ?? '';
 $tempPassword = $templateData['tempPassword'] ?? '';
 $loginUrl = $templateData['loginUrl'] ?? '#';
-$companyName = $templateData['companyName'] ?? 'VNV Gourmet';
+$companyName = $templateData['companyName'] ?? 'Avomeal';
 ?>
 <!DOCTYPE html>
 <html lang="en">

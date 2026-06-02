@@ -9,12 +9,12 @@ use App\Repositories\LocationPagesRepository;
 use App\Repositories\SeoFilesLogRepository;
 use App\Repositories\StoreCategoriesRepository;
 use App\Repositories\StoreProductsRepository;
+use App\Utils\AvomealContext;
+use App\Utils\SiteContext;
 use DOMDocument;
 
 class SeoFilesGeneratorService
 {
-    private const BASE_URL = 'https://vnvevents.com';
-
     private string $publicPath;
     private ?SeoFilesLogRepository $logRepository = null;
     private ?array $publicUrlsCache = null;
@@ -153,37 +153,39 @@ class SeoFilesGeneratorService
         $store = array_values(array_filter($urls, fn ($url) => in_array(($url['type'] ?? ''), ['product', 'product_category'], true)));
 
         $lines = [
-            '# VNV Events',
+            '# Avomeal',
             '',
-            'VNV Events is a South Florida event planning and event production company serving Miami-Dade, Broward and Palm Beach.',
+            'Avomeal is a South Florida food, prepared-meal and party-box brand operating under VNV Events.',
             '',
-            '## Main Services',
+            '## Main Food Services',
             '',
-            '- Wedding planning',
-            '- Corporate events',
-            '- Quinceaneras',
-            '- Baby showers',
-            '- Event rentals',
-            '- Flowers and decor',
-            '- DJ, sound and lighting',
-            '- Photo and video',
-            '- Catering coordination',
+            '- Meal preps',
+            '- Holiday menus',
+            '- Party boxes',
+            '- Appetizers',
+            '- Sweets and dessert trays',
+            '- Dinner kits',
+            '- Individual prepared food products',
+            '- Subscription-friendly meal ordering',
+            '- Event food support connected to VNV Events',
+            '- Minimum order: $' . number_format(AvomealContext::minimumOrderAmount(), 2),
             '',
             '## Main Public Pages',
             '',
             '- Home: ' . $this->absoluteUrl('/'),
-            '- Services: ' . $this->absoluteUrl('/service-areas-in-south-florida/'),
-            '- Locations: ' . $this->absoluteUrl('/locations/'),
-            '- Forums: ' . $this->absoluteUrl('/forums/'),
+            '- Avomeal: ' . $this->absoluteUrl('/avomeal/'),
+            '- Store: ' . $this->absoluteUrl('/store/'),
+            '- Meal Plans: ' . $this->absoluteUrl('/meal-plans/'),
+            '- Product Categories: ' . $this->absoluteUrl('/store-categories/'),
             '- Contact / Quote: ' . $this->absoluteUrl('/contact/'),
             '',
-            '## Main Service Areas',
+            '## Main Food Areas',
             '',
         ];
 
         $serviceAreas = array_slice($locations, 0, $full ? 80 : 15);
         if (empty($serviceAreas)) {
-            foreach (['Miami-Dade', 'Broward', 'Palm Beach', 'Miami', 'Doral', 'Fort Lauderdale', 'West Palm Beach'] as $area) {
+            foreach (['South Florida', 'Miami-Dade', 'Broward', 'Palm Beach', 'Miami', 'Doral', 'Fort Lauderdale', 'West Palm Beach'] as $area) {
                 $lines[] = '- ' . $area;
             }
         } else {
@@ -195,7 +197,7 @@ class SeoFilesGeneratorService
         if ($full) {
             $this->appendSection($lines, 'Public Pages', $pages, 80);
             $this->appendSection($lines, 'Blog and Guides', $posts, 80);
-            $this->appendSection($lines, 'Store and Rentals', $store, 80);
+            $this->appendSection($lines, 'Store Products and Categories', $store, 80);
             $this->appendSection($lines, 'Public Forums', $forums, 60);
             $lines[] = '## Public SEO Files';
             $lines[] = '';
@@ -224,17 +226,13 @@ class SeoFilesGeneratorService
         $today = $this->today();
 
         $static = [
-            ['/', 'Home | VNV Events', 'daily', 1.0],
-            ['/locations/', 'Locations | VNV Events', 'weekly', 0.9],
-            ['/forums/', 'VNV Events Forums', 'daily', 0.7],
-            ['/service-areas-in-south-florida/', 'Service Areas in South Florida', 'weekly', 0.8],
-            ['/corporate-events/', 'Corporate Events', 'weekly', 0.8],
-            ['/event-planners/', 'Event Planners', 'weekly', 0.8],
-            ['/event-production/', 'Event Production', 'weekly', 0.8],
-            ['/vnv-events-productions/', 'VNV Events Productions', 'weekly', 0.8],
-            ['/vnv-gourmet/', 'VNV Gourmet', 'weekly', 0.7],
-            ['/vnv-live/', 'VNV Live', 'weekly', 0.7],
-            ['/vnv-deco-flowers/', 'VNV Deco Flowers', 'weekly', 0.7],
+            ['/', 'Avomeal Home', 'daily', 1.0],
+            ['/avomeal/', 'Avomeal', 'weekly', 0.9],
+            ['/store/', 'Avomeal Store', 'daily', 0.9],
+            ['/meal-plans/', 'Avomeal Meal Plans', 'weekly', 0.8],
+            ['/store-categories/', 'Avomeal Food Categories', 'weekly', 0.8],
+            ['/finger-food-appetizer-and-meal-event-calculator/', 'Food and Appetizer Calculator', 'monthly', 0.6],
+            ['/contact/', 'Avomeal Contact', 'monthly', 0.6],
         ];
 
         foreach ($static as [$path, $title, $freq, $priority]) {
@@ -266,6 +264,7 @@ class SeoFilesGeneratorService
     {
         try {
             $repo = new LocationPagesRepository();
+            $siteKey = SiteContext::siteKey();
             return array_map(function ($page) {
                 return $this->entry(
                     '/' . trim((string)$page->slug, '/') . '/',
@@ -275,7 +274,7 @@ class SeoFilesGeneratorService
                     0.8,
                     'location'
                 );
-            }, $repo->getAllIndexablePublished());
+            }, $repo->getAllIndexablePublished($siteKey));
         } catch (\Throwable $e) {
             error_log('SEO location collection failed: ' . $e->getMessage());
             return [];
@@ -287,6 +286,7 @@ class SeoFilesGeneratorService
         try {
             $repo = new CmsContentsRepository();
             $repo->db = new Connection();
+            $siteKey = SiteContext::siteKey();
             return array_map(function ($content) {
                 $route = $content->canonical_url ?: ($content->route ?? null);
                 $type = ($content->type ?? '') === 'post' ? 'blog' : 'page';
@@ -299,7 +299,7 @@ class SeoFilesGeneratorService
                     $type === 'blog' ? 0.7 : 0.6,
                     $type
                 );
-            }, $repo->getPublishedSitemapEntries('en'));
+            }, $repo->getPublishedSitemapEntries('en', $siteKey));
         } catch (\Throwable $e) {
             error_log('SEO CMS collection failed: ' . $e->getMessage());
             return [];
@@ -311,7 +311,8 @@ class SeoFilesGeneratorService
         $entries = [];
 
         try {
-            $categories = (new StoreCategoriesRepository())->getPublicSitemapEntries();
+            $ownerId = AvomealContext::ownerId();
+            $categories = (new StoreCategoriesRepository())->getPublicSitemapEntries(1000, $ownerId, SiteContext::siteKey());
             foreach ($categories as $category) {
                 $entries[] = $this->entry(
                     '/product-category/' . trim((string)$category->slug, '/') . '/',
@@ -327,7 +328,8 @@ class SeoFilesGeneratorService
         }
 
         try {
-            $products = (new StoreProductsRepository())->getPublicSitemapEntries();
+            $ownerId = AvomealContext::ownerId();
+            $products = (new StoreProductsRepository())->getPublicSitemapEntries(1000, $ownerId, SiteContext::siteKey());
             foreach ($products as $product) {
                 $entries[] = $this->entry(
                     '/product/' . trim((string)$product->slug, '/') . '/',
@@ -349,6 +351,7 @@ class SeoFilesGeneratorService
     {
         try {
             $repo = new ForumTopicRepository();
+            $siteKey = SiteContext::siteKey();
             return array_map(function ($topic) {
                 return $this->entry(
                     '/forums/' . trim((string)$topic->slug, '/') . '/',
@@ -358,7 +361,7 @@ class SeoFilesGeneratorService
                     0.5,
                     'forum'
                 );
-            }, $repo->getPublishedSitemapEntries());
+            }, $repo->getPublishedSitemapEntries($siteKey));
         } catch (\Throwable $e) {
             error_log('SEO forum collection failed: ' . $e->getMessage());
             return [];
@@ -442,15 +445,15 @@ class SeoFilesGeneratorService
     {
         $value = trim($pathOrUrl);
         if ($value === '') {
-            return self::BASE_URL . '/';
+            return SiteContext::publicBaseUrl() . '/';
         }
 
         if (str_starts_with($value, 'http://') || str_starts_with($value, 'https://')) {
             $path = parse_url($value, PHP_URL_PATH) ?: '/';
-            return self::BASE_URL . $this->normalizePath($path);
+            return SiteContext::publicBaseUrl() . $this->normalizePath($path);
         }
 
-        return self::BASE_URL . $this->normalizePath($value);
+        return SiteContext::publicBaseUrl() . $this->normalizePath($value);
     }
 
     private function normalizePath(string $path): string
@@ -467,7 +470,7 @@ class SeoFilesGeneratorService
 
     private function isValidPublicUrl(string $url): bool
     {
-        if (!str_starts_with($url, self::BASE_URL)) {
+        if (!str_starts_with($url, SiteContext::publicBaseUrl())) {
             return false;
         }
 

@@ -1,6 +1,7 @@
 <?php
 
 use App\Repositories\StoreCategoriesRepository;
+use App\Utils\AvomealContext;
 use App\Utils\LocationUtils;
 use App\Utils\MessageUtil;
 use App\Utils\Router;
@@ -26,6 +27,7 @@ function normalizeBuilderPayload($raw): ?string
 $router->get(function () {
 
     $repo = new StoreCategoriesRepository();
+    $ownerId = AvomealContext::ownerId();
 
     $id = intval($_GET['id'] ?? 0);
 
@@ -34,7 +36,7 @@ $router->get(function () {
         LocationUtils::redirectInternal("panel/planner-hub/store/categories/home");
     }
 
-    $category = $repo->getOne(['id' => $id]);
+    $category = $repo->getOne(['id' => $id, 'id_owner' => $ownerId]);
 
     if (!$category) {
         MessageUtil::setMessage("Category not found.");
@@ -49,6 +51,7 @@ $router->get(function () {
 $router->post(function () {
 
     $repo = new StoreCategoriesRepository();
+    $ownerId = AvomealContext::ownerId();
 
     $id = intval($_POST['id'] ?? 0);
     $name = trim($_POST['name'] ?? '');
@@ -74,6 +77,7 @@ $router->post(function () {
     $slug = $repo->generateUniqueSlug($slugBase, $id);
 
     $repo->update([
+        'id_owner' => $ownerId,
         'name' => $name,
         'slug' => $slug,
         'description' => $description ?: null,
@@ -84,7 +88,8 @@ $router->post(function () {
         'status' => $status,
         'updated_at' => date('Y-m-d H:i:s')
     ], [
-        'id' => $id
+        'id' => $id,
+        'id_owner' => $ownerId
     ]);
 
     MessageUtil::setMessage("Category updated successfully.");

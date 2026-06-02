@@ -1,6 +1,6 @@
 # Ophyra Orders Calendar View
 
-> VNV Events repository note: this calendar reference is useful because VNV Events also uses order calendars. Current VNV Events routes and user levels take priority over Ophyra naming.
+> Avomeal web note: this calendar reference is useful only where Avomeal uses Store orders, subscriptions, delivery or production scheduling. Avomeal Store scope and owner `2` take priority over Ophyra naming.
 
 ## Purpose
 

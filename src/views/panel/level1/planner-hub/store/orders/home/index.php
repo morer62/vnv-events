@@ -9,6 +9,7 @@ use App\Utils\LocationUtils;
 use App\Utils\Router;
 use App\Utils\TemplateResponse;
 use App\Utils\MessageUtil;
+use App\Utils\AvomealContext;
 
 $router = new Router();
 
@@ -19,7 +20,7 @@ $router->get(function () {
     $storeRolesRepo = new StoreUserRolesRepository();
     $session = LoginService::getSession();
 
-    $ownerId = (int)$session->getOwner();
+    $ownerId = AvomealContext::ownerId();
 
     $weekStartInput = trim($_GET['week_start'] ?? '');
     $weekEndInput = trim($_GET['week_end'] ?? '');
@@ -140,13 +141,19 @@ $router->get(function () {
 $router->post(function () {
     $ordersRepo = new StoreOrdersRepository();
     $workflowRepo = new StoreOrderWorkflowRepository();
-    $session = LoginService::getSession();
+    $ownerId = AvomealContext::ownerId();
 
     $action = $_POST['action'] ?? '';
     $orderId = isset($_POST['order_id']) ? (int)$_POST['order_id'] : 0;
 
     if ($orderId <= 0) {
         MessageUtil::setMessage('Invalid order id.');
+        LocationUtils::reload();
+    }
+
+    $order = $ordersRepo->getById($orderId);
+    if (!$order || (int)($order->id_owner ?? 0) !== $ownerId) {
+        MessageUtil::setMessage('Order not found for Avomeal.');
         LocationUtils::reload();
     }
 
@@ -180,16 +187,6 @@ $router->post(function () {
         $deliveryUserId = isset($_POST['delivery_user_id']) && $_POST['delivery_user_id'] !== ''
             ? (int)$_POST['delivery_user_id']
             : null;
-        $order = $ordersRepo->getById($orderId);
-        if (!$order) {
-            MessageUtil::setMessage('Order not found.');
-            LocationUtils::reload();
-        }
-        $ownerId = (int)($order->id_owner ?? 0);
-        if ($ownerId <= 0) {
-            MessageUtil::setMessage('Invalid order owner.');
-            LocationUtils::reload();
-        }
         $existing = $workflowRepo->getByOrder($orderId);
         $kitchenUserId = $existing ? (int)($existing->kitchen_user_id ?? 0) : 0;
         $ok = $workflowRepo->upsertAssignments($ownerId, $orderId, $kitchenUserId > 0 ? $kitchenUserId : null, $deliveryUserId);

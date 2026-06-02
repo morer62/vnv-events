@@ -7,6 +7,7 @@ use App\Repositories\StoreProductsCategoriesRepository;
 use App\Repositories\StoreProductsRepository;
 use App\Repositories\StoreProductVariationsRepository;
 use App\Utils\FileUtils;
+use App\Utils\AvomealContext;
 use App\Utils\LocationUtils;
 use App\Utils\MessageUtil;
 use App\Utils\Router;
@@ -21,6 +22,7 @@ $router->get(function () {
     $attributeValuesRepo = new StoreAttributeValuesRepository();
     $productsCategoriesRepo = new StoreProductsCategoriesRepository();
     $variationsRepo = new StoreProductVariationsRepository();
+    $ownerId = AvomealContext::ownerId();
 
     $id = intval($_GET['id'] ?? 0);
 
@@ -29,16 +31,17 @@ $router->get(function () {
         LocationUtils::redirectInternal("panel/planner-hub/store/products/home");
     }
 
-    $product = $productsRepo->getFullProductDetails($id);
+    $productBase = $productsRepo->getOne(['id' => $id, 'id_owner' => $ownerId]);
+    $product = $productBase ? $productsRepo->getFullProductDetails($id) : null;
 
     if (!$product) {
         MessageUtil::setMessage("Product not found.");
         LocationUtils::redirectInternal("panel/planner-hub/store/products/home");
     }
 
-    $attributes = $attributesRepo->getActive();
+    $attributes = $attributesRepo->getActive($ownerId);
     foreach ($attributes as $attribute) {
-        $attribute->values = $attributeValuesRepo->getActiveByAttribute((int)$attribute->id);
+        $attribute->values = $attributeValuesRepo->getActiveByAttribute((int)$attribute->id, $ownerId);
     }
 
     $selectedCategoryIds = $productsCategoriesRepo->getCategoryIdsByProduct($id);
@@ -54,7 +57,7 @@ $router->get(function () {
 
     return TemplateResponse::render(__DIR__ . "/index.twig", [
         "product" => $product,
-        "categories" => $categoriesRepo->getActive(),
+        "categories" => $categoriesRepo->getActive($ownerId),
         "attributes" => $attributes,
         "selected_category_ids" => $selectedCategoryIds,
         "selected_value_ids" => $selectedValueIds,
@@ -68,6 +71,7 @@ $router->get(function () {
 
 $router->post(function () {
     $productsRepo = new StoreProductsRepository();
+    $ownerId = AvomealContext::ownerId();
     $logDir = LocationUtils::getRootLocation() . '/.logs';
     if (!is_dir($logDir)) {
         @mkdir($logDir, 0777, true);
@@ -111,7 +115,7 @@ $router->post(function () {
         LocationUtils::redirectInternal("panel/planner-hub/store/products/home");
     }
 
-    $existingProduct = $productsRepo->getOne(['id' => $id]);
+    $existingProduct = $productsRepo->getOne(['id' => $id, 'id_owner' => $ownerId]);
 
     if (!$existingProduct) {
         $logDebug('Validation failed: product not found', ['id' => $id]);
@@ -318,6 +322,7 @@ $router->post(function () {
     $slug = $productsRepo->generateUniqueSlug($slugBase, $id);
 
     $productData = [
+        'id_owner' => $ownerId,
         'name' => $name,
         'slug' => $slug,
         'sku' => $sku !== '' ? $sku : null,

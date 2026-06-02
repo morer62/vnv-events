@@ -1,0 +1,196 @@
+{% extends 'templates/base.admin.twig' %}
+
+{% block body %}
+  <div class="vnv-page-header">
+    <div>
+      <span class="vnv-kicker">Site Scope</span>
+      <h1>Avomeal Visibility & Settings</h1>
+      <p>Control what belongs to the public Avomeal site without assuming every owner {{ ownerId }} record is public.</p>
+    </div>
+  </div>
+
+  {% for warning in warnings %}
+    <div class="alert alert-warning">{{ warning }}</div>
+  {% endfor %}
+
+  <div class="row g-3 mb-4">
+    <div class="col-md-4">
+      <div class="vnv-stat-card">
+        <span class="vnv-stat-label">Active site</span>
+        <strong>{{ siteKey }}</strong>
+        <small>Public visibility scope</small>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="vnv-stat-card">
+        <span class="vnv-stat-label">Business owner</span>
+        <strong>{{ ownerId }}</strong>
+        <small>Ownership scope</small>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="vnv-stat-card">
+        <span class="vnv-stat-label">Pending review</span>
+        <strong>{{ pending|length }}</strong>
+        <small>Records awaiting approval</small>
+      </div>
+    </div>
+  </div>
+
+  <div class="vnv-panel-card mb-4">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+      <div>
+        <h2 class="h5 mb-1">Visibility Summary</h2>
+        <p class="text-muted mb-0">Only records marked VISIBLE are eligible for public Avomeal pages.</p>
+      </div>
+    </div>
+
+    <div class="table-responsive">
+      <table class="table vnv-table">
+        <thead>
+          <tr>
+            <th>Entity</th>
+            <th>Total rows</th>
+            <th>Visible</th>
+            <th>Pending review</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for metric in metrics %}
+            <tr>
+              <td><strong>{{ metric.entity_type }}</strong></td>
+              <td>{{ metric.total_visible|default(0) }}</td>
+              <td><span class="badge bg-success">{{ metric.live_visible|default(0) }}</span></td>
+              <td><span class="badge bg-warning text-dark">{{ metric.pending_review|default(0) }}</span></td>
+            </tr>
+          {% else %}
+            <tr>
+              <td colspan="4">
+                <div class="vnv-empty-state">Run the corrective SQL to populate visibility review data.</div>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="vnv-panel-card mb-4">
+    <h2 class="h5 mb-3">Site Settings</h2>
+    <form method="post" class="row g-2 align-items-end mb-4">
+      <div class="col-md-4">
+        <label class="form-label">Setting key</label>
+        <select name="setting_key" class="form-select">
+          <option value="minimum_order_amount">minimum_order_amount</option>
+          <option value="active_payment_provider_id">active_payment_provider_id</option>
+          <option value="active_smtp_id">active_smtp_id</option>
+          <option value="storefront_enabled">storefront_enabled</option>
+          <option value="brand_logo">brand_logo</option>
+          <option value="brand_primary_color">brand_primary_color</option>
+          <option value="brand_secondary_color">brand_secondary_color</option>
+          <option value="seo_title">seo_title</option>
+          <option value="seo_description">seo_description</option>
+        </select>
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">Value</label>
+        <input type="text" name="setting_value" class="form-control" placeholder="Example: 65.00">
+      </div>
+      <div class="col-md-2">
+        <button class="btn btn-primary w-100" type="submit">Save</button>
+      </div>
+    </form>
+
+    <div class="table-responsive">
+      <table class="table vnv-table">
+        <thead>
+          <tr>
+            <th>Key</th>
+            <th>Value</th>
+            <th>Updated</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for setting in settings %}
+            <tr>
+              <td><code>{{ setting.setting_key }}</code></td>
+              <td>{{ setting.setting_value }}</td>
+              <td>{{ setting.updated_at|default(setting.created_at) }}</td>
+            </tr>
+          {% else %}
+            <tr>
+              <td colspan="3">
+                <div class="vnv-empty-state">No site settings saved yet.</div>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="vnv-panel-card">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+      <div>
+        <h2 class="h5 mb-1">Pending Review</h2>
+        <p class="text-muted mb-0">Approve only records that truly belong on Avomeal.</p>
+      </div>
+    </div>
+    <div class="table-responsive">
+      <table class="table vnv-table">
+        <thead>
+          <tr>
+            <th>Entity</th>
+            <th>Record</th>
+            <th>Status</th>
+            <th>Visible</th>
+            <th>Updated</th>
+            <th class="text-end">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in pending %}
+            <tr>
+              <td>{{ item.entity_type }}</td>
+              <td>
+                <strong>{{ item.entity_label }}</strong>
+                <div class="text-muted small">ID {{ item.entity_id }}{% if item.entity_slug %} · {{ item.entity_slug }}{% endif %}</div>
+              </td>
+              <td><span class="badge bg-warning text-dark">{{ item.visibility_status }}</span></td>
+              <td>{{ item.is_visible ? 'Yes' : 'No' }}</td>
+              <td>{{ item.updated_at|default(item.created_at) }}</td>
+              <td class="text-end">
+                <div class="d-flex justify-content-end gap-2 flex-wrap">
+                  <form method="post">
+                    <input type="hidden" name="action" value="visibility">
+                    <input type="hidden" name="visibility_id" value="{{ item.id }}">
+                    <input type="hidden" name="target_status" value="VISIBLE">
+                    <button class="btn btn-sm btn-success" type="submit">Approve</button>
+                  </form>
+                  <form method="post">
+                    <input type="hidden" name="action" value="visibility">
+                    <input type="hidden" name="visibility_id" value="{{ item.id }}">
+                    <input type="hidden" name="target_status" value="HIDDEN">
+                    <button class="btn btn-sm btn-outline-secondary" type="submit">Hide</button>
+                  </form>
+                  <form method="post">
+                    <input type="hidden" name="action" value="visibility">
+                    <input type="hidden" name="visibility_id" value="{{ item.id }}">
+                    <input type="hidden" name="target_status" value="ARCHIVED">
+                    <button class="btn btn-sm btn-outline-danger" type="submit">Archive</button>
+                  </form>
+                </div>
+              </td>
+            </tr>
+          {% else %}
+            <tr>
+              <td colspan="6">
+                <div class="vnv-empty-state">No records are pending review.</div>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+{% endblock %}

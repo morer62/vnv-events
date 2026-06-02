@@ -5,6 +5,7 @@ use App\Repositories\StoreSubscriptionItemsRepository;
 use App\Repositories\StoreSubscriptionsRepository;
 use App\Repositories\StoreProductsRepository;
 use App\Services\LoginService;
+use App\Utils\AvomealContext;
 use App\Utils\LocationUtils;
 use App\Utils\MessageUtil;
 use App\Utils\Router;
@@ -18,12 +19,13 @@ $router->get(function () {
     $subItemsRepo = new StoreSubscriptionItemsRepository();
     $productsRepo = new StoreProductsRepository();
     $couponsRepo = new StoreCouponsRepository();
+    $ownerId = AvomealContext::ownerId();
 
     $userId = (int)$session->getId();
     $email = method_exists($session, 'getEmail') ? trim((string)$session->getEmail()) : '';
 
-    $byUser = $repo->getAllByUser($userId, 100) ?: [];
-    $byEmail = $email !== '' ? ($repo->getAllByEmail($email, 100) ?: []) : [];
+    $byUser = $repo->getAllByUser($userId, 100, $ownerId) ?: [];
+    $byEmail = $email !== '' ? ($repo->getAllByEmail($email, 100, $ownerId) ?: []) : [];
     $seen = [];
     $subscriptions = [];
     foreach (array_merge($byUser, $byEmail) as $sub) {
@@ -40,7 +42,7 @@ $router->get(function () {
         return $tb <=> $ta;
     });
 
-    $publicProducts = $productsRepo->getPublicActiveProducts(500);
+    $publicProducts = $productsRepo->getPublicActiveProducts(500, $ownerId);
 
     foreach ($subscriptions as &$sub) {
         $meals = (int)($sub->meals_count ?? 0);
@@ -119,6 +121,7 @@ $router->get(function () {
 $router->post(function () {
     $session = LoginService::getSession();
     $repo = new StoreSubscriptionsRepository();
+    $ownerId = AvomealContext::ownerId();
 
     $action = trim((string)($_POST['action'] ?? ''));
     $subscriptionId = (int)($_POST['subscription_id'] ?? 0);
@@ -130,7 +133,7 @@ $router->post(function () {
         LocationUtils::reload();
     }
 
-    $subscription = $repo->getOne(['id' => $subscriptionId]);
+    $subscription = $repo->getOne(['id' => $subscriptionId, 'id_owner' => $ownerId]);
     if (!$subscription) {
         MessageUtil::setMessage('Subscription not found.');
         LocationUtils::reload();
@@ -164,7 +167,7 @@ $router->post(function () {
         }
 
         $ownerId = (int)($subscription->id_owner ?? 0);
-        $available = $productsRepo->getPublicActiveProducts(500);
+        $available = $productsRepo->getPublicActiveProducts(500, $ownerId);
         $allowedById = [];
         foreach ($available as $p) {
             $pid = (int)($p->id ?? 0);

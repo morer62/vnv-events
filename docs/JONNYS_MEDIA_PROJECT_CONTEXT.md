@@ -1,6 +1,6 @@
 # Jonnys Media Project Context
 
-> VNV Events repository note: this is related ecosystem context only. It should not change VNV Events branding, navigation, public pages or user flows.
+> Avomeal web note: this is related ecosystem context only. It should not change Avomeal branding, navigation, public pages or user flows.
 
 ## What Jonnys Media Is
 

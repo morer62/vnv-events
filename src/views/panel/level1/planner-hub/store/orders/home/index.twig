@@ -1,18 +1,19 @@
 {% extends 'templates/base.admin.twig' %}
 
 {% block body %}
-<div class="container-fluid">
-    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+<div class="container-fluid vnv-page-shell store-orders-page">
+    <div class="vnv-page-header">
         <div>
-            <h1 class="h3 mb-1">Store Orders</h1>
-            <p class="text-muted mb-0">Weekly operations board: approve and assign kitchen/delivery.</p>
+            <p class="vnv-kicker">Avomeal Operations</p>
+            <h1>Store Orders</h1>
+            <p>Weekly operations board: approve, prepare and assign kitchen or delivery work.</p>
         </div>
-        <a href="{{ path('panel/planner-hub/store/carts/home') }}" class="btn btn-outline-dark">
+        <a href="{{ path('panel/planner-hub/store/carts/home') }}" class="btn vnv-btn-ghost">
             View Abandoned Carts
         </a>
     </div>
 
-    <div class="card shadow-sm border-0 mb-4">
+    <div class="card vnv-panel-card mb-4">
         <div class="card-body">
             <form method="get" class="row g-3">
                 <div class="col-md-2">
@@ -59,11 +60,11 @@
         </div>
     </div>
 
-    <div class="card shadow-sm border-0">
+    <div class="card vnv-panel-card">
         <div class="card-body">
             {% if orders|length > 0 %}
                 <div class="table-responsive">
-                    <table class="table table-hover align-middle">
+                    <table class="table table-hover align-middle vnv-table">
                         <thead>
                             <tr>
                                 <th class="text-nowrap">ID</th>
@@ -195,9 +196,9 @@
                     </table>
                 </div>
             {% else %}
-                <div class="text-center py-5">
+                <div class="vnv-empty-state text-center py-5">
                     <h5 class="mb-2">No store orders found</h5>
-                    <p class="text-muted mb-0">There are no gourmet store orders matching these filters.</p>
+                    <p class="text-muted mb-0">There are no Avomeal store orders matching these filters.</p>
                 </div>
             {% endif %}
         </div>

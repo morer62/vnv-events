@@ -1,0 +1,88 @@
+{% extends 'templates/base.admin.twig' %}
+
+{% block body %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <h1 class="h3 mb-1">My Contract</h1>
+        <div class="text-muted">Review your team member contract status.</div>
+    </div>
+    <a href="{{ path('panel/home') }}" class="btn btn-outline-secondary">Dashboard</a>
+</div>
+
+{% if not contracts_storage_ready %}
+    <div class="alert alert-warning">
+        Contract storage is not ready. Ask an administrator to apply <code>db/team_member_contracts_required.sql</code>.
+    </div>
+{% elseif not contract %}
+    <div class="alert alert-warning">
+        No contract has been assigned yet. Contact your administrator before clocking in.
+    </div>
+{% else %}
+    <div class="card mb-3">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <div class="fw-bold">Contract #{{ contract.id }}</div>
+                    <div class="text-muted small">Status: {{ contract.status }}</div>
+                </div>
+                <span class="badge bg-{{ contract.status in ['SIGNED','VALIDATED','MANUALLY_UPLOADED'] ? 'success' : (contract.status == 'REJECTED' ? 'danger' : 'warning') }}">
+                    {{ contract.status }}
+                </span>
+            </div>
+            {% if pdf_url %}
+                <a href="{{ pdf_url }}" target="_blank" rel="noopener" class="btn btn-outline-primary mt-3">View / Download PDF</a>
+            {% endif %}
+        </div>
+    </div>
+
+    {% if contract.status in ['PENDING','SENT'] %}
+        <div class="card">
+            <div class="card-header fw-bold">Sign Contract</div>
+            <div class="card-body">
+                <div class="border rounded p-3 bg-light mb-3" style="max-height: 320px; overflow-y: auto;">
+                    {{ contract.contract_snapshot_html|raw }}
+                </div>
+
+                <form method="post" enctype="multipart/form-data" id="teamContractForm">
+                    <input type="hidden" name="contract_id" value="{{ contract.id }}">
+                    <input type="hidden" name="user_local_timestamp" id="userLocalTimestamp">
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Upload Signature Image</label>
+                            <input type="file" name="signature_image" accept="image/*" class="form-control">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Typed Initials</label>
+                            <input type="text" name="typed_initials" class="form-control" maxlength="20">
+                        </div>
+                    </div>
+
+                    <div class="form-check mb-4 p-3 border rounded bg-light">
+                        <input class="form-check-input" type="checkbox" name="e_sign_consent" id="eSignConsent" required>
+                        <label class="form-check-label ms-2" for="eSignConsent">
+                            <strong>I agree to sign electronically.</strong> I understand that my electronic signature has the same legal effect as a handwritten signature.
+                        </label>
+                    </div>
+
+                    <button class="btn btn-success">Submit & Sign Contract</button>
+                </form>
+            </div>
+        </div>
+    {% elseif contract.status == 'REJECTED' %}
+        <div class="alert alert-danger">This contract was rejected. Contact your administrator for a new contract.</div>
+    {% else %}
+        <div class="alert alert-success">Your contract is validated. Clock-in is available.</div>
+    {% endif %}
+{% endif %}
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  const input = document.getElementById('userLocalTimestamp');
+  if (input) {
+    const now = new Date();
+    input.value = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0') + ' ' + String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0') + ':' + String(now.getSeconds()).padStart(2, '0');
+  }
+});
+</script>
+{% endblock %}

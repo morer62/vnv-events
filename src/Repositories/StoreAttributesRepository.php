@@ -53,8 +53,12 @@ class StoreAttributesRepository extends BaseRepository
         return $result ?: null;
     }
 
-    public function getActive(): array
+    public function getActive(?int $ownerId = null): array
     {
+        if ($ownerId !== null && $ownerId > 0) {
+            return $this->getAllBy(['status' => self::STATUS_ACTIVE, 'id_owner' => $ownerId]);
+        }
+
         return $this->getAllBy(['status' => self::STATUS_ACTIVE]);
     }
 }

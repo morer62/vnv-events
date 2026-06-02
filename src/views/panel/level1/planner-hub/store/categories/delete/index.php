@@ -2,6 +2,7 @@
 
 use App\Repositories\Connection;
 use App\Repositories\StoreCategoriesRepository;
+use App\Utils\AvomealContext;
 use App\Utils\LocationUtils;
 use App\Utils\MessageUtil;
 use App\Utils\Router;
@@ -10,6 +11,7 @@ $router = new Router();
 
 $router->get(function () {
     $repo = new StoreCategoriesRepository();
+    $ownerId = AvomealContext::ownerId();
 
     $id = intval($_GET['id'] ?? 0);
 
@@ -18,7 +20,7 @@ $router->get(function () {
         LocationUtils::redirectInternal("panel/planner-hub/store/categories/home");
     }
 
-    $category = $repo->getOne(['id' => $id]);
+    $category = $repo->getOne(['id' => $id, 'id_owner' => $ownerId]);
 
     if (!$category) {
         MessageUtil::setMessage("Category not found.");
@@ -28,10 +30,13 @@ $router->get(function () {
     $db = new Connection();
     $db->query("
         SELECT COUNT(*) AS total
-        FROM store_products_categories
-        WHERE id_category = :id_category
+        FROM store_products_categories spc
+        INNER JOIN store_products sp ON sp.id = spc.id_product
+        WHERE spc.id_category = :id_category
+          AND sp.id_owner = :id_owner
     ");
     $db->bind(':id_category', $id);
+    $db->bind(':id_owner', $ownerId);
     $rel = $db->fetchOne();
 
     $totalRelated = (int)($rel->total ?? 0);

@@ -27,7 +27,7 @@ $router->get(function () {
     if ($categoryFilter) {
         $topics = $topicRepo->getTopicsByCategory((int)$categoryFilter, $perPage, $offset, $filter);
         $totalTopics = $topicRepo->countByCategory((int)$categoryFilter);
-        $selectedCategory = $categoryRepo->getOne(['id' => $categoryFilter]);
+        $selectedCategory = $categoryRepo->getCategoryWithStats((int)$categoryFilter);
     } else {
         // Aplicar filtro según el parámetro con paginación
         switch ($filter) {

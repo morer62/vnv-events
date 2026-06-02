@@ -1,0 +1,124 @@
+{% extends 'templates/base.admin.twig' %}
+
+{% set latest = latest_contract %}
+
+{% block body %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <h1 class="h3 mb-1">Team Member Contract</h1>
+        <div class="text-muted">{{ member.name }} {{ member.lastname }} - {{ member.email }}</div>
+    </div>
+    <a href="{{ path('panel/planner-hub/management/users') }}" class="btn btn-outline-secondary">Back</a>
+</div>
+
+{% if not contracts_storage_ready %}
+    <div class="alert alert-warning">
+        Contract storage is not ready. Apply <code>db/team_member_contracts_required.sql</code> before assigning or signing contracts.
+    </div>
+{% endif %}
+
+<div class="row g-3">
+    <div class="col-lg-5">
+        <div class="card mb-3">
+            <div class="card-header fw-bold">Current Status</div>
+            <div class="card-body">
+                {% if latest %}
+                    <div class="mb-2">
+                        <span class="badge bg-{{ latest.status in ['SIGNED','VALIDATED','MANUALLY_UPLOADED'] ? 'success' : (latest.status == 'REJECTED' ? 'danger' : 'warning') }}">
+                            {{ latest.status }}
+                        </span>
+                    </div>
+                    <div class="small text-muted">Updated: {{ latest.updated_at }}</div>
+                    {% set pdf = latest.generated_pdf_path ?: latest.signed_file_path ?: latest.original_file_path %}
+                    {% if pdf %}
+                        <a href="{{ pdf }}" target="_blank" rel="noopener" class="btn btn-sm btn-outline-primary mt-3">View / Download PDF</a>
+                    {% endif %}
+                    {% if latest.status == 'SIGNED' %}
+                        <form method="post" class="mt-3">
+                            <input type="hidden" name="team_member_id" value="{{ member.id }}">
+                            <input type="hidden" name="contract_id" value="{{ latest.id }}">
+                            <input type="hidden" name="action" value="validate">
+                            <button class="btn btn-success btn-sm">Validate Signed Contract</button>
+                        </form>
+                    {% endif %}
+                {% else %}
+                    <span class="badge bg-secondary">NOT_ASSIGNED</span>
+                    <p class="text-muted mt-2 mb-0">Assign a contract template or upload a signed PDF manually.</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header fw-bold">Manual Upload</div>
+            <div class="card-body">
+                <form method="post" enctype="multipart/form-data">
+                    <input type="hidden" name="team_member_id" value="{{ member.id }}">
+                    <input type="hidden" name="action" value="manual_upload">
+                    <div class="mb-3">
+                        <label class="form-label">Signed PDF</label>
+                        <input type="file" name="signed_contract" class="form-control" accept="application/pdf,image/*" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Notes</label>
+                        <textarea name="notes" class="form-control" rows="3"></textarea>
+                    </div>
+                    <button class="btn btn-primary">Upload and Validate</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-7">
+        <div class="card mb-3">
+            <div class="card-header fw-bold">Assign Digital Contract</div>
+            <div class="card-body">
+                <form method="post">
+                    <input type="hidden" name="team_member_id" value="{{ member.id }}">
+                    <input type="hidden" name="action" value="assign">
+                    <div class="mb-3">
+                        <label class="form-label">Contract Template</label>
+                        <select name="contract_template_id" class="form-select" required>
+                            <option value="">Select template</option>
+                            {% for template in templates %}
+                                <option value="{{ template.id }}">{{ template.title }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <button class="btn btn-success">Assign for Team Signature</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header fw-bold">Contract History</div>
+            <div class="table-responsive">
+                <table class="table table-sm mb-0 align-middle">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Status</th>
+                            <th>Source</th>
+                            <th>Signed</th>
+                            <th>PDF</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for contract in contracts %}
+                            {% set pdf = contract.generated_pdf_path ?: contract.signed_file_path ?: contract.original_file_path %}
+                            <tr>
+                                <td>{{ contract.id }}</td>
+                                <td><span class="badge bg-secondary">{{ contract.status }}</span></td>
+                                <td>{{ contract.source ?: '-' }}</td>
+                                <td>{{ contract.signed_at ?: '-' }}</td>
+                                <td>{% if pdf %}<a href="{{ pdf }}" target="_blank" rel="noopener">Open</a>{% else %}-{% endif %}</td>
+                            </tr>
+                        {% else %}
+                            <tr><td colspan="5" class="text-muted text-center">No contracts yet.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

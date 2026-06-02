@@ -1,5 +1,7 @@
 # VNV Events Project Context
 
+> Avomeal web note: VNV Events is the parent business owner for Avomeal in this shared DB. The current active web context is Avomeal under `id_user_business = 2`.
+
 ## What VNV Events Is
 
 VNV Events is an independent events and services business.

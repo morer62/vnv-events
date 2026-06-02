@@ -2,8 +2,12 @@
 
 namespace App\Repositories;
 
+use App\Repositories\Concerns\SiteScopedRepositoryTrait;
+
 class StoreCartsRepository extends BaseRepository
 {
+    use SiteScopedRepositoryTrait;
+
     const STATUS_ACTIVE = 'ACTIVE';
     const STATUS_ABANDONED = 'ABANDONED';
     const STATUS_CONVERTED = 'CONVERTED';
@@ -16,6 +20,7 @@ class StoreCartsRepository extends BaseRepository
     protected array $fields = [
         'id',
         'id_owner',
+        'site_key',
         'id_user',
         'session_token',
         'recovery_token',
@@ -50,46 +55,75 @@ class StoreCartsRepository extends BaseRepository
         return bin2hex(random_bytes(32));
     }
 
-    public function getBySessionToken(string $sessionToken): ?object
+    public function add(array $data): bool
     {
+        return parent::add($this->withDefaultSiteKey($data));
+    }
+
+    public function getBySessionToken(string $sessionToken, ?int $ownerId = null): ?object
+    {
+        $ownerSql = $ownerId !== null && $ownerId > 0 ? "AND id_owner = :id_owner" : "";
+        $siteSql = $this->siteScopeSql();
         $this->db->query("
             SELECT *
             FROM {$this->table}
             WHERE session_token = :session_token
+              {$ownerSql}
+              {$siteSql}
             LIMIT 1
         ");
         $this->db->bind(':session_token', $sessionToken);
+        if ($ownerSql !== '') {
+            $this->db->bind(':id_owner', $ownerId, \PDO::PARAM_INT);
+        }
+        $this->bindSiteScope();
         $result = $this->db->fetchOne();
 
         return $result ?: null;
     }
 
-    public function getByRecoveryToken(string $recoveryToken): ?object
+    public function getByRecoveryToken(string $recoveryToken, ?int $ownerId = null): ?object
     {
+        $ownerSql = $ownerId !== null && $ownerId > 0 ? "AND id_owner = :id_owner" : "";
+        $siteSql = $this->siteScopeSql();
         $this->db->query("
             SELECT *
             FROM {$this->table}
             WHERE recovery_token = :recovery_token
+              {$ownerSql}
+              {$siteSql}
             LIMIT 1
         ");
         $this->db->bind(':recovery_token', $recoveryToken);
+        if ($ownerSql !== '') {
+            $this->db->bind(':id_owner', $ownerId, \PDO::PARAM_INT);
+        }
+        $this->bindSiteScope();
         $result = $this->db->fetchOne();
 
         return $result ?: null;
     }
 
-    public function getActiveCartByEmail(string $email): ?object
+    public function getActiveCartByEmail(string $email, ?int $ownerId = null): ?object
     {
+        $ownerSql = $ownerId !== null && $ownerId > 0 ? "AND id_owner = :id_owner" : "";
+        $siteSql = $this->siteScopeSql();
         $this->db->query("
             SELECT *
             FROM {$this->table}
             WHERE guest_email = :guest_email
               AND status = :status
+              {$ownerSql}
+              {$siteSql}
             ORDER BY id DESC
             LIMIT 1
         ");
         $this->db->bind(':guest_email', $email);
         $this->db->bind(':status', self::STATUS_ACTIVE);
+        if ($ownerSql !== '') {
+            $this->db->bind(':id_owner', $ownerId, \PDO::PARAM_INT);
+        }
+        $this->bindSiteScope();
         $result = $this->db->fetchOne();
 
         return $result ?: null;
@@ -190,15 +224,18 @@ class StoreCartsRepository extends BaseRepository
         }
 
         if ($email) {
+            $siteSql = $this->siteScopeSql();
             $this->db->query("
                 SELECT *
                 FROM {$this->table}
                 WHERE guest_email = :guest_email
                   AND status IN ('ACTIVE','ABANDONED')
+                  {$siteSql}
                 ORDER BY id DESC
                 LIMIT 1
             ");
             $this->db->bind(':guest_email', $email);
+            $this->bindSiteScope();
             $result = $this->db->fetchOne();
 
             return $result ?: null;
@@ -207,27 +244,32 @@ class StoreCartsRepository extends BaseRepository
         return null;
     }
 
-    public function getAllByOwner(int $ownerId, int $limit = 100): array
+    public function getAllByOwner(int $ownerId, int $limit = 100, ?string $siteKey = null): array
     {
+        $siteSql = $this->siteScopeSql($siteKey);
         $this->db->query("
             SELECT *
             FROM {$this->table}
             WHERE id_owner = :id_owner
+            {$siteSql}
             ORDER BY id DESC
             LIMIT :limit
         ");
         $this->db->bind(':id_owner', $ownerId);
+        $this->bindSiteScope($siteKey);
         $this->db->bind(':limit', $limit, \PDO::PARAM_INT);
 
         return $this->db->fetchAll();
     }
 
-    public function getAbandonedByOwner(int $ownerId, int $limit = 100): array
+    public function getAbandonedByOwner(int $ownerId, int $limit = 100, ?string $siteKey = null): array
     {
+        $siteSql = $this->siteScopeSql($siteKey);
         $this->db->query("
             SELECT *
             FROM {$this->table}
             WHERE id_owner = :id_owner
+            {$siteSql}
             AND status IN ('ACTIVE','ABANDONED')
             AND guest_email IS NOT NULL
             AND guest_email != ''
@@ -236,6 +278,7 @@ class StoreCartsRepository extends BaseRepository
             LIMIT :limit
         ");
         $this->db->bind(':id_owner', $ownerId);
+        $this->bindSiteScope($siteKey);
         $this->db->bind(':limit', $limit, \PDO::PARAM_INT);
 
         return $this->db->fetchAll();

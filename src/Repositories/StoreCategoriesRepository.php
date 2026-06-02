@@ -2,14 +2,19 @@
 
 namespace App\Repositories;
 
+use App\Repositories\Concerns\SiteScopedRepositoryTrait;
+
 class StoreCategoriesRepository extends BaseRepository
 {
+    use SiteScopedRepositoryTrait;
+
     const STATUS_ACTIVE = 'ACTIVE';
     const STATUS_INACTIVE = 'INACTIVE';
 
     protected array $fields = [
         'id',
         'id_owner',
+        'site_key',
         'name',
         'slug',
         'description',
@@ -69,31 +74,90 @@ class StoreCategoriesRepository extends BaseRepository
         return $this->db->fetchOne() !== false;
     }
 
-    public function getBySlug(string $slug): ?object
+    public function add(array $data): bool
     {
-        $this->db->query("SELECT * FROM {$this->table} WHERE slug = :slug LIMIT 1");
+        return parent::add($this->withDefaultSiteKey($data));
+    }
+
+    public function getBySlug(string $slug, ?int $ownerId = null, ?string $siteKey = null): ?object
+    {
+        $ownerSql = $ownerId !== null && $ownerId > 0 ? "AND id_owner = :id_owner" : "";
+        $siteSql = $this->siteScopeSql($siteKey);
+        $this->db->query("SELECT * FROM {$this->table} WHERE slug = :slug {$ownerSql} {$siteSql} LIMIT 1");
         $this->db->bind(':slug', $slug);
+        if ($ownerSql !== '') {
+            $this->db->bind(':id_owner', $ownerId, \PDO::PARAM_INT);
+        }
+        $this->bindSiteScope($siteKey);
         $result = $this->db->fetchOne();
         return $result ?: null;
     }
 
-    public function getActive(): array
+    public function getPublicBySlug(string $slug, ?int $ownerId = null, ?string $siteKey = null): ?object
     {
-        return $this->getAllBy(['status' => self::STATUS_ACTIVE]);
+        $ownerSql = $ownerId !== null && $ownerId > 0 ? "AND id_owner = :id_owner" : "";
+        $siteSql = $this->publicVisibilitySql('store_category', $siteKey);
+        $this->db->query("
+            SELECT *
+            FROM {$this->table}
+            WHERE slug = :slug
+              AND status = :status
+              {$ownerSql}
+              {$siteSql}
+            LIMIT 1
+        ");
+        $this->db->bind(':slug', $slug);
+        $this->db->bind(':status', self::STATUS_ACTIVE);
+        if ($ownerSql !== '') {
+            $this->db->bind(':id_owner', $ownerId, \PDO::PARAM_INT);
+        }
+        $this->bindSiteScope($siteKey);
+        $result = $this->db->fetchOne();
+        return $result ?: null;
     }
 
-    public function getPublicSitemapEntries(int $limit = 1000): array
+    public function getActive(?int $ownerId = null, ?string $siteKey = null): array
     {
+        $ownerSql = $ownerId !== null && $ownerId > 0 ? "AND id_owner = :id_owner" : "";
+        $siteSql = $this->siteScopeSql($siteKey);
+
+        $this->db->query("
+            SELECT *
+            FROM {$this->table}
+            WHERE status = :status
+              {$ownerSql}
+              {$siteSql}
+            ORDER BY name ASC
+        ");
+        $this->db->bind(':status', self::STATUS_ACTIVE);
+        if ($ownerSql !== '') {
+            $this->db->bind(':id_owner', $ownerId, \PDO::PARAM_INT);
+        }
+        $this->bindSiteScope($siteKey);
+
+        return $this->db->fetchAll() ?: [];
+    }
+
+    public function getPublicSitemapEntries(int $limit = 1000, ?int $ownerId = null, ?string $siteKey = null): array
+    {
+        $ownerSql = $ownerId !== null && $ownerId > 0 ? "AND id_owner = :id_owner" : "";
+        $siteSql = $this->publicVisibilitySql('store_category', $siteKey);
         $this->db->query("
             SELECT id, name, slug, description, meta_title, meta_description, updated_at, created_at
             FROM {$this->table}
             WHERE status = :status
               AND slug IS NOT NULL
               AND slug != ''
+              {$ownerSql}
+              {$siteSql}
             ORDER BY updated_at DESC, created_at DESC
             LIMIT :limit
         ");
         $this->db->bind(':status', self::STATUS_ACTIVE);
+        if ($ownerSql !== '') {
+            $this->db->bind(':id_owner', $ownerId, \PDO::PARAM_INT);
+        }
+        $this->bindSiteScope($siteKey);
         $this->db->bind(':limit', $limit, \PDO::PARAM_INT);
 
         return $this->db->fetchAll() ?: [];

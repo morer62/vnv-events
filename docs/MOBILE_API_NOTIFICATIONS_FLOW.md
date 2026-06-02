@@ -1,6 +1,6 @@
 # Mobile API And Notifications Flow
 
-> VNV Events repository note: this mobile/API reference applies to VNV Events only where the VNV Events mobile app or public/client/team flows use the same endpoints. Preserve backward compatibility for mobile consumers.
+> Avomeal web note: this mobile/API reference applies to Avomeal where the Avomeal app, public store, customer orders, subscriptions or notifications use the same endpoints. Preserve backward compatibility for mobile consumers.
 
 ## Purpose
 

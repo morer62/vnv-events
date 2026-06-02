@@ -1,6 +1,6 @@
 # User, Company And Access Model
 
-> VNV Events repository note: this access model is shared architecture. For this repo, default to VNV Events owner scope and Level 1/4/5/6 workflows unless a route clearly belongs to Ophyra platform administration.
+> Avomeal web note: this access model is shared architecture. For the current Avomeal direction, Avomeal operates under the confirmed VNV Events business scope `id_user_business = 2` / `id_owner = 2`.
 
 ## Purpose
 
@@ -40,7 +40,14 @@ The company owns:
 
 Level 1 can also operate company contexts such as VNV Events Operations and Avomeal Operations, but Level 1 remains the global administrator of the platform.
 
-Avomeal must use its own business owner/company scope. It should not share the VNV Events owner ID for products, Store orders, subscriptions, payments, delivery tasks or reports.
+Avomeal now uses the confirmed VNV Events business owner scope for products, Store orders, subscriptions, payments, delivery tasks and reports:
+
+```text
+id_user_business = 2
+id_owner = 2
+```
+
+Do not treat Avomeal as a separate database or separate owner in this repo unless a future migration explicitly changes that decision.
 
 ## Level 1
 
@@ -229,7 +236,7 @@ Business Operations reports must filter by owner/company and date range.
 
 Ophyra Global Admin reports can aggregate platform-wide subscriptions, modules, users and affiliate payouts.
 
-Avomeal Operations reports are Business Operations reports scoped to the Avomeal owner ID. They must not be mixed with VNV Events operations or Ophyra SaaS subscription revenue.
+Avomeal Operations reports are Business Operations reports scoped to owner `2`. They may roll up under the VNV Events business owner, but they must not be mixed with Ophyra SaaS subscription revenue.
 
 Do not mix:
 

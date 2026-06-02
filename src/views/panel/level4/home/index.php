@@ -8,6 +8,7 @@ use App\Repositories\InstitutionProfileRepository;
 use App\Repositories\UserRepository;
 use App\Repositories\UserInstitutionsRepository;
 use App\Repositories\StoreUserRolesRepository;
+use App\Repositories\TeamMemberContractsRepository;
 use App\Utils\LocationUtils;
 
 $router = new Router();
@@ -75,6 +76,11 @@ $router->get(function () {
     $storeRoleLabel = 'General';
     $storeRoleIcon = 'fa-layer-group';
     $storeRoleDescription = 'Support store operations, assigned jobs, and order coordination.';
+    $teamContract = null;
+
+    if ($currentOwnerId > 0) {
+        $teamContract = (new TeamMemberContractsRepository())->getLatestForMember((int)$user->getId(), (int)$currentOwnerId);
+    }
 
     if ($storeTeamRole === 'kitchen') {
         $storeRoleLabel = 'Kitchen';
@@ -99,7 +105,8 @@ $router->get(function () {
         'storeTeamRole' => $storeTeamRole,
         'storeRoleLabel' => $storeRoleLabel,
         'storeRoleIcon' => $storeRoleIcon,
-        'storeRoleDescription' => $storeRoleDescription
+        'storeRoleDescription' => $storeRoleDescription,
+        'teamContract' => $teamContract
     ]);
 });
 

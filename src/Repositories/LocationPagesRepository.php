@@ -2,8 +2,12 @@
 
 namespace App\Repositories;
 
+use App\Repositories\Concerns\SiteScopedRepositoryTrait;
+
 class LocationPagesRepository extends BaseRepository
 {
+    use SiteScopedRepositoryTrait;
+
     public function __construct()
     {
         $this->table = "cms_location_pages";
@@ -12,6 +16,7 @@ class LocationPagesRepository extends BaseRepository
         $this->fields = [
             'id',
             'id_owner',
+            'site_key',
             'title',
             'slug',
             'category',
@@ -47,30 +52,41 @@ class LocationPagesRepository extends BaseRepository
         ];
     }
 
-    public function getBySlug(string $slug): ?object
+    public function add(array $data): bool
     {
+        return parent::add($this->withDefaultSiteKey($data));
+    }
+
+    public function getBySlug(string $slug, ?string $siteKey = null): ?object
+    {
+        $siteSql = $this->publicVisibilitySql('location_page', $siteKey);
         $this->db->query("
             SELECT *
             FROM {$this->table}
             WHERE slug = :slug
+              {$siteSql}
             LIMIT 1
         ");
         $this->db->bind(':slug', trim(strtolower($slug)));
+        $this->bindSiteScope($siteKey);
 
         $result = $this->db->fetchOne();
         return $result ?: null;
     }
 
-    public function getPublishedBySlug(string $slug): ?object
+    public function getPublishedBySlug(string $slug, ?string $siteKey = null): ?object
     {
+        $siteSql = $this->publicVisibilitySql('location_page', $siteKey);
         $this->db->query("
             SELECT *
             FROM {$this->table}
             WHERE slug = :slug
               AND status = 'PUBLISHED'
+              {$siteSql}
             LIMIT 1
         ");
         $this->db->bind(':slug', trim(strtolower($slug)));
+        $this->bindSiteScope($siteKey);
 
         $result = $this->db->fetchOne();
         return $result ?: null;
@@ -111,27 +127,33 @@ class LocationPagesRepository extends BaseRepository
         return $this->db->fetchAll() ?: [];
     }
 
-    public function getAllPublished(): array
+    public function getAllPublished(?string $siteKey = null): array
     {
+        $siteSql = $this->publicVisibilitySql('location_page', $siteKey);
         $this->db->query("
             SELECT *
             FROM {$this->table}
             WHERE status = 'PUBLISHED'
+              {$siteSql}
             ORDER BY published_at DESC, created_at DESC
         ");
+        $this->bindSiteScope($siteKey);
 
         return $this->db->fetchAll() ?: [];
     }
 
-    public function getAllIndexablePublished(): array
+    public function getAllIndexablePublished(?string $siteKey = null): array
     {
+        $siteSql = $this->publicVisibilitySql('location_page', $siteKey);
         $this->db->query("
             SELECT *
             FROM {$this->table}
             WHERE status = 'PUBLISHED'
               AND is_indexable = 1
+              {$siteSql}
             ORDER BY updated_at DESC, published_at DESC, created_at DESC
         ");
+        $this->bindSiteScope($siteKey);
 
         return $this->db->fetchAll() ?: [];
     }

@@ -1,8 +1,10 @@
 # VNV Events Launch Readiness
 
+> Avomeal web note: this is now reference material from the VNV Events sprint. The current repo context is Avomeal Web operating under VNV Events owner `2`.
+
 ## Project Identity
 
-This repository is currently focused on VNV Events.
+This reference document was written when the sprint focused on VNV Events.
 
 VNV Events is a real event planning, event production and event services business operating publicly at:
 
@@ -89,7 +91,7 @@ Primary responsibilities:
 The repository still contains code related to:
 
 - Ophyra SaaS/platform administration.
-- Avomeal/VNV Gourmet store and nutrition flows.
+- Avomeal store and nutrition flows.
 - Venue/vendor marketplace flows.
 - Level 2 and Level 3 business/venue/vendor flows.
 - Older Planner Hub labels.

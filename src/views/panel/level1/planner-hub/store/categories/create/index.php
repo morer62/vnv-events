@@ -1,6 +1,7 @@
 <?php
 
 use App\Repositories\StoreCategoriesRepository;
+use App\Utils\AvomealContext;
 use App\Utils\LocationUtils;
 use App\Utils\MessageUtil;
 use App\Utils\Router;
@@ -29,6 +30,7 @@ $router->get(function () {
 
 $router->post(function () {
     $repo = new StoreCategoriesRepository();
+    $ownerId = AvomealContext::ownerId();
 
     $name = trim($_POST['name'] ?? '');
     $slugInput = trim($_POST['slug'] ?? '');
@@ -48,6 +50,7 @@ $router->post(function () {
     $slug = $repo->generateUniqueSlug($slugBase);
 
     $ok = $repo->add([
+        'id_owner' => $ownerId,
         'name' => $name,
         'slug' => $slug,
         'description' => $description ?: null,

@@ -1,6 +1,6 @@
 # Mobile Apps Ecosystem
 
-> VNV Events repository note: this is ecosystem-level mobile guidance. In this repo, prioritize the VNV Events app/client/team experience unless a task explicitly targets another app.
+> Avomeal web note: this is ecosystem-level mobile guidance. In this repo, prioritize Avomeal customer, store, subscription and notification behavior while preserving VNV Events and mobile compatibility.
 
 ## Purpose
 
@@ -12,7 +12,7 @@ The mobile apps are brand-specific mobile experiences. They generally do not con
 
 | App | Repository | Observed package name | Brand |
 | --- | --- | --- | --- |
-| Avomeal / VNV Gourmet app | `morer62/vnv-gourmet-app` | `avomeal-app` | Avomeal / VNV Gourmet |
+| Avomeal app | `morer62/vnv-gourmet-app` | `avomeal-app` | Avomeal |
 | VNV Events app | `morer62/vnv-mobile-app` | `vnv-events-app` | VNV Events |
 
 Both apps are Expo/React Native projects and use dependencies such as:

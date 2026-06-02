@@ -1,5 +1,7 @@
 # VNV Events Public Forums
 
+> Avomeal web note: this is retained as VNV Events forum reference. It is not the main Avomeal food/store flow unless future community features are explicitly requested.
+
 ## Purpose
 
 The public forum is a standalone community module for VNV Events. It is not blog comments, CMS pages, private chat, or internal order messaging.

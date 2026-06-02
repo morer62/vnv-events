@@ -4,7 +4,7 @@ $clientName = $templateData['clientName'] ?? 'there';
 $recoveryUrl = $templateData['recoveryUrl'] ?? '#';
 $mealsCount = $templateData['mealsCount'] ?? 0;
 $total = $templateData['total'] ?? '0.00';
-$companyName = $templateData['companyName'] ?? 'VNV Gourmet';
+$companyName = $templateData['companyName'] ?? 'Avomeal';
 ?>
 <!DOCTYPE html>
 <html lang="en">

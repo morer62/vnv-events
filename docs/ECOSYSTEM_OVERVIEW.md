@@ -1,10 +1,10 @@
 # Ecosystem Overview
 
-> VNV Events repository note: this file explains the broader ecosystem. For work in this repo, read the ecosystem through the lens of VNV Events as the active operating brand.
+> Avomeal web note: this file explains the broader ecosystem. For work in this repo, read the ecosystem through the lens of Avomeal as the active food/store brand under VNV Events owner `2`.
 
 ## Purpose
 
-This document explains how Ophyra, VNV Events, Avomeal / VNV Gourmet, Jonnys Media and the related mobile apps fit together.
+This document explains how Ophyra, VNV Events, Avomeal, Jonnys Media and the related mobile apps fit together.
 
 The ecosystem shares history and technical patterns, but each project keeps its own business identity.
 
@@ -19,7 +19,7 @@ The correct mental model is:
 ```text
 Ophyra = parent/reference platform and possible central admin layer
 VNV Events = independent events business
-Avomeal / VNV Gourmet = independent food, delivery and product business
+Avomeal = independent food, delivery and product business
 Jonnys Media = personal/professional brand behind the ecosystem
 Mobile apps = brand-specific mobile shells connected to web/backend systems
 ```
@@ -30,7 +30,7 @@ Mobile apps = brand-specific mobile shells connected to web/backend systems
 | --- | --- | --- | --- |
 | Ophyra | Current repository | Ophyra | Modular operations platform and reference architecture. |
 | VNV Events | `morer62/vnv-events` | `vnvevents.com` | Event operations, services, clients, team, orders and execution. |
-| Avomeal / VNV Gourmet | `morer62/VNV_Gourmet` | `avomeal.com` | Food delivery, prepared meals, party kits, themed dinners and product orders. |
+| Avomeal | current Avomeal web scope | `vnvevents.com` Store/food routes | Food brand under VNV Events owner `2`: prepared meals, holiday menus, party boxes, subscriptions and product orders. |
 | Jonnys Media | Requested as `morer62/jonnys_media` | `jonnys.media` | Professional/personal brand of the developer and ecosystem leader. The repo was not visible to the current GitHub connector session. |
 | Avomeal mobile app | `morer62/vnv-gourmet-app` | Avomeal app | Expo/React Native app, package name observed as `avomeal-app`. |
 | VNV Events mobile app | `morer62/vnv-mobile-app` | VNV Events app | Expo/React Native app, package name observed as `vnv-events-app`. |
@@ -103,7 +103,7 @@ Start with `docs/AGENTS.md`, then read:
 
 * `docs/OPHYRA_BUSINESS_MODEL.md` for Ophyra pricing/modules/access,
 * `docs/VNV_EVENTS_PROJECT_CONTEXT.md` before touching VNV Events logic,
-* `docs/AVOMEAL_PROJECT_CONTEXT.md` before touching Avomeal/VNV Gourmet logic,
+* `docs/AVOMEAL_PROJECT_CONTEXT.md` before touching Avomeal logic,
 * `docs/JONNYS_MEDIA_PROJECT_CONTEXT.md` before touching Jonnys Media content,
 * `docs/MOBILE_APPS_ECOSYSTEM.md` before touching mobile app assumptions,
 * `docs/MOBILE_API_NOTIFICATIONS_FLOW.md` before changing API/mobile responses,

@@ -1,6 +1,6 @@
 # Ophyra Billing Automation
 
-> VNV Events repository note: this is Ophyra SaaS billing reference. VNV Events launch work should not become generic Ophyra subscription billing unless the route explicitly manages Ophyra platform accounts.
+> Avomeal web note: this is Ophyra SaaS billing reference. Avomeal store/subscription work should not become generic Ophyra subscription billing unless the route explicitly manages Ophyra platform accounts.
 
 ## Purpose
 

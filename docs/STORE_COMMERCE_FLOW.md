@@ -1,12 +1,12 @@
 # Store / Commerce Flow
 
-> VNV Events repository note: Store/catalog behavior is shared architecture. In this repo it should be exposed as VNV Events catalog/store only when active and visually aligned with VNV Events, not as generic Ophyra commerce.
+> Avomeal web note: Store/catalog behavior is shared architecture. In this repo it should be exposed as Avomeal food-store behavior under the confirmed VNV Events owner scope `id_user_business = 2` / `id_owner = 2`.
 
 ## Purpose
 
 Store / Commerce is Ophyra's paid commerce module. A business can publish products, manage stock, accept coupons, collect customer payment and review fulfillment without creating a checkout system separate from the existing payment-provider configuration.
 
-Avomeal / VNV Gourmet uses this same Store foundation as a specialized meal-prep Business Operation. Its nutrition, weekly menu, subscription and delivery-zone model is documented in:
+Avomeal uses this same Store foundation as a specialized meal-prep Business Operation. Its nutrition, weekly menu, subscription and delivery-zone model is documented in:
 
 ```text
 docs/AVOMEAL_OPHYRA_INTEGRATION_MODEL.md
@@ -226,4 +226,4 @@ The first script safely adds `store_products.id_owner` and its indexes only when
 * `store_payments` is the Store audit trail until `payments_all` receives an explicit Store concept migration.
 * Existing legacy meal-plan subscription screens remain compatible but need a separate subscription-renewal QA pass before broad production use.
 * Public Business Profile quote requests are shown and accepted only when the selling owner has the paid `services` module. Legacy venue/vendor quote flows remain unchanged.
-* Avomeal must use its own owner/company scope before importing products or orders, otherwise reports can mix with VNV Events.
+* Avomeal must use the confirmed owner/company scope `2` before importing products or orders. Do not read/write Store data globally.

@@ -2,16 +2,20 @@
 
 namespace App\Repositories;
 
+use App\Repositories\Concerns\SiteScopedRepositoryTrait;
 use PDO;
 use PDOException;
 
 class SmtpCredentialsRepository extends BaseRepository
 {
+    use SiteScopedRepositoryTrait;
+
     protected string $table = "smtp_credentials";
 
     protected array $fields = [
         'id',
         'id_owner',
+        'site_key',
         'provider_name',
         'provider_type',
         'smtp_host',
@@ -45,6 +49,7 @@ class SmtpCredentialsRepository extends BaseRepository
             CREATE TABLE IF NOT EXISTS {$this->table} (
                 id INT AUTO_INCREMENT PRIMARY KEY,
                 id_owner INT NOT NULL,
+                site_key VARCHAR(80) NULL,
                 provider_name VARCHAR(120) NOT NULL,
                 provider_type VARCHAR(40) NOT NULL DEFAULT 'custom',
                 smtp_host VARCHAR(255) NOT NULL,
@@ -63,6 +68,8 @@ class SmtpCredentialsRepository extends BaseRepository
                 created_at DATETIME NULL,
                 updated_at DATETIME NULL,
                 INDEX idx_smtp_owner (id_owner),
+                INDEX idx_smtp_site (site_key),
+                INDEX idx_smtp_owner_site (id_owner, site_key),
                 INDEX idx_smtp_active (is_active),
                 INDEX idx_smtp_default (is_default)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
@@ -120,6 +127,7 @@ class SmtpCredentialsRepository extends BaseRepository
     public function add(array $data): bool
     {
         $data = $this->encryptPasswordInData($data);
+        $data = $this->withDefaultSiteKey($data);
         return parent::add($data);
     }
 
@@ -142,23 +150,72 @@ class SmtpCredentialsRepository extends BaseRepository
         return $row ? $this->decryptPasswordInRow($row) : null;
     }
 
-    public function getAllByOwner(int $ownerId, int $page = 1, int $limit = 50): array
+    public function getConfiguredForOwner(int $ownerId, ?string $siteKey = null): ?object
+    {
+        try {
+            $configuredSmtpId = (int)(new BrandSiteSettingsRepository())->get('active_smtp_id', 0, $siteKey);
+            if ($configuredSmtpId > 0) {
+                $siteSql = $this->siteScopeSql($siteKey);
+                $this->db->query("
+                    SELECT *
+                    FROM {$this->table}
+                    WHERE id = :id
+                      AND id_owner = :owner
+                      AND is_active = 1
+                      {$siteSql}
+                    LIMIT 1
+                ");
+                $this->db->bind(':id', $configuredSmtpId, PDO::PARAM_INT);
+                $this->db->bind(':owner', $ownerId, PDO::PARAM_INT);
+                $this->bindSiteScope($siteKey);
+                $row = $this->db->fetchOne();
+                if ($row) {
+                    return $this->decryptPasswordInRow($row);
+                }
+            }
+        } catch (\Throwable $e) {
+            // Fall back to site-scoped default/active selection when settings are unavailable.
+        }
+
+        $all = $this->getAllByOwner($ownerId, 1, 200, $siteKey);
+        $configs = $all['data'] ?? [];
+
+        foreach ($configs as $cfg) {
+            if ((int)($cfg->is_default ?? 0) === 1 && (int)($cfg->is_active ?? 0) === 1) {
+                return $cfg;
+            }
+        }
+
+        foreach ($configs as $cfg) {
+            if ((int)($cfg->is_active ?? 0) === 1) {
+                return $cfg;
+            }
+        }
+
+        return null;
+    }
+
+    public function getAllByOwner(int $ownerId, int $page = 1, int $limit = 50, ?string $siteKey = null): array
     {
         $offset = max(0, ($page - 1) * $limit);
+        $siteSql = $this->siteScopeSql($siteKey);
         $this->db->query("
             SELECT * FROM {$this->table}
             WHERE id_owner = :owner
+            {$siteSql}
             ORDER BY is_default DESC, is_active DESC, provider_name ASC
             LIMIT :lim OFFSET :off
         ");
         $this->db->bind(':owner', $ownerId, PDO::PARAM_INT);
+        $this->bindSiteScope($siteKey);
         $this->db->bind(':lim', $limit, PDO::PARAM_INT);
         $this->db->bind(':off', $offset, PDO::PARAM_INT);
         $rows = $this->db->fetchAll();
         $rows = array_map(fn($r) => $this->decryptPasswordInRow($r), $rows);
 
-        $this->db->query("SELECT COUNT(*) AS total FROM {$this->table} WHERE id_owner = :owner");
+        $this->db->query("SELECT COUNT(*) AS total FROM {$this->table} WHERE id_owner = :owner {$siteSql}");
         $this->db->bind(':owner', $ownerId, PDO::PARAM_INT);
+        $this->bindSiteScope($siteKey);
         $count = $this->db->fetchOne();
 
         return [

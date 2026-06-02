@@ -1,6 +1,6 @@
 # Team, Chat And Delivery Operations
 
-> VNV Events repository note: this document is active where VNV Events uses team chat, client chat, Store/catalog fulfillment, delivery or Level 4 work. Keep visible labels and permissions aligned with VNV Events.
+> Avomeal web note: this document is active where Avomeal uses team chat, customer chat, Store/catalog fulfillment, delivery or Level 4 work. Keep visible labels and permissions aligned with Avomeal and owner `2`.
 
 ## Purpose
 

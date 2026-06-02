@@ -2,8 +2,12 @@
 
 namespace App\Repositories;
 
+use App\Repositories\Concerns\SiteScopedRepositoryTrait;
+
 class StorePaymentsRepository extends BaseRepository
 {
+    use SiteScopedRepositoryTrait;
+
     const STATUS_PENDING = 'PENDING';
     const STATUS_PAID = 'PAID';
     const STATUS_FAILED = 'FAILED';
@@ -16,6 +20,7 @@ class StorePaymentsRepository extends BaseRepository
     protected array $fields = [
         'id',
         'id_owner',
+        'site_key',
         'id_store_order',
         'id_user',
         'payment_method',
@@ -36,6 +41,11 @@ class StorePaymentsRepository extends BaseRepository
     {
         $this->table = "store_payments";
         $this->db = new Connection();
+    }
+
+    public function add(array $data): bool
+    {
+        return parent::add($this->withDefaultSiteKey($data));
     }
 
     public function getByOrder(int $orderId): array
@@ -156,16 +166,19 @@ class StorePaymentsRepository extends BaseRepository
         return $this->update($data, ['id' => $paymentId]);
     }
 
-    public function getAllByOwner(int $ownerId, int $limit = 100): array
+    public function getAllByOwner(int $ownerId, int $limit = 100, ?string $siteKey = null): array
 {
+    $siteSql = $this->siteScopeSql($siteKey);
     $this->db->query("
         SELECT *
         FROM {$this->table}
         WHERE id_owner = :id_owner
+        {$siteSql}
         ORDER BY id DESC
         LIMIT :limit
     ");
     $this->db->bind(':id_owner', $ownerId);
+    $this->bindSiteScope($siteKey);
     $this->db->bind(':limit', $limit, \PDO::PARAM_INT);
 
     return $this->db->fetchAll();

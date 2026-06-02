@@ -1,24 +1,18 @@
 <?php
 
-use App\Services\LoginService;
+use App\Services\ApiAuthService;
 use App\Utils\Cors;
 use App\Utils\JsonResponse;
 
 Cors::handle();
 
-$user = LoginService::getSession();
+$user = ApiAuthService::getAuthenticatedUser();
 
 if ($user) {
     JsonResponse::createResponse([
         'success' => true,
         'authenticated' => true,
-        'user' => [
-            'id' => $user->getId(),
-            'name' => $user->getName(),
-            'lastname' => $user->getLastname(),
-            'email' => $user->getEmail(),
-            'phone' => $user->getPhone()
-        ]
+        'user' => ApiAuthService::userPayload($user),
     ])->handle();
 } else {
     JsonResponse::createResponse([

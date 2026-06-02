@@ -6,6 +6,7 @@ use App\Repositories\StoreOrdersRepository;
 use App\Repositories\StoreSubscriptionItemsRepository;
 use App\Repositories\StoreSubscriptionsRepository;
 use App\Services\LoginService;
+use App\Utils\AvomealContext;
 use App\Utils\Router;
 use App\Utils\TemplateResponse;
 
@@ -78,12 +79,13 @@ $router->get(function () {
     $subsRepo = new StoreSubscriptionsRepository();
     $subItemsRepo = new StoreSubscriptionItemsRepository();
     $couponsRepo = new StoreCouponsRepository();
+    $ownerId = AvomealContext::ownerId();
 
     $userId = (int)$session->getId();
     $email = method_exists($session, 'getEmail') ? trim((string)$session->getEmail()) : '';
 
-    $byUser = $repo->getAllByUser($userId, 100);
-    $byEmail = $email !== '' ? $repo->getAllByGuestEmail($email, 100) : [];
+    $byUser = $repo->getAllByUser($userId, 100, $ownerId);
+    $byEmail = $email !== '' ? $repo->getAllByGuestEmail($email, 100, $ownerId) : [];
     $seen = [];
     $orders = [];
     foreach (array_merge($byUser ?: [], $byEmail ?: []) as $o) {
@@ -100,9 +102,9 @@ $router->get(function () {
         return $tb <=> $ta;
     });
 
-    $activeSub = $subsRepo->getActiveByUser($userId);
+    $activeSub = $subsRepo->getActiveByUser($userId, $ownerId);
     if (!$activeSub && $email !== '') {
-        $activeSub = $subsRepo->getActiveByEmail($email);
+        $activeSub = $subsRepo->getActiveByEmail($email, $ownerId);
     }
 
     $subscriptionNextCharge = null;
