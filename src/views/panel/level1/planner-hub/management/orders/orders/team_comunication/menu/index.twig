@@ -1,0 +1,450 @@
+{% extends 'templates/base.admin.twig' %}
+{% import 'templates/macros.twig' as macros %}
+
+{% block style %}
+{{ parent() }}
+<style>
+  .menu-service-row {
+    border: 1px solid #edf0f4;
+    border-radius: 12px;
+    padding: 12px;
+    background: #fff;
+  }
+
+  .menu-selection-list li {
+    padding: 4px 0;
+    border-bottom: 1px dashed #eceff3;
+  }
+
+  .menu-selection-list li:last-child {
+    border-bottom: 0;
+  }
+
+  .menu-selected-counter {
+    font-size: 0.85rem;
+    color: #6b7280;
+  }
+
+  .menu-save-feedback {
+    display: none;
+  }
+</style>
+{% endblock %}
+
+{% block body %}
+<main class="mt-4 container">
+  <h1 class="h3 mb-2">{{ trans('planner_hub.step_3_menu') }} #{{ order_id }}</h1>
+  <p class="text-muted mb-4">Select a service, choose category/items, and save without leaving the modal.</p>
+
+  <a href="{{ path('panel/planner-hub/management/orders/orders/team_comunication') }}?id={{ order_id }}" class="btn btn-outline-secondary mb-3">
+    {{ trans('planner_hub.back_to_team_area') }}
+  </a>
+
+  {# Main order - Services #}
+  <div class="card mb-4">
+    <div class="card-header bg-primary text-white">
+      <h4 class="mb-0">{{ trans('planner_hub.main_order') }} #{{ order_id }} - {{ trans('planner_hub.services_tasks') }}</h4>
+    </div>
+    <div class="card-body">
+      {% if services is empty %}
+        <p class="text-muted mb-0">{{ trans('planner_hub.no_services_for_order')|default('No services assigned to this order.') }}</p>
+      {% else %}
+        <ul class="list-group list-group-flush">
+          {% for service in services %}
+            <li class="list-group-item border-0 px-0 py-2">
+              <div class="menu-service-row" data-source="main_order" data-id-service="{{ service.id_service }}" data-id-suborder="">
+              <div class="d-flex align-items-center flex-wrap gap-2 mb-2">
+                <span class="fw-bold">{{ service.name }}</span>
+                <span class="badge bg-secondary">#{{ service.id_service }}</span>
+                <span class="badge bg-light text-dark service-selected-badge">{{ service.selections|length }} selected</span>
+                <button type="button" class="btn btn-sm btn-info ms-auto service-edit-btn" data-bs-toggle="modal" data-bs-target="#modalMenu-main-{{ service.id_service }}">
+                  {{ service.selections|length > 0 ? (trans('planner_hub.edit_menu')|default('Edit menu')) : (trans('planner_hub.add_menu')|default('Add menu')) }}
+                </button>
+              </div>
+              <div class="service-selections-container">
+                {% if service.selections|length > 0 %}
+                  <ul class="list-unstyled small mb-0 ms-2 menu-selection-list">
+                    {% for sel in service.selections %}
+                      <li class="text-muted">
+                        <span class="text-dark">{{ sel.category_name }}</span>: {{ sel.item_name }}{% if sel.price_info %} ({{ sel.price_info }}){% endif %}
+                        <form method="post" class="d-inline" onsubmit="return confirm('{{ trans('planner_hub.remove_task_assignment')|default('Remove this item?') }}');">
+                          <input type="hidden" name="__action" value="remove_menu_selection">
+                          <input type="hidden" name="id_order" value="{{ order_id }}">
+                          <input type="hidden" name="id_selection" value="{{ sel.id }}">
+                          <button type="submit" class="btn btn-link btn-sm p-0 text-danger">Remove</button>
+                        </form>
+                      </li>
+                    {% endfor %}
+                  </ul>
+                {% else %}
+                  {% set noMenuText = trans('planner_hub.no_menu_selected') %}
+                  <p class="text-muted small mb-0 ms-2">{{ noMenuText == 'planner_hub.no_menu_selected' ? 'No menu items selected yet.' : noMenuText }}</p>
+                {% endif %}
+              </div>
+              </div>
+            </li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+    </div>
+  </div>
+
+  {# Suborders - Services #}
+  {% if suborderServices|length > 0 %}
+    {% for suborder in suborders %}
+      <div class="card mb-4">
+        <div class="card-header bg-info text-white">
+          <h4 class="mb-0">{{ trans('planner_hub.sub_order') }} #{{ suborder.id }} - {{ trans('planner_hub.services_tasks') }}</h4>
+        </div>
+        <div class="card-body">
+          <ul class="list-group list-group-flush">
+            {% for service in suborderServices %}
+              {% if service.suborder_id == suborder.id %}
+                <li class="list-group-item border-0 px-0 py-2">
+                  <div class="menu-service-row" data-source="suborder" data-id-service="{{ service.id_service }}" data-id-suborder="{{ suborder.id }}">
+                  <div class="d-flex align-items-center flex-wrap gap-2 mb-2">
+                    <span class="fw-bold">{{ service.name }}</span>
+                    <span class="badge bg-secondary">#{{ service.id_service }}</span>
+                    <span class="badge bg-light text-dark service-selected-badge">{{ service.selections|length }} selected</span>
+                    <button type="button" class="btn btn-sm btn-info ms-auto service-edit-btn" data-bs-toggle="modal" data-bs-target="#modalMenu-sub-{{ suborder.id }}-{{ service.id_service }}">
+                      {{ service.selections|length > 0 ? (trans('planner_hub.edit_menu')|default('Edit menu')) : (trans('planner_hub.add_menu')|default('Add menu')) }}
+                    </button>
+                  </div>
+                  <div class="service-selections-container">
+                    {% if service.selections|length > 0 %}
+                      <ul class="list-unstyled small mb-0 ms-2 menu-selection-list">
+                        {% for sel in service.selections %}
+                          <li class="text-muted">
+                            <span class="text-dark">{{ sel.category_name }}</span>: {{ sel.item_name }}{% if sel.price_info %} ({{ sel.price_info }}){% endif %}
+                            <form method="post" class="d-inline" onsubmit="return confirm('{{ trans('planner_hub.remove_task_assignment')|default('Remove this item?') }}');">
+                              <input type="hidden" name="__action" value="remove_menu_selection">
+                              <input type="hidden" name="id_order" value="{{ order_id }}">
+                              <input type="hidden" name="id_selection" value="{{ sel.id }}">
+                              <button type="submit" class="btn btn-link btn-sm p-0 text-danger">Remove</button>
+                            </form>
+                          </li>
+                        {% endfor %}
+                      </ul>
+                    {% else %}
+                      {% set noMenuText = trans('planner_hub.no_menu_selected') %}
+                      <p class="text-muted small mb-0 ms-2">{{ noMenuText == 'planner_hub.no_menu_selected' ? 'No menu items selected yet.' : noMenuText }}</p>
+                    {% endif %}
+                  </div>
+                  </div>
+                </li>
+              {% endif %}
+            {% endfor %}
+          </ul>
+        </div>
+      </div>
+    {% endfor %}
+  {% endif %}
+</main>
+
+{# Modals: one per service (main order) #}
+{% for service in services %}
+  <div class="modal fade" id="modalMenu-main-{{ service.id_service }}" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <form method="post" action="" class="menu-save-form">
+          <input type="hidden" name="__action" value="add_menu_selections">
+          <input type="hidden" name="id_order" value="{{ order_id }}">
+          <input type="hidden" name="id_service" value="{{ service.id_service }}">
+          <input type="hidden" name="source" value="main_order">
+          <div class="modal-header">
+            <h5 class="modal-title">{{ trans('planner_hub.add_menu')|default('Add menu') }} - {{ service.name }}</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <div class="alert alert-success menu-save-feedback" role="alert"></div>
+            <div class="mb-3">
+              <label class="form-label">{{ trans('planner_hub.select_category')|default('Select category') }}</label>
+              <select class="form-select menu-category-select" data-modal-id="modalMenu-main-{{ service.id_service }}">
+                <option value="">-- {{ trans('planner_hub.select_category')|default('Select category') }} --</option>
+                {% for cat in menu_categories %}
+                  <option value="{{ cat.id }}">{{ cat.name }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="menu-items-container">
+              {% for cat in menu_categories %}
+                <div class="menu-items-list d-none" data-category-id="{{ cat.id }}" data-modal-id="modalMenu-main-{{ service.id_service }}">
+                  <div class="d-flex justify-content-between align-items-center mb-2">
+                    <label class="form-label small text-muted mb-0">{{ trans('planner_hub.select_items')|default('Select items') }}</label>
+                    <button type="button" class="btn btn-link btn-sm p-0 menu-back-to-categories" data-modal-id="modalMenu-main-{{ service.id_service }}">
+                      {{ trans('planner_hub.back')|default('Back') }}
+                    </button>
+                  </div>
+                  <div class="mb-2">
+                    <input type="text" class="form-control form-control-sm menu-item-search" placeholder="{{ trans('planner_hub.search')|default('Search') }}...">
+                  </div>
+                  <div class="list-group list-group-flush border rounded p-2" style="max-height: 280px; overflow-y: auto;">
+                    {% set items = menu_items_by_category[cat.id] ?? [] %}
+                    {% for item in items %}
+                      <label class="list-group-item list-group-item-action d-flex gap-2 mb-0 py-2">
+                        <input type="checkbox" name="id_menu_category_item[]" value="{{ item.id }}"
+                          {% for sel in service.selections %}{% if sel.id_menu_category_item == item.id %} checked{% endif %}{% endfor %}>
+                        <span>{{ item.name }}{% if item.price_info %} <small class="text-muted">({{ item.price_info }})</small>{% endif %}</span>
+                      </label>
+                    {% endfor %}
+                  </div>
+                </div>
+              {% endfor %}
+            </div>
+            <div class="menu-selected-counter">
+              Selected items: <span class="selected-count-value">0</span>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ trans('planner_hub.done')|default('Done') }}</button>
+            <button type="submit" class="btn btn-primary">{{ trans('planner_hub.save') }}</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+{% endfor %}
+
+{# Modals: one per suborder service #}
+{% for suborder in suborders %}
+  {% for service in suborderServices %}
+    {% if service.suborder_id == suborder.id %}
+      <div class="modal fade" id="modalMenu-sub-{{ suborder.id }}-{{ service.id_service }}" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <form method="post" action="" class="menu-save-form">
+              <input type="hidden" name="__action" value="add_menu_selections">
+              <input type="hidden" name="id_order" value="{{ order_id }}">
+              <input type="hidden" name="id_suborder" value="{{ suborder.id }}">
+              <input type="hidden" name="id_service" value="{{ service.id_service }}">
+              <input type="hidden" name="source" value="suborder">
+              <div class="modal-header">
+                <h5 class="modal-title">{{ trans('planner_hub.add_menu')|default('Add menu') }} - {{ service.name }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+              </div>
+              <div class="modal-body">
+                <div class="alert alert-success menu-save-feedback" role="alert"></div>
+                <div class="mb-3">
+                  <label class="form-label">{{ trans('planner_hub.select_category')|default('Select category') }}</label>
+                  <select class="form-select menu-category-select" data-modal-id="modalMenu-sub-{{ suborder.id }}-{{ service.id_service }}">
+                    <option value="">-- {{ trans('planner_hub.select_category')|default('Select category') }} --</option>
+                    {% for cat in menu_categories %}
+                      <option value="{{ cat.id }}">{{ cat.name }}</option>
+                    {% endfor %}
+                  </select>
+                </div>
+                <div class="menu-items-container">
+                  {% for cat in menu_categories %}
+                    <div class="menu-items-list d-none" data-category-id="{{ cat.id }}" data-modal-id="modalMenu-sub-{{ suborder.id }}-{{ service.id_service }}">
+                      <div class="d-flex justify-content-between align-items-center mb-2">
+                        <label class="form-label small text-muted mb-0">{{ trans('planner_hub.select_items')|default('Select items') }}</label>
+                        <button type="button" class="btn btn-link btn-sm p-0 menu-back-to-categories" data-modal-id="modalMenu-sub-{{ suborder.id }}-{{ service.id_service }}">
+                          {{ trans('planner_hub.back')|default('Back') }}
+                        </button>
+                      </div>
+                      <div class="mb-2">
+                        <input type="text" class="form-control form-control-sm menu-item-search" placeholder="{{ trans('planner_hub.search')|default('Search') }}...">
+                      </div>
+                      <div class="list-group list-group-flush border rounded p-2" style="max-height: 280px; overflow-y: auto;">
+                        {% set items = menu_items_by_category[cat.id] ?? [] %}
+                        {% for item in items %}
+                          <label class="list-group-item list-group-item-action d-flex gap-2 mb-0 py-2">
+                            <input type="checkbox" name="id_menu_category_item[]" value="{{ item.id }}"
+                              {% for sel in service.selections %}{% if sel.id_menu_category_item == item.id %} checked{% endif %}{% endfor %}>
+                            <span>{{ item.name }}{% if item.price_info %} <small class="text-muted">({{ item.price_info }})</small>{% endif %}</span>
+                          </label>
+                        {% endfor %}
+                      </div>
+                    </div>
+                  {% endfor %}
+                </div>
+                <div class="menu-selected-counter">
+                  Selected items: <span class="selected-count-value">0</span>
+                </div>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ trans('planner_hub.done')|default('Done') }}</button>
+                <button type="submit" class="btn btn-primary">{{ trans('planner_hub.save') }}</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    {% endif %}
+  {% endfor %}
+{% endfor %}
+
+<script>
+document.querySelectorAll('.menu-category-select').forEach(function(select) {
+  select.addEventListener('change', function() {
+    var modalId = this.getAttribute('data-modal-id');
+    var modal = document.getElementById(modalId);
+    if (!modal) return;
+    var catId = this.value;
+    modal.querySelectorAll('.menu-items-list').forEach(function(div) {
+      div.classList.toggle('d-none', div.getAttribute('data-category-id') !== catId);
+      if (div.getAttribute('data-category-id') === catId) {
+        var searchInput = div.querySelector('.menu-item-search');
+        if (searchInput) searchInput.value = '';
+        div.querySelectorAll('label.list-group-item').forEach(function(itemRow) {
+          itemRow.style.setProperty('display', 'flex', 'important');
+        });
+      }
+    });
+  });
+});
+
+document.querySelectorAll('.menu-back-to-categories').forEach(function(btn) {
+  btn.addEventListener('click', function() {
+    var modalId = this.getAttribute('data-modal-id');
+    var modal = document.getElementById(modalId);
+    if (!modal) return;
+    var categorySelect = modal.querySelector('.menu-category-select');
+    if (categorySelect) categorySelect.value = '';
+    modal.querySelectorAll('.menu-items-list').forEach(function(div) {
+      div.classList.add('d-none');
+    });
+  });
+});
+
+document.addEventListener('input', function(e) {
+  if (!e.target || !e.target.classList || !e.target.classList.contains('menu-item-search')) return;
+
+  var query = (e.target.value || '').toLowerCase().trim();
+  var listBlock = e.target.closest('.menu-items-list');
+  if (!listBlock) return;
+
+  listBlock.querySelectorAll('label.list-group-item').forEach(function(itemRow) {
+    var textEl = itemRow.querySelector('span');
+    var text = (textEl ? textEl.textContent : itemRow.textContent || '').toLowerCase();
+    if (text.includes(query)) {
+      itemRow.style.setProperty('display', 'flex', 'important');
+    } else {
+      itemRow.style.setProperty('display', 'none', 'important');
+    }
+  });
+});
+
+function updateSelectedCounter(form) {
+  if (!form) return;
+  var counter = form.querySelector('.selected-count-value');
+  if (!counter) return;
+  var totalChecked = form.querySelectorAll('input[name="id_menu_category_item[]"]:checked').length;
+  counter.textContent = String(totalChecked);
+}
+
+document.querySelectorAll('.menu-save-form').forEach(function(form) {
+  updateSelectedCounter(form);
+  form.querySelectorAll('input[name="id_menu_category_item[]"]').forEach(function(cb) {
+    cb.addEventListener('change', function() {
+      updateSelectedCounter(form);
+    });
+  });
+
+  form.addEventListener('submit', function(e) {
+    e.preventDefault();
+    var feedback = form.querySelector('.menu-save-feedback');
+    var submitBtn = form.querySelector('button[type="submit"]');
+    if (submitBtn) submitBtn.disabled = true;
+    if (feedback) {
+      feedback.classList.remove('alert-danger');
+      feedback.classList.add('alert-success');
+      feedback.style.display = 'none';
+      feedback.textContent = '';
+    }
+
+    var formData = new FormData(form);
+    formData.append('ajax', '1');
+
+    fetch(window.location.href, {
+      method: 'POST',
+      headers: { 'X-Requested-With': 'XMLHttpRequest' },
+      body: formData,
+      credentials: 'same-origin'
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      if (!data.success) {
+        throw new Error(data.message || 'Error saving menu.');
+      }
+      if (feedback) {
+        feedback.textContent = data.message || 'Saved.';
+        feedback.style.display = 'block';
+      }
+      syncServiceSelectionsFromModal(form);
+    })
+    .catch(function(err) {
+      if (feedback) {
+        feedback.classList.remove('alert-success');
+        feedback.classList.add('alert-danger');
+        feedback.textContent = err.message || 'Error saving menu.';
+        feedback.style.display = 'block';
+      }
+    })
+    .finally(function() {
+      if (submitBtn) submitBtn.disabled = false;
+    });
+  });
+});
+
+function escapeHtml(text) {
+  return String(text)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
+function syncServiceSelectionsFromModal(form) {
+  var source = form.querySelector('input[name="source"]') ? form.querySelector('input[name="source"]').value : 'main_order';
+  var idService = form.querySelector('input[name="id_service"]') ? form.querySelector('input[name="id_service"]').value : '';
+  var idSuborder = form.querySelector('input[name="id_suborder"]') ? form.querySelector('input[name="id_suborder"]').value : '';
+  var rowSelector = '.menu-service-row[data-source="' + source + '"][data-id-service="' + idService + '"][data-id-suborder="' + idSuborder + '"]';
+  var row = document.querySelector(rowSelector);
+  if (!row) return;
+
+  var checkedInputs = form.querySelectorAll('input[name="id_menu_category_item[]"]:checked');
+  var selections = [];
+  checkedInputs.forEach(function(input) {
+    var itemLabel = input.closest('label');
+    var itemText = '';
+    if (itemLabel) {
+      var textSpan = itemLabel.querySelector('span');
+      itemText = textSpan ? textSpan.innerText.trim() : itemLabel.innerText.trim();
+    }
+    var listWrapper = input.closest('.menu-items-list');
+    var catId = listWrapper ? listWrapper.getAttribute('data-category-id') : '';
+    var categoryName = '';
+    var select = form.querySelector('.menu-category-select');
+    if (select && catId) {
+      var opt = select.querySelector('option[value="' + catId + '"]');
+      categoryName = opt ? opt.textContent.trim() : '';
+    }
+    selections.push({ categoryName: categoryName, itemText: itemText });
+  });
+
+  var badge = row.querySelector('.service-selected-badge');
+  if (badge) badge.textContent = selections.length + ' selected';
+
+  var editBtn = row.querySelector('.service-edit-btn');
+  if (editBtn) editBtn.textContent = selections.length > 0 ? 'Edit menu' : 'Add menu';
+
+  var container = row.querySelector('.service-selections-container');
+  if (!container) return;
+
+  if (selections.length === 0) {
+    container.innerHTML = '<p class="text-muted small mb-0 ms-2">No menu items selected yet.</p>';
+    return;
+  }
+
+  var html = '<ul class="list-unstyled small mb-0 ms-2 menu-selection-list">';
+  selections.forEach(function(sel) {
+    var label = (sel.categoryName ? '<span class="text-dark">' + escapeHtml(sel.categoryName) + '</span>: ' : '') + escapeHtml(sel.itemText);
+    html += '<li class="text-muted">' + label + '</li>';
+  });
+  html += '</ul>';
+  container.innerHTML = html;
+}
+</script>
+{% endblock %}

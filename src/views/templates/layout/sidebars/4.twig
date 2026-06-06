@@ -1,69 +1,138 @@
+<li class="sidebar-header">{{ trans('ui.my_dashboard') }}</li>
+
+{% set canOrders = user.hasPermissionForModule('orders') %}
+{% set canPayroll = user.hasPermissionForModule('payroll') %}
+{% set canCrm = user.hasPermissionForModule('crm') %}
+{% set canStorage = user.hasPermissionForModule('storage') %}
+{% set canUsers = user.hasPermissionForModule('users') %}
+{% set canManagement = canOrders or canCrm or canStorage or canUsers %}
+
+<li class="sidebar-item">
+    <a class="sidebar-link" href="{{ path('panel/planner-hub') }}">
+        <i class="align-middle" data-feather="grid"></i>
+        <span class="align-middle">{{ trans('level4_access_center.sidebar_access_center') }}</span>
+    </a>
+</li>
+
 <li class="sidebar-item">
     <a class="sidebar-link" href="{{ path('panel/home') }}">
-        <i class="align-middle" data-feather="home"></i>
-        <span class="align-middle">Team Dashboard</span>
-    </a>
-</li>
-
-<li class="sidebar-item">
-    <a class="sidebar-link" href="{{ path('panel/planner-hub/team/payroll/clock') }}">
-        <i class="align-middle" data-feather="clock"></i>
-        <span class="align-middle">Clock In/Out</span>
-    </a>
-</li>
-
-<li class="sidebar-item">
-    <a class="sidebar-link" href="{{ path('panel/planner-hub/team/contracts') }}">
-        <i class="align-middle" data-feather="file-text"></i>
-        <span class="align-middle">My Contract</span>
-    </a>
-</li>
-
-<li class="sidebar-item">
-    <a class="sidebar-link" href="{{ path('panel/planner-hub/team/orders/orders/') }}">
         <i class="align-middle" data-feather="briefcase"></i>
-        <span class="align-middle">Assigned Jobs</span>
+        <span class="align-middle">{{ trans('ui.company_workspace') }}</span>
     </a>
 </li>
 
+<li class="sidebar-header">{{ trans('ui.my_work') }}</li>
+
 <li class="sidebar-item">
-    <a class="sidebar-link" href="{{ path('panel/planner-hub/team/orders/calendar') }}">
+    <a class="sidebar-link" href="{{ path(canOrders ? 'panel/planner-hub/team/orders/orders/' : 'panel/planner-hub/no-access?module=orders') }}">
         <i class="align-middle" data-feather="calendar"></i>
-        <span class="align-middle">Calendar View</span>
+        <span class="align-middle">{{ trans('ui.assigned_orders') }}</span>
     </a>
 </li>
 
 <li class="sidebar-item">
-    <a class="sidebar-link" href="{{ path('panel/planner-hub/team/payroll/pending') }}">
-        <i class="align-middle" data-feather="dollar-sign"></i>
-        <span class="align-middle">Pending Hours</span>
+    <a class="sidebar-link" href="{{ path('panel/planner-hub/team/my-work') }}">
+        <i class="align-middle" data-feather="check-square"></i>
+        <span class="align-middle">{{ trans('ui.my_work') }}</span>
     </a>
 </li>
 
 <li class="sidebar-item">
     <a class="sidebar-link" href="{{ path('panel/planner-hub/team/chat') }}">
         <i class="align-middle" data-feather="message-circle"></i>
-        <span class="align-middle">Team Chat</span>
+        <span class="align-middle">{{ trans('ui.team_chat') }}</span>
     </a>
 </li>
 
 <li class="sidebar-item">
-    <a class="sidebar-link" href="{{ path('search/music-sessions/main') }}">
-        <i class="align-middle" data-feather="music"></i>
-        <span class="align-middle">Music Sessions</span>
+    <a class="sidebar-link" href="{{ path('panel/planner-hub/team/contracts') }}">
+        <i class="align-middle" data-feather="file-text"></i>
+        <span class="align-middle">{{ trans('ui.my_contract') }}</span>
+    </a>
+</li>
+
+<li class="sidebar-header">{{ trans('ui.time') }}</li>
+
+<li class="sidebar-item">
+    <a class="sidebar-link" href="{{ path(canPayroll ? 'panel/planner-hub/team/payroll/clock' : 'panel/planner-hub/no-access?module=payroll') }}">
+        <i class="align-middle" data-feather="clock"></i>
+        <span class="align-middle">{{ trans('ui.hours') }}</span>
+    </a>
+</li>
+
+<li class="sidebar-item">
+    <a class="sidebar-link" href="{{ path(canPayroll ? 'panel/planner-hub/team/payroll/pending' : 'panel/planner-hub/no-access?module=payroll') }}">
+        <i class="align-middle" data-feather="dollar-sign"></i>
+        <span class="align-middle">{{ trans('ui.payroll') }}</span>
+    </a>
+</li>
+
+{% if canManagement %}
+<li class="sidebar-header">{{ trans('level4_access_center.sidebar_approved_tools') }}</li>
+{% endif %}
+
+{% if canOrders %}
+<li class="sidebar-item">
+    <a class="sidebar-link" href="{{ path('panel/planner-hub/management/orders') }}">
+        <i class="align-middle" data-feather="briefcase"></i>
+        <span class="align-middle">{{ trans('ui.orders') }}</span>
+    </a>
+</li>
+{% endif %}
+
+{% if canCrm %}
+<li class="sidebar-item">
+    <a class="sidebar-link" href="{{ path('panel/planner-hub/management/crm') }}">
+        <i class="align-middle" data-feather="users"></i>
+        <span class="align-middle">{{ trans('ui.crm') }}</span>
+    </a>
+</li>
+{% endif %}
+
+{% if canStorage %}
+<li class="sidebar-item">
+    <a class="sidebar-link" href="{{ path('panel/planner-hub/management/storage') }}">
+        <i class="align-middle" data-feather="box"></i>
+        <span class="align-middle">{{ trans('ui.inventory_storage') }}</span>
+    </a>
+</li>
+{% endif %}
+
+{% if canUsers %}
+<li class="sidebar-item">
+    <a class="sidebar-link" href="{{ path('panel/planner-hub/management/users') }}">
+        <i class="align-middle" data-feather="user-check"></i>
+        <span class="align-middle">{{ trans('ui.team') }}</span>
+    </a>
+</li>
+{% endif %}
+
+<li class="sidebar-header">{{ trans('ui.account') }}</li>
+
+<li class="sidebar-item">
+    <a class="sidebar-link" href="{{ path('panel/settings') }}">
+        <i class="align-middle" data-feather="user"></i>
+        <span class="align-middle">{{ trans('ui.profile') }}</span>
+    </a>
+</li>
+
+<li class="sidebar-item">
+    <a class="sidebar-link" href="{{ path('panel/afiliate-hub') }}">
+        <i class="align-middle" data-feather="share-2"></i>
+        <span class="align-middle">{{ trans('sidebar.affiliate_program') }}</span>
+    </a>
+</li>
+
+<li class="sidebar-item">
+    <a class="sidebar-link" href="{{ path('sign-up') }}">
+        <i class="align-middle" data-feather="plus-circle"></i>
+        <span class="align-middle">{{ trans('auth.create_business_account_button') }}</span>
     </a>
 </li>
 
 <li class="sidebar-item">
     <a class="sidebar-link" href="{{ path('panel/event-invitations') }}">
-        <i class="align-middle" data-feather="send"></i>
-        <span class="align-middle">Event Invitations</span>
-    </a>
-</li>
-
-<li class="sidebar-item">
-    <a class="sidebar-link" href="{{ path('panel/settings') }}">
-        <i class="align-middle" data-feather="settings"></i>
-        <span class="align-middle">Settings</span>
+        <i class="align-middle" data-feather="calendar"></i>
+        <span class="align-middle">{{ trans('ui.event_access') }}</span>
     </a>
 </li>

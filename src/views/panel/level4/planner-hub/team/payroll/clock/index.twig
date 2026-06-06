@@ -3,212 +3,542 @@
 
 {% block style %}
 <style>
-.clock-button {
-    background: none;
-    border: none;
-    padding: 0;
-    cursor: pointer;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    transition: transform 0.2s ease;
+.clock-workspace {
+    --clock-ink: #122033;
+    --clock-muted: #64748b;
+    --clock-line: rgba(20, 34, 52, .12);
+    --clock-start: #12b981;
+    --clock-stop: #ef476f;
+    --clock-teal: #1fa99a;
+    --clock-surface: #ffffff;
+    --clock-soft: #f4f8fb;
+    color: var(--clock-ink);
 }
 
-.clock-button:active {
-    transform: scale(0.95);
-}
-
-.clock-face {
+.clock-hero {
     position: relative;
-    width: 160px;
-    height: 160px;
-    background: #dff6dd;
+    overflow: hidden;
+    border-radius: 22px;
+    padding: 24px;
+    background:
+        radial-gradient(circle at top right, rgba(31, 169, 154, .22), transparent 38%),
+        linear-gradient(135deg, #10263a 0%, #15394a 48%, #1c8078 100%);
+    color: #fff;
+    box-shadow: 0 24px 60px rgba(15, 23, 42, .16);
+}
+
+.clock-hero::after {
+    content: "";
+    position: absolute;
+    right: -90px;
+    bottom: -120px;
+    width: 300px;
+    height: 300px;
+    border: 1px solid rgba(255,255,255,.18);
     border-radius: 50%;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-    display: flex;
-    justify-content: center;
+}
+
+.clock-eyebrow {
+    display: inline-flex;
+    gap: 8px;
     align-items: center;
-    transition: background 0.3s ease;
+    font-size: .78rem;
+    font-weight: 800;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: #99f6e4;
 }
 
-.clock-face:hover {
-    background: #baf2c3;
+.clock-hero h1 {
+    max-width: 720px;
+    margin: 12px 0 10px;
+    font-size: clamp(2rem, 4vw, 3.4rem);
+    line-height: 1.03;
+    color: #fff;
 }
 
-.hand {
+.clock-hero p {
+    max-width: 780px;
+    margin: 0;
+    color: rgba(255,255,255,.82);
+    font-size: 1.02rem;
+}
+
+.clock-context-card,
+.clock-panel,
+.clock-side-card {
+    border: 1px solid var(--clock-line);
+    border-radius: 18px;
+    background: var(--clock-surface);
+    box-shadow: 0 18px 45px rgba(15, 23, 42, .08);
+}
+
+.clock-context-card {
+    padding: 18px;
+}
+
+.clock-company-icon {
+    width: 52px;
+    height: 52px;
+    border-radius: 16px;
+    display: grid;
+    place-items: center;
+    background: linear-gradient(135deg, #dffcf6, #b4f1e5);
+    color: #0f766e;
+    box-shadow: 0 12px 30px rgba(31, 169, 154, .18);
+}
+
+.clock-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.clock-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 32px;
+    padding: 6px 11px;
+    border-radius: 999px;
+    border: 1px solid rgba(31, 169, 154, .2);
+    background: #eefbf8;
+    color: #0f766e;
+    font-weight: 700;
+    font-size: .82rem;
+}
+
+.clock-panel {
+    padding: 28px;
+}
+
+.clock-orbit {
+    position: relative;
+    width: min(100%, 360px);
+    aspect-ratio: 1;
+    margin: 8px auto 22px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    background:
+        radial-gradient(circle at center, #ffffff 0 54%, transparent 55%),
+        conic-gradient(from 0deg, rgba(31,169,154,.14), rgba(31,169,154,.72), rgba(18,185,129,.18), rgba(31,169,154,.14));
+    box-shadow:
+        inset 0 0 0 1px rgba(31, 169, 154, .18),
+        0 22px 56px rgba(15, 23, 42, .10);
+}
+
+.clock-orbit::before {
+    content: "";
     position: absolute;
-    background: #2c7a45;
-    transform-origin: bottom;
-    border-radius: 4px;
+    inset: 14px;
+    border-radius: 50%;
+    border: 1px solid rgba(31,169,154,.2);
+    border-top-color: rgba(31,169,154,.9);
+    animation: clockOrbitSpin 7s linear infinite;
 }
 
-.hand.hour {
-    height: 30px;
-    width: 5px;
-    bottom: 50%;
-    animation: spinHour 24s linear infinite;
-}
-
-.hand.minute {
-    height: 45px;
-    width: 3px;
-    bottom: 50%;
-    animation: spinMinute 32s linear infinite;
-}
-
-.hand.second {
-    height: 55px;
-    width: 2px;
-    background: #e63946;
-    bottom: 50%;
-    animation: spinSecond 4s linear infinite;
-}
-
-.clock-label {
+.clock-orbit::after {
+    content: "";
     position: absolute;
-    bottom: -30px;
-    font-size: 1rem;
-    font-weight: 600;
-    color: #2c7a45;
+    inset: 34px;
+    border-radius: 50%;
+    background:
+        linear-gradient(135deg, rgba(255,255,255,.92), rgba(244,248,251,.96));
+    box-shadow: inset 0 0 0 1px rgba(20, 34, 52, .08);
+}
+
+.clock-orbit.is-running {
+    background:
+        radial-gradient(circle at center, #ffffff 0 54%, transparent 55%),
+        conic-gradient(from 0deg, rgba(18,185,129,.2), rgba(18,185,129,.9), rgba(20,184,166,.22), rgba(18,185,129,.2));
+    animation: clockRunningGlow 2.4s ease-in-out infinite;
+}
+
+.clock-orbit.is-running::before {
+    border-top-color: rgba(18,185,129,.98);
+    animation-duration: 4.4s;
+}
+
+.clock-orbit.is-idle {
+    background:
+        radial-gradient(circle at center, #ffffff 0 54%, transparent 55%),
+        conic-gradient(from 0deg, rgba(245,158,11,.16), rgba(245,158,11,.72), rgba(31,169,154,.12), rgba(245,158,11,.16));
+}
+
+.clock-orbit.is-idle::before {
+    border-top-color: rgba(245,158,11,.86);
+    animation-duration: 9s;
+}
+
+.clock-orbit-content {
+    position: relative;
+    z-index: 1;
+    width: calc(100% - 86px);
+    aspect-ratio: 1;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
     text-align: center;
+    padding: 18px;
+}
+
+.clock-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border-radius: 999px;
+    font-weight: 800;
+    font-size: .82rem;
+}
+
+.clock-status.is-running {
+    background: rgba(18, 185, 129, .13);
+    color: #047857;
+}
+
+.clock-status.is-idle {
+    background: rgba(245, 158, 11, .14);
+    color: #92400e;
+}
+
+.clock-status-dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 999px;
+    background: currentColor;
+    box-shadow: 0 0 0 6px rgba(18, 185, 129, .12);
+}
+
+.clock-time {
+    margin: 18px 0 6px;
+    font-size: clamp(2.8rem, 9vw, 5.4rem);
+    line-height: 1;
+    font-weight: 900;
+    letter-spacing: 0;
+}
+
+.clock-orbit .clock-time {
+    margin-top: 12px;
+    font-size: clamp(2.4rem, 7vw, 4.5rem);
+}
+
+.clock-subtext {
+    color: var(--clock-muted);
+    font-size: 1rem;
+}
+
+.clock-action-button {
     width: 100%;
+    min-height: 78px;
+    border: 0;
+    border-radius: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin-top: 22px;
+    color: #fff;
+    font-size: 1.18rem;
+    font-weight: 900;
+    box-shadow: 0 18px 38px rgba(15, 23, 42, .18);
+    transition: transform .18s ease, box-shadow .18s ease, filter .18s ease;
 }
 
-@keyframes spinHour {
+.clock-action-button:hover {
+    transform: translateY(-2px);
+    filter: saturate(1.05);
+    color: #fff;
+}
+
+.clock-action-button:active {
+    transform: translateY(0);
+}
+
+.clock-action-button.is-start {
+    background: linear-gradient(135deg, #10b981, #0f766e);
+}
+
+.clock-action-button.is-stop {
+    background: linear-gradient(135deg, #f43f5e, #be123c);
+}
+
+.clock-action-icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 14px;
+    display: grid;
+    place-items: center;
+    background: rgba(255,255,255,.18);
+}
+
+.clock-location-state {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    margin-top: 16px;
+    color: var(--clock-muted);
+    font-size: .92rem;
+}
+
+.clock-location-state[data-ready="1"] {
+    color: #047857;
+}
+
+.clock-side-card {
+    padding: 18px;
+    overflow: hidden;
+}
+
+.clock-side-card.is-approved {
+    border-color: rgba(18, 185, 129, .28);
+    background: #f0fdf4;
+}
+
+.clock-side-card + .clock-side-card {
+    margin-top: 14px;
+}
+
+.clock-side-label {
+    color: var(--clock-muted);
+    font-size: .72rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    overflow-wrap: anywhere;
+}
+
+.clock-side-value {
+    margin-top: 4px;
+    font-size: 1.05rem;
+    font-weight: 800;
+    line-height: 1.25;
+    overflow-wrap: anywhere;
+}
+
+.clock-side-card p {
+    line-height: 1.45;
+    overflow-wrap: anywhere;
+}
+
+.clock-switch-btn {
+    border-radius: 14px;
+    font-weight: 800;
+}
+
+@keyframes clockOrbitSpin {
     from { transform: rotate(0deg); }
     to { transform: rotate(360deg); }
 }
 
-@keyframes spinMinute {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
+@keyframes clockRunningGlow {
+    0%, 100% {
+        box-shadow:
+            inset 0 0 0 1px rgba(31, 169, 154, .18),
+            0 22px 56px rgba(15, 23, 42, .10),
+            0 0 0 0 rgba(18,185,129,.16);
+    }
+    50% {
+        box-shadow:
+            inset 0 0 0 1px rgba(31, 169, 154, .2),
+            0 24px 60px rgba(15, 23, 42, .12),
+            0 0 0 16px rgba(18,185,129,0);
+    }
 }
 
-@keyframes spinSecond {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
+@media (prefers-reduced-motion: reduce) {
+    .clock-orbit,
+    .clock-orbit::before {
+        animation: none !important;
+    }
 }
 
-.clock-face.danger {
-    background: #ffe0e0;
-}
+@media (max-width: 767.98px) {
+    .clock-hero {
+        padding: 20px;
+        border-radius: 18px;
+    }
 
-.clock-face.danger:hover {
-    background: #ffb3b3;
-}
+    .clock-panel {
+        padding: 22px;
+    }
 
-.hand.danger {
-    background: #d00000;
-}
+    .clock-orbit {
+        width: min(100%, 300px);
+    }
 
-.clock-label.danger {
-    color: #d00000;
-}
+    .clock-orbit-content {
+        width: calc(100% - 68px);
+    }
 
-@keyframes pulseSecond {
-    0% { transform: rotate(0deg) scale(1); }
-    50% { transform: rotate(180deg) scale(1.15); }
-    100% { transform: rotate(360deg) scale(1); }
-}
+    .clock-action-button {
+        min-height: 70px;
+    }
 
-.hand.second.danger {
-    animation: pulseSecond 4s ease-in-out infinite;
+    .clock-context-card .d-flex {
+        align-items: flex-start !important;
+    }
+
+    .clock-context-card,
+    .clock-panel,
+    .clock-side-card {
+        border-radius: 16px;
+    }
+
+    .clock-side-card {
+        padding: 16px;
+    }
+
+    .clock-side-label {
+        font-size: .68rem;
+    }
+
+    .clock-side-value {
+        font-size: 1rem;
+    }
 }
 </style>
 {% endblock %}
 
 {% block body %}
-<h1 class="h3 mb-4">⏱️ My Clock</h1>
-{{ macros.breadcrumb2() }}
+<div class="clock-workspace">
+  <section class="clock-hero mb-4">
+    <div class="clock-eyebrow">
+      <i data-feather="clock"></i>
+      {{ trans('planner_hub.my_clock') }}
+    </div>
+    <h1>{{ activeLog ? trans('planner_hub.session_active') : trans('planner_hub.start_clock') }}</h1>
+    <p>{{ activeLog ? trans('planner_hub.session_started_at') ~ ' ' ~ activeLog.start_time : trans('planner_hub.no_active_work_session') }}</p>
+  </section>
 
-{% if isLevel4 and currentInstitution %}
-<section class="mb-4">
-  <div class="p-4 bg-white rounded-4 shadow-sm" style="border-left: 5px solid #00b894;">
-    <div class="row align-items-center">
-      <div class="col-md-6">
-        <div class="d-flex align-items-center">
-          <span class="me-3" style="font-size: 2.5rem;">🏢</span>
-          <div>
-            <h4 class="fw-bold mb-1">{{ currentInstitution.company_name }}</h4>
-            <p class="text-muted mb-0">
-              Role: 
-              {% if currentInstitutionRole == 'owner' %}
-                <span class="badge bg-success">Owner</span>
-              {% else %}
-                {% if roleName %}
-                  <span class="badge bg-info">{{ roleName }}</span>
-                {% else %}
-                  <span class="text-muted">No role</span>
-                {% endif %}
-              {% endif %}
-              | Hourly Rate: 
-              {% if hourlyRate and hourlyRate > 0 %}
-                ${{ hourlyRate|number_format(2) }}/hr
-              {% else %}
-                <span class="text-muted">Not set</span>
-              {% endif %}
-              {% if hasMultipleInstitutions %}
-                | <span class="text-success">Multiple institutions available</span>
-              {% endif %}
-            </p>
+  {{ macros.breadcrumb2() }}
+
+  {% if isLevel4 and currentInstitution %}
+  <section class="clock-context-card mb-4">
+    <div class="d-flex flex-column flex-lg-row justify-content-between gap-3">
+      <div class="d-flex gap-3">
+        <div class="clock-company-icon">
+          <i data-feather="briefcase"></i>
+        </div>
+        <div>
+          <h2 class="h4 fw-bold mb-1">{{ currentInstitution.company_name }}</h2>
+          <div class="clock-meta">
+            {% if currentInstitutionRole == 'owner' %}
+              <span class="clock-pill"><i data-feather="shield"></i> {{ trans('planner_hub.clock_owner') }}</span>
+            {% elseif roleName %}
+              <span class="clock-pill"><i data-feather="user-check"></i> {{ roleName }}</span>
+            {% else %}
+              <span class="clock-pill"><i data-feather="user"></i> {{ trans('planner_hub.clock_no_role') }}</span>
+            {% endif %}
+
+            {% if hourlyRate and hourlyRate > 0 %}
+              <span class="clock-pill"><i data-feather="dollar-sign"></i> ${{ hourlyRate|number_format(2) }}/hr</span>
+            {% else %}
+              <span class="clock-pill"><i data-feather="minus-circle"></i> {{ trans('planner_hub.clock_not_set') }}</span>
+            {% endif %}
+
+            {% if hasMultipleInstitutions %}
+              <span class="clock-pill"><i data-feather="shuffle"></i> {{ trans('planner_hub.clock_multiple_companies') }}</span>
+            {% endif %}
           </div>
         </div>
       </div>
-      <div class="col-md-6 text-end">
-        {% if hasMultipleInstitutions %}
-        <button class="btn btn-outline-primary btn-lg fw-bold px-4" onclick="showInstitutionSwitcher()">
-          🔄 Switch Institution
+      {% if hasMultipleInstitutions %}
+      <div class="d-flex align-items-center">
+        <button class="btn btn-outline-primary clock-switch-btn px-4 py-2" type="button" onclick="showInstitutionSwitcher()">
+          <i data-feather="repeat"></i>
+          {{ trans('planner_hub.clock_switch_company') }}
         </button>
-        {% endif %}
       </div>
+      {% endif %}
     </div>
-  </div>
-</section>
-{% endif %}
+  </section>
+  {% endif %}
 
-<div class="row justify-content-center">
-  <div class="col-md-6 col-12">
-    {% if activeLog %}
-      <div class="alert alert-success text-center">
-        ✅ Session running for <strong id="elapsed-time"></strong>.
-      </div>
-
-      <form method="post" class="d-grid" id="clockStartForm">
-        <input type="hidden" name="action" value="end">
-        <input type="hidden" name="location_lat" />
-        <input type="hidden" name="location_long" />
-        <input type="hidden" id="notesField" name="notes" />
-
-        <button class="clock-button danger" type="button" onclick="openNotesModal()">
-          <div class="clock-face danger">
-            <div class="hand hour danger"></div>
-            <div class="hand minute danger"></div>
-            <div class="hand second danger"></div>
-            <span class="clock-label danger">Push to Stop Clock</span>
+  <div class="row g-4 align-items-stretch">
+    <div class="col-xl-8">
+      <section class="clock-panel h-100">
+        {% if activeLog %}
+          <div class="clock-orbit is-running">
+            <div class="clock-orbit-content">
+              <div>
+                <span class="clock-status is-running"><span class="clock-status-dot"></span> {{ trans('planner_hub.session_active') }}</span>
+                <div class="clock-time" id="elapsed-time">00:00:00</div>
+                <div class="clock-subtext">{{ trans('planner_hub.session_started_at') }} {{ activeLog.start_time }}</div>
+              </div>
+            </div>
           </div>
-        </button>
-        <input type="hidden" name="tz" id="session_tz" />
-      </form>
-    {% else %}
-      <div class="alert alert-warning text-center">
-        ⚠️ You have no active work session.
-      </div>
 
-      <form method="post" class="d-grid">
-        <input type="hidden" name="action" value="start">
-        <input type="hidden" name="location_lat" />
-        <input type="hidden" name="location_long" />
-        <button class="clock-button" type="submit">
-          <div class="clock-face">
-            <div class="hand hour"></div>
-            <div class="hand minute"></div>
-            <div class="hand second"></div>
-            <span class="clock-label">Push to Start Clock</span>
+          <form method="post" class="clock-form" id="clockEndForm">
+            <input type="hidden" name="action" value="end">
+            <input type="hidden" name="location_lat">
+            <input type="hidden" name="location_long">
+            <input type="hidden" id="notesField" name="notes">
+            <input type="hidden" name="tz" class="session-tz">
+
+            <button class="clock-action-button is-stop" type="button" onclick="openNotesModal()">
+              <span class="clock-action-icon"><i data-feather="square"></i></span>
+              {{ trans('planner_hub.stop_clock') }}
+            </button>
+          </form>
+        {% else %}
+          <div class="clock-orbit is-idle">
+            <div class="clock-orbit-content">
+              <div>
+                <span class="clock-status is-idle"><span class="clock-status-dot"></span> {{ trans('planner_hub.no_active_work_session') }}</span>
+                <div class="clock-time">00:00:00</div>
+                <div class="clock-subtext">{{ trans('planner_hub.push_to_start_clock') }}</div>
+              </div>
+            </div>
           </div>
-        </button>
-        <input type="hidden" name="tz" id="session_tz" />
-      </form>
-    {% endif %}
+
+          <form method="post" class="clock-form" id="clockStartForm">
+            <input type="hidden" name="action" value="start">
+            <input type="hidden" name="location_lat">
+            <input type="hidden" name="location_long">
+            <input type="hidden" name="tz" class="session-tz">
+
+            <button class="clock-action-button is-start" type="submit">
+              <span class="clock-action-icon"><i data-feather="play"></i></span>
+              {{ trans('planner_hub.start_clock') }}
+            </button>
+          </form>
+        {% endif %}
+
+        <div class="clock-location-state" id="locationState" data-ready="0">
+          <i data-feather="map-pin"></i>
+          <span>{{ trans('planner_hub.clock_requesting_location') }}</span>
+        </div>
+      </section>
+    </div>
+
+    <div class="col-xl-4">
+      {% set contractStatus = clockContractStatus|default({'allowed': false}) %}
+      {% set contractAllowed = contractStatus.allowed|default(false) %}
+      <section class="clock-side-card">
+        <div class="clock-side-label">{{ trans('planner_hub.clock_timezone') }}</div>
+        <div class="clock-side-value" id="clockTimezone">-</div>
+      </section>
+      <section class="clock-side-card {% if contractAllowed %}is-approved{% endif %}">
+        <div class="clock-side-label">{{ trans('planner_hub.clock_contract_rule') }}</div>
+        {% if contractAllowed %}
+          <div class="clock-side-value">{{ trans('planner_hub.clock_contract_approved') }}</div>
+          <p class="text-muted mb-0 mt-2 small">{{ trans('planner_hub.clock_contract_approved_body') }}</p>
+        {% else %}
+          <div class="clock-side-value">{{ trans('planner_hub.clock_contract_required_before_clock_in') }}</div>
+          <p class="text-muted mb-0 mt-2 small">{{ trans('planner_hub.team_contract_clock_blocked') }}</p>
+        {% endif %}
+      </section>
+      {% if isLevel4 and currentInstitution %}
+      <section class="clock-side-card">
+        <div class="clock-side-label">{{ trans('planner_hub.clock_current_company') }}</div>
+        <div class="clock-side-value">{{ currentInstitution.company_name }}</div>
+        <p class="text-muted mb-0 mt-2 small">{{ trans('planner_hub.clock_company_hours_scope') }}</p>
+      </section>
+      {% endif %}
+    </div>
   </div>
 </div>
 {% endblock %}
@@ -216,9 +546,14 @@
 {% block scripts %}
 <script>
 document.addEventListener('DOMContentLoaded', () => {
-  const timezoneInput = document.getElementById("session_tz");
-  if (timezoneInput) {
-    timezoneInput.value = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  document.querySelectorAll('.session-tz').forEach((input) => {
+    input.value = timezone;
+  });
+
+  const timezoneLabel = document.getElementById('clockTimezone');
+  if (timezoneLabel) {
+    timezoneLabel.textContent = timezone;
   }
 
 {% if activeLog %}
@@ -228,114 +563,161 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function updateElapsed() {
     const now = new Date();
-    let diff = Math.floor((now - startDate) / 1000);
+    let diff = Math.max(0, Math.floor((now - startDate) / 1000));
 
     const hours = Math.floor(diff / 3600);
     diff %= 3600;
     const minutes = Math.floor(diff / 60);
     const seconds = diff % 60;
 
-    elapsedEl.textContent =
-      (hours > 0 ? hours + "h " : "") +
-      (minutes > 0 ? minutes + "m " : "") +
-      seconds + "s";
+    elapsedEl.textContent = [hours, minutes, seconds]
+      .map((value) => String(value).padStart(2, '0'))
+      .join(':');
   }
 
   updateElapsed();
   setInterval(updateElapsed, 1000);
 {% endif %}
 
-  setLocationFields().catch(() => {});
+  document.querySelectorAll('.clock-form').forEach((form) => {
+    setLocationFields(form).catch(() => {
+      updateLocationState('{{ trans('planner_hub.clock_location_optional')|e('js') }}', false);
+    });
+  });
 
-  const clockStartForm = document.getElementById('clockStartForm');
-  if (clockStartForm) {
-    clockStartForm.addEventListener('submit', async (event) => {
+  const startForm = document.getElementById('clockStartForm');
+  if (startForm) {
+    startForm.addEventListener('submit', (event) => {
+      if (startForm.dataset.submitting === '1') return;
+      startForm.dataset.submitting = '1';
+      const submitButton = startForm.querySelector("button[type='submit']");
+      if (submitButton) submitButton.disabled = true;
+      if (startForm.dataset.locationReady === '1') return;
+
       event.preventDefault();
-
-      try {
-        await setLocationFields(clockStartForm);
-        const latitude = clockStartForm.querySelector("input[name='location_lat']").value;
-        const longitude = clockStartForm.querySelector("input[name='location_long']").value;
-
-        if (!latitude || !longitude) {
-          throw new Error('Location unavailable');
-        }
-
-        clockStartForm.submit();
-      } catch (error) {
-        alert('Location permission is required to start the clock. Please allow location access and try again.');
-      }
+      const locationMessage = '{{ trans('planner_hub.clock_location_starting_without_gps')|e('js') }}';
+      updateLocationState(locationMessage, false);
+      alert(locationMessage);
+      startForm.submit();
     });
   }
 });
 
-function setLocationFields(form = document.querySelector("form")) {
+function updateLocationState(message, ready) {
+  const state = document.getElementById('locationState');
+  if (!state) return;
+  state.dataset.ready = ready ? '1' : '0';
+  const text = state.querySelector('span');
+  if (text) text.textContent = message;
+}
+
+async function setLocationFields(form) {
   return new Promise((resolve, reject) => {
     if (!("geolocation" in navigator) || !form) {
-      reject(new Error('Geolocation is not available'));
+      reject(new Error("Geolocation is unavailable."));
       return;
     }
-
     navigator.geolocation.getCurrentPosition((position) => {
       const latInput = form.querySelector("input[name='location_lat']");
-      const longInput = form.querySelector("input[name='location_long']");
-
-      if (latInput && longInput) {
-        latInput.value = position.coords.latitude;
-        longInput.value = position.coords.longitude;
+      const lngInput = form.querySelector("input[name='location_long']");
+      if (!latInput || !lngInput) {
+        reject(new Error("Location fields are unavailable."));
+        return;
       }
 
-      resolve(position);
-    }, (error) => {
-      reject(error);
-    }, {
-      enableHighAccuracy: true,
-      timeout: 10000,
-      maximumAge: 0
-    });
+      latInput.value = position.coords.latitude;
+      lngInput.value = position.coords.longitude;
+      form.dataset.locationReady = '1';
+      updateLocationState('{{ trans('planner_hub.clock_location_captured')|e('js') }}', true);
+      resolve();
+    }, reject, { enableHighAccuracy: true, timeout: 3500, maximumAge: 60000 });
   });
 }
 
 function openNotesModal() {
-  const modal = new bootstrap.Modal(document.getElementById('notesModal'));
-  modal.show();
+  const modalElement = document.getElementById('notesModal');
+  try {
+    if (!modalElement || !window.bootstrap || !window.bootstrap.Modal) {
+      submitWithNotes();
+      return;
+    }
+    const modal = new window.bootstrap.Modal(modalElement);
+    modal.show();
+  } catch (error) {
+    submitWithNotes();
+  }
 }
 
 function submitWithNotes() {
-  const notes = document.getElementById('notesInput').value;
-  document.getElementById('notesField').value = notes;
-  document.querySelector("form").submit();
+  const form = document.getElementById('clockEndForm');
+  if (!form || form.dataset.submitting === '1') {
+    return;
+  }
+
+  form.dataset.submitting = '1';
+
+  const notesInput = document.getElementById('notesInput');
+  const notesField = document.getElementById('notesField');
+  if (notesField && notesInput) {
+    notesField.value = notesInput.value;
+  }
+
+  document.querySelectorAll("#clockEndForm button, #notesModal button").forEach((button) => {
+    button.disabled = true;
+  });
+
+  if (form.dataset.locationReady !== '1') {
+    updateLocationState('{{ trans('planner_hub.clock_location_out_without_refresh')|e('js') }}', false);
+  }
+
+  form.submit();
 }
 
 function showInstitutionSwitcher() {
-  const modal = new bootstrap.Modal(document.getElementById('institutionSwitcherModal'));
-  modal.show();
+  const modalElement = document.getElementById('institutionSwitcherModal');
+  if (!modalElement) {
+    return;
+  }
+
+  try {
+    if (window.bootstrap && window.bootstrap.Modal) {
+      const modal = new window.bootstrap.Modal(modalElement);
+      modal.show();
+      return;
+    }
+  } catch (error) {
+  }
+
+  modalElement.classList.add('show');
+  modalElement.style.display = 'block';
+  modalElement.removeAttribute('aria-hidden');
+  modalElement.setAttribute('aria-modal', 'true');
 }
 
 function switchInstitution(institutionId, role) {
   const form = document.createElement('form');
   form.method = 'POST';
   form.action = window.location.href;
-  
+
   const switchInput = document.createElement('input');
   switchInput.type = 'hidden';
   switchInput.name = 'switch_institution';
   switchInput.value = '1';
-  
+
   const idInput = document.createElement('input');
   idInput.type = 'hidden';
   idInput.name = 'institution_id';
   idInput.value = institutionId;
-  
+
   const roleInput = document.createElement('input');
   roleInput.type = 'hidden';
   roleInput.name = 'role';
   roleInput.value = role;
-  
+
   form.appendChild(switchInput);
   form.appendChild(idInput);
   form.appendChild(roleInput);
-  
+
   document.body.appendChild(form);
   form.submit();
 }
@@ -348,42 +730,42 @@ function switchInstitution(institutionId, role) {
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content rounded-4">
       <div class="modal-header">
-        <h5 class="modal-title fw-bold">🏢 Switch Institution</h5>
+        <h5 class="modal-title fw-bold">{{ trans('planner_hub.clock_switch_company') }}</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
-        <p class="mb-3">Select the institution you want to work with:</p>
+        <p class="mb-3">{{ trans('planner_hub.clock_select_company') }}</p>
         <div class="list-group">
           {% for institution in userInstitutions %}
-          <div class="list-group-item d-flex justify-content-between align-items-center">
+          <div class="list-group-item d-flex justify-content-between align-items-center gap-3">
             <div>
               <h6 class="mb-1">{{ institution.company_name }}</h6>
               <small class="text-muted">
                 {% if institution.relationship_type == 'primary' %}
-                  Role: <span class="badge bg-success">Owner</span>
+                  {{ trans('planner_hub.role') }}: <span class="badge bg-success">{{ trans('planner_hub.clock_owner') }}</span>
                 {% else %}
-                  Role: 
+                  {{ trans('planner_hub.role') }}:
                   {% if institution.role_name %}
                     <span class="badge bg-info">{{ institution.role_name }}</span>
                   {% else %}
-                    <span class="text-muted">No role</span>
+                    <span class="text-muted">{{ trans('planner_hub.clock_no_role') }}</span>
                   {% endif %}
-                  | Rate: 
+                  | {{ trans('planner_hub.hourly_rate') }}:
                   {% if institution.hourly_rate and institution.hourly_rate > 0 %}
                     ${{ institution.hourly_rate|number_format(2) }}/hr
                   {% else %}
-                    <span class="text-muted">Not set</span>
+                    <span class="text-muted">{{ trans('planner_hub.clock_not_set') }}</span>
                   {% endif %}
                 {% endif %}
                 {% if institution.working_institution_id == currentInstitution.id %}
-                  <span class="badge bg-success ms-2">Current</span>
+                  <span class="badge bg-success ms-2">{{ trans('planner_hub.current') }}</span>
                 {% endif %}
               </small>
             </div>
             {% if institution.working_institution_id != currentInstitution.id %}
             {% set institutionRole = institution.relationship_type == 'primary' ? 'owner' : 'employee' %}
             <button class="btn btn-outline-primary btn-sm" onclick="switchInstitution('{{ institution.working_institution_id }}', '{{ institutionRole }}')">
-              Switch
+              {{ trans('planner_hub.clock_switch_company') }}
             </button>
             {% endif %}
           </div>
@@ -391,7 +773,7 @@ function switchInstitution(institutionId, role) {
         </div>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ trans('ui.cancel') }}</button>
       </div>
     </div>
   </div>
@@ -400,18 +782,18 @@ function switchInstitution(institutionId, role) {
 
 <div class="modal fade" id="notesModal" tabindex="-1" aria-labelledby="notesModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content">
+    <div class="modal-content rounded-4">
       <div class="modal-header">
-        <h5 class="modal-title" id="notesModalLabel">📝 Optional Notes</h5>
+        <h5 class="modal-title" id="notesModalLabel">{{ trans('planner_hub.clock_out_notes_title') }}</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
-        <p class="mb-2">Add a note about your work session (optional):</p>
-        <textarea id="notesInput" class="form-control" rows="3" maxlength="240" placeholder="Write something..."></textarea>
+        <p class="mb-2">{{ trans('planner_hub.clock_out_notes_body') }}</p>
+        <textarea id="notesInput" class="form-control" rows="3" maxlength="240" placeholder="{{ trans('planner_hub.clock_out_notes_placeholder') }}"></textarea>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-        <button type="button" class="btn btn-success" onclick="submitWithNotes()">Clock Out</button>
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">{{ trans('ui.cancel') }}</button>
+        <button type="button" class="btn btn-danger" onclick="submitWithNotes()">{{ trans('planner_hub.stop_clock') }}</button>
       </div>
     </div>
   </div>

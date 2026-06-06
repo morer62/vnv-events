@@ -10,10 +10,21 @@ trait GetViewTrait
     private function getPrivateView(array $urlViews, User $user): array
     {
         $root = LocationUtils::getRootLocation() . "/src";
-        $view = implode(DIRECTORY_SEPARATOR, array_slice($urlViews, 1));
+        $privateViews = array_slice($urlViews, 1);
+        if (($privateViews[0] ?? null) === 'music-sessions') {
+            $privateViews[0] = 'multimedia-sessions';
+        }
+
+        $view = implode(DIRECTORY_SEPARATOR, $privateViews);
         $userLevel = $user->getLevel();
         $baseView = $root . "/views/panel/level$userLevel";
-        return $this->getView($baseView, $view);
+        $resolved = $this->getView($baseView, $view);
+
+        if ($userLevel !== 1 && $resolved[0] === $this->getNotFoundView()) {
+            return $this->getView($root . "/views/panel/level1", $view);
+        }
+
+        return $resolved;
     }
 
     private function getPublicView(array $urlViews): array

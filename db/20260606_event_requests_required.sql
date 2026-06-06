@@ -1,0 +1,23 @@
+CREATE TABLE IF NOT EXISTS `event_requests` (
+  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `id_owner` INT UNSIGNED NOT NULL,
+  `id_user` INT UNSIGNED NULL,
+  `full_name` VARCHAR(180) NOT NULL,
+  `email` VARCHAR(190) NOT NULL,
+  `phone` VARCHAR(80) NULL,
+  `event_address` VARCHAR(255) NULL,
+  `event_date` DATE NULL,
+  `event_time` TIME NULL,
+  `guest_count` INT UNSIGNED NULL,
+  `selected_services` MEDIUMTEXT NULL,
+  `details` TEXT NULL,
+  `form_source` VARCHAR(80) NULL,
+  `status` VARCHAR(60) NOT NULL DEFAULT 'new',
+  `is_archived` TINYINT(1) NOT NULL DEFAULT 0,
+  `archived_at` DATETIME NULL,
+  `created_at` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_event_requests_owner_archived` (`id_owner`, `is_archived`, `created_at`),
+  KEY `idx_event_requests_email` (`email`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

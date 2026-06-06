@@ -1,0 +1,209 @@
+{% extends 'templates/base.admin.twig' %}
+{% import 'templates/macros.twig' as macros %}
+
+{% block body %}
+<style>
+    .media-wrap{padding:22px;}
+    .media-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:18px;}
+    .media-title{font-size:1.8rem;font-weight:800;color:#111827;margin:0 0 4px;}
+    .media-sub{color:#6b7280;margin:0;max-width:720px;}
+    .media-actions{display:flex;gap:10px;flex-wrap:wrap;}
+    .media-toolbar{display:grid;grid-template-columns:1.5fr repeat(3,minmax(150px,.55fr));gap:10px;margin:18px 0;}
+    .media-input,.media-select{width:100%;height:42px;border:1px solid #d1d5db;border-radius:10px;padding:0 12px;background:#fff;color:#111827;}
+    .media-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:16px;}
+    .media-stat{background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:14px;}
+    .media-stat span{display:block;color:#6b7280;font-size:.82rem;}
+    .media-stat strong{display:block;color:#111827;font-size:1.35rem;line-height:1.1;margin-top:4px;}
+    .media-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:14px;}
+    .media-card{background:#fff;border:1px solid #e5e7eb;border-radius:12px;overflow:hidden;display:flex;flex-direction:column;min-height:100%;}
+    .media-preview{background:#0f172a;min-height:164px;display:flex;align-items:center;justify-content:center;color:#cbd5e1;}
+    .media-preview .ratio{width:100%;}
+    .media-body{padding:16px;display:flex;flex-direction:column;gap:10px;flex:1;}
+    .media-card-title{font-size:1rem;font-weight:800;color:#111827;margin:0;line-height:1.35;}
+    .media-description{color:#6b7280;font-size:.9rem;line-height:1.5;margin:0;}
+    .media-badges{display:flex;gap:6px;flex-wrap:wrap;}
+    .media-badge{display:inline-flex;align-items:center;border-radius:999px;padding:4px 8px;font-size:.75rem;font-weight:700;background:#f3f4f6;color:#374151;}
+    .media-badge.active{background:#dcfce7;color:#166534;}
+    .media-badge.inactive{background:#f3f4f6;color:#4b5563;}
+    .media-badge.platform{background:#e0f2fe;color:#075985;}
+    .media-url{font-size:.82rem;color:#2563eb;text-decoration:none;word-break:break-all;}
+    .media-footer{display:flex;gap:8px;padding:12px 16px;border-top:1px solid #eef2f7;margin-top:auto;}
+    .media-footer form{margin:0;flex:1;}
+    .media-footer .btn{flex:1;}
+    .media-empty{background:#fff;border:1px dashed #cbd5e1;border-radius:14px;text-align:center;padding:42px 18px;color:#64748b;}
+    @media (max-width: 900px){.media-head{display:block}.media-actions{margin-top:12px}.media-toolbar{grid-template-columns:1fr}.media-wrap{padding:14px;}}
+</style>
+
+<main class="media-wrap">
+    <div class="media-head">
+        <div>
+            <h1 class="media-title">Multimedia Sessions</h1>
+            <p class="media-sub">Browse and organize VNV Events media references, embeds, categories and training/session links from one dedicated page.</p>
+            {{ macros.breadcrumb2() }}
+        </div>
+        <div class="media-actions">
+            <a href="{{ path('panel/multimedia-sessions/create') }}" class="btn btn-primary">
+                <i data-feather="plus"></i> Add Session
+            </a>
+            <a href="{{ path('panel/multimedia-sessions/categories') }}" class="btn btn-outline-secondary">
+                <i data-feather="tag"></i> Categories
+            </a>
+        </div>
+    </div>
+
+    {% set activeCount = 0 %}
+    {% set inactiveCount = 0 %}
+    {% set platformMap = {} %}
+    {% for session in sessions %}
+        {% if session.is_active %}
+            {% set activeCount = activeCount + 1 %}
+        {% else %}
+            {% set inactiveCount = inactiveCount + 1 %}
+        {% endif %}
+        {% set platformKey = session.platform|default('unknown')|lower %}
+        {% set platformMap = platformMap|merge({ (platformKey): platformKey }) %}
+    {% endfor %}
+
+    <div class="media-stats">
+        <div class="media-stat"><span>Total</span><strong data-media-total>{{ sessions|length }}</strong></div>
+        <div class="media-stat"><span>Active</span><strong>{{ activeCount }}</strong></div>
+        <div class="media-stat"><span>Inactive</span><strong>{{ inactiveCount }}</strong></div>
+        <div class="media-stat"><span>Categories</span><strong>{{ categories|length }}</strong></div>
+    </div>
+
+    <div class="media-toolbar" data-media-toolbar>
+        <input class="media-input" type="search" placeholder="Search title, description, platform, category or URL" data-media-search>
+        <select class="media-select" data-media-category>
+            <option value="">All categories</option>
+            {% for category in categories %}
+                <option value="{{ category.name|default(category.title|default(''))|lower }}">{{ category.name|default(category.title|default('Untitled')) }}</option>
+            {% endfor %}
+        </select>
+        <select class="media-select" data-media-platform>
+            <option value="">All platforms</option>
+            {% for key, label in platformMap %}
+                <option value="{{ key }}">{{ label|upper }}</option>
+            {% endfor %}
+        </select>
+        <select class="media-select" data-media-status>
+            <option value="">All statuses</option>
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
+        </select>
+    </div>
+
+    {% if sessions|length > 0 %}
+        <div class="media-grid" data-media-grid>
+            {% for session in sessions %}
+                {% set status = session.is_active ? 'active' : 'inactive' %}
+                {% set category = session.category_name|default('') %}
+                {% set platform = session.platform|default('unknown') %}
+                {% set keywordsText = '' %}
+                {% if session.keywords and session.keywords|length > 0 %}
+                    {% for keyword in session.keywords %}
+                        {% set keywordsText = keywordsText ~ ' ' ~ keyword.keyword %}
+                    {% endfor %}
+                {% endif %}
+                {% set haystack = (session.title|default('') ~ ' ' ~ session.description|default('') ~ ' ' ~ platform ~ ' ' ~ category ~ ' ' ~ session.url|default('') ~ ' ' ~ keywordsText)|lower %}
+                <article class="media-card"
+                         data-media-card
+                         data-search="{{ haystack|e('html_attr') }}"
+                         data-category="{{ category|lower|e('html_attr') }}"
+                         data-platform="{{ platform|lower|e('html_attr') }}"
+                         data-status="{{ status }}">
+                    <div class="media-preview">
+                        {% if session.embed_code %}
+                            <div class="ratio ratio-16x9">{{ session.embed_code|raw }}</div>
+                        {% else %}
+                            <span>No embed preview</span>
+                        {% endif %}
+                    </div>
+                    <div class="media-body">
+                        <h2 class="media-card-title">{{ session.title }}</h2>
+                        {% if session.description %}
+                            <p class="media-description">{{ session.description|slice(0, 160) }}{% if session.description|length > 160 %}...{% endif %}</p>
+                        {% endif %}
+                        <div class="media-badges">
+                            <span class="media-badge {{ status }}">{{ status|capitalize }}</span>
+                            <span class="media-badge platform">{{ platform|upper }}</span>
+                            {% if category %}<span class="media-badge">{{ category }}</span>{% endif %}
+                        </div>
+                        {% if session.keywords and session.keywords|length > 0 %}
+                            <div class="media-badges">
+                                {% for keyword in session.keywords|slice(0, 6) %}
+                                    <span class="media-badge">{{ keyword.keyword }}</span>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        {% if session.url %}
+                            <a class="media-url" href="{{ session.url }}" target="_blank" rel="noopener">{{ session.url }}</a>
+                        {% endif %}
+                    </div>
+                    <div class="media-footer">
+                        <a href="{{ path('panel/multimedia-sessions/edit') }}?id={{ session.id }}" class="btn btn-sm btn-primary">
+                            <i data-feather="edit"></i> Edit
+                        </a>
+                        <form method="post" onsubmit="return confirm('Delete this multimedia session?');">
+                            <input type="hidden" name="id" value="{{ session.id }}">
+                            <button type="submit" class="btn btn-sm btn-outline-danger w-100">
+                                <i data-feather="trash"></i> Delete
+                            </button>
+                        </form>
+                    </div>
+                </article>
+            {% endfor %}
+        </div>
+        <div class="media-empty mt-3" data-media-empty hidden>No multimedia sessions match the current filters.</div>
+    {% else %}
+        <div class="media-empty">
+            <h2 class="h5 mb-2">No multimedia sessions found</h2>
+            <p class="mb-3">Start by creating your first multimedia session.</p>
+            <a href="{{ path('panel/multimedia-sessions/create') }}" class="btn btn-primary">
+                <i data-feather="plus"></i> Add Session
+            </a>
+        </div>
+    {% endif %}
+</main>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const cards = Array.from(document.querySelectorAll('[data-media-card]'));
+    const search = document.querySelector('[data-media-search]');
+    const category = document.querySelector('[data-media-category]');
+    const platform = document.querySelector('[data-media-platform]');
+    const status = document.querySelector('[data-media-status]');
+    const empty = document.querySelector('[data-media-empty]');
+    const total = document.querySelector('[data-media-total]');
+    if (!cards.length) return;
+
+    function norm(value) {
+        return String(value || '').toLowerCase().trim();
+    }
+
+    function applyFilters() {
+        const q = norm(search && search.value);
+        const c = norm(category && category.value);
+        const p = norm(platform && platform.value);
+        const s = norm(status && status.value);
+        let visible = 0;
+
+        cards.forEach(function (card) {
+            const matches = (!q || norm(card.dataset.search).includes(q))
+                && (!c || norm(card.dataset.category) === c)
+                && (!p || norm(card.dataset.platform) === p)
+                && (!s || norm(card.dataset.status) === s);
+            card.hidden = !matches;
+            if (matches) visible += 1;
+        });
+
+        if (empty) empty.hidden = visible > 0;
+        if (total) total.textContent = String(visible);
+    }
+
+    [search, category, platform, status].forEach(function (control) {
+        if (control) control.addEventListener('input', applyFilters);
+        if (control) control.addEventListener('change', applyFilters);
+    });
+});
+</script>
+{% endblock %}

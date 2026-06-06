@@ -11,6 +11,7 @@ use App\Repositories\InstitutionProfileRepository;
 use App\Repositories\LocationPagesRepository;
 use App\Services\ConfigService;
 use App\Services\LoginService;
+use App\Services\OphyraGrowthHubClient;
 use App\Services\ValidationSessionService;
 use App\Utils\ErrorLogging;
 use App\Utils\LocationUtils;
@@ -154,6 +155,10 @@ class Kernel
             return null;
         }
 
+        if (($urlViews[0] ?? null) === 'search' && ($urlViews[1] ?? null) === 'music-sessions') {
+            $urlViews[1] = 'multimedia-sessions';
+        }
+
         $root = LocationUtils::getRootLocation();
         $publicRoot = $root . "/src/views/public";
         $slug = implode('/', $urlViews);
@@ -201,6 +206,37 @@ class Kernel
 
         include $filePath;
         exit;
+    }
+
+    private function includeGrowthHubContentAndExit(string $route, ?string $expectedType = null, ?string $listType = null): void
+    {
+        $GLOBALS['growth_hub_route'] = $route;
+        $GLOBALS['growth_hub_expected_type'] = $expectedType;
+        $GLOBALS['growth_hub_list_type'] = $listType;
+
+        $this->includeResolvedFileAndExit(
+            LocationUtils::getRootLocation() . "/src/views/public/pages/growth-content/index.php"
+        );
+    }
+
+    private function growthHubHasContent(string $route, ?string $expectedType = null): bool
+    {
+        try {
+            $client = new OphyraGrowthHubClient();
+            if (!$client->isConfigured()) {
+                return false;
+            }
+
+            $content = $client->contentByRoute($route);
+            if (!$content) {
+                return false;
+            }
+
+            return $expectedType === null || ($content['content_type'] ?? '') === $expectedType;
+        } catch (\Throwable $e) {
+            error_log('Growth Hub route lookup failed: ' . $e->getMessage());
+            return false;
+        }
     }
 
     private function isReservedDynamicSlug(string $slug): bool
@@ -356,6 +392,34 @@ class Kernel
                 }
             }
 
+            // Public CMS generated in Ophyra Growth Hub. VNV Events consumes only
+            // `site_key=vnvevents`; other brand content stays in Ophyra.
+            if (count($urlViews) === 1 && $urlViews[0] === 'blog') {
+                $this->includeGrowthHubContentAndExit('/blog', null, 'blog');
+            }
+
+            if (count($urlViews) === 2 && $urlViews[0] === 'blog' && !empty($urlViews[1])) {
+                $route = '/blog/' . trim($urlViews[1], '/');
+                if ($this->growthHubHasContent($route, 'blog')) {
+                    $this->includeGrowthHubContentAndExit($route, 'blog');
+                }
+            }
+
+            if (count($urlViews) === 2 && $urlViews[0] === 'locations' && !empty($urlViews[1])) {
+                $route = '/locations/' . trim($urlViews[1], '/');
+                if ($this->growthHubHasContent($route, 'location')) {
+                    $this->includeGrowthHubContentAndExit($route, 'location');
+                }
+
+                $repo = new LocationPagesRepository();
+                if ($repo->getPublishedBySlug($urlViews[1])) {
+                    $locationPageView = LocationUtils::getRootLocation()
+                        . "/src/views/public/pages/location-page/index.php";
+
+                    $this->includeResolvedFileAndExit($locationPageView);
+                }
+            }
+
             // Location pages dinámicas por slug raíz
             // Ej: /sunrise -> src/views/public/pages/location-page/index.php
             if (count($urlViews) === 1) {
@@ -379,6 +443,13 @@ class Kernel
 
             if ($resolvedPublicView) {
                 $this->includeResolvedFileAndExit($resolvedPublicView);
+            }
+
+            if (count($urlViews) === 1 && !$this->isReservedDynamicSlug($urlViews[0])) {
+                $route = '/' . trim($urlViews[0], '/');
+                if ($this->growthHubHasContent($route)) {
+                    $this->includeGrowthHubContentAndExit($route);
+                }
             }
 
             // Blog category pública: /category/blog/{slug}/

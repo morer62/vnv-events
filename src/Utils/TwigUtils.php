@@ -66,6 +66,24 @@ class TwigUtils {
         return htmlspecialchars($result, ENT_QUOTES, 'UTF-8');
     }
 
+    public static function jsonDecode($value): array
+    {
+        if (is_array($value)) {
+            return $value;
+        }
+
+        if (is_object($value)) {
+            return (array) $value;
+        }
+
+        if (!is_string($value) || trim($value) === '') {
+            return [];
+        }
+
+        $decoded = json_decode($value, true);
+        return is_array($decoded) ? $decoded : [];
+    }
+
     public static function hasPerm ($module, $action): bool
     {
         $user = LoginService::getSession();

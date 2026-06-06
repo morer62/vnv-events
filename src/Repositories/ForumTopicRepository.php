@@ -414,14 +414,14 @@ class ForumTopicRepository extends BaseRepository
     {
         $siteSql = $this->publicVisibilitySql('forum_topic', $siteKey);
         $this->db->query("
-            SELECT id, title, slug, updated_at, published_at, created_at
+            SELECT id, title, slug, updated_at, created_at
             FROM {$this->table}
             WHERE is_approved = 1
               AND COALESCE(status, 'PUBLISHED') = 'PUBLISHED'
               AND slug IS NOT NULL
               AND slug != ''
               {$siteSql}
-            ORDER BY updated_at DESC, published_at DESC, created_at DESC
+            ORDER BY updated_at DESC, created_at DESC
         ");
         $this->bindSiteScope($siteKey);
 

@@ -3,10 +3,12 @@
 namespace App\Repositories;
 
 use App\Repositories\Concerns\SiteScopedRepositoryTrait;
+use App\Repositories\Concerns\ContentOriginRepositoryTrait;
 
 class CmsContentsRepository extends BaseRepository
 {
     use SiteScopedRepositoryTrait;
+    use ContentOriginRepositoryTrait;
 
     protected string $table = "cms_contents";
 
@@ -35,6 +37,11 @@ class CmsContentsRepository extends BaseRepository
         'is_homepage',
         'published_at',
         'last_generated_at',
+        'content_origin',
+        'origin_site_key',
+        'created_by',
+        'updated_by',
+        'origin_metadata_json',
         'created_at',
         'updated_at',
     ];
@@ -191,7 +198,7 @@ class CmsContentsRepository extends BaseRepository
         if ($ownerId === null) {
             $query .= " AND `id_owner` IS NULL";
         } else {
-            $query .= " AND `id_owner` = :id_owner";
+            $query .= " AND (`id_owner` = :id_owner OR `id_owner` IS NULL)";
         }
 
         if ($excludeId > 0) {
@@ -242,16 +249,19 @@ class CmsContentsRepository extends BaseRepository
 
     public function countByType(string $type, string $language = 'en'): int
     {
+        $siteSql = $this->siteScopeSql();
         $query = "
             SELECT COUNT(*) AS total
             FROM `{$this->table}`
             WHERE `type` = :type
               AND `language` = :language
+              {$siteSql}
         ";
 
         $this->db->query($query);
         $this->db->bind(':type', $type);
         $this->db->bind(':language', $language);
+        $this->bindSiteScope();
 
         $result = $this->db->fetchOne();
 
@@ -260,18 +270,21 @@ class CmsContentsRepository extends BaseRepository
 
     public function countByTypeAndStatus(string $type, string $status, string $language = 'en'): int
     {
+        $siteSql = $this->siteScopeSql();
         $query = "
             SELECT COUNT(*) AS total
             FROM `{$this->table}`
             WHERE `type` = :type
               AND `status` = :status
               AND `language` = :language
+              {$siteSql}
         ";
 
         $this->db->query($query);
         $this->db->bind(':type', $type);
         $this->db->bind(':status', $status);
         $this->db->bind(':language', $language);
+        $this->bindSiteScope();
 
         $result = $this->db->fetchOne();
 

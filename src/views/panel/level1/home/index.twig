@@ -366,6 +366,81 @@
       margin-top:.8rem;
     }
 
+    .vnv-growth-board{
+      margin-top:2rem;
+      background:#fff;
+      border:1px solid rgba(17,24,26,.08);
+      border-radius:26px;
+      padding:1.35rem;
+      box-shadow:var(--vnv-shadow-soft);
+      color:#15181a;
+    }
+
+    .vnv-growth-board__head{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      flex-wrap:wrap;
+      gap:1rem;
+      margin-bottom:1rem;
+    }
+
+    .vnv-growth-board h2{
+      margin:0 0 .3rem;
+      color:#15181a;
+      font-size:1.35rem;
+      font-weight:900;
+    }
+
+    .vnv-growth-board p{
+      color:#69787b;
+      margin:0;
+      line-height:1.65;
+    }
+
+    .vnv-growth-pill{
+      border-radius:999px;
+      padding:.55rem .85rem;
+      background:#eef8f8;
+      border:1px solid #d7ecec;
+      color:#1f6e6d;
+      font-weight:900;
+      white-space:nowrap;
+    }
+
+    .vnv-growth-grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+      gap:.85rem;
+    }
+
+    .vnv-growth-stat{
+      border:1px solid #e8ddcc;
+      border-radius:18px;
+      padding:1rem;
+      background:#f9f5ee;
+    }
+
+    .vnv-growth-stat strong{
+      display:block;
+      color:#141a1b;
+      font-size:1.55rem;
+      line-height:1;
+      margin-bottom:.35rem;
+    }
+
+    .vnv-growth-stat span{
+      color:#6b7a7d;
+      font-weight:800;
+    }
+
+    .vnv-growth-actions{
+      display:flex;
+      flex-wrap:wrap;
+      gap:.65rem;
+      margin-top:1rem;
+    }
+
     .vnv-final{
       margin-top:2rem;
       background:linear-gradient(135deg,#121516 0%, #1b2022 100%);
@@ -561,6 +636,43 @@
         <i class="fa-solid fa-sliders"></i>
         <span>Settings</span>
       </a>
+    </div>
+  </section>
+
+  <section class="vnv-growth-board">
+    <div class="vnv-growth-board__head">
+      <div>
+        <h2>Growth Hub content</h2>
+        <p>Published VNV Events pages, articles and location pages are read from Ophyra using the <strong>{{ growthHubSummary.site_key|default('vnvevents') }}</strong> site key.</p>
+      </div>
+      <div class="vnv-growth-pill">
+        {% if growthHubSummary.configured|default(false) %}
+          Connected
+        {% else %}
+          Configure OPHYRA_BASE_URL
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="vnv-growth-grid">
+      <div class="vnv-growth-stat">
+        <strong>{{ growthHubSummary.blog_count|default(0) }}</strong>
+        <span>Published articles</span>
+      </div>
+      <div class="vnv-growth-stat">
+        <strong>{{ growthHubSummary.location_count|default(0) }}</strong>
+        <span>Location pages</span>
+      </div>
+      <div class="vnv-growth-stat">
+        <strong>{{ growthHubSummary.page_count|default(0) }}</strong>
+        <span>CMS pages</span>
+      </div>
+    </div>
+
+    <div class="vnv-growth-actions">
+      <a href="{{ path('blog') }}" class="vnv-link-btn">View Blog <i class="fa-solid fa-arrow-right"></i></a>
+      <a href="{{ path('locations') }}" class="vnv-link-btn">View Locations <i class="fa-solid fa-arrow-right"></i></a>
+      <a href="{{ path('panel/seo-center') }}" class="vnv-link-btn">Regenerate SEO Files <i class="fa-solid fa-arrow-right"></i></a>
     </div>
   </section>
 

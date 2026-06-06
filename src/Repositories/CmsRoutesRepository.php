@@ -2,13 +2,20 @@
 
 namespace App\Repositories;
 
+use App\Repositories\Concerns\ContentOriginRepositoryTrait;
+use App\Repositories\Concerns\SiteScopedRepositoryTrait;
+
 class CmsRoutesRepository extends BaseRepository
 {
+    use ContentOriginRepositoryTrait;
+    use SiteScopedRepositoryTrait;
+
     protected string $table = "cms_routes";
 
     protected array $fields = [
         'id',
         'id_owner',
+        'site_key',
         'id_content',
         'route',
         'route_hash',
@@ -18,13 +25,24 @@ class CmsRoutesRepository extends BaseRepository
         'public_twig_path',
         'status',
         'redirect_to',
+        'content_origin',
+        'origin_site_key',
+        'created_by',
+        'updated_by',
+        'origin_metadata_json',
         'created_at',
         'updated_at',
     ];
 
+    public function add(array $data): bool
+    {
+        return parent::add($this->withDefaultSiteKey($data));
+    }
+
     public function getByRoute(string $route, string $language = 'en'): ?object
     {
         $normalizedRoute = $this->normalizeRoute($route);
+        $siteSql = $this->siteScopeSql(null, 'c');
 
         $query = "
             SELECT r.*, c.title, c.slug, c.type, c.status AS content_status
@@ -32,12 +50,14 @@ class CmsRoutesRepository extends BaseRepository
             INNER JOIN `cms_contents` c ON c.id = r.id_content
             WHERE r.route = :route
               AND r.language = :language
+              {$siteSql}
             LIMIT 1
         ";
 
         $this->db->query($query);
         $this->db->bind(':route', $normalizedRoute);
         $this->db->bind(':language', $language);
+        $this->bindSiteScope();
 
         $result = $this->db->fetchOne();
         return $result ?: null;
@@ -91,7 +111,7 @@ class CmsRoutesRepository extends BaseRepository
         if ($ownerId === null) {
             $query .= " AND `id_owner` IS NULL";
         } else {
-            $query .= " AND `id_owner` = :id_owner";
+            $query .= " AND (`id_owner` = :id_owner OR `id_owner` IS NULL)";
         }
 
         if ($excludeId > 0) {

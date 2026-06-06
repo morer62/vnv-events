@@ -8,7 +8,7 @@ $repo = new LocationPagesRepository();
 
 $url = $_GET['url'] ?? '';
 $urlParts = array_values(array_filter(explode('/', trim($url, '/'))));
-$slug = $urlParts[0] ?? null;
+$slug = end($urlParts) ?: null;
 
 if (!$slug) {
     http_response_code(404);

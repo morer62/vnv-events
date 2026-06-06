@@ -208,7 +208,7 @@
             {% for p in pages %}
                 {% set q = (p.title|default('') ~ ' ' ~ p.city|default('') ~ ' ' ~ p.county|default('') ~ ' ' ~ p.state|default('') ~ ' ' ~ p.excerpt|default(''))|lower|trim %}
                 <article class="loc-card" data-loc-card data-loc-search="{{ q|e('html_attr') }}">
-                    <a class="loc-card-image-wrap" href="{{ path(p.slug) }}" tabindex="-1" aria-hidden="true">
+                    <a class="loc-card-image-wrap" href="{{ path('locations/' ~ p.slug) }}" tabindex="-1" aria-hidden="true">
                         {% if p.hero_image %}
                             <img class="loc-card-image" src="{{ p.hero_image }}" alt="">
                         {% else %}
@@ -217,7 +217,7 @@
                     </a>
                     <div class="loc-card-body">
                         <span class="loc-badge">Location</span>
-                        <a class="loc-title" href="{{ path(p.slug) }}">{{ p.title }}</a>
+                        <a class="loc-title" href="{{ path('locations/' ~ p.slug) }}">{{ p.title }}</a>
                         <div class="loc-sub">{{ p.excerpt ?: 'Explore details and services in this area.' }}</div>
                         <div class="loc-meta">
                             {% if p.city %}<span class="loc-chip">{{ p.city }}</span>{% endif %}
@@ -225,7 +225,7 @@
                             {% if p.state %}<span class="loc-chip">{{ p.state }}</span>{% endif %}
                         </div>
                         <div class="loc-card-actions">
-                            <a class="loc-link-btn loc-link-main" href="{{ path(p.slug) }}">View location</a>
+                            <a class="loc-link-btn loc-link-main" href="{{ path('locations/' ~ p.slug) }}">View location</a>
                             <button type="button" data-vnv-open-request class="loc-link-btn loc-link-request">Request</button>
                         </div>
                     </div>

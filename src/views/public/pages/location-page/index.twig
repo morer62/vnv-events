@@ -13,7 +13,7 @@
 {% endblock %}
 
 {% block canonical %}
-    {{ page.canonical_url ?: ('https://vnvevents.com/' ~ page.slug) }}
+    {{ page.canonical_url ?: ('https://vnvevents.com/locations/' ~ page.slug ~ '/') }}
 {% endblock %}
 
 {% block og_title %}
@@ -25,7 +25,7 @@
 {% endblock %}
 
 {% block og_url %}
-    {{ page.canonical_url ?: ('https://vnvevents.com/' ~ page.slug) }}
+    {{ page.canonical_url ?: ('https://vnvevents.com/locations/' ~ page.slug ~ '/') }}
 {% endblock %}
 
 {% block og_image %}
@@ -862,7 +862,7 @@
                     <h3 class="lp-block-title mb-3">Nearby Service Areas</h3>
                     <div class="lp-link-list">
                         {% for nearby in nearby_pages %}
-                            <a class="lp-link-item" href="/{{ nearby.slug }}/">
+                            <a class="lp-link-item" href="/locations/{{ nearby.slug }}/">
                                 <span>{{ nearby.city ?: nearby.title }}</span><span>→</span>
                             </a>
                         {% endfor %}

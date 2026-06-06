@@ -1,0 +1,219 @@
+{% extends 'templates/base.admin.twig' %}
+{% import 'templates/macros.twig' as macros %}
+
+{% block body %}
+<main class="container-fluid">
+    <h1 class="h3 mb-3">🎵 Add New multimedia session</h1>
+    {{ macros.breadcrumb2() }}
+
+    <div class="card">
+        <div class="card-body">
+            <form method="post">
+                <div class="mb-3">
+                    <label for="title" class="form-label">Title <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" id="title" name="title" required maxlength="255">
+                </div>
+
+                <div class="mb-3">
+                    <label for="description" class="form-label">Description</label>
+                    <textarea class="form-control" id="description" name="description" rows="4"></textarea>
+                </div>
+
+                <div class="mb-3">
+                    <label for="platform" class="form-label">Platform <span class="text-danger">*</span></label>
+                    <select class="form-select" id="platform" name="platform" required>
+                        <option value="">-- Select Platform --</option>
+                        <option value="youtube">YouTube</option>
+                        <option value="soundcloud">SoundCloud</option>
+                        <option value="spotify">Spotify</option>
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label for="url" class="form-label">URL <span class="text-danger">*</span></label>
+                    <input type="url" class="form-control" id="url" name="url" required placeholder="https://...">
+                    <small class="form-text text-muted">Enter the full URL of the multimedia session (YouTube, SoundCloud, Spotify, etc.)</small>
+                </div>
+
+                <div class="mb-3">
+                    <label for="id_category" class="form-label">Category</label>
+                    <select class="form-select" id="id_category" name="id_category">
+                        <option value="">-- No Category --</option>
+                        {% for category in categories %}
+                            <option value="{{ category.id }}">{{ category.name }}</option>
+                        {% endfor %}
+                    </select>
+                    <small class="form-text text-muted">
+                        <a href="{{ path('panel/multimedia-sessions/categories/create') }}" target="_blank">Create new category</a>
+                    </small>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Keywords</label>
+                    <div class="mb-2">
+                        <select class="form-select" id="keywords_select" multiple style="display: none;">
+                            {% for keyword in keywords %}
+                                <option value="{{ keyword.id }}">{{ keyword.keyword }}</option>
+                            {% endfor %}
+                        </select>
+                        <div id="keywords_container" class="d-flex flex-wrap gap-2 mb-2 p-2 border rounded" style="min-height: 50px;">
+                            <!-- Selected keywords will appear here as chips -->
+                        </div>
+                        <div class="input-group">
+                            <input type="text" class="form-control" id="new_keyword_input" placeholder="Type a keyword and press Enter or click Add">
+                            <button type="button" class="btn btn-outline-secondary" id="add_keyword_btn">Add</button>
+                        </div>
+                        <small class="form-text text-muted">Select existing keywords or add new ones. Press Enter or click Add to add a keyword.</small>
+                    </div>
+                    <input type="hidden" name="new_keywords" id="new_keywords_hidden">
+                    <div id="keywords_hidden_container"></div>
+                </div>
+
+                <div class="mb-3">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="is_active" name="is_active" value="1" checked>
+                        <label class="form-check-label" for="is_active">
+                            Active
+                        </label>
+                    </div>
+                </div>
+
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-primary">
+                        <i data-feather="save"></i> Create Session
+                    </button>
+                    <a href="{{ path('panel/multimedia-sessions') }}" class="btn btn-secondary">
+                        Cancel
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</main>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const keywordsSelect = document.getElementById('keywords_select');
+    const keywordsContainer = document.getElementById('keywords_container');
+    const newKeywordInput = document.getElementById('new_keyword_input');
+    const addKeywordBtn = document.getElementById('add_keyword_btn');
+    const newKeywordsHidden = document.getElementById('new_keywords_hidden');
+    const keywordsHiddenContainer = document.getElementById('keywords_hidden_container');
+    
+    const selectedKeywords = new Set();
+    const newKeywords = [];
+    
+    const existingKeywords = {};
+    Array.from(keywordsSelect.options).forEach(option => {
+        if (option.value) {
+            existingKeywords[option.value] = option.text;
+        }
+    });
+    
+    function updateHiddenInputs() {
+        const selectedIds = Array.from(selectedKeywords).filter(id => existingKeywords[id]);
+        
+        keywordsHiddenContainer.innerHTML = '';
+        
+        selectedIds.forEach(id => {
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'keywords[]';
+            input.value = id;
+            keywordsHiddenContainer.appendChild(input);
+        });
+        
+        newKeywordsHidden.value = newKeywords.join(',');
+    }
+    
+    function addKeyword(keyword, keywordId = null) {
+        const trimmedKeyword = keyword.trim();
+        if (!trimmedKeyword) return;
+        
+        if (keywordId && selectedKeywords.has(keywordId.toString())) return;
+        if (!keywordId && newKeywords.includes(trimmedKeyword)) return;
+        
+        const chip = document.createElement('span');
+        chip.className = 'badge bg-primary d-flex align-items-center gap-1';
+        chip.style.cursor = 'pointer';
+        
+        const text = document.createTextNode(trimmedKeyword);
+        const closeBtn = document.createElement('span');
+        closeBtn.innerHTML = '×';
+        closeBtn.style.cursor = 'pointer';
+        closeBtn.style.fontSize = '1.2em';
+        closeBtn.style.marginLeft = '5px';
+        
+        chip.appendChild(text);
+        chip.appendChild(closeBtn);
+        
+        keywordsContainer.appendChild(chip);
+        
+        if (keywordId) {
+            selectedKeywords.add(keywordId.toString());
+        } else {
+            newKeywords.push(trimmedKeyword);
+        }
+        
+        updateHiddenInputs();
+        
+        closeBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            chip.remove();
+            if (keywordId) {
+                selectedKeywords.delete(keywordId.toString());
+            } else {
+                const index = newKeywords.indexOf(trimmedKeyword);
+                if (index > -1) newKeywords.splice(index, 1);
+            }
+            updateHiddenInputs();
+        });
+        
+        if (keywordId) {
+            const option = keywordsSelect.querySelector(`option[value="${keywordId}"]`);
+            if (option) option.selected = true;
+        }
+    }
+    
+    function addKeywordFromInput() {
+        const keyword = newKeywordInput.value.trim();
+        if (!keyword) return;
+        
+        let found = false;
+        Array.from(keywordsSelect.options).forEach(option => {
+            if (option.text.toLowerCase() === keyword.toLowerCase()) {
+                addKeyword(option.text, option.value);
+                found = true;
+            }
+        });
+        
+        if (!found) {
+            addKeyword(keyword);
+        }
+        
+        newKeywordInput.value = '';
+    }
+    
+    addKeywordBtn.addEventListener('click', addKeywordFromInput);
+    newKeywordInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            addKeywordFromInput();
+        }
+    });
+    
+    keywordsSelect.addEventListener('change', function() {
+        Array.from(this.selectedOptions).forEach(option => {
+            if (!selectedKeywords.has(option.value)) {
+                addKeyword(option.text, option.value);
+            }
+        });
+        this.selectedIndex = -1;
+    });
+});
+</script>
+{% endblock %}
+
+
+
+

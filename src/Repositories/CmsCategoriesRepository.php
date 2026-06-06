@@ -2,24 +2,53 @@
 
 namespace App\Repositories;
 
+use App\Repositories\Concerns\ContentOriginRepositoryTrait;
+use App\Repositories\Concerns\SiteScopedRepositoryTrait;
+
 class CmsCategoriesRepository extends BaseRepository
 {
+    use ContentOriginRepositoryTrait;
+    use SiteScopedRepositoryTrait;
+
     protected string $table = "cms_categories";
 
     protected array $fields = [
         'id',
+        'id_owner',
+        'site_key',
         'name',
         'slug',
         'description',
         'is_active',
+        'content_origin',
+        'origin_site_key',
+        'created_by',
+        'updated_by',
+        'origin_metadata_json',
         'created_at',
         'updated_at',
     ];
 
+    public function add(array $data): bool
+    {
+        return parent::add($this->withDefaultSiteKey($data));
+    }
+
     public function getActive(): array
     {
-        $this->db->query("SELECT * FROM `{$this->table}` WHERE `is_active` = 1 ORDER BY `name` ASC");
+        $siteSql = $this->siteScopeSql();
+        $this->db->query("SELECT * FROM `{$this->table}` WHERE `is_active` = 1 {$siteSql} ORDER BY `name` ASC");
+        $this->bindSiteScope();
         return $this->db->fetchAll();
+    }
+
+    public function getAllForPanel(): array
+    {
+        $siteSql = $this->siteScopeSql();
+        $this->db->query("SELECT * FROM `{$this->table}` WHERE 1=1 {$siteSql} ORDER BY `id` DESC");
+        $this->bindSiteScope();
+
+        return $this->db->fetchAll() ?: [];
     }
 
     public function getBySlug(string $slug): ?object

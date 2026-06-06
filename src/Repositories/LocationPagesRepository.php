@@ -3,10 +3,12 @@
 namespace App\Repositories;
 
 use App\Repositories\Concerns\SiteScopedRepositoryTrait;
+use App\Repositories\Concerns\ContentOriginRepositoryTrait;
 
 class LocationPagesRepository extends BaseRepository
 {
     use SiteScopedRepositoryTrait;
+    use ContentOriginRepositoryTrait;
 
     public function __construct()
     {
@@ -47,6 +49,11 @@ class LocationPagesRepository extends BaseRepository
             'is_indexable',
             'status',
             'published_at',
+            'content_origin',
+            'origin_site_key',
+            'created_by',
+            'updated_by',
+            'origin_metadata_json',
             'created_at',
             'updated_at',
         ];
@@ -116,13 +123,17 @@ class LocationPagesRepository extends BaseRepository
         return (bool) $this->db->fetchOne();
     }
 
-    public function getAllForPanel(): array
+    public function getAllForPanel(?string $siteKey = null): array
     {
+        $siteSql = $this->siteScopeSql($siteKey);
         $this->db->query("
             SELECT *
             FROM {$this->table}
+            WHERE 1=1
+              {$siteSql}
             ORDER BY created_at DESC
         ");
+        $this->bindSiteScope($siteKey);
 
         return $this->db->fetchAll() ?: [];
     }

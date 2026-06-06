@@ -71,6 +71,7 @@
                         <th>Basic Actions</th>
                         <th>Team Communication</th>
                         <th>Payment Plan</th>
+                        <th>Closure</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -198,6 +199,12 @@
                                     <span class="text-muted">N/A</span>
                                 {% endif %}
                             </td>
+                            <!-- Closure -->
+                            <td style="min-width: 150px;">
+                                <a href="{{ path('/panel/planner-hub/management/orders/orders/closure-report') }}?id={{ order.id }}" class="btn btn-sm btn-info">
+                                    Closure Report
+                                </a>
+                            </td>
                             <!-- Delete -->
                             <td>
                                 <form method="post" style="display:inline;" onsubmit="return confirm('Are you sure you want to archive this order? It will be moved to archived orders.');">
@@ -208,7 +215,7 @@
                         </tr>
                     {% else %}
                         <tr>
-                            <td colspan="13" class="text-center text-muted py-4">
+                            <td colspan="14" class="text-center text-muted py-4">
                                 <h5>📋 No previous orders found</h5>
                                 <p class="mb-0">Previous orders will appear here</p>
                             </td>

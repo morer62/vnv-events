@@ -7,8 +7,10 @@ use App\Utils\MessageUtil;
 use App\Utils\TemplateResponse;
 use App\Utils\Router;
 use App\Services\NotificationService;
-use App\Services\TeamMemberContractService;
 use App\Services\UserInstitutionService;
+use App\Services\TeamMemberContractService;
+use App\Services\UserWorkspaceContextService;
+use App\Services\TranslationService;
 use App\Repositories\InstitutionProfileRepository;
 use App\Repositories\UserInstitutionsRepository;
 
@@ -20,6 +22,7 @@ $user = LoginService::getSession();
 
 $router->get(function () use ($repo, $user): string {
     $userInstitutionService = new UserInstitutionService();
+    $workspaceContextService = new UserWorkspaceContextService();
     $institutionRepo = new InstitutionProfileRepository();
     
     $isLevel4 = $user->getLevel() == 4;
@@ -32,6 +35,7 @@ $router->get(function () use ($repo, $user): string {
     
     // Validar que usuarios de nivel 4 tengan al menos una institución asociada
     if ($isLevel4) {
+        $workspaceContextService->getTeamContext($user);
         $userInstitutions = $userInstitutionService->getUserAvailableInstitutions($user->getId());
         
         if (empty($userInstitutions)) {
@@ -99,6 +103,8 @@ $router->get(function () use ($repo, $user): string {
     $logs = $repo->getActiveLogsByUserAndOwner($user->getId(), $currentInstitutionOwner);
 
     $activeLog = count($logs) > 0 ? $logs[0] : null;
+    $contractService = new TeamMemberContractService();
+    $clockContractStatus = $contractService->getClockContractStatus($user->getId(), (int)$currentInstitutionOwner);
 
     return TemplateResponse::render(__DIR__ . "/index.twig", [
         "activeLog" => $activeLog,
@@ -110,7 +116,8 @@ $router->get(function () use ($repo, $user): string {
         'isLevel4' => $isLevel4,
         'userInstitutionData' => $userInstitutionData,
         'roleName' => $roleName,
-        'hourlyRate' => $hourlyRate
+        'hourlyRate' => $hourlyRate,
+        'clockContractStatus' => $clockContractStatus
     ]);
 });
 
@@ -190,33 +197,40 @@ $router->post(callback: function () use ($repo, $user): void {
             LocationUtils::reload();
         }
 
-        if ($isLevel4 && !(new TeamMemberContractService())->isClockInAllowed($user->getId(), (int)$currentInstitutionOwner)) {
-            MessageUtil::setMessage("Tu contrato todavia no ha sido validado. Abre Mi contrato para firmarlo o contacta al administrador antes de iniciar tu reloj.");
+        $contractService = new TeamMemberContractService();
+        if (!$contractService->isClockInAllowed($user->getId(), $currentInstitutionOwner)) {
+            MessageUtil::setMessage(TranslationService::trans('planner_hub.team_contract_clock_blocked'), 'Contract required', 'warning');
             LocationUtils::reload();
         }
 
         $latitude = trim((string)($_POST["location_lat"] ?? ""));
         $longitude = trim((string)($_POST["location_long"] ?? ""));
+        $latitude = is_numeric($latitude) ? $latitude : null;
+        $longitude = is_numeric($longitude) ? $longitude : null;
 
-        if (!is_numeric($latitude) || !is_numeric($longitude)) {
-            MessageUtil::setMessage("Location permission is required to start the clock. Please allow location access and try again.");
+        try {
+            $repo->startNow(
+                $user->getId(),
+                $currentInstitutionOwner,
+                $latitude,
+                $longitude
+            );
+        } catch (Throwable $e) {
+            error_log('[Level4 Clock] Clock-in failed: ' . $e->getMessage());
+            MessageUtil::setMessage(TranslationService::trans('planner_hub.clock_start_failed'), 'Error', 'error');
             LocationUtils::reload();
         }
 
-        $repo->startNow(
-            $user->getId(),
-            $currentInstitutionOwner,
-            $latitude,
-            $longitude
-        );
-
-        $memberName = $user->getName() . ' ' . $user->getLastname();
-        NotificationService::sendToUsers(
-            [$currentInstitutionOwner],
-            '⏱️ Clock In',
-            $memberName . ' started a work session.'
-        );
-
+        try {
+            $memberName = $user->getName() . ' ' . $user->getLastname();
+            NotificationService::sendToUsers(
+                [$currentInstitutionOwner],
+                'Clock In',
+                $memberName . ' started a work session.'
+            );
+        } catch (Throwable $e) {
+            error_log('[Level4 Clock] Clock-in notification failed: ' . $e->getMessage());
+        }
         MessageUtil::setMessage("Work session started.");
         LocationUtils::reload();
     }
@@ -229,20 +243,29 @@ $router->post(callback: function () use ($repo, $user): void {
             LocationUtils::reload();
         }
 
-        $repo->stopNow(
-            $activeLog->id,
-            $_POST["location_lat"]  ?? null,
-            $_POST["location_long"] ?? null,
-            $_POST["notes"]         ?? null
-        );
+        try {
+            $repo->stopNow(
+                $activeLog->id,
+                is_numeric($_POST["location_lat"] ?? null) ? (string)$_POST["location_lat"] : null,
+                is_numeric($_POST["location_long"] ?? null) ? (string)$_POST["location_long"] : null,
+                $_POST["notes"] ?? null
+            );
+        } catch (Throwable $e) {
+            error_log('[Level4 Clock] Clock-out failed: ' . $e->getMessage());
+            MessageUtil::setMessage(TranslationService::trans('planner_hub.clock_stop_failed'), 'Error', 'error');
+            LocationUtils::reload();
+        }
 
-        $memberName = $user->getName() . ' ' . $user->getLastname();
-        NotificationService::sendToUsers(
-            [$currentInstitutionOwner],
-            '⏹️ Clock Out',
-            $memberName . ' ended a work session.'
-        );
-
+        try {
+            $memberName = $user->getName() . ' ' . $user->getLastname();
+            NotificationService::sendToUsers(
+                [$currentInstitutionOwner],
+                'Clock Out',
+                $memberName . ' ended a work session.'
+            );
+        } catch (Throwable $e) {
+            error_log('[Level4 Clock] Clock-out notification failed: ' . $e->getMessage());
+        }
         MessageUtil::setMessage("Work session ended.");
         LocationUtils::reload();
     }
@@ -253,5 +276,8 @@ $router->post(callback: function () use ($repo, $user): void {
 
 try {
     $router->run();
-} catch (Exception $e) {
+} catch (Throwable $e) {
+    error_log('[Level4 Clock] Unhandled route failure: ' . $e->getMessage());
+    MessageUtil::setMessage(TranslationService::trans('planner_hub.clock_action_failed'), 'Error', 'error');
+    LocationUtils::redirectInternal("panel/home");
 }

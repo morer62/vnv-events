@@ -1,0 +1,378 @@
+{% extends "templates/base.admin.twig" %}
+
+{% block body %}
+<style>
+    .cms-wrap{
+        padding:24px;
+    }
+
+    .cms-header{
+        margin-bottom:28px;
+    }
+
+    .cms-title{
+        font-size:2rem;
+        font-weight:800;
+        color:#111827;
+        margin-bottom:6px;
+    }
+
+    .cms-subtitle{
+        color:#6b7280;
+        font-size:.98rem;
+        margin:0;
+        max-width:900px;
+    }
+
+    .cms-stats{
+        display:grid;
+        grid-template-columns:repeat(auto-fit, minmax(210px, 1fr));
+        gap:18px;
+        margin-bottom:30px;
+    }
+
+    .cms-stat-card{
+        background:#fff;
+        border:1px solid #e5e7eb;
+        border-radius:18px;
+        padding:20px;
+        box-shadow:0 8px 25px rgba(0,0,0,.05);
+    }
+
+    .cms-stat-label{
+        font-size:.9rem;
+        color:#6b7280;
+        margin-bottom:10px;
+    }
+
+    .cms-stat-value{
+        font-size:2rem;
+        font-weight:800;
+        color:#111827;
+        line-height:1;
+    }
+
+    .cms-grid{
+        display:grid;
+        grid-template-columns:repeat(auto-fit, minmax(280px, 1fr));
+        gap:22px;
+    }
+
+    .cms-card{
+        background:#fff;
+        border:1px solid #e5e7eb;
+        border-radius:20px;
+        padding:22px;
+        box-shadow:0 10px 30px rgba(0,0,0,.05);
+        display:flex;
+        flex-direction:column;
+        justify-content:space-between;
+        min-height:220px;
+    }
+
+    .cms-card-top{
+        margin-bottom:18px;
+    }
+
+    .cms-card-icon{
+        width:52px;
+        height:52px;
+        border-radius:14px;
+        display:inline-flex;
+        align-items:center;
+        justify-content:center;
+        font-size:1.35rem;
+        font-weight:700;
+        margin-bottom:16px;
+    }
+
+    .cms-card-icon.pages{
+        background:#ecfdf5;
+        color:#059669;
+    }
+
+    .cms-card-icon.blog-posts{
+        background:#eef2ff;
+        color:#4338ca;
+    }
+
+    .cms-card-icon.blog-categories{
+        background:#fff7ed;
+        color:#c2410c;
+    }
+
+    .cms-card-icon.locations{
+        background:#ecfeff;
+        color:#0891b2;
+    }
+
+    .cms-card-icon.templates{
+        background:#f5f3ff;
+        color:#6d28d9;
+    }
+
+    .cms-card-title{
+        font-size:1.2rem;
+        font-weight:800;
+        color:#111827;
+        margin-bottom:8px;
+    }
+
+    .cms-card-text{
+        color:#6b7280;
+        font-size:.95rem;
+        line-height:1.6;
+        margin:0;
+    }
+
+    .cms-card-actions{
+        display:flex;
+        flex-wrap:wrap;
+        gap:10px;
+        margin-top:auto;
+    }
+
+    .cms-btn{
+        display:inline-flex;
+        align-items:center;
+        justify-content:center;
+        padding:10px 16px;
+        border-radius:12px;
+        text-decoration:none;
+        font-weight:700;
+        font-size:.92rem;
+        transition:.2s ease;
+        border:none;
+        cursor:pointer;
+    }
+
+    .cms-btn-primary{
+        background:#111827;
+        color:#fff;
+    }
+
+    .cms-btn-primary:hover{
+        background:#000;
+        color:#fff;
+    }
+
+    .cms-btn-light{
+        background:#f3f4f6;
+        color:#111827;
+    }
+
+    .cms-btn-light:hover{
+        background:#e5e7eb;
+        color:#111827;
+    }
+
+    .cms-note{
+        margin-top:30px;
+        background:#f0fdf4;
+        border:1px solid #86efac;
+        color:#166534;
+        border-radius:18px;
+        padding:18px 20px;
+        line-height:1.65;
+    }
+
+    @media (max-width:768px){
+        .cms-wrap{
+            padding:16px;
+        }
+
+        .cms-title{
+            font-size:1.6rem;
+        }
+
+        .cms-card{
+            min-height:auto;
+        }
+    }
+</style>
+
+<div class="cms-wrap">
+    <div class="cms-header">
+        <h1 class="cms-title">VNV Events CMS</h1>
+        <p class="cms-subtitle">
+            Manage pages, blog, locations, categories, SEO and AI review from one publishing workspace. Local records stay scoped to <strong>{{ siteKey }}</strong> with origin <strong>{{ originLabel }}</strong>.
+        </p>
+    </div>
+
+    <div class="cms-stats">
+        <div class="cms-stat-card">
+            <div class="cms-stat-label">Pages</div>
+            <div class="cms-stat-value">{{ totalPages }}</div>
+        </div>
+
+        <div class="cms-stat-card">
+            <div class="cms-stat-label">Blog Posts</div>
+            <div class="cms-stat-value">{{ totalPosts }}</div>
+        </div>
+
+        <div class="cms-stat-card">
+            <div class="cms-stat-label">CMS Categories</div>
+            <div class="cms-stat-value">{{ totalCmsCategories }}</div>
+        </div>
+
+        <div class="cms-stat-card">
+            <div class="cms-stat-label">Blog Categories</div>
+            <div class="cms-stat-value">{{ totalBlogCategories }}</div>
+        </div>
+
+        <div class="cms-stat-card">
+            <div class="cms-stat-label">Location Pages</div>
+            <div class="cms-stat-value">{{ totalLocationPages }}</div>
+        </div>
+
+        <div class="cms-stat-card">
+            <div class="cms-stat-label">Templates</div>
+            <div class="cms-stat-value">{{ totalTemplates }}</div>
+        </div>
+
+        <div class="cms-stat-card">
+            <div class="cms-stat-label">Published Pages</div>
+            <div class="cms-stat-value">{{ totalPublishedPages }}</div>
+        </div>
+
+        <div class="cms-stat-card">
+            <div class="cms-stat-label">Published Posts</div>
+            <div class="cms-stat-value">{{ totalPublishedPosts }}</div>
+        </div>
+
+        <div class="cms-stat-card">
+            <div class="cms-stat-label">Draft Pages</div>
+            <div class="cms-stat-value">{{ totalDraftPages }}</div>
+        </div>
+
+        <div class="cms-stat-card">
+            <div class="cms-stat-label">Draft Posts</div>
+            <div class="cms-stat-value">{{ totalDraftPosts }}</div>
+        </div>
+    </div>
+
+    <div class="cms-grid">
+        <div class="cms-card">
+            <div class="cms-card-top">
+                <div class="cms-card-icon pages">PG</div>
+                <div class="cms-card-title">Pages</div>
+                <p class="cms-card-text">
+                    Create and manage institutional pages, landing pages and evergreen public content.
+                </p>
+            </div>
+
+            <div class="cms-card-actions">
+                <a href="{{ path('panel/cms/pages') }}" class="cms-btn cms-btn-primary">Open Pages</a>
+                <a href="{{ path('panel/cms/pages/create') }}" class="cms-btn cms-btn-light">+ New Page</a>
+            </div>
+        </div>
+
+        <div class="cms-card">
+            <div class="cms-card-top">
+                <div class="cms-card-icon pages">CT</div>
+                <div class="cms-card-title">CMS Categories</div>
+                <p class="cms-card-text">
+                    Manage page and landing-page taxonomy used by the VNV Events CMS.
+                </p>
+            </div>
+
+            <div class="cms-card-actions">
+                <a href="{{ path('panel/cms/categories') }}" class="cms-btn cms-btn-primary">Open Categories</a>
+                <a href="{{ path('panel/cms/categories/create') }}" class="cms-btn cms-btn-light">+ New Category</a>
+            </div>
+        </div>
+
+        <div class="cms-card">
+            <div class="cms-card-top">
+                <div class="cms-card-icon blog-posts">BL</div>
+                <div class="cms-card-title">Blog Posts</div>
+                <p class="cms-card-text">
+                    Write articles, assign categories, control metadata and publish to /blog/slug/.
+                </p>
+            </div>
+
+            <div class="cms-card-actions">
+                <a href="{{ path('panel/cms/blog/blog-posts') }}" class="cms-btn cms-btn-primary">Open Posts</a>
+                <a href="{{ path('panel/cms/blog/blog-posts/create') }}" class="cms-btn cms-btn-light">+ New Post</a>
+            </div>
+        </div>
+
+        <div class="cms-card">
+            <div class="cms-card-top">
+                <div class="cms-card-icon blog-categories">BC</div>
+                <div class="cms-card-title">Blog Categories</div>
+                <p class="cms-card-text">
+                    Organize editorial topics and generate public category pages like /category/blog/slug/.
+                </p>
+            </div>
+
+            <div class="cms-card-actions">
+                <a href="{{ path('panel/cms/blog/blog-categories') }}" class="cms-btn cms-btn-primary">Open Categories</a>
+                <a href="{{ path('panel/cms/blog/blog-categories/create') }}" class="cms-btn cms-btn-light">+ New Category</a>
+            </div>
+        </div>
+
+        <div class="cms-card">
+            <div class="cms-card-top">
+                <div class="cms-card-icon locations">LC</div>
+                <div class="cms-card-title">Location Pages</div>
+                <p class="cms-card-text">
+                    Manage city landing pages for South Florida SEO, service areas and /locations/slug/ routes.
+                </p>
+            </div>
+
+            <div class="cms-card-actions">
+                <a href="{{ path('panel/cms/location-pages') }}" class="cms-btn cms-btn-primary">Open Locations</a>
+                <a href="{{ path('panel/cms/location-pages/create') }}" class="cms-btn cms-btn-light">+ New Location</a>
+            </div>
+        </div>
+
+        <div class="cms-card">
+            <div class="cms-card-top">
+                <div class="cms-card-icon templates">TP</div>
+                <div class="cms-card-title">Templates</div>
+                <p class="cms-card-text">
+                    Save reusable template structures to accelerate page and post creation workflows.
+                </p>
+            </div>
+
+            <div class="cms-card-actions">
+                <a href="{{ path('panel/cms/templates') }}" class="cms-btn cms-btn-primary">Open Templates</a>
+                <a href="{{ path('panel/cms/templates/create') }}" class="cms-btn cms-btn-light">+ New Template</a>
+            </div>
+        </div>
+
+        <div class="cms-card">
+            <div class="cms-card-top">
+                <div class="cms-card-icon templates">SEO</div>
+                <div class="cms-card-title">SEO Center</div>
+                <p class="cms-card-text">
+                    Regenerate sitemap, llms files and publishing assets from Growth Hub plus local VNV Events records.
+                </p>
+            </div>
+
+            <div class="cms-card-actions">
+                <a href="{{ path('panel/seo-center') }}" class="cms-btn cms-btn-primary">Open SEO Center</a>
+            </div>
+        </div>
+
+        <div class="cms-card">
+            <div class="cms-card-top">
+                <div class="cms-card-icon blog-posts">AI</div>
+                <div class="cms-card-title">AI Content Review</div>
+                <p class="cms-card-text">
+                    Review generated drafts before they become VNV Events pages, blog posts or location pages.
+                </p>
+            </div>
+
+            <div class="cms-card-actions">
+                <a href="{{ path('panel/ai-content/review') }}" class="cms-btn cms-btn-primary">Open Review</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="cms-note">
+        <strong>Publishing rule:</strong> categories, pages, blog posts and locations are managed here. Public consumption still follows Ophyra Growth Hub scope first, with local VNV Events records as fallback during migration.
+    </div>
+</div>
+{% endblock %}

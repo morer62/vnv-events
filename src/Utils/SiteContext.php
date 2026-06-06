@@ -4,9 +4,9 @@ namespace App\Utils;
 
 class SiteContext
 {
-    public const DEFAULT_SITE_KEY = 'avomeal';
-    public const DEFAULT_SITE_NAME = 'Avomeal';
-    public const DEFAULT_PUBLIC_BASE_URL = 'https://avomeal.com';
+    public const DEFAULT_SITE_KEY = 'vnvevents';
+    public const DEFAULT_SITE_NAME = 'VNV Events';
+    public const DEFAULT_PUBLIC_BASE_URL = 'https://vnvevents.com';
     public const DEFAULT_BUSINESS_OWNER_ID = 2;
 
     public static function siteKey(): string

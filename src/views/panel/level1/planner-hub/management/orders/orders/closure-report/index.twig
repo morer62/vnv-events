@@ -1,0 +1,568 @@
+{% extends 'templates/base.admin.twig' %}
+{% import 'templates/macros.twig' as macros %}
+
+{% block style %}
+    <style>
+        .photo-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+        .photo-grid img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+    <section>
+        <h1 class="h3 mb-3">📋 {{ trans('planner_hub.closure_report') }} VNV-341{{ order.id }}</h1>
+        {{ macros.breadcrumb2() }}
+
+        <div class="alert alert-info mb-4">
+            <div>
+                <strong>{{ trans('planner_hub.orders') }}:</strong> VNV-341{{ order.id }}<br>
+                {% if client %}
+                    <strong>{{ trans('planner_hub.client') }}:</strong> {{ client.name }} {{ client.lastname }} ({{ client.email }})<br>
+                {% endif %}
+                <strong>{{ trans('planner_hub.event_date') }}:</strong> {{ order.event_date|date("l, M j, Y") }}<br>
+                <strong>{{ trans('planner_hub.address') }}:</strong> {{ order.address }}
+            </div>
+        </div>
+
+        <!-- All Documents List View -->
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center flex-wrap gap-2">
+                <h4 class="mb-0">📄 {{ trans('planner_hub.all_documents') }}</h4>
+                {% if allDocuments|length > 0 %}
+                    <a href="{{ path('panel/planner-hub/management/orders/orders/closure-report/download-zip') }}?id={{ order.id }}" class="btn btn-light btn-sm">
+                        📦 {{ trans('planner_hub.download_all_zip') }}
+                    </a>
+                {% endif %}
+            </div>
+            <div class="card-body">
+                {% if allDocuments|length > 0 %}
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover">
+                            <thead>
+                                <tr>
+                                    <th>{{ trans('planner_hub.category') }}</th>
+                                    <th>{{ trans('planner_hub.document') }}</th>
+                                    <th>{{ trans('planner_hub.date') }}</th>
+                                    <th>{{ trans('planner_hub.actions') }}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for doc in allDocuments %}
+                                    <tr>
+                                        <td>
+                                            <span class="badge bg-{{ doc.category == 'Contracts' ? 'success' : 'info' }}">
+                                                {{ doc.category }}
+                                            </span>
+                                        </td>
+                                        <td>{{ doc.title }}</td>
+                                        <td>{{ doc.date|date("M j, Y g:i A") }}</td>
+                                        <td>
+                                            <a href="{{ doc.file_path }}" target="_blank" class="btn btn-sm btn-primary">
+                                                📄 {{ trans('planner_hub.view') }}
+                                            </a>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center text-muted py-5">
+                        <p>{{ trans('planner_hub.no_documents') }}</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Section: Team Order Photos -->
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center flex-wrap gap-2">
+                <h4 class="mb-0">📷 {{ trans('planner_hub.team_order_photos')|default('Fotos del equipo') }}</h4>
+                <button type="button" class="btn btn-light btn-sm" data-bs-toggle="modal" data-bs-target="#teamOrderPhotosModal">
+                    {% if teamOrderPhotos|length > 0 %}
+                        {{ trans('planner_hub.photos') }} ({{ teamOrderPhotos|length }})
+                    {% else %}
+                        {{ trans('planner_hub.add_photos')|default('Agregar fotos') }}
+                    {% endif %}
+                </button>
+            </div>
+            <div class="card-body">
+                <p class="text-muted">{{ trans('planner_hub.team_order_photos_desc')|default('Fotos subidas por el equipo en órdenes aceptadas.') }}</p>
+                {% if teamOrderPhotos|length > 0 %}
+                    <div class="photo-grid mb-0">
+                        {% for photo in teamOrderPhotos|slice(0, 6) %}
+                            <div class="card">
+                                <img src="{{ photo.photo_url }}" alt="Team photo" onclick="window.open('{{ photo.photo_url }}', '_blank')" style="cursor: pointer; height: 120px; object-fit: cover;">
+                                <div class="card-body p-2">
+                                    <small class="text-muted">{{ photo.uploader_name|default('Unknown') }}</small>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                    {% if teamOrderPhotos|length > 6 %}
+                        <p class="mt-2 mb-0"><small class="text-muted">+ {{ teamOrderPhotos|length - 6 }} más. Ver todas en el botón arriba.</small></p>
+                    {% endif %}
+                {% else %}
+                    <div class="text-center text-muted py-4">
+                        <p class="mb-0">{{ trans('planner_hub.no_photos_uploaded_yet')|default('No hay fotos subidas aún.') }}</p>
+                        <button type="button" class="btn btn-primary mt-2" data-bs-toggle="modal" data-bs-target="#teamOrderPhotosModal">
+                            {{ trans('planner_hub.upload_photos')|default('Subir fotos') }}
+                        </button>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Modal: Team Order Photos -->
+        <div class="modal fade" id="teamOrderPhotosModal" tabindex="-1">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">📷 {{ trans('planner_hub.team_order_photos')|default('Fotos del equipo') }} - VNV-341{{ order.id }}</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form method="post" enctype="multipart/form-data" class="mb-4">
+                            <input type="hidden" name="form_type" value="upload_photo">
+                            <input type="hidden" name="order_id" value="{{ order.id }}">
+                            <div class="input-group">
+                                <input type="file" name="photos[]" accept="image/*" class="form-control" multiple required>
+                                <button type="submit" class="btn btn-primary">{{ trans('planner_hub.upload_photos')|default('Subir fotos') }}</button>
+                            </div>
+                            <small class="text-muted">{{ trans('planner_hub.accepted_formats')|default('Formatos: JPEG, PNG, GIF, WebP') }}</small>
+                        </form>
+
+                        {% if teamOrderPhotos|length > 0 %}
+                        <div class="row g-3">
+                            {% for photo in teamOrderPhotos %}
+                            <div class="col-md-4">
+                                <div class="card">
+                                    <img src="{{ photo.photo_url }}" class="card-img-top" alt="Order photo" style="height: 200px; object-fit: cover; cursor: pointer;" onclick="window.open('{{ photo.photo_url }}', '_blank')">
+                                    <div class="card-body p-2">
+                                        <small class="text-muted d-block">{{ photo.uploader_name|default('Unknown') }} - {{ photo.uploaded_at|date('M d, Y H:i') }}</small>
+                                        <form method="post" style="display: inline;" onsubmit="return confirm('{{ trans('planner_hub.confirm_delete_photo')|e('js') }}');">
+                                            <input type="hidden" name="form_type" value="delete_photo">
+                                            <input type="hidden" name="order_id" value="{{ order.id }}">
+                                            <input type="hidden" name="photo_id" value="{{ photo.id }}">
+                                            <button type="submit" class="btn btn-sm btn-danger mt-2">{{ trans('planner_hub.delete') }}</button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% else %}
+                        <div class="text-center text-muted py-5">
+                            <p>{{ trans('planner_hub.no_photos_uploaded_yet')|default('No hay fotos subidas aún.') }}</p>
+                            <p>{{ trans('planner_hub.upload_first_photo')|default('Sube la primera foto usando el formulario arriba.') }}</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ trans('planner_hub.close') }}</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section 0: Client Communications -->
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0">💬 {{ trans('planner_hub.client_communications') }}</h4>
+            </div>
+            <div class="card-body">
+                <p class="text-muted">{{ trans('planner_hub.client_communications_desc') }}</p>
+                
+                <div class="mb-3">
+                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addCommunicationModal">
+                        ➕ {{ trans('planner_hub.add_communication') }}
+                    </button>
+                    {% if communications|length > 0 %}
+                        <form method="post" id="generatePdfForm" style="display: inline;" onsubmit="showPdfLoader(); return true;">
+                            <input type="hidden" name="form_type" value="generate_communications_pdf">
+                            <input type="hidden" name="order_id" value="{{ order.id }}">
+                            <button type="submit" class="btn btn-success">
+                                📄 {{ trans('planner_hub.generate_pdf') }}
+                            </button>
+                        </form>
+                    {% endif %}
+                </div>
+
+                {% if communications|length > 0 %}
+                    <div class="row">
+                        {% for comm in communications %}
+                            <div class="col-md-6 mb-3">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between align-items-start mb-2">
+                                            <small class="text-muted">
+                                                {{ comm.created_at|date("M j, Y g:i A") }}<br>
+                                                By: {{ comm.created_by_name }}
+                                            </small>
+                                            <form method="post" style="display: inline;" onsubmit="return confirm('{{ trans('planner_hub.delete_communication_confirm')|e('js') }}');">
+                                                <input type="hidden" name="form_type" value="delete_communication">
+                                                <input type="hidden" name="order_id" value="{{ order.id }}">
+                                                <input type="hidden" name="comm_id" value="{{ comm.id }}">
+                                                <button type="submit" class="btn btn-sm btn-danger">🗑️ {{ trans('planner_hub.delete_col') }}</button>
+                                            </form>
+                                        </div>
+                                        <p class="mb-2">{{ comm.description|nl2br }}</p>
+                                        {% if comm.photo_path %}
+                                            <div class="mt-2">
+                                                <img src="{{ comm.photo_path }}" alt="Communication photo" class="img-fluid" style="max-height: 200px; cursor: pointer;" onclick="window.open('{{ comm.photo_path }}', '_blank')">
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="alert alert-info text-center py-4">
+                        <p class="mb-0">{{ trans('planner_hub.no_communications_recorded') }}.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Modal: Add Communication -->
+        <div class="modal fade" id="addCommunicationModal" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">{{ trans('planner_hub.add_communication') }}</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <form method="post" enctype="multipart/form-data">
+                        <div class="modal-body">
+                            <input type="hidden" name="form_type" value="add_communication">
+                            <input type="hidden" name="order_id" value="{{ order.id }}">
+                            
+                            <div class="mb-3">
+                                <label for="description" class="form-label">{{ trans('planner_hub.description') }} <span class="text-danger">*</span></label>
+                                <textarea class="form-control" id="description" name="description" rows="4" required></textarea>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="photo" class="form-label">{{ trans('planner_hub.photo_optional') }}</label>
+                                <input type="file" class="form-control" id="photo" name="photo" accept="image/*">
+                                <small class="text-muted">Accepted formats: JPEG, PNG, GIF, WebP</small>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ trans('planner_hub.cancel') }}</button>
+                            <button type="submit" class="btn btn-primary">{{ trans('planner_hub.add_communication') }}</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section 1: Service Execution Proof -->
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0">📸 {{ trans('planner_hub.service_execution_proof') }}</h4>
+            </div>
+            <div class="card-body">
+                <p class="text-muted">{{ trans('planner_hub.service_execution_proof_desc') }}</p>
+
+                {% if servicesWithPhotos|length > 0 %}
+                    {% for item in servicesWithPhotos %}
+                        <div class="card mb-4 border">
+                            <div class="card-header bg-light d-flex justify-content-between align-items-center flex-wrap gap-2">
+                                <div>
+                                    <h5 class="mb-0">
+                                        {{ item.service.name ?? 'Service #' ~ item.assigned.id_service }}
+                                        {% if item.is_suborder %}
+                                            <span class="badge bg-secondary ms-2">{{ trans('planner_hub.sub_order') }}</span>
+                                        {% endif %}
+                                        {% if item.service %}
+                                            <small class="text-muted">- {{ item.service.description ?? trans('planner_hub.no_description') }}</small>
+                                        {% endif %}
+                                    </h5>
+                                    {% if item.total_photos > 0 %}
+                                        <small class="text-muted">{{ item.total_photos }} {{ trans('planner_hub.photos_uploaded') }}</small>
+                                    {% endif %}
+                                </div>
+                                <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#serviceDetailsModal{{ loop.index }}">
+                                    {{ trans('planner_hub.view_details') }}
+                                </button>
+                            </div>
+                            <div class="card-body">
+                                {% if item.has_photos %}
+                                    {% for userData in item.photos_by_user %}
+                                        <div class="mb-4 pb-3 border-bottom">
+                                            <h6 class="mb-3">
+                                                👤 {{ userData.user_name }}
+                                                <small class="text-muted">({{ userData.user_email }})</small>
+                                                <span class="badge bg-info ms-2">{{ userData.photos|length }} {{ trans('planner_hub.photos_uploaded') }}</span>
+                                            </h6>
+                                            
+                                            <div class="photo-grid">
+                                                {% for photo in userData.photos %}
+                                                    <div class="card">
+                                                        <img src="{{ photo.photo_url }}" alt="Service proof" onclick="window.open('{{ photo.photo_url }}', '_blank')" style="cursor: pointer;">
+                                                        <div class="card-body">
+                                                            <p class="small mb-1"><strong>{{ trans('planner_hub.task') }}:</strong> {{ photo.task_name }}</p>
+                                                            <small class="text-muted d-block">{{ photo.uploaded_at|date("M j, Y g:i A") }}</small>
+                                                        </div>
+                                                    </div>
+                                                {% endfor %}
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                {% else %}
+                                    <div class="alert alert-warning mb-0">
+                                        <strong>⚠️ {{ trans('planner_hub.no_data_available') }}</strong><br>
+                                        {{ trans('planner_hub.no_photos_uploaded_service') }}
+                                    </div>
+                                {% endif %}
+                                
+                                {% if item.tasks_with_no_photos|length > 0 %}
+                                    <div class="mt-3">
+                                        <h6 class="text-muted">{{ trans('planner_hub.tasks_without_photos') }}</h6>
+                                        <ul class="list-unstyled">
+                                            {% for task in item.tasks_with_no_photos %}
+                                                <li class="mb-2">
+                                                    <span class="badge bg-secondary me-2">📋 {{ task.task_name }}</span>
+                                                    {% if task.user_name %}
+                                                        <small class="text-muted">{{ trans('planner_hub.assigned_to') }}: {{ task.user_name }}</small>
+                                                    {% else %}
+                                                        <small class="text-danger">{{ trans('planner_hub.not_assigned') }}</small>
+                                                    {% endif %}
+                                                </li>
+                                            {% endfor %}
+                                        </ul>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Modal: Service Execution Proof details -->
+                        <div class="modal fade" id="serviceDetailsModal{{ loop.index }}" tabindex="-1">
+                            <div class="modal-dialog modal-xl modal-dialog-scrollable">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title">📸 {{ trans('planner_hub.service_execution_proof') }} - {{ item.service.name ?? 'Service #' ~ item.assigned.id_service }}</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        {% if item.has_photos %}
+                                            {% for userData in item.photos_by_user %}
+                                                <div class="mb-4 pb-3 border-bottom">
+                                                    <h6 class="mb-3">
+                                                        👤 {{ userData.user_name }}
+                                                        <small class="text-muted">({{ userData.user_email }})</small>
+                                                        <span class="badge bg-info ms-2">{{ userData.photos|length }} {{ trans('planner_hub.photos_uploaded') }}</span>
+                                                    </h6>
+                                                    <div class="photo-grid">
+                                                        {% for photo in userData.photos %}
+                                                            <div class="card">
+                                                                <img src="{{ photo.photo_url }}" alt="Service proof" onclick="window.open('{{ photo.photo_url }}', '_blank')" style="cursor: pointer;">
+                                                                <div class="card-body">
+                                                                    <p class="small mb-1"><strong>{{ trans('planner_hub.task') }}:</strong> {{ photo.task_name }}</p>
+                                                                    <small class="text-muted d-block">{{ photo.uploaded_at|date("M j, Y g:i A") }}</small>
+                                                                </div>
+                                                            </div>
+                                                        {% endfor %}
+                                                    </div>
+                                                </div>
+                                            {% endfor %}
+                                        {% else %}
+                                            <div class="alert alert-warning mb-0">
+                                                {{ trans('planner_hub.no_photos_uploaded_service') }}
+                                            </div>
+                                        {% endif %}
+                                        {% if item.tasks_with_no_photos|length > 0 %}
+                                            <div class="mt-3">
+                                                <h6 class="text-muted">{{ trans('planner_hub.tasks_without_photos') }}</h6>
+                                                <ul class="list-unstyled">
+                                                    {% for task in item.tasks_with_no_photos %}
+                                                        <li class="mb-2">
+                                                            <span class="badge bg-secondary me-2">📋 {{ task.task_name }}</span>
+                                                            {% if task.user_name %}
+                                                                <small class="text-muted">{{ trans('planner_hub.assigned_to') }}: {{ task.user_name }}</small>
+                                                            {% else %}
+                                                                <small class="text-danger">{{ trans('planner_hub.not_assigned') }}</small>
+                                                            {% endif %}
+                                                        </li>
+                                                    {% endfor %}
+                                                </ul>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ trans('planner_hub.close') }}</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="alert alert-info text-center py-5">
+                        <h5>⚠️ {{ trans('planner_hub.no_data_available') }}</h5>
+                        <p class="mb-0">{{ trans('planner_hub.no_services_assigned_order') }}</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Section 2: Signed Contract -->
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0">✍️ Signed Contract</h4>
+            </div>
+            <div class="card-body">
+                <p class="text-muted">Contract signed by the client as accepted.</p>
+
+                {% if signedContracts|length > 0 %}
+                    {% for contract in signedContracts %}
+                        <div class="card mb-3">
+                            <div class="card-body">
+                                <h6>Signed Contract</h6>
+                                <p class="text-muted mb-2">Generated: {{ contract.generated_at|date("M j, Y g:i A") }}</p>
+                                <a href="{{ contract.file_path }}" target="_blank" class="btn btn-primary">📄 View Contract</a>
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="text-center text-muted py-5">
+                        <p>No signed contract available.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Section 3: Original Contract Signature -->
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0">📝 Original Contract Signature</h4>
+            </div>
+            <div class="card-body">
+                <p class="text-muted">Order acceptance contract signed by the client after payment confirmation.</p>
+
+                {% if orderAcceptanceSigned|length > 0 or acceptanceContracts|length > 0 %}
+                    {% for acceptance in orderAcceptanceSigned %}
+                        <div class="card mb-3">
+                            <div class="card-body">
+                                <h6>Order Acceptance Signed</h6>
+                                <p class="text-muted mb-2">Generated: {{ acceptance.generated_at|date("M j, Y g:i A") }}</p>
+                                <a href="{{ acceptance.file_path }}" target="_blank" class="btn btn-primary">📄 View Document</a>
+                            </div>
+                        </div>
+                    {% endfor %}
+                    {% for acceptance in acceptanceContracts %}
+                        <div class="card mb-3">
+                            <div class="card-body">
+                                <h6>Order Acceptance Contract</h6>
+                                <p class="text-muted mb-2">Created: {{ acceptance.created_at|date("M j, Y g:i A") }}</p>
+                                <a href="{{ acceptance.file_path }}" target="_blank" class="btn btn-primary">📄 View Document</a>
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="text-center text-muted py-5">
+                        <p>No order acceptance contract available.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Section 4: Payment Receipts -->
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0">💳 Payment Receipts</h4>
+            </div>
+            <div class="card-body">
+                <p class="text-muted">Payment receipts generated for this order.</p>
+
+                {% if paymentReceipts|length > 0 %}
+                    <div class="row">
+                        {% for receipt in paymentReceipts %}
+                            <div class="col-md-4 mb-3">
+                                <div class="card">
+                                    {% set isImage = receipt.file_path ends with '.jpg' or receipt.file_path ends with '.jpeg' or receipt.file_path ends with '.png' or receipt.file_path ends with '.gif' or receipt.file_path ends with '.webp' %}
+                                    {% if isImage %}
+                                        <img src="{{ receipt.file_path }}" class="card-img-top" alt="Payment receipt" style="height: 200px; object-fit: cover;">
+                                    {% else %}
+                                        <div class="card-img-top d-flex justify-content-center align-items-center bg-light" style="height: 200px;">
+                                            <span class="fs-1">📄</span>
+                                        </div>
+                                    {% endif %}
+                                    <div class="card-body">
+                                        <h6 class="card-title">{{ receipt.title }}</h6>
+                                        <small class="text-muted d-block mb-2">Generated: {{ receipt.generated_at|date("M j, Y g:i A") }}</small>
+                                        <a href="{{ receipt.file_path }}" target="_blank" class="btn btn-sm btn-primary">View</a>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center text-muted py-5">
+                        <p>No payment receipts available.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="mt-4">
+            <a href="{{ path('panel/planner-hub/management/orders/orders/previous') }}" class="btn btn-secondary">
+                ← {{ trans('planner_hub.back_to_previous_orders') }}
+            </a>
+        </div>
+    </section>
+
+    <!-- Modal: PDF Generation Loader -->
+    <div class="modal fade" id="pdfLoaderModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-body text-center py-5">
+                    <div class="spinner-border text-primary mb-3" role="status" style="width: 3rem; height: 3rem;">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <h5 class="mb-0">{{ trans('planner_hub.generating_pdf') }}</h5>
+                    <p class="text-muted mt-2 mb-0">{{ trans('planner_hub.generating_pdf_wait') }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function showPdfLoader() {
+            const modal = new bootstrap.Modal(document.getElementById('pdfLoaderModal'));
+            modal.show();
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            {% if generatedPdfUrl %}
+                const pdfUrl = '{{ generatedPdfUrl }}';
+                const modalElement = document.getElementById('pdfLoaderModal');
+                
+                if (modalElement) {
+                    const modal = bootstrap.Modal.getInstance(modalElement);
+                    if (modal) {
+                        modal.hide();
+                    } else {
+                        const bsModal = new bootstrap.Modal(modalElement);
+                        bsModal.hide();
+                    }
+                }
+                
+                if (pdfUrl) {
+                    setTimeout(function() {
+                        window.open(pdfUrl, '_blank');
+                    }, 300);
+                }
+            {% endif %}
+        });
+    </script>
+{% endblock %}

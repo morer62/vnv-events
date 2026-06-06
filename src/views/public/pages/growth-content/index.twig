@@ -1,0 +1,149 @@
+{% extends "templates/base.twig" %}
+
+{% set isList = mode|default('detail') == 'list' %}
+{% set c = content|default({}) %}
+{% set seoData = c.seo|default({}) %}
+{% set titleText = isList
+    ? (list_type == 'blog' ? 'VNV Events Blog' : 'VNV Events Locations')
+    : (seoData.title|default(c.seo_title|default(c.title|default('VNV Events'))))
+%}
+{% set descriptionText = isList
+    ? (list_type == 'blog' ? 'Published VNV Events articles and event planning guides.' : 'Published VNV Events service area and location pages.')
+    : (seoData.description|default(c.meta_description|default(c.excerpt|default('VNV Events public content'))))
+%}
+{% set canonicalUrl = isList
+    ? (list_type == 'blog' ? 'https://vnvevents.com/blog/' : 'https://vnvevents.com/locations/')
+    : (seoData.canonical|default(c.canonical_url|default('https://vnvevents.com' ~ c.route|default('/'))))
+%}
+{% set ogImage = isList
+    ? asset_for('assets/images/planner-hub-logo-negative.png')
+    : (seoData.og_image|default(c.media[0].secure_url|default(c.featured_image_url|default(asset_for('assets/images/planner-hub-logo-negative.png')))))
+%}
+
+{% block title %}{{ titleText }}{% endblock %}
+{% block meta_description %}{{ descriptionText }}{% endblock %}
+{% block canonical %}{{ canonicalUrl }}{% endblock %}
+{% block og_title %}{{ titleText }}{% endblock %}
+{% block og_description %}{{ descriptionText }}{% endblock %}
+{% block og_url %}{{ canonicalUrl }}{% endblock %}
+{% block og_image %}{{ ogImage }}{% endblock %}
+
+{% block body %}
+<style>
+  .gh-shell{background:#f7f4ee;color:#151515;padding:64px 0 82px;min-height:70vh;}
+  .gh-container{max-width:1120px;margin:0 auto;padding:0 18px;}
+  .gh-hero{background:#111316;color:#fff;border-radius:24px;padding:34px 30px;margin-bottom:28px;box-shadow:0 24px 54px rgba(0,0,0,.18);}
+  .gh-kicker{display:inline-flex;border:1px solid rgba(94,198,196,.35);color:#7ad8d6;border-radius:999px;padding:7px 12px;font-size:.76rem;font-weight:800;text-transform:uppercase;letter-spacing:.08em;margin-bottom:16px;}
+  .gh-title{font-family:Georgia,"Times New Roman",serif;font-size:clamp(2.1rem,4vw,3.6rem);line-height:1.05;margin:0 0 14px;color:#fff;}
+  .gh-excerpt{max-width:850px;color:#e7e1d7;font-size:1.05rem;line-height:1.75;margin:0;}
+  .gh-featured{width:100%;max-height:520px;object-fit:cover;border-radius:22px;margin:8px 0 28px;box-shadow:0 20px 44px rgba(0,0,0,.14);}
+  .gh-body{background:#fff;border:1px solid #e8ddcc;border-radius:20px;padding:28px;box-shadow:0 16px 34px rgba(24,18,10,.1);font-size:1.02rem;line-height:1.85;}
+  .gh-body h2,.gh-body h3{font-family:Georgia,"Times New Roman",serif;color:#151515;margin-top:1.8rem;}
+  .gh-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px;}
+  .gh-card{display:block;background:#fff;color:#151515;text-decoration:none;border:1px solid #e8ddcc;border-radius:18px;padding:20px;box-shadow:0 14px 28px rgba(24,18,10,.08);transition:.2s ease;}
+  .gh-card:hover{transform:translateY(-3px);box-shadow:0 18px 38px rgba(24,18,10,.12);color:#151515;}
+  .gh-card h2{font-size:1.18rem;line-height:1.25;margin:0 0 10px;color:#151515;}
+  .gh-card p{color:#685f54;line-height:1.6;margin:0;}
+  .gh-blocks{margin-top:18px;display:grid;gap:16px;}
+  .gh-block{border:1px solid #eadfce;border-radius:16px;padding:20px;background:#fffaf3;}
+  .gh-gallery{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;}
+  .gh-gallery img{width:100%;height:180px;object-fit:cover;border-radius:12px;}
+  .gh-links{margin-top:24px;display:flex;gap:10px;flex-wrap:wrap;}
+  .gh-links a{border:1px solid #d7cbb9;border-radius:999px;padding:9px 13px;text-decoration:none;color:#1b1b1b;font-weight:700;background:#fff;}
+  @media (max-width:768px){.gh-shell{padding:44px 0 58px}.gh-hero{padding:26px 20px;border-radius:20px}.gh-body{padding:22px 18px}}
+</style>
+
+<main class="gh-shell">
+  <div class="gh-container">
+    {% if isList %}
+      <header class="gh-hero">
+        <span class="gh-kicker">VNV Events</span>
+        <h1 class="gh-title">{{ titleText }}</h1>
+        <p class="gh-excerpt">{{ descriptionText }}</p>
+      </header>
+
+      <section class="gh-grid" aria-label="{{ titleText }}">
+        {% for item in items|default([]) %}
+          <a class="gh-card" href="{{ item.route|default('/') }}">
+            <h2>{{ item.title }}</h2>
+            {% if item.excerpt|default('') %}
+              <p>{{ item.excerpt|striptags|slice(0, 150) }}{% if item.excerpt|length > 150 %}...{% endif %}</p>
+            {% endif %}
+          </a>
+        {% else %}
+          <article class="gh-card">
+            <h2>No published content yet.</h2>
+            <p>Approved Growth Hub content for VNV Events will appear here once it is published in Ophyra.</p>
+          </article>
+        {% endfor %}
+      </section>
+    {% else %}
+      <article>
+        <header class="gh-hero">
+          <span class="gh-kicker">{{ c.content_type|default('page')|replace({'_':' '})|title }}</span>
+          <h1 class="gh-title">{{ c.title }}</h1>
+          {% if c.excerpt|default('') %}
+            <p class="gh-excerpt">{{ c.excerpt }}</p>
+          {% endif %}
+        </header>
+
+        {% if c.media[0].secure_url|default('') %}
+          <img class="gh-featured" src="{{ c.media[0].secure_url }}" alt="{{ c.media[0].alt_text|default(c.title) }}">
+        {% elseif seoData.og_image|default('') %}
+          <img class="gh-featured" src="{{ seoData.og_image }}" alt="{{ c.title }}">
+        {% endif %}
+
+        {% if c.body|default('') %}
+          <div class="gh-body">{{ c.body|raw }}</div>
+        {% elseif c.body_html|default('') %}
+          <div class="gh-body">{{ c.body_html|raw }}</div>
+        {% endif %}
+
+        {% if c.blocks|default([]) is not empty %}
+          <section class="gh-blocks">
+            {% for block in c.blocks %}
+              {% set data = block.data_json is defined and block.data_json is iterable ? block.data_json : block %}
+              <div class="gh-block">
+                {% if block.title|default(data.title|default('')) %}
+                  <h2>{{ block.title|default(data.title) }}</h2>
+                {% endif %}
+                {% if data.content|default('') %}
+                  <div>{{ data.content|raw }}</div>
+                {% elseif data.body|default('') %}
+                  <div>{{ data.body|raw }}</div>
+                {% endif %}
+                {% if data.items|default([]) %}
+                  <ul>
+                    {% for item in data.items %}
+                      <li>{{ item.label|default(item.question|default(item.title|default(item))) }}{% if item.value|default(item.answer|default('')) %}: {{ item.value|default(item.answer) }}{% endif %}</li>
+                    {% endfor %}
+                  </ul>
+                {% endif %}
+                {% if data.images|default([]) %}
+                  <div class="gh-gallery">
+                    {% for image in data.images %}
+                      <img src="{{ image.url|default(image.secure_url|default(image)) }}" alt="{{ image.alt|default(c.title) }}">
+                    {% endfor %}
+                  </div>
+                {% endif %}
+              </div>
+            {% endfor %}
+          </section>
+        {% endif %}
+
+        {% if c.schema_json|default({}) %}
+          <script type="application/ld+json">{{ c.schema_json|json_encode(constant('JSON_UNESCAPED_SLASHES'))|raw }}</script>
+        {% endif %}
+
+        {% if internal_links is defined and internal_links is not empty %}
+          <nav class="gh-links" aria-label="Related VNV Events links">
+            {% for link in internal_links %}
+              <a href="{{ link.url }}">{{ link.label }}</a>
+            {% endfor %}
+          </nav>
+        {% endif %}
+      </article>
+    {% endif %}
+  </div>
+</main>
+{% endblock %}

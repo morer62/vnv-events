@@ -1,0 +1,148 @@
+{% extends 'templates/base.admin.twig' %}
+
+{% block body %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
+        <div>
+            <h1 class="h3 mb-1">My Work</h1>
+            <p class="text-muted mb-0">Service tasks and Store operations assigned to your current company workspace.</p>
+        </div>
+        <a href="{{ path('panel/planner-hub/team/payroll/clock') }}" class="btn btn-outline-primary">
+            <i class="align-middle me-1" data-feather="clock"></i> My Hours
+        </a>
+    </div>
+
+    <div class="alert alert-light border mb-4">
+        <strong>Current workspace:</strong>
+        {{ teamContext.selectedInstitution.company_name ?: 'Company workspace' }}
+        {% if teamContext.hasMultipleInstitutions %}
+            <span class="text-muted">Use Company / Workspace to change the company you are working with.</span>
+        {% endif %}
+    </div>
+
+    <section class="mb-5">
+        <h2 class="h5 mb-3">Store / Delivery Assignments</h2>
+        <div class="row g-3">
+            {% for task in storeTasks %}
+                <div class="col-xl-4 col-md-6">
+                    <article class="card border-0 shadow-sm h-100">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between gap-2 mb-2">
+                                <span class="badge bg-primary-subtle text-primary">{{ task.task_type|replace({'_':' '}) }}</span>
+                                <span class="badge {{ task.status == 'COMPLETED' ? 'bg-success' : (task.status == 'WAITING_REVIEW' ? 'bg-warning text-dark' : 'bg-secondary') }}">{{ task.status|replace({'_':' '}) }}</span>
+                            </div>
+                            <h3 class="h6 fw-bold">{{ task.title }}</h3>
+                            <p class="small text-muted mb-2">Store Order #{{ task.id_store_order }} · {{ task.guest_name ?: task.guest_email }}</p>
+                            {% if task.instructions %}<p class="small">{{ task.instructions }}</p>{% endif %}
+                            {% if task.shipping_address_1 %}
+                                <p class="small mb-3"><strong>Delivery:</strong> {{ task.shipping_address_1 }}, {{ task.shipping_city }} {{ task.shipping_state }} {{ task.shipping_zip }}</p>
+                            {% endif %}
+
+                            {% if task.status != 'COMPLETED' and task.status != 'CANCELED' %}
+                                <form method="post" enctype="multipart/form-data" class="store-task-form" data-task-id="{{ task.id }}" data-live-tracking="{{ task.task_type == 'DELIVERY' and task.status == 'IN_PROGRESS' ? '1' : '0' }}">
+                                    <input type="hidden" name="task_id" value="{{ task.id }}">
+                                    <input type="hidden" name="location_lat">
+                                    <input type="hidden" name="location_long">
+                                    <textarea name="notes" class="form-control form-control-sm mb-2" rows="2" maxlength="500" placeholder="Optional operational note"></textarea>
+                                    {% if task.task_type == 'DELIVERY' and task.allow_team_close_delivery %}
+                                        <label class="form-label small">Delivery proof photo</label>
+                                        <input type="file" name="delivery_proof" class="form-control form-control-sm mb-2" accept="image/jpeg,image/png,image/webp">
+                                    {% endif %}
+                                    <div class="d-flex flex-wrap gap-2">
+                                        {% if task.status == 'PENDING' %}
+                                            <button class="btn btn-sm btn-primary location-action" name="action" value="start">Start</button>
+                                        {% endif %}
+                                        {% if task.task_type == 'DELIVERY' %}
+                                            <button class="btn btn-sm btn-outline-primary location-action" name="action" value="out_for_delivery">Out for delivery</button>
+                                            <button class="btn btn-sm btn-outline-secondary location-action" name="action" value="arrived">Arrived</button>
+                                            <button class="btn btn-sm btn-success location-action" name="action" value="delivered">{{ task.allow_team_close_delivery ? 'Mark delivered' : 'Request delivery review' }}</button>
+                                        {% elseif task.allow_assignee_complete %}
+                                            <button class="btn btn-sm btn-success" name="action" value="complete">Complete</button>
+                                        {% endif %}
+                                    </div>
+                                </form>
+                            {% endif %}
+
+                            {% if task.can_chat_with_client and task.client_user_id %}
+                                <a href="{{ path('panel/planner-hub/team/chat?to=' ~ task.client_user_id) }}" class="btn btn-sm btn-link px-0 mt-2">Message customer</a>
+                            {% endif %}
+                        </div>
+                    </article>
+                </div>
+            {% else %}
+                <div class="col-12"><div class="alert alert-light border">No Store assignments are waiting in this workspace.</div></div>
+            {% endfor %}
+        </div>
+    </section>
+
+    <section>
+        <h2 class="h5 mb-3">Service / Event Tasks</h2>
+        <div class="card border-0 shadow-sm">
+            <div class="table-responsive">
+                <table class="table align-middle mb-0">
+                    <thead><tr><th>Task</th><th>Order</th><th>{{ trans('ui.date') }}</th><th>{{ trans('ui.status') }}</th><th class="text-end">Action</th></tr></thead>
+                    <tbody>
+                    {% for task in serviceTasks %}
+                        <tr>
+                            <td>{{ task.task_description }}</td>
+                            <td>#{{ task.id_order ?: task.id_suborder }}</td>
+                            <td>{{ task.event_date ?: '—' }}</td>
+                            <td><span class="badge {{ task.is_done ? 'bg-success' : 'bg-warning text-dark' }}">{{ task.is_done ? 'COMPLETED' : 'PENDING' }}</span></td>
+                            <td class="text-end"><a class="btn btn-sm btn-outline-primary" href="{{ path('panel/planner-hub/team/orders/orders/tasks?id=' ~ task.id_order ~ (task.id_suborder ? '&suborder=' ~ task.id_suborder : '')) }}">Open</a></td>
+                        </tr>
+                    {% else %}
+                        <tr><td colspan="5" class="text-center text-muted py-4">No service or event tasks assigned.</td></tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ parent() }}
+<script>
+document.querySelectorAll('.store-task-form').forEach(function (form) {
+    form.addEventListener('submit', function (event) {
+        const submitter = event.submitter;
+        if (!submitter || !submitter.classList.contains('location-action')) return;
+        if (form.dataset.locationReady === '1') return;
+        event.preventDefault();
+        if (!navigator.geolocation) {
+            alert('You need to allow location access to start this task.');
+            return;
+        }
+        navigator.geolocation.getCurrentPosition(function (position) {
+            form.querySelector('[name="location_lat"]').value = position.coords.latitude;
+            form.querySelector('[name="location_long"]').value = position.coords.longitude;
+            form.dataset.locationReady = '1';
+            submitter.click();
+        }, function () {
+            alert('You need to allow location access to start this task.');
+        }, { enableHighAccuracy: true, timeout: 10000 });
+    });
+});
+
+document.querySelectorAll('.store-task-form[data-live-tracking="1"]').forEach(function (form) {
+    if (!navigator.geolocation) return;
+    let lastSentAt = 0;
+    navigator.geolocation.watchPosition(function (position) {
+        const now = Date.now();
+        if (now - lastSentAt < 60000) return;
+        lastSentAt = now;
+        const data = new FormData();
+        data.append('action', 'update_location');
+        data.append('task_id', form.dataset.taskId);
+        data.append('location_lat', position.coords.latitude);
+        data.append('location_long', position.coords.longitude);
+        fetch(window.location.href, {
+            method: 'POST',
+            body: data,
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        }).catch(function () {});
+    }, function () {}, { enableHighAccuracy: true, maximumAge: 30000, timeout: 10000 });
+});
+</script>
+{% endblock %}

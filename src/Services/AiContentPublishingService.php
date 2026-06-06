@@ -7,6 +7,7 @@ use App\Repositories\CmsContentsRepository;
 use App\Repositories\CmsRoutesRepository;
 use App\Repositories\Connection;
 use App\Repositories\LocationPagesRepository;
+use App\Utils\SiteContext;
 use Exception;
 
 class AiContentPublishingService
@@ -32,17 +33,17 @@ class AiContentPublishingService
         }
 
         if ((string)$draft->content_type === 'blog_post') {
-            return $this->publishBlog($draft);
+            return $this->publishBlog($draft, $userId);
         }
 
         if ((string)$draft->content_type === 'location_page') {
-            return $this->publishLocation($draft);
+            return $this->publishLocation($draft, $userId);
         }
 
         throw new Exception('Unsupported AI content type.');
     }
 
-    private function publishBlog(object $draft): array
+    private function publishBlog(object $draft, ?int $userId = null): array
     {
         $contents = new CmsContentsRepository();
         $contents->db = $this->db;
@@ -53,12 +54,12 @@ class AiContentPublishingService
             throw new Exception('A CMS post with this slug already exists.');
         }
 
-        $route = $routes->normalizeRoute((string)$draft->slug);
+        $route = $routes->normalizeRoute('blog/' . (string)$draft->slug);
         if ($routes->routeExists($route, (int)$draft->id_owner, (string)$draft->language)) {
             throw new Exception('A public CMS route with this slug already exists.');
         }
 
-        $created = $contents->add([
+        $created = $contents->add($contents->withVnvEventsOrigin([
             'id_owner' => (int)$draft->id_owner,
             'site_key' => (string)$draft->site_key,
             'id_template' => null,
@@ -82,7 +83,7 @@ class AiContentPublishingService
             'is_homepage' => 0,
             'published_at' => date('Y-m-d H:i:s'),
             'last_generated_at' => date('Y-m-d H:i:s'),
-        ]);
+        ], $userId ?: (int)($draft->created_by ?? 0) ?: null, (int)$draft->id_owner));
 
         if (!$created) {
             throw new Exception('The CMS post could not be created.');
@@ -93,7 +94,7 @@ class AiContentPublishingService
             throw new Exception('The CMS post id could not be resolved after publishing.');
         }
 
-        $routes->add([
+        $routes->add($routes->withVnvEventsOrigin([
             'id_owner' => (int)$draft->id_owner,
             'site_key' => (string)$draft->site_key,
             'id_content' => $contentId,
@@ -105,7 +106,7 @@ class AiContentPublishingService
             'public_twig_path' => null,
             'status' => 'ACTIVE',
             'redirect_to' => null,
-        ]);
+        ], $userId ?: (int)($draft->created_by ?? 0) ?: null, (int)$draft->id_owner));
 
         $this->markVisible((string)$draft->site_key, 'cms_content', $contentId, (int)$draft->id_user_business);
         $this->drafts->markPublished((int)$draft->id, 'cms_content', $contentId);
@@ -114,7 +115,7 @@ class AiContentPublishingService
         return ['entity_type' => 'cms_content', 'entity_id' => $contentId];
     }
 
-    private function publishLocation(object $draft): array
+    private function publishLocation(object $draft, ?int $userId = null): array
     {
         $locations = new LocationPagesRepository();
         $locations->db = $this->db;
@@ -122,7 +123,7 @@ class AiContentPublishingService
             throw new Exception('A location page with this slug already exists.');
         }
 
-        $created = $locations->add([
+        $created = $locations->add($locations->withVnvEventsOrigin([
             'id_owner' => (int)$draft->id_owner,
             'site_key' => (string)$draft->site_key,
             'title' => (string)$draft->title,
@@ -148,14 +149,14 @@ class AiContentPublishingService
             'og_title' => (string)$draft->meta_title,
             'og_description' => (string)$draft->meta_description,
             'og_image' => $draft->featured_image_url ?: null,
-            'canonical_url' => null,
+            'canonical_url' => SiteContext::publicBaseUrl() . '/locations/' . trim((string)$draft->slug, '/') . '/',
             'schema_json' => $draft->schema_json ?: null,
             'custom_css' => null,
             'custom_js' => null,
             'is_indexable' => 1,
             'status' => 'PUBLISHED',
             'published_at' => date('Y-m-d H:i:s'),
-        ]);
+        ], $userId ?: (int)($draft->created_by ?? 0) ?: null, (int)$draft->id_owner));
 
         if (!$created) {
             throw new Exception('The location page could not be created.');

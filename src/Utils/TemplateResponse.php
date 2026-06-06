@@ -37,9 +37,11 @@ class TemplateResponse
         $twig->addFunction(new TwigFunction('asset_for', [LocationUtils::class, 'assetFor']));
         $twig->addFunction(new TwigFunction('path', [LocationUtils::class, 'assetFor']));
         $twig->addFunction(new TwigFunction('get_csrf', [CSRF::class, 'generateCSRF']));
+        $twig->addFunction(new TwigFunction('csrf_token', [CSRF::class, 'generateCSRF']));
         $twig->addFunction(new TwigFunction('contain_permission', [TwigUtils::class, 'hasPerm']));
         $twig->addFilter(new TwigFilter('truncate', [TwigUtils::class, 'truncate']));
         $twig->addFilter(new TwigFilter('html_to_text', [TwigUtils::class, 'htmlToText']));
+        $twig->addFilter(new TwigFilter('json_decode', [TwigUtils::class, 'jsonDecode']));
         $twig->addFunction(new TwigFunction('getTreeRoutes', function () use ($templateChild) {
             return TwigUtils::getTreeRoutes($templateChild);
         }));
@@ -122,6 +124,9 @@ class TemplateResponse
 
         $twig->addFunction(new TwigFunction('asset_for', [LocationUtils::class, 'assetFor']));
         $twig->addFunction(new TwigFunction('path', [LocationUtils::class, 'assetFor']));
+        $twig->addFunction(new TwigFunction('get_csrf', [CSRF::class, 'generateCSRF']));
+        $twig->addFunction(new TwigFunction('csrf_token', [CSRF::class, 'generateCSRF']));
+        $twig->addFilter(new TwigFilter('json_decode', [TwigUtils::class, 'jsonDecode']));
 
         // Incluir notificaciones globalmente para todas las páginas
         $notifications = [];
