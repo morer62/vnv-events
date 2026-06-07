@@ -4,16 +4,20 @@ use App\Repositories\CmsTemplatesRepository;
 use App\Utils\LocationUtils;
 use App\Utils\MessageUtil;
 use App\Utils\Router;
+use App\Utils\SiteContext;
 use App\Utils\TemplateResponse;
 
 $router = new Router();
 
 $router->get(function () {
     $repo = new CmsTemplatesRepository();
+    $siteKey = SiteContext::siteKey();
 
     return TemplateResponse::render(__DIR__ . "/index.twig", [
         "title" => "Templates",
-        "templates" => $repo->getAll()
+        "site_key" => $siteKey,
+        "site_name" => SiteContext::siteName(),
+        "templates" => $repo->getAllForPanel($siteKey)
     ]);
 });
 
@@ -25,6 +29,17 @@ $router->post(function () {
 
     if (!$id) {
         MessageUtil::setMessage("Invalid template ID.");
+        LocationUtils::redirectInternal("panel/cms/templates");
+    }
+
+    $template = $repo->getOneForPanel($id, SiteContext::siteKey());
+    if (!$template) {
+        MessageUtil::setMessage("Template not found for this site.");
+        LocationUtils::redirectInternal("panel/cms/templates");
+    }
+
+    if (isset($template->site_key) && $template->site_key !== SiteContext::siteKey()) {
+        MessageUtil::setMessage("Shared templates cannot be changed from this site.");
         LocationUtils::redirectInternal("panel/cms/templates");
     }
 

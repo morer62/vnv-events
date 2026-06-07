@@ -52,6 +52,11 @@
   .gh-links a{border:1px solid #d7cbb9;border-radius:999px;padding:9px 13px;text-decoration:none;color:#1b1b1b;font-weight:700;background:#fff;}
   @media (max-width:768px){.gh-shell{padding:44px 0 58px}.gh-hero{padding:26px 20px;border-radius:20px}.gh-body{padding:22px 18px}}
 </style>
+{% if c.template.css_text|default('') %}
+  <style>{{ c.template.css_text|raw }}</style>
+{% elseif c.template_css_text|default('') %}
+  <style>{{ c.template_css_text|raw }}</style>
+{% endif %}
 
 <main class="gh-shell">
   <div class="gh-container">
@@ -93,10 +98,11 @@
           <img class="gh-featured" src="{{ seoData.og_image }}" alt="{{ c.title }}">
         {% endif %}
 
+        {% set templateKey = c.template.key|default(c.template.template_key|default(c.metadata.template_key|default(c.template_key|default('default')))) %}
         {% if c.body|default('') %}
-          <div class="gh-body">{{ c.body|raw }}</div>
+          <div class="gh-body cms-preview-document cms-preview-template-{{ templateKey }}">{{ c.body|raw }}</div>
         {% elseif c.body_html|default('') %}
-          <div class="gh-body">{{ c.body_html|raw }}</div>
+          <div class="gh-body cms-preview-document cms-preview-template-{{ templateKey }}">{{ c.body_html|raw }}</div>
         {% endif %}
 
         {% if c.blocks|default([]) is not empty %}

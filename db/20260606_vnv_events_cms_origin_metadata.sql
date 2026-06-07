@@ -6,18 +6,22 @@
 CREATE TABLE IF NOT EXISTS cms_templates (
   id INT UNSIGNED NOT NULL AUTO_INCREMENT,
   id_owner INT NULL,
+  site_key VARCHAR(80) NOT NULL DEFAULT 'vnvevents',
   name VARCHAR(190) NOT NULL,
   template_key VARCHAR(190) NOT NULL,
   description TEXT NULL,
   type VARCHAR(60) NOT NULL DEFAULT 'page',
   preview_html LONGTEXT NULL,
   template_structure_json MEDIUMTEXT NULL,
+  css_text LONGTEXT NULL,
+  metadata_json MEDIUMTEXT NULL,
   status VARCHAR(40) NOT NULL DEFAULT 'ACTIVE',
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (id),
   UNIQUE KEY cms_templates_template_key_unique (template_key),
-  KEY cms_templates_owner_type_idx (id_owner, type)
+  KEY cms_templates_owner_type_idx (id_owner, type),
+  KEY cms_templates_site_idx (site_key)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS cms_categories (
@@ -177,6 +181,21 @@ CREATE TABLE IF NOT EXISTS cms_location_pages (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Normalize Ophyra Growth Hub tables so the local VNV Events CMS code can use them too.
+ALTER TABLE cms_templates
+    ADD COLUMN IF NOT EXISTS id_owner INT NULL AFTER id,
+    ADD COLUMN IF NOT EXISTS site_key VARCHAR(80) NOT NULL DEFAULT 'vnvevents' AFTER id_owner,
+    ADD COLUMN IF NOT EXISTS name VARCHAR(190) NULL AFTER site_key,
+    ADD COLUMN IF NOT EXISTS template_key VARCHAR(190) NULL AFTER name,
+    ADD COLUMN IF NOT EXISTS description TEXT NULL AFTER template_key,
+    ADD COLUMN IF NOT EXISTS type VARCHAR(60) NOT NULL DEFAULT 'page' AFTER description,
+    ADD COLUMN IF NOT EXISTS preview_html LONGTEXT NULL AFTER type,
+    ADD COLUMN IF NOT EXISTS template_structure_json MEDIUMTEXT NULL AFTER preview_html,
+    ADD COLUMN IF NOT EXISTS css_text LONGTEXT NULL AFTER template_structure_json,
+    ADD COLUMN IF NOT EXISTS metadata_json MEDIUMTEXT NULL AFTER css_text,
+    ADD COLUMN IF NOT EXISTS status VARCHAR(40) NOT NULL DEFAULT 'ACTIVE' AFTER metadata_json,
+    ADD COLUMN IF NOT EXISTS created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP AFTER status,
+    ADD COLUMN IF NOT EXISTS updated_at DATETIME NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP AFTER created_at;
+
 ALTER TABLE cms_contents
     ADD COLUMN IF NOT EXISTS id_owner INT NULL AFTER id,
     ADD COLUMN IF NOT EXISTS site_key VARCHAR(80) NOT NULL DEFAULT 'vnvevents' AFTER id_owner,
@@ -254,6 +273,7 @@ ALTER TABLE cms_categories
     ADD COLUMN IF NOT EXISTS origin_metadata_json MEDIUMTEXT NULL AFTER updated_by;
 
 UPDATE cms_contents SET site_key = 'vnvevents' WHERE site_key IS NULL OR site_key = '';
+UPDATE cms_templates SET site_key = 'vnvevents' WHERE site_key IS NULL OR site_key = '';
 UPDATE cms_contents SET content_origin = 'vnv_events', origin_site_key = 'vnvevents' WHERE content_origin IS NULL OR content_origin = '';
 UPDATE cms_routes SET site_key = 'vnvevents' WHERE site_key IS NULL OR site_key = '';
 UPDATE cms_routes SET content_origin = 'vnv_events', origin_site_key = 'vnvevents' WHERE content_origin IS NULL OR content_origin = '';

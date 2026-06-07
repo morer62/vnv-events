@@ -1,47 +1,106 @@
 {% extends "templates/base.admin.twig" %}
 
 {% block body %}
+<style>
+    .cms-template-shell { max-width: 1180px; margin: 0 auto; }
+    .cms-template-header { align-items: center; display: flex; flex-wrap: wrap; gap: 1rem; justify-content: space-between; margin-bottom: 1.5rem; }
+    .cms-template-kicker { color: #6b7280; font-size: .75rem; font-weight: 700; letter-spacing: 0; margin-bottom: .25rem; text-transform: uppercase; }
+    .cms-template-title { font-size: 1.65rem; font-weight: 800; margin: 0; }
+    .cms-template-actions { display: flex; flex-wrap: wrap; gap: .5rem; }
+    .cms-template-scope { align-items: center; background: #f8fafc; border: 1px solid #e5e7eb; border-radius: 8px; display: inline-flex; gap: .5rem; padding: .45rem .7rem; }
+    .cms-template-grid { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); }
+    .cms-template-card { background: #fff; border: 1px solid #e5e7eb; border-radius: 8px; display: flex; flex-direction: column; min-height: 100%; overflow: hidden; }
+    .cms-template-preview { background: #f9fafb; border-bottom: 1px solid #e5e7eb; height: 190px; overflow: hidden; padding: 1rem; }
+    .cms-template-preview-inner { background: #fff; border: 1px solid #e5e7eb; border-radius: 8px; height: 100%; overflow: hidden; padding: 1rem; transform-origin: top left; }
+    .cms-template-body { display: grid; gap: .85rem; padding: 1rem; }
+    .cms-template-meta { color: #6b7280; display: flex; flex-wrap: wrap; font-size: .82rem; gap: .5rem; }
+    .cms-template-badge { background: #eef2ff; border: 1px solid #c7d2fe; border-radius: 999px; color: #3730a3; padding: .15rem .5rem; }
+    .cms-template-badge.inactive { background: #f3f4f6; border-color: #d1d5db; color: #4b5563; }
+    .cms-template-empty { background: #fff; border: 1px dashed #cbd5e1; border-radius: 8px; padding: 2rem; text-align: center; }
+</style>
+
 <div class="container py-4">
-    <div class="d-flex justify-content-between mb-4">
-        <h2>Templates</h2>
-        <a href="{{ path('panel/cms/templates/create') }}" class="btn btn-dark">
-            + New Template
-        </a>
-    </div>
+    <div class="cms-template-shell">
+        <div class="cms-template-header">
+            <div>
+                <p class="cms-template-kicker">CMS templates</p>
+                <h1 class="cms-template-title">Template library</h1>
+                <div class="cms-template-meta mt-2">
+                    <span class="cms-template-scope">{{ site_name }} / <code>{{ site_key }}</code></span>
+                </div>
+            </div>
+            <div class="cms-template-actions">
+                <a href="{{ path('panel/cms') }}" class="btn btn-outline-secondary">CMS</a>
+                <a href="{{ path('panel/cms/templates/create') }}" class="btn btn-dark">New Template</a>
+            </div>
+        </div>
 
-    {% if templates is empty %}
-        <p>No templates found.</p>
-    {% else %}
-        <table class="table">
-            <thead>
-                <tr>
-                    <th>Name</th>
-                    <th>Key</th>
-                    <th>Type</th>
-                    <th>Status</th>
-                    <th></th>
-                </tr>
-            </thead>
-            <tbody>
+        {% if templates is empty %}
+            <div class="cms-template-empty">
+                <h2 class="h5 mb-2">No templates found</h2>
+                <a href="{{ path('panel/cms/templates/create') }}" class="btn btn-dark">Create Template</a>
+            </div>
+        {% else %}
+            <div class="cms-template-grid">
                 {% for t in templates %}
-                    <tr>
-                        <td>{{ t.name }}</td>
-                        <td><code>{{ t.template_key }}</code></td>
-                        <td>{{ t.type }}</td>
-                        <td>{{ t.status }}</td>
-                        <td class="text-end">
-                            <a href="{{ path('panel/cms/templates/edit') }}?id={{ t.id }}" class="btn btn-sm btn-primary">Edit</a>
-
-                            <form method="post" class="d-inline">
-                                <input type="hidden" name="id" value="{{ t.id }}">
-                                <input type="hidden" name="action" value="delete">
-                                <button class="btn btn-sm btn-danger">Delete</button>
-                            </form>
-                        </td>
-                    </tr>
+                    {% set sampleBody %}
+                        <section class="cms-block cms-block-body">
+                            <h2>Sample section</h2>
+                            <p>Body copy, links and blocks inherit this template skin.</p>
+                        </section>
+                    {% endset %}
+                    {% set preview = (t.preview_html|default('')) ?: '<section class="cms-template-sample"><h1>{{ title }}</h1><div>{{ body_html|raw }}</div></section>' %}
+                    {% set rendered = preview|replace({
+                        '{{ title }}': 'VNV Events Sample Page',
+                        '{{ site_name }}': site_name,
+                        '{{ body_html|raw }}': sampleBody,
+                        '{{ body|raw }}': sampleBody
+                    }) %}
+                    <article class="cms-template-card">
+                        <div class="cms-template-preview">
+                            {% if t.css_text|default('') %}
+                                <style>{{ t.css_text|raw }}</style>
+                            {% endif %}
+                            <div class="cms-template-preview-inner cms-preview-template-{{ t.template_key }}">
+                                {{ rendered|raw }}
+                            </div>
+                        </div>
+                        <div class="cms-template-body">
+                            <div>
+                                <h2 class="h5 mb-1">{{ t.name }}</h2>
+                                <div class="cms-template-meta">
+                                    <code>{{ t.template_key }}</code>
+                                    <span>{{ t.type|default('page') }}</span>
+                                    <span>{{ t.site_key|default(site_key) }}</span>
+                                </div>
+                            </div>
+                            <div class="cms-template-meta">
+                                <span class="cms-template-badge {{ t.status != 'ACTIVE' ? 'inactive' : '' }}">{{ t.status|default('ACTIVE') }}</span>
+                                {% if t.css_text|default('') %}<span class="cms-template-badge">CSS</span>{% endif %}
+                                {% if t.site_key|default(site_key) != site_key %}<span class="cms-template-badge inactive">Shared</span>{% endif %}
+                            </div>
+                            <div class="d-flex flex-wrap gap-2">
+                                {% if t.site_key|default(site_key) == site_key %}
+                                    <a href="{{ path('panel/cms/templates/edit') }}?id={{ t.id }}" class="btn btn-sm btn-outline-dark">Edit</a>
+                                    <form method="post" class="d-inline">
+                                        <input type="hidden" name="id" value="{{ t.id }}">
+                                        <input type="hidden" name="action" value="{{ t.status == 'ACTIVE' ? 'deactivate' : 'activate' }}">
+                                        <button class="btn btn-sm btn-outline-secondary">{{ t.status == 'ACTIVE' ? 'Deactivate' : 'Activate' }}</button>
+                                    </form>
+                                    <form method="post" class="d-inline" onsubmit="return confirm('Delete this template?')">
+                                        <input type="hidden" name="id" value="{{ t.id }}">
+                                        <input type="hidden" name="action" value="delete">
+                                        <button class="btn btn-sm btn-outline-danger">Delete</button>
+                                    </form>
+                                {% else %}
+                                    <span class="text-muted small">Read-only</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </article>
                 {% endfor %}
-            </tbody>
-        </table>
-    {% endif %}
+            </div>
+        {% endif %}
+    </div>
 </div>
 {% endblock %}

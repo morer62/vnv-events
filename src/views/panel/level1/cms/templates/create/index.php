@@ -5,12 +5,19 @@ use App\Services\LoginService;
 use App\Utils\LocationUtils;
 use App\Utils\MessageUtil;
 use App\Utils\Router;
+use App\Utils\SiteContext;
 use App\Utils\TemplateResponse;
 
 $router = new Router();
 
 $router->get(function () {
-    return TemplateResponse::render(__DIR__ . "/index.twig");
+    $repo = new CmsTemplatesRepository();
+
+    return TemplateResponse::render(__DIR__ . "/index.twig", [
+        'site_key' => SiteContext::siteKey(),
+        'site_name' => SiteContext::siteName(),
+        'default_preview_html' => $repo->defaultPreviewHtml(),
+    ]);
 });
 
 $router->post(function () {
@@ -20,27 +27,37 @@ $router->post(function () {
     $name = trim($_POST['name'] ?? '');
     $key = trim($_POST['template_key'] ?? '');
     $type = trim($_POST['type'] ?? 'page');
+    $description = trim($_POST['description'] ?? '');
     $structure = $_POST['template_structure_json'] ?? '';
     $preview = $_POST['preview_html'] ?? '';
+    $cssText = $_POST['css_text'] ?? '';
+    $metadataJson = $_POST['metadata_json'] ?? '';
+    $status = trim($_POST['status'] ?? 'ACTIVE') ?: 'ACTIVE';
+    $siteKey = SiteContext::siteKey();
+    $ownerId = $user ? $user->getOwner() : SiteContext::businessOwnerId();
 
     if (!$name || !$key) {
         MessageUtil::setMessage("Name and key required.");
         LocationUtils::redirectInternal("panel/cms/templates/create");
     }
 
-    if ($repo->templateKeyExists($key)) {
+    if ($repo->templateKeyExists($key, 0, $siteKey, $ownerId)) {
         MessageUtil::setMessage("Template key exists.");
         LocationUtils::redirectInternal("panel/cms/templates/create");
     }
 
     $repo->add([
-        'id_owner' => $user ? $user->getOwner() : null,
+        'id_owner' => $ownerId,
+        'site_key' => $siteKey,
         'name' => $name,
         'template_key' => $key,
+        'description' => $description,
         'type' => $type,
         'preview_html' => $preview,
         'template_structure_json' => $structure,
-        'status' => 'ACTIVE'
+        'css_text' => $cssText,
+        'metadata_json' => $metadataJson,
+        'status' => $status
     ]);
 
     LocationUtils::redirectInternal("panel/cms/templates");

@@ -2,254 +2,82 @@
 
 {% block body %}
 <style>
-    .cms-wrap{
-        padding:24px;
-        max-width:1200px;
-    }
-
-    .cms-header{
-        display:flex;
-        align-items:flex-start;
-        justify-content:space-between;
-        gap:16px;
-        margin-bottom:24px;
-        flex-wrap:wrap;
-    }
-
-    .cms-title{
-        font-size:2rem;
-        font-weight:800;
-        color:#111827;
-        margin:0 0 6px 0;
-    }
-
-    .cms-subtitle{
-        color:#6b7280;
-        font-size:.96rem;
-        margin:0;
-    }
-
-    .cms-card{
-        background:#fff;
-        border:1px solid #e5e7eb;
-        border-radius:20px;
-        padding:24px;
-        box-shadow:0 10px 30px rgba(0,0,0,.05);
-        margin-bottom:22px;
-    }
-
-    .cms-grid{
-        display:grid;
-        grid-template-columns:1fr 1fr;
-        gap:18px;
-    }
-
-    .cms-meta{
-        padding:14px 16px;
-        border:1px solid #e5e7eb;
-        border-radius:14px;
-        background:#f9fafb;
-    }
-
-    .cms-meta strong{
-        display:block;
-        color:#111827;
-        margin-bottom:6px;
-    }
-
-    .cms-muted{
-        color:#6b7280;
-    }
-
-    .cms-badge{
-        display:inline-flex;
-        align-items:center;
-        justify-content:center;
-        padding:6px 10px;
-        border-radius:999px;
-        font-size:.8rem;
-        font-weight:700;
-        white-space:nowrap;
-    }
-
-    .cms-badge.published{
-        background:#ecfdf5;
-        color:#047857;
-    }
-
-    .cms-badge.draft{
-        background:#fff7ed;
-        color:#c2410c;
-    }
-
-    .cms-btn{
-        display:inline-flex;
-        align-items:center;
-        justify-content:center;
-        padding:10px 16px;
-        border-radius:12px;
-        text-decoration:none;
-        font-weight:700;
-        font-size:.92rem;
-        transition:.2s ease;
-        border:none;
-        cursor:pointer;
-    }
-
-    .cms-btn-primary{
-        background:#111827;
-        color:#fff;
-    }
-
-    .cms-btn-primary:hover{
-        background:#000;
-        color:#fff;
-    }
-
-    .cms-btn-light{
-        background:#f3f4f6;
-        color:#111827;
-    }
-
-    .cms-btn-light:hover{
-        background:#e5e7eb;
-        color:#111827;
-    }
-
-    .cms-code{
-        width:100%;
-        min-height:520px;
-        border:1px solid #d1d5db;
-        border-radius:14px;
-        padding:16px;
-        font-size:.9rem;
-        line-height:1.6;
-        color:#111827;
-        background:#fbfbfb;
-        box-sizing:border-box;
-        font-family:Consolas, Monaco, monospace;
-        white-space:pre-wrap;
-        overflow:auto;
-    }
-
-    .cms-preview-box{
-        padding:18px;
-        border:1px dashed #d1d5db;
-        border-radius:16px;
-        background:#fcfcfc;
-    }
-
-    @media (max-width:768px){
-        .cms-wrap{
-            padding:16px;
-        }
-
-        .cms-grid{
-            grid-template-columns:1fr;
-        }
-
-        .cms-title{
-            font-size:1.55rem;
-        }
-
-        .cms-code{
-            min-height:360px;
-        }
-    }
+    .cms-preview-shell { max-width: 1180px; margin: 0 auto; padding: 24px; }
+    .cms-preview-header { align-items: center; display: flex; flex-wrap: wrap; gap: 1rem; justify-content: space-between; margin-bottom: 1.5rem; }
+    .cms-preview-kicker { color: #6b7280; font-size: .75rem; font-weight: 700; letter-spacing: 0; margin-bottom: .25rem; text-transform: uppercase; }
+    .cms-preview-title { font-size: 1.7rem; font-weight: 800; margin: 0; }
+    .cms-preview-meta { display: grid; gap: .75rem; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); margin-bottom: 1rem; }
+    .cms-preview-meta div { background: #fff; border: 1px solid #e5e7eb; border-radius: 8px; padding: .85rem; }
+    .cms-preview-meta span { color: #6b7280; display: block; font-size: .78rem; font-weight: 700; text-transform: uppercase; }
+    .cms-preview-browser { background: #f8fafc; border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden; }
+    .cms-preview-bar { align-items: center; background: #111827; color: #d1d5db; display: flex; gap: .45rem; padding: .7rem .9rem; }
+    .cms-preview-dot { background: #ef4444; border-radius: 999px; height: .62rem; width: .62rem; }
+    .cms-preview-dot:nth-child(2) { background: #f59e0b; }
+    .cms-preview-dot:nth-child(3) { background: #22c55e; }
+    .cms-preview-url { font-size: .82rem; margin-left: .5rem; overflow-wrap: anywhere; }
+    .cms-preview-document-wrap { background: #fff; padding: 1.25rem; }
+    .cms-preview-document { margin: 0 auto; max-width: 960px; }
+    .cms-preview-code { background: #0f172a; border-radius: 8px; color: #e5e7eb; font-family: Consolas, Monaco, monospace; font-size: .86rem; margin-top: 1rem; overflow: auto; padding: 1rem; white-space: pre-wrap; }
 </style>
 
-<div class="cms-wrap">
-    <div class="cms-header">
+{% set route = page.route|default(page.canonical_url|default('/' ~ page.slug ~ '/')) %}
+{% set sampleBody %}
+    {% if page.body_html|default('') %}
+        {{ page.body_html|raw }}
+    {% elseif page.body|default('') %}
+        {{ page.body|raw }}
+    {% else %}
+        <section><h1>{{ page.title }}</h1><p>{{ page.excerpt|default('') }}</p></section>
+    {% endif %}
+{% endset %}
+{% set wrapper = page.preview_html|default('') %}
+{% set rendered = wrapper
+    ? wrapper|replace({
+        '{{ title }}': page.title,
+        '{{ body_html|raw }}': sampleBody,
+        '{{ body|raw }}': sampleBody
+    })
+    : sampleBody
+%}
+
+<div class="cms-preview-shell">
+    <div class="cms-preview-header">
         <div>
-            <h1 class="cms-title">Preview Page</h1>
-            <p class="cms-subtitle">
-                Review the stored structure and publishing details for this CMS page.
-            </p>
+            <p class="cms-preview-kicker">CMS preview</p>
+            <h1 class="cms-preview-title">{{ page.title }}</h1>
         </div>
+        <div class="d-flex flex-wrap gap-2">
+            <a href="{{ path('panel/cms/pages') }}" class="btn btn-outline-secondary">Back</a>
+            <a href="{{ path('panel/cms/pages/edit') }}?id={{ page.id }}" class="btn btn-dark">Edit</a>
+        </div>
+    </div>
 
-        <div style="display:flex; gap:10px; flex-wrap:wrap;">
-            <a href="{{ path('panel/cms/pages') }}" class="cms-btn cms-btn-light">← Back to Pages</a>
-            <a href="{{ path('panel/cms/pages/edit') }}?id={{ page.id }}" class="cms-btn cms-btn-primary">Edit Page</a>
+    <section class="cms-preview-meta">
+        <div><span>Type</span>{{ page.type|default('page') }}</div>
+        <div><span>Status</span>{{ page.status|default('DRAFT') }}</div>
+        <div><span>Template</span>{{ page.template_name|default('None') }}</div>
+        <div><span>Route</span><code>{{ route }}</code></div>
+    </section>
 
-            {% if page.published_path %}
-                <a href="/{{ page.published_path|trim('/') }}" target="_blank" class="cms-btn cms-btn-light">Open Public Page</a>
+    <section class="cms-preview-browser">
+        <div class="cms-preview-bar">
+            <span class="cms-preview-dot"></span>
+            <span class="cms-preview-dot"></span>
+            <span class="cms-preview-dot"></span>
+            <code class="cms-preview-url">{{ route }}</code>
+        </div>
+        <div class="cms-preview-document-wrap">
+            {% if page.template_css_text|default('') %}
+                <style>{{ page.template_css_text|raw }}</style>
             {% endif %}
+            <article class="cms-preview-document cms-preview-template-{{ page.template_key|default('default') }}">
+                {{ rendered|raw }}
+            </article>
         </div>
-    </div>
+    </section>
 
-    <div class="cms-card">
-        <div class="cms-grid">
-            <div class="cms-meta">
-                <strong>Title</strong>
-                <div>{{ page.title }}</div>
-            </div>
-
-            <div class="cms-meta">
-                <strong>Slug</strong>
-                <div>{{ page.slug }}</div>
-            </div>
-
-            <div class="cms-meta">
-                <strong>Category</strong>
-                <div>{{ page.category_name ?: '—' }}</div>
-            </div>
-
-            <div class="cms-meta">
-                <strong>Template</strong>
-                <div>{{ page.template_name ?: '—' }}</div>
-            </div>
-
-            <div class="cms-meta">
-                <strong>Status</strong>
-                <div>
-                    {% if page.status == 'PUBLISHED' %}
-                        <span class="cms-badge published">Published</span>
-                    {% else %}
-                        <span class="cms-badge draft">Draft</span>
-                    {% endif %}
-                </div>
-            </div>
-
-            <div class="cms-meta">
-                <strong>Published Path</strong>
-                <div>{{ page.published_path ?: '—' }}</div>
-            </div>
-        </div>
-    </div>
-
-    {% if page.short_description %}
-        <div class="cms-card">
-            <h2 style="font-size:1.1rem; font-weight:800; margin-bottom:14px;">Short Description</h2>
-            <div class="cms-preview-box">
-                {{ page.short_description }}
-            </div>
-        </div>
-    {% endif %}
-
-    <div class="cms-card">
-        <h2 style="font-size:1.1rem; font-weight:800; margin-bottom:14px;">Template Source</h2>
-        <div class="cms-code">{{ page.template_source }}</div>
-    </div>
-
-    {% if page.custom_css %}
-        <div class="cms-card">
-            <h2 style="font-size:1.1rem; font-weight:800; margin-bottom:14px;">Custom CSS</h2>
-            <div class="cms-code">{{ page.custom_css }}</div>
-        </div>
-    {% endif %}
-
-    {% if page.custom_head %}
-        <div class="cms-card">
-            <h2 style="font-size:1.1rem; font-weight:800; margin-bottom:14px;">Custom Head</h2>
-            <div class="cms-code">{{ page.custom_head }}</div>
-        </div>
-    {% endif %}
-
-    {% if page.schema_markup %}
-        <div class="cms-card">
-            <h2 style="font-size:1.1rem; font-weight:800; margin-bottom:14px;">Schema Markup</h2>
-            <div class="cms-code">{{ page.schema_markup }}</div>
-        </div>
+    {% if page.template_structure_json|default('') %}
+        <pre class="cms-preview-code">{{ page.template_structure_json }}</pre>
     {% endif %}
 </div>
 {% endblock %}

@@ -27,6 +27,8 @@ Preferred direction:
 
 - `cms_templates` stores brand-scoped style/layout definitions.
 - `cms_contents.id_template` links a page or post to the template used to create it.
+- `cms_templates.css_text` stores the real visual skin used by admin previews and public Growth Hub rendering when the payload includes template data.
+- `cms_templates.metadata_json` stores template-level metadata such as versioning or allowed block intent.
 - The generated page can become a concrete `.twig` view or a Twig-rendered CMS payload.
 - Duplication copies content into a new record, generates a new slug, resets status to draft and preserves origin metadata.
 
@@ -47,6 +49,7 @@ Recommended order:
 
 `db/20260606_vnv_events_cms_origin_metadata.sql` creates missing local CMS compatibility tables and adds origin/author metadata to:
 
+- `cms_templates`
 - `cms_contents`
 - `cms_routes`
 - `cms_location_pages`
@@ -54,3 +57,17 @@ Recommended order:
 - `cms_categories`
 
 The SQL is designed to preserve Ophyra Growth Hub columns and add VNV Events local CMS columns alongside them.
+
+`cms_templates` is expected to include:
+
+- `id_owner`
+- `site_key`
+- `template_key`
+- `type`
+- `preview_html`
+- `template_structure_json`
+- `css_text`
+- `metadata_json`
+- `status`
+
+The Level 1 template library filters templates by the active `site_key` plus explicitly shared scopes (`shared`, `global`, `all_sites`). The local preview replaces the standard placeholders (`{{ title }}`, `{{ body_html|raw }}`, `{{ body|raw }}`) and applies `css_text` before rendering.
