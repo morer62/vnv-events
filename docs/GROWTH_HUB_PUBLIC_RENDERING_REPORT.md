@@ -57,8 +57,63 @@ VNV Events now supports the Growth Hub content shape in the local CMS fallback:
 - It renders `cms_contents.body` when `body_html` is empty.
 - It applies the linked template CSS from `cms_templates.css_text`.
 - It keeps `body_html` and `content_json` support for older local CMS records.
+- It uses the app route helper for local navigation links such as the breadcrumb home link, so local development paths like `http://localhost/vnv-events/` do not collapse to `http://localhost/`.
 
 This makes the public page render instead of showing the empty-body fallback.
+
+## Link And Base URL Handling
+
+The tested page also exposed a smaller navigation issue: the breadcrumb Home link was hardcoded as:
+
+```html
+<a href="/">Home</a>
+```
+
+In local XAMPP development, VNV Events runs under:
+
+```text
+http://localhost/vnv-events/
+```
+
+So `href="/"` sent the browser to:
+
+```text
+http://localhost/
+```
+
+This was not coming from Ophyra. It was a public consumer rendering issue.
+
+Public brand repositories should separate three URL concepts:
+
+- App/local route base: used for navigation inside the current running app.
+- Public canonical base: used for SEO canonical URLs, JSON-LD and sitemap output.
+- Ophyra API base: used only to fetch Growth Hub content from Ophyra.
+
+Example VNV Events local development config:
+
+```text
+APP_URL=http://localhost/vnv-events
+PUBLIC_BASE_URL=https://vnvevents.com
+OPHYRA_BASE_URL=https://ophyra.com
+```
+
+In Twig views, internal navigation should use the local route helper:
+
+```twig
+{{ path('') }}
+{{ path('blog') }}
+{{ path('locations') }}
+```
+
+Canonical URLs and JSON-LD should use the public brand domain:
+
+```text
+https://vnvevents.com
+https://avomeal.com
+https://jonnys.media
+```
+
+Do not hardcode `href="/"` in Growth Hub consumer views unless the site is guaranteed to run at the webserver root in every environment.
 
 ## Recommendations For Ophyra
 
@@ -266,6 +321,11 @@ SEO:
 - If schema_json is empty, generate fallback JSON-LD: Organization, WebSite, WebPage, BreadcrumbList and the relevant entity type.
 - If a cms_content_blocks FAQ block exists, generate FAQPage schema from its items.
 
+Navigation and URLs:
+- Use the local app route helper for in-page navigation links and breadcrumbs.
+- Use the public domain only for canonical, sitemap, Open Graph URL and JSON-LD URL fields.
+- Do not hardcode href="/" because local/dev apps may run under a subfolder.
+
 Never render VNV Events content in Avomeal, never render Avomeal content in Jonnys Media, and never treat id_owner = 2 as automatic permission to show a row publicly.
 ```
 
@@ -277,6 +337,7 @@ For each brand repo, test at least one Growth Hub page and confirm:
 - The rendered page contains body content, not only title.
 - Template CSS is present.
 - The page uses the correct public brand domain in canonical URLs.
+- Breadcrumb and in-page navigation use the current app base URL in local/dev.
 - The page does not show another brand's content.
 - JSON-LD exists.
 - FAQ schema appears when the content has FAQ blocks.
