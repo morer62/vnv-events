@@ -61,12 +61,18 @@
                     {% endif %}
                 </header>
 
+                {% set template_key = page.template_key|default('default') %}
+
                 {% if page.body_html %}
-                    <div class="cms-public-body">
+                    <div class="cms-public-body cms-preview-template-{{ template_key }}">
                         {{ page.body_html|raw }}
                     </div>
+                {% elseif page.body %}
+                    <div class="cms-public-body cms-preview-template-{{ template_key }}">
+                        {{ page.body|raw }}
+                    </div>
                 {% elseif content_json.hero or content_json.blocks %}
-                    <div class="cms-public-body">
+                    <div class="cms-public-body cms-preview-template-{{ template_key }}">
                         {% if content_json.hero %}
                             <section class="mb-4">
                                 {% if content_json.hero.title %}
@@ -118,6 +124,11 @@
     {% if page.custom_css %}
         <style>
             {{ page.custom_css|raw }}
+        </style>
+    {% endif %}
+    {% if page.template_css_text %}
+        <style>
+            {{ page.template_css_text|raw }}
         </style>
     {% endif %}
 {% endblock %}
