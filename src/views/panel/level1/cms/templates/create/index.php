@@ -1,6 +1,7 @@
 <?php
 
 use App\Repositories\CmsTemplatesRepository;
+use App\Repositories\Connection;
 use App\Services\LoginService;
 use App\Utils\LocationUtils;
 use App\Utils\MessageUtil;
@@ -12,6 +13,7 @@ $router = new Router();
 
 $router->get(function () {
     $repo = new CmsTemplatesRepository();
+    $repo->db = new Connection();
 
     return TemplateResponse::render(__DIR__ . "/index.twig", [
         'site_key' => SiteContext::siteKey(),
@@ -22,11 +24,12 @@ $router->get(function () {
 
 $router->post(function () {
     $repo = new CmsTemplatesRepository();
+    $repo->db = new Connection();
     $user = LoginService::getSession();
 
     $name = trim($_POST['name'] ?? '');
     $key = trim($_POST['template_key'] ?? '');
-    $type = trim($_POST['type'] ?? 'page');
+    $type = normalizeCmsTemplateType((string)($_POST['type'] ?? 'page'));
     $description = trim($_POST['description'] ?? '');
     $structure = $_POST['template_structure_json'] ?? '';
     $preview = $_POST['preview_html'] ?? '';
@@ -64,3 +67,18 @@ $router->post(function () {
 });
 
 $router->run();
+
+function normalizeCmsTemplateType(string $type): string
+{
+    $type = strtolower(trim($type));
+
+    if ($type === 'location') {
+        return 'location';
+    }
+
+    if (in_array($type, ['blog', 'post', 'guide', 'faq_page', 'comparison', 'case_study'], true)) {
+        return 'blog';
+    }
+
+    return 'page';
+}

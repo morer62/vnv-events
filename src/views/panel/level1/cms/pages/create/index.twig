@@ -202,14 +202,14 @@
 <div class="cms-wrap">
     <div class="cms-header">
         <div>
-            <h1 class="cms-title">Create Page</h1>
+            <h1 class="cms-title">Create Content</h1>
             <p class="cms-subtitle">
-                Create a new CMS page using cms_contents and assign its public route.
+                Create Growth Hub content in cms_contents and assign its public route.
             </p>
         </div>
 
         <div style="display:flex; gap:10px; flex-wrap:wrap;">
-            <a href="{{ path('panel/cms/pages') }}" class="cms-btn cms-btn-light">← Back to Pages</a>
+            <a href="{{ path('panel/cms/pages') }}" class="cms-btn cms-btn-light">Back to Content</a>
         </div>
     </div>
 
@@ -241,6 +241,18 @@
                 </div>
 
                 <div class="cms-field">
+                    <label class="cms-label">Content Type</label>
+                    <select name="content_type" class="cms-select">
+                        {% for type in ['page', 'location', 'blog'] %}
+                            <option value="{{ type }}" {% if old.content_type == type %}selected{% endif %}>
+                                {{ type|title }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                    <div class="cms-help">Page uses /slug/, Location uses /locations/slug/, Blog uses /blog/slug/.</div>
+                </div>
+
+                <div class="cms-field">
                     <label class="cms-label">Status</label>
                     <select name="status" class="cms-select">
                         <option value="DRAFT" {% if old.status == 'DRAFT' %}selected{% endif %}>Draft</option>
@@ -265,7 +277,7 @@
                 <div class="cms-field full">
                     <label class="cms-label">Public Route</label>
                     <input type="text" name="route" class="cms-input" value="{{ old.route }}">
-                    <div class="cms-help">Example: /about-us/ — if left empty, it will use the slug.</div>
+                    <div class="cms-help">Leave empty to generate from content type and slug.</div>
                 </div>
 
                 <div class="cms-field full">
@@ -367,7 +379,7 @@
         </div>
 
         <div class="cms-actions">
-            <button type="submit" class="cms-btn cms-btn-primary">Save Page</button>
+            <button type="submit" class="cms-btn cms-btn-primary">Save Content</button>
             <a href="{{ path('panel/cms/pages') }}" class="cms-btn cms-btn-light">Cancel</a>
         </div>
     </form>

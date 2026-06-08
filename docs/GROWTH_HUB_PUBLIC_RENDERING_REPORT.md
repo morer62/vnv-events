@@ -15,6 +15,25 @@ The page existed in the shared Ophyra database and was published, but the VNV Ev
 
 The root issue was not that the page was missing. It was a contract mismatch between Ophyra Growth Hub as the source and the public brand repositories as consumers.
 
+## CMS Source Of Truth
+
+Ophyra Growth Hub is the source of truth for public CMS content.
+
+The active CMS inventory for a brand should come from:
+
+```text
+cms_contents
+cms_routes
+cms_categories
+cms_templates
+cms_content_blocks
+cms_media
+```
+
+Legacy generator tables such as `cms_location_pages` and old AI draft review flows should not be counted as active CMS inventory. They may remain in the database for compatibility or migration history, but new VNV Events, Avomeal and Jonnys Media public pages should be created and published through the Ophyra CMS contract above.
+
+This matters because a brand may appear to have fewer records in Ophyra than in a local CMS dashboard if the dashboard is still counting legacy location pages or AI-generated records. Public consumers should align their counts, navigation and publishing UI with Ophyra Growth Hub, not with legacy local generators.
+
 ## What Happened
 
 The public route initially failed because the local fallback looked for:
@@ -60,6 +79,48 @@ VNV Events now supports the Growth Hub content shape in the local CMS fallback:
 - It uses the app route helper for local navigation links such as the breadcrumb home link, so local development paths like `http://localhost/vnv-events/` do not collapse to `http://localhost/`.
 
 This makes the public page render instead of showing the empty-body fallback.
+
+## Admin CMS Alignment
+
+The local VNV Events admin should mirror the Ophyra Growth Hub model:
+
+- The primary inventory is `Content`, not separate local modules for pages, blog posts and location pages.
+- `cms_contents.type = page` is the active Growth Hub content inventory for VNV Events in this local consumer.
+- `cms_contents.content_type` is the editorial/public content type filter, using the final Growth Hub set:
+
+```text
+page
+location
+blog
+```
+
+- `cms_categories` is shared taxonomy for that content.
+- `cms_templates` is the shared template registry.
+- Landing pages are no longer a separate `content_type`; they are `content_type = page` with a landing-oriented template such as `service-landing`.
+- Products belong to Store/catalog, not Growth Hub CMS.
+- Legacy `blog_categories`, `cms_location_pages` and AI draft review screens should not appear as separate active CMS modules.
+
+In VNV Events, `/panel/cms/content` is an alias for the unified content inventory. `/panel/cms/pages` remains as a compatibility route because older local code and links already point there.
+
+Admin "Open" links must also use the app route helper:
+
+```twig
+{{ path(item.main_route.route|trim('/')) }}
+```
+
+Without that, a stored route such as `/corporate-event-planner-miami/` opens as:
+
+```text
+http://localhost/corporate-event-planner-miami/
+```
+
+instead of:
+
+```text
+http://localhost/vnv-events/corporate-event-planner-miami/
+```
+
+That Apache 404 is not an Ophyra content problem. It is a consumer-side local base URL problem.
 
 ## Link And Base URL Handling
 
@@ -151,6 +212,41 @@ cms_templates.template_key
 cms_templates.css_text
 cms_templates.status = ACTIVE
 ```
+
+Recommended final type/routing model:
+
+```text
+content_type = page      -> /{slug}/
+content_type = location  -> /locations/{slug}/
+content_type = blog      -> /blog/{slug}/
+```
+
+Templates describe the presentation or content shape:
+
+```text
+service-landing
+local-location-page
+editorial-guide
+faq-resource
+```
+
+Old values should be normalized by consumers:
+
+```text
+landing, service, custom -> page
+guide, faq_page, comparison, case_study -> blog
+product -> Store/catalog, not CMS Growth Hub
+category -> taxonomy, not publication
+```
+
+Ophyra should also expose categories and templates as first-class CMS records for the selected brand:
+
+```text
+cms_categories.site_key = active site key
+cms_templates.site_key = active site key
+```
+
+Templates and categories should be filtered the same way as content. Do not show VNV Events categories/templates while editing Avomeal or Jonnys Media unless those records are explicitly shared. Legacy `blog_categories` rows may remain for old content, but they should not be presented as a separate active Growth Hub taxonomy.
 
 Route normalization should be consistent everywhere. Recommended canonical storage:
 
@@ -276,7 +372,7 @@ If `schema_json` is empty, the consumer can generate a fallback graph:
 - WebSite
 - WebPage
 - BreadcrumbList
-- Service, Article or Product depending on content type
+- Service, Article or WebPage depending on content type and template
 
 If `cms_content_blocks` has a `faq` block, generate `FAQPage` schema from its `items`.
 

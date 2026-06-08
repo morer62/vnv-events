@@ -195,34 +195,24 @@
     <div class="cms-header">
         <h1 class="cms-title">VNV Events CMS</h1>
         <p class="cms-subtitle">
-            Manage pages, blog, locations, categories, SEO and AI review from one publishing workspace. Local records stay scoped to <strong>{{ siteKey }}</strong> with origin <strong>{{ originLabel }}</strong>.
+            Manage Ophyra Growth Hub content, categories and templates for <strong>{{ siteKey }}</strong>. Legacy local generators are no longer treated as active CMS sources.
         </p>
     </div>
 
     <div class="cms-stats">
         <div class="cms-stat-card">
-            <div class="cms-stat-label">Pages</div>
+            <div class="cms-stat-label">Content Pieces</div>
+            <div class="cms-stat-value">{{ totalContent }}</div>
+        </div>
+
+        <div class="cms-stat-card">
+            <div class="cms-stat-label">Pages / Locations / Blog</div>
             <div class="cms-stat-value">{{ totalPages }}</div>
         </div>
 
         <div class="cms-stat-card">
-            <div class="cms-stat-label">Blog Posts</div>
-            <div class="cms-stat-value">{{ totalPosts }}</div>
-        </div>
-
-        <div class="cms-stat-card">
-            <div class="cms-stat-label">CMS Categories</div>
-            <div class="cms-stat-value">{{ totalCmsCategories }}</div>
-        </div>
-
-        <div class="cms-stat-card">
-            <div class="cms-stat-label">Blog Categories</div>
-            <div class="cms-stat-value">{{ totalBlogCategories }}</div>
-        </div>
-
-        <div class="cms-stat-card">
-            <div class="cms-stat-label">Location Pages</div>
-            <div class="cms-stat-value">{{ totalLocationPages }}</div>
+            <div class="cms-stat-label">Categories</div>
+            <div class="cms-stat-value">{{ totalCategories }}</div>
         </div>
 
         <div class="cms-stat-card">
@@ -231,99 +221,44 @@
         </div>
 
         <div class="cms-stat-card">
-            <div class="cms-stat-label">Published Pages</div>
+            <div class="cms-stat-label">Published Content</div>
             <div class="cms-stat-value">{{ totalPublishedPages }}</div>
         </div>
 
         <div class="cms-stat-card">
-            <div class="cms-stat-label">Published Posts</div>
-            <div class="cms-stat-value">{{ totalPublishedPosts }}</div>
-        </div>
-
-        <div class="cms-stat-card">
-            <div class="cms-stat-label">Draft Pages</div>
+            <div class="cms-stat-label">Draft Content</div>
             <div class="cms-stat-value">{{ totalDraftPages }}</div>
-        </div>
-
-        <div class="cms-stat-card">
-            <div class="cms-stat-label">Draft Posts</div>
-            <div class="cms-stat-value">{{ totalDraftPosts }}</div>
         </div>
     </div>
 
     <div class="cms-grid">
         <div class="cms-card">
             <div class="cms-card-top">
-                <div class="cms-card-icon pages">PG</div>
-                <div class="cms-card-title">Pages</div>
-                <p class="cms-card-text">
-                    Create and manage institutional pages, landing pages and evergreen public content.
-                </p>
-            </div>
-
-            <div class="cms-card-actions">
-                <a href="{{ path('panel/cms/pages') }}" class="cms-btn cms-btn-primary">Open Pages</a>
-                <a href="{{ path('panel/cms/pages/create') }}" class="cms-btn cms-btn-light">+ New Page</a>
-            </div>
-        </div>
-
-        <div class="cms-card">
-            <div class="cms-card-top">
                 <div class="cms-card-icon pages">CT</div>
-                <div class="cms-card-title">CMS Categories</div>
+                <div class="cms-card-title">Content</div>
                 <p class="cms-card-text">
-                    Manage page and landing-page taxonomy used by the VNV Events CMS.
+                    Review and manage Ophyra Growth Hub pages, locations and blog content from cms_contents.
                 </p>
             </div>
 
             <div class="cms-card-actions">
-                <a href="{{ path('panel/cms/categories') }}" class="cms-btn cms-btn-primary">Open Categories</a>
-                <a href="{{ path('panel/cms/categories/create') }}" class="cms-btn cms-btn-light">+ New Category</a>
+                <a href="{{ path('panel/cms/pages') }}" class="cms-btn cms-btn-primary">Open Content</a>
+                <a href="{{ path('panel/cms/pages/create') }}" class="cms-btn cms-btn-light">+ New Content</a>
             </div>
         </div>
 
         <div class="cms-card">
             <div class="cms-card-top">
-                <div class="cms-card-icon blog-posts">BL</div>
-                <div class="cms-card-title">Blog Posts</div>
+                <div class="cms-card-icon pages">TX</div>
+                <div class="cms-card-title">Categories</div>
                 <p class="cms-card-text">
-                    Write articles, assign categories, control metadata and publish to /blog/slug/.
+                    Manage shared CMS taxonomy for Growth Hub content.
                 </p>
             </div>
 
             <div class="cms-card-actions">
-                <a href="{{ path('panel/cms/blog/blog-posts') }}" class="cms-btn cms-btn-primary">Open Posts</a>
-                <a href="{{ path('panel/cms/blog/blog-posts/create') }}" class="cms-btn cms-btn-light">+ New Post</a>
-            </div>
-        </div>
-
-        <div class="cms-card">
-            <div class="cms-card-top">
-                <div class="cms-card-icon blog-categories">BC</div>
-                <div class="cms-card-title">Blog Categories</div>
-                <p class="cms-card-text">
-                    Organize editorial topics and generate public category pages like /category/blog/slug/.
-                </p>
-            </div>
-
-            <div class="cms-card-actions">
-                <a href="{{ path('panel/cms/blog/blog-categories') }}" class="cms-btn cms-btn-primary">Open Categories</a>
-                <a href="{{ path('panel/cms/blog/blog-categories/create') }}" class="cms-btn cms-btn-light">+ New Category</a>
-            </div>
-        </div>
-
-        <div class="cms-card">
-            <div class="cms-card-top">
-                <div class="cms-card-icon locations">LC</div>
-                <div class="cms-card-title">Location Pages</div>
-                <p class="cms-card-text">
-                    Manage city landing pages for South Florida SEO, service areas and /locations/slug/ routes.
-                </p>
-            </div>
-
-            <div class="cms-card-actions">
-                <a href="{{ path('panel/cms/location-pages') }}" class="cms-btn cms-btn-primary">Open Locations</a>
-                <a href="{{ path('panel/cms/location-pages/create') }}" class="cms-btn cms-btn-light">+ New Location</a>
+                <a href="{{ path('panel/cms/pages/categories') }}" class="cms-btn cms-btn-primary">Open Categories</a>
+                <a href="{{ path('panel/cms/pages/categories/create') }}" class="cms-btn cms-btn-light">+ New Category</a>
             </div>
         </div>
 
@@ -332,7 +267,7 @@
                 <div class="cms-card-icon templates">TP</div>
                 <div class="cms-card-title">Templates</div>
                 <p class="cms-card-text">
-                    Save reusable template structures to accelerate page and post creation workflows.
+                    Manage Ophyra template structures, style skins and public rendering CSS.
                 </p>
             </div>
 
@@ -347,7 +282,7 @@
                 <div class="cms-card-icon templates">SEO</div>
                 <div class="cms-card-title">SEO Center</div>
                 <p class="cms-card-text">
-                    Regenerate sitemap, llms files and publishing assets from Growth Hub plus local VNV Events records.
+                    Regenerate sitemap, llms files and publishing assets from Ophyra Growth Hub content.
                 </p>
             </div>
 
@@ -356,23 +291,10 @@
             </div>
         </div>
 
-        <div class="cms-card">
-            <div class="cms-card-top">
-                <div class="cms-card-icon blog-posts">AI</div>
-                <div class="cms-card-title">AI Content Review</div>
-                <p class="cms-card-text">
-                    Review generated drafts before they become VNV Events pages, blog posts or location pages.
-                </p>
-            </div>
-
-            <div class="cms-card-actions">
-                <a href="{{ path('panel/ai-content/review') }}" class="cms-btn cms-btn-primary">Open Review</a>
-            </div>
-        </div>
     </div>
 
     <div class="cms-note">
-        <strong>Publishing rule:</strong> categories, pages, blog posts and locations are managed here. Public consumption still follows Ophyra Growth Hub scope first, with local VNV Events records as fallback during migration.
+        <strong>Publishing rule:</strong> Ophyra Growth Hub is the canonical CMS source. Public consumers should read `cms_contents`, `cms_routes`, `cms_categories` and `cms_templates` scoped to <strong>{{ siteKey }}</strong>. Legacy blog, AI and location generators are historical compatibility only.
     </div>
 </div>
 {% endblock %}

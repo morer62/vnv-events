@@ -121,6 +121,70 @@
 
 {% block styles %}
     {{ parent() }}
+    <style>
+        .cms-public-body .cms-block-media-text {
+            display: block;
+        }
+
+        .cms-public-body .cms-media-text-grid {
+            display: grid;
+            gap: 1.5rem;
+        }
+
+        .cms-public-body .cms-media-text-row {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+            gap: 1.5rem;
+            align-items: center;
+        }
+
+        .cms-public-body .cms-image-copy h3 {
+            margin-top: 0;
+        }
+
+        .cms-public-body .cms-image-copy p {
+            color: inherit;
+            font-size: 1rem;
+            line-height: 1.75;
+        }
+
+        .cms-public-body .cms-image-copy ul {
+            margin: 1rem 0 0;
+            padding-left: 1.15rem;
+        }
+
+        .cms-public-body .cms-image-copy li {
+            margin-bottom: .45rem;
+            line-height: 1.6;
+        }
+
+        .cms-public-body .cms-media-text-row figure {
+            margin: 0;
+        }
+
+        .cms-public-body .cms-image-generated img,
+        .cms-public-body .cms-image-placeholder img {
+            width: 100%;
+            height: auto;
+            aspect-ratio: 4 / 3;
+            object-fit: cover;
+            display: block;
+            border-radius: 18px;
+        }
+
+        .cms-public-body .cms-image-generated figcaption,
+        .cms-public-body .cms-image-placeholder figcaption {
+            margin-top: .45rem;
+            font-size: .82rem;
+            color: #6b6358;
+        }
+
+        @media (max-width: 760px) {
+            .cms-public-body .cms-media-text-row {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
     {% if page.custom_css %}
         <style>
             {{ page.custom_css|raw }}

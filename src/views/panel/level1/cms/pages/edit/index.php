@@ -28,6 +28,30 @@ function cmsDefaultPageBodyHtmlEdit(): string
     return '<section class="container py-5"><div class="row justify-content-center"><div class="col-lg-10"><h1>Page Title</h1><p>Start building your page content here.</p></div></div></section>';
 }
 
+function cmsNormalizeContentTypeEdit(string $contentType): string
+{
+    $contentType = strtolower(trim($contentType));
+
+    if ($contentType === 'location') {
+        return 'location';
+    }
+
+    if (in_array($contentType, ['blog', 'guide', 'faq_page', 'comparison', 'case_study'], true)) {
+        return 'blog';
+    }
+
+    return 'page';
+}
+
+function cmsRouteForContentTypeEdit(string $contentType, string $slug): string
+{
+    return match (cmsNormalizeContentTypeEdit($contentType)) {
+        'location' => 'locations/' . $slug,
+        'blog' => 'blog/' . $slug,
+        default => $slug,
+    };
+}
+
 $router->get(function () {
     $db = new Connection();
 
@@ -65,6 +89,7 @@ $router->get(function () {
         "old" => [
             "id" => $page->id,
             "id_template" => $page->id_template ?? "",
+            "content_type" => cmsNormalizeContentTypeEdit((string)($page->content_type ?? 'page')),
             "title" => $page->title ?? "",
             "slug" => $page->slug ?? "",
             "excerpt" => $page->excerpt ?? "",
@@ -108,6 +133,7 @@ $router->post(function () {
 
     $id                = (int)($_POST['id'] ?? 0);
     $idTemplate        = (int)($_POST['id_template'] ?? 0);
+    $contentType       = cmsNormalizeContentTypeEdit((string)($_POST['content_type'] ?? 'page'));
     $title             = trim($_POST['title'] ?? '');
     $slug              = trim($_POST['slug'] ?? '');
     $excerpt           = trim($_POST['excerpt'] ?? '');
@@ -166,7 +192,9 @@ $router->post(function () {
         $bodyHtml = !empty($page->body_html) ? $page->body_html : cmsDefaultPageBodyHtmlEdit();
     }
 
-    $route = $manualRoute !== '' ? $routesRepository->normalizeRoute($manualRoute) : $routesRepository->normalizeRoute($slug);
+    $route = $manualRoute !== ''
+        ? $routesRepository->normalizeRoute($manualRoute)
+        : $routesRepository->normalizeRoute(cmsRouteForContentTypeEdit($contentType, $slug));
 
     $errors = [];
     $selectedTemplate = null;
@@ -239,6 +267,7 @@ $router->post(function () {
             "old" => [
                 "id" => $id,
                 "id_template" => $idTemplate > 0 ? $idTemplate : "",
+                "content_type" => $contentType,
                 "title" => $title,
                 "slug" => $slug,
                 "excerpt" => $excerpt,
@@ -275,6 +304,7 @@ $router->post(function () {
     $ok = $contentsRepository->update($contentsRepository->withVnvEventsOrigin([
         "id_owner" => $ownerId,
         "id_template" => $idTemplate > 0 ? $idTemplate : null,
+        "content_type" => $contentType,
         "title" => $title,
         "slug" => $slug,
         "content_mode" => $contentMode,
@@ -304,6 +334,7 @@ $router->post(function () {
             "old" => [
                 "id" => $id,
                 "id_template" => $idTemplate > 0 ? $idTemplate : "",
+                "content_type" => $contentType,
                 "title" => $title,
                 "slug" => $slug,
                 "excerpt" => $excerpt,

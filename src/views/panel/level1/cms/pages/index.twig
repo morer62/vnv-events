@@ -185,6 +185,33 @@
         margin-bottom:8px;
     }
 
+    .cms-filters{
+        display:grid;
+        grid-template-columns:repeat(4, minmax(160px, 1fr));
+        gap:12px;
+        margin-bottom:18px;
+    }
+
+    .cms-filter-field label{
+        display:block;
+        color:#6b7280;
+        font-size:.78rem;
+        font-weight:700;
+        margin-bottom:6px;
+        text-transform:uppercase;
+    }
+
+    .cms-filter-field input,
+    .cms-filter-field select{
+        width:100%;
+        border:1px solid #d1d5db;
+        border-radius:12px;
+        padding:10px 12px;
+        color:#111827;
+        background:#fff;
+        box-sizing:border-box;
+    }
+
     @media (max-width:768px){
         .cms-wrap{
             padding:16px;
@@ -193,37 +220,73 @@
         .cms-title{
             font-size:1.55rem;
         }
+
+        .cms-filters{
+            grid-template-columns:1fr;
+        }
     }
 </style>
 
 <div class="cms-wrap">
     <div class="cms-header">
         <div>
-            <h1 class="cms-title">Pages</h1>
+            <h1 class="cms-title">Content</h1>
             <p class="cms-subtitle">
-                Manage CMS pages stored in cms_contents with public routes from cms_routes.
+                Review pages, locations and blog articles from Ophyra Growth Hub in cms_contents.
             </p>
         </div>
 
         <div style="display:flex; gap:10px; flex-wrap:wrap;">
             <a href="{{ path('panel/cms') }}" class="cms-btn cms-btn-light">← Back to CMS</a>
-            <a href="{{ path('panel/cms/pages/create') }}" class="cms-btn cms-btn-primary">+ New Page</a>
+            <a href="{{ path('panel/cms/pages/create') }}" class="cms-btn cms-btn-primary">+ New Content</a>
         </div>
     </div>
 
     <div class="cms-card">
+        <form method="GET" class="cms-filters">
+            <div class="cms-filter-field">
+                <label>Status</label>
+                <select name="status">
+                    <option value="">All</option>
+                    {% for status in ['DRAFT', 'READY', 'PUBLISHED', 'ARCHIVED'] %}
+                        <option value="{{ status }}" {% if filters.status == status %}selected{% endif %}>{{ status }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="cms-filter-field">
+                <label>Type</label>
+                <select name="content_type">
+                    <option value="">All</option>
+                    {% for type in contentTypes %}
+                        <option value="{{ type }}" {% if filters.content_type == type %}selected{% endif %}>{{ type|replace({'_':' '})|title }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="cms-filter-field">
+                <label>Search</label>
+                <input type="search" name="q" value="{{ filters.q }}" placeholder="Title, slug or SEO">
+            </div>
+
+            <div class="cms-filter-field" style="align-self:end; display:flex; gap:10px;">
+                <button type="submit" class="cms-btn cms-btn-primary">Filter</button>
+                <a href="{{ path('panel/cms/pages') }}" class="cms-btn cms-btn-light">Reset</a>
+            </div>
+        </form>
+
         {% if pages|length > 0 %}
             <div class="cms-table-wrap">
                 <table class="cms-table">
                     <thead>
                         <tr>
-                            <th>Title</th>
+                            <th>Content</th>
                             <th>Type</th>
                             <th>Template</th>
-                            <th>Slug</th>
+                            <th>SEO Target</th>
                             <th>Status</th>
-                            <th>Main Route</th>
-                            <th>Published</th>
+                            <th>Public URL</th>
+                            <th>Activity</th>
                             <th style="width:220px;">Actions</th>
                         </tr>
                     </thead>
@@ -239,19 +302,24 @@
                                     {% endif %}
                                 </td>
                                 <td>
-                                    <strong>{{ item.type }}</strong><br>
+                                    <strong>{{ (item.content_type ?: item.type)|replace({'_':' '})|title }}</strong><br>
                                     <span class="cms-muted">{{ item.language ?: 'en' }}</span>
                                 </td>
                                 <td>
                                     {% if item.template_name %}
                                         <strong>{{ item.template_name }}</strong><br>
-                                        <span class="cms-muted">{{ item.template_slug }}</span>
+                                        <span class="cms-muted">{{ item.template_key }}</span>
                                     {% else %}
                                         <span class="cms-muted">—</span>
                                     {% endif %}
                                 </td>
                                 <td>
                                     <span class="cms-slug">{{ item.slug }}</span>
+                                    {% if item.meta_title %}
+                                        <div class="cms-muted" style="margin-top:6px;">
+                                            {{ item.meta_title|slice(0, 80) }}{% if item.meta_title|length > 80 %}...{% endif %}
+                                        </div>
+                                    {% endif %}
                                 </td>
                                 <td>
                                     {% set statusClass = item.status|lower %}
@@ -277,7 +345,7 @@
                                         <a href="{{ path('panel/cms/pages/preview') }}?id={{ item.id }}" class="cms-btn cms-btn-light">Preview</a>
 
                                         {% if item.main_route and item.main_route.route %}
-                                            <a href="{{ item.main_route.route }}" target="_blank" class="cms-btn cms-btn-light">Open</a>
+                                            <a href="{{ path(item.main_route.route|trim('/')) }}" target="_blank" class="cms-btn cms-btn-light">Open</a>
                                         {% endif %}
                                     </div>
                                 </td>
@@ -288,10 +356,10 @@
             </div>
         {% else %}
             <div class="cms-empty">
-                <strong>No pages yet</strong>
-                Create your first CMS page.
+                <strong>No content found</strong>
+                No Ophyra Growth Hub content matches these filters.
                 <div style="margin-top:16px;">
-                    <a href="{{ path('panel/cms/pages/create') }}" class="cms-btn cms-btn-primary">+ Create First Page</a>
+                    <a href="{{ path('panel/cms/pages/create') }}" class="cms-btn cms-btn-primary">+ Create First Content</a>
                 </div>
             </div>
         {% endif %}

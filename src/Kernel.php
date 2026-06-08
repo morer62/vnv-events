@@ -232,7 +232,8 @@ class Kernel
                 return false;
             }
 
-            return $expectedType === null || ($content['content_type'] ?? '') === $expectedType;
+            return $expectedType === null
+                || $this->normalizeGrowthHubContentType((string)($content['content_type'] ?? 'page')) === $this->normalizeGrowthHubContentType($expectedType);
         } catch (\Throwable $e) {
             error_log('Growth Hub route lookup failed: ' . $e->getMessage());
             return false;
@@ -271,6 +272,21 @@ class Kernel
         ];
 
         return in_array($slug, $reserved, true);
+    }
+
+    private function normalizeGrowthHubContentType(string $contentType): string
+    {
+        $contentType = strtolower(trim($contentType));
+
+        if ($contentType === 'location') {
+            return 'location';
+        }
+
+        if (in_array($contentType, ['blog', 'guide', 'faq_page', 'comparison', 'case_study'], true)) {
+            return 'blog';
+        }
+
+        return 'page';
     }
 
     /**

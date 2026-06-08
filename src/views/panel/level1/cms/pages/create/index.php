@@ -28,6 +28,30 @@ function cmsDefaultPageBodyHtml(): string
     return '<section class="container py-5"><div class="row justify-content-center"><div class="col-lg-10"><h1>Page Title</h1><p>Start building your page content here.</p></div></div></section>';
 }
 
+function cmsNormalizeContentType(string $contentType): string
+{
+    $contentType = strtolower(trim($contentType));
+
+    if ($contentType === 'location') {
+        return 'location';
+    }
+
+    if (in_array($contentType, ['blog', 'guide', 'faq_page', 'comparison', 'case_study'], true)) {
+        return 'blog';
+    }
+
+    return 'page';
+}
+
+function cmsRouteForContentType(string $contentType, string $slug): string
+{
+    return match (cmsNormalizeContentType($contentType)) {
+        'location' => 'locations/' . $slug,
+        'blog' => 'blog/' . $slug,
+        default => $slug,
+    };
+}
+
 $router->get(function () {
     $db = new Connection();
 
@@ -42,6 +66,7 @@ $router->get(function () {
         "templates" => $templates,
         "old" => [
             "id_template" => "",
+            "content_type" => "page",
             "title" => "",
             "slug" => "",
             "excerpt" => "",
@@ -82,6 +107,7 @@ $router->post(function () {
     $templates = $templatesRepository->getActive();
 
     $idTemplate        = (int)($_POST['id_template'] ?? 0);
+    $contentType       = cmsNormalizeContentType((string)($_POST['content_type'] ?? 'page'));
     $title             = trim($_POST['title'] ?? '');
     $slug              = trim($_POST['slug'] ?? '');
     $excerpt           = trim($_POST['excerpt'] ?? '');
@@ -126,7 +152,9 @@ $router->post(function () {
         $bodyHtml = cmsDefaultPageBodyHtml();
     }
 
-    $route = $manualRoute !== '' ? $routesRepository->normalizeRoute($manualRoute) : $routesRepository->normalizeRoute($slug);
+    $route = $manualRoute !== ''
+        ? $routesRepository->normalizeRoute($manualRoute)
+        : $routesRepository->normalizeRoute(cmsRouteForContentType($contentType, $slug));
 
     $errors = [];
     $selectedTemplate = null;
@@ -191,6 +219,7 @@ $router->post(function () {
             "templates" => $templates,
             "old" => [
                 "id_template" => $idTemplate > 0 ? $idTemplate : "",
+                "content_type" => $contentType,
                 "title" => $title,
                 "slug" => $slug,
                 "excerpt" => $excerpt,
@@ -218,6 +247,7 @@ $router->post(function () {
     $ok = $contentsRepository->add($contentsRepository->withVnvEventsOrigin([
         "id_owner" => $ownerId,
         "id_template" => $idTemplate > 0 ? $idTemplate : null,
+        "content_type" => $contentType,
         "type" => "page",
         "title" => $title,
         "slug" => $slug,
@@ -246,6 +276,7 @@ $router->post(function () {
             "templates" => $templates,
             "old" => [
                 "id_template" => $idTemplate > 0 ? $idTemplate : "",
+                "content_type" => $contentType,
                 "title" => $title,
                 "slug" => $slug,
                 "excerpt" => $excerpt,

@@ -1,6 +1,7 @@
 <?php
 
 use App\Repositories\CmsTemplatesRepository;
+use App\Repositories\Connection;
 use App\Services\LoginService;
 use App\Utils\LocationUtils;
 use App\Utils\MessageUtil;
@@ -12,6 +13,7 @@ $router = new Router();
 
 $router->get(function () {
     $repo = new CmsTemplatesRepository();
+    $repo->db = new Connection();
     $id = (int)($_GET['id'] ?? 0);
 
     $template = $repo->getOneForPanel($id, SiteContext::siteKey());
@@ -26,6 +28,8 @@ $router->get(function () {
         LocationUtils::redirectInternal("panel/cms/templates");
     }
 
+    $template->type = normalizeCmsTemplateTypeEdit((string)($template->type ?? 'page'));
+
     return TemplateResponse::render(__DIR__ . "/index.twig", [
         "site_key" => SiteContext::siteKey(),
         "site_name" => SiteContext::siteName(),
@@ -35,6 +39,7 @@ $router->get(function () {
 
 $router->post(function () {
     $repo = new CmsTemplatesRepository();
+    $repo->db = new Connection();
     $user = LoginService::getSession();
     $id = (int)($_POST['id'] ?? 0);
     $siteKey = SiteContext::siteKey();
@@ -57,7 +62,7 @@ $router->post(function () {
         'name' => trim((string)($_POST['name'] ?? '')),
         'template_key' => $key,
         'description' => trim((string)($_POST['description'] ?? '')),
-        'type' => trim((string)($_POST['type'] ?? 'page')),
+        'type' => normalizeCmsTemplateTypeEdit((string)($_POST['type'] ?? 'page')),
         'preview_html' => $_POST['preview_html'] ?? '',
         'template_structure_json' => $_POST['template_structure_json'] ?? '',
         'css_text' => $_POST['css_text'] ?? '',
@@ -69,3 +74,18 @@ $router->post(function () {
 });
 
 $router->run();
+
+function normalizeCmsTemplateTypeEdit(string $type): string
+{
+    $type = strtolower(trim($type));
+
+    if ($type === 'location') {
+        return 'location';
+    }
+
+    if (in_array($type, ['blog', 'post', 'guide', 'faq_page', 'comparison', 'case_study'], true)) {
+        return 'blog';
+    }
+
+    return 'page';
+}

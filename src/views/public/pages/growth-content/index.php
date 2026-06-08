@@ -30,7 +30,7 @@ if ($listType) {
 
 $content = $client->contentByRoute($route);
 
-if (!$content || ($expectedType && ($content['content_type'] ?? '') !== $expectedType)) {
+if (!$content || ($expectedType && normalize_growth_hub_content_type((string)($content['content_type'] ?? 'page')) !== normalize_growth_hub_content_type((string)$expectedType))) {
     http_response_code(404);
     echo "Page not found";
     exit;
@@ -49,6 +49,8 @@ exit;
 
 function normalize_growth_hub_content(array $content): array
 {
+    $content['content_type'] = normalize_growth_hub_content_type((string)($content['content_type'] ?? 'page'));
+
     foreach (['schema_json', 'metadata'] as $key) {
         if (!empty($content[$key]) && is_string($content[$key])) {
             $decoded = json_decode($content[$key], true);
@@ -71,4 +73,19 @@ function normalize_growth_hub_content(array $content): array
     }
 
     return $content;
+}
+
+function normalize_growth_hub_content_type(string $contentType): string
+{
+    $contentType = strtolower(trim($contentType));
+
+    if ($contentType === 'location') {
+        return 'location';
+    }
+
+    if (in_array($contentType, ['blog', 'guide', 'faq_page', 'comparison', 'case_study'], true)) {
+        return 'blog';
+    }
+
+    return 'page';
 }

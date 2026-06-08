@@ -75,9 +75,10 @@ class OphyraGrowthHubClient
             if (!$content) {
                 continue;
             }
-            if ($type && ($content['content_type'] ?? '') !== $type) {
+            if ($type && $this->normalizeContentType((string)($content['content_type'] ?? 'page')) !== $this->normalizeContentType($type)) {
                 continue;
             }
+            $content['content_type'] = $this->normalizeContentType((string)($content['content_type'] ?? 'page'));
             $valid[] = $content;
         }
 
@@ -189,6 +190,8 @@ class OphyraGrowthHubClient
             return null;
         }
 
+        $content['content_type'] = $this->normalizeContentType((string)($content['content_type'] ?? 'page'));
+
         return $content;
     }
 
@@ -219,5 +222,20 @@ class OphyraGrowthHubClient
     {
         $siteKey = strtolower(trim($siteKey));
         return $siteKey === 'vnv_events' || $siteKey === 'vnv-events' ? 'vnvevents' : $siteKey;
+    }
+
+    private function normalizeContentType(string $contentType): string
+    {
+        $contentType = strtolower(trim($contentType));
+
+        if ($contentType === 'location') {
+            return 'location';
+        }
+
+        if (in_array($contentType, ['blog', 'guide', 'faq_page', 'comparison', 'case_study'], true)) {
+            return 'blog';
+        }
+
+        return 'page';
     }
 }

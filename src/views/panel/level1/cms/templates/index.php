@@ -1,6 +1,7 @@
 <?php
 
 use App\Repositories\CmsTemplatesRepository;
+use App\Repositories\Connection;
 use App\Utils\LocationUtils;
 use App\Utils\MessageUtil;
 use App\Utils\Router;
@@ -11,6 +12,7 @@ $router = new Router();
 
 $router->get(function () {
     $repo = new CmsTemplatesRepository();
+    $repo->db = new Connection();
     $siteKey = SiteContext::siteKey();
 
     return TemplateResponse::render(__DIR__ . "/index.twig", [
@@ -23,6 +25,7 @@ $router->get(function () {
 
 $router->post(function () {
     $repo = new CmsTemplatesRepository();
+    $repo->db = new Connection();
 
     $action = $_POST['action'] ?? '';
     $id = (int)($_POST['id'] ?? 0);

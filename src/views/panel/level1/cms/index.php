@@ -1,11 +1,9 @@
 <?php
 
-use App\Repositories\BlogCategoriesRepository;
 use App\Repositories\CmsCategoriesRepository;
 use App\Repositories\CmsContentsRepository;
 use App\Repositories\CmsTemplatesRepository;
 use App\Repositories\Connection;
-use App\Repositories\LocationPagesRepository;
 use App\Utils\SiteContext;
 use App\Utils\Router;
 use App\Utils\TemplateResponse;
@@ -21,29 +19,23 @@ $router->get(function () {
     $templatesRepository = new CmsTemplatesRepository();
     $templatesRepository->db = $db;
 
-    $blogCategoriesRepository = new BlogCategoriesRepository();
-    $blogCategoriesRepository->db = $db;
-
     $cmsCategoriesRepository = new CmsCategoriesRepository();
     $cmsCategoriesRepository->db = $db;
 
-    $locationPagesRepository = new LocationPagesRepository();
-    $locationPagesRepository->db = $db;
+    $totalPages = $contentsRepository->countByType('page');
+    $totalCmsCategories = count($cmsCategoriesRepository->getAllForPanel());
 
     return TemplateResponse::render(__DIR__ . "/index.twig", [
         "title"               => "CMS",
         "siteKey"             => SiteContext::siteKey(),
-        "originLabel"         => "vnv_events",
-        "totalPages"          => $contentsRepository->countByType('page'),
-        "totalPosts"          => $contentsRepository->countByType('post'),
-        "totalCmsCategories"  => count($cmsCategoriesRepository->getAllForPanel()),
-        "totalBlogCategories" => count($blogCategoriesRepository->getAllForPanel()),
-        "totalLocationPages"  => count($locationPagesRepository->getAllForPanel()),
-        "totalTemplates"      => count($templatesRepository->getAll()),
+        "originLabel"         => "ophyra_growth_hub",
+        "totalPages"          => $totalPages,
+        "totalContent"        => $totalPages,
+        "totalCmsCategories"  => $totalCmsCategories,
+        "totalCategories"     => $totalCmsCategories,
+        "totalTemplates"      => count($templatesRepository->getAllForPanel()),
         "totalPublishedPages" => $contentsRepository->countByTypeAndStatus('page', 'PUBLISHED'),
-        "totalPublishedPosts" => $contentsRepository->countByTypeAndStatus('post', 'PUBLISHED'),
         "totalDraftPages"     => $contentsRepository->countByTypeAndStatus('page', 'DRAFT'),
-        "totalDraftPosts"     => $contentsRepository->countByTypeAndStatus('post', 'DRAFT'),
     ]);
 });
 

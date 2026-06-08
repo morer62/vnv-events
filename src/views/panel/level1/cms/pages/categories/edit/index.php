@@ -147,7 +147,7 @@ $router->post(function () {
     }
 
    
-    LocationUtils::redirectInternal("panel/cms/categories");
+    LocationUtils::redirectInternal("panel/cms/pages/categories");
  
 });
 
