@@ -39,11 +39,32 @@
   .gh-featured{width:100%;max-height:520px;object-fit:cover;border-radius:22px;margin:8px 0 28px;box-shadow:0 20px 44px rgba(0,0,0,.14);}
   .gh-body{background:#fff;border:1px solid #e8ddcc;border-radius:20px;padding:28px;box-shadow:0 16px 34px rgba(24,18,10,.1);font-size:1.02rem;line-height:1.85;}
   .gh-body h2,.gh-body h3{font-family:Georgia,"Times New Roman",serif;color:#151515;margin-top:1.8rem;}
-  .gh-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px;}
-  .gh-card{display:block;background:#fff;color:#151515;text-decoration:none;border:1px solid #e8ddcc;border-radius:18px;padding:20px;box-shadow:0 14px 28px rgba(24,18,10,.08);transition:.2s ease;}
+  .gh-list-tools{display:grid;gap:14px;margin:0 0 24px;}
+  .gh-search{display:flex;align-items:center;gap:12px;background:#fff;border:1px solid #e0d5c6;border-radius:999px;padding:6px 8px 6px 18px;box-shadow:0 12px 28px rgba(24,18,10,.07);}
+  .gh-search:focus-within{border-color:#5ec6c4;box-shadow:0 0 0 3px rgba(94,198,196,.16),0 12px 28px rgba(24,18,10,.07);}
+  .gh-search i{color:#6d655b;}
+  .gh-search input{width:100%;border:0;outline:0;background:transparent;font-size:1rem;color:#151515;padding:12px 8px;}
+  .gh-search-count{font-size:.86rem;color:#6d655b;white-space:nowrap;font-weight:800;padding-right:8px;}
+  .gh-cat-strip{display:flex;gap:10px;overflow:auto;padding:2px 2px 8px;scrollbar-width:thin;}
+  .gh-cat-button{display:inline-flex;align-items:center;gap:9px;border:1px solid #e0d5c6;background:#fff;color:#2b2925;border-radius:999px;padding:7px 12px 7px 7px;font-size:.82rem;font-weight:800;white-space:nowrap;cursor:pointer;box-shadow:0 8px 18px rgba(24,18,10,.06);transition:.18s ease;}
+  .gh-cat-button:hover,.gh-cat-button.is-active{background:#111316;color:#fff;border-color:#111316;}
+  .gh-cat-button img{width:30px;height:30px;border-radius:999px;object-fit:cover;background:#f1eee8;border:1px solid rgba(255,255,255,.56);}
+  .gh-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:18px;}
+  .gh-card{background:#fff;color:#151515;border:1px solid #e8ddcc;border-radius:18px;overflow:hidden;box-shadow:0 14px 28px rgba(24,18,10,.08);transition:.2s ease;display:flex;flex-direction:column;min-height:100%;}
   .gh-card:hover{transform:translateY(-3px);box-shadow:0 18px 38px rgba(24,18,10,.12);color:#151515;}
-  .gh-card h2{font-size:1.18rem;line-height:1.25;margin:0 0 10px;color:#151515;}
+  .gh-card[hidden]{display:none!important;}
+  .gh-card-image{display:block;position:relative;overflow:hidden;background:#f1eee8;}
+  .gh-card-image img{display:block;width:100%;height:190px;object-fit:cover;transition:.42s ease;}
+  .gh-card:hover .gh-card-image img{transform:scale(1.04);}
+  .gh-card-body{padding:17px 18px 19px;display:flex;flex-direction:column;gap:9px;flex:1;}
+  .gh-card-cat{color:#0f766e;text-decoration:none;font-size:.76rem;font-weight:900;text-transform:uppercase;letter-spacing:.08em;}
+  .gh-card-cat:hover{color:#0b5f59;}
+  .gh-card h2{font-size:1.18rem;line-height:1.25;margin:0;color:#151515;}
+  .gh-card h2 a{color:inherit;text-decoration:none;}
+  .gh-card h2 a:hover{color:#0f766e;}
   .gh-card p{color:#685f54;line-height:1.6;margin:0;}
+  .gh-read-more{margin-top:auto;color:#151515;font-weight:900;text-decoration:none;font-size:.86rem;}
+  .gh-empty-filter{border:1px dashed #cfc3b4;background:rgba(255,255,255,.72);border-radius:18px;padding:26px;text-align:center;color:#685f54;}
   .gh-blocks{margin-top:18px;display:grid;gap:16px;}
   .gh-block{border:1px solid #eadfce;border-radius:16px;padding:20px;background:#fffaf3;}
   .gh-gallery{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;}
@@ -60,7 +81,7 @@
   .gh-body .cms-image-generated figcaption,.gh-body .cms-image-placeholder figcaption{margin-top:.45rem;font-size:.82rem;color:#6b6358;}
   .gh-links{margin-top:24px;display:flex;gap:10px;flex-wrap:wrap;}
   .gh-links a{border:1px solid #d7cbb9;border-radius:999px;padding:9px 13px;text-decoration:none;color:#1b1b1b;font-weight:700;background:#fff;}
-  @media (max-width:768px){.gh-shell{padding:44px 0 58px}.gh-hero{padding:26px 20px;border-radius:20px}.gh-body{padding:22px 18px}.gh-body .cms-media-text-row{grid-template-columns:1fr}}
+  @media (max-width:768px){.gh-shell{padding:44px 0 58px}.gh-hero{padding:26px 20px;border-radius:20px}.gh-search{border-radius:18px;align-items:flex-start}.gh-search-count{display:none}.gh-body{padding:22px 18px}.gh-body .cms-media-text-row{grid-template-columns:1fr}}
 </style>
 {% if c.template.css_text|default('') %}
   <style>{{ c.template.css_text|raw }}</style>
@@ -71,27 +92,69 @@
 <main class="gh-shell">
   <div class="gh-container">
     {% if isList %}
+      {% set placeholderImage = asset_for(placeholder_image|default('assets/images/cms-image-needed.svg')) %}
       <header class="gh-hero">
         <span class="gh-kicker">VNV Events</span>
         <h1 class="gh-title">{{ titleText }}</h1>
         <p class="gh-excerpt">{{ descriptionText }}</p>
       </header>
 
-      <section class="gh-grid" aria-label="{{ titleText }}">
+      {% if items|default([]) is not empty %}
+        <div class="gh-list-tools" data-gh-list>
+          <label class="gh-search" for="gh-list-search">
+            <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+            <input id="gh-list-search" type="search" autocomplete="off" placeholder="Search {{ list_type == 'blog' ? 'articles' : 'locations' }}..." data-gh-search>
+            <span class="gh-search-count" data-gh-count></span>
+          </label>
+
+          {% if categories|default([]) is not empty %}
+            <div class="gh-cat-strip" aria-label="Filter by category">
+              <button type="button" class="gh-cat-button is-active" data-gh-category="all">
+                <img src="{{ placeholderImage }}" alt="">
+                <span>All</span>
+              </button>
+              {% for category in categories %}
+                {% set categoryImage = category.image_url|default('') ?: placeholderImage %}
+                <button type="button" class="gh-cat-button" data-gh-category="{{ category.slug|default('uncategorized')|e('html_attr') }}">
+                  <img src="{{ categoryImage }}" alt="">
+                  <span>{{ category.name }}</span>
+                </button>
+              {% endfor %}
+            </div>
+          {% endif %}
+        </div>
+      {% endif %}
+
+      <section class="gh-grid" aria-label="{{ titleText }}" data-gh-grid>
         {% for item in items|default([]) %}
-          <a class="gh-card" href="{{ item.route|default('/') }}">
-            <h2>{{ item.title }}</h2>
-            {% if item.excerpt|default('') %}
-              <p>{{ item.excerpt|striptags|slice(0, 150) }}{% if item.excerpt|length > 150 %}...{% endif %}</p>
-            {% endif %}
-          </a>
+          {% set itemHref = path(item.route|default('/')|trim('/')) %}
+          {% set itemImage = item._image_url|default('') ?: placeholderImage %}
+          {% set itemCategoryName = item._category_name|default(list_type == 'blog' ? 'Blog' : 'Location') %}
+          {% set itemCategorySlug = item._category_slug|default('uncategorized') %}
+          {% set itemExcerpt = item._excerpt|default(item.excerpt|default('')) %}
+          <article class="gh-card" data-gh-card data-gh-category-value="{{ itemCategorySlug|e('html_attr') }}" data-gh-search-value="{{ item._search_text|default('')|e('html_attr') }}">
+            <a class="gh-card-image" href="{{ itemHref }}" aria-label="{{ item.title }}">
+              <img src="{{ itemImage }}" alt="{{ item.title }}">
+            </a>
+            <div class="gh-card-body">
+              <a class="gh-card-cat" href="{{ path('category/' ~ list_type ~ '/' ~ itemCategorySlug ~ '/') }}">{{ itemCategoryName }}</a>
+              <h2><a href="{{ itemHref }}">{{ item.title }}</a></h2>
+              {% if itemExcerpt %}
+                <p>{{ itemExcerpt|striptags|slice(0, 155) }}{% if itemExcerpt|length > 155 %}...{% endif %}</p>
+              {% endif %}
+              <a class="gh-read-more" href="{{ itemHref }}">Read more</a>
+            </div>
+          </article>
         {% else %}
           <article class="gh-card">
-            <h2>No published content yet.</h2>
-            <p>Approved Growth Hub content for VNV Events will appear here once it is published in Ophyra.</p>
+            <div class="gh-card-body">
+              <h2>No published content yet.</h2>
+              <p>Approved Growth Hub content for VNV Events will appear here once it is published in Ophyra.</p>
+            </div>
           </article>
         {% endfor %}
       </section>
+      <div class="gh-empty-filter" data-gh-empty hidden>No matching content found.</div>
     {% else %}
       <article>
         <header class="gh-hero">
@@ -162,4 +225,59 @@
     {% endif %}
   </div>
 </main>
+{% if isList %}
+<script>
+(function(){
+  var root = document.querySelector('[data-gh-grid]');
+  if (!root) return;
+  var input = document.querySelector('[data-gh-search]');
+  var count = document.querySelector('[data-gh-count]');
+  var empty = document.querySelector('[data-gh-empty]');
+  var cards = Array.prototype.slice.call(root.querySelectorAll('[data-gh-card]'));
+  var buttons = Array.prototype.slice.call(document.querySelectorAll('[data-gh-category]'));
+  var activeCategory = 'all';
+
+  function normalize(value) {
+    return String(value || '').toLowerCase().replace(/\s+/g, ' ').trim();
+  }
+
+  function update() {
+    var q = normalize(input ? input.value : '');
+    var visible = 0;
+
+    cards.forEach(function(card){
+      var searchValue = normalize(card.getAttribute('data-gh-search-value'));
+      var cardCategory = card.getAttribute('data-gh-category-value') || 'uncategorized';
+      var matchesSearch = !q || searchValue.indexOf(q) !== -1;
+      var matchesCategory = activeCategory === 'all' || cardCategory === activeCategory;
+      var show = matchesSearch && matchesCategory;
+      card.hidden = !show;
+      if (show) visible++;
+    });
+
+    if (count) {
+      count.textContent = visible + ' result' + (visible === 1 ? '' : 's');
+    }
+
+    if (empty) {
+      empty.hidden = visible !== 0;
+    }
+  }
+
+  buttons.forEach(function(button){
+    button.addEventListener('click', function(){
+      activeCategory = button.getAttribute('data-gh-category') || 'all';
+      buttons.forEach(function(item){ item.classList.toggle('is-active', item === button); });
+      update();
+    });
+  });
+
+  if (input) {
+    input.addEventListener('input', update);
+  }
+
+  update();
+})();
+</script>
+{% endif %}
 {% endblock %}

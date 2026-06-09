@@ -45,7 +45,7 @@ class CmsRoutesRepository extends BaseRepository
         $siteSql = $this->siteScopeSql(null, 'c');
 
         $query = "
-            SELECT r.*, c.title, c.slug, c.type, c.status AS content_status
+            SELECT r.*, c.title, c.slug, c.type, c.content_type, c.status AS content_status
             FROM `{$this->table}` r
             INNER JOIN `cms_contents` c ON c.id = r.id_content
             WHERE r.route = :route

@@ -141,6 +141,23 @@
         color:#111827;
     }
 
+    .cms-path{
+        font-family:monospace;
+        font-size:.88rem;
+        color:#1f2937;
+        background:#f9fafb;
+        border:1px solid #e5e7eb;
+        border-radius:10px;
+        display:inline-block;
+        padding:5px 8px;
+        word-break:break-all;
+        text-decoration:none;
+    }
+
+    .cms-path:hover{
+        background:#eef2ff;
+    }
+
     .cms-alert{
         margin-bottom:18px;
         background:#fef2f2;
@@ -181,6 +198,9 @@
 
         <div style="display:flex; gap:10px; flex-wrap:wrap;">
             <a href="{{ path('panel/cms/pages/categories') }}" class="cms-btn cms-btn-light">← Back to Categories</a>
+            {% if old.slug %}
+                <a href="{{ path('category/page/' ~ old.slug ~ '/') }}" target="_blank" rel="noopener noreferrer" class="cms-btn cms-btn-light">Open Public Page</a>
+            {% endif %}
         </div>
     </div>
 
@@ -221,6 +241,14 @@
                     <div class="cms-help">
                         If left empty, it will be generated automatically from the name.
                     </div>
+                    {% if old.slug %}
+                        <div class="cms-help">
+                            Public URL:
+                            <a href="{{ path('category/page/' ~ old.slug ~ '/') }}" target="_blank" rel="noopener noreferrer" class="cms-path">
+                                /category/page/{{ old.slug }}/
+                            </a>
+                        </div>
+                    {% endif %}
                 </div>
 
                 <div class="cms-field full">

@@ -39,10 +39,25 @@ class OphyraGrowthHubClient
 
     public function contentByRoute(string $route): ?array
     {
-        return $this->validatedContent($this->get('/api/growth-hub/content', [
-            'site_key' => $this->siteKey,
-            'route' => $this->normalizeRoute($route),
-        ]));
+        $normalizedRoute = $this->normalizeRoute($route);
+        $candidateRoutes = [$normalizedRoute];
+
+        if ($normalizedRoute !== '/') {
+            $candidateRoutes[] = $normalizedRoute . '/';
+        }
+
+        foreach (array_unique($candidateRoutes) as $candidateRoute) {
+            $content = $this->validatedContent($this->get('/api/growth-hub/content', [
+                'site_key' => $this->siteKey,
+                'route' => $candidateRoute,
+            ]));
+
+            if ($content) {
+                return $content;
+            }
+        }
+
+        return null;
     }
 
     public function contentBySlug(string $slug, ?string $type = null): ?array
@@ -190,7 +205,8 @@ class OphyraGrowthHubClient
             return null;
         }
 
-        $content['content_type'] = $this->normalizeContentType((string)($content['content_type'] ?? 'page'));
+        $rawType = (string)($content['content_type'] ?? $content['type'] ?? 'page');
+        $content['content_type'] = $this->normalizeContentType($rawType);
 
         return $content;
     }
@@ -232,7 +248,11 @@ class OphyraGrowthHubClient
             return 'location';
         }
 
-        if (in_array($contentType, ['blog', 'guide', 'faq_page', 'comparison', 'case_study'], true)) {
+        if (in_array($contentType, ['location_page', 'location-page', 'locations'], true)) {
+            return 'location';
+        }
+
+        if (in_array($contentType, ['blog', 'post', 'blog_post', 'guide', 'faq_page', 'comparison', 'case_study', 'blog-post'], true)) {
             return 'blog';
         }
 

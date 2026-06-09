@@ -103,6 +103,18 @@ En este schema actual, `id_owner = 2` identifica ownership/operacion y `site_key
 
 Si una tabla no tiene campo de scope, documenta el riesgo antes de modificar. No inventes ownership ni migres datos automaticamente.
 
+## Regla Critica De Rutas CMS
+
+Las paginas publicas existentes tienen prioridad y no deben eliminarse, pisarse ni redirigirse automaticamente cuando Ophyra Growth Hub genere contenido nuevo.
+
+Antes de publicar una ruta CMS, revisar el contrato de rutas, prioridades, API y SQL en:
+
+```text
+docs/OPHYRA_CMS_ROUTE_CONTRACT_REVIEW_2026_06_09.md
+```
+
+No confiar solamente en el sitemap para decidir si una ruta esta disponible. El sitemap es una senal secundaria; la fuente principal es el inventario de rutas, tablas CMS, rutas fisicas, rutas reservadas y prueba HTTP.
+
 ## Areas Activas
 
 Prioriza:
@@ -163,6 +175,7 @@ docs/CMS_AND_PUBLIC_CONTENT.md
 docs/HOMEPAGE_POSITIONING.md
 docs/VNV_EVENTS_RELATIONSHIP.md
 docs/OPHYRA_FUTURE_INTEGRATION.md
+docs/OPHYRA_CMS_ROUTE_CONTRACT_REVIEW_2026_06_09.md
 docs/NEXT_AGENT_HANDOFF.md
 ```
 

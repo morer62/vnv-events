@@ -107,6 +107,16 @@
         box-shadow:0 4px 14px rgba(0,0,0,.04);
     }
     .loc-pill i{color:var(--loc-primary-deep);font-size:.72rem;}
+    .loc-cat-button{
+        display:inline-flex;align-items:center;gap:9px;border:1px solid #dde5e8;background:#fff;color:#334155;
+        border-radius:999px;padding:7px 13px 7px 7px;font-size:.78rem;font-weight:800;box-shadow:0 6px 18px rgba(15,23,42,.05);
+        cursor:pointer;transition:.2s ease;font-family:inherit;white-space:nowrap;
+    }
+    .loc-cat-button:hover,.loc-cat-button.is-active{background:#11181a;color:#fff;border-color:#11181a;}
+    .loc-cat-button img{
+        width:32px;height:32px;border-radius:999px;object-fit:cover;background:#edf2f7;border:1px solid rgba(255,255,255,.7);
+    }
+    .loc-cat-count{opacity:.72;font-size:.72rem;}
 
     .loc-grid{
         display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px;
@@ -185,6 +195,7 @@
         </div>
 
         {% if pages|length > 0 %}
+        {% set placeholderImage = asset_for(placeholder_image|default('assets/images/cms-image-needed.svg')) %}
         <div class="loc-toolbar">
             <div class="loc-toolbar-search">
                 <label class="visually-hidden" for="loc-search-input">Search locations</label>
@@ -196,28 +207,36 @@
             <p class="loc-search-meta" data-loc-search-hint aria-live="polite"></p>
         </div>
 
-        <div class="loc-pill-row">
+        <div class="loc-pill-row" aria-label="Filter locations by category">
             <div class="loc-pills">
-                <span class="loc-pill"><i class="fa-solid fa-wand-magic-sparkles" aria-hidden="true"></i> Luxury planning</span>
-                <span class="loc-pill"><i class="fa-solid fa-champagne-glasses" aria-hidden="true"></i> Weddings &amp; events</span>
-                <span class="loc-pill"><i class="fa-solid fa-utensils" aria-hidden="true"></i> Catering &amp; production</span>
+                <button type="button" class="loc-cat-button is-active" data-loc-category-filter="all">
+                    <img src="{{ placeholderImage }}" alt="">
+                    <span>All</span>
+                    <span class="loc-cat-count">{{ pages|length }}</span>
+                </button>
+                {% for category in categories|default([]) %}
+                    {% set categoryImage = category.image_url|default('') ?: placeholderImage %}
+                    <button type="button" class="loc-cat-button" data-loc-category-filter="{{ category.slug|e('html_attr') }}">
+                        <img src="{{ categoryImage }}" alt="">
+                        <span>{{ category.name }}</span>
+                        <span class="loc-cat-count">{{ category.count }}</span>
+                    </button>
+                {% endfor %}
             </div>
         </div>
 
         <div class="loc-grid" data-loc-grid>
             {% for p in pages %}
-                {% set q = (p.title|default('') ~ ' ' ~ p.city|default('') ~ ' ' ~ p.county|default('') ~ ' ' ~ p.state|default('') ~ ' ' ~ p.excerpt|default(''))|lower|trim %}
-                <article class="loc-card" data-loc-card data-loc-search="{{ q|e('html_attr') }}">
-                    <a class="loc-card-image-wrap" href="{{ path('locations/' ~ p.slug) }}" tabindex="-1" aria-hidden="true">
-                        {% if p.hero_image %}
-                            <img class="loc-card-image" src="{{ p.hero_image }}" alt="">
-                        {% else %}
-                            <div class="loc-card-image" role="img" aria-label=""></div>
-                        {% endif %}
+                {% set q = (p.title|default('') ~ ' ' ~ p.city|default('') ~ ' ' ~ p.county|default('') ~ ' ' ~ p.state|default('') ~ ' ' ~ p.excerpt|default('') ~ ' ' ~ p.category|default(''))|lower|trim %}
+                {% set cardImage = p.hero_image|default('') ?: placeholderImage %}
+                {% set cardHref = path(p.public_path|default('/locations/' ~ p.slug ~ '/')|trim('/')) %}
+                <article class="loc-card" data-loc-card data-loc-category="{{ p.category_slug|default('location')|e('html_attr') }}" data-loc-search="{{ q|e('html_attr') }}">
+                    <a class="loc-card-image-wrap" href="{{ cardHref }}" tabindex="-1" aria-hidden="true">
+                        <img class="loc-card-image" src="{{ cardImage }}" alt="">
                     </a>
                     <div class="loc-card-body">
-                        <span class="loc-badge">Location</span>
-                        <a class="loc-title" href="{{ path('locations/' ~ p.slug) }}">{{ p.title }}</a>
+                        <span class="loc-badge">{{ p.category|default('Location') }}</span>
+                        <a class="loc-title" href="{{ cardHref }}">{{ p.title }}</a>
                         <div class="loc-sub">{{ p.excerpt ?: 'Explore details and services in this area.' }}</div>
                         <div class="loc-meta">
                             {% if p.city %}<span class="loc-chip">{{ p.city }}</span>{% endif %}
@@ -225,7 +244,7 @@
                             {% if p.state %}<span class="loc-chip">{{ p.state }}</span>{% endif %}
                         </div>
                         <div class="loc-card-actions">
-                            <a class="loc-link-btn loc-link-main" href="{{ path('locations/' ~ p.slug) }}">View location</a>
+                            <a class="loc-link-btn loc-link-main" href="{{ cardHref }}">View location</a>
                             <button type="button" data-vnv-open-request class="loc-link-btn loc-link-request">Request</button>
                         </div>
                     </div>
@@ -251,6 +270,8 @@
     var cards = root.querySelectorAll('[data-loc-card]');
     var empty = root.querySelector('[data-loc-empty]');
     var hint = root.querySelector('[data-loc-search-hint]');
+    var categoryButtons = document.querySelectorAll('[data-loc-category-filter]');
+    var activeCategory = 'all';
     if (!input || !cards.length) return;
 
     var total = cards.length;
@@ -273,7 +294,10 @@
         var n = 0;
         for (var i = 0; i < cards.length; i++) {
             var hay = norm(cards[i].getAttribute('data-loc-search') || '');
-            var show = !q || hay.indexOf(q) !== -1;
+            var cardCategory = cards[i].getAttribute('data-loc-category') || 'location';
+            var matchesSearch = !q || hay.indexOf(q) !== -1;
+            var matchesCategory = activeCategory === 'all' || cardCategory === activeCategory;
+            var show = matchesSearch && matchesCategory;
             cards[i].hidden = !show;
             if (show) n++;
         }
@@ -283,6 +307,15 @@
 
     input.addEventListener('input', apply);
     input.addEventListener('keydown', function(e){ if (e.key === 'Enter') e.preventDefault(); });
+    categoryButtons.forEach(function(button){
+        button.addEventListener('click', function(){
+            activeCategory = button.getAttribute('data-loc-category-filter') || 'all';
+            categoryButtons.forEach(function(item){
+                item.classList.toggle('is-active', item === button);
+            });
+            apply();
+        });
+    });
     apply();
 })();
 </script>

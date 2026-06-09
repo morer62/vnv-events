@@ -34,9 +34,21 @@ if (!$route) {
 // Obtener contenido
 $post = $contentsRepository->getOneWithTemplate((int)$route->id_content);
 
+if (!$post) {
+    http_response_code(404);
+    echo "Post not found";
+    exit;
+}
+
+$publicType = normalize_public_blog_content_type((string)(
+    ($post->content_type ?? '')
+    ?: ($route->route_type ?? '')
+    ?: ($post->type ?? '')
+    ?: 'post'
+));
+
 if (
-    !$post ||
-    ($post->type ?? '') !== 'post' ||
+    $publicType !== 'blog' ||
     ($post->status ?? '') !== 'PUBLISHED' ||
     ($post->language ?? 'en') !== 'en'
 ) {
@@ -78,3 +90,18 @@ echo TemplateResponse::render(__DIR__ . "/index.twig", [
     "show_whatsapp" => true,
 ]);
 exit;
+
+function normalize_public_blog_content_type(string $contentType): string
+{
+    $contentType = strtolower(trim($contentType));
+
+    if (in_array($contentType, ['blog', 'post', 'blog_post', 'blog-post', 'guide', 'faq_page', 'comparison', 'case_study'], true)) {
+        return 'blog';
+    }
+
+    if (in_array($contentType, ['location', 'locations', 'location_page', 'location-page'], true)) {
+        return 'location';
+    }
+
+    return 'page';
+}

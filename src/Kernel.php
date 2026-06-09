@@ -282,11 +282,34 @@ class Kernel
             return 'location';
         }
 
-        if (in_array($contentType, ['blog', 'guide', 'faq_page', 'comparison', 'case_study'], true)) {
+        if (in_array($contentType, ['location_page', 'location-page', 'locations'], true)) {
+            return 'location';
+        }
+
+        if (in_array($contentType, ['blog', 'post', 'blog_post', 'guide', 'faq_page', 'comparison', 'case_study', 'blog-post'], true)) {
             return 'blog';
         }
 
         return 'page';
+    }
+
+    private function normalizePublicCategoryType(string $contentType): ?string
+    {
+        $contentType = strtolower(trim($contentType));
+
+        if (in_array($contentType, ['blog', 'post', 'blog_post', 'blog-post'], true)) {
+            return 'blog';
+        }
+
+        if (in_array($contentType, ['page', 'pages'], true)) {
+            return 'page';
+        }
+
+        if (in_array($contentType, ['location', 'locations', 'location_page', 'location-page'], true)) {
+            return 'location';
+        }
+
+        return null;
     }
 
     /**
@@ -468,13 +491,15 @@ class Kernel
                 }
             }
 
-            // Blog category pública: /category/blog/{slug}/
+            // Categoría pública por tipo: /category/{blog|page|location}/{slug}/
             if (
                 count($urlViews) === 3 &&
                 $urlViews[0] === 'category' &&
-                $urlViews[1] === 'blog' &&
+                !empty($urlViews[1]) &&
+                $this->normalizePublicCategoryType($urlViews[1]) !== null &&
                 !empty($urlViews[2])
             ) {
+                $GLOBALS['public_category_type'] = $this->normalizePublicCategoryType($urlViews[1]);
                 $blogCategoryView = LocationUtils::getRootLocation()
                     . "/src/views/public/pages/blog-category/index.php";
 
@@ -517,14 +542,21 @@ class Kernel
             $cmsRoute = $cmsRoutesRepository->getByRoute($cmsRoutePath, 'en');
 
             if ($cmsRoute && ($cmsRoute->content_status ?? '') === 'PUBLISHED') {
-                if (($cmsRoute->type ?? '') === 'page') {
+                $cmsPublicType = $this->normalizeGrowthHubContentType((string)(
+                    ($cmsRoute->content_type ?? '')
+                    ?: ($cmsRoute->route_type ?? '')
+                    ?: ($cmsRoute->type ?? '')
+                    ?: 'page'
+                ));
+
+                if ($cmsPublicType === 'page' || $cmsPublicType === 'location') {
                     $cmsContentView = LocationUtils::getRootLocation()
                         . "/src/views/public/pages/cms-content/index.php";
 
                     $this->includeResolvedFileAndExit($cmsContentView);
                 }
 
-                if (($cmsRoute->type ?? '') === 'post') {
+                if ($cmsPublicType === 'blog') {
                     $blogPostView = LocationUtils::getRootLocation()
                         . "/src/views/public/pages/blog-post/index.php";
 

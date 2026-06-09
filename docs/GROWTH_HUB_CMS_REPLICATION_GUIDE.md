@@ -6,6 +6,12 @@ Use this guide to replicate the VNV Events `/panel/cms/` admin surface in Avomea
 
 The goal is not to create a new CMS per brand. Each brand should expose a local admin/consumer surface for the same Ophyra Growth Hub CMS contract.
 
+For the route-protection contract, API expectations and SQL compatibility rules discovered during the 2026-06-09 review, see:
+
+```text
+docs/OPHYRA_CMS_ROUTE_CONTRACT_REVIEW_2026_06_09.md
+```
+
 ## Source Of Truth
 
 Ophyra Growth Hub is the source of truth.
@@ -279,6 +285,8 @@ cms_contents.site_key = active site_key
 cms_contents.status = PUBLISHED
 cms_contents.approval_status IN (APPROVED, PUBLISHED) when present
 ```
+
+Existing public pages always have priority. A Growth Hub publisher must check route availability before creating a route and must not overwrite physical pages, existing CMS routes, store/product routes, legacy location pages or reserved application routes.
 
 Content rendering priority:
 

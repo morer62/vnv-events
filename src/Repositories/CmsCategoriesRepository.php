@@ -19,6 +19,7 @@ class CmsCategoriesRepository extends BaseRepository
         'name',
         'slug',
         'description',
+        'featured_image_url',
         'is_active',
         'content_origin',
         'origin_site_key',

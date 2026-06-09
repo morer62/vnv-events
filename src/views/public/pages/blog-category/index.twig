@@ -1,13 +1,16 @@
- 
+﻿{% extends "templates/base.twig" %}
 
-{% extends "templates/base.twig" %}
+{% set categoryTypeLabel = category_type_label|default('Blog') %}
+{% set categoryTitle = category.name ?: 'Category' %}
+{% set placeholderImage = asset_for(placeholder_image|default('assets/images/cms-image-needed.svg')) %}
+{% set categoryImage = category.featured_image_url|default('') ?: placeholderImage %}
 
 {% block title %}
-    {{ category.meta_title ?: category.name ~ ' | VNV Events Blog' }}
+    {{ category.meta_title ?: (categoryTitle ~ ' - ' ~ categoryTypeLabel ~ ' | VNV Events') }}
 {% endblock %}
 
 {% block meta_description %}
-    {{ category.meta_description ?: category.description ?: 'VNV Events blog category' }}
+    {{ category.meta_description ?: category.description ?: (categoryTypeLabel ~ ' results for ' ~ categoryTitle ~ ' at VNV Events') }}
 {% endblock %}
 
 {% block body %}
@@ -27,7 +30,7 @@
     }
 
     body{
-      font-family:"Inter",system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+      font-family:"Avenir Next","Segoe UI",sans-serif;
       color:var(--vnv-text);
       background:
         radial-gradient(circle at 10% 0%, rgba(200,168,107,.2), transparent 34%),
@@ -35,24 +38,21 @@
         linear-gradient(180deg,#fff 0%,var(--vnv-bg) 100%);
     }
 
-    body::before{
-      display:none !important;
-      content:none !important;
-    }
+    body::before{display:none!important;content:none!important;}
+    html,body{overflow-x:hidden;}
 
-    html, body{
-      overflow-x:hidden;
-    }
-
-    .blog-cat-shell{ padding:72px 0 82px; position:relative; }
-
+    .blog-cat-shell{padding:72px 0 82px;position:relative;}
     .blog-cat-hero{
+      display:grid;
+      grid-template-columns:minmax(0,1.18fr) minmax(260px,.82fr);
+      gap:28px;
+      align-items:center;
       background:linear-gradient(135deg,var(--vnv-primary) 0%,var(--vnv-primary-soft) 58%,var(--vnv-accent) 100%);
       color:#fff;
       border-radius:30px;
       padding:42px 36px;
       box-shadow:0 30px 68px rgba(10,10,14,.28);
-      margin-bottom:38px;
+      margin-bottom:28px;
       position:relative;
       overflow:hidden;
       border:1px solid rgba(255,255,255,.16);
@@ -67,6 +67,20 @@
         linear-gradient(110deg, rgba(255,255,255,.14), transparent 35%),
         radial-gradient(circle at 90% 10%, rgba(200,168,107,.35), transparent 38%);
     }
+
+    .blog-cat-hero-content{position:relative;z-index:1;}
+    .blog-cat-hero-image{
+      position:relative;
+      z-index:1;
+      margin:0;
+      border-radius:24px;
+      overflow:hidden;
+      min-height:260px;
+      box-shadow:0 22px 46px rgba(0,0,0,.26);
+      border:1px solid rgba(255,255,255,.18);
+      background:#fff;
+    }
+    .blog-cat-hero-image img{display:block;width:100%;height:100%;min-height:260px;object-fit:cover;}
 
     .blog-cat-eyebrow{
       display:inline-flex;
@@ -94,20 +108,23 @@
       text-wrap:balance;
     }
 
-    .blog-cat-desc{
-      margin:0;
-      color:rgba(255,255,255,.92);
-      max-width:780px;
-      line-height:1.86;
-      font-size:1.03rem;
+    .blog-cat-desc{margin:0;color:rgba(255,255,255,.92);max-width:780px;line-height:1.86;font-size:1.03rem;}
+    .blog-cat-tools{
+      display:flex;
+      align-items:center;
+      gap:14px;
+      background:rgba(255,255,255,.92);
+      border:1px solid rgba(232,221,204,.95);
+      border-radius:999px;
+      padding:8px 10px 8px 18px;
+      margin:0 0 28px;
+      box-shadow:0 14px 32px rgba(24,18,10,.1);
     }
+    .blog-cat-tools i{color:#7e5f2d;}
+    .blog-cat-search{flex:1;border:0;outline:0;background:transparent;font:inherit;color:var(--vnv-text);padding:12px 6px;min-width:0;}
+    .blog-cat-count{color:var(--vnv-muted);font-weight:800;white-space:nowrap;font-size:.88rem;padding-right:10px;}
 
-    .blog-grid{
-      display:grid;
-      grid-template-columns:repeat(auto-fill,minmax(300px,1fr));
-      gap:24px;
-    }
-
+    .blog-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:24px;}
     .blog-card{
       background:var(--vnv-surface);
       border:1px solid var(--vnv-border);
@@ -117,137 +134,137 @@
       transition:transform .25s ease, box-shadow .25s ease, border-color .25s ease;
       position:relative;
     }
-
-    .blog-card::after{
-      content:"";
-      position:absolute;
-      inset:0;
-      border:1px solid rgba(200,168,107,.22);
-      border-radius:inherit;
-      opacity:0;
-      pointer-events:none;
-      transition:.25s ease;
-    }
-
-    .blog-card:hover{
-      transform:translateY(-7px);
-      box-shadow:0 28px 54px rgba(18,13,8,.19);
-      border-color:#dcc7a0;
-    }
-
-    .blog-card:hover::after{ opacity:1; }
-
-    .blog-card a{ text-decoration:none; color:inherit; display:block; }
-
-    .blog-card img{
-      width:100%;
-      height:220px;
-      object-fit:cover;
-      transition:transform .4s ease, filter .3s ease;
-      filter:saturate(1.03);
-    }
-
-    .blog-card:hover img{ transform:scale(1.05); filter:saturate(1.12); }
-
-    .blog-card-body{ padding:20px 20px 22px; }
-
-    .blog-card-title{
-      font-size:1.2rem;
-      font-weight:700;
-      line-height:1.3;
-      color:var(--vnv-text);
-      margin-bottom:11px;
-      font-family:Georgia,"Times New Roman",serif;
-    }
-
-    .blog-card-excerpt{
-      color:var(--vnv-muted);
-      font-size:.94rem;
-      line-height:1.74;
-      margin-bottom:16px;
-      display:-webkit-box;
-      -webkit-line-clamp:3;
-      -webkit-box-orient:vertical;
-      overflow:hidden;
-    }
-
-    .blog-card-cta{
-      display:inline-flex;
-      align-items:center;
-      gap:8px;
-      font-size:.8rem;
-      font-weight:800;
-      color:#7e5f2d;
-      letter-spacing:.07em;
-      text-transform:uppercase;
-    }
-
-    .blog-card-cta::after{ content:"→"; }
-
-    .blog-empty{
-      text-align:center;
-      background:var(--vnv-surface);
-      border:1px dashed #cbb79a;
-      border-radius:var(--vnv-radius-lg);
-      padding:44px 22px;
-      color:var(--vnv-muted);
-      box-shadow:var(--vnv-shadow);
-    }
-
-    .blog-empty strong{
-      display:block;
-      color:var(--vnv-text);
-      margin-bottom:8px;
-      font-family:Georgia,"Times New Roman",serif;
-      font-size:1.2rem;
-    }
+    .blog-card::after{content:"";position:absolute;inset:0;border:1px solid rgba(200,168,107,.22);border-radius:inherit;opacity:0;pointer-events:none;transition:.25s ease;}
+    .blog-card:hover{transform:translateY(-7px);box-shadow:0 28px 54px rgba(18,13,8,.19);border-color:#dcc7a0;}
+    .blog-card:hover::after{opacity:1;}
+    .blog-card[hidden]{display:none!important;}
+    .blog-card a{text-decoration:none;color:inherit;}
+    .blog-card-image{display:block;overflow:hidden;background:#f1eee8;}
+    .blog-card img{display:block;width:100%;height:220px;object-fit:cover;transition:transform .4s ease, filter .3s ease;filter:saturate(1.03);}
+    .blog-card:hover img{transform:scale(1.05);filter:saturate(1.12);}
+    .blog-card-body{padding:18px 20px 22px;}
+    .blog-card-category{display:inline-flex;width:fit-content;margin-bottom:10px;color:#7e5f2d;font-size:.74rem;font-weight:900;letter-spacing:.08em;text-transform:uppercase;}
+    .blog-card-title{font-size:1.2rem;font-weight:700;line-height:1.3;color:var(--vnv-text);margin-bottom:11px;font-family:Georgia,"Times New Roman",serif;}
+    .blog-card-excerpt{color:var(--vnv-muted);font-size:.94rem;line-height:1.74;margin-bottom:16px;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;}
+    .blog-card-cta{display:inline-flex;align-items:center;gap:8px;font-size:.8rem;font-weight:800;color:#7e5f2d;letter-spacing:.07em;text-transform:uppercase;}
+    .blog-card-cta::after{content:"->";}
+    .blog-empty{text-align:center;background:var(--vnv-surface);border:1px dashed #cbb79a;border-radius:var(--vnv-radius-lg);padding:44px 22px;color:var(--vnv-muted);box-shadow:var(--vnv-shadow);}
+    .blog-empty strong{display:block;color:var(--vnv-text);margin-bottom:8px;font-family:Georgia,"Times New Roman",serif;font-size:1.2rem;}
+    .blog-filter-empty{margin-top:22px;}
 
     @media (max-width:768px){
-      .blog-cat-shell{ padding:52px 0 60px; }
-      .blog-cat-hero{ border-radius:22px; padding:28px 20px; }
-      .blog-grid{ grid-template-columns:1fr; gap:18px; }
+      .blog-cat-shell{padding:52px 0 60px;}
+      .blog-cat-hero{grid-template-columns:1fr;border-radius:22px;padding:28px 20px;}
+      .blog-cat-hero-image{min-height:210px;}
+      .blog-cat-hero-image img{min-height:210px;}
+      .blog-cat-tools{border-radius:18px;align-items:flex-start;}
+      .blog-cat-count{display:none;}
+      .blog-grid{grid-template-columns:1fr;gap:18px;}
     }
 </style>
 
 <section class="blog-cat-shell">
     <div class="container">
         <div class="blog-cat-hero">
-            <div class="blog-cat-eyebrow">Blog Category</div>
-            <h1 class="blog-cat-title">{{ category.name }}</h1>
-            {% if category.description %}
-                <p class="blog-cat-desc">{{ category.description }}</p>
-            {% endif %}
+            <div class="blog-cat-hero-content">
+                <div class="blog-cat-eyebrow">{{ categoryTypeLabel }} Category</div>
+                <h1 class="blog-cat-title">{{ categoryTitle }} - {{ categoryTypeLabel }}</h1>
+                {% if category.description %}
+                    <p class="blog-cat-desc">{{ category.description }}</p>
+                {% endif %}
+            </div>
+            <figure class="blog-cat-hero-image">
+                <img src="{{ categoryImage }}" alt="{{ categoryTitle }}">
+            </figure>
         </div>
 
-        {% if posts|length > 0 %}
-            <div class="blog-grid">
-                {% for post in posts %}
-                    <div class="blog-card">
-                        <a href="{{ path((post.main_route ?: ('/' ~ post.slug ~ '/'))|trim('/')) }}">
-                            {% if post.featured_image_url %}
-                                <img src="{{ post.featured_image_url }}" alt="{{ post.title }}">
-                            {% endif %}
+        {% if items|length > 0 %}
+            <label class="blog-cat-tools" for="blog-category-search">
+                <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+                <input class="blog-cat-search" id="blog-category-search" type="search" autocomplete="off" placeholder="Search {{ categoryTitle }} results..." data-blog-category-search>
+                <span class="blog-cat-count" data-blog-category-count></span>
+            </label>
 
-                            <div class="blog-card-body">
-                                <div class="blog-card-title">{{ post.title }}</div>
-
-                                {% if post.excerpt %}
-                                    <div class="blog-card-excerpt">
-                                        {{ post.excerpt|slice(0, 120) }}...
-                                    </div>
-                                {% endif %}
-                                <span class="blog-card-cta">Read article</span>
-                            </div>
+            <div class="blog-grid" data-blog-category-grid>
+                {% for item in items %}
+                    {% set fallbackRoute = category_type == 'blog' ? '/blog/' ~ item.slug ~ '/' : (category_type == 'location' ? '/locations/' ~ item.slug ~ '/' : '/' ~ item.slug ~ '/') %}
+                    {% set itemHref = path((item.main_route ?: fallbackRoute)|trim('/')) %}
+                    {% set itemImage = item.featured_image_url|default('') ?: category.featured_image_url|default('') ?: placeholderImage %}
+                    {% set excerpt = item.excerpt ?: item.meta_description ?: '' %}
+                    {% set searchText = (item.title|default('') ~ ' ' ~ excerpt ~ ' ' ~ categoryTitle ~ ' ' ~ categoryTypeLabel)|lower|trim %}
+                    <article class="blog-card" data-blog-category-card data-blog-category-search-text="{{ searchText|e('html_attr') }}">
+                        <a class="blog-card-image" href="{{ itemHref }}">
+                            <img src="{{ itemImage }}" alt="{{ item.title }}">
                         </a>
-                    </div>
+                        <div class="blog-card-body">
+                            <a class="blog-card-category" href="{{ path('category/' ~ category_type ~ '/' ~ category.slug ~ '/') }}">{{ categoryTitle }}</a>
+                            <a href="{{ itemHref }}"><div class="blog-card-title">{{ item.title }}</div></a>
+                            {% if excerpt %}
+                                <div class="blog-card-excerpt">{{ excerpt|striptags|slice(0, 145) }}{% if excerpt|length > 145 %}...{% endif %}</div>
+                            {% endif %}
+                            <a class="blog-card-cta" href="{{ itemHref }}">Read more</a>
+                        </div>
+                    </article>
                 {% endfor %}
+            </div>
+            <div class="blog-empty blog-filter-empty" data-blog-category-empty hidden>
+                <strong>No matching results</strong>
+                Try another word or clear the search field.
             </div>
         {% else %}
             <div class="blog-empty">
-                <strong>No articles found yet</strong>
-                No articles found in this category yet.
+                <strong>No results found yet</strong>
+                No published {{ categoryTypeLabel|lower }} entries were found in this category yet.
             </div>
         {% endif %}
     </div>
 </section>
+
+{% if items|length > 0 %}
+<script>
+(function(){
+    var root = document.querySelector('[data-blog-category-grid]');
+    if (!root) return;
+    var input = document.querySelector('[data-blog-category-search]');
+    var count = document.querySelector('[data-blog-category-count]');
+    var empty = document.querySelector('[data-blog-category-empty]');
+    var cards = Array.prototype.slice.call(root.querySelectorAll('[data-blog-category-card]'));
+
+    function normalize(value) {
+        return String(value || '').toLowerCase().replace(/\s+/g, ' ').trim();
+    }
+
+    function update() {
+        var q = normalize(input ? input.value : '');
+        var visible = 0;
+
+        cards.forEach(function(card) {
+            var haystack = normalize(card.getAttribute('data-blog-category-search-text'));
+            var show = !q || haystack.indexOf(q) !== -1;
+            card.hidden = !show;
+            if (show) visible++;
+        });
+
+        if (count) {
+            count.textContent = visible + ' result' + (visible === 1 ? '' : 's');
+        }
+
+        if (empty) {
+            empty.hidden = visible !== 0;
+        }
+    }
+
+    if (input) {
+        input.addEventListener('input', update);
+        input.addEventListener('keydown', function(event) {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+            }
+        });
+    }
+
+    update();
+})();
+</script>
+{% endif %}
 {% endblock %}
