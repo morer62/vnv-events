@@ -1,6 +1,7 @@
 <?php
 
 use App\Repositories\OrdersPaymentsRepository;
+use App\Services\TranslationService;
 use App\Utils\LocationUtils;
 
 $paymentId = $_GET['payment_id'] ?? null;
@@ -45,7 +46,7 @@ if ($isUrl) {
         $pdfContent = @file_get_contents($pdfPath, false, $context);
         
         if ($pdfContent === false || empty($pdfContent)) {
-            throw new Exception("Failed to download PDF from URL");
+            throw new Exception(TranslationService::trans('planner_hub.failed_download_pdf_url'));
         }
         
         $fileSize = strlen($pdfContent);

@@ -18,6 +18,7 @@ use App\Services\EmailServiceFactory;
 use App\Services\StripeService;
 use App\Services\LoginService;
 use App\Services\StoreCouponService;
+use App\Services\ClientPaymentMethodService;
 use App\Utils\LocationUtils;
 use App\Utils\AvomealContext;
 
@@ -485,6 +486,22 @@ function chargeStripeCustomerPayment(
     }
 }
 
+function parseCardExpiration(string $exp): array
+{
+    $parts = preg_split('/[\/\-]/', trim($exp));
+    $month = isset($parts[0]) ? (int)$parts[0] : null;
+    $year = isset($parts[1]) ? (int)$parts[1] : null;
+
+    if ($year !== null && $year > 0 && $year < 100) {
+        $year += 2000;
+    }
+
+    return [
+        'month' => $month ?: null,
+        'year' => $year ?: null,
+    ];
+}
+
 $router->get(function () {
     $recoveryToken = trim($_GET['recovery'] ?? '');
     $ownerId = getStoreOwnerId();
@@ -627,19 +644,48 @@ $router->post(function () {
             return;
         }
 
+        $activeProviderForCards = (new PaymentProvidersRepository())->getActiveProviderForOwner($ownerId);
+        $activeProviderTypeForCards = strtolower((string)($activeProviderForCards->provider_type ?? ''));
+        $paymentMethodService = new ClientPaymentMethodService();
+        $savedMethods = $paymentMethodService->listClientSavedPaymentMethods($ownerId, (int)$user->id);
+
+        $savedMethods = array_values(array_filter($savedMethods ?: [], function ($method) use ($activeProviderTypeForCards) {
+            return $activeProviderTypeForCards === ''
+                || strtolower((string)($method->payment_provider ?? '')) === $activeProviderTypeForCards;
+        }));
+
+        $out = array_map(function ($method) {
+            $provider = strtolower((string)($method->payment_provider ?? ''));
+            $token = $provider === 'stripe'
+                ? (string)($method->provider_customer_id ?? '')
+                : (string)($method->provider_payment_method_id ?? $method->provider_reference ?? '');
+
+            return [
+                'id' => isset($method->id) ? (int)$method->id : null,
+                'brand' => (string)($method->brand ?? ''),
+                'last4' => (string)($method->last4 ?? ''),
+                'exp' => trim((string)($method->exp_month ?? '') . '/' . (string)($method->exp_year ?? ''), '/'),
+                'token' => $token,
+                'provider' => $provider,
+                'source' => 'client_saved_payment_methods'
+            ];
+        }, $savedMethods ?: []);
+
         $cardsRepo = new UserCardsRepository();
         $cards = $cardsRepo->getByUserId((int)$user->id);
 
-        $out = array_map(function ($c) {
-            return [
+        foreach (($cards ?: []) as $c) {
+            $out[] = [
                 'id' => isset($c->id) ? (int)$c->id : null,
                 'brand' => (string)($c->brand ?? ''),
                 'last4' => (string)($c->last4 ?? ''),
                 'exp' => (string)($c->exp ?? ''),
                 'token' => (string)($c->token ?? ''),
-                'main_card' => (string)($c->main_card ?? '')
+                'main_card' => (string)($c->main_card ?? ''),
+                'provider' => '',
+                'source' => 'user_cards'
             ];
-        }, $cards ?: []);
+        }
 
         echo json_encode([
             "success" => true,
@@ -963,7 +1009,10 @@ $router->post(function () {
         return;
     }
 
-    $customerToken = trim($payload['customer_token'] ?? '');
+    $customerToken = trim((string)($payload['customer_token'] ?? $payload['card_token'] ?? ''));
+    $savePaymentMethod = filter_var($payload['save_payment_method'] ?? false, FILTER_VALIDATE_BOOLEAN);
+    $autoChargeConsent = filter_var($payload['auto_charge_consent'] ?? false, FILTER_VALIDATE_BOOLEAN);
+    $savedPaymentMethodId = (int)($payload['saved_payment_method_id'] ?? 0);
     $guestName = trim($payload['guest_name'] ?? ($cart->guest_name ?? ''));
     $guestEmail = trim($payload['guest_email'] ?? ($cart->guest_email ?? ''));
     $guestPhone = trim($payload['guest_phone'] ?? ($cart->guest_phone ?? ''));
@@ -988,9 +1037,9 @@ $router->post(function () {
 
     $cardInfo = $payload['card_info'] ?? [];
     if (!is_array($cardInfo)) $cardInfo = [];
-    $cardBrand = trim((string)($cardInfo['brand'] ?? ''));
-    $cardLast4 = trim((string)($cardInfo['last4'] ?? ''));
-    $cardExp = trim((string)($cardInfo['exp'] ?? ''));
+    $cardBrand = trim((string)($cardInfo['brand'] ?? $payload['card_brand'] ?? ''));
+    $cardLast4 = trim((string)($cardInfo['last4'] ?? $payload['card_last4'] ?? ''));
+    $cardExp = trim((string)($cardInfo['exp'] ?? $payload['card_exp'] ?? ''));
 
     $couponFromValidation = null;
 
@@ -1368,6 +1417,26 @@ $router->post(function () {
         ]);
     }
 
+    $paymentMethodService = new ClientPaymentMethodService();
+    if ($paymentTokenType === 'stored_card' && $savedPaymentMethodId > 0 && $autoChargeConsent && $userId) {
+        $paymentMethodService->recordFromSuccessfulPayment([
+            'id_user_business' => $ownerId,
+            'id_client' => $userId,
+            'user_id' => $userId,
+            'payment_provider' => $providerType,
+            'saved_payment_method_id' => $savedPaymentMethodId,
+            'save_payment_method' => false,
+            'auto_charge_consent' => true,
+            'source' => 'store_checkout',
+            'related_store_order_id' => $orderId,
+            'related_payment_id' => $paymentId ?: null,
+            'metadata' => [
+                'checkout' => 'stored_card',
+                'provider_transaction_id' => $paymentResponse['payment_id'] ?? null,
+            ],
+        ]);
+    }
+
     $cartsRepo->markAsConverted((int)$cart->id);
 
     try {
@@ -1424,6 +1493,36 @@ $router->post(function () {
                     'billing_city' => $billingCity,
                     'billing_state' => $billingState
                 ]);
+
+                if ($savePaymentMethod || $autoChargeConsent) {
+                    $exp = parseCardExpiration($cardExp);
+                    $paymentMethodService->recordFromSuccessfulPayment([
+                        'id_user_business' => $ownerId,
+                        'id_client' => $userId,
+                        'user_id' => $userId,
+                        'payment_provider' => 'stripe',
+                        'provider_customer_id' => $stripeCustomerId,
+                        'provider_payment_method_id' => null,
+                        'provider_reference' => $paymentResponse['payment_id'] ?? null,
+                        'method_type' => 'card',
+                        'brand' => $cardBrand,
+                        'last4' => $cardLast4,
+                        'exp_month' => $exp['month'],
+                        'exp_year' => $exp['year'],
+                        'billing_name' => $guestName,
+                        'billing_email' => $guestEmail,
+                        'is_default' => $main === 'yes',
+                        'source' => 'store_checkout',
+                        'save_payment_method' => $savePaymentMethod || $autoChargeConsent,
+                        'auto_charge_consent' => $autoChargeConsent,
+                        'related_store_order_id' => $orderId,
+                        'related_payment_id' => $paymentId ?: null,
+                        'metadata' => [
+                            'provider_transaction_id' => $paymentResponse['payment_id'] ?? null,
+                            'legacy_user_card' => true,
+                        ],
+                    ]);
+                }
             }
         } catch (\Exception $e) {
         }
@@ -1476,6 +1575,36 @@ $router->post(function () {
                         'billing_city' => $billingCity,
                         'billing_state' => $billingState
                     ]);
+
+                    if ($savePaymentMethod || $autoChargeConsent) {
+                        $exp = parseCardExpiration($cardExp);
+                        $paymentMethodService->recordFromSuccessfulPayment([
+                            'id_user_business' => $ownerId,
+                            'id_client' => $userId,
+                            'user_id' => $userId,
+                            'payment_provider' => 'square',
+                            'provider_customer_id' => (string)$squareCustomer['id'],
+                            'provider_payment_method_id' => (string)$squareCard['id'],
+                            'provider_reference' => $paymentResponse['payment_id'] ?? null,
+                            'method_type' => 'card',
+                            'brand' => $cardBrand !== '' ? $cardBrand : 'square',
+                            'last4' => $cardLast4 !== '' ? $cardLast4 : null,
+                            'exp_month' => $exp['month'],
+                            'exp_year' => $exp['year'],
+                            'billing_name' => $guestName,
+                            'billing_email' => $guestEmail,
+                            'is_default' => $main === 'yes',
+                            'source' => 'store_checkout',
+                            'save_payment_method' => $savePaymentMethod || $autoChargeConsent,
+                            'auto_charge_consent' => $autoChargeConsent,
+                            'related_store_order_id' => $orderId,
+                            'related_payment_id' => $paymentId ?: null,
+                            'metadata' => [
+                                'provider_transaction_id' => $paymentResponse['payment_id'] ?? null,
+                                'legacy_user_card' => true,
+                            ],
+                        ]);
+                    }
                 }
             }
         } catch (\Exception $e) {

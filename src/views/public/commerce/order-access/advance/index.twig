@@ -2,10 +2,10 @@
 
 {% block body %}
 <main class="container mt-5" style="max-width:520px;">
-    <h2 class="mb-4 text-center">💵 Add advance to this order</h2>
+    <h2 class="mb-4 text-center">💵 {{ trans('planner_hub.add_advance_order') }}</h2>
 
     <div class="alert alert-secondary">
-        <div><strong>Order:</strong> VNV-341{{ order.id }}</div>
+        <div><strong>{{ trans('planner_hub.order_label') }}</strong> VNV-341{{ order.id }}</div>
     </div>
 
     <form id="advance-form" method="POST" data-suggested="{{ suggested_advance_cents|e('html_attr') }}">
@@ -13,15 +13,15 @@
         <input type="hidden" name="customer_token" id="customer_token">
 
         <div class="mb-3">
-            <label class="form-label">Your Email</label>
+            <label class="form-label">{{ trans('planner_hub.your_email') }}</label>
             <input type="email" name="customer_email" class="form-control form-control-lg" required>
         </div>
         <div class="mb-3">
-            <label class="form-label">Amount to advance</label>
-            <input type="number" name="advance_amount" step="0.01" min="1" class="form-control form-control-lg" required placeholder="Enter the amount you want to pay">
-            <small class="text-muted d-block">You can pay any amount up to the remaining balance shown below.</small>
+            <label class="form-label">{{ trans('planner_hub.amount_to_advance') }}</label>
+            <input type="number" name="advance_amount" step="0.01" min="1" class="form-control form-control-lg" required placeholder="{{ trans('planner_hub.enter_amount_pay') }}">
+            <small class="text-muted d-block">{{ trans('planner_hub.pay_any_amount') }}</small>
             <div class="alert alert-info mt-3 mb-0">
-                <strong>Remaining balance:</strong>
+                <strong>{{ trans('planner_hub.remaining_balance') }}</strong>
                 ${{ remaining_balance|number_format(2, '.', ',') }}
             </div>
         </div>
@@ -29,20 +29,20 @@
         <div id="payment-request-section" class="mb-4 mt-4" style="display:none;">
             <div id="payment-request-loader" class="text-center text-muted py-3">
                 <div class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></div>
-                <span>Loading wallet options…</span>
+                <span>{{ trans('planner_hub.loading_wallet_options') }}</span>
             </div>
             <div id="payment-request-button" style="display:none;"></div>
             <p id="payment-request-note" class="text-center text-muted mt-2 mb-0"></p>
         </div>
 
         <div class="mb-4">
-            <label class="form-label">Card Info</label>
+            <label class="form-label">{{ trans('planner_hub.card_info') }}</label>
             <div id="card-element" class="form-control p-3"></div>
             <div id="card-errors" class="text-danger mt-2"></div>
         </div>
 
-        <button class="btn btn-success w-100 btn-lg mb-3">✅ Confirm Advance</button>
-        <div id="loading" class="text-muted text-center" style="display:none;">Processing advance...</div>
+        <button class="btn btn-success w-100 btn-lg mb-3">✅ {{ trans('planner_hub.confirm_advance') }}</button>
+        <div id="loading" class="text-muted text-center" style="display:none;">{{ trans('planner_hub.processing_advance') }}</div>
     </form>
 
     <!-- Modal de Error -->
@@ -51,7 +51,7 @@
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title text-danger" id="errorModalLabel">
-                        <i class="fas fa-exclamation-triangle me-2"></i>Payment Error
+                        <i class="fas fa-exclamation-triangle me-2"></i>{{ trans('planner_hub.payment_error') }}
                     </h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
@@ -61,7 +61,7 @@
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ trans('planner_hub.go_back') }}</button>
                 </div>
             </div>
         </div>
@@ -96,8 +96,8 @@
             loading.style.display = isProcessing ? "block" : "none";
             if (isProcessing) {
                 window.VnvProcessingModal.show("orderAccessProcessingModal", {
-                    title: message || "Processing advance...",
-                    message: "We are registering your payment. Please wait."
+                    title: message || "{{ trans('planner_hub.processing_advance')|e('js') }}",
+                    message: "{{ trans('planner_hub.processing_advance')|e('js') }}"
                 });
             } else {
                 window.VnvProcessingModal.hide("orderAccessProcessingModal");
@@ -142,7 +142,7 @@
                 const result = await response.json();
 
                 if (result.success === false) {
-                    displayError(result.error || "Unable to process the advance. Please try again.", true);
+                    displayError(result.error || "{{ trans('planner_hub.unable_process_advance')|e('js') }}", true);
                     return false;
                 }
 
@@ -154,7 +154,7 @@
                 return true;
             } catch (err) {
                 console.error(err);
-                displayError("An error occurred while processing the advance.", true);
+                displayError("{{ trans('planner_hub.error_occurred_advance')|e('js') }}", true);
                 return false;
             }
         }
@@ -163,7 +163,7 @@
             event.preventDefault();
 
             if (!validateAdvanceAmount()) {
-                displayError("Enter a valid amount greater than 0 before continuing.");
+                displayError("{{ trans('planner_hub.enter_valid_amount')|e('js') }}");
                 return;
             }
 
@@ -208,7 +208,7 @@
             paymentRequest.canMakePayment().then((result) => {
                 loader.style.display = "none";
                 if (!result) {
-                    note.textContent = "Digital wallets are not available on this device.";
+                    note.textContent = "{{ trans('planner_hub.digital_wallets_not_available')|e('js') }}";
                     return;
                 }
 
@@ -222,16 +222,16 @@
                 buttonContainer.style.display = "block";
                 prButton.mount("#payment-request-button");
 
-                if (result.applePay) note.textContent = "Use Apple Pay or continue with your card.";
-                else if (result.googlePay) note.textContent = "Use Google Pay or continue with your card.";
-                else if (result.link) note.textContent = "Use Link or continue with your card.";
-                else note.textContent = "Use a digital wallet or continue with your card.";
+                if (result.applePay) note.textContent = "{{ trans('planner_hub.use_apple_pay')|e('js') }}";
+                else if (result.googlePay) note.textContent = "{{ trans('planner_hub.use_google_pay')|e('js') }}";
+                else if (result.link) note.textContent = "{{ trans('planner_hub.use_link')|e('js') }}";
+                else note.textContent = "{{ trans('planner_hub.use_digital_wallet')|e('js') }}";
             });
 
             paymentRequest.on("click", (event) => {
                 if (!validateAdvanceAmount()) {
                     event.preventDefault();
-                    displayError("Enter a valid amount greater than 0 before using the digital wallet.");
+                    displayError("{{ trans('planner_hub.enter_valid_amount_wallet')|e('js') }}");
                     return;
                 }
 
@@ -258,7 +258,7 @@
             paymentRequest.on("token", async (event) => {
                 if (!validateAdvanceAmount()) {
                     event.complete("fail");
-                    displayError("Enter a valid amount before using the digital wallet.");
+                    displayError("{{ trans('planner_hub.enter_valid_amount_before')|e('js') }}");
                     return;
                 }
 

@@ -296,6 +296,41 @@ body{
     margin-top:.6rem;
 }
 
+.payment-consent-box{
+    border:1px solid var(--store-border);
+    border-radius:16px;
+    background:#f9fafb;
+    padding:1rem;
+    margin-bottom:1rem;
+}
+
+.payment-consent-option{
+    display:flex;
+    gap:.65rem;
+    align-items:flex-start;
+    font-weight:700;
+    color:#374151;
+    margin:0 0 .7rem;
+    cursor:pointer;
+}
+
+.payment-consent-option:last-child{
+    margin-bottom:0;
+}
+
+.payment-consent-option input{
+    margin-top:.25rem;
+}
+
+.payment-consent-copy{
+    display:block;
+    color:var(--store-muted);
+    font-size:.85rem;
+    font-weight:500;
+    line-height:1.5;
+    margin-top:.15rem;
+}
+
 @media (max-width: 991px){
     .checkout-shell{
         grid-template-columns:1fr;
@@ -446,6 +481,23 @@ body{
                     </div>
                 </div>
 
+                <div class="payment-consent-box" id="paymentConsentBox">
+                    <label class="payment-consent-option">
+                        <input type="checkbox" id="savePaymentMethod">
+                        <span>
+                            Save this payment method
+                            <span class="payment-consent-copy">Your card details are stored as secure provider references only. We never store full card numbers or CVV.</span>
+                        </span>
+                    </label>
+                    <label class="payment-consent-option">
+                        <input type="checkbox" id="autoChargeConsent">
+                        <span>
+                            Authorize future balance charges
+                            <span class="payment-consent-copy">I authorize this business to charge my saved payment method for approved balances, tips, recurring charges, or pending payments related to my orders.</span>
+                        </span>
+                    </label>
+                </div>
+
                 {% if active_provider_type == 'square' %}
                     <div class="field">
                         <label>Card details</label>
@@ -527,6 +579,9 @@ document.addEventListener('DOMContentLoaded', function () {
     const savedCardsField = document.getElementById('savedCardsField');
     const savedCardsSelect = document.getElementById('savedCardsSelect');
     const useAnotherCardBtn = document.getElementById('useAnotherCardBtn');
+    const savePaymentMethodInput = document.getElementById('savePaymentMethod');
+    const autoChargeConsentInput = document.getElementById('autoChargeConsent');
+    const paymentConsentBox = document.getElementById('paymentConsentBox');
 
     let sessionToken = localStorage.getItem(SESSION_KEY) || '';
     let checkoutState = { cart: null, items: [] };
@@ -536,6 +591,7 @@ document.addEventListener('DOMContentLoaded', function () {
     let stripeElements = null;
     let paymentTokenType = 'new_card';
     let selectedSavedCardToken = '';
+    let selectedSavedPaymentMethodId = 0;
 
     function showError(message) {
         errorBox.textContent = message;
@@ -731,8 +787,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
             savedCardsField.style.display = 'block';
             savedCardsSelect.innerHTML = `<option value="">Select a saved card</option>` + data.cards.map(card => {
-                const label = `${card.brand || 'Card'} •••• ${card.last4 || '0000'} ${card.exp ? '(' + card.exp + ')' : ''}`;
-                return `<option value="${card.token}">${label}</option>`;
+                const label = `${card.brand || 'Card'} **** ${card.last4 || '0000'} ${card.exp ? '(' + card.exp + ')' : ''}`;
+                return `<option value="${card.token}" data-saved-id="${card.source === 'client_saved_payment_methods' ? (card.id || 0) : 0}">${label}</option>`;
             }).join('');
         } catch (e) {}
     }
@@ -747,11 +803,14 @@ document.addEventListener('DOMContentLoaded', function () {
 
         if (mode === 'stored_card') {
             if (savedCardsField) savedCardsField.style.display = 'block';
+            if (paymentConsentBox) paymentConsentBox.style.display = selectedSavedPaymentMethodId > 0 ? 'block' : 'none';
+            if (savePaymentMethodInput) savePaymentMethodInput.checked = false;
             if (stripeContainer) stripeContainer.style.display = 'none';
             if (squareContainer) squareContainer.style.display = 'none';
             if (stripeErr) stripeErr.style.display = 'none';
             if (squareErr) squareErr.style.display = 'none';
         } else {
+            if (paymentConsentBox) paymentConsentBox.style.display = 'block';
             if (stripeContainer) stripeContainer.style.display = '';
             if (squareContainer) squareContainer.style.display = '';
             if (stripeErr) stripeErr.style.display = '';
@@ -762,6 +821,7 @@ document.addEventListener('DOMContentLoaded', function () {
     if (savedCardsSelect) {
         savedCardsSelect.addEventListener('change', function () {
             selectedSavedCardToken = this.value || '';
+            selectedSavedPaymentMethodId = Number(this.selectedOptions[0]?.dataset?.savedId || 0);
             if (selectedSavedCardToken) {
                 setPaymentMode('stored_card');
             } else {
@@ -773,8 +833,17 @@ document.addEventListener('DOMContentLoaded', function () {
     if (useAnotherCardBtn) {
         useAnotherCardBtn.addEventListener('click', function () {
             selectedSavedCardToken = '';
+            selectedSavedPaymentMethodId = 0;
             if (savedCardsSelect) savedCardsSelect.value = '';
             setPaymentMode('new_card');
+        });
+    }
+
+    if (autoChargeConsentInput && savePaymentMethodInput) {
+        autoChargeConsentInput.addEventListener('change', function () {
+            if (this.checked) {
+                savePaymentMethodInput.checked = true;
+            }
         });
     }
 
@@ -900,6 +969,10 @@ document.addEventListener('DOMContentLoaded', function () {
                     recovery_token: RECOVERY_TOKEN,
                     payment_token_type: paymentTokenType,
                     card_token: paymentData.token,
+                    customer_token: paymentData.token,
+                    saved_payment_method_id: selectedSavedPaymentMethodId,
+                    save_payment_method: paymentTokenType === 'new_card' && !!(savePaymentMethodInput && savePaymentMethodInput.checked),
+                    auto_charge_consent: !!(autoChargeConsentInput && autoChargeConsentInput.checked),
                     guest_name: guestNameInput.value.trim(),
                     guest_email: guestEmailInput.value.trim(),
                     guest_phone: guestPhoneInput.value.trim(),

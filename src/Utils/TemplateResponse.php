@@ -4,6 +4,7 @@ namespace App\Utils;
 
 use App\Entity\User;
 use App\Services\LoginService;
+use App\Services\TranslationService;
 use Twig\Environment;
 use Twig\Error\LoaderError;
 use Twig\Error\RuntimeError;
@@ -36,6 +37,7 @@ class TemplateResponse
 
         $twig->addFunction(new TwigFunction('asset_for', [LocationUtils::class, 'assetFor']));
         $twig->addFunction(new TwigFunction('path', [LocationUtils::class, 'assetFor']));
+        $twig->addFunction(new TwigFunction('trans', [TranslationService::class, 'trans']));
         $twig->addFunction(new TwigFunction('get_csrf', [CSRF::class, 'generateCSRF']));
         $twig->addFunction(new TwigFunction('csrf_token', [CSRF::class, 'generateCSRF']));
         $twig->addFunction(new TwigFunction('contain_permission', [TwigUtils::class, 'hasPerm']));
@@ -124,6 +126,7 @@ class TemplateResponse
 
         $twig->addFunction(new TwigFunction('asset_for', [LocationUtils::class, 'assetFor']));
         $twig->addFunction(new TwigFunction('path', [LocationUtils::class, 'assetFor']));
+        $twig->addFunction(new TwigFunction('trans', [TranslationService::class, 'trans']));
         $twig->addFunction(new TwigFunction('get_csrf', [CSRF::class, 'generateCSRF']));
         $twig->addFunction(new TwigFunction('csrf_token', [CSRF::class, 'generateCSRF']));
         $twig->addFilter(new TwigFilter('json_decode', [TwigUtils::class, 'jsonDecode']));

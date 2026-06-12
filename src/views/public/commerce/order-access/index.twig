@@ -44,6 +44,14 @@
 			border-radius: 25px;
 			font-weight: 600;
 		}
+		.bg-danger-light {
+			background-color: #fff5f5 !important;
+		}
+		@keyframes shake {
+			0%, 100% { transform: translateX(0); }
+			10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+			20%, 40%, 60%, 80% { transform: translateX(5px); }
+		}
 		.payment-card {
 			transition: transform 0.2s ease, box-shadow 0.2s ease;
 		}
@@ -51,9 +59,63 @@
 			transform: translateY(-2px);
 			box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important;
 		}
+		/* Card input area: provider iframes (Stripe/Square) */
+		.payment-card-field {
+			background: #fff;
+			border: 1px solid var(--bs-border-color, #dee2e6);
+			padding: 0.6rem 0.75rem;
+		}
+		.payment-card-field iframe,
+		.payment-card-field input {
+			width: 100% !important;
+			max-width: 100%;
+		}
 		.service-item {
 			border-left: 4px solid #0d6efd;
 			padding-left: 1rem;
+		}
+		.dashboard-link-btn {
+			display: inline-flex;
+			align-items: center;
+			gap: 0.5rem;
+			padding: 0.5rem 0.95rem;
+			border-radius: 999px;
+			font-size: 0.85rem;
+			font-weight: 600;
+			color: #fff;
+			background: linear-gradient(135deg, #0d6efd 0%, #0b5ed7 100%);
+			box-shadow: 0 6px 14px rgba(13, 110, 253, 0.22);
+			border: 1px solid rgba(13, 110, 253, 0.35);
+			text-decoration: none;
+			transition: transform 0.15s ease, box-shadow 0.15s ease;
+		}
+		.dashboard-link-btn:hover {
+			color: #fff;
+			transform: translateY(-1px);
+			box-shadow: 0 8px 16px rgba(13, 110, 253, 0.28);
+		}
+		.consent-checkbox-card {
+			display: flex;
+			align-items: flex-start;
+			gap: 0.75rem;
+			padding-left: 1rem !important;
+		}
+		.consent-checkbox-card .form-check-input {
+			float: none;
+			flex: 0 0 auto;
+			margin-left: 0;
+			margin-top: 0.2rem;
+		}
+		.consent-checkbox-card .form-check-label {
+			flex: 1 1 auto;
+			margin-left: 0 !important;
+		}
+		@media (max-width: 575.98px) {
+			.consent-checkbox-card {
+				padding: 1rem !important;
+				margin-left: auto;
+				margin-right: auto;
+			}
 		}
 	</style>
 	<link href="https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap" rel="stylesheet">
@@ -88,8 +150,8 @@
 					</svg>
 				</div>
 				<div class="flex-grow-1">
-					<h5 class="alert-heading mb-2">💚 Thank You for Your Generosity!</h5>
-					<p class="mb-2">Your tip of <strong>${{ last_tip_payment.amount|number_format(2) }}</strong> has been successfully processed.</p>
+					<h5 class="alert-heading mb-2">💚 {{ trans('planner_hub.thank_you_generosity') }}</h5>
+					<p class="mb-2">{{ trans('planner_hub.your_tip_amount') }} <strong>{{ currency_code|default('USD') }} {{ last_tip_payment.amount|number_format(2) }}</strong> {{ trans('planner_hub.has_been_successfully_processed') }}</p>
 					<hr>
 					<div class="d-flex gap-2 flex-wrap">
 						<a href="{{ path('order-access/tip-receipt', { payment_id: last_tip_payment.id, token: token }) }}" target="_blank" class="btn btn-sm btn-success">
@@ -97,9 +159,9 @@
 								<path d="M4 0a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2H4zm0 1h8a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1z"/>
 								<path d="M4.603 12.087a.81.81 0 0 1-.438-.42c-.195-.388-.13-.776.08-1.102.198-.307.526-.568.897-.787a7.68 7.68 0 0 1 1.482-.645 19.701 19.701 0 0 0 1.062-2.227 7.269 7.269 0 0 1-.43-1.295c-.086-.4-.119-.796-.046-1.136.075-.354.274-.672.65-.823.192-.077.4-.12.602-.077a.7.7 0 0 1 .477.365c.088.164.12.356.127.538.007.187-.012.395-.047.614-.084.51-.27 1.134-.52 1.794a10.954 10.954 0 0 0 .98 1.686 5.753 5.753 0 0 1 1.334.05c.364.065.734.195.96.465.12.144.193.32.2.518.007.192-.047.382-.138.563a1.04 1.04 0 0 1-.354.416.856.856 0 0 1-.51.138c-.331-.014-.654-.196-.933-.417a5.716 5.716 0 0 1-.911-.95 11.642 11.642 0 0 0-1.997.406 11.311 11.311 0 0 1-1.021 1.51c-.29.35-.608.655-.926.787a.793.793 0 0 1-.58.029zm1.379-1.901c-.166.076-.32.156-.459.238-.328.194-.541.383-.647.547-.094.145-.096.25-.04.361.01.022.02.036.026.044a.27.27 0 0 0 .035-.012c.137-.056.355-.235.635-.572a8.18 8.18 0 0 0 .45-.606zm1.64-1.33a12.647 12.647 0 0 1 1.01-.193 11.666 11.666 0 0 1-.51-.858 20.741 20.741 0 0 1-.5 1.05zm2.446.45c.15.162.296.3.435.41.24.19.407.253.498.256a.107.107 0 0 0 .07-.015.307.307 0 0 0 .094-.125.436.436 0 0 0 .059-.2.095.095 0 0 0-.026-.063c-.052-.062-.2-.152-.518-.209a3.881 3.881 0 0 0-.612-.053zM8.078 5.8a6.7 6.7 0 0 0 .2-.828c.031-.188.043-.343.038-.465a.613.613 0 0 0-.032-.198.517.517 0 0 0-.145.04c-.087.035-.158.106-.196.283-.04.192-.03.469.046.822.024.111.054.227.09.346z"/>
 							</svg>
-							Download Tip Receipt
+							{{ trans('planner_hub.download_tip_receipt') }}
 						</a>
-						<button type="button" class="btn btn-sm btn-outline-secondary" data-bs-dismiss="alert">Close</button>
+						<button type="button" class="btn btn-sm btn-outline-secondary" data-bs-dismiss="alert">{{ trans('planner_hub.close') }}</button>
 					</div>
 				</div>
 			</div>
@@ -110,7 +172,7 @@
 		<div class="row mb-4">
 			<div class="col-12">
 				<div class="d-flex align-items-center justify-content-between mb-3">
-					<h1 class="h2 mb-0">📄 Your Order Details</h1>
+					<h1 class="h2 mb-0">📄 {{ trans('planner_hub.your_order_details') }}</h1>
 					<span class="status-badge 
 						{% if current_status == 'INVOICE_DRAFT' %}bg-warning text-dark
 						{% elseif current_status == 'INVOICE_READY' %}bg-info text-white
@@ -119,44 +181,51 @@
 						{% elseif current_status == 'INVOICE_EXPIRED' %}bg-danger text-white
 						{% else %}bg-secondary text-white{% endif %}">
 						{% if current_status == 'INVOICE_DRAFT' %}
-							📝 Signature Required
+							📝 {{ trans('planner_hub.signature_required') }}
 						{% elseif current_status == 'INVOICE_READY' %}
-							✍️ Signed - Payment Pending
+							✍️ {{ trans('planner_hub.signed_payment_pending') }}
 						{% elseif current_status == 'INVOICE_PARTIAL' %}
-							💳 Partially Paid
+							💳 {{ trans('planner_hub.partially_paid') }}
 						{% elseif current_status == 'INVOICE_PAID' %}
-							✅ Fully Paid
+							✅ {{ trans('planner_hub.fully_paid') }}
 						{% elseif current_status == 'INVOICE_EXPIRED' %}
-							⏰ Expired
+							⏰ {{ trans('planner_hub.expired') }}
 						{% else %}
 							{{ current_status }}
 						{% endif %}
 					</span>
 				</div>
-				<p class="text-muted">Review your order information, sign the contract, and complete payment securely.</p>
+				{% if can_view_all_orders and all_orders_url %}
+				<div class="mb-2">
+					<a href="{{ all_orders_url }}" class="dashboard-link-btn">
+						📋 {{ trans('planner_hub.orders_dashboard') }}
+					</a>
+				</div>
+				{% endif %}
+				<p class="text-muted">{{ trans('planner_hub.review_order_sign_contract') }}</p>
 			</div>
 		</div>
 
 		<!-- Order Information Card -->
 		<div class="card shadow-sm mb-4">
 			<div class="card-header bg-primary text-white">
-				<h5 class="mb-0"><i class="bi bi-info-circle me-2"></i>Order Information</h5>
+				<h5 class="mb-0"><i class="bi bi-info-circle me-2"></i>{{ trans('planner_hub.order_information') }}</h5>
 			</div>
 			<div class="card-body">
 				<div class="row g-3">
 					<div class="col-md-6">
 						<div class="d-flex align-items-start">
-							<span class="badge bg-secondary me-2">Order ID</span>
+							<span class="badge bg-secondary me-2">{{ trans('planner_hub.order_id_label') }}</span>
 							<div>
 								<strong class="d-block">VNV-341{{ order.id }}</strong>
-								<small class="text-muted">Your unique order reference number</small>
+								<small class="text-muted">{{ trans('planner_hub.unique_order_reference') }}</small>
 							</div>
 						</div>
 					</div>
 					{% if client %}
 					<div class="col-md-6">
 						<div class="d-flex align-items-start">
-							<span class="badge bg-secondary me-2">Client</span>
+							<span class="badge bg-secondary me-2">{{ trans('planner_hub.client_label') }}</span>
 							<div>
 								<strong class="d-block">{{ client.name }} {{ client.lastname }}</strong>
 								<small class="text-muted">{{ client.email }}</small>
@@ -169,28 +238,28 @@
 					{% endif %}
 					<div class="col-md-6">
 						<div class="d-flex align-items-start">
-							<span class="badge bg-secondary me-2">📅 Date</span>
+							<span class="badge bg-secondary me-2">📅 {{ trans('planner_hub.date_label') }}</span>
 							<div>
 								<strong class="d-block">{{ order.event_date|date("F j, Y") }}</strong>
-								<small class="text-muted">Event date</small>
+								<small class="text-muted">{{ trans('planner_hub.event_date_label') }}</small>
 							</div>
 						</div>
 					</div>
 					<div class="col-md-6">
 						<div class="d-flex align-items-start">
-							<span class="badge bg-secondary me-2">🕐 Time</span>
+							<span class="badge bg-secondary me-2">🕐 {{ trans('planner_hub.time_label') }}</span>
 							<div>
 								<strong class="d-block">{{ order.start_time|date("g:i A") }} - {{ order.end_time|date("g:i A") }}</strong>
-								<small class="text-muted">Event duration</small>
+								<small class="text-muted">{{ trans('planner_hub.event_duration') }}</small>
 							</div>
 						</div>
 					</div>
 					<div class="col-12">
 						<div class="d-flex align-items-start">
-							<span class="badge bg-secondary me-2">📍 Location</span>
+							<span class="badge bg-secondary me-2">📍 {{ trans('planner_hub.location_label') }}</span>
 							<div>
 								<strong class="d-block">{{ order.address }}</strong>
-								<small class="text-muted">Event venue address</small>
+								<small class="text-muted">{{ trans('planner_hub.event_venue_address') }}</small>
 							</div>
 						</div>
 					</div>
@@ -201,21 +270,21 @@
 		<!-- Services Card -->
 		<div class="card shadow-sm mb-4">
 			<div class="card-header bg-success text-white">
-				<h5 class="mb-0"><i class="bi bi-list-check me-2"></i>Services Included</h5>
+				<h5 class="mb-0"><i class="bi bi-list-check me-2"></i>{{ trans('planner_hub.services_included') }}</h5>
 			</div>
 			<div class="card-body">
 				<div class="info-note mb-3">
-					<strong>💡 Note:</strong> Below are all the services included in your order. Each service shows the quantity, unit price, and subtotal.
+					<strong>💡 {{ trans('planner_hub.services_note') }}</strong>
 				</div>
 				
 				<div class="table-responsive">
 					<table class="table table-hover">
 						<thead class="table-light">
 							<tr>
-								<th>Service Name</th>
-								<th class="text-center">Quantity</th>
-								<th class="text-end">Unit Price</th>
-								<th class="text-end">Subtotal</th>
+								<th>{{ trans('planner_hub.service_name') }}</th>
+								<th class="text-center">{{ trans('planner_hub.quantity') }}</th>
+								<th class="text-end">{{ trans('planner_hub.unit_price') }}</th>
+								<th class="text-end">{{ trans('planner_hub.subtotal') }}</th>
 							</tr>
 						</thead>
 						<tbody>
@@ -225,7 +294,7 @@
 										<strong>{{ item.name }}</strong>
 										{% if item.description_url %}
 											<br><a href="{{ item.description_url }}" target="_blank" class="btn btn-sm btn-outline-info mt-1">
-												<i class="bi bi-info-circle"></i> View Details
+												<i class="bi bi-info-circle"></i> {{ trans('planner_hub.view_details') }}
 											</a>
 										{% endif %}
 										{% if item.note %}
@@ -235,8 +304,8 @@
 									<td class="text-center">
 										<span class="badge bg-primary">{{ item.qty }}</span>
 									</td>
-									<td class="text-end">${{ item.unit_price | number_format(2) }}</td>
-									<td class="text-end"><strong>${{ item.subtotal | number_format(2) }}</strong></td>
+									<td class="text-end">{{ currency_code|default('USD') }} {{ item.unit_price | number_format(2) }}</td>
+									<td class="text-end"><strong>{{ currency_code|default('USD') }} {{ item.subtotal | number_format(2) }}</strong></td>
 								</tr>
 							{% endfor %}
 						</tbody>
@@ -248,56 +317,56 @@
 					<div class="col-md-6 offset-md-6">
 						<div class="card bg-light">
 							<div class="card-body">
-								<h6 class="card-title mb-3">💰 Pricing Summary</h6>
+								<h6 class="card-title mb-3">💰 {{ trans('planner_hub.pricing_summary') }}</h6>
 								<table class="table table-sm mb-0">
 									<tr>
-										<td>Subtotal:</td>
-										<td class="text-end">${{ subtotal | number_format(2) }}</td>
+										<td>{{ trans('planner_hub.subtotal_label') }}</td>
+										<td class="text-end">{{ currency_code|default('USD') }} {{ subtotal | number_format(2) }}</td>
 									</tr>
 									{% if order.discount_value > 0 %}
 									<tr>
 										<td>
-											Discount
+											{{ trans('planner_hub.discount_label') }}
 											{% if order.discount_type == 'percentage' %}
 												({{ order.discount_value }}%)
 											{% endif %}:
 										</td>
-										<td class="text-end text-success">-${{ order.discount_value | number_format(2) }}</td>
+										<td class="text-end text-success">-{{ currency_code|default('USD') }} {{ order.discount_value | number_format(2) }}</td>
 									</tr>
 									{% endif %}
 									<tr>
-										<td>Tax & Processing Fee ({{ order.tax_percentage | number_format(2) }}%):</td>
-										<td class="text-end">${{ tax | number_format(2) }}</td>
+										<td>{{ trans('planner_hub.tax_processing_fee') }} ({{ order.tax_percentage | number_format(2) }}%):</td>
+										<td class="text-end">{{ currency_code|default('USD') }} {{ tax | number_format(2) }}</td>
 									</tr>
 									{% if tip is defined and tip > 0 %}
 									<tr>
-										<td>Tip ({{ tip_percentage | number_format(2) }}%):</td>
-										<td class="text-end">${{ tip | number_format(2) }}</td>
+										<td>{{ trans('planner_hub.tip_label') }} ({{ tip_percentage | number_format(2) }}%):</td>
+										<td class="text-end">{{ currency_code|default('USD') }} {{ tip | number_format(2) }}</td>
 									</tr>
 									{% endif %}
 									{% if advances_total is defined and advances_total > 0 %}
 									<tr>
-										<td>Advances Applied:</td>
-										<td class="text-end text-success">-${{ advances_total | number_format(2) }}</td>
+										<td>{{ trans('planner_hub.advances_applied') }}</td>
+										<td class="text-end text-success">-{{ currency_code|default('USD') }} {{ advances_total | number_format(2) }}</td>
 									</tr>
 									{% endif %}
 									<tr class="table-primary">
-										<td><strong>Total Amount:</strong></td>
-										<td class="text-end"><strong class="fs-5">${{ total | number_format(2) }}</strong></td>
+										<td><strong>{{ trans('planner_hub.total_amount') }}</strong></td>
+										<td class="text-end"><strong class="fs-5">{{ currency_code|default('USD') }} {{ total | number_format(2) }}</strong></td>
 									</tr>
 								</table>
 								
 								{% if payment_type == 'split' %}
 								<div class="mt-3 pt-3 border-top">
-									<p class="mb-1"><strong>Payment Schedule:</strong></p>
-									<p class="mb-1">1st Payment: <strong>${{ first_payment_amount | number_format(2) }}</strong></p>
-									<p class="mb-0">2nd Payment: <strong>${{ second_payment_original | number_format(2) }}</strong></p>
-									<small class="text-muted d-block mt-2">💡 Note: You'll pay in two installments as shown above.</small>
+									<p class="mb-1"><strong>{{ trans('planner_hub.payment_schedule') }}</strong></p>
+									<p class="mb-1">{{ trans('planner_hub.first_payment_label') }} <strong>{{ currency_code|default('USD') }} {{ first_payment_amount | number_format(2) }}</strong></p>
+									<p class="mb-0">{{ trans('planner_hub.second_payment_label') }} <strong>{{ currency_code|default('USD') }} {{ second_payment_original | number_format(2) }}</strong></p>
+									<small class="text-muted d-block mt-2">💡 {{ trans('planner_hub.payment_schedule_note') }}</small>
 								</div>
 								{% else %}
 								<div class="mt-3 pt-3 border-top">
-									<p class="mb-0"><strong>Full Payment:</strong> <span class="fs-5">${{ total | number_format(2) }}</span></p>
-									<small class="text-muted d-block mt-2">💡 Note: This is a single payment for the full amount.</small>
+									<p class="mb-0"><strong>{{ trans('planner_hub.full_payment_label') }}</strong> <span class="fs-5">{{ currency_code|default('USD') }} {{ total | number_format(2) }}</span></p>
+									<small class="text-muted d-block mt-2">💡 {{ trans('planner_hub.single_payment_note') }}</small>
 								</div>
 								{% endif %}
 							</div>
@@ -311,20 +380,20 @@
 		{% if suborders is defined and suborders|length > 0 %}
 		<div class="card shadow-sm mb-4">
 			<div class="card-header bg-info text-white">
-				<h5 class="mb-0"><i class="bi bi-diagram-3 me-2"></i>Sub-Orders</h5>
+				<h5 class="mb-0"><i class="bi bi-diagram-3 me-2"></i>{{ trans('planner_hub.suborders') }}</h5>
 			</div>
 			<div class="card-body">
 				<div class="info-note mb-3">
-					<strong>💡 Note:</strong> Sub-orders are additional services or items related to your main order. Click "View" to see details and manage each sub-order separately.
+					<strong>💡 {{ trans('planner_hub.suborders_note') }}</strong>
 				</div>
 				<div class="table-responsive">
 					<table class="table table-hover">
 						<thead class="table-light">
 							<tr>
-								<th>Sub-Order ID</th>
-								<th>Status</th>
-								<th>Payment Type</th>
-								<th class="text-center">Action</th>
+								<th>{{ trans('planner_hub.suborder_id') }}</th>
+								<th>{{ trans('planner_hub.status') }}</th>
+								<th>{{ trans('planner_hub.payment_type') }}</th>
+								<th class="text-center">{{ trans('planner_hub.action') }}</th>
 							</tr>
 						</thead>
 						<tbody>
@@ -343,12 +412,12 @@
 								</td>
 								<td>
 									<span class="badge bg-secondary">
-										{% if s.payment_split_type == 2 %}Split Payment{% else %}Full Payment{% endif %}
+										{% if s.payment_split_type == 2 %}{{ trans('planner_hub.split_payment') }}{% else %}{{ trans('planner_hub.full_payment_type') }}{% endif %}
 									</span>
 								</td>
 								<td class="text-center">
 									<a href="{{ s.link }}" class="btn btn-sm btn-primary">
-										<i class="bi bi-eye"></i> View
+										<i class="bi bi-eye"></i> {{ trans('planner_hub.view') }}
 									</a>
 								</td>
 							</tr>
@@ -364,126 +433,263 @@
 		{% if not hasSigned %}
 		<div class="card shadow-sm mb-4 border-warning">
 			<div class="card-header bg-warning text-dark">
-				<h5 class="mb-0"><i class="bi bi-pen me-2"></i>Contract Signature Required</h5>
+				<h5 class="mb-0"><i class="bi bi-pen me-2"></i>{{ trans('planner_hub.contract_signature_required') }}</h5>
 			</div>
 			<div class="card-body">
-				<div class="alert alert-info">
-					<strong>📋 Important:</strong> Please review the contract below and sign it to proceed with payment.
-					{% if isDocuSignReady %}
-						You can sign using DocuSign for a secure and professional signing experience.
-					{% else %}
-						You can either upload a signature image or type your initials.
-					{% endif %}
+				<div class="alert alert-info mb-4">
+					<strong>📋 {{ trans('planner_hub.important_review_contract') }}</strong>
 				</div>
 
-				<div class="mb-4">
-					<label class="form-label fw-bold">Contract Summary</label>
-					<div class="border rounded p-3 bg-light" style="max-height: 300px; overflow-y: auto;">
-						{{ contract_summary|raw }}
+				<div class="border rounded p-3 bg-light mb-4" style="font-size: 0.875rem;">
+					<strong>{{ trans('planner_hub.electronic_signature_disclosure') }}</strong>
+					<p class="mb-0 mt-1">{{ trans('planner_hub.electronic_signature_text') }} <strong>VNV-341{{ order.id }}</strong></p>
+				</div>
+
+				<form method="POST" enctype="multipart/form-data" id="contractForm">
+					<input type="hidden" name="token" value="{{ token }}">
+					<input type="hidden" name="user_local_timestamp" id="userLocalTimestamp">
+
+					<div class="mb-4">
+						<label class="form-label fw-bold">{{ trans('planner_hub.contract_summary_label') }}</label>
+						<div class="border rounded p-3 bg-light" style="max-height: 300px; overflow-y: auto;">
+							{{ contract_summary|raw }}
+						</div>
+						<small class="text-muted d-block mt-2">{{ trans('planner_hub.contract_agreeing_by_signing') }}</small>
 					</div>
 					<small class="text-muted d-block mt-2">💡 This is the contract that you are agreeing to by signing below.</small>
 				</div>
 
-				{% if isDocuSignReady %}
-					<form method="POST" id="docusignForm">
-						<input type="hidden" name="token" value="{{ token }}">
-						<input type="hidden" name="docusign_sign" value="1">
-						<input type="hidden" name="user_local_timestamp" id="userLocalTimestampDocuSign">
-						<button type="submit" class="btn btn-primary btn-lg w-100" id="docusignButton">
-							<i class="bi bi-file-earmark-sign me-2"></i>Sign with DocuSign
-						</button>
-						<small class="text-muted d-block text-center mt-2">By clicking this button, you will be redirected to DocuSign to sign the contract securely.</small>
-					</form>
-				{% else %}
-					<form method="POST" enctype="multipart/form-data" id="contractForm">
-						<input type="hidden" name="token" value="{{ token }}">
-						<input type="hidden" name="user_local_timestamp" id="userLocalTimestamp">
-
-						<div class="row">
-							<div class="col-md-6 mb-3">
-								<label class="form-label fw-bold">
-									<i class="bi bi-upload me-1"></i>Option 1: Upload Signature Image
-								</label>
-								<input type="file" name="signature_image" accept="image/*" class="form-control">
-								<small class="text-muted d-block mt-1">Upload an image file (PNG, JPG) containing your signature.</small>
-							</div>
-
-							<div class="col-md-6 mb-3">
-								<label class="form-label fw-bold">
-									<i class="bi bi-keyboard me-1"></i>Option 2: Type Your Initials
-								</label>
-								<input type="text" name="typed_initials" id="typed_initials" class="form-control" maxlength="20" placeholder="Enter your initials" oninput="renderSignature()">
-								<small class="text-muted d-block mt-1">Type your initials and they will be converted to a signature style.</small>
-							</div>
+					<div class="row">
+						<div class="col-md-6 mb-3">
+							<label class="form-label fw-bold">
+								<i class="bi bi-upload me-1"></i>{{ trans('planner_hub.option_1_upload_signature') }}
+							</label>
+							<input type="file" name="signature_image" accept="image/*" class="form-control">
+							<small class="text-muted d-block mt-1">{{ trans('planner_hub.png_jpg_signature') }}</small>
 						</div>
 
-						<div class="mb-3">
-							<label class="form-label fw-bold">Signature Preview</label>
-							<div class="signature-box" id="signatureBox">Your signature will appear here</div>
+						<div class="col-md-6 mb-3">
+							<label class="form-label fw-bold">
+								<i class="bi bi-keyboard me-1"></i>{{ trans('planner_hub.option_2_type_initials') }}
+							</label>
+							<input type="text" name="typed_initials" id="typed_initials" class="form-control" maxlength="20" placeholder="{{ trans('planner_hub.enter_your_initials') }}" oninput="renderSignature()">
+							<small class="text-muted d-block mt-1">{{ trans('planner_hub.initials_as_signature') }}</small>
 						</div>
 
-						<button type="submit" class="btn btn-success btn-lg w-100 mt-3" id="signButton">
-							<i class="bi bi-check-circle me-2"></i>Submit & Sign Contract
-						</button>
-						<small class="text-muted d-block text-center mt-2">By clicking this button, you agree to the terms in the contract above.</small>
-					</form>
-				{% endif %}
+					<div class="mb-3">
+						<label class="form-label fw-bold">{{ trans('planner_hub.signature_preview') }}</label>
+						<div class="signature-box" id="signatureBox">{{ trans('planner_hub.your_signature_will_appear') }}</div>
+					</div>
+
+					<div class="alert alert-warning border-warning mb-4" id="consentAlert" style="display: none;">
+						<div class="d-flex align-items-start">
+							<i class="bi bi-exclamation-triangle-fill me-2 fs-5"></i>
+							<div>
+								<strong>{{ trans('planner_hub.please_check_consent_box') }}</strong> {{ trans('planner_hub.enable_sign_button') }}
+							</div>
+						</div>
+					</div>
+
+					<div class="form-check consent-checkbox-card mb-4 p-3 border rounded bg-light" id="consentCheckboxContainer">
+						<input class="form-check-input" type="checkbox" name="e_sign_consent" id="eSignConsent" required style="width: 1.25rem; height: 1.25rem; cursor: pointer;">
+						<label class="form-check-label ms-2" for="eSignConsent" style="cursor: pointer; font-size: 0.95rem; line-height: 1.5;">
+							<strong>{{ trans('planner_hub.agree_sign_electronically') }}</strong> {{ trans('planner_hub.understand_esignature_legal') }}
+						</label>
+					</div>
+
+					<button type="submit" class="btn btn-success btn-lg w-100 mt-3" id="signButton">
+						<i class="bi bi-check-circle me-2"></i>{{ trans('planner_hub.submit_sign_contract') }}
+					</button>
+					<small class="text-muted d-block text-center mt-2">{{ trans('planner_hub.must_check_consent_provide_signature') }}</small>
+				</form>
 			</div>
 		</div>
 		<!-- Payment Section -->
 		{% else %}
 		<div class="card shadow-sm mb-4 border-success">
 			<div class="card-header bg-success text-white">
-				<h5 class="mb-0"><i class="bi bi-check-circle me-2"></i>Contract Signed - Ready for Payment</h5>
+				<h5 class="mb-0">
+					<i class="bi bi-check-circle me-2"></i>
+					{% if paymentStatus == "complete" %}
+						{{ trans('planner_hub.contract_signed_order_confirmed') }}
+					{% else %}
+						{{ trans('planner_hub.contract_signed_ready_payment') }}
+					{% endif %}
+				</h5>
 			</div>
 			<div class="card-body">
 				{% if paymentStatus == "complete" %}
-					<div class="alert alert-success mb-0">
-						<i class="bi bi-check-circle me-2"></i><strong>All payments completed!</strong> Your order is fully paid.
+					<div class="alert alert-success mb-3">
+						<i class="bi bi-check-circle me-2"></i><strong>{{ trans('planner_hub.all_payments_completed') }}</strong> {{ trans('planner_hub.order_fully_paid') }}
 					</div>
-				{% elseif not isSquareReady %}
+					{% if not hasSignedAcceptance %}
+					<div class="card border-info mb-0">
+						<div class="card-header bg-info text-white">
+							<h5 class="mb-0"><i class="bi bi-clipboard-check me-2"></i>{{ trans('planner_hub.confirm_order_receipt') }}</h5>
+						</div>
+						<div class="card-body">
+							<div class="mb-4 p-3 bg-light border rounded">
+								{{ acceptance_text|raw }}
+							</div>
+							<p class="mb-4 text-muted">
+								{{ trans('planner_hub.sign_confirm_receipt_desc') }}
+							</p>
+							<form method="POST" action="{{ path('order-access/accept-receipt/', { token: token }) }}" enctype="multipart/form-data" id="acceptanceForm">
+								<input type="hidden" name="token" value="{{ token }}">
+								<input type="hidden" name="user_local_timestamp" id="acceptanceUserLocalTimestamp">
+								<div class="row">
+									<div class="col-md-6 mb-3">
+										<label class="form-label fw-bold"><i class="bi bi-upload me-1"></i>{{ trans('planner_hub.option_1_upload_signature') }}</label>
+										<input type="file" name="signature_image" accept="image/*" class="form-control">
+									</div>
+									<div class="col-md-6 mb-3">
+										<label class="form-label fw-bold"><i class="bi bi-keyboard me-1"></i>{{ trans('planner_hub.option_2_type_initials') }}</label>
+										<input type="text" name="typed_initials" id="acceptance_typed_initials" class="form-control" maxlength="20" placeholder="{{ trans('planner_hub.enter_your_initials') }}" oninput="renderAcceptanceSignature()">
+									</div>
+								</div>
+								<div class="mb-3">
+									<label class="form-label fw-bold">{{ trans('planner_hub.signature_preview') }}</label>
+									<div class="signature-box" id="acceptanceSignatureBox" data-signature-placeholder="{{ trans('planner_hub.signature_will_appear')|e('html_attr') }}">{{ trans('planner_hub.signature_will_appear') }}</div>
+								</div>
+								<button type="submit" class="btn btn-info btn-lg w-100" id="acceptanceSignButton">
+									<i class="bi bi-check-circle me-2"></i>{{ trans('planner_hub.sign_confirm_receipt') }}
+								</button>
+							</form>
+						</div>
+					</div>
+					{% else %}
+					<div class="alert alert-info mb-0">
+						<i class="bi bi-clipboard-check me-2"></i><strong>{{ trans('planner_hub.order_acceptance_signed') }}</strong> {{ trans('planner_hub.signed_receipt_confirmation') }}
+					</div>
+					{% endif %}
+				{% elseif is_event_past %}
 					<div class="alert alert-warning mb-0">
-						<strong>⚠️ Payment Unavailable:</strong> Payments are currently unavailable. Please contact your service provider to complete the payment process.
+						<strong>⚠️ Event date passed.</strong> Payments are no longer available for this order.
 					</div>
-				{% else %}
-					<!-- Square Payment Form -->
-					<div id="square-payment-form">
+				{% elseif not isPaymentReady %}
+					<div class="alert alert-warning mb-0">
+						<strong>⚠️ {{ trans('planner_hub.payment_unavailable') }}</strong> {{ trans('planner_hub.payments_unavailable_contact') }}
+						<div class="mt-2">
+							<a href="{{ base_url }}/panel/planner-hub/settings/payment-providers" class="btn btn-outline-warning btn-sm">
+								⚙️ {{ trans('planner_hub.configure_payment_method') }}
+							</a>
+						</div>
+					</div>
+				{% elseif activeProvider and activeProvider.provider_type == 'paypal' %}
+					<!-- Payment Form (PayPal) -->
+					<div id="payment-form-wrapper">
 						{% if payment_type == "split" and paymentStatus == "pending_first" %}
 							<div class="text-center mb-4">
-								<h5 class="mb-3">Pay First Installment</h5>
-								<p class="text-muted mb-4">Amount: <strong class="fs-4">${{ first_payment_amount | number_format(2) }}</strong></p>
+								<h5 class="mb-3">{{ trans('planner_hub.pay_first_installment') }}</h5>
+								<p class="text-muted mb-2">{{ trans('planner_hub.amount') }}</p>
+								<p class="mb-0"><strong class="fs-3">{{ currency_code|default('USD') }} {{ first_payment_amount | number_format(2) }}</strong></p>
 							</div>
 						{% elseif payment_type == "split" and paymentStatus == "pending_second" %}
 							<div class="text-center mb-4">
-								<h5 class="mb-3">Pay Remaining Balance</h5>
-								<p class="text-muted mb-4">Amount: <strong class="fs-4">${{ second_payment_amount | number_format(2) }}</strong></p>
+								<h5 class="mb-3">{{ trans('planner_hub.pay_remaining_balance') }}</h5>
+								<p class="text-muted mb-2">{{ trans('planner_hub.amount') }}</p>
+								<p class="mb-0"><strong class="fs-3">{{ currency_code|default('USD') }} {{ second_payment_amount | number_format(2) }}</strong></p>
 							</div>
 						{% elseif payment_type == "one" and paymentStatus == "pending_first" %}
 							<div class="text-center mb-4">
-								<h5 class="mb-3">Pay Full Amount</h5>
-								<p class="text-muted mb-4">Amount: <strong class="fs-4">${{ total | number_format(2) }}</strong></p>
+								<h5 class="mb-3">{{ trans('planner_hub.pay_full_amount') }}</h5>
+								<p class="text-muted mb-2">{{ trans('planner_hub.amount') }}</p>
+								<p class="mb-0"><strong class="fs-3">{{ currency_code|default('USD') }} {{ total | number_format(2) }}</strong></p>
 							</div>
 						{% endif %}
 
-						<form id="square-payment-form-element" method="POST" action="{% if payment_type == 'split' and paymentStatus == 'pending_first' %}{{ path('order-access/first/', { token: token }) }}{% elseif payment_type == 'split' and paymentStatus == 'pending_second' %}{{ path('order-access/second/', { token: token }) }}{% else %}{{ path('order-access/full/', { token: token }) }}{% endif %}">
+						<form id="payment-form-element" method="POST" action="{% if payment_type == 'split' and paymentStatus == 'pending_first' %}{{ path('order-access/first/', { token: token }) }}{% elseif payment_type == 'split' and paymentStatus == 'pending_second' %}{{ path('order-access/second/', { token: token }) }}{% else %}{{ path('order-access/full/', { token: token }) }}{% endif %}">
 							<input type="hidden" name="token" value="{{ token }}">
-							<input type="hidden" name="customer_token" id="square-customer-token">
-							
+							<input type="hidden" name="customer_token" id="payment-customer-token">
 							<div class="mb-3">
+								<label class="form-label fw-bold">{{ trans('planner_hub.your_email') }}</label>
+								<input type="email" name="customer_email" id="payment-customer-email" class="form-control form-control-lg" required>
+							</div>
 							<div class="mb-3">
-								<label class="form-label fw-bold">Your Email</label>
-								<input type="email" name="customer_email" id="square-customer-email" class="form-control form-control-lg" required>
+								<label class="form-label fw-bold">{{ trans('planner_hub.billing_address') }}</label>
+								<input
+									type="text"
+									name="billing_address"
+									id="payment-billing-address"
+									class="form-control form-control-lg"
+									data-places
+									placeholder="{{ trans('planner_hub.billing_address_placeholder') }}"
+									required
+								>
+							</div>
+							<div class="mb-4">
+								<div id="paypal-button-container"></div>
+							</div>
+							{% if payment_provider_name %}
+							<p class="text-muted small text-center mb-0">
+								<span class="opacity-75">{{ trans('planner_hub.secured_by') }} {{ payment_provider_name }}</span>
+							</p>
+							{% endif %}
+						</form>
+					</div>
+				{% else %}
+					<!-- Payment Form (Stripe or Square) -->
+					<div id="payment-form-wrapper">
+						{% if payment_type == "split" and paymentStatus == "pending_first" %}
+							<div class="text-center mb-4">
+								<h5 class="mb-3">{{ trans('planner_hub.pay_first_installment') }}</h5>
+								<p class="text-muted mb-2">{{ trans('planner_hub.amount') }}</p>
+								<p class="mb-0"><strong class="fs-3">{{ currency_code|default('USD') }} {{ first_payment_amount | number_format(2) }}</strong></p>
+							</div>
+						{% elseif payment_type == "split" and paymentStatus == "pending_second" %}
+							<div class="text-center mb-4">
+								<h5 class="mb-3">{{ trans('planner_hub.pay_remaining_balance') }}</h5>
+								<p class="text-muted mb-2">{{ trans('planner_hub.amount') }}</p>
+								<p class="mb-0"><strong class="fs-3">{{ currency_code|default('USD') }} {{ second_payment_amount | number_format(2) }}</strong></p>
+							</div>
+						{% elseif payment_type == "one" and paymentStatus == "pending_first" %}
+							<div class="text-center mb-4">
+								<h5 class="mb-3">{{ trans('planner_hub.pay_full_amount') }}</h5>
+								<p class="text-muted mb-2">{{ trans('planner_hub.amount') }}</p>
+								<p class="mb-0"><strong class="fs-3">{{ currency_code|default('USD') }} {{ total | number_format(2) }}</strong></p>
+							</div>
+						{% endif %}
+
+						<form id="payment-form-element" method="POST" action="{% if payment_type == 'split' and paymentStatus == 'pending_first' %}{{ path('order-access/first/', { token: token }) }}{% elseif payment_type == 'split' and paymentStatus == 'pending_second' %}{{ path('order-access/second/', { token: token }) }}{% else %}{{ path('order-access/full/', { token: token }) }}{% endif %}">
+							<input type="hidden" name="token" value="{{ token }}">
+							<input type="hidden" name="customer_token" id="payment-customer-token">
+
+							<div class="mb-3">
+								<label class="form-label fw-bold">{{ trans('planner_hub.your_email') }}</label>
+								<input type="email" name="customer_email" id="payment-customer-email" class="form-control form-control-lg" required>
+							</div>
+
+							<div class="mb-3">
+								<label class="form-label fw-bold">{{ trans('planner_hub.billing_address') }}</label>
+								<input
+									type="text"
+									name="billing_address"
+									id="payment-billing-address"
+									class="form-control form-control-lg"
+									data-places
+									placeholder="{{ trans('planner_hub.billing_address_placeholder') }}"
+									required
+								>
 							</div>
 
 							<div class="mb-4">
-								<label class="form-label fw-bold">Card Information</label>
-								<div id="square-card-container" class="border rounded p-3" style="min-height: 150px;"></div>
-								<div id="square-card-errors" class="text-danger mt-2"></div>
+								<label class="form-label fw-bold">{{ trans('planner_hub.card_information') }}</label>
+								<div class="card border shadow-sm">
+									<div class="card-body p-3 p-md-4 bg-light bg-opacity-50">
+										<div id="payment-card-container" class="payment-card-field rounded" style="min-height: 52px;"></div>
+									</div>
+								</div>
+								<div id="payment-card-errors" class="text-danger small mt-2" role="alert"></div>
 							</div>
 
-							<button type="submit" id="square-pay-button" class="btn btn-primary btn-lg w-100 mb-3">
-								<i class="bi bi-credit-card me-2"></i>Pay Now
+							<button type="submit" id="payment-pay-button" class="btn btn-primary btn-lg w-100 mb-2">
+								<i class="bi bi-credit-card me-2"></i>{{ trans('planner_hub.pay_now') }}
 							</button>
+							{% if payment_provider_name %}
+							<p class="text-muted small text-center mb-0">
+								<span class="opacity-75">{{ trans('planner_hub.secured_by') }} {{ payment_provider_name }}</span>
+							</p>
+							{% endif %}
 						</form>
 					</div>
 				{% endif %}
@@ -500,15 +706,183 @@
 {% endblock %}
 
 {% block scripts %}
-	{% if isSquareReady and paymentStatus != "complete" %}
+	{% if isPaymentReady and activeProvider and paymentStatus != "complete" and not is_event_past %}
+		{% if activeProvider.provider_type == 'stripe' and stripe_publishable_key %}
+	<script src="https://js.stripe.com/v3/"></script>
+		{% elseif activeProvider.provider_type == 'square' %}
 	<script type="text/javascript" src="https://{{ square_environment == 'production' ? 'web' : 'sandbox.web' }}.squarecdn.com/v1/square.js"></script>
+		{% elseif activeProvider.provider_type == 'paypal' and paypal_client_id %}
+	<script src="https://www.paypal.com/sdk/js?client-id={{ paypal_client_id|e('html_attr') }}&currency={{ activeProvider.currency|default('USD') }}&intent=capture"></script>
+		{% endif %}
 	{% endif %}
 	{{ processingModalScript|raw }}
 	<script>
 		function renderSignature() {
-			const initials = document.getElementById("typed_initials").value;
+			const initials = document.getElementById("typed_initials");
 			const box = document.getElementById("signatureBox");
-			box.textContent = initials || "Your Signature";
+			if (initials && box) box.textContent = initials.value || "{{ trans('planner_hub.your_signature_will_appear')|e('js') }}";
+			toggleContractSubmit();
+		}
+		function toggleContractSubmit() {
+			const consent = document.getElementById("eSignConsent");
+			const signBtn = document.getElementById("signButton");
+			const consentContainer = document.getElementById("consentCheckboxContainer");
+			const hasInitials = document.getElementById("typed_initials") && document.getElementById("typed_initials").value.trim().length > 0;
+			const hasFile = document.querySelector('input[name="signature_image"]') && document.querySelector('input[name="signature_image"]').files.length > 0;
+			
+			if (signBtn && consentContainer) {
+				const isValid = consent && consent.checked && (hasInitials || hasFile);
+				
+				// Update button visual state
+				if (isValid) {
+					signBtn.classList.remove('btn-secondary');
+					signBtn.classList.add('btn-success');
+					signBtn.style.opacity = '1';
+					signBtn.style.cursor = 'pointer';
+				} else {
+					signBtn.classList.remove('btn-success');
+					signBtn.classList.add('btn-secondary');
+					signBtn.style.opacity = '0.6';
+					signBtn.style.cursor = 'not-allowed';
+				}
+				
+				// Update container border
+				if (consent && !consent.checked) {
+					consentContainer.classList.remove('border-danger', 'bg-danger-light', 'border-success');
+					consentContainer.classList.add('border-secondary');
+				} else {
+					consentContainer.classList.remove('border-danger', 'bg-danger-light', 'border-secondary');
+					consentContainer.classList.add('border-success');
+				}
+			}
+		}
+		
+		// Handle form submit and show feedback if validation fails
+		document.addEventListener('DOMContentLoaded', function() {
+			const form = document.getElementById('contractForm');
+			const signBtn = document.getElementById("signButton");
+			const consent = document.getElementById("eSignConsent");
+			const consentAlert = document.getElementById("consentAlert");
+			const consentContainer = document.getElementById("consentCheckboxContainer");
+			
+			if (form && signBtn && consent) {
+				form.addEventListener('submit', function(e) {
+					const hasInitials = document.getElementById("typed_initials") && document.getElementById("typed_initials").value.trim().length > 0;
+					const hasFile = document.querySelector('input[name="signature_image"]') && document.querySelector('input[name="signature_image"]').files.length > 0;
+					const isValid = consent.checked && (hasInitials || hasFile);
+					
+					if (!isValid) {
+						e.preventDefault();
+						e.stopPropagation();
+						
+						// Show alert
+						if (consentAlert) {
+							consentAlert.style.display = 'block';
+							setTimeout(() => {
+								consentAlert.style.display = 'none';
+							}, 5000);
+						}
+						
+						// Highlight container
+						if (consentContainer) {
+							consentContainer.classList.remove('border-secondary');
+							consentContainer.classList.add('border-danger', 'bg-danger-light');
+							consentContainer.style.animation = 'shake 0.5s';
+							
+							setTimeout(() => {
+								consentContainer.style.animation = '';
+							}, 500);
+						}
+						
+						// Scroll to checkbox and focus
+						setTimeout(() => {
+							consent.scrollIntoView({ behavior: 'smooth', block: 'center' });
+							setTimeout(() => {
+								consent.focus();
+								consent.style.outline = '3px solid #0d6efd';
+								consent.style.outlineOffset = '3px';
+								
+								const label = document.querySelector('label[for="eSignConsent"]');
+								if (label) {
+									label.style.outline = '2px solid #0d6efd';
+									label.style.outlineOffset = '2px';
+								}
+								
+								setTimeout(() => {
+									consent.style.outline = '';
+									consent.style.outlineOffset = '';
+									if (label) {
+										label.style.outline = '';
+										label.style.outlineOffset = '';
+									}
+								}, 3000);
+							}, 300);
+						}, 100);
+						
+						return false;
+					}
+				});
+				
+				// Also handle button click for visual feedback
+				signBtn.addEventListener('click', function(e) {
+					const hasInitials = document.getElementById("typed_initials") && document.getElementById("typed_initials").value.trim().length > 0;
+					const hasFile = document.querySelector('input[name="signature_image"]') && document.querySelector('input[name="signature_image"]').files.length > 0;
+					const isValid = consent.checked && (hasInitials || hasFile);
+					
+					if (!isValid) {
+						// Show alert
+						if (consentAlert) {
+							consentAlert.style.display = 'block';
+							setTimeout(() => {
+								consentAlert.style.display = 'none';
+							}, 5000);
+						}
+						
+						// Highlight container
+						if (consentContainer) {
+							consentContainer.classList.remove('border-secondary');
+							consentContainer.classList.add('border-danger', 'bg-danger-light');
+							consentContainer.style.animation = 'shake 0.5s';
+							
+							setTimeout(() => {
+								consentContainer.style.animation = '';
+							}, 500);
+						}
+						
+						// Scroll to checkbox and focus
+						setTimeout(() => {
+							consent.scrollIntoView({ behavior: 'smooth', block: 'center' });
+							setTimeout(() => {
+								consent.focus();
+								consent.style.outline = '3px solid #0d6efd';
+								consent.style.outlineOffset = '3px';
+								
+								const label = document.querySelector('label[for="eSignConsent"]');
+								if (label) {
+									label.style.outline = '2px solid #0d6efd';
+									label.style.outlineOffset = '2px';
+								}
+								
+								setTimeout(() => {
+									consent.style.outline = '';
+									consent.style.outlineOffset = '';
+									if (label) {
+										label.style.outline = '';
+										label.style.outlineOffset = '';
+									}
+								}, 3000);
+							}, 300);
+						}, 100);
+					}
+				});
+			}
+		});
+
+		function renderAcceptanceSignature() {
+			const initials = document.getElementById("acceptance_typed_initials").value;
+			const box = document.getElementById("acceptanceSignatureBox");
+			const placeholder = box ? box.getAttribute('data-signature-placeholder') || "{{ trans('planner_hub.signature_will_appear')|e('js') }}" : "{{ trans('planner_hub.signature_will_appear')|e('js') }}";
+			box.textContent = initials || placeholder;
 		}
 
 		// Prevenir clics múltiples en botones
@@ -518,14 +892,39 @@
 			if (form) {
 				form.addEventListener('submit', function(e) {
 					const submitButton = form.querySelector('button[type="submit"]');
-					if (submitButton && !submitButton.disabled) {
+					const consent = document.getElementById("eSignConsent");
+					const hasInitials = document.getElementById("typed_initials") && document.getElementById("typed_initials").value.trim().length > 0;
+					const hasFile = document.querySelector('input[name="signature_image"]') && document.querySelector('input[name="signature_image"]').files.length > 0;
+					const isValid = consent && consent.checked && (hasInitials || hasFile);
+					
+					if (submitButton && isValid) {
 						submitButton.disabled = true;
-						submitButton.innerHTML = '⏳ Processing...';
+						submitButton.innerHTML = '⏳ {{ trans('planner_hub.processing')|e('js') }}';
 						submitButton.style.opacity = '0.6';
 
 						window.VnvProcessingModal.show('orderAccessProcessingModal', {
-							title: 'Signing contract...',
-							message: 'We are saving your signature. Please wait.'
+							title: '{{ trans('planner_hub.signing_contract')|e('js') }}',
+							message: '{{ trans('planner_hub.saving_signature')|e('js') }}'
+						});
+					}
+				});
+			}
+			const eSignConsent = document.getElementById('eSignConsent');
+			if (eSignConsent) {
+				eSignConsent.addEventListener('change', toggleContractSubmit);
+			}
+			document.querySelector('input[name="signature_image"]')?.addEventListener('change', toggleContractSubmit);
+			const acceptanceForm = document.querySelector('#acceptanceForm');
+			if (acceptanceForm) {
+				acceptanceForm.addEventListener('submit', function(e) {
+					const submitButton = acceptanceForm.querySelector('button[type="submit"]');
+					if (submitButton && !submitButton.disabled) {
+						submitButton.disabled = true;
+						submitButton.innerHTML = '⏳ {{ trans('planner_hub.processing')|e('js') }}';
+						submitButton.style.opacity = '0.6';
+						window.VnvProcessingModal.show('orderAccessProcessingModal', {
+							title: '{{ trans('planner_hub.saving_acceptance')|e('js') }}',
+							message: '{{ trans('planner_hub.saving_signed_receipt')|e('js') }}'
 						});
 					}
 				});
@@ -563,7 +962,10 @@
 			const timestampField = document.getElementById('userLocalTimestamp');
 			if (timestampField) {
 				timestampField.value = timestamp;
-				console.log('Contract signing - User local timestamp captured:', timestamp);
+			}
+			const acceptanceTimestampField = document.getElementById('acceptanceUserLocalTimestamp');
+			if (acceptanceTimestampField) {
+				acceptanceTimestampField.value = timestamp;
 			}
 
 			const timestampFieldDocuSign = document.getElementById('userLocalTimestampDocuSign');
@@ -573,38 +975,64 @@
 			}
 		});
 
-		{% if isSquareReady and paymentStatus != "complete" %}
+		{% if isPaymentReady and activeProvider and paymentStatus != "complete" and not is_event_past %}
+		{% if activeProvider.provider_type == 'stripe' and stripe_publishable_key %}
+		// Stripe
+		(function() {
+			const stripe = Stripe("{{ stripe_publishable_key|e('js') }}");
+			const elements = stripe.elements();
+			const cardElement = elements.create('card', { style: { base: { fontSize: '16px' } } });
+			cardElement.mount('#payment-card-container');
+
+			const form = document.getElementById('payment-form-element');
+			const payButton = document.getElementById('payment-pay-button');
+			const errorDiv = document.getElementById('payment-card-errors');
+			const tokenInput = document.getElementById('payment-customer-token');
+
+			form.addEventListener('submit', async function(event) {
+				event.preventDefault();
+				payButton.disabled = true;
+				payButton.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>{{ trans('planner_hub.processing')|e('js') }}';
+				errorDiv.textContent = '';
+				window.VnvProcessingModal.show('orderAccessProcessingModal', { title: '{{ trans('planner_hub.processing_payment')|e('js') }}', message: '{{ trans('planner_hub.confirming_payment')|e('js') }}' });
+
+				const { token, error } = await stripe.createToken(cardElement);
+				if (error) {
+					errorDiv.textContent = error.message || '{{ trans('planner_hub.payment_failed_try_again')|e('js') }}';
+					payButton.disabled = false;
+					payButton.innerHTML = '<i class="bi bi-credit-card me-2"></i>{{ trans('planner_hub.pay_now')|e('js') }}';
+					window.VnvProcessingModal.hide('orderAccessProcessingModal');
+					return;
+				}
+				tokenInput.value = token.id;
+				form.submit();
+			});
+		})();
+		{% elseif activeProvider.provider_type == 'square' %}
 		// Square Web Payments SDK
 		(async function() {
 			try {
 				const squareApplicationId = "{{ square_application_id|e('js') }}";
 				const squareLocationId = "{{ square_location_id|e('js') }}";
-				
 				if (!squareApplicationId || !squareLocationId) {
-					console.error('Square credentials not configured');
+					document.getElementById('payment-card-errors').textContent = '{{ trans('planner_hub.square_credentials_not_configured')|e('js') }}';
 					return;
 				}
-
 				const payments = Square.payments(squareApplicationId, squareLocationId);
 				const card = await payments.card();
-				await card.attach('#square-card-container');
+				await card.attach('#payment-card-container');
 
-				const form = document.getElementById('square-payment-form-element');
-				const payButton = document.getElementById('square-pay-button');
-				const errorDiv = document.getElementById('square-card-errors');
-				const tokenInput = document.getElementById('square-customer-token');
+				const form = document.getElementById('payment-form-element');
+				const payButton = document.getElementById('payment-pay-button');
+				const errorDiv = document.getElementById('payment-card-errors');
+				const tokenInput = document.getElementById('payment-customer-token');
 
 				form.addEventListener('submit', async function(event) {
 					event.preventDefault();
-					
 					payButton.disabled = true;
-					payButton.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Processing...';
+					payButton.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>{{ trans('planner_hub.processing')|e('js') }}';
 					errorDiv.textContent = '';
-
-					window.VnvProcessingModal.show('orderAccessProcessingModal', {
-						title: 'Processing payment...',
-						message: 'We are confirming your payment. Please wait.'
-					});
+					window.VnvProcessingModal.show('orderAccessProcessingModal', { title: '{{ trans('planner_hub.processing_payment')|e('js') }}', message: '{{ trans('planner_hub.confirming_payment')|e('js') }}' });
 
 					try {
 						const tokenResult = await card.tokenize();
@@ -612,28 +1040,55 @@
 							tokenInput.value = tokenResult.token;
 							form.submit();
 						} else {
-							let errorMessage = 'Payment failed. Please try again.';
-							if (tokenResult.errors && tokenResult.errors.length > 0) {
-								errorMessage = tokenResult.errors[0].detail || errorMessage;
-							}
-							errorDiv.textContent = errorMessage;
+							errorDiv.textContent = (tokenResult.errors && tokenResult.errors[0]) ? tokenResult.errors[0].detail : '{{ trans('planner_hub.payment_failed_try_again')|e('js') }}';
 							payButton.disabled = false;
-							payButton.innerHTML = '<i class="bi bi-credit-card me-2"></i>Pay Now';
+							payButton.innerHTML = '<i class="bi bi-credit-card me-2"></i>{{ trans('planner_hub.pay_now')|e('js') }}';
 							window.VnvProcessingModal.hide('orderAccessProcessingModal');
 						}
 					} catch (error) {
-						console.error('Square payment error:', error);
-						errorDiv.textContent = 'An error occurred processing your payment. Please try again.';
+						errorDiv.textContent = '{{ trans('planner_hub.error_occurred_try_again')|e('js') }}';
 						payButton.disabled = false;
-						payButton.innerHTML = '<i class="bi bi-credit-card me-2"></i>Pay Now';
+						payButton.innerHTML = '<i class="bi bi-credit-card me-2"></i>{{ trans('planner_hub.pay_now')|e('js') }}';
 						window.VnvProcessingModal.hide('orderAccessProcessingModal');
 					}
 				});
 			} catch (error) {
-				console.error('Error initializing Square:', error);
-				document.getElementById('square-card-errors').textContent = 'Unable to load payment form. Please refresh the page.';
+				document.getElementById('payment-card-errors').textContent = '{{ trans('planner_hub.unable_load_payment_form')|e('js') }}';
 			}
 		})();
+		{% elseif activeProvider.provider_type == 'paypal' and paypal_client_id %}
+		// PayPal
+		(function() {
+			const form = document.getElementById('payment-form-element');
+			const tokenInput = document.getElementById('payment-customer-token');
+			const emailInput = document.getElementById('payment-customer-email');
+			const paymentType = '{% if payment_type == "split" and paymentStatus == "pending_first" %}first{% elseif payment_type == "split" and paymentStatus == "pending_second" %}second{% else %}full{% endif %}';
+			const token = '{{ token|e('js') }}';
+			const createOrderUrl = '{{ base_url|e('js') }}/order-access/paypal-create-order';
+
+			paypal.Buttons({
+				createOrder: function() {
+					return fetch(createOrderUrl, {
+						method: 'POST',
+						headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-Requested-With': 'XMLHttpRequest' },
+						body: 'token=' + encodeURIComponent(token) + '&payment_type=' + encodeURIComponent(paymentType)
+					}).then(function(r) { return r.json(); }).then(function(data) {
+						if (data.success && data.orderId) return data.orderId;
+						throw new Error(data.error || '{{ trans('planner_hub.could_not_create_order')|e('js') }}');
+					});
+				},
+				onApprove: function(data) {
+					tokenInput.value = data.orderID;
+					form.submit();
+				},
+				onError: function(err) {
+					console.error('PayPal error:', err);
+					var errDiv = document.getElementById('payment-card-errors');
+					if (errDiv) errDiv.textContent = err.message || '{{ trans('planner_hub.payment_failed_try_again')|e('js') }}';
+				}
+			}).render('#paypal-button-container');
+		})();
+		{% endif %}
 		{% endif %}
 	</script>
 {% endblock %}

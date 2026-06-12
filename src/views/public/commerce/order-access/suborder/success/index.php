@@ -25,7 +25,7 @@ $router->get(function () {
         "exp" => $decoded["exp"]
     ]), $secret);
 
-    if ($hashCheck !== $decoded["hash"] || time() > $decoded["exp"]) {
+    if (!hash_equals((string)$decoded["hash"], $hashCheck) || time() > $decoded["exp"]) {
         LocationUtils::redirectInternal("/404");
     }
 

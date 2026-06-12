@@ -3,6 +3,8 @@
 use App\Repositories\OrdersRepository;
 use App\Repositories\DocumentsLogsRepository;
 use App\Repositories\OrdersContractRepository;
+use App\Repositories\OrdersAcceptanceContractsRepository;
+use App\Repositories\OrdersAcceptanceContractTemplateRepository;
 use App\Repositories\OrdersPaymentsRepository;
 use App\Repositories\OrdersServicesAssignedRepository;
 use App\Repositories\OrdersServiceRepository;
@@ -15,9 +17,12 @@ use App\Services\OrderCalculatorService;
 use App\Services\NotificationService;
 use App\Services\EmailService;
 use App\Services\DocuSignService;
+use App\Services\LoginService;
 use App\Repositories\SquareAccountsRepository;
+use App\Repositories\PaymentProvidersRepository;
 use App\Repositories\NotificationsRepository;
 use App\Repositories\OrdersStatusHistoryRepository;
+use App\Services\TranslationService;
 use App\Utils\ProcessingModal;
 use App\Repositories\TipsRepository;
 
@@ -43,7 +48,7 @@ $router->get(function () {
         "exp" => $decoded["exp"]
     ]), $secret);
 
-    if ($hashCheck !== $decoded["hash"] || time() > $decoded["exp"]) {
+    if (!hash_equals((string)$decoded["hash"], $hashCheck) || time() > $decoded["exp"]) {
         LocationUtils::redirectInternal("/404");
     }
 
@@ -145,6 +150,8 @@ $router->get(function () {
     $orderRepo = new OrdersRepository();
     $docRepo = new DocumentsLogsRepository();
     $contractRepo = new OrdersContractRepository();
+    $acceptanceRepo = new OrdersAcceptanceContractsRepository();
+    $acceptanceTemplateRepo = new OrdersAcceptanceContractTemplateRepository();
     $paymentRepo = new OrdersPaymentsRepository();
     $assignedRepo = new OrdersServicesAssignedRepository();
     $serviceRepo = new OrdersServiceRepository();
@@ -158,9 +165,46 @@ $router->get(function () {
     if (!$order)
         LocationUtils::redirectInternal("/404");
 
-    $squareRepo = new SquareAccountsRepository();
-    $squareAccount = $squareRepo->getByUser($order->id_owner);
-    $isSquareReady = $squareAccount && $squareAccount->is_verified == 1;
+    $eventDateTs = strtotime((string)($order->event_date ?? ''));
+    $todayTs = strtotime(date('Y-m-d'));
+    $isEventPast = ($eventDateTs !== false) && ($eventDateTs < $todayTs);
+
+    $userRepo = new \App\Repositories\UserRepository();
+    $tokenUser = $userRepo->getOneWithoutOwnership(["id" => (int) ($decoded["user_id"] ?? 0)]);
+    $sessionUser = LoginService::getSession();
+
+    $canViewAllOrders = false;
+    $allOrdersUrl = null;
+
+    if ($tokenUser) {
+        $tokenLevel = (int) ($tokenUser->level ?? 0);
+        $tokenOwnerId = in_array($tokenLevel, [1, 2, 3], true)
+            ? (int) ($tokenUser->id ?? 0)
+            : (int) ($tokenUser->id_owner ?? 0);
+        if (in_array($tokenLevel, [1, 2, 3, 4], true) && $tokenOwnerId === (int) $order->id_owner) {
+            $canViewAllOrders = true;
+        }
+    }
+
+    if (!$canViewAllOrders && $sessionUser) {
+        $sessionLevel = (int) $sessionUser->getLevel();
+        $sessionOwnerId = in_array($sessionLevel, [1, 2, 3], true)
+            ? (int) $sessionUser->getId()
+            : (int) $sessionUser->getOwner();
+        if (in_array($sessionLevel, [1, 2, 3, 4], true) && $sessionOwnerId === (int) $order->id_owner) {
+            $canViewAllOrders = true;
+        }
+    }
+
+    if ($canViewAllOrders) {
+        $allOrdersUrl = (($_ENV["APP_URL"] ?? "http://localhost/vnv-venue") . "/panel/planner-hub/management/orders/orders");
+    }
+
+    $paymentProvidersRepo = new PaymentProvidersRepository();
+    $paymentOwnerId = $paymentProvidersRepo->getPaymentOwnerIdForOrder($order);
+    $activeProvider = $paymentProvidersRepo->getActiveProviderForOwner($paymentOwnerId);
+    $isPaymentReady = $activeProvider && $activeProvider->is_verified && in_array($activeProvider->provider_type, ['stripe', 'square', 'paypal'], true);
+    $isSquareReady = $isPaymentReady && $activeProvider->provider_type === 'square';
 
     $docuSignService = new DocuSignService();
     $isDocuSignReady = $docuSignService->isConfigured();
@@ -181,19 +225,49 @@ $router->get(function () {
     }
 
     $hasSigned = false;
+    $hasSignedAcceptance = false;
     foreach ($docs as $doc) {
         if ($doc->doc_type === 'contract_signed') {
             $hasSigned = true;
-            break;
+        }
+        if ($doc->doc_type === 'order_acceptance_signed') {
+            $hasSignedAcceptance = true;
+        }
+        if ($hasSigned && $hasSignedAcceptance) break;
+    }
+    
+    if (!$hasSignedAcceptance) {
+        $acceptanceContract = $acceptanceRepo->getByOrder($order->id);
+        if ($acceptanceContract) {
+            $hasSignedAcceptance = true;
         }
     }
+
+    $acceptanceTemplate = $acceptanceTemplateRepo->getOrCreateByOwner($order->id_owner);
+    $acceptanceText = $acceptanceTemplate->content ?? TranslationService::trans('planner_hub.accept_order_confirmation');
+    $acceptanceText = str_replace('#ORDER_ID#', 'VNV-341' . $order->id, $acceptanceText);
 
     // Obtener contrato
     $contract = $order->id_contract ? $contractRepo->getByIdWithoutOwnershipCheck($order->id_contract) : null;
 
     // Obtener información del cliente
-    $userRepo = new \App\Repositories\UserRepository();
-    $client = $userRepo->getOne(["id" => $order->id_client]);
+    // Usar getOneWithoutOwnership para asegurar que obtenemos todos los campos incluyendo ui_language
+    $client = $userRepo->getOneWithoutOwnership(["id" => $order->id_client]);
+    
+    // Detectar y establecer el idioma de la interfaz del cliente
+    // Si el cliente tiene ui_language configurado, usarlo; si no, detectar del navegador
+    if ($client && isset($client->ui_language) && !empty($client->ui_language)) {
+        // Establecer el locale del cliente desde la base de datos
+        TranslationService::setLocale($client->ui_language);
+    } else {
+        // Si no hay idioma configurado, detectar del navegador o usar el de la sesión
+        // detectLocale() ya maneja la sesión, cookies y navegador
+        TranslationService::detectLocale();
+    }
+    
+    // Asegurar que el locale esté establecido antes de renderizar
+    // Esto es importante porque TemplateResponse::render() también llama a detectLocale()
+    // pero respetará el locale ya establecido en $_SESSION
 
     // Servicios asignados con nombre y subtotal
     $assigned = $assignedRepo->getAllBy(["id_order" => $order->id]);
@@ -377,9 +451,6 @@ $router->get(function () {
         ];
     }
 
-    $stripeCurrency = strtolower($_ENV["STRIPE_CURRENCY"] ?? 'usd');
-    $stripeCountry = strtoupper($_ENV["STRIPE_COUNTRY"] ?? 'US');
-    
     $payment_type = $order->payment_split_type == 2 ? 'split' : 'one';
     
     $tipSuccess = isset($_GET['tip_success']) && $_GET['tip_success'] == '1';
@@ -403,41 +474,54 @@ $router->get(function () {
         "label" => null,
     ];
 
-    if ($hasSigned && $isSquareReady && $paymentStatus !== 'complete') {
+    if ($hasSigned && $isPaymentReady && $paymentStatus !== 'complete' && !$isEventPast) {
         if ($payment_type === 'one' && $paymentStatus === 'pending_first' && $total > 0) {
             $paymentRequest = [
                 "enabled" => true,
                 "type" => 'full',
                 "amount_cents" => (int) round($total * 100),
-                "label" => sprintf("Order VNV-341%s - Full Payment", $order->id),
+                "label" => TranslationService::trans('planner_hub.order_full_payment_label', ['order_id' => $order->id]),
             ];
         } elseif ($payment_type === 'split' && $paymentStatus === 'pending_first' && $firstPayment > 0) {
             $paymentRequest = [
                 "enabled" => true,
                 "type" => 'first',
                 "amount_cents" => (int) round($firstPayment * 100),
-                "label" => sprintf("Order VNV-341%s - First Installment", $order->id),
+                "label" => TranslationService::trans('planner_hub.order_first_installment', ['order_id' => $order->id]),
             ];
         } elseif ($payment_type === 'split' && $paymentStatus === 'pending_second' && $secondPayment > 0) {
             $paymentRequest = [
                 "enabled" => true,
                 "type" => 'second',
                 "amount_cents" => (int) round($secondPayment * 100),
-                "label" => sprintf("Order VNV-341%s - Remaining Balance", $order->id),
+                "label" => TranslationService::trans('planner_hub.order_remaining_balance', ['order_id' => $order->id]),
             ];
         }
     }
+
+    $currencyCode = strtoupper($order->currency ?? ($activeProvider ? $activeProvider->currency : null) ?? 'USD');
+    $paymentProviderName = '';
+    if ($activeProvider && $isPaymentReady) {
+        $paymentProviderName = ucfirst($activeProvider->provider_type);
+    }
+
+    $baseUrl = $_ENV["APP_URL"] ?? 'http://localhost/vnv-venue';
 
     return TemplateResponse::render(__DIR__ . "/index.twig", [
         "order" => $order,
         "client" => $client,
         "docs" => $docs,
         "token" => $_GET["token"],
+        "base_url" => $baseUrl,
+        "can_view_all_orders" => $canViewAllOrders,
+        "all_orders_url" => $allOrdersUrl,
         "hasSigned" => $hasSigned,
+        "hasSignedAcceptance" => $hasSignedAcceptance,
         "paymentStatus" => $paymentStatus,
         "payment_type" => $order->payment_split_type == 2 ? 'split' : 'one',
 
-        "contract_summary" => $contract ? $contract->content : "No contract assigned",
+        "contract_summary" => $contract ? $contract->content : TranslationService::trans('planner_hub.no_contract_assigned'),
+        "acceptance_text" => $acceptanceText,
         "first_payment_amount" => $firstPayment,
         "second_payment_amount" => $secondPayment,
         "second_payment_original" => $secondPaymentOriginal,
@@ -453,16 +537,30 @@ $router->get(function () {
         "suborders" => $subordersList,
         "isSquareReady" => $isSquareReady,
         "isDocuSignReady" => $isDocuSignReady,
+        "isPaymentReady" => $isPaymentReady,
+        "activeProvider" => $activeProvider ? (object)[
+            "provider_type" => $activeProvider->provider_type,
+            "public_key" => $activeProvider->public_key ?? '',
+            "location_id" => $activeProvider->location_id ?? '',
+            "environment" => $activeProvider->environment ?? 'sandbox',
+            "currency" => $activeProvider->currency ?? 'USD',
+        ] : null,
+        "currency_code" => $currencyCode,
+        "payment_provider_name" => $paymentProviderName,
         "current_status" => $order->status_workflow,
-        "square_application_id" => $_ENV["SQUARE_APPLICATION_ID"] ?? "",
-        "square_location_id" => $_ENV["SQUARE_LOCATION_ID"] ?? "",
-        "square_environment" => $_ENV["SQUARE_ENVIRONMENT"] ?? "sandbox",
+        "square_application_id" => ($activeProvider && $activeProvider->provider_type === 'square') ? ($activeProvider->public_key ?? '') : '',
+        "square_location_id" => ($activeProvider && $activeProvider->provider_type === 'square') ? ($activeProvider->location_id ?? '') : '',
+        "square_environment" => ($activeProvider && $activeProvider->provider_type === 'square') ? ($activeProvider->environment ?? 'sandbox') : 'sandbox',
+        "stripe_publishable_key" => ($activeProvider && $activeProvider->provider_type === 'stripe') ? ($activeProvider->public_key ?? '') : '',
+        "paypal_client_id" => ($activeProvider && $activeProvider->provider_type === 'paypal') ? ($activeProvider->api_key ?? '') : '',
+        "paypal_environment" => ($activeProvider && $activeProvider->provider_type === 'paypal') ? ($activeProvider->environment ?? 'sandbox') : 'sandbox',
         "payment_request" => $paymentRequest,
+        "is_event_past" => $isEventPast,
         "tip_success" => $tipSuccess,
         "last_tip_payment" => $lastTipPayment,
         "processingModal" => ProcessingModal::render("orderAccessProcessingModal", [
-            "title" => "Processing request...",
-            "message" => "We are completing your action. Please wait a few seconds."
+            "title" => TranslationService::trans('planner_hub.processing_request'),
+            "message" => TranslationService::trans('planner_hub.completing_action')
         ]),
         "processingModalScript" => ProcessingModal::script("orderAccessProcessingModal")
     ]);
@@ -472,10 +570,24 @@ $router->get(function () {
 $router->post(function () {
     $token = $_POST["token"] ?? null;
     if (!$token)
-        return Response::createResponse("Token missing");
+        return Response::createResponse(TranslationService::trans('planner_hub.token_missing'));
 
     $secret = $_ENV["VNV_SECRET_KEY"] ?? "mySuperSecretKey";
     $decoded = json_decode(base64_decode($token), true);
+
+    if (!$decoded || !isset($decoded["order_id"], $decoded["user_id"], $decoded["exp"], $decoded["hash"])) {
+        return Response::createResponse(TranslationService::trans('planner_hub.invalid_token'));
+    }
+
+    $hashCheck = hash_hmac("sha256", json_encode([
+        "order_id" => $decoded["order_id"],
+        "user_id" => $decoded["user_id"],
+        "exp" => $decoded["exp"]
+    ]), $secret);
+
+    if (!hash_equals((string)$decoded["hash"], $hashCheck) || time() > $decoded["exp"]) {
+        return Response::createResponse(TranslationService::trans('planner_hub.invalid_token'));
+    }
 
     $orderId = intval($decoded["order_id"]);
     $userId = intval($decoded["user_id"]);
@@ -490,7 +602,11 @@ $router->post(function () {
     }
     
     if (!$order)
-        return Response::createResponse("Order not found");
+        return Response::createResponse(TranslationService::trans('planner_hub.no_orders_found'));
+
+    if ($docRepo->getByType($orderId, 'contract_signed')) {
+        return Response::createResponse(TranslationService::trans('ui.contract_already_signed'));
+    }
 
     if (isset($_POST["docusign_sign"]) && $_POST["docusign_sign"] == "1") {
         try {
@@ -701,42 +817,47 @@ $router->post(function () {
         }
     }
  
-    $filename = null;
     $userLocalTimestamp = $_POST["user_local_timestamp"] ?? null;
-    
-    if (!empty($_FILES["signature_image"]["tmp_name"])) {
-        $filename = FileUtils::saveFile($_FILES["signature_image"], "files/contracts/");
-        // También generar PDF con la hora del usuario cuando se sube imagen
-        $filename = ContractPdfGenerator::generateAndSave($order->id, $userLocalTimestamp);
-    } elseif (!empty($_POST["typed_initials"])) {
-        $filename = ContractPdfGenerator::generateAndSave($order->id, $userLocalTimestamp);
+    $signatureMethod = !empty($_FILES["signature_image"]["tmp_name"]) ? 'upload' : 'initials';
+
+    if (empty($_POST["e_sign_consent"])) {
+        return Response::createResponse(TranslationService::trans('ui.e_sign_consent_required'));
     }
 
+    if (!empty($_FILES["signature_image"]["tmp_name"])) {
+        FileUtils::saveFile($_FILES["signature_image"], "files/contracts/");
+    }
+    if (empty($_FILES["signature_image"]["tmp_name"]) && empty(trim($_POST["typed_initials"] ?? '')))
+        return Response::createResponse(TranslationService::trans('planner_hub.no_signature_provided'));
+
+    $result = ContractPdfGenerator::generateAndSave($order->id, $userLocalTimestamp);
+    $filename = $result['file_path'];
+    $contentHash = $result['hash'];
+
     if (!$filename)
-        return Response::createResponse("No signature provided");
+        return Response::createResponse(TranslationService::trans('planner_hub.no_signature_provided'));
 
-    // Usar hora local del usuario si está disponible, sino usar hora del servidor
-    $userLocalTimestamp = $_POST["user_local_timestamp"] ?? null;
-    $generatedAt = $userLocalTimestamp ? $userLocalTimestamp : date("Y-m-d H:i:s");
+    $generatedAt = $userLocalTimestamp ?: date("Y-m-d H:i:s");
 
-    // Guardar documento de contrato firmado
     $docResult = $docRepo->add([
         "id_order" => $orderId,
         "id_user" => $userId,
         "doc_type" => "contract_signed",
         "file_path" => $filename,
-        "hash" => hash_file("sha256", $filename),
-        "ip" => $_SERVER["REMOTE_ADDR"],
+        "hash" => $contentHash,
+        "ip" => $_SERVER["REMOTE_ADDR"] ?? '',
         "user_agent" => $_SERVER["HTTP_USER_AGENT"] ?? '',
-        "extra" => json_encode(["method" => $_FILES["signature_image"] ? "upload" : "initials"]),
+        "extra" => json_encode([
+            "method" => $signatureMethod,
+            "e_sign_consent" => true,
+            "document_id" => "VNV-341" . $orderId,
+        ]),
         "generated_at" => $generatedAt
     ]);
 
     $orderRepo->update(
-        [
-            "status_workflow" => "INVOICE_READY"
-        ], 
-        ["id" => $orderId]             
+        ["status_workflow" => "INVOICE_READY"],
+        ["id" => $orderId]
     );
 
     $statusHistoryRepo = new \App\Repositories\OrdersStatusHistoryRepository();
@@ -745,41 +866,55 @@ $router->post(function () {
         "status" => "INVOICE_READY",
         "action_type" => "contract_signed",
         "file_path" => $filename,
-        "note" => "Contract signed by client",
+        "note" => TranslationService::trans('planner_hub.contract_signed_by_client', ['hash' => substr($contentHash, 0, 16)]),
         "created_by" => $userId,
     ]);
 
+    $publicOrderUrl = ($_ENV["APP_URL"] ?? "vnv-venue") . "/order-access?token=" . $token;
+
+    // Notificación al propietario de la orden
     $notificationsRepo->add([
         "id_user" => $order->id_owner,
-        "mensaje" => "✍️ Contract Signed - The client has successfully signed the contract for order #VNV341" . $order->id,
-        "link" => ($_ENV["APP_URL"] ?? "vnv-venue") . "/panel/planner-hub/management/orders/orders",
+        "mensaje" => "✍️ " . TranslationService::trans('planner_hub.contract_signed', ['order_id' => $order->id]),
+        "link" => $publicOrderUrl,
         "leido" => 0
     ]);
 
     $notificationsRepo->add([
         "id_user" => $userId,
-        "mensaje" => "✅ Contract Signed Successfully - Your contract for order #VNV341" . $order->id . " has been signed and is now ready for payment.",
-        "link" => ($_ENV["APP_URL"] ?? "vnv-venue") . "/order-access?token=" . urlencode($token),
+        "mensaje" => "✅ " . TranslationService::trans('planner_hub.contract_signed_successfully', ['order_id' => $order->id]),
+        "link" => $publicOrderUrl,
         "leido" => 0
     ]);
 
+    // Envío de correo al cliente (usar SMTP del owner de la orden)
     try {
-        $emailService = new EmailService();
+        // Usar el id_owner de la orden para las credenciales SMTP del owner (panel/planner-hub/settings/smtp)
+        $emailService = new EmailService($order->id_owner);
         
-        // Obtener información del cliente
+        // Obtener información del cliente (sin filtro de ownership)
         $userRepo = new \App\Repositories\UserRepository();
-        $client = $userRepo->getOne(["id" => $userId]);
+        $client = $userRepo->getOneWithoutOwnership(["id" => $userId]);
         
         if ($client && $client->email) {
-            $subject = "VNV-Events - ✅ Contract Signed Successfully - Order #VNV341" . $order->id;
+            // Obtener el idioma del sistema del owner para el correo
+            $owner = $userRepo->getOneWithoutOwnership(["id" => $order->id_owner]);
+            // Acceder directamente a la propiedad system_language del objeto de BD
+            $systemLanguage = ($owner && isset($owner->system_language) && !empty($owner->system_language)) ? $owner->system_language : 'en';
             
-            // Preparar datos para el template
+            // Establecer el locale para el correo según el system_language del owner
+            TranslationService::setLocale($systemLanguage);
+            
+            $subject = "VNV-Events - ✅ " . TranslationService::trans('planner_hub.contract_signed_successfully', ['order_id' => $order->id]);
+            
+            // Preparar datos para el template (incluir traducciones)
             $templateData = [
                 'orderId' => $order->id,
                 'eventDate' => date("F j, Y", strtotime($order->event_date)),
                 'eventTime' => date("g:i A", strtotime($order->start_time)) . ' to ' . date("g:i A", strtotime($order->end_time)),
                 'location' => $order->address,
-                'orderUrl' => ($_ENV["APP_URL"] ?? "http://localhost/vnv-venue") . "/order-access?token=" . urlencode($token)
+                'orderUrl' => ($_ENV["APP_URL"] ?? "http://localhost/vnv-venue") . "/order-access?token=" . urlencode($token),
+                'locale' => $systemLanguage // Pasar el locale al template
             ];
             
             // Usar template de correo usando helper similar al path() de Twig
@@ -800,13 +935,11 @@ $router->post(function () {
             error_log("Client email not found for user ID: " . $userId);
         }
         
-    } catch (Exception $e) {
+    } catch (\Throwable $e) {
         error_log("Error sending contract signed email: " . $e->getMessage());
     }
 
-    $redirectUrl = "order-access?token=" . urlencode($token) . "&t=" . time();
-    error_log("Redirecting to: " . $redirectUrl);
-    LocationUtils::redirectInternal($redirectUrl);
+    LocationUtils::redirectInternal("order-access?token=" . urlencode($token) . "&t=" . time());
 });
 
 $router->run();

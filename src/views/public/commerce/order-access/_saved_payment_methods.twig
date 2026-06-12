@@ -1,0 +1,33 @@
+{% if supports_future_payment_methods %}
+    {% if can_use_saved_payment_methods and saved_payment_methods|length > 0 %}
+        <div class="mb-3" id="saved-payment-method-section">
+            <label class="form-label fw-bold">Saved payment method</label>
+            <select name="saved_payment_method_id" id="saved-payment-method-id" class="form-select form-select-lg">
+                <option value="">Use a new card</option>
+                {% for method in saved_payment_methods %}
+                    <option value="{{ method.id }}">
+                        {{ method.brand|default(method.payment_provider|capitalize) }} **** {{ method.last4|default('----') }}
+                        {% if method.exp_month and method.exp_year %} - {{ "%02d"|format(method.exp_month) }}/{{ method.exp_year }}{% endif %}
+                    </option>
+                {% endfor %}
+            </select>
+            <div class="form-text">Only methods saved for this business and active provider are shown.</div>
+        </div>
+    {% endif %}
+
+    <div class="border rounded p-3 mb-3 bg-light" id="new-payment-method-options">
+        <div class="form-check mb-2">
+            <input class="form-check-input" type="checkbox" value="1" id="save-payment-method" name="save_payment_method">
+            <label class="form-check-label" for="save-payment-method">
+                Save this payment method for future purchases/payments.
+            </label>
+        </div>
+        <div class="form-check">
+            <input class="form-check-input" type="checkbox" value="1" id="auto-charge-consent" name="auto_charge_consent">
+            <label class="form-check-label" for="auto-charge-consent">
+                {{ payment_consent_text }}
+            </label>
+        </div>
+        <small class="text-muted d-block mt-2">Consent version {{ payment_consent_version }}. Both options are optional and unchecked by default.</small>
+    </div>
+{% endif %}

@@ -62,22 +62,22 @@
 <div class="success-container">
     <div class="success-card">
         <div class="success-icon">✅</div>
-        <div class="suborder-badge">📋 Sub-Order Payment</div>
-        <h1 class="success-title">Payment Successful!</h1>
+        <div class="suborder-badge">📋 {{ trans('planner_hub.suborder_payment') }}</div>
+        <h1 class="success-title">{{ trans('planner_hub.payment_successful') }}</h1>
         <p class="success-message">
-            Your payment for Sub-Order #{{ suborder.id }} has been processed successfully.
+            {{ trans('planner_hub.payment_processed_successfully_suborder', {'suborder_id': suborder.id}) }}
         </p>
         
         <div class="alert alert-info">
-            <h5>📋 Payment Details</h5>
-            <p><strong>Parent Order:</strong> VNV-341{{ parentOrder.id }}</p>
-            <p><strong>Sub-Order:</strong> #{{ suborder.id }}</p>
-            <p><strong>Status:</strong> Payment Completed</p>
+            <h5>📋 {{ trans('planner_hub.payment_details') }}</h5>
+            <p><strong>{{ trans('planner_hub.parent_order_label') }}</strong> VNV-341{{ parentOrder.id }}</p>
+            <p><strong>{{ trans('planner_hub.suborder_id_label') }}</strong> #{{ suborder.id }}</p>
+            <p><strong>{{ trans('planner_hub.status') }}:</strong> {{ trans('planner_hub.payment_completed') }}</p>
         </div>
         
         <div class="mt-4">
             <a href="{{ path('order-access/suborder?token=' ~ token) }}" class="btn-primary">
-                ← Back to Sub-Order
+                {{ trans('planner_hub.back_to_suborder') }}
             </a>
         </div>
     </div>

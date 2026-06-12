@@ -4,8 +4,9 @@ use App\Utils\TemplateResponse;
 use App\Utils\LocationUtils;
 use App\Repositories\OrdersRepository;
 use App\Repositories\OrdersPaymentsRepository;
-use App\Repositories\SquareAccountsRepository;
+use App\Repositories\PaymentProvidersRepository;
 use App\Repositories\TipsRepository;
+use App\Services\OrderAccessSavedPaymentMethodService;
 
 $token = $_GET["token"] ?? null;
 $next = $_GET["next"] ?? null;
@@ -38,6 +39,8 @@ if ($next === "second") {
 
 $showTipOption = false;
 $orderTotal = 0;
+$activeProvider = null;
+$paymentOwnerId = null;
 
 if (empty($order->id_tip) && empty($next) && !empty($order->id_owner)) {
     $paymentsRepo = new OrdersPaymentsRepository();
@@ -55,10 +58,12 @@ if (empty($order->id_tip) && empty($next) && !empty($order->id_owner)) {
     $orderTotal = $orderRepo->calculateTotal($orderId);
     
     if ($totalPaid >= $orderTotal) {
-        $showTipOption = true;
-        
-        $accountRepo = new SquareAccountsRepository();
-        $squareAccount = $accountRepo->getByUser((int)$order->id_owner);
+        $paymentProvidersRepo = new PaymentProvidersRepository();
+        $paymentOwnerId = $paymentProvidersRepo->getPaymentOwnerIdForOrder($order);
+        $activeProvider = $paymentProvidersRepo->getActiveProviderForOwner($paymentOwnerId);
+        if ($activeProvider && $activeProvider->is_verified && in_array($activeProvider->provider_type, ['stripe', 'square', 'paypal'], true)) {
+            $showTipOption = true;
+        }
     }
 }
 
@@ -80,6 +85,39 @@ if (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') {
     $baseUrl = str_replace('http://', 'https://', $baseUrl);
 }
 
+$squareAppId = '';
+$squareLocId = '';
+$squareEnv = 'sandbox';
+$stripePublishableKey = '';
+$paypalClientId = '';
+$paypalEnvironment = 'sandbox';
+$currencyCode = strtoupper($order->currency ?? ($activeProvider ? $activeProvider->currency : null) ?? 'USD');
+$paymentProviderName = '';
+$savedPaymentViewData = [
+    'can_use_saved_payment_methods' => false,
+    'saved_payment_methods' => [],
+    'supports_future_payment_methods' => false,
+    'payment_consent_text' => '',
+    'payment_consent_version' => '',
+];
+
+if ($activeProvider) {
+    if ($activeProvider->provider_type === 'square') {
+        $squareAppId = $activeProvider->public_key ?? '';
+        $squareLocId = $activeProvider->location_id ?? '';
+        $squareEnv = $activeProvider->environment ?? 'sandbox';
+    } elseif ($activeProvider->provider_type === 'stripe') {
+        $stripePublishableKey = $activeProvider->public_key ?? '';
+    } elseif ($activeProvider->provider_type === 'paypal') {
+        $paypalClientId = $activeProvider->api_key ?? '';
+        $paypalEnvironment = $activeProvider->environment ?? 'sandbox';
+    }
+    $paymentProviderName = ucfirst($activeProvider->provider_type);
+    if ($paymentOwnerId) {
+        $savedPaymentViewData = (new OrderAccessSavedPaymentMethodService())->viewDataForOrder($order, (int)$paymentOwnerId, (string)$activeProvider->provider_type);
+    }
+}
+
 echo TemplateResponse::render(__DIR__ . "/index.twig", [
     "token" => $token,
     "next_url" => $nextUrl,
@@ -88,8 +126,21 @@ echo TemplateResponse::render(__DIR__ . "/index.twig", [
     "order_total" => $orderTotal,
     "suggested_tips" => $suggestedTips,
     "client_email" => $clientEmail,
-    "square_application_id" => $_ENV["SQUARE_APPLICATION_ID"] ?? "",
-    "square_location_id" => $_ENV["SQUARE_LOCATION_ID"] ?? "",
-    "square_environment" => $_ENV["SQUARE_ENVIRONMENT"] ?? "sandbox",
+    "activeProvider" => $activeProvider ? (object)[
+        "provider_type" => $activeProvider->provider_type,
+        "public_key" => $activeProvider->public_key ?? '',
+        "location_id" => $activeProvider->location_id ?? '',
+        "environment" => $activeProvider->environment ?? 'sandbox',
+        "currency" => $activeProvider->currency ?? 'USD',
+    ] : null,
+    "currency_code" => $currencyCode,
+    "payment_provider_name" => $paymentProviderName,
+    "square_application_id" => $squareAppId,
+    "square_location_id" => $squareLocId,
+    "square_environment" => $squareEnv,
+    "stripe_publishable_key" => $stripePublishableKey,
+    "paypal_client_id" => $paypalClientId,
+    "paypal_environment" => $paypalEnvironment,
+    "active_provider_type" => $activeProvider ? $activeProvider->provider_type : null,
     "base_url" => $baseUrl
-]);
+] + $savedPaymentViewData);

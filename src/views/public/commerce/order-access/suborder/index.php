@@ -14,9 +14,10 @@ use App\Utils\FileUtils;
 use App\Services\ContractPdfGenerator;
 use App\Services\OrderCalculatorService;
 use App\Services\NotificationService;
-use App\Repositories\SquareAccountsRepository;
+use App\Repositories\PaymentProvidersRepository;
 use App\Repositories\NotificationsRepository;
 use App\Repositories\OrdersStatusHistoryRepository;
+use App\Services\TranslationService;
 use App\Utils\ProcessingModal;
 
 $router = new \App\Utils\Router();
@@ -40,7 +41,7 @@ $router->get(function () {
         "exp" => $decoded["exp"]
     ]), $secret);
 
-    if ($hashCheck !== $decoded["hash"] || time() > $decoded["exp"]) {
+    if (!hash_equals((string)$decoded["hash"], $hashCheck) || time() > $decoded["exp"]) {
         LocationUtils::redirectInternal("/404");
     }
 
@@ -65,9 +66,11 @@ $router->get(function () {
     if (!$parentOrder)
         LocationUtils::redirectInternal("/404");
 
-    $squareRepo = new SquareAccountsRepository();
-    $squareAccount = $squareRepo->getByUser($parentOrder->id_owner);
-    $isSquareReady = $squareAccount && $squareAccount->is_verified == 1;
+    $paymentProvidersRepo = new PaymentProvidersRepository();
+    $paymentOwnerId = $paymentProvidersRepo->getPaymentOwnerIdForOrder($parentOrder);
+    $activeProvider = $paymentProvidersRepo->getActiveProviderForOwner($paymentOwnerId);
+    $isPaymentReady = $activeProvider && $activeProvider->is_verified && in_array($activeProvider->provider_type, ['stripe', 'square', 'paypal'], true);
+    $isSquareReady = $isPaymentReady && $activeProvider->provider_type === 'square';
 
     // Verificar si ya se firmó el contrato de la orden padre
     $docs = $docRepo->getAllByOrder($parentOrder->id);
@@ -172,12 +175,14 @@ $router->get(function () {
         "exp" => $orderPayload["exp"]
     ]), $secret);
     $orderToken = base64_encode(json_encode($orderPayload));
+    $baseUrl = $_ENV["APP_URL"] ?? 'http://localhost/vnv-venue';
 
     return TemplateResponse::render(__DIR__ . "/index.twig", [
         "suborder" => $suborder,
         "parentOrder" => $parentOrder,
         "docs" => $docs,
         "token" => $_GET["token"],
+        "base_url" => $baseUrl,
         "parent_order_token" => $orderToken,
         "hasSigned" => $hasSigned,
         "paymentStatus" => $paymentStatus,
@@ -195,14 +200,16 @@ $router->get(function () {
         "advances_total" => $sumAdvances,
 
         "services" => $servicesFormatted,
+        "currency_code" => strtoupper($parentOrder->currency ?? ($activeProvider ? $activeProvider->currency : null) ?? 'USD'),
         "isSquareReady" => $isSquareReady,
-        "square_application_id" => $_ENV["SQUARE_APPLICATION_ID"] ?? "",
-        "square_location_id" => $_ENV["SQUARE_LOCATION_ID"] ?? "",
-        "square_environment" => $_ENV["SQUARE_ENVIRONMENT"] ?? "sandbox",
+        "isPaymentReady" => $isPaymentReady,
+        "square_application_id" => ($activeProvider && $activeProvider->provider_type === 'square') ? ($activeProvider->public_key ?? '') : '',
+        "square_location_id" => ($activeProvider && $activeProvider->provider_type === 'square') ? ($activeProvider->location_id ?? '') : '',
+        "square_environment" => ($activeProvider && $activeProvider->provider_type === 'square') ? ($activeProvider->environment ?? 'sandbox') : 'sandbox',
         "current_status" => $parentOrder->status_workflow,
         "processingModal" => ProcessingModal::render("orderAccessProcessingModal", [
-            "title" => "Processing request...",
-            "message" => "We are completing your action. Please wait a few seconds."
+            "title" => TranslationService::trans('planner_hub.processing_request'),
+            "message" => TranslationService::trans('planner_hub.completing_action')
         ]),
         "processingModalScript" => ProcessingModal::script("orderAccessProcessingModal")
     ]);
@@ -212,10 +219,24 @@ $router->get(function () {
 $router->post(function () {
     $token = $_POST["token"] ?? null;
     if (!$token)
-        return Response::createResponse("Token missing");
+        return Response::createResponse(TranslationService::trans('planner_hub.token_missing'));
 
     $secret = $_ENV["VNV_SECRET_KEY"] ?? "mySuperSecretKey";
     $decoded = json_decode(base64_decode($token), true);
+
+    if (!$decoded || !isset($decoded["suborder_id"], $decoded["user_id"], $decoded["exp"], $decoded["hash"])) {
+        return Response::createResponse(TranslationService::trans('planner_hub.invalid_token'));
+    }
+
+    $hashCheck = hash_hmac("sha256", json_encode([
+        "suborder_id" => $decoded["suborder_id"],
+        "user_id" => $decoded["user_id"],
+        "exp" => $decoded["exp"]
+    ]), $secret);
+
+    if (!hash_equals((string)$decoded["hash"], $hashCheck) || time() > $decoded["exp"]) {
+        return Response::createResponse(TranslationService::trans('planner_hub.invalid_token'));
+    }
 
     $suborderId = intval($decoded["suborder_id"]);
     $userId = intval($decoded["user_id"]);
@@ -230,45 +251,53 @@ $router->post(function () {
         $suborder = (object)$suborder;
     }
     if (!$suborder)
-        return Response::createResponse("Suborder not found");
+        return Response::createResponse(TranslationService::trans('planner_hub.suborder_not_found'));
 
     $parentOrder = $orderRepo->getByIdWithoutOwnershipCheck($suborder->id_order);
     if ($parentOrder) {
         $parentOrder = (object)$parentOrder;
     }
     if (!$parentOrder)
-        return Response::createResponse("Parent order not found");
+        return Response::createResponse(TranslationService::trans('planner_hub.parent_order_not_found'));
 
-    $filename = null;
-    $userLocalTimestamp = $_POST["user_local_timestamp"] ?? null;
-    
-    if (!empty($_FILES["signature_image"]["tmp_name"])) {
-        $filename = FileUtils::saveFile($_FILES["signature_image"], "files/contracts/");
-        // También generar PDF con la hora del usuario cuando se sube imagen
-        $filename = ContractPdfGenerator::generateAndSave($parentOrder->id, $userLocalTimestamp);
-    } elseif (!empty($_POST["typed_initials"])) {
-        $filename = ContractPdfGenerator::generateAndSave($parentOrder->id, $userLocalTimestamp);
+    if ($docRepo->getByType((int)$parentOrder->id, 'contract_signed')) {
+        return Response::createResponse(TranslationService::trans('ui.contract_already_signed'));
     }
 
-    if (!$filename)
-        return Response::createResponse("No signature provided");
-
-    // Usar hora local del usuario si está disponible, sino usar hora del servidor
     $userLocalTimestamp = $_POST["user_local_timestamp"] ?? null;
-    $generatedAt = $userLocalTimestamp ? $userLocalTimestamp : date("Y-m-d H:i:s");
+    if (empty($_POST["e_sign_consent"])) {
+        return Response::createResponse(TranslationService::trans('ui.e_sign_consent_required'));
+    }
 
-    // Guardar documento de contrato firmado
-    $docResult = $docRepo->add([
+    if (!empty($_FILES["signature_image"]["tmp_name"])) {
+        FileUtils::saveFile($_FILES["signature_image"], "files/contracts/");
+    }
+    if (empty($_FILES["signature_image"]["tmp_name"]) && empty(trim($_POST["typed_initials"] ?? '')))
+        return Response::createResponse(TranslationService::trans('planner_hub.no_signature_provided'));
+
+    $result = ContractPdfGenerator::generateAndSave($parentOrder->id, $userLocalTimestamp);
+    $filename = $result['file_path'];
+    $contentHash = $result['hash'];
+
+    if (!$filename)
+        return Response::createResponse(TranslationService::trans('planner_hub.no_signature_provided'));
+
+    $generatedAt = $userLocalTimestamp ?: date("Y-m-d H:i:s");
+    $signatureMethod = !empty($_FILES["signature_image"]["tmp_name"]) ? 'upload' : 'initials';
+
+    $docRepo->add([
         "id_order" => $parentOrder->id,
         "id_user" => $userId,
         "doc_type" => "contract_signed",
         "file_path" => $filename,
-        "hash" => hash_file("sha256", $filename),
-        "ip" => $_SERVER["REMOTE_ADDR"],
+        "hash" => $contentHash,
+        "ip" => $_SERVER["REMOTE_ADDR"] ?? '',
         "user_agent" => $_SERVER["HTTP_USER_AGENT"] ?? '',
         "extra" => json_encode([
-            "method" => $_FILES["signature_image"] ? "upload" : "initials",
-            "suborder_id" => $suborderId
+            "method" => $signatureMethod,
+            "e_sign_consent" => true,
+            "suborder_id" => $suborderId,
+            "document_id" => "VNV-341" . $parentOrder->id,
         ]),
         "generated_at" => $generatedAt
     ]);
@@ -286,15 +315,21 @@ $router->post(function () {
             "status" => "INVOICE_READY",
             "action_type" => "contract_signed",
             "file_path" => $filename,
-            "note" => "Contract signed by client for suborder #" . $suborderId,
+            "note" => TranslationService::trans('planner_hub.contract_signed_for_suborder', ['suborder_id' => $suborderId]),
             "created_by" => $userId,
         ]);
     }
 
+    // Enlace público para la suborden firmada (para owner y cliente)
+    $publicSuborderUrl = ($_ENV["APP_URL"] ?? "vnv-venue") . "/order-access/suborder?token=" . $token;
+
     $notificationsRepo->add([
         "id_user" => $parentOrder->id_owner,
-        "mensaje" => "✍️ Contract Signed - The client has successfully signed the contract for suborder #" . $suborderId . " of order #VNV341" . $parentOrder->id,
-        "link" => ($_ENV["APP_URL"] ?? "vnv-venue") . "/panel/planner-hub/management/orders/orders/suborders?id=" . $parentOrder->id,
+        "mensaje" => "✍️ " . TranslationService::trans('planner_hub.contract_signed_suborder_notification', [
+            'suborder_id' => $suborderId,
+            'order_id' => $parentOrder->id
+        ]),
+        "link" => $publicSuborderUrl,
         "leido" => 0
     ]);
 

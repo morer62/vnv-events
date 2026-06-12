@@ -3,18 +3,20 @@
 use App\Repositories\OrdersRepository;
 use App\Repositories\OrdersPaymentsRepository;
 use App\Repositories\OrdersStatusHistoryRepository;
-use App\Repositories\SquareAccountsRepository;
+use App\Repositories\PaymentProvidersRepository;
 use App\Repositories\TipsRepository;
 use App\Services\OrderCalculatorService;
 use App\Services\NotificationService;
 use App\Services\PaymentNotificationService;
-use App\Services\SquareServiceV2;
+use App\Services\Payment\PaymentProviderFactory;
+use App\Services\OrderAccessSavedPaymentMethodService;
 use App\Utils\LocationUtils;
 use App\Utils\TemplateResponse;
 use App\Utils\Response;
 use App\Utils\Router;
 use App\Repositories\DocumentsLogsRepository;
 use App\Services\PaymentReceiptPdfGenerator;
+use App\Services\TranslationService;
 use App\Utils\ProcessingModal;
 
 ini_set('display_errors', 1);
@@ -39,9 +41,18 @@ $router->get(function () {
     }
     if (!$order) LocationUtils::redirectInternal("/404");
 
-    $accountRepo = new SquareAccountsRepository();
-    $account = $accountRepo->getByUser($order->id_owner);
-    if (!$account || empty($account->square_account_id)) {
+    $eventDateTs = strtotime((string)($order->event_date ?? ''));
+    $todayTs = strtotime(date('Y-m-d'));
+    if ($eventDateTs !== false && $eventDateTs < $todayTs) {
+        return TemplateResponse::render(__DIR__ . "/error.twig", [
+            "error" => "This event date has already passed. Payments are no longer available."
+        ]);
+    }
+
+    $paymentProvidersRepo = new PaymentProvidersRepository();
+    $paymentOwnerId = $paymentProvidersRepo->getPaymentOwnerIdForOrder($order);
+    $activeProvider = $paymentProvidersRepo->getActiveProviderForOwner($paymentOwnerId);
+    if (!$activeProvider || !$activeProvider->is_verified || !in_array($activeProvider->provider_type, ['stripe', 'square', 'paypal'], true)) {
         LocationUtils::redirectInternal("/404");
     }
 
@@ -107,29 +118,43 @@ $router->get(function () {
     
         // For first installment, calculate on remaining balance after advances
     $firstAmount = round($total * $firstPercent / 100, 2);
-    $paymentRequestLabel = sprintf("Order VNV-341%s - First Payment", $order->id);
+    $paymentRequestLabel = TranslationService::trans('planner_hub.order_first_payment', ['order_id' => $order->id]);
     $firstAmountCents = (int) round($firstAmount * 100);
+
+    $squareAppId = ($activeProvider->provider_type === 'square') ? ($activeProvider->public_key ?? '') : '';
+    $squareLocId = ($activeProvider->provider_type === 'square') ? ($activeProvider->location_id ?? '') : '';
+    $squareEnv = ($activeProvider->provider_type === 'square') ? ($activeProvider->environment ?? 'sandbox') : 'sandbox';
+    $stripePublishableKey = ($activeProvider->provider_type === 'stripe') ? ($activeProvider->public_key ?? '') : '';
+    $paypalClientId = ($activeProvider->provider_type === 'paypal') ? ($activeProvider->api_key ?? '') : '';
+    $paypalEnvironment = ($activeProvider->provider_type === 'paypal') ? ($activeProvider->environment ?? 'sandbox') : 'sandbox';
+    $baseUrl = $_ENV["APP_URL"] ?? 'http://localhost/vnv-venue';
+    $savedPaymentService = new OrderAccessSavedPaymentMethodService();
+    $savedPaymentViewData = $savedPaymentService->viewDataForOrder($order, (int)$paymentOwnerId, (string)$activeProvider->provider_type);
 
     return TemplateResponse::render(__DIR__ . "/index.twig", [
         "token" => $token,
         "order" => $order,
+        "base_url" => $baseUrl,
         "first_payment_amount" => $firstAmount,
-        "square_application_id" => $_ENV["SQUARE_APPLICATION_ID"] ?? "",
-        "square_location_id" => $_ENV["SQUARE_LOCATION_ID"] ?? "",
-        "square_environment" => $_ENV["SQUARE_ENVIRONMENT"] ?? "sandbox",
+        "active_provider_type" => $activeProvider->provider_type,
+        "square_application_id" => $squareAppId,
+        "square_location_id" => $squareLocId,
+        "square_environment" => $squareEnv,
+        "stripe_publishable_key" => $stripePublishableKey,
+        "paypal_client_id" => $paypalClientId,
+        "paypal_environment" => $paypalEnvironment,
+        "currency_code" => strtoupper($order->currency ?? ($activeProvider ? $activeProvider->currency : null) ?? 'USD'),
         "payment_request_label" => $paymentRequestLabel,
         "total_amount_cents" => $firstAmountCents,
         "processingModal" => ProcessingModal::render("orderAccessProcessingModal", [
-            "title" => "Processing first payment...",
-            "message" => "We are confirming your payment. Please wait."
+            "title" => TranslationService::trans('planner_hub.processing_first_payment'),
+            "message" => TranslationService::trans('planner_hub.we_are_confirming_payment')
         ]),
         "processingModalScript" => ProcessingModal::script("orderAccessProcessingModal")
-    ]);
+    ] + $savedPaymentViewData);
 });
 
 $router->post(function () {
-
-    $squareService = new SquareServiceV2();
     $token = $_POST["token"] ?? null;
     $decoded = json_decode(base64_decode($token), true);
     if (!$decoded || !isset($decoded["order_id"])) return Response::createResponse("Invalid token");
@@ -142,15 +167,24 @@ $router->post(function () {
     }
     if (!$order) {
         return TemplateResponse::render(__DIR__ . "/error.twig", [
-            "error" => "Order not found"
+            "error" => TranslationService::trans('planner_hub.no_orders_found')
         ]);
     }
 
-    $accountRepo = new SquareAccountsRepository();
-    $account = $accountRepo->getByUser($order->id_owner);
-    if (!$account || empty($account->square_account_id)) {
+    $eventDateTs = strtotime((string)($order->event_date ?? ''));
+    $todayTs = strtotime(date('Y-m-d'));
+    if ($eventDateTs !== false && $eventDateTs < $todayTs) {
         return TemplateResponse::render(__DIR__ . "/error.twig", [
-            "error" => "Owner can receive payments"
+            "error" => "This event date has already passed. Payments are no longer available."
+        ]);
+    }
+
+    $paymentProvidersRepo = new PaymentProvidersRepository();
+    $paymentOwnerId = $paymentProvidersRepo->getPaymentOwnerIdForOrder($order);
+    $activeProvider = $paymentProvidersRepo->getActiveProviderForOwner($paymentOwnerId);
+    if (!$activeProvider || !$activeProvider->is_verified || !in_array($activeProvider->provider_type, ['stripe', 'square', 'paypal'], true)) {
+        return TemplateResponse::render(__DIR__ . "/error.twig", [
+            "error" => TranslationService::trans('planner_hub.payment_system_not_configured')
         ]);
     }
 
@@ -234,111 +268,101 @@ $router->post(function () {
     }
 
     $cardToken = $_POST["customer_token"] ?? null;
+    $savedPaymentMethodId = (int)($_POST["saved_payment_method_id"] ?? 0);
     $customerEmail = trim($_POST["customer_email"] ?? "");
+    $billingAddress = trim($_POST["billing_address"] ?? "");
+    $billingZip = trim((string)($_POST["billing_zip"] ?? ""));
 
-    if (!$cardToken || !$customerEmail) {
-        return TemplateResponse::render(__DIR__ . "/error.twig", [
-            "error" => "Missing payment data"
-        ]);
-    }
-
-    $customer = $squareService->getCustomerOnConnectedAccount($customerEmail, $account->square_account_id);
-
-    if (!$customer) {
-        // Si el customer no existe, crearlo con el token
-        $customer = $squareService->createCustomerWithCardOnConnectedAccount(
-            $cardToken,
-            $customerEmail,
-            $customerName,
-            $account->square_account_id
-        );
-        
-        if (!$customer) {
-            return TemplateResponse::render(__DIR__ . "/error.twig", [
-                "error" => "Failed to create customer"
-            ]);
+    if ((!$cardToken && $savedPaymentMethodId <= 0) || !$customerEmail || ($savedPaymentMethodId <= 0 && $activeProvider->provider_type === 'stripe' && $billingZip === '')) {
+        $logDir = \App\Utils\LocationUtils::getRootLocation() . '/.logs';
+        $logFile = $logDir . '/app_error_' . date('Y-m-d') . '.log';
+        if (is_dir($logDir)) {
+            $msg = "\n[order-access/first POST] Missing payment data. order_id=" . ($order->id ?? '') . " has_token=" . ($cardToken ? 'yes' : 'no') . " has_email=" . ($customerEmail !== '' ? 'yes' : 'no') . " provider=" . ($activeProvider->provider_type ?? '') . "\n";
+            @file_put_contents($logFile, date('c') . $msg, FILE_APPEND);
         }
-    }
-
-    $charge = $squareService->chargeCustomerOnConnectedAccount(
-        $customer->getId(),
-        $firstAmount,
-        $account->square_account_id,
-        $cardToken
-    );
-
-    if (!$charge) {
-        error_log("[SQUARE PAYMENT] Failed to create charge - chargeCustomerOnConnectedAccount returned null");
         return TemplateResponse::render(__DIR__ . "/error.twig", [
-            "error" => "Failed to create charge. Please check the server logs for details."
+            "error" => TranslationService::trans('planner_hub.missing_payment_data')
         ]);
     }
-    
-    // Verificar si el pago falló (objeto de error)
+
+    $paymentRequestLabel = TranslationService::trans('planner_hub.order_first_payment', ['order_id' => $order->id]);
+    $provider = PaymentProviderFactory::create($activeProvider);
+    $savedPaymentService = new OrderAccessSavedPaymentMethodService();
+    $chargeResult = $savedPaymentService->chargeFromPost($provider, $activeProvider, $order, (int)$paymentOwnerId, $firstAmount, [
+        'note' => $paymentRequestLabel,
+        'reference_id' => 'VNV-341' . $order->id,
+        'customer_email' => $customerEmail,
+        'customer_name' => $customerName,
+        'billing_address' => $billingAddress,
+        'billing_zip' => $billingZip,
+        'source' => 'order_access_first',
+        'order_id' => $order->id,
+        'payment_type' => 'first',
+    ]);
+    $charge = $chargeResult['charge'] ?? false;
+
+    if ($charge === false) {
+        return TemplateResponse::render(__DIR__ . "/error.twig", [
+            "error" => $chargeResult['error'] ?? TranslationService::trans('planner_hub.payment_could_not_be_processed')
+        ]);
+    }
     if (isset($charge->status) && $charge->status === 'payment_failed') {
-        $errorMessage = "Payment failed";
-        if (isset($charge->_error_details['message'])) {
-            $errorMessage = $charge->_error_details['message'];
-        }
-        error_log("[SQUARE PAYMENT] Payment failed: " . json_encode($charge->_error_details ?? []));
-        return TemplateResponse::render(__DIR__ . "/error.twig", [
-            "error" => $errorMessage
-        ]);
+        $errorMessage = $charge->_error_details['message'] ?? TranslationService::trans('planner_hub.payment_failed');
+        return TemplateResponse::render(__DIR__ . "/error.twig", ["error" => $errorMessage]);
     }
-    
-    // Verificar si el estado del pago no es completado
-    if (isset($charge->status) && $charge->status !== 'completed' && $charge->status !== 'approved') {
-        error_log("[SQUARE PAYMENT] Payment not completed. Status: " . ($charge->status ?? 'unknown'));
+    if (empty($charge->paid) && (empty($charge->status) || !in_array($charge->status, ['completed', 'succeeded', 'COMPLETED'], true))) {
         return TemplateResponse::render(__DIR__ . "/error.twig", [
-            "error" => "Payment was not completed. Status: " . ($charge->status ?? 'unknown')
+            "error" => TranslationService::trans('planner_hub.payment_was_not_completed', ['status' => $charge->status ?? 'unknown'])
         ]);
     }
 
-    // Extraer detalles de la tarjeta desde el pago de Square
     $cardBrand = null;
     $cardLast4 = null;
     $cardExpMonth = null;
     $cardExpYear = null;
-    
-    if (isset($charge->payment_method_details)) {
-        $details = $charge->payment_method_details;
-        if (isset($details->card)) {
-            $cardBrand = $details->card->card_brand ?? null;
-            $cardLast4 = $details->card->last_4 ?? null;
-            $cardExpMonth = $details->card->exp_month ?? null;
-            $cardExpYear = $details->card->exp_year ?? null;
+    if (isset($charge->raw)) {
+        $raw = $charge->raw;
+        if (isset($raw->payment_method_details->card)) {
+            $cardBrand = $raw->payment_method_details->card->brand ?? null;
+            $cardLast4 = $raw->payment_method_details->card->last4 ?? null;
+            $cardExpMonth = $raw->payment_method_details->card->exp_month ?? null;
+            $cardExpYear = $raw->payment_method_details->card->exp_year ?? null;
+        } elseif (is_object($raw) && method_exists($raw, 'getCardDetails') && $raw->getCardDetails() && method_exists($raw->getCardDetails(), 'getCard') && $raw->getCardDetails()->getCard()) {
+            $cardObj = $raw->getCardDetails()->getCard();
+            $cardBrand = method_exists($cardObj, 'getCardBrand') ? $cardObj->getCardBrand() : null;
+            $cardLast4 = method_exists($cardObj, 'getLast4') ? $cardObj->getLast4() : null;
         }
     }
 
     $paymentRepo = new OrdersPaymentsRepository();
     $paymentData = [
         "id_order" => $orderId,
-        "id_suborder" => null, // Asegurar que es NULL para pagos de orden principal
-        "is_suborder" => 0, // Asegurar que es 0 para pagos de orden principal
+        "id_suborder" => null,
+        "is_suborder" => 0,
         "amount" => $firstAmount,
-        "method" => "square",
-        "stripe_charge_id" => $charge->id, // Mantener el nombre del campo por compatibilidad
+        "method" => $activeProvider->provider_type,
+        "stripe_charge_id" => $charge->id ?? null,
         "paid_at" => date("Y-m-d H:i:s"),
         "created_at" => date("Y-m-d H:i:s")
     ];
-    
     if ($cardBrand) $paymentData["card_brand"] = $cardBrand;
     if ($cardLast4) $paymentData["card_last4"] = $cardLast4;
     if ($cardExpMonth) $paymentData["card_exp_month"] = $cardExpMonth;
     if ($cardExpYear) $paymentData["card_exp_year"] = $cardExpYear;
-    
+    if (!empty($billingAddress)) {
+        $paymentData["billing_address"] = $billingAddress;
+    }
+
     $paymentRepo->add($paymentData);
 
-    $orderRepo->update([
-        "status_workflow" => "INVOICE_PARTIAL"
-    ], ["id" => $orderId]);
+    $orderRepo->update(["status_workflow" => "INVOICE_PARTIAL"], ["id" => $orderId]);
 
     $statusRepo = new OrdersStatusHistoryRepository();
     $statusRepo->add([
         "id_order" => $orderId,
         "status" => "INVOICE_PARTIAL",
-        "action_type" => "square_payment",
-        "note" => "Client paid first installment.",
+        "action_type" => $activeProvider->provider_type . '_payment',
+        "note" => TranslationService::trans('planner_hub.client_paid_first_installment'),
         "created_by" => 0,
         "created_at" => date("Y-m-d H:i:s")
     ]);
@@ -349,7 +373,8 @@ $router->post(function () {
     // Generar recibo PDF y guardar en document_logs
     try {
         $docRepo = new DocumentsLogsRepository();
-        $receiptPath = PaymentReceiptPdfGenerator::generateAndSave($order->id, null, (float)$firstAmount, 'Square', 'First Installment Payment');
+        $providerName = $activeProvider->provider_type === 'stripe' ? 'Stripe' : ($activeProvider->provider_type === 'square' ? 'Square' : $activeProvider->provider_type);
+        $receiptPath = PaymentReceiptPdfGenerator::generateAndSave($order->id, null, (float)$firstAmount, $providerName, TranslationService::trans('planner_hub.first_installment_payment'));
         error_log("Receipt PDF generated successfully: " . $receiptPath);
         
         $docRepo->add([
@@ -373,8 +398,11 @@ $router->post(function () {
 
         NotificationService::sendToUsers(
             [$order->id_owner],
-            '💳 Payment Received',
-            'A payment of $' . number_format($firstAmount, 2) . ' has been processed for order # VNV341' . $order->id
+            '💳 ' . TranslationService::trans('planner_hub.payment_received'),
+            TranslationService::trans('planner_hub.payment_processed_notification', [
+                'amount' => number_format($firstAmount, 2),
+                'order_id' => $order->id
+            ])
         );
     } catch (Exception $e) {
     }

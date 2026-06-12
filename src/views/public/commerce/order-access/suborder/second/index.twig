@@ -91,61 +91,90 @@
 <div class="payment-container">
     <div class="payment-card">
         <div class="payment-header">
-            <div class="suborder-badge">📋 Sub-Order Payment</div>
-            <h2>💳 Second Payment</h2>
+            <div class="suborder-badge">📋 {{ trans('planner_hub.suborder_payment') }}</div>
+            <h2>💳 {{ trans('planner_hub.second_payment') }}</h2>
             {% if suborder.status_workflow %}
             <div class="mb-2">
                 {% if suborder.status_workflow == 'INVOICE_DRAFT' %}
-                    <span class="badge bg-warning text-dark">📝 Pending Signature</span>
+                    <span class="badge bg-warning text-dark">📝 {{ trans('planner_hub.pending_signature') }}</span>
                 {% elseif suborder.status_workflow == 'INVOICE_READY' %}
-                    <span class="badge bg-secondary">Signed – Payment Pending</span>
+                    <span class="badge bg-secondary">{{ trans('planner_hub.signed_payment_pending') }}</span>
                 {% elseif suborder.status_workflow == 'INVOICE_PARTIAL' %}
-                    <span class="badge bg-info text-dark">Partial Payment</span>
+                    <span class="badge bg-info text-dark">{{ trans('planner_hub.partial_payment') }}</span>
                 {% elseif suborder.status_workflow == 'INVOICE_PAID' %}
-                    <span class="badge bg-success">Fully Paid</span>
+                    <span class="badge bg-success">{{ trans('planner_hub.fully_paid') }}</span>
                 {% endif %}
             </div>
             {% endif %}
-            <div class="payment-amount">${{ second_payment_amount | number_format(2) }}</div>
-            <p class="text-muted">Sub-Order #{{ suborder.id }} - Parent Order VNV-341{{ parentOrder.id }}</p>
+            <div class="payment-amount">{{ currency_code|default('USD') }} {{ second_payment_amount | number_format(2) }}</div>
+            <p class="text-muted">{{ trans('planner_hub.suborder_id_label') }} #{{ suborder.id }} - {{ trans('planner_hub.parent_order_label') }} VNV-341{{ parentOrder.id }}</p>
         </div>
 
         <div class="alert alert-info">
-            <h5>📋 Payment Details</h5>
-            <p><strong>Parent Order:</strong> VNV-341{{ parentOrder.id }}</p>
-            <p><strong>Sub-Order:</strong> #{{ suborder.id }}</p>
-            <p><strong>Event Date:</strong> {{ parentOrder.event_date|date("F j, Y") }}</p>
-            <p><strong>Payment Type:</strong> Second Installment ({{ suborder.payment_split_percent_2 }}%)</p>
+            <h5>📋 {{ trans('planner_hub.payment_details') }}</h5>
+            <p><strong>{{ trans('planner_hub.parent_order_label') }}</strong> VNV-341{{ parentOrder.id }}</p>
+            <p><strong>{{ trans('planner_hub.suborder_id_label') }}</strong> #{{ suborder.id }}</p>
+            <p><strong>{{ trans('planner_hub.event_date_label') }}</strong> {{ parentOrder.event_date|date("F j, Y") }}</p>
+            <p><strong>{{ trans('planner_hub.payment_type_label') }}</strong> {{ trans('planner_hub.second_installment_percent', {'percent': suborder.payment_split_percent_2}) }}</p>
         </div>
 
 
         <form id="payment-form" class="payment-form" method="POST">
             <input type="hidden" name="token" value="{{ token }}">
-            <input type="hidden" name="customer_token" id="square-customer-token">
+            <input type="hidden" name="customer_token" id="payment-customer-token">
             
             <div class="mb-3">
-                <label for="customer_email" class="form-label">Your Email</label>
+                <label for="customer_email" class="form-label">{{ trans('planner_hub.your_email') }}</label>
                 <input type="email" name="customer_email" id="customer_email" class="form-control form-control-lg" required>
             </div>
-            
             <div class="mb-3">
-                <label for="square-card-container" class="form-label">Card Information</label>
-                <div id="square-card-container" class="border rounded p-3" style="min-height: 150px;"></div>
-                <div id="square-card-errors" class="text-danger mt-2"></div>
+                <label for="billing_address" class="form-label">{{ trans('planner_hub.billing_address') }}</label>
+                <input type="text"
+                       name="billing_address"
+                       id="billing_address"
+                       class="form-control form-control-lg"
+                       data-places
+                       placeholder="{{ trans('planner_hub.billing_address_placeholder') }}"
+                       required>
             </div>
+            {% include 'public/commerce/order-access/_saved_payment_methods.twig' %}
 
-            <button type="submit" id="submit-button" class="payment-button">
-                💳 Pay ${{ second_payment_amount | number_format(2) }}
+            {% if active_provider_type == 'stripe' %}
+            <div class="mb-3">
+                <label for="billing_zip" class="form-label">{{ trans('zip_code') }}</label>
+                <input type="text"
+                       name="billing_zip"
+                       id="billing_zip"
+                       class="form-control form-control-lg"
+                       placeholder="{{ trans('zip_code') }}"
+                       maxlength="12"
+                       required>
+            </div>
+            {% else %}
+            <input type="hidden" name="billing_zip" value="">
+            {% endif %}
+            
+            <div class="mb-3" id="card-section" {% if active_provider_type == 'paypal' %}style="display:none;"{% endif %}>
+                <label for="square-card-container" class="form-label">{{ trans('planner_hub.card_information') }}</label>
+                <div id="square-card-container" class="border rounded p-3" style="min-height: 150px;"></div>
+                <div id="payment-card-errors" class="text-danger mt-2"></div>
+            </div>
+            {% if active_provider_type == 'paypal' and paypal_client_id %}
+            <div class="mb-4" id="paypal-button-container"></div>
+            {% endif %}
+
+            <button type="submit" id="submit-button" class="payment-button" {% if active_provider_type == 'paypal' %}style="display:none;"{% endif %}>
+                💳 {{ trans('planner_hub.pay_now') }} {{ currency_code|default('USD') }} {{ second_payment_amount | number_format(2) }}
             </button>
         </form>
 
         <div id="success-message" class="success-message">
-            ✅ Payment successful! Redirecting...
+            {{ trans('planner_hub.payment_successful_redirecting') }}
         </div>
 
         <div class="text-center mt-3">
             <a href="{{ path('order-access/suborder?token=' ~ token) }}" class="btn btn-outline-secondary">
-                ← Back to Sub-Order
+                {{ trans('planner_hub.back_to_suborder') }}
             </a>
         </div>
     </div>
@@ -153,71 +182,132 @@
 
 {{ processingModal|raw }}
 
+{% if active_provider_type == 'paypal' and paypal_client_id %}
+<script src="https://www.paypal.com/sdk/js?client-id={{ paypal_client_id|e('html_attr') }}&currency={{ currency_code|default('USD') }}&intent=capture"></script>
+{% elseif active_provider_type == 'stripe' %}
+<script src="https://js.stripe.com/v3/"></script>
+{% else %}
 <script type="text/javascript" src="https://{{ square_environment == 'production' ? 'web' : 'sandbox.web' }}.squarecdn.com/v1/square.js"></script>
+{% endif %}
 {{ processingModalScript|raw }}
 <script>
     (async function () {
+        const form = document.getElementById('payment-form');
+        const submitButton = document.getElementById('submit-button');
+        const errorDiv = document.getElementById('payment-card-errors');
+        const tokenInput = document.getElementById('payment-customer-token');
+        const zipInput = {% if active_provider_type == 'stripe' %}document.getElementById('billing_zip'){% else %}null{% endif %};
+        const originalButtonText = submitButton ? submitButton.textContent : '';
+        const token = '{{ token|e('js') }}';
+        const savedMethodSelect = document.getElementById('saved-payment-method-id');
+        const newMethodOptions = document.getElementById('new-payment-method-options');
+        function usingSavedMethod() { return savedMethodSelect && savedMethodSelect.value; }
+        function syncSavedMethodState() {
+            if (!savedMethodSelect) return;
+            const useSaved = usingSavedMethod();
+            const cardSection = document.getElementById('card-section');
+            if (cardSection) cardSection.style.display = useSaved ? 'none' : '';
+            if (newMethodOptions) newMethodOptions.style.display = useSaved ? 'none' : '';
+            if (zipInput) zipInput.required = !useSaved;
+        }
+        if (savedMethodSelect) savedMethodSelect.addEventListener('change', syncSavedMethodState);
+        syncSavedMethodState();
+
+        function setProcessingState(isProcessing) {
+            if (submitButton) { submitButton.disabled = isProcessing; submitButton.textContent = isProcessing ? '⏳ Processing...' : originalButtonText; }
+            if (isProcessing) window.VnvProcessingModal.show('orderAccessProcessingModal', { title: 'Processing payment...', message: 'We are confirming your payment. Please wait.' });
+            else window.VnvProcessingModal.hide('orderAccessProcessingModal');
+        }
+
+        {% if active_provider_type == 'paypal' and paypal_client_id %}
+        var createOrderUrl = '{{ base_url|e('js') }}/order-access/suborder/paypal-create-order';
+        paypal.Buttons({
+            createOrder: function() {
+                return fetch(createOrderUrl, { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: 'token=' + encodeURIComponent(token) + '&payment_type=second' })
+                    .then(function(r) { return r.json(); }).then(function(data) { if (data.success && data.orderId) return data.orderId; throw new Error(data.error || '{{ trans('planner_hub.could_not_create_order')|e('js') }}'); });
+            },
+            onApprove: function(data) {
+                var emailEl = document.getElementById('customer_email');
+                if (!emailEl || !emailEl.value || !emailEl.value.trim()) {
+                    if (errorDiv) errorDiv.textContent = '{{ trans('planner_hub.please_enter_email')|e('js') }}';
+                    return;
+                }
+                tokenInput.value = data.orderID;
+                form.submit();
+            },
+            onError: function(err) { if (errorDiv) errorDiv.textContent = err.message || '{{ trans('planner_hub.payment_failed')|e('js') }}'; }
+        }).render('#paypal-button-container');
+        return;
+        {% endif %}
+
+        {% if active_provider_type == 'stripe' %}
+        try {
+            const stripePublishableKey = "{{ stripe_publishable_key|default('')|e('js') }}";
+            if (!stripePublishableKey) {
+                if (errorDiv) errorDiv.textContent = '{{ trans('planner_hub.payment_system_not_configured_contact')|e('js') }}';
+                return;
+            }
+            const stripe = Stripe(stripePublishableKey);
+            const elements = stripe.elements();
+            const card = elements.create('card', { style: { base: { fontSize: '16px' } } });
+            card.mount('#square-card-container');
+
+            form.addEventListener('submit', async function(event) {
+                event.preventDefault();
+                if (usingSavedMethod()) { setProcessingState(true); errorDiv.textContent = ''; tokenInput.value = ''; form.submit(); return; }
+                if (!zipInput || !zipInput.value.trim()) {
+                    if (errorDiv) errorDiv.textContent = 'ZIP code is required for card payments.';
+                    return;
+                }
+                setProcessingState(true);
+                errorDiv.textContent = '';
+                const result = await stripe.createToken(card, { address_zip: zipInput.value.trim() });
+                if (result.error) {
+                    errorDiv.textContent = result.error.message;
+                    setProcessingState(false);
+                    return;
+                }
+                tokenInput.value = result.token.id;
+                form.submit();
+            });
+        } catch (error) {
+            if (errorDiv) errorDiv.textContent = '{{ trans('planner_hub.unable_load_payment_form')|e('js') }}';
+        }
+        return;
+        {% endif %}
+
         try {
             const squareApplicationId = "{{ square_application_id|e('js') }}";
             const squareLocationId = "{{ square_location_id|e('js') }}";
-            
             if (!squareApplicationId || !squareLocationId) {
-                console.error('Square credentials not configured');
-                document.getElementById('square-card-errors').textContent = 'Payment system not configured. Please contact support.';
+                if (errorDiv) errorDiv.textContent = 'Payment system not configured. Please contact support.';
                 return;
             }
-
             const payments = Square.payments(squareApplicationId, squareLocationId);
             const card = await payments.card();
             await card.attach('#square-card-container');
 
-            const form = document.getElementById('payment-form');
-            const submitButton = document.getElementById('submit-button');
-            const errorDiv = document.getElementById('square-card-errors');
-            const tokenInput = document.getElementById('square-customer-token');
-            const originalButtonText = submitButton.textContent;
-
-            function setProcessingState(isProcessing) {
-                submitButton.disabled = isProcessing;
-                submitButton.textContent = isProcessing ? '⏳ Processing...' : originalButtonText;
-                if (isProcessing) {
-                    window.VnvProcessingModal.show('orderAccessProcessingModal', {
-                        title: 'Processing payment...',
-                        message: 'We are confirming your payment. Please wait.'
-                    });
-                } else {
-                    window.VnvProcessingModal.hide('orderAccessProcessingModal');
-                }
-            }
-
             form.addEventListener('submit', async function(event) {
                 event.preventDefault();
-                
                 setProcessingState(true);
                 errorDiv.textContent = '';
-
+                if (usingSavedMethod()) { tokenInput.value = ''; form.submit(); return; }
                 try {
                     const tokenResult = await card.tokenize();
                     if (tokenResult.status === 'OK') {
                         tokenInput.value = tokenResult.token;
                         form.submit();
                     } else {
-                        let errorMessage = 'Payment failed. Please try again.';
-                        if (tokenResult.errors && tokenResult.errors.length > 0) {
-                            errorMessage = tokenResult.errors[0].detail || errorMessage;
-                        }
-                        errorDiv.textContent = errorMessage;
+                        errorDiv.textContent = (tokenResult.errors && tokenResult.errors[0]) ? tokenResult.errors[0].detail : '{{ trans('planner_hub.payment_failed_try_again')|e('js') }}';
                         setProcessingState(false);
                     }
                 } catch (error) {
-                    console.error('Square payment error:', error);
-                    errorDiv.textContent = 'An error occurred processing your payment. Please try again.';
+                    errorDiv.textContent = '{{ trans('planner_hub.error_occurred_try_again')|e('js') }}';
                     setProcessingState(false);
                 }
             });
         } catch (error) {
-            console.error('Error initializing Square:', error);
-            document.getElementById('square-card-errors').textContent = 'Unable to load payment form. Please refresh the page.';
+            if (errorDiv) errorDiv.textContent = '{{ trans('planner_hub.unable_load_payment_form')|e('js') }}';
         }
     })();
 </script>

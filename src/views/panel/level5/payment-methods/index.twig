@@ -1,0 +1,92 @@
+{% extends 'templates/base.admin.twig' %}
+
+{% block body %}
+<div class="container-fluid vnv-page-shell">
+    <div class="vnv-page-header">
+        <div>
+            <p class="vnv-kicker">Client Dashboard</p>
+            <h1>Saved payment methods</h1>
+            <p>Manage saved cards and future charge authorization per business and provider.</p>
+        </div>
+    </div>
+
+    <div class="card vnv-panel-card">
+        <div class="card-body">
+            {% if methods|length > 0 %}
+                <div class="table-responsive">
+                    <table class="table align-middle vnv-table">
+                        <thead>
+                        <tr>
+                            <th>Business</th>
+                            <th>Provider</th>
+                            <th>Method</th>
+                            <th>Expires</th>
+                            <th>Authorization</th>
+                            <th class="text-end">Actions</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for method in methods %}
+                            {% set consent = consents_by_method[method.id] ?? null %}
+                            <tr>
+                                <td>#{{ method.id_user_business }}</td>
+                                <td>{{ method.payment_provider|capitalize }}</td>
+                                <td>
+                                    {{ method.brand|default(method.method_type|capitalize) }} **** {{ method.last4|default('----') }}
+                                    {% if method.is_default %}<span class="badge bg-primary ms-2">Default</span>{% endif %}
+                                </td>
+                                <td>
+                                    {% if method.exp_month and method.exp_year %}
+                                        {{ "%02d"|format(method.exp_month) }}/{{ method.exp_year }}
+                                    {% else %}
+                                        <span class="text-muted">Not available</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if consent and consent.status == 'ACTIVE' and not consent.revoked_at %}
+                                        <span class="badge bg-success">Active</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">Not authorized</span>
+                                    {% endif %}
+                                </td>
+								<td class="text-end">
+									{% if consent and consent.status == 'ACTIVE' and not consent.revoked_at %}
+										<form method="post" class="d-inline">
+											<input type="hidden" name="method_id" value="{{ method.id }}">
+											<input type="hidden" name="business_id" value="{{ method.id_user_business }}">
+											<input type="hidden" name="provider" value="{{ method.payment_provider }}">
+											<input type="hidden" name="action" value="revoke">
+											<button class="btn btn-sm btn-outline-warning">Revoke authorization</button>
+										</form>
+									{% else %}
+										<form method="post" class="d-inline">
+											<input type="hidden" name="method_id" value="{{ method.id }}">
+											<input type="hidden" name="business_id" value="{{ method.id_user_business }}">
+											<input type="hidden" name="provider" value="{{ method.payment_provider }}">
+											<input type="hidden" name="action" value="authorize">
+											<button class="btn btn-sm btn-outline-success">Authorize future charges</button>
+										</form>
+									{% endif %}
+									<form method="post" class="d-inline">
+										<input type="hidden" name="method_id" value="{{ method.id }}">
+										<input type="hidden" name="business_id" value="{{ method.id_user_business }}">
+										<input type="hidden" name="provider" value="{{ method.payment_provider }}">
+                                        <input type="hidden" name="action" value="delete">
+                                        <button class="btn btn-sm btn-outline-danger">Remove</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="text-center py-5">
+                    <h5>No saved payment methods yet</h5>
+                    <p class="text-muted">Methods you choose to save during checkout will appear here.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

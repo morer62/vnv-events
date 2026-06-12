@@ -3,13 +3,15 @@
 use App\Repositories\OrdersRepository;
 use App\Repositories\OrdersSuborderRepository;
 use App\Repositories\OrdersPaymentsRepository;
-use App\Repositories\SquareAccountsRepository;
+use App\Repositories\StripeAccountsRepository;
 use App\Repositories\Connection;
+use App\Services\TranslationService;
 use App\Utils\LocationUtils;
 use App\Utils\TemplateResponse;
 use App\Utils\Response;
 use App\Utils\JsonResponse;
-use App\Services\SquareServiceV2;
+use App\Services\StripeServiceV2;
+use App\Services\PaymentCardExtractor;
 use App\Repositories\DocumentsLogsRepository;
 use App\Services\PaymentReceiptPdfGenerator;
 use App\Services\NotificationService;
@@ -32,7 +34,7 @@ $router->get(function () {
         "user_id" => $decoded["user_id"],
         "exp" => $decoded["exp"]
     ]), $secret);
-    if ($hashCheck !== $decoded["hash"] || time() > $decoded["exp"]) {
+    if (!hash_equals((string)$decoded["hash"], $hashCheck) || time() > $decoded["exp"]) {
         LocationUtils::redirectInternal("/404");
     }
 
@@ -47,9 +49,9 @@ $router->get(function () {
     }
     if (!$parentOrder) LocationUtils::redirectInternal("/404");
 
-    $accountRepo = new SquareAccountsRepository();
+    $accountRepo = new StripeAccountsRepository();
     $account = $accountRepo->getByUser($parentOrder->id_owner);
-    if (!$account || empty($account->square_account_id)) {
+    if (!$account || empty($account->stripe_account_id)) {
         LocationUtils::redirectInternal("/404");
     }
 
@@ -93,7 +95,7 @@ $router->get(function () {
     $remainingBalance = max($totalAmount - $sumAdvances - $sumPaid, 0);
     $stripeCurrency = strtolower($_ENV["STRIPE_CURRENCY"] ?? 'usd');
     $stripeCountry = strtoupper($_ENV["STRIPE_COUNTRY"] ?? 'US');
-    $paymentRequestLabel = sprintf("Suborder #%s - Advance Payment", $suborder->id);
+    $paymentRequestLabel = TranslationService::trans('planner_hub.suborder_advance_payment', ['suborder_id' => $suborder->id]);
     $suggestedAdvanceCents = (int) round($remainingBalance * 100);
 
     return TemplateResponse::render(__DIR__ . "/index.twig", [
@@ -109,8 +111,8 @@ $router->get(function () {
         "suggested_advance_cents" => $suggestedAdvanceCents,
         "remaining_balance" => $remainingBalance,
         "processingModal" => ProcessingModal::render("orderAccessProcessingModal", [
-            "title" => "Processing advance...",
-            "message" => "We are registering your payment. Please wait."
+            "title" => TranslationService::trans('planner_hub.processing_advance'),
+            "message" => TranslationService::trans('planner_hub.registering_payment')
         ]),
         "processingModalScript" => ProcessingModal::script("orderAccessProcessingModal")
     ]);
@@ -120,13 +122,13 @@ $router->post(function () {
     try {
         $token = $_POST["token"] ?? null;
         $decoded = json_decode(base64_decode($token), true);
-        if (!$decoded || !isset($decoded["suborder_id"])) return JsonResponse::createResponse(["success" => false, "error" => "Invalid token"]);
+        if (!$decoded || !isset($decoded["suborder_id"])) return JsonResponse::createResponse(["success" => false, "error" => TranslationService::trans('planner_hub.invalid_token')]);
 
         $suborderId = intval($decoded["suborder_id"]);
         $subRepo = new OrdersSuborderRepository();
         $suborder = $subRepo->getByIdWithoutOwnershipCheck($suborderId);
         if (!$suborder) {
-            return JsonResponse::createResponse(["success" => false, "error" => "Suborder not found"]);
+            return JsonResponse::createResponse(["success" => false, "error" => TranslationService::trans('planner_hub.suborder_not_found')]);
         }
         $orderRepo = new OrdersRepository();
         $parentOrder = $orderRepo->getByIdWithoutOwnershipCheck($suborder->id_order);
@@ -134,7 +136,7 @@ $router->post(function () {
             $parentOrder = (object)$parentOrder;
         }
         if (!$parentOrder) {
-            return JsonResponse::createResponse(["success" => false, "error" => "Parent order not found"]);
+            return JsonResponse::createResponse(["success" => false, "error" => TranslationService::trans('planner_hub.parent_order_not_found')]);
         }
 
         // Obtener información del cliente desde la base de datos
@@ -159,13 +161,13 @@ $router->post(function () {
         $cardToken = $_POST["customer_token"] ?? null;
         $customerEmail = strtolower(trim($_POST["customer_email"] ?? ""));
         if ($amountInput <= 0 || !$cardToken || !$customerEmail) {
-            return JsonResponse::createResponse(["success" => false, "error" => "Missing or invalid data"]);
+            return JsonResponse::createResponse(["success" => false, "error" => TranslationService::trans('planner_hub.missing_invalid_data')]);
         }
 
         $accountRepo = new StripeAccountsRepository();
         $account = $accountRepo->getByUser($parentOrder->id_owner);
-        if (!$account || empty($account->square_account_id)) {
-            return JsonResponse::createResponse(["success" => false, "error" => "Owner can receive payments"]);
+        if (!$account || empty($account->stripe_account_id)) {
+            return JsonResponse::createResponse(["success" => false, "error" => TranslationService::trans('planner_hub.owner_can_receive_payments')]);
         }
 
         $db = new Connection();
@@ -196,61 +198,51 @@ $router->post(function () {
             error_log("[SUBORDER_ADVANCE][POST] Amount exceeds remaining balance: {$amountInput} > {$remainingBefore}");
             return JsonResponse::createResponse([
                 "success" => false,
-                "error" => "Amount cannot exceed remaining balance of $" . number_format($remainingBefore, 2)
+                "error" => TranslationService::trans('planner_hub.amount_cannot_exceed_remaining', ['amount' => number_format($remainingBefore, 2)])
             ]);
         }
         
         $chargeAmount = $amountInput;
 
-        $squareService = new SquareServiceV2();
-        $customer = $squareService->getCustomerOnConnectedAccount($customerEmail, $account->square_account_id);
+        $stripeService = new StripeServiceV2();
+        $customer = $stripeService->getCustomerOnConnectedAccount($customerEmail, $account->stripe_account_id);
         if (!$customer) {
-            $customer = $squareService->createCustomerWithCardOnConnectedAccount(
+            $customer = $stripeService->createCustomerWithCardOnConnectedAccount(
                 $cardToken,
                 $customerEmail,
                 $customerName,
-                $account->square_account_id
+                $account->stripe_account_id
             );
             
             if (!$customer) {
-                return JsonResponse::createResponse(["success" => false, "error" => "Failed to create customer"]);
+                return JsonResponse::createResponse(["success" => false, "error" => TranslationService::trans('planner_hub.failed_create_customer')]);
             }
         }
 
-        $charge = $squareService->chargeCustomerOnConnectedAccount(
-            $customer->getId(),
+        $charge = $stripeService->chargeCustomerOnConnectedAccount(
+            $customer->id,
             $chargeAmount,
-            $account->square_account_id,
+            $account->stripe_account_id,
             $cardToken
         );
         if (!$charge) {
-            return JsonResponse::createResponse(["success" => false, "error" => "Failed to create charge"]);
+            return JsonResponse::createResponse(["success" => false, "error" => TranslationService::trans('planner_hub.failed_create_charge')]);
         }
         
         // Verificar si el pago falló
         if (isset($charge->status) && $charge->status === 'payment_failed') {
-            $errorMessage = "Payment failed";
+            $errorMessage = TranslationService::trans('planner_hub.payment_failed');
             if (isset($charge->_error_details['message'])) {
                 $errorMessage = $charge->_error_details['message'];
             }
             return JsonResponse::createResponse(["success" => false, "error" => $errorMessage]);
         }
 
-        // Extraer detalles de la tarjeta desde el pago de Square
-        $cardBrand = null;
-        $cardLast4 = null;
-        $cardExpMonth = null;
-        $cardExpYear = null;
-        
-        if (isset($charge->payment_method_details)) {
-            $details = $charge->payment_method_details;
-            if (isset($details->card)) {
-                $cardBrand = $details->card->brand ?? null;
-                $cardLast4 = $details->card->last4 ?? null;
-                $cardExpMonth = $details->card->exp_month ?? null;
-                $cardExpYear = $details->card->exp_year ?? null;
-            }
-        }
+        $cardDetails = PaymentCardExtractor::extractCardDetails($charge, $stripeService, $account->stripe_account_id);
+        $cardBrand = $cardDetails['brand'];
+        $cardLast4 = $cardDetails['last4'];
+        $cardExpMonth = $cardDetails['exp_month'];
+        $cardExpYear = $cardDetails['exp_year'];
 
         try {
             $paymentRepo = new OrdersPaymentsRepository();
@@ -258,7 +250,7 @@ $router->post(function () {
                 "id_order" => $parentOrder->id,
                 "id_suborder" => $suborderId,
                 "amount" => $chargeAmount,
-                "method" => "square",
+                "method" => "stripe",
                 "stripe_charge_id" => $charge->id, // Mantener el nombre del campo por compatibilidad
                 "paid_at" => date("Y-m-d H:i:s"),
                 "created_at" => date("Y-m-d H:i:s")
@@ -302,7 +294,7 @@ $router->post(function () {
                 $db->execute();
             } catch (\Throwable $e2) {
                 error_log("[SUBORDER_ADVANCE][POST] Error inserting advance: " . $e2->getMessage());
-                return JsonResponse::createResponse(["success" => false, "error" => "Failed to save advance record"]);
+                return JsonResponse::createResponse(["success" => false, "error" => TranslationService::trans('planner_hub.failed_save_advance_record')]);
             }
         }
 
@@ -357,7 +349,7 @@ $router->post(function () {
                             $dbStatus->bind(":id_suborder", $suborderId);
                             $dbStatus->bind(":status", "INVOICE_PAID");
                             $dbStatus->bind(":action_type", "suborder_advance_complete");
-                            $dbStatus->bind(":note", "Suborder fully paid through advance of $" . number_format($chargeAmount, 2));
+                            $dbStatus->bind(":note", TranslationService::trans('planner_hub.suborder_fully_paid_advance', ['amount' => number_format($chargeAmount, 2)]));
                             $dbStatus->bind(":created_by", 0);
                             $dbStatus->bind(":created_at", date("Y-m-d H:i:s"));
                             $dbStatus->execute();
@@ -380,7 +372,7 @@ $router->post(function () {
                             $dbStatus->bind(":id_suborder", $suborderId);
                             $dbStatus->bind(":status", "INVOICE_PARTIAL");
                             $dbStatus->bind(":action_type", "suborder_advance_first");
-                            $dbStatus->bind(":note", "First payment completed through advance of $" . number_format($chargeAmount, 2));
+                            $dbStatus->bind(":note", TranslationService::trans('planner_hub.first_payment_completed_advance', ['amount' => number_format($chargeAmount, 2)]));
                             $dbStatus->bind(":created_by", 0);
                             $dbStatus->bind(":created_at", date("Y-m-d H:i:s"));
                             $dbStatus->execute();
@@ -402,7 +394,7 @@ $router->post(function () {
                         $dbStatus->bind(":id_suborder", $suborderId);
                         $dbStatus->bind(":status", "INVOICE_PAID");
                         $dbStatus->bind(":action_type", "suborder_advance_second");
-                        $dbStatus->bind(":note", "Second payment completed through advance of $" . number_format($chargeAmount, 2));
+                        $dbStatus->bind(":note", TranslationService::trans('planner_hub.second_payment_completed_advance', ['amount' => number_format($chargeAmount, 2)]));
                         $dbStatus->bind(":created_by", 0);
                         $dbStatus->bind(":created_at", date("Y-m-d H:i:s"));
                         $dbStatus->execute();
@@ -435,7 +427,7 @@ $router->post(function () {
         error_log("[SUBORDER_ADVANCE][POST] Stack trace: " . $e->getTraceAsString());
         return JsonResponse::createResponse([
             "success" => false,
-            "error" => "An error occurred while processing the advance. Please try again."
+            "error" => TranslationService::trans('planner_hub.error_occurred_processing_advance')
         ]);
     }
 });

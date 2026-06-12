@@ -5,6 +5,7 @@ use App\Repositories\OrdersStatusHistoryRepository;
 use App\Repositories\DocumentsLogsRepository;
 use App\Repositories\OrdersPaymentsRepository;
 use App\Services\LoginService;
+use App\Services\AuthorizedManualChargeService;
 use App\Services\OrderCalculatorService;
 use App\Utils\FileUtils;
 use App\Utils\LocationUtils;
@@ -49,6 +50,7 @@ $router->get(function () {
     }
     
     $history = $historyRepo->getAllBy(["id_order" => $id]);
+    $authorizedChargeSummary = (new AuthorizedManualChargeService())->getOrderAuthorizationSummary($order);
 
     // Generar token
     $secret = $_ENV["VNV_SECRET_KEY"] ?? "mySuperSecretKey";
@@ -63,7 +65,8 @@ $router->get(function () {
     return TemplateResponse::render(__DIR__ . "/index.twig", [
         "order" => $order,
         "history" => $history,
-        "contract_token" => $contractToken
+        "contract_token" => $contractToken,
+        "authorized_charge_summary" => $authorizedChargeSummary
     ]);
 });
 
@@ -79,6 +82,15 @@ $router->post(function () {
     $historyRepo = new OrdersStatusHistoryRepository();
     $docRepo = new DocumentsLogsRepository();
     $paymentsRepo = new OrdersPaymentsRepository();
+
+    if (isset($_POST['action']) && $_POST['action'] === 'charge_authorized_balance') {
+        $amount = isset($_POST['authorized_charge_amount']) && $_POST['authorized_charge_amount'] !== ''
+            ? (float)$_POST['authorized_charge_amount']
+            : null;
+        $result = (new AuthorizedManualChargeService())->chargeOrderBalance((int)$orderId, (int)$session->getId(), (int)$session->getLevel(), $amount);
+        MessageUtil::setMessage($result['message'], $result['success'] ? 'Success' : 'Error', $result['success'] ? 'success' : 'danger');
+        LocationUtils::reload();
+    }
 
     if (isset($_POST['undo_last_status'])) {
         $id_status = $_POST['undo_last_status'];

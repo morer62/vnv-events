@@ -4,11 +4,13 @@ use App\Repositories\OrdersRepository;
 use App\Repositories\OrdersSuborderRepository;
 use App\Repositories\OrderSuborderServicesAssignedRepository;
 use App\Repositories\OrdersServiceRepository;
-use App\Repositories\SquareAccountsRepository;
+use App\Repositories\PaymentProvidersRepository;
 use App\Repositories\DocumentsLogsRepository;
 use App\Repositories\Connection;
 use App\Services\PaymentReceiptPdfGenerator;
-use App\Services\SquareServiceV2;
+use App\Services\Payment\PaymentProviderFactory;
+use App\Services\OrderAccessSavedPaymentMethodService;
+use App\Services\TranslationService;
 use App\Utils\LocationUtils;
 use App\Utils\TemplateResponse;
 use App\Utils\Response;
@@ -34,7 +36,7 @@ $router->get(function () {
         "exp" => $decoded["exp"]
     ]), $secret);
 
-    if ($hashCheck !== $decoded["hash"] || time() > $decoded["exp"]) {
+    if (!hash_equals((string)$decoded["hash"], $hashCheck) || time() > $decoded["exp"]) {
         LocationUtils::redirectInternal("/404");
     }
 
@@ -97,30 +99,49 @@ $router->get(function () {
     $totalAmount = max($totalAmount - $sumAdvances, 0);
     error_log("[SUBORDER_FULL][GET] Final calculation - Original: " . round($subtotalCalculated + $tax, 2) . ", Advances: " . $sumAdvances . ", Final: " . $totalAmount);
 
-    $paymentRequestLabel = sprintf("Suborder #%s - Full Payment", $suborder->id);
+    $paymentRequestLabel = TranslationService::trans('planner_hub.suborder_full_payment', ['suborder_id' => $suborder->id]);
+
+    $paymentProvidersRepo = new PaymentProvidersRepository();
+    $paymentOwnerId = $paymentProvidersRepo->getPaymentOwnerIdForOrder($parentOrder);
+    $activeProvider = $paymentProvidersRepo->getActiveProviderForOwner($paymentOwnerId);
+    if (!$activeProvider || !$activeProvider->is_verified || !in_array($activeProvider->provider_type, ['stripe', 'square', 'paypal'], true)) {
+        LocationUtils::redirectInternal("/404");
+    }
+    $squareAppId = ($activeProvider->provider_type === 'square') ? ($activeProvider->public_key ?? '') : '';
+    $squareLocId = ($activeProvider->provider_type === 'square') ? ($activeProvider->location_id ?? '') : '';
+    $squareEnv = ($activeProvider->provider_type === 'square') ? ($activeProvider->environment ?? 'sandbox') : 'sandbox';
+    $stripePublishableKey = ($activeProvider->provider_type === 'stripe') ? ($activeProvider->public_key ?? '') : '';
+    $paypalClientId = ($activeProvider->provider_type === 'paypal') ? ($activeProvider->api_key ?? '') : '';
+    $paypalEnvironment = ($activeProvider->provider_type === 'paypal') ? ($activeProvider->environment ?? 'sandbox') : 'sandbox';
+    $currencyCode = strtoupper($parentOrder->currency ?? ($activeProvider ? $activeProvider->currency : null) ?? 'USD');
+    $baseUrl = $_ENV["APP_URL"] ?? 'http://localhost/vnv-venue';
+    $savedPaymentService = new OrderAccessSavedPaymentMethodService();
+    $savedPaymentViewData = $savedPaymentService->viewDataForOrder($parentOrder, (int)$paymentOwnerId, (string)$activeProvider->provider_type);
 
     return TemplateResponse::render(__DIR__ . "/index.twig", [
         "token" => $token,
         "suborder" => $suborder,
         "parentOrder" => $parentOrder,
         "total_amount" => $totalAmount,
-        "square_application_id" => $_ENV["SQUARE_APPLICATION_ID"] ?? "",
-        "square_location_id" => $_ENV["SQUARE_LOCATION_ID"] ?? "",
-        "square_environment" => $_ENV["SQUARE_ENVIRONMENT"] ?? "sandbox",
+        "square_application_id" => $squareAppId,
+        "square_location_id" => $squareLocId,
+        "square_environment" => $squareEnv,
+        "stripe_publishable_key" => $stripePublishableKey,
+        "paypal_client_id" => $paypalClientId,
+        "paypal_environment" => $paypalEnvironment,
+        "active_provider_type" => $activeProvider->provider_type ?? '',
+        "currency_code" => $currencyCode,
+        "base_url" => $baseUrl,
         "payment_request_label" => $paymentRequestLabel,
         "processingModal" => ProcessingModal::render("orderAccessProcessingModal", [
-            "title" => "Processing payment...",
-            "message" => "We are confirming your payment. Please wait."
+            "title" => TranslationService::trans('planner_hub.processing_payment'),
+            "message" => TranslationService::trans('planner_hub.confirming_payment')
         ]),
         "processingModalScript" => ProcessingModal::script("orderAccessProcessingModal")
-    ]);
+    ] + $savedPaymentViewData);
 });
 
 $router->post(function () {
-    error_log("=== SUBORDER PAYMENT DEBUG START ===");
-    error_log("POST data received: " . json_encode($_POST));
-    
-    $squareService = new SquareServiceV2();
     $token = $_POST["token"] ?? null;
     error_log("Token received: " . ($token ? "YES" : "NO"));
     
@@ -129,7 +150,7 @@ $router->post(function () {
     
     if (!$decoded || !isset($decoded["suborder_id"])) {
         error_log("Invalid token - missing suborder_id");
-        return Response::createResponse("Invalid token");
+        return Response::createResponse(TranslationService::trans('planner_hub.invalid_token'));
     }
 
     $suborderId = intval($decoded["suborder_id"]);
@@ -142,7 +163,7 @@ $router->post(function () {
     if (!$suborder) {
         error_log("Suborder not found for ID: " . $suborderId);
         return TemplateResponse::render(__DIR__ . "/error.twig", [
-            "error" => "Suborder not found"
+            "error" => TranslationService::trans('planner_hub.suborder_not_found')
         ]);
     }
     error_log("Suborder found: " . $suborder->id);
@@ -155,20 +176,17 @@ $router->post(function () {
     if (!$parentOrder) {
         error_log("Parent order not found for suborder: " . $suborder->id);
         return TemplateResponse::render(__DIR__ . "/error.twig", [
-            "error" => "Parent order not found"
+            "error" => TranslationService::trans('planner_hub.parent_order_not_found')
         ]);
     }
-    error_log("Parent order found: " . $parentOrder->id);
-
-    $accountRepo = new SquareAccountsRepository();
-    $account = $accountRepo->getByUser($parentOrder->id_owner);
-    if (!$account || empty($account->square_account_id)) {
-        error_log("Square account not found for owner: " . $parentOrder->id_owner);
+    $paymentProvidersRepo = new PaymentProvidersRepository();
+    $paymentOwnerId = $paymentProvidersRepo->getPaymentOwnerIdForOrder($parentOrder);
+    $activeProvider = $paymentProvidersRepo->getActiveProviderForOwner($paymentOwnerId);
+    if (!$activeProvider || !$activeProvider->is_verified || !in_array($activeProvider->provider_type, ['stripe', 'square', 'paypal'], true)) {
         return TemplateResponse::render(__DIR__ . "/error.twig", [
-            "error" => "Owner cannot receive payments"
+            "error" => TranslationService::trans('planner_hub.payment_provider_not_configured')
         ]);
     }
-    error_log("Square account found: " . $account->square_account_id);
 
     // Calcular total usando precios variables reales
     $suborderServicesRepo = new OrderSuborderServicesAssignedRepository();
@@ -224,82 +242,61 @@ $router->post(function () {
         $customerName = trim($_POST["customer_name"] ?? "");
     }
 
-    // Procesar pago con Square
     $cardToken = $_POST["customer_token"] ?? null;
+    $savedPaymentMethodId = (int)($_POST["saved_payment_method_id"] ?? 0);
     $customerEmail = strtolower(trim($_POST["customer_email"] ?? ""));
-    
-    error_log("Payment data - Card token: " . ($cardToken ? "YES" : "NO") . ", Name: $customerName, Email: $customerEmail");
 
-    if (!$cardToken || !$customerEmail) {
-        error_log("Missing payment data - Card token: " . ($cardToken ? "YES" : "NO") . ", Email: " . ($customerEmail ? "YES" : "NO"));
+    if ((!$cardToken && $savedPaymentMethodId <= 0) || !$customerEmail) {
         return TemplateResponse::render(__DIR__ . "/error.twig", [
-            "error" => "Missing payment data"
+            "error" => TranslationService::trans('planner_hub.missing_payment_data')
         ]);
     }
 
-    error_log("Creating/updating Square customer...");
-    $customer = $squareService->getCustomerOnConnectedAccount($customerEmail, $account->square_account_id);
+    $paymentRequestLabel = TranslationService::trans('planner_hub.suborder_full_payment', ['suborder_id' => $suborder->id]);
+    $provider = PaymentProviderFactory::create($activeProvider);
+    $savedPaymentService = new OrderAccessSavedPaymentMethodService();
+    $chargeResult = $savedPaymentService->chargeFromPost($provider, $activeProvider, $parentOrder, (int)$paymentOwnerId, $totalAmount, [
+        'note' => $paymentRequestLabel,
+        'reference_id' => 'Suborder-' . $suborderId,
+        'customer_email' => $customerEmail,
+        'customer_name' => $customerName,
+        'source' => 'order_access_suborder_full',
+        'order_id' => $parentOrder->id,
+        'suborder_id' => $suborderId,
+        'payment_type' => 'suborder_full',
+    ]);
+    $charge = $chargeResult['charge'] ?? false;
 
-    if (!$customer) {
-        error_log("Creating new Square customer...");
-        $customer = $squareService->createCustomerWithCardOnConnectedAccount(
-            $cardToken,
-            $customerEmail,
-            $customerName,
-            $account->square_account_id
-        );
-    }
-
-    if (!$customer) {
-        error_log("Failed to create Square customer");
+    if ($charge === false) {
         return TemplateResponse::render(__DIR__ . "/error.twig", [
-            "error" => "Failed to create customer"
+            "error" => $chargeResult['error'] ?? TranslationService::trans('planner_hub.payment_could_not_be_processed')
         ]);
     }
-    error_log("Square customer ready: " . $customer->getId());
-
-    error_log("Creating Square payment...");
-    $charge = $squareService->chargeCustomerOnConnectedAccount(
-        $customer->getId(),
-        $totalAmount,
-        $account->square_account_id,
-        $cardToken
-    );
-
-    if (!$charge) {
-        error_log("Failed to create Square payment");
-        return TemplateResponse::render(__DIR__ . "/error.twig", [
-            "error" => "Failed to create charge"
-        ]);
-    }
-    
-    // Verificar si el pago falló
     if (isset($charge->status) && $charge->status === 'payment_failed') {
-        $errorMessage = "Payment failed";
-        if (isset($charge->_error_details['message'])) {
-            $errorMessage = $charge->_error_details['message'];
-        }
-        error_log("Square payment failed: " . json_encode($charge->_error_details ?? []));
+        $errorMessage = $charge->_error_details['message'] ?? TranslationService::trans('planner_hub.payment_failed');
+        return TemplateResponse::render(__DIR__ . "/error.twig", ["error" => $errorMessage]);
+    }
+    if (empty($charge->paid) && (empty($charge->status) || !in_array($charge->status, ['completed', 'succeeded', 'COMPLETED'], true))) {
         return TemplateResponse::render(__DIR__ . "/error.twig", [
-            "error" => $errorMessage
+            "error" => TranslationService::trans('planner_hub.payment_was_not_completed', ['status' => $charge->status ?? 'unknown'])
         ]);
     }
-    
-    error_log("Square payment created: " . $charge->id);
 
-    // Extraer detalles de la tarjeta desde el pago de Square
     $cardBrand = null;
     $cardLast4 = null;
     $cardExpMonth = null;
     $cardExpYear = null;
-    
-    if (isset($charge->payment_method_details)) {
-        $details = $charge->payment_method_details;
-        if (isset($details->card)) {
-            $cardBrand = $details->card->brand ?? null;
-            $cardLast4 = $details->card->last4 ?? null;
-            $cardExpMonth = $details->card->exp_month ?? null;
-            $cardExpYear = $details->card->exp_year ?? null;
+    if (isset($charge->raw)) {
+        $raw = $charge->raw;
+        if (isset($raw->payment_method_details->card)) {
+            $cardBrand = $raw->payment_method_details->card->brand ?? null;
+            $cardLast4 = $raw->payment_method_details->card->last4 ?? null;
+            $cardExpMonth = $raw->payment_method_details->card->exp_month ?? null;
+            $cardExpYear = $raw->payment_method_details->card->exp_year ?? null;
+        } elseif (is_object($raw) && method_exists($raw, 'getCardDetails') && $raw->getCardDetails() && method_exists($raw->getCardDetails(), 'getCard') && $raw->getCardDetails()->getCard()) {
+            $cardObj = $raw->getCardDetails()->getCard();
+            $cardBrand = method_exists($cardObj, 'getCardBrand') ? $cardObj->getCardBrand() : null;
+            $cardLast4 = method_exists($cardObj, 'getLast4') ? $cardObj->getLast4() : null;
         }
     }
 
@@ -309,8 +306,8 @@ $router->post(function () {
         "id_suborder" => $suborderId,
         "is_suborder" => 1,
         "amount" => $totalAmount,
-        "method" => "square",
-        "stripe_charge_id" => $charge->id, // Mantener el nombre del campo por compatibilidad
+        "method" => $activeProvider->provider_type,
+        "stripe_charge_id" => $charge->id ?? null,
         "paid_at" => date("Y-m-d H:i:s"),
         "created_at" => date("Y-m-d H:i:s")
     ];
@@ -324,14 +321,15 @@ $router->post(function () {
     
     if (!$paymentSaved) {
         return TemplateResponse::render(__DIR__ . "/error.twig", [
-            "error" => "Failed to save payment record"
+            "error" => TranslationService::trans('planner_hub.failed_save_payment_record')
         ]);
     }
 
     // Generar recibo PDF y guardar en document_logs
     try {
         $docRepo = new DocumentsLogsRepository();
-        $receiptPath = PaymentReceiptPdfGenerator::generateAndSave($parentOrder->id, $suborder->id, (float)$totalAmount, 'Square', 'Suborder - Full Payment');
+        $providerName = $activeProvider->provider_type === 'stripe' ? 'Stripe' : ($activeProvider->provider_type === 'square' ? 'Square' : $activeProvider->provider_type);
+        $receiptPath = PaymentReceiptPdfGenerator::generateAndSave($parentOrder->id, $suborder->id, (float)$totalAmount, $providerName, 'Suborder - Full Payment');
         error_log("Receipt PDF generated successfully: " . $receiptPath);
         
         $docRepo->add([
@@ -366,38 +364,54 @@ $router->post(function () {
 
     try {
         $notificationsRepo = new \App\Repositories\NotificationsRepository();
+        $publicSuborderUrl = ($_ENV["APP_URL"] ?? "vnv-venue") . "/order-access/suborder?token=" . $token;
+
         $notificationsRepo->add([
             "id_user" => $parentOrder->id_owner,
-            "mensaje" => "💳 Full Payment Received - Suborder #{$suborderId} full payment of $" . number_format($totalAmount, 2) . " has been received. Suborder is now fully paid.",
-            "link" => ($_ENV["APP_URL"] ?? "vnv-venue") . "/panel/planner-hub/management/orders/orders",
+            "mensaje" => TranslationService::trans('planner_hub.full_payment_received_suborder', [
+                'suborder_id' => $suborderId,
+                'amount' => number_format($totalAmount, 2)
+            ]),
+            "link" => $publicSuborderUrl,
             "leido" => 0
         ]);
 
-        $clientNotificationMessage = "🎉 Payment Complete - Your sub-order #{$suborderId} has been fully paid and confirmed.";
+        $clientNotificationMessage = TranslationService::trans('planner_hub.payment_complete_suborder', ['suborder_id' => $suborderId]);
         $notificationsRepo->add([
             "id_user" => $parentOrder->id_client,
             "mensaje" => $clientNotificationMessage,
-            "link" => ($_ENV["APP_URL"] ?? "vnv-venue") . "/panel/planner-hub/orders/orders",
+            "link" => $publicSuborderUrl,
             "leido" => 0
         ]);
 
         $userRepo = new \App\Repositories\UserRepository();
-        $client = $userRepo->getOne(["id" => $parentOrder->id_client]);
+        // Usar getOneWithoutOwnership para evitar filtros de ownership
+        $client = $userRepo->getOneWithoutOwnership(["id" => $parentOrder->id_client]);
         
         if ($client && $client->email) {
-            $emailService = new \App\Services\EmailService();
-            $subject = "VNV-Events - 🎉 Payment Complete - Sub-Order #{$suborderId}";
+            // Obtener el idioma del sistema del owner para el correo
+            $owner = $userRepo->getOneWithoutOwnership(["id" => $parentOrder->id_owner]);
+            // Acceder directamente a la propiedad system_language del objeto de BD
+            $systemLanguage = ($owner && isset($owner->system_language) && !empty($owner->system_language)) ? $owner->system_language : 'en';
+            
+            // Establecer el locale para el correo según el system_language del owner
+            TranslationService::setLocale($systemLanguage);
+            
+            // Usar el id_owner de la orden para las credenciales SMTP del owner (panel/planner-hub/settings/smtp)
+            $emailService = new \App\Services\EmailService($parentOrder->id_owner);
+            $subject = TranslationService::trans('planner_hub.payment_complete_suborder_email', ['suborder_id' => $suborderId]);
             
             $templateData = [
                 'orderId' => $parentOrder->id,
                 'subOrderId' => $suborderId,
-                'paymentType' => 'Full Payment',
+                'paymentType' => TranslationService::trans('planner_hub.full_payment'),
                 'amount' => $totalAmount,
                 'eventDate' => date("F j, Y", strtotime($parentOrder->event_date)),
-                'eventTime' => date("g:i A", strtotime($parentOrder->start_time)) . ' to ' . date("g:i A", strtotime($parentOrder->end_time)),
+                'eventTime' => date("g:i A", strtotime($parentOrder->start_time)) . ' ' . TranslationService::trans('planner_hub.to') . ' ' . date("g:i A", strtotime($parentOrder->end_time)),
                 'location' => $parentOrder->address,
                 'orderUrl' => ($_ENV["APP_URL"] ?? "http://localhost/vnv-venue") . "/order-access?token=" . urlencode($token),
-                'remainingMessage' => 'Your sub-order is now fully paid and confirmed!'
+                'remainingMessage' => TranslationService::trans('planner_hub.suborder_fully_paid_confirmed'),
+                'locale' => $systemLanguage
             ];
             
             $templatePath = \App\Utils\LocationUtils::getTemplatePath("emails/payment_confirmation.php");

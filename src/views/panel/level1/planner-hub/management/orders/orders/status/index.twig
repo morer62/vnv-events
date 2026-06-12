@@ -24,6 +24,57 @@
 		{% endif %}
 	</div>
 
+	{% if authorized_charge_summary is defined %}
+		<div class="card mb-4">
+			<div class="card-header bg-light">
+				<strong>Authorized saved payment method</strong>
+			</div>
+			<div class="card-body">
+				<div class="row g-3 align-items-center">
+					<div class="col-md-3">
+						<div class="text-muted small">Method</div>
+						{% if authorized_charge_summary.method %}
+							<strong>{{ authorized_charge_summary.method.brand|default('Card') }} **** {{ authorized_charge_summary.method.last4|default('----') }}</strong>
+						{% else %}
+							<span class="text-muted">No active method</span>
+						{% endif %}
+					</div>
+					<div class="col-md-2">
+						<div class="text-muted small">Authorization</div>
+						{% if authorized_charge_summary.consent %}
+							<span class="badge bg-success">Active</span>
+						{% else %}
+							<span class="badge bg-secondary">Missing</span>
+						{% endif %}
+					</div>
+					<div class="col-md-2">
+						<div class="text-muted small">Provider</div>
+						<span class="badge bg-dark">{{ authorized_charge_summary.provider_type|default('none')|capitalize }}</span>
+					</div>
+					<div class="col-md-2">
+						<div class="text-muted small">Pending balance</div>
+						<strong>${{ authorized_charge_summary.balance|number_format(2) }}</strong>
+					</div>
+					<div class="col-md-3 text-md-end">
+						{% if authorized_charge_summary.can_charge %}
+							<form method="post" onsubmit="return confirm('Charge this client saved payment method for the pending authorized balance?');">
+								<input type="hidden" name="id_order" value="{{ order.id }}">
+								<input type="hidden" name="action" value="charge_authorized_balance">
+								<input type="hidden" name="authorized_charge_amount" value="{{ authorized_charge_summary.balance }}">
+								<button class="btn btn-success">
+									Charge authorized balance
+								</button>
+							</form>
+						{% else %}
+							<button class="btn btn-outline-secondary" disabled>Charge unavailable</button>
+							<div class="small text-muted mt-1">Requires active method, consent, matching provider and positive balance.</div>
+						{% endif %}
+					</div>
+				</div>
+			</div>
+		</div>
+	{% endif %}
+
 
 	<form method="post" enctype="multipart/form-data" class="card mb-4">
 		<div class="card-body row g-3">

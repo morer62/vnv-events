@@ -12,6 +12,7 @@ use App\Services\PaymentCardExtractor;
 use App\Repositories\DocumentsLogsRepository;
 use App\Services\PaymentReceiptPdfGenerator;
 use App\Services\NotificationService;
+use App\Services\TranslationService;
 use App\Utils\ProcessingModal;
 
 $router = new \App\Utils\Router();
@@ -101,7 +102,7 @@ $router->get(function () {
     $remainingBalance = max($totalAmount - $sumAdvances - $sumPaid, 0);
     $stripeCurrency = strtolower($_ENV["STRIPE_CURRENCY"] ?? 'usd');
     $stripeCountry = strtoupper($_ENV["STRIPE_COUNTRY"] ?? 'US');
-    $paymentRequestLabel = sprintf("Order VNV-341%s - Advance Payment", $order->id);
+    $paymentRequestLabel = TranslationService::trans('planner_hub.order_advance_payment', ['order_id' => $order->id]);
     $suggestedAdvanceCents = (int) round($remainingBalance * 100);
 
     return TemplateResponse::render(__DIR__ . "/index.twig", [
@@ -116,8 +117,8 @@ $router->get(function () {
         "payment_request_label" => $paymentRequestLabel,
         "suggested_advance_cents" => $suggestedAdvanceCents,
         "processingModal" => ProcessingModal::render("orderAccessProcessingModal", [
-            "title" => "Processing advance...",
-            "message" => "We are registering your payment. Please wait."
+            "title" => TranslationService::trans('planner_hub.processing_advance'),
+            "message" => TranslationService::trans('planner_hub.processing_advance')
         ]),
         "processingModalScript" => ProcessingModal::script("orderAccessProcessingModal")
     ]);
@@ -360,7 +361,7 @@ $router->post(function () {
             "id_order" => $order->id,
             "status" => "INVOICE_PAID",
             "action_type" => "advance_payment_complete",
-            "note" => "Order fully paid through advance payment of $" . number_format($chargeAmount, 2),
+            "note" => TranslationService::trans('planner_hub.order_fully_paid_advance', ['amount' => number_format($chargeAmount, 2)]),
             "created_by" => 0,
             "created_at" => date("Y-m-d H:i:s")
         ]);
@@ -370,7 +371,7 @@ $router->post(function () {
 
     try {
         $docRepo = new DocumentsLogsRepository();
-        $receiptPath = PaymentReceiptPdfGenerator::generateAndSave($order->id, null, (float)$chargeAmount, 'Stripe', 'Advance Payment');
+        $receiptPath = PaymentReceiptPdfGenerator::generateAndSave($order->id, null, (float)$chargeAmount, 'Stripe', TranslationService::trans('planner_hub.add_advance'));
         $docRepo->add([
             "id_order" => $order->id,
             "id_user" => $order->id_client,
@@ -384,14 +385,17 @@ $router->post(function () {
     } catch (\Throwable $e) {}
 
     // Send notification
-    $notificationMessage = 'An advance of $' . number_format($chargeAmount, 2) . ' has been received for order # VNV341' . $order->id;
+    $notificationMessage = TranslationService::trans('planner_hub.advance_received_notification', [
+        'amount' => number_format($chargeAmount, 2),
+        'order_id' => $order->id
+    ]);
     if ($remainingAfterAdvance <= 0) {
-        $notificationMessage .= ' - Order is now fully paid!';
+        $notificationMessage .= ' - ' . TranslationService::trans('planner_hub.order_now_fully_paid');
     }
     
     NotificationService::sendToUsers(
         [$order->id_owner],
-        '💵 Advance Received',
+        '💵 ' . TranslationService::trans('planner_hub.advance_received_title'),
         $notificationMessage
     );
     error_log("[ADVANCE][POST] Advance processed successfully");
