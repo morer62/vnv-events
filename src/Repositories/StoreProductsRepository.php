@@ -80,14 +80,15 @@ class StoreProductsRepository extends BaseRepository
             return '';
         }
 
-        $column = $alias !== '' ? "{$alias}.site_key" : 'site_key';
+        $table = $this->table;
+        $column = $alias !== '' ? "{$alias}.site_key" : "{$table}.site_key";
         $siteSql = " AND ({$column} = :site_key OR {$column} IN ('shared', 'global', 'all_sites'))";
 
         if (!$this->hasSiteVisibilityTable()) {
             return $siteSql;
         }
 
-        $idColumn = $alias !== '' ? "{$alias}.id" : 'id';
+        $idColumn = $alias !== '' ? "{$alias}.id" : "{$table}.id";
 
         return $siteSql . "
             AND EXISTS (
