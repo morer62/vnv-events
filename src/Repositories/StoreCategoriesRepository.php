@@ -95,13 +95,13 @@ class StoreCategoriesRepository extends BaseRepository
 
     public function getPublicBySlug(string $slug, ?int $ownerId = null, ?string $siteKey = null): ?object
     {
-        $ownerSql = $ownerId !== null && $ownerId > 0 ? "AND id_owner = :id_owner" : "";
-        $siteSql = $this->publicVisibilitySql('store_category', $siteKey);
+        $ownerSql = $ownerId !== null && $ownerId > 0 ? "AND sc.id_owner = :id_owner" : "";
+        $siteSql = $this->publicVisibilitySql('store_category', $siteKey, 'sc');
         $this->db->query("
-            SELECT *
-            FROM {$this->table}
-            WHERE slug = :slug
-              AND status = :status
+            SELECT sc.*
+            FROM {$this->table} sc
+            WHERE sc.slug = :slug
+              AND sc.status = :status
               {$ownerSql}
               {$siteSql}
             LIMIT 1
@@ -140,17 +140,17 @@ class StoreCategoriesRepository extends BaseRepository
 
     public function getPublicSitemapEntries(int $limit = 1000, ?int $ownerId = null, ?string $siteKey = null): array
     {
-        $ownerSql = $ownerId !== null && $ownerId > 0 ? "AND id_owner = :id_owner" : "";
-        $siteSql = $this->publicVisibilitySql('store_category', $siteKey);
+        $ownerSql = $ownerId !== null && $ownerId > 0 ? "AND sc.id_owner = :id_owner" : "";
+        $siteSql = $this->publicVisibilitySql('store_category', $siteKey, 'sc');
         $this->db->query("
-            SELECT id, name, slug, description, meta_title, meta_description, updated_at, created_at
-            FROM {$this->table}
-            WHERE status = :status
-              AND slug IS NOT NULL
-              AND slug != ''
+            SELECT sc.id, sc.name, sc.slug, sc.description, sc.meta_title, sc.meta_description, sc.updated_at, sc.created_at
+            FROM {$this->table} sc
+            WHERE sc.status = :status
+              AND sc.slug IS NOT NULL
+              AND sc.slug != ''
               {$ownerSql}
               {$siteSql}
-            ORDER BY updated_at DESC, created_at DESC
+            ORDER BY sc.updated_at DESC, sc.created_at DESC
             LIMIT :limit
         ");
         $this->db->bind(':status', self::STATUS_ACTIVE);
