@@ -9,7 +9,7 @@ $url = trim($_GET['url'] ?? '', '/');
 $parts = $url !== '' ? explode('/', $url) : [];
 $slug = $parts[1] ?? null;
 
-function product_not_found_debug(string $reason, ?string $slug = null, ?int $ownerId = null, ?string $siteKey = null): never
+function product_not_found_debug(string $reason, ?string $slug = null, ?int $ownerId = null, ?string $siteKey = null, array $debug = []): never
 {
     http_response_code(404);
 
@@ -21,6 +21,11 @@ function product_not_found_debug(string $reason, ?string $slug = null, ?int $own
         echo "Slug: " . ($slug ?? '') . "\n";
         echo "Owner ID: " . ($ownerId !== null ? (string)$ownerId : '') . "\n";
         echo "Site Key: " . ($siteKey ?? '') . "\n";
+        if ($debug !== []) {
+            echo "\nDebug:\n";
+            echo json_encode($debug, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+            echo "\n";
+        }
         exit;
     }
 
@@ -44,7 +49,11 @@ if (!$productBase) {
         ? 'public_visibility_or_public_status_failed_for_product_id_' . (int)$rawProduct->id
         : 'slug_owner_site_lookup_failed';
 
-    product_not_found_debug($reason, $slug, $ownerId, $siteKey);
+    $debug = method_exists($productsRepository, 'debugPublicProductLookup')
+        ? $productsRepository->debugPublicProductLookup($slug, $ownerId, $siteKey)
+        : [];
+
+    product_not_found_debug($reason, $slug, $ownerId, $siteKey, $debug);
 }
 
 $product = $productsRepository->getFullPublicProductDetails((int)$productBase->id, $ownerId, $siteKey);

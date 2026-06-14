@@ -111,6 +111,111 @@ class StoreProductsRepository extends BaseRepository
         }
     }
 
+    public function debugPublicProductLookup(string $slug, ?int $ownerId = null, ?string $siteKey = null): array
+    {
+        $normalizedSiteKey = $this->normalizeSiteKey($siteKey);
+        $debug = [
+            'repository_debug_version' => 'store-products-public-debug-2026-06-14-01',
+            'input' => [
+                'slug' => $slug,
+                'owner_id' => $ownerId,
+                'site_key' => $normalizedSiteKey,
+            ],
+            'schema' => [
+                'has_site_scope_column' => $this->hasSiteScopeColumn(),
+                'has_site_visibility_table' => $this->hasSiteVisibilityTable(),
+            ],
+            'database' => [],
+            'product_raw' => null,
+            'visibility_rows_for_product' => [],
+            'exact_public_filter_match' => null,
+            'collations' => [],
+        ];
+
+        try {
+            $this->db->query("SELECT DATABASE() AS database_name, @@collation_connection AS collation_connection");
+            $debug['database'] = (array)($this->db->fetchOne() ?: []);
+        } catch (\Throwable $e) {
+            $debug['database_error'] = $e->getMessage();
+        }
+
+        try {
+            $this->db->query("
+                SELECT id, slug, site_key, id_owner, status, is_public
+                FROM {$this->table}
+                WHERE slug = :slug
+                  AND id_owner = :id_owner
+                  AND site_key = :site_key
+                LIMIT 1
+            ");
+            $this->db->bind(':slug', $slug);
+            $this->db->bind(':id_owner', (int)$ownerId, \PDO::PARAM_INT);
+            $this->db->bind(':site_key', $normalizedSiteKey);
+            $product = $this->db->fetchOne();
+            $debug['product_raw'] = $product ? (array)$product : null;
+        } catch (\Throwable $e) {
+            $debug['product_raw_error'] = $e->getMessage();
+            $product = null;
+        }
+
+        if ($product && isset($product->id)) {
+            try {
+                $this->db->query("
+                    SELECT id, site_key, entity_type, entity_id, id_user_business, is_visible, visibility_status
+                    FROM site_visibility
+                    WHERE entity_id = :entity_id
+                      AND entity_type = 'store_product'
+                    ORDER BY site_key, id
+                ");
+                $this->db->bind(':entity_id', (int)$product->id, \PDO::PARAM_INT);
+                $debug['visibility_rows_for_product'] = array_map('get_object_vars', $this->db->fetchAll() ?: []);
+            } catch (\Throwable $e) {
+                $debug['visibility_rows_error'] = $e->getMessage();
+            }
+
+            try {
+                $this->db->query("
+                    SELECT sp.id
+                    FROM {$this->table} sp
+                    WHERE sp.id = :product_id
+                      AND sp.status = 'ACTIVE'
+                      AND sp.is_public = 1
+                      AND sp.id_owner = :id_owner
+                      AND (sp.site_key = :site_key OR sp.site_key IN ('shared', 'global', 'all_sites'))
+                      AND EXISTS (
+                          SELECT 1
+                          FROM site_visibility sv
+                          WHERE sv.site_key = :visibility_site_key
+                            AND sv.entity_type = 'store_product'
+                            AND sv.entity_id = sp.id
+                            AND sv.is_visible = 1
+                            AND sv.visibility_status = 'VISIBLE'
+                      )
+                    LIMIT 1
+                ");
+                $this->db->bind(':product_id', (int)$product->id, \PDO::PARAM_INT);
+                $this->db->bind(':id_owner', (int)$ownerId, \PDO::PARAM_INT);
+                $this->db->bind(':site_key', $normalizedSiteKey);
+                $this->db->bind(':visibility_site_key', $normalizedSiteKey);
+                $debug['exact_public_filter_match'] = (bool)$this->db->fetchOne();
+            } catch (\Throwable $e) {
+                $debug['exact_public_filter_error'] = $e->getMessage();
+            }
+        }
+
+        try {
+            $this->db->query("SHOW FULL COLUMNS FROM {$this->table} WHERE Field IN ('slug', 'site_key', 'status')");
+            $debug['collations']['store_products'] = array_map('get_object_vars', $this->db->fetchAll() ?: []);
+
+            $this->db->query("SHOW FULL COLUMNS FROM site_visibility WHERE Field IN ('site_key', 'entity_type', 'visibility_status')");
+            $debug['collations']['site_visibility'] = array_map('get_object_vars', $this->db->fetchAll() ?: []);
+        } catch (\Throwable $e) {
+            $debug['collations_error'] = $e->getMessage();
+        }
+
+        return $debug;
+    }
+
     public function normalizeSlug(string $value): string
     {
         $slug = strtolower(trim(preg_replace('/[^A-Za-z0-9-]+/', '-', $value)));
