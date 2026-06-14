@@ -44,7 +44,7 @@
                                 class="btn btn-sm btn-outline-primary show-institution-btn"
                                 data-institution='{{ order.institution|json_encode|e('html_attr') }}'
                                 data-owner-id="{{ order.id_owner }}">
-                                {{ order.institution.company_name }}
+                                {{ order.institution.company_name|default('Company')|replace({'\\n': ' ', '\n': ' '})|trim }}
                             </button>
                         {% else %}
                             <span class="text-muted">N/A</span>
@@ -101,13 +101,30 @@
 
 {% block scripts %}
 <script>
+    function cleanInstitutionText(value, fallback = 'N/A') {
+        const text = String(value ?? '').replace(/\\n/g, ' ').replace(/\r?\n/g, ' ').trim();
+        return text || fallback;
+    }
+
+    function escapeInstitutionHtml(value, fallback = 'N/A') {
+        const div = document.createElement('div');
+        div.textContent = cleanInstitutionText(value, fallback);
+        return div.innerHTML;
+    }
+
     function showInstitutionModal(data, ownerId) {
         let html = `
-            <strong>Company Name:</strong> ${data.company_name}<br>
-            <strong>Phone:</strong> ${data.phone ?? 'N/A'}<br>
-            <strong>Email:</strong> ${data.email ?? 'N/A'}<br>
-            <strong>Address:</strong> ${data.address_line1 ?? ''}, ${data.city ?? ''}, ${data.state ?? ''}, ${data.zip ?? ''}, ${data.country ?? ''}<br>
-            <strong>Payment Methods:</strong> ${data.payment_method_accepted ?? 'N/A'}<br><br>
+            <strong>Company Name:</strong> ${escapeInstitutionHtml(data.company_name)}<br>
+            <strong>Phone:</strong> ${escapeInstitutionHtml(data.phone)}<br>
+            <strong>Email:</strong> ${escapeInstitutionHtml(data.email)}<br>
+            <strong>Address:</strong> ${[
+                data.address_line1,
+                data.city,
+                data.state,
+                data.zip,
+                data.country
+            ].map(part => cleanInstitutionText(part, '')).filter(Boolean).map(part => escapeInstitutionHtml(part, '')).join(', ') || 'N/A'}<br>
+            <strong>Payment Methods:</strong> ${escapeInstitutionHtml(data.payment_method_accepted)}<br><br>
             <a href="{{ path('panel/chat') }}?to=${ownerId}" class="btn btn-outline-success">Start Chat</a>
         `;
         document.getElementById("institutionBody").innerHTML = html;

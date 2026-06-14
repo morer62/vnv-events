@@ -1,17 +1,13 @@
-{% extends 'templates/base.admin.twig' %}
+﻿{% extends 'templates/base.admin.twig' %}
 
 {% block body %}
 <div class="container-fluid vnv-page-shell store-orders-page">
     <div class="vnv-page-header">
         <div>
             <p class="vnv-kicker">Client Dashboard</p>
-            <h1>My Avomeal Orders</h1>
-            <p>Review your meal orders, line items, delivery status and upcoming subscription charges.</p>
+            <h1>My Store Orders</h1>
+            <p>Review purchases, payment status and fulfillment progress.</p>
         </div>
-
-        <a href="{{ path('/meal-plans') }}" class="btn vnv-btn-primary">
-            Order More Meals
-        </a>
     </div>
 
     <div class="card vnv-panel-card">
@@ -25,7 +21,7 @@
                                 <th>Pricing</th>
                                 <th>Coupon</th>
                                 <th>Details</th>
-                                <th class="text-end">Meals</th>
+                                <th class="text-end">Items</th>
                                 <th class="text-end">Total</th>
                                 <th class="text-nowrap">Next charge</th>
                                 <th>Payment</th>
@@ -39,17 +35,17 @@
                                 <tr>
                                     <td>
                                         <strong>#{{ o.id }}</strong>
-                                        <div class="small text-muted">{{ o.guest_email ?: '—' }}</div>
+                                        <div class="small text-muted">{{ o.guest_email ?: '-' }}</div>
                                     </td>
                                     <td>{{ o.pricing_mode }}</td>
                                     <td class="small">
                                         {% if o.coupon_code %}
                                             <span class="badge bg-info text-dark">{{ o.coupon_code }}</span>
                                             {% if (o.coupon_discount ?: 0) > 0 %}
-                                                <div class="text-muted mt-1">− ${{ o.coupon_discount|number_format(2, '.', ',') }}</div>
+                                                <div class="text-muted mt-1">- ${{ o.coupon_discount|number_format(2, '.', ',') }}</div>
                                             {% endif %}
                                         {% else %}
-                                            <span class="text-muted">—</span>
+                                            <span class="text-muted">-</span>
                                         {% endif %}
                                     </td>
                                     <td>
@@ -72,7 +68,7 @@
                                                 <div class="text-muted">Date TBD</div>
                                             {% endif %}
                                         {% else %}
-                                            <span class="text-muted">—</span>
+                                            <span class="text-muted">-</span>
                                         {% endif %}
                                     </td>
                                     <td>
@@ -112,11 +108,8 @@
                 </div>
             {% else %}
                 <div class="vnv-empty-state text-center py-5">
-                    <h5 class="mb-2">No Avomeal orders yet</h5>
-                    <p class="text-muted mb-3">You have not placed any meal orders yet.</p>
-                    <a href="{{ path('/meal-plans') }}" class="btn btn-primary">
-                        Start My Meal Plan
-                    </a>
+                    <h5 class="mb-2">No store orders yet</h5>
+                    <p class="text-muted mb-0">Your store purchases will appear here.</p>
                 </div>
             {% endif %}
         </div>
@@ -195,7 +188,7 @@
                     const tr = document.createElement('tr');
 
                     const tdName = document.createElement('td');
-                    tdName.textContent = item.name || '—';
+                    tdName.textContent = item.name || '-';
 
                     const tdQty = document.createElement('td');
                     tdQty.className = 'text-end';

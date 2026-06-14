@@ -1,15 +1,15 @@
-{% extends 'templates/base.admin.twig' %}
+﻿{% extends 'templates/base.admin.twig' %}
 
 {% block body %}
 <section class="p-5 rounded-4 shadow-sm mb-5 text-white" style="background: linear-gradient(135deg, #00b894, #00cec9);">
-    <h2 class="fw-bold mb-2">🏦 Manage Your Venue</h2>
+    <h2 class="fw-bold mb-2">Manage Your Venue</h2>
     <p class="fs-5 mb-3">Update your profile and attract more clients</p>
     <a href="{{ path('panel/venues/home') }}" class="btn btn-light btn-lg fw-bold px-4">Go to Venue</a>
 </section>
-<h1 class="h3 mb-4">💳 Update Your Payment Method to Activate Your Profile & Memberships</h1>
+<h1 class="h3 mb-4">Update Your Payment Method to Activate Your Profile & Memberships</h1>
 
 <a href="{{ path('panel/billing') }}" class="btn btn-outline-primary mb-4">
-    🧾 Update Billing Information
+    Update Billing Information
 </a>
 
 <div class="row">
@@ -31,7 +31,7 @@
     </div>
 
     <div class="col-md-6">
-        <h5>💼 Saved Cards</h5>
+        <h5>Saved Cards</h5>
         <table class="table table-bordered">
             <thead>
                 <tr>
@@ -48,7 +48,7 @@
                         <td>{{ card.brand }}</td>
                         <td>**** **** **** {{ card.last4 }}</td>
                         <td>{{ card.exp }}</td>
-                        <td>{% if card.main_card == 'yes' %}✅{% endif %}</td>
+                        <td>{% if card.main_card == 'yes' %}Yes{% endif %}</td>
                         <td>
                             {% if card.main_card != 'yes' %}
                                 <form method="post" class="d-inline">
@@ -67,10 +67,49 @@
                 {% endfor %}
             </tbody>
         </table>
+
+        <h5 class="mt-4">Cards Saved From Public Payments</h5>
+        <p class="text-muted small mb-2">Cards used on public payment links appear here when they were saved for future authorized charges.</p>
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>Business</th>
+                    <th>Brand</th>
+                    <th>Last 4</th>
+                    <th>Exp</th>
+                    <th>Default</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for method in client_payment_methods %}
+                    <tr>
+                        <td>#{{ method.id_user_business }}</td>
+                        <td>{{ method.brand ?: method.payment_provider|capitalize }}</td>
+                        <td>**** **** **** {{ method.last4 ?: '----' }}</td>
+                        <td>
+                            {% if method.exp_month and method.exp_year %}
+                                {{ method.exp_month }}/{{ method.exp_year }}
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
+                        <td>{% if method.is_default %}Yes{% endif %}</td>
+                        <td>
+                            <form method="post" class="d-inline">
+                                <input type="hidden" name="delete_client_payment_method" value="{{ method.id }}">
+                                <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
+                            </form>
+                        </td>
+                    </tr>
+                {% else %}
+                    <tr><td colspan="6" class="text-center">No public payment cards saved.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
     </div>
 </div>
 
-<!-- Modal sugerencia de perfil (venue) -->
 <div class="modal fade" id="profileSuggestModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
@@ -129,7 +168,6 @@
             const result = await res.json();
             if (result.success) {
                 if (result.needs_profile) {
-                    // Configurar modal
                     document.getElementById('profileSuggestTitle').textContent = result.next_title || 'Create your venue profile';
                     document.getElementById('profileSuggestGo').setAttribute('href', result.next_url || '#');
                     const modal = new bootstrap.Modal(document.getElementById('profileSuggestModal'));

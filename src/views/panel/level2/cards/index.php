@@ -3,6 +3,7 @@
 use App\Repositories\UserCardsRepository;
 use App\Repositories\UserBillingInfoRepository;
 use App\Repositories\VenueRepository;
+use App\Services\ClientPaymentMethodService;
 use App\Services\LoginService;
 use App\Services\StripeService;
 use App\Utils\JsonResponse;
@@ -35,10 +36,12 @@ $router->get(function () {
 
     $cardRepo = new UserCardsRepository();
     $cards = $cardRepo->getByUserId($user->getId());
+    $clientPaymentMethods = (new ClientPaymentMethodService())->listClientSavedPaymentMethodsAcrossBusinesses((int)$user->getId());
 
     return TemplateResponse::render(__DIR__ . "/index.twig", [
         "stripe_key" => $_ENV["STRIPE_PUBLIC"],
         "cards" => $cards,
+        "client_payment_methods" => $clientPaymentMethods,
         "websiteUrl" => $_ENV["APP_URL"] ?? "https://ophyra.com"
     ]);
 });
@@ -55,6 +58,11 @@ $router->post(function () {
         }
         
         $repo = new UserCardsRepository();
+
+        if (isset($_POST["delete_client_payment_method"])) {
+            (new ClientPaymentMethodService())->deactivateMethod((int)$_POST["delete_client_payment_method"], (int)$user->getId());
+            LocationUtils::redirectInternal("panel/cards");
+        }
 
         // Eliminar tarjeta
         if (isset($_POST["delete_card"])) {

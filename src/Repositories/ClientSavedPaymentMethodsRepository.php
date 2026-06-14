@@ -76,13 +76,19 @@ class ClientSavedPaymentMethodsRepository extends BaseRepository
 
     public function deactivateForClient(int $id, int $clientId): bool
     {
-        return $this->update([
-            'status' => 'INACTIVE',
-            'updated_at' => date('Y-m-d H:i:s'),
-        ], [
-            'id' => $id,
-            'id_client' => $clientId,
-        ]);
+        $this->db->query("
+            UPDATE {$this->table}
+            SET status = 'INACTIVE',
+                updated_at = :updated
+            WHERE id = :id
+              AND (id_client = :client OR user_id = :client)
+        ");
+        $this->db->bind(':updated', date('Y-m-d H:i:s'));
+        $this->db->bind(':id', $id, \PDO::PARAM_INT);
+        $this->db->bind(':client', $clientId, \PDO::PARAM_INT);
+        $this->db->execute();
+
+        return true;
     }
 
     public function setDefaultForClient(int $id, int $businessId, int $clientId): bool

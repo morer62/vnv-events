@@ -6,7 +6,6 @@ use App\Repositories\StoreOrdersRepository;
 use App\Repositories\StoreSubscriptionItemsRepository;
 use App\Repositories\StoreSubscriptionsRepository;
 use App\Services\LoginService;
-use App\Utils\AvomealContext;
 use App\Utils\Router;
 use App\Utils\TemplateResponse;
 
@@ -79,7 +78,7 @@ $router->get(function () {
     $subsRepo = new StoreSubscriptionsRepository();
     $subItemsRepo = new StoreSubscriptionItemsRepository();
     $couponsRepo = new StoreCouponsRepository();
-    $ownerId = AvomealContext::ownerId();
+    $ownerId = null;
 
     $userId = (int)$session->getId();
     $email = method_exists($session, 'getEmail') ? trim((string)$session->getEmail()) : '';
