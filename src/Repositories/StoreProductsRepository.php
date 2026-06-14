@@ -74,6 +74,43 @@ class StoreProductsRepository extends BaseRepository
         }
     }
 
+    private function publicProductVisibilitySql(?string $siteKey = null, string $alias = ''): string
+    {
+        if (!$this->hasSiteScopeColumn()) {
+            return '';
+        }
+
+        $column = $alias !== '' ? "{$alias}.site_key" : 'site_key';
+        $siteSql = " AND ({$column} = :site_key OR {$column} IN ('shared', 'global', 'all_sites'))";
+
+        if (!$this->hasSiteVisibilityTable()) {
+            return $siteSql;
+        }
+
+        $idColumn = $alias !== '' ? "{$alias}.id" : 'id';
+
+        return $siteSql . "
+            AND EXISTS (
+                SELECT 1
+                FROM site_visibility sv
+                WHERE sv.site_key = :visibility_site_key
+                  AND sv.entity_type = 'store_product'
+                  AND sv.entity_id = {$idColumn}
+                  AND sv.is_visible = 1
+                  AND sv.visibility_status = 'VISIBLE'
+            )
+        ";
+    }
+
+    private function bindPublicProductScope(?string $siteKey = null): void
+    {
+        $this->bindSiteScope($siteKey);
+
+        if ($this->hasSiteScopeColumn() && $this->hasSiteVisibilityTable()) {
+            $this->db->bind(':visibility_site_key', $this->normalizeSiteKey($siteKey));
+        }
+    }
+
     public function normalizeSlug(string $value): string
     {
         $slug = strtolower(trim(preg_replace('/[^A-Za-z0-9-]+/', '-', $value)));
@@ -250,7 +287,7 @@ class StoreProductsRepository extends BaseRepository
     public function getActivePublic(int $limit = 500, ?int $ownerId = null, ?string $siteKey = null): array
     {
         $ownerSql = $ownerId !== null && $ownerId > 0 ? "AND id_owner = :id_owner" : "";
-        $siteSql = $this->publicVisibilitySql('store_product', $siteKey);
+        $siteSql = $this->publicProductVisibilitySql($siteKey);
         $this->db->query("
             SELECT *
             FROM {$this->table}
@@ -265,7 +302,7 @@ class StoreProductsRepository extends BaseRepository
         if ($ownerSql !== '') {
             $this->db->bind(':id_owner', $ownerId, \PDO::PARAM_INT);
         }
-        $this->bindSiteScope($siteKey);
+        $this->bindPublicProductScope($siteKey);
         $this->db->bind(':limit', $limit, \PDO::PARAM_INT);
 
         $rows = $this->db->fetchAll();
@@ -281,7 +318,7 @@ class StoreProductsRepository extends BaseRepository
     public function getPublicSitemapEntries(int $limit = 1000, ?int $ownerId = null, ?string $siteKey = null): array
     {
         $ownerSql = $ownerId !== null && $ownerId > 0 ? "AND id_owner = :id_owner" : "";
-        $siteSql = $this->publicVisibilitySql('store_product', $siteKey);
+        $siteSql = $this->publicProductVisibilitySql($siteKey);
         $this->db->query("
             SELECT id, name, slug, short_description, updated_at, created_at
             FROM {$this->table}
@@ -298,7 +335,7 @@ class StoreProductsRepository extends BaseRepository
         if ($ownerSql !== '') {
             $this->db->bind(':id_owner', $ownerId, \PDO::PARAM_INT);
         }
-        $this->bindSiteScope($siteKey);
+        $this->bindPublicProductScope($siteKey);
         $this->db->bind(':limit', $limit, \PDO::PARAM_INT);
 
         return $this->db->fetchAll() ?: [];
@@ -307,7 +344,7 @@ class StoreProductsRepository extends BaseRepository
     public function getPublicByCategory(int $categoryId, int $limit = 120, ?int $ownerId = null, ?string $siteKey = null): array
 {
     $ownerSql = $ownerId !== null && $ownerId > 0 ? "AND sp.id_owner = :id_owner" : "";
-    $siteSql = $this->publicVisibilitySql('store_product', $siteKey, 'sp');
+    $siteSql = $this->publicProductVisibilitySql($siteKey, 'sp');
     $sql = "
         SELECT sp.*
         FROM {$this->table} sp
@@ -330,7 +367,7 @@ class StoreProductsRepository extends BaseRepository
     if ($ownerSql !== '') {
         $this->db->bind(':id_owner', $ownerId, \PDO::PARAM_INT);
     }
-    $this->bindSiteScope($siteKey);
+    $this->bindPublicProductScope($siteKey);
 
     if ($limit > 0) {
         $this->db->bind(':limit', $limit, \PDO::PARAM_INT);
@@ -344,7 +381,7 @@ class StoreProductsRepository extends BaseRepository
     public function getPublicById(int $id, ?int $ownerId = null, ?string $siteKey = null): ?object
     {
         $ownerSql = $ownerId !== null && $ownerId > 0 ? "AND id_owner = :id_owner" : "";
-        $siteSql = $this->publicVisibilitySql('store_product', $siteKey);
+        $siteSql = $this->publicProductVisibilitySql($siteKey);
         $this->db->query("
             SELECT *
             FROM {$this->table}
@@ -360,7 +397,7 @@ class StoreProductsRepository extends BaseRepository
         if ($ownerSql !== '') {
             $this->db->bind(':id_owner', $ownerId, \PDO::PARAM_INT);
         }
-        $this->bindSiteScope($siteKey);
+        $this->bindPublicProductScope($siteKey);
 
         $product = $this->db->fetchOne();
         if (!$product) {
@@ -373,7 +410,7 @@ class StoreProductsRepository extends BaseRepository
     public function getPublicBySlug(string $slug, ?int $ownerId = null, ?string $siteKey = null): ?object
 {
     $ownerSql = $ownerId !== null && $ownerId > 0 ? "AND id_owner = :id_owner" : "";
-    $siteSql = $this->publicVisibilitySql('store_product', $siteKey);
+    $siteSql = $this->publicProductVisibilitySql($siteKey);
     $this->db->query("
         SELECT *
         FROM {$this->table}
@@ -389,7 +426,7 @@ class StoreProductsRepository extends BaseRepository
     if ($ownerSql !== '') {
         $this->db->bind(':id_owner', $ownerId, \PDO::PARAM_INT);
     }
-    $this->bindSiteScope($siteKey);
+    $this->bindPublicProductScope($siteKey);
 
     $product = $this->db->fetchOne();
     if (!$product) {
