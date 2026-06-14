@@ -481,9 +481,9 @@ class StoreProductsRepository extends BaseRepository
         return $product;
     }
 
-    public function getFullPublicProductDetails(int $id, ?int $ownerId = null): ?object
+    public function getFullPublicProductDetails(int $id, ?int $ownerId = null, ?string $siteKey = null): ?object
     {
-        $product = $this->getPublicById($id, $ownerId);
+        $product = $this->getPublicById($id, $ownerId, $siteKey);
         if (!$product) {
             return null;
         }

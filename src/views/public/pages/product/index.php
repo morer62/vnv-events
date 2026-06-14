@@ -2,6 +2,7 @@
 
 use App\Repositories\StoreProductsRepository;
 use App\Utils\AvomealContext;
+use App\Utils\SiteContext;
 use App\Utils\TemplateResponse;
 
 $url = trim($_GET['url'] ?? '', '/');
@@ -16,8 +17,9 @@ if (!$slug) {
 
 $productsRepository = new StoreProductsRepository();
 $ownerId = AvomealContext::ownerId();
+$siteKey = SiteContext::siteKey();
 
-$productBase = $productsRepository->getPublicBySlug($slug, $ownerId);
+$productBase = $productsRepository->getPublicBySlug($slug, $ownerId, $siteKey);
 
 if (!$productBase) {
     http_response_code(404);
@@ -25,7 +27,7 @@ if (!$productBase) {
     exit;
 }
 
-$product = $productsRepository->getFullPublicProductDetails((int)$productBase->id, $ownerId);
+$product = $productsRepository->getFullPublicProductDetails((int)$productBase->id, $ownerId, $siteKey);
 
 if (!$product) {
     http_response_code(404);
