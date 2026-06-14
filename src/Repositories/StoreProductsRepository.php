@@ -158,7 +158,7 @@ class StoreProductsRepository extends BaseRepository
     $this->db->query("
         SELECT *
         FROM {$this->table}
-        WHERE slug = CONVERT(:slug USING latin1)
+        WHERE slug = :slug
         {$ownerSql}
         {$siteSql}
         LIMIT 1
@@ -377,7 +377,7 @@ class StoreProductsRepository extends BaseRepository
     $this->db->query("
         SELECT *
         FROM {$this->table}
-        WHERE slug = CONVERT(:slug USING latin1)
+        WHERE slug = :slug
           AND status = :status
           AND is_public = 1
           {$ownerSql}
