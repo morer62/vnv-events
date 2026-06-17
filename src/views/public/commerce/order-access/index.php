@@ -284,7 +284,7 @@ $router->get(function () {
             // Fallback para órdenes antiguas que no tienen unit_price
             $unitPrice = ($a->is_variable === 'YES' && $a->variable_price !== null) 
                 ? $a->variable_price 
-                : $service->price;
+                : ($service->price ?? 0);
         }
         
         $subtotalCalculated += $a->quantity * $unitPrice;
@@ -300,12 +300,12 @@ $router->get(function () {
         }
         
         $servicesFormatted[] = [
-            "name" => $service->name,
+            "name" => $service->name ?? ('Service #' . ($a->id_service ?? '')),
             "qty" => $a->quantity,
             "unit_price" => $unitPrice,
             "note" => $description,
             "subtotal" => $a->quantity * $unitPrice,
-            "description_url" => $service->description_url,
+            "description_url" => $service->description_url ?? null,
             "is_variable" => $a->is_variable ?? 'NO'
         ];
     }
