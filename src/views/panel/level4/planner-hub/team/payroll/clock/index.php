@@ -13,6 +13,7 @@ use App\Services\UserWorkspaceContextService;
 use App\Services\TranslationService;
 use App\Repositories\InstitutionProfileRepository;
 use App\Repositories\UserInstitutionsRepository;
+use App\Repositories\OrdersTeamTasksRepository;
 
 date_default_timezone_set('UTC');
 
@@ -33,13 +34,13 @@ $router->get(function () use ($repo, $user): string {
     $userInstitutions = [];
     $hasMultipleInstitutions = false;
     
-    // Validar que usuarios de nivel 4 tengan al menos una institución asociada
+    // Validar que usuarios de nivel 4 tengan al menos una instituciÃ³n asociada
     if ($isLevel4) {
         $workspaceContextService->getTeamContext($user);
         $userInstitutions = $userInstitutionService->getUserAvailableInstitutions($user->getId());
         
         if (empty($userInstitutions)) {
-            MessageUtil::setMessage("⚠️ You need to be associated with a company to use the clock. Please contact your administrator to be assigned to a company.");
+            MessageUtil::setMessage("âš ï¸ You need to be associated with a company to use the clock. Please contact your administrator to be assigned to a company.");
             LocationUtils::redirectInternal("panel/home");
             exit;
         }
@@ -84,9 +85,9 @@ $router->get(function () use ($repo, $user): string {
     } catch (Exception $e) {
     }
 
-    // Para nivel 4, debe tener una institución válida
+    // Para nivel 4, debe tener una instituciÃ³n vÃ¡lida
     if ($isLevel4 && !$currentInstitution) {
-        MessageUtil::setMessage("⚠️ You need to be associated with a company to use the clock. Please contact your administrator to be assigned to a company.");
+        MessageUtil::setMessage("âš ï¸ You need to be associated with a company to use the clock. Please contact your administrator to be assigned to a company.");
         LocationUtils::redirectInternal("panel/home");
         exit;
     }
@@ -95,7 +96,7 @@ $router->get(function () use ($repo, $user): string {
 
     // Validar que currentInstitutionOwner no sea null para nivel 4
     if ($isLevel4 && !$currentInstitutionOwner) {
-        MessageUtil::setMessage("⚠️ Unable to determine company owner. Please contact your administrator.");
+        MessageUtil::setMessage("âš ï¸ Unable to determine company owner. Please contact your administrator.");
         LocationUtils::redirectInternal("panel/home");
         exit;
     }
@@ -105,6 +106,50 @@ $router->get(function () use ($repo, $user): string {
     $activeLog = count($logs) > 0 ? $logs[0] : null;
     $contractService = new TeamMemberContractService();
     $clockContractStatus = $contractService->getClockContractStatus($user->getId(), (int)$currentInstitutionOwner);
+
+    $assignedEvents = [];
+    if ($isLevel4 && $currentInstitutionOwner) {
+        try {
+            $tasksRepo = new OrdersTeamTasksRepository();
+            $taskRows = $tasksRepo->getForUserAndOwnerDetailed((int)$user->getId(), (int)$currentInstitutionOwner);
+            $eventsByOrder = [];
+
+            foreach ($taskRows as $taskRow) {
+                $orderId = (int)($taskRow->related_order_id ?? $taskRow->id_order ?? 0);
+                if ($orderId <= 0) {
+                    continue;
+                }
+
+                if (!isset($eventsByOrder[$orderId])) {
+                    $contactName = trim((string)($taskRow->contact_name ?? ''));
+                    $eventsByOrder[$orderId] = [
+                        'id' => $orderId,
+                        'event_date' => $taskRow->event_date ?? null,
+                        'start_time' => $taskRow->order_start_time ?? null,
+                        'end_time' => $taskRow->order_end_time ?? null,
+                        'address' => $taskRow->order_address ?? '',
+                        'contact_name' => $contactName !== '' ? $contactName : ($taskRow->contact_email ?? ''),
+                        'contact_email' => $taskRow->contact_email ?? '',
+                        'tasks' => [],
+                    ];
+                }
+
+                $taskTitle = trim((string)($taskRow->title ?? $taskRow->name ?? $taskRow->task_title ?? $taskRow->work_type ?? ''));
+                $eventsByOrder[$orderId]['tasks'][] = [
+                    'id' => (int)($taskRow->id ?? 0),
+                    'title' => $taskTitle !== '' ? $taskTitle : TranslationService::trans('planner_hub.clock_assignments_task'),
+                    'start_time' => $taskRow->start_time ?? $taskRow->order_start_time ?? null,
+                    'end_time' => $taskRow->end_time ?? $taskRow->order_end_time ?? null,
+                    'notes' => $taskRow->notes ?? $taskRow->note ?? $taskRow->instructions ?? '',
+                    'is_done' => (int)($taskRow->is_done ?? $taskRow->is_completed ?? 0),
+                ];
+            }
+
+            $assignedEvents = array_values($eventsByOrder);
+        } catch (Throwable $e) {
+            error_log('[Level4 Clock] Assigned events popup failed: ' . $e->getMessage());
+        }
+    }
 
     return TemplateResponse::render(__DIR__ . "/index.twig", [
         "activeLog" => $activeLog,
@@ -117,7 +162,8 @@ $router->get(function () use ($repo, $user): string {
         'userInstitutionData' => $userInstitutionData,
         'roleName' => $roleName,
         'hourlyRate' => $hourlyRate,
-        'clockContractStatus' => $clockContractStatus
+        'clockContractStatus' => $clockContractStatus,
+        'assignedEvents' => $assignedEvents
     ]);
 });
 
@@ -153,7 +199,7 @@ $router->post(callback: function () use ($repo, $user): void {
     $userInstitutionService = new UserInstitutionService();
     $institutionRepo = new InstitutionProfileRepository();
     
-    // Para nivel 4, obtener la institución correcta
+    // Para nivel 4, obtener la instituciÃ³n correcta
     $currentInstitutionOwner = null;
     $isLevel4 = $user->getLevel() == 4;
     
@@ -167,7 +213,7 @@ $router->post(callback: function () use ($repo, $user): void {
             }
         }
         
-        // Si no hay institución en sesión, obtener la primaria
+        // Si no hay instituciÃ³n en sesiÃ³n, obtener la primaria
         if (!$currentInstitutionOwner) {
             $primaryInstitution = $userInstitutionService->getUserPrimaryInstitution($user->getId());
             if ($primaryInstitution) {
@@ -179,9 +225,9 @@ $router->post(callback: function () use ($repo, $user): void {
             }
         }
         
-        // Validar que tenga institución antes de continuar
+        // Validar que tenga instituciÃ³n antes de continuar
         if (!$currentInstitutionOwner) {
-            MessageUtil::setMessage("⚠️ You need to be associated with a company to use the clock. Please contact your administrator to be assigned to a company.");
+            MessageUtil::setMessage("âš ï¸ You need to be associated with a company to use the clock. Please contact your administrator to be assigned to a company.");
             LocationUtils::redirectInternal("panel/home");
             exit;
         }
@@ -281,3 +327,4 @@ try {
     MessageUtil::setMessage(TranslationService::trans('planner_hub.clock_action_failed'), 'Error', 'error');
     LocationUtils::redirectInternal("panel/home");
 }
+

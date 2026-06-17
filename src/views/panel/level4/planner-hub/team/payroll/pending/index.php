@@ -4,6 +4,7 @@ use App\Repositories\UserRepository;
 use App\Repositories\PayrollHoursRepository;
 use App\Services\LoginService;
 use App\Services\TimeService;
+use App\Services\UserWorkspaceContextService;
 use App\Utils\DateUtil;
 use App\Utils\LocationUtils;
 use App\Utils\MessageUtil;
@@ -19,8 +20,13 @@ $router->get(function () {
     
     $repoHours = new PayrollHoursRepository();
     $employeeId = $user->getId();
+    $workspaceContextService = new UserWorkspaceContextService();
+    $teamContext = $workspaceContextService->getTeamContext($user);
+    $selectedOwnerId = (int)($teamContext["selectedOwnerId"] ?? 0);
 
-    $allHours = $repoHours->getAllUnpaidByUser($employeeId);
+    $allHours = $selectedOwnerId > 0
+        ? $repoHours->getAllUnpaidByUserAndOwner($employeeId, $selectedOwnerId)
+        : $repoHours->getAllUnpaidByUser($employeeId);
 
     $allHours = array_map(function ($hour) {
         $hour->total_hours = TimeService::getDateLocalDiff($hour->start_time, $hour->end_time);
@@ -68,7 +74,8 @@ $router->get(function () {
         "institutionSummaries" => $institutionSummaries,
         "grandTotalSessions" => $grandTotalSessions,
         "grandTotalHours" => $grandTotalHours,
-        "user" => $user
+        "user" => $user,
+        "teamContext" => $teamContext
     ]);
 });
 

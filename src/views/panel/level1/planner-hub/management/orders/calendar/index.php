@@ -2,7 +2,6 @@
 
 use App\Repositories\OrdersRepository;
 use App\Repositories\UserRepository;
-use App\Services\CentralOperationsContextService;
 use App\Services\LoginService;
 use App\Services\OrdersCalendarService;
 use App\Utils\Router;
@@ -24,8 +23,7 @@ $router->get(callback: function () {
 
     $ordersRepo = new OrdersRepository();
     $clientRepo = new UserRepository();
-    $context = (new CentralOperationsContextService())->getOperations($user->getOwner());
-    $ownerId = (int)($context['vnv_events']['owner_id'] ?? $user->getOwner());
+    $ownerId = (int)($user->getOwner() ?: $user->getId());
 
     $orders = $ordersRepo->getFiltered2([
         'id_owner' => $ownerId,

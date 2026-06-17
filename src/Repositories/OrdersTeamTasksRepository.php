@@ -64,6 +64,29 @@ class OrdersTeamTasksRepository extends BaseRepository
         return $this->db->fetchAll();
     }
 
+    public function getForUserAndOwnerDetailed(int $userId, int $ownerId): array
+    {
+        $this->db->query("
+            SELECT t.*,
+                   o.id AS related_order_id,
+                   o.event_date,
+                   o.start_time AS order_start_time,
+                   o.end_time AS order_end_time,
+                   o.address AS order_address,
+                   o.id_client,
+                   TRIM(CONCAT(COALESCE(c.name, ''), ' ', COALESCE(c.lastname, ''))) AS contact_name,
+                   c.email AS contact_email
+            FROM {$this->table} t
+            LEFT JOIN orders o ON o.id = t.id_order
+            LEFT JOIN users c ON c.id = o.id_client
+            WHERE t.id_user = :user AND t.id_owner = :owner
+            ORDER BY o.event_date ASC, o.start_time ASC, t.is_done ASC, t.created_at DESC, t.id DESC
+        ");
+        $this->db->bind(':user', $userId);
+        $this->db->bind(':owner', $ownerId);
+        return $this->db->fetchAll();
+    }
+
     public function getAssigneesByOrders(int $ownerId, array $orderIds): array
     {
         $orderIds = array_values(array_unique(array_filter(array_map('intval', $orderIds))));
@@ -100,4 +123,27 @@ class OrdersTeamTasksRepository extends BaseRepository
         return $contactsByOrder;
     }
 
+    public function assigneeCanChatWithOrderClient(int $ownerId, int $userId, int $clientId): bool
+    {
+        if ($ownerId <= 0 || $userId <= 0 || $clientId <= 0) {
+            return false;
+        }
+
+        $this->db->query("
+            SELECT t.id
+            FROM {$this->table} t
+            INNER JOIN orders o ON o.id = t.id_order
+            WHERE t.id_owner = :owner
+              AND t.id_user = :user
+              AND o.id_client = :client
+            LIMIT 1
+        ");
+        $this->db->bind(':owner', $ownerId);
+        $this->db->bind(':user', $userId);
+        $this->db->bind(':client', $clientId);
+
+        return (bool)$this->db->fetchOne();
+    }
+
 }
+
