@@ -64,4 +64,40 @@ class OrdersTeamTasksRepository extends BaseRepository
         return $this->db->fetchAll();
     }
 
+    public function getAssigneesByOrders(int $ownerId, array $orderIds): array
+    {
+        $orderIds = array_values(array_unique(array_filter(array_map('intval', $orderIds))));
+        if ($ownerId <= 0 || empty($orderIds)) {
+            return [];
+        }
+
+        $placeholders = [];
+        foreach ($orderIds as $index => $orderId) {
+            $placeholders[] = ':order' . $index;
+        }
+        $placeholdersSql = implode(',', $placeholders);
+
+        $this->db->query("
+            SELECT DISTINCT t.id_order, u.id, u.name, u.lastname, u.email, u.level, u.allow_chat_with_clients
+            FROM {$this->table} t
+            INNER JOIN users u ON u.id = t.id_user
+            WHERE t.id_owner = :owner
+              AND t.id_order IN ({$placeholdersSql})
+              AND t.id_user IS NOT NULL
+            ORDER BY u.name ASC, u.lastname ASC, u.email ASC
+        ");
+        $this->db->bind(':owner', $ownerId);
+        foreach ($orderIds as $index => $orderId) {
+            $this->db->bind(':order' . $index, $orderId);
+        }
+
+        $rows = $this->db->fetchAll();
+        $contactsByOrder = [];
+        foreach ($rows as $row) {
+            $contactsByOrder[(int)$row->id_order][] = $row;
+        }
+
+        return $contactsByOrder;
+    }
+
 }

@@ -445,6 +445,31 @@ public function getOrdersForClientWithoutOwnerFilter(int $clientId): array
     return $this->db->fetchAll();
 }
 
+public function getOrdersForClientWithCompany(int $clientId): array
+{
+    $sql = "
+        SELECT
+            o.*,
+            ip.company_name AS company_name,
+            ip.logo_path AS company_logo_path,
+            ip.email AS company_email,
+            ip.phone AS company_phone,
+            ip.address_line1 AS company_address_line1,
+            ip.city AS company_city,
+            ip.state AS company_state,
+            ip.zip AS company_zip,
+            ip.country AS company_country
+        FROM orders o
+        LEFT JOIN institution_profile ip ON ip.id_owner = o.id_owner
+        WHERE o.id_client = :id_client
+          AND o.is_archived = 0
+        ORDER BY o.event_date DESC, o.created_at DESC
+    ";
+    $this->db->query($sql);
+    $this->db->bind(":id_client", $clientId);
+    return $this->db->fetchAll();
+}
+
 public function getAllByInstitutionOwner(int $institutionOwnerId, int $isArchived = 0): array
 {
     $sql = "SELECT * FROM `{$this->table}` WHERE `id_owner` = :id_owner AND `is_archived` = :is_archived ORDER BY event_date DESC";

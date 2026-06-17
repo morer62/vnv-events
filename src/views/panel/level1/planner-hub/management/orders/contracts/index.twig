@@ -1,25 +1,106 @@
 {% extends 'templates/base.admin.twig' %}
 {% import 'templates/macros.twig' as macros %}
 
+{% block style %}
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/trumbowyg@2.27.3/dist/ui/trumbowyg.min.css">
+  <style>
+    .employee-contract-callout {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 18px 20px;
+      border: 1px solid rgba(31, 169, 154, .22);
+      border-radius: 16px;
+      background: linear-gradient(135deg, rgba(31, 169, 154, .12), rgba(255,255,255,.94));
+      box-shadow: 0 14px 36px rgba(15, 23, 42, .06);
+    }
+
+    .employee-contract-callout__icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 14px;
+      display: grid;
+      place-items: center;
+      flex: 0 0 auto;
+      color: #0f766e;
+      background: #dffcf6;
+    }
+
+    .employee-contract-callout__title {
+      margin: 0 0 4px;
+      font-weight: 800;
+      color: #122033;
+    }
+
+    .employee-contract-callout__body {
+      margin: 0;
+      color: #64748b;
+    }
+
+    @media (max-width: 767.98px) {
+      .employee-contract-callout {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+    }
+  </style>
+{% endblock %}
+
 {% block body %}
 
-    <h2 class="mb-4">📜 Contracts</h2>
+    <h2 class="mb-4">📜 {{ trans('planner_hub.contracts') }}</h2>
 
     {{ macros.breadcrumb2() }}
 
-    <section class="card">
-        <div class="card-body">
+    <section class="employee-contract-callout mb-4">
+        <div class="employee-contract-callout__icon">
+            <i data-feather="user-check"></i>
+        </div>
+        <div class="flex-grow-1">
+            <h5 class="employee-contract-callout__title">{{ trans('planner_hub.employee_contract_callout_title') }}</h5>
+            <p class="employee-contract-callout__body">{{ trans('planner_hub.employee_contract_callout_body') }}</p>
+        </div>
+        <a href="{{ path('panel/planner-hub/management/users') }}" class="btn btn-outline-primary">
+            {{ trans('planner_hub.go_to_team_members') }}
+        </a>
+    </section>
 
+    <section class="card mb-4">
+        <div class="card-header bg-info text-white">
+            <h5 class="mb-0">📋 {{ trans('planner_hub.order_acceptance_contract_template') }}</h5>
+        </div>
+        <div class="card-body">
+            <p class="text-muted mb-3">{{ trans('planner_hub.contract_text_clients_sign') }}</p>
+            
+            <form method="POST">
+                <input type="hidden" name="action" value="update_acceptance_template">
+                <div class="mb-3">
+                    <label class="form-label fw-bold">{{ trans('planner_hub.contract_content') }}</label>
+                    <textarea name="content" id="acceptance-contract-editor" class="form-control" rows="12" required>{{ acceptanceTemplate.content|default('') }}</textarea>
+                    <small class="text-muted d-block mt-2">💡 {{ trans('planner_hub.placeholder_order_id') }}</small>
+                </div>
+                <button type="submit" class="btn btn-primary">
+                    <i data-feather="save"></i> {{ trans('planner_hub.save_acceptance_contract_template') }}
+                </button>
+            </form>
+        </div>
+    </section>
+
+    <section class="card">
+        <div class="card-header">
+            <h5 class="mb-0">📄 {{ trans('planner_hub.order_contracts') }}</h5>
+        </div>
+        <div class="card-body">
             <a href="{{ path(current_location ~ '/create') }}" class="btn btn-primary mb-3">
-                <i data-feather="plus"></i> Add New Contract
+                <i data-feather="plus"></i> {{ trans('planner_hub.add_new_contract') }}
             </a>
 
             <div class="table-responsive">
                 <table class="table table-bordered text-center align-middle" style="min-width: 500px;">
                     <thead>
                     <tr>
-                        <th>Title</th>
-                        <th>Actions</th>
+                        <th>{{ trans('planner_hub.title') }}</th>
+                        <th>{{ trans('planner_hub.actions') }}</th>
                     </tr>
                     </thead>
                     <tbody>
@@ -27,13 +108,13 @@
                         <tr>
                             <td>{{ contract.title }}</td>
                             <td class="d-flex justify-content-center gap-2">
-                                <a href="{{ path(current_location ~ '/edit') }}?id={{ contract.id }}" class="btn btn-warning">✏️ Edit</a>
+                                <a href="{{ path(current_location ~ '/edit') }}?id={{ contract.id }}" class="btn btn-warning">✏️ {{ trans('planner_hub.edit') }}</a>
                                 {{ macros.delete_form(contract.id) }}
                             </td>
                         </tr>
                     {% else %}
                         <tr>
-                            <td colspan="2" class="text-muted">No contracts were found.</td>
+                            <td colspan="2" class="text-muted">{{ trans('planner_hub.no_contracts_found') }}</td>
                         </tr>
                     {% endfor %}
                     </tbody>
@@ -42,4 +123,24 @@
         </div>
     </section>
 
+{% endblock %}
+
+{% block scripts %}
+  <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/trumbowyg@2.27.3/dist/trumbowyg.min.js"></script>
+  <script>
+    $(document).ready(function () {
+      $('#acceptance-contract-editor').trumbowyg({
+        btns: [
+          ['formatting'],
+          ['strong', 'em'],
+          ['fontsize'],
+          ['unorderedList', 'orderedList'],
+          ['horizontalRule'],
+          ['removeformat']
+        ],
+        autogrow: true
+      });
+    });
+  </script>
 {% endblock %}

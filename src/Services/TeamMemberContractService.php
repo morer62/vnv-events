@@ -16,16 +16,24 @@ class TeamMemberContractService
 
     public function isClockInAllowed(int $teamMemberId, int $ownerId): bool
     {
+        return (bool)$this->getClockContractStatus($teamMemberId, $ownerId)['allowed'];
+    }
+
+    public function getClockContractStatus(int $teamMemberId, int $ownerId): array
+    {
         if (!$this->hasStorage()) {
-            return true;
+            return [
+                'allowed' => true,
+                'status' => 'NOT_REQUIRED',
+            ];
         }
 
         $this->db->query("
-            SELECT status
+            SELECT status, signed_at, validated_at, uploaded_at
             FROM team_member_contracts
             WHERE team_member_id = :team_member_id
               AND id_owner = :id_owner
-            ORDER BY COALESCE(validated_at, signed_at, uploaded_at, updated_at, created_at) DESC, id DESC
+            ORDER BY COALESCE(validated_at, signed_at, uploaded_at, updated_at, created_at) DESC
             LIMIT 1
         ");
         $this->db->bind(':team_member_id', $teamMemberId);
@@ -33,10 +41,21 @@ class TeamMemberContractService
 
         $contract = $this->db->fetchOne();
         if (!$contract) {
-            return false;
+            return [
+                'allowed' => false,
+                'status' => 'NOT_ASSIGNED',
+            ];
         }
 
-        return in_array($contract->status, ['SIGNED', 'VALIDATED', 'MANUALLY_UPLOADED'], true);
+        $status = (string)$contract->status;
+
+        return [
+            'allowed' => in_array($status, ['SIGNED', 'VALIDATED', 'MANUALLY_UPLOADED'], true),
+            'status' => $status,
+            'signed_at' => $contract->signed_at ?? null,
+            'validated_at' => $contract->validated_at ?? null,
+            'uploaded_at' => $contract->uploaded_at ?? null,
+        ];
     }
 
     private function hasStorage(): bool

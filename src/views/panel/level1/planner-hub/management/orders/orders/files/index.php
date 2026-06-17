@@ -3,7 +3,9 @@
 use App\Repositories\OrdersFilesRepository;
 use App\Repositories\OrdersRepository;
 use App\Repositories\DocumentsLogsRepository;
+use App\Repositories\OrdersAcceptanceContractsRepository;
 use App\Services\LoginService;
+use App\Services\TranslationService;
 use App\Utils\FileUtils;
 use App\Utils\LocationUtils;
 use App\Utils\MessageUtil;
@@ -23,6 +25,7 @@ $router->get(function () {
 
     $repo = new OrdersFilesRepository();
     $docRepo = new DocumentsLogsRepository();
+    $acceptanceRepo = new OrdersAcceptanceContractsRepository();
     $orderRepo = new OrdersRepository();
     $orderId = $_GET["id"];
 
@@ -94,6 +97,10 @@ $router->get(function () {
         "id_order" => $orderId,
         "doc_type" => "tip_receipt"
     ]);
+    $receipts_acceptance = $docRepo->getAllBy([
+        "id_order" => $orderId,
+        "doc_type" => "order_acceptance_signed"
+    ]);
     $receipts = array_merge(
         $receipts_legacy,
         $receipts_first,
@@ -102,15 +109,21 @@ $router->get(function () {
         $receipts_sub_first,
         $receipts_sub_second,
         $receipts_sub_full,
-        $receipts_tips
+        $receipts_tips,
+        $receipts_acceptance
     );
 
+    $acceptanceContracts = $acceptanceRepo->getAllByOrder($orderId);
+
+    // Detectar idioma actual
+    TranslationService::detectLocale();
+    
     // Convertir contratos al formato de archivos para mostrar
-    $contractFiles = array_map(function ($contract) {
+    $contractFiles = array_map(function ($contract) use ($orderId) {
         return (object) [
             'id' => 'contract_' . $contract->id,
-            'title' => 'Contract Signed',
-            'description' => 'Signed contract for this order',
+            'title' => TranslationService::trans('planner_hub.contract_signed', ['order_id' => $orderId]),
+            'description' => TranslationService::trans('planner_hub.signed_contract_for_order'),
             'file_path' => $contract->file_path,
             'is_contract' => true,
             'contract_id' => $contract->id,
@@ -120,18 +133,22 @@ $router->get(function () {
 
     // Convertir recibos al mismo formato
     $receiptFiles = array_map(function ($r) {
-        $title = 'Payment Receipt';
-        $description = 'Receipt generated after payment';
+        $title = TranslationService::trans('planner_hub.payment_receipt');
+        $description = TranslationService::trans('planner_hub.receipt_generated_after_payment');
         $type = trim($r->doc_type ?? '');
-        if ($type === 'pay_first') { $title = 'First Payment Receipt'; }
-        if ($type === 'pay_second') { $title = 'Second Payment Receipt'; }
-        if ($type === 'pay_full') { $title = 'Full Payment Receipt'; }
-        if ($type === 'sub_pay_first') { $title = 'Suborder First Payment Receipt'; }
-        if ($type === 'sub_pay_second') { $title = 'Suborder Second Payment Receipt'; }
-        if ($type === 'sub_pay_full') { $title = 'Suborder Full Payment Receipt'; }
+        if ($type === 'pay_first') { $title = TranslationService::trans('planner_hub.first_payment_receipt'); }
+        if ($type === 'pay_second') { $title = TranslationService::trans('planner_hub.second_payment_receipt'); }
+        if ($type === 'pay_full') { $title = TranslationService::trans('planner_hub.full_payment_receipt'); }
+        if ($type === 'sub_pay_first') { $title = TranslationService::trans('planner_hub.suborder_first_payment_receipt'); }
+        if ($type === 'sub_pay_second') { $title = TranslationService::trans('planner_hub.suborder_second_payment_receipt'); }
+        if ($type === 'sub_pay_full') { $title = TranslationService::trans('planner_hub.suborder_full_payment_receipt'); }
         if ($type === 'tip_receipt') { 
-            $title = '💝 Tip Receipt'; 
-            $description = 'Gratuity receipt - Optional tip payment';
+            $title = TranslationService::trans('planner_hub.tip_receipt'); 
+            $description = TranslationService::trans('planner_hub.gratuity_receipt');
+        }
+        if ($type === 'order_acceptance_signed') {
+            $title = TranslationService::trans('planner_hub.order_acceptance_signed');
+            $description = TranslationService::trans('planner_hub.client_signed_confirmation');
         }
         return (object) [
             'id' => 'receipt_' . $r->id,
@@ -144,8 +161,20 @@ $router->get(function () {
         ];
     }, $receipts);
 
-    // Combinar archivos normales, contratos y recibos
-    $allFiles = array_merge($files, $contractFiles, $receiptFiles);
+    $acceptanceFiles = array_map(function ($a) {
+        return (object) [
+            'id' => 'acceptance_' . $a->id,
+            'title' => TranslationService::trans('planner_hub.order_acceptance_signed'),
+            'description' => TranslationService::trans('planner_hub.client_signed_confirmation'),
+            'file_path' => $a->file_path,
+            'is_contract' => false,
+            'contract_id' => null,
+            'generated_at' => $a->generated_at
+        ];
+    }, $acceptanceContracts);
+
+    // Combinar archivos normales, contratos, recibos y aceptaciones
+    $allFiles = array_merge($files, $contractFiles, $receiptFiles, $acceptanceFiles);
 
     $allFiles = array_map(function ($file) {
         $mime = new Mimey\MimeTypes();
@@ -229,6 +258,12 @@ function deleteFile(): never {
     // Verificar si es un contrato (no se puede eliminar)
     if (strpos($id, 'contract_') === 0) {
         MessageUtil::setMessage("❌ Contracts cannot be deleted. They are automatically protected.");
+        LocationUtils::reload();
+    }
+    
+    // Verificar si es una aceptación (no se puede eliminar)
+    if (strpos($id, 'acceptance_') === 0) {
+        MessageUtil::setMessage("❌ Order acceptance contracts cannot be deleted. They are automatically protected.");
         LocationUtils::reload();
     }
     

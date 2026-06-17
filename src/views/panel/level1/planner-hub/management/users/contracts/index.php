@@ -1,7 +1,7 @@
 <?php
 
 use App\Repositories\InstitutionProfileRepository;
-use App\Repositories\OrdersContractRepository;
+use App\Repositories\TeamMemberContractTemplatesRepository;
 use App\Repositories\TeamMemberContractsRepository;
 use App\Repositories\UserInstitutionsRepository;
 use App\Repositories\UserRepository;
@@ -50,15 +50,15 @@ $router->get(function () use ($loadContext): string {
     [, $ownerId, $institution, $member] = $loadContext();
 
     $contractRepo = new TeamMemberContractsRepository();
-    $templateRepo = new OrdersContractRepository();
+    $templateRepo = new TeamMemberContractTemplatesRepository();
 
     return TemplateResponse::render(__DIR__ . '/index.twig', [
         'member' => $member,
         'institution' => $institution,
         'contracts' => $contractRepo->getAllForMember((int)$member->id, $ownerId),
         'latest_contract' => $contractRepo->getLatestForMember((int)$member->id, $ownerId),
-        'templates' => $templateRepo->getAllByInstitutionOwner($ownerId),
-        'contracts_storage_ready' => $contractRepo->hasStorage(),
+        'templates' => $templateRepo->getAllByOwner($ownerId),
+        'template_storage_ready' => $templateRepo->hasStorage(),
     ]);
 });
 
@@ -67,22 +67,57 @@ $router->post(function () use ($loadContext): void {
 
     $action = $_POST['action'] ?? '';
     $contractRepo = new TeamMemberContractsRepository();
+    $templateRepo = new TeamMemberContractTemplatesRepository();
 
-    if (!$contractRepo->hasStorage()) {
-        MessageUtil::setMessage('The team member contracts table is not available. Apply db/team_member_contracts_required.sql first.');
-        LocationUtils::reload();
+    if ($action === 'create_template') {
+        if (!$templateRepo->hasStorage()) {
+            MessageUtil::setMessage('Employee contract template storage is not ready. Apply db/team_member_contract_templates_required.sql first.');
+            LocationUtils::reload();
+        }
+
+        $title = trim((string)($_POST['template_title'] ?? ''));
+        $content = trim((string)($_POST['template_content'] ?? ''));
+
+        if ($title === '' || $content === '') {
+            MessageUtil::setMessage('Employee contract title and content are required.');
+            LocationUtils::reload();
+        }
+
+        $templateRepo->create([
+            'id_owner' => $ownerId,
+            'title' => $title,
+            'content' => $content,
+            'status' => 'ACTIVE',
+            'created_by' => $session->getId(),
+            'created_at' => date('Y-m-d H:i:s'),
+            'updated_at' => date('Y-m-d H:i:s'),
+        ]);
+
+        MessageUtil::setMessage('Employee contract template created.');
+        LocationUtils::redirectInternal('panel/planner-hub/management/users/contracts?id=' . (int)$member->id);
+    }
+
+    if ($action === 'archive_template') {
+        $templateId = (int)($_POST['template_id'] ?? 0);
+        if ($templateId <= 0 || !$templateRepo->archiveByIdAndOwner($templateId, $ownerId)) {
+            MessageUtil::setMessage('Employee contract template could not be archived.');
+            LocationUtils::reload();
+        }
+
+        MessageUtil::setMessage('Employee contract template archived.');
+        LocationUtils::redirectInternal('panel/planner-hub/management/users/contracts?id=' . (int)$member->id);
     }
 
     if ($action === 'assign') {
         $templateId = (int)($_POST['contract_template_id'] ?? 0);
-        $templateRepo = new OrdersContractRepository();
         $template = $templateId > 0 ? $templateRepo->getOneByIdAndOwner($templateId, $ownerId) : null;
 
         if (!$template) {
-            MessageUtil::setMessage('Select a valid contract template.');
+            MessageUtil::setMessage('Select a valid employee contract template.');
             LocationUtils::reload();
         }
 
+        $token = bin2hex(random_bytes(32));
         $contractRepo->create([
             'id_owner' => $ownerId,
             'team_member_id' => (int)$member->id,
@@ -91,11 +126,12 @@ $router->post(function () use ($loadContext): void {
             'assigned_by' => $session->getId(),
             'status' => 'PENDING',
             'source' => 'digital_signature',
-            'sign_token' => bin2hex(random_bytes(32)),
+            'sign_token' => $token,
             'sign_token_expires_at' => date('Y-m-d H:i:s', strtotime('+30 days')),
             'contract_snapshot_html' => $template->content ?? '',
             'contract_snapshot_json' => json_encode([
                 'template_id' => $templateId,
+                'template_table' => 'team_member_contract_templates',
                 'template_title' => $template->title ?? null,
                 'assigned_to_email' => $member->email ?? null,
             ]),
@@ -103,7 +139,7 @@ $router->post(function () use ($loadContext): void {
             'updated_at' => date('Y-m-d H:i:s'),
         ]);
 
-        MessageUtil::setMessage('Contract assigned. The team member can now sign it from My Contract.');
+        MessageUtil::setMessage('Contract assigned. The team member can now sign it from their Team Contracts page.');
         LocationUtils::redirectInternal('panel/planner-hub/management/users/contracts?id=' . (int)$member->id);
     }
 
@@ -113,8 +149,23 @@ $router->post(function () use ($loadContext): void {
             LocationUtils::reload();
         }
 
-        $hash = hash_file('sha256', $_FILES['signed_contract']['tmp_name']);
-        $filePath = FileUtils::saveFile($_FILES['signed_contract'], 'documents_team_member_contracts/manual');
+        $fileType = (string)($_FILES['signed_contract']['type'] ?? '');
+        if ($fileType !== 'application/pdf' && !str_starts_with($fileType, 'image/')) {
+            MessageUtil::setMessage('Only PDF or image files can be uploaded as signed contracts.', 'Error', 'error');
+            LocationUtils::redirectInternal('panel/planner-hub/management/users/contracts?id=' . (int)$member->id);
+        }
+
+        try {
+            $hash = hash_file('sha256', $_FILES['signed_contract']['tmp_name']);
+            $filePath = FileUtils::saveFile($_FILES['signed_contract'], 'documents_team_member_contracts/manual');
+            if ($filePath === '') {
+                throw new \RuntimeException('The uploaded file did not return a public URL.');
+            }
+        } catch (\Throwable $e) {
+            MessageUtil::setMessage('Error uploading signed contract: ' . $e->getMessage(), 'Error', 'error');
+            LocationUtils::redirectInternal('panel/planner-hub/management/users/contracts?id=' . (int)$member->id);
+        }
+
         $latest = $contractRepo->getLatestForMember((int)$member->id, $ownerId);
         $data = [
             'id_owner' => $ownerId,
