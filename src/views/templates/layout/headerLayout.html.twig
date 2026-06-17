@@ -220,6 +220,106 @@
       </script>
 
       <li class="nav-item dropdown">
+        <a class="nav-icon dropdown-toggle" href="#" id="chatUnreadDropdown" data-bs-toggle="dropdown" title="Unread chat messages">
+          <div class="position-relative">
+            <i class="align-middle" data-feather="message-circle"></i>
+            {% if chat_unread_count|default(0) > 0 %}
+              <span class="indicator" data-chat-unread-indicator>{{ chat_unread_count }}</span>
+            {% else %}
+              <span class="indicator" data-chat-unread-indicator style="display:none;">0</span>
+            {% endif %}
+          </div>
+        </a>
+
+        <div class="dropdown-menu dropdown-menu-lg dropdown-menu-end py-0" aria-labelledby="chatUnreadDropdown" data-chat-unread-menu>
+          <div class="dropdown-menu-header" data-chat-unread-header>
+            {% if chat_unread_count|default(0) > 0 %}
+              {{ chat_unread_count }} unread chat message{% if chat_unread_count != 1 %}s{% endif %}
+            {% else %}
+              No unread chat messages
+            {% endif %}
+          </div>
+          <div class="list-group" data-chat-unread-list>
+            {% if chat_unread_threads|default([])|length > 0 %}
+              {% for unreadThread in chat_unread_threads %}
+                <a href="{{ path(chat_unread_base_route ~ '?thread=' ~ unreadThread.id) }}" class="list-group-item chat-unread-item" data-chat-thread-id="{{ unreadThread.id }}">
+                  <div class="row g-0 align-items-center">
+                    <div class="col-2"><i class="text-success" data-feather="message-circle"></i></div>
+                    <div class="col-10">
+                      <div class="text-dark fw-bold">New unread message</div>
+                      <div class="text-dark small">From {{ unreadThread.partner_name ?: unreadThread.partner_email ?: ('User #' ~ unreadThread.partner_id) }}</div>
+                      {% if unreadThread.last_unread_message %}
+                        <div class="text-muted small mt-1">{{ unreadThread.last_unread_message|slice(0, 70) }}{% if unreadThread.last_unread_message|length > 70 %}...{% endif %}</div>
+                      {% endif %}
+                    </div>
+                  </div>
+                </a>
+              {% endfor %}
+            {% else %}
+              <div class="list-group-item text-center text-muted py-3" data-chat-unread-empty>
+                <i data-feather="check-circle" class="text-success mb-2"></i>
+                <div>No unread chat messages</div>
+              </div>
+            {% endif %}
+          </div>
+          <div class="dropdown-menu-footer">
+            <a href="{{ path(chat_unread_base_route|default('panel/planner-hub/team/chat')) }}" class="text-muted">Open chat</a>
+          </div>
+        </div>
+      </li>
+
+      <script>
+        document.addEventListener('DOMContentLoaded', function () {
+          const list = document.querySelector('[data-chat-unread-list]');
+          const header = document.querySelector('[data-chat-unread-header]');
+          const indicator = document.querySelector('[data-chat-unread-indicator]');
+          if (!list || !header || !indicator) return;
+
+          function escapeHtml(value) {
+            return String(value ?? '').replace(/[&<>'"]/g, function (char) {
+              return {'&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#039;', '"': '&quot;'}[char];
+            });
+          }
+
+          function renderUnreadThreads(threads) {
+            const count = Array.isArray(threads) ? threads.length : 0;
+            indicator.textContent = String(count);
+            indicator.style.display = count > 0 ? '' : 'none';
+            header.textContent = count > 0 ? `${count} unread chat message${count === 1 ? '' : 's'}` : 'No unread chat messages';
+
+            if (count === 0) {
+              list.innerHTML = '<div class="list-group-item text-center text-muted py-3" data-chat-unread-empty><i data-feather="check-circle" class="text-success mb-2"></i><div>No unread chat messages</div></div>';
+              if (typeof feather !== 'undefined') feather.replace();
+              return;
+            }
+
+            list.innerHTML = threads.map(function (thread) {
+              const partner = thread.partner_name || thread.partner_email || `User #${thread.partner_id}`;
+              const rawPreview = String(thread.last_unread_message || '');
+              const preview = rawPreview ? `<div class="text-muted small mt-1">${escapeHtml(rawPreview.slice(0, 70))}${rawPreview.length > 70 ? '...' : ''}</div>` : '';
+              return `<a href="${escapeHtml(thread.link)}" class="list-group-item chat-unread-item" data-chat-thread-id="${escapeHtml(thread.id)}"><div class="row g-0 align-items-center"><div class="col-2"><i class="text-success" data-feather="message-circle"></i></div><div class="col-10"><div class="text-dark fw-bold">New unread message</div><div class="text-dark small">From ${escapeHtml(partner)}</div>${preview}</div></div></a>`;
+            }).join('');
+            if (typeof feather !== 'undefined') feather.replace();
+          }
+
+          async function refreshChatUnread() {
+            try {
+              const response = await fetch('{{ path('api/chat/unread') }}', {
+                credentials: 'same-origin',
+                headers: { 'Accept': 'application/json', 'Cache-Control': 'no-cache' }
+              });
+              if (!response.ok) return;
+              const data = await response.json();
+              if (data && data.success) renderUnreadThreads(data.data || []);
+            } catch (error) {}
+          }
+
+          window.addEventListener('focus', refreshChatUnread);
+          window.setInterval(refreshChatUnread, 20000);
+        });
+      </script>
+
+      <li class="nav-item dropdown">
         <a class="nav-icon dropdown-toggle d-inline-block d-sm-none" href="#" data-bs-toggle="dropdown"><i class="align-middle" data-feather="settings"></i></a>
 
         <a class="nav-link dropdown-toggle d-none d-sm-inline-block" href="#" data-bs-toggle="dropdown">

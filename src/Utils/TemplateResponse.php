@@ -51,6 +51,9 @@ class TemplateResponse
         // Incluir notificaciones globalmente para todas las páginas
         $notifications = [];
         $notifications_count = 0;
+        $chatUnreadThreads = [];
+        $chatUnreadCount = 0;
+        $chatUnreadBaseRoute = "panel/planner-hub/team/chat";
         
         try {
             // Solo cargar notificaciones si hay una sesión activa
@@ -89,6 +92,19 @@ class TemplateResponse
             $notifications_count = 0;
         }
 
+        try {
+            $session = LoginService::getSession();
+            if ($session && $session->getId()) {
+                $chatUnreadThreads = (new \App\Repositories\ChatThreadRepository())->getUnreadSummariesForUser((int)$session->getId());
+                $chatUnreadCount = count($chatUnreadThreads);
+                $chatUnreadBaseRoute = ((int)$session->getLevel() === 5) ? "panel/chat" : "panel/planner-hub/team/chat";
+            }
+        } catch (Exception $e) {
+            error_log("ERROR loading chat unread summaries in TemplateResponse: " . $e->getMessage());
+            $chatUnreadThreads = [];
+            $chatUnreadCount = 0;
+        }
+
         return $twig->render($templateChild, [
             "user" => LoginService::getSession(),
             "alertMessage" => MessageUtil::getMessage(),
@@ -96,6 +112,9 @@ class TemplateResponse
             "current_location" => TwigUtils::getCurrentLocation($templateChild),
             "notifications" => $notifications,
             "notifications_count" => $notifications_count,
+            "chat_unread_threads" => $chatUnreadThreads,
+            "chat_unread_count" => $chatUnreadCount,
+            "chat_unread_base_route" => $chatUnreadBaseRoute,
             "isMobileApp" => PlatformDetector::isMobileApp(),
             "isWeb" => PlatformDetector::isWeb(),
             ...$data
@@ -134,6 +153,9 @@ class TemplateResponse
         // Incluir notificaciones globalmente para todas las páginas
         $notifications = [];
         $notifications_count = 0;
+        $chatUnreadThreads = [];
+        $chatUnreadCount = 0;
+        $chatUnreadBaseRoute = "panel/planner-hub/team/chat";
         
         try {
             // Solo cargar notificaciones si hay una sesión activa
@@ -172,12 +194,28 @@ class TemplateResponse
             $notifications_count = 0;
         }
 
+        try {
+            $session = LoginService::getSession();
+            if ($session && $session->getId()) {
+                $chatUnreadThreads = (new \App\Repositories\ChatThreadRepository())->getUnreadSummariesForUser((int)$session->getId());
+                $chatUnreadCount = count($chatUnreadThreads);
+                $chatUnreadBaseRoute = ((int)$session->getLevel() === 5) ? "panel/chat" : "panel/planner-hub/team/chat";
+            }
+        } catch (Exception $e) {
+            error_log("ERROR loading chat unread summaries in TemplateResponse renderInTemplates: " . $e->getMessage());
+            $chatUnreadThreads = [];
+            $chatUnreadCount = 0;
+        }
+
         return $twig->render("templates".DIRECTORY_SEPARATOR.$templateName, [
             "user" => LoginService::getSession(),
             "alertMessage" => MessageUtil::getMessage(),
             "env" => $_ENV,
             "notifications" => $notifications,
             "notifications_count" => $notifications_count,
+            "chat_unread_threads" => $chatUnreadThreads,
+            "chat_unread_count" => $chatUnreadCount,
+            "chat_unread_base_route" => $chatUnreadBaseRoute,
             "isMobileApp" => PlatformDetector::isMobileApp(),
             "isWeb" => PlatformDetector::isWeb(),
             ...$data

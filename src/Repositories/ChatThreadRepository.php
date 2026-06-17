@@ -60,4 +60,37 @@ class ChatThreadRepository extends BaseRepository
         return $this->db->fetchAll();
     }
 
+    public function getUnreadSummariesForUser(int $userId): array
+    {
+        $this->db->query("
+            SELECT
+                t.id,
+                CASE WHEN t.id_user_1 = :uid THEN t.id_user_2 ELSE t.id_user_1 END AS partner_id,
+                CASE WHEN t.id_user_1 = :uid THEN u2.name ELSE u1.name END AS partner_name,
+                CASE WHEN t.id_user_1 = :uid THEN u2.email ELSE u1.email END AS partner_email,
+                COUNT(m.id) AS unread_count,
+                MAX(m.created_at) AS last_unread_at,
+                (
+                    SELECT cm.message
+                    FROM chat_messages cm
+                    WHERE cm.id_thread = t.id
+                      AND cm.is_read = 0
+                      AND cm.id_sender != :uid
+                    ORDER BY cm.created_at DESC, cm.id DESC
+                    LIMIT 1
+                ) AS last_unread_message
+            FROM {$this->table} t
+            JOIN users u1 ON t.id_user_1 = u1.id
+            JOIN users u2 ON t.id_user_2 = u2.id
+            JOIN chat_messages m ON m.id_thread = t.id
+                AND m.is_read = 0
+                AND m.id_sender != :uid
+            WHERE t.id_user_1 = :uid OR t.id_user_2 = :uid
+            GROUP BY t.id, partner_id, partner_name, partner_email
+            ORDER BY last_unread_at DESC
+        ");
+        $this->db->bind(':uid', $userId);
+        return $this->db->fetchAll();
+    }
+
 }
