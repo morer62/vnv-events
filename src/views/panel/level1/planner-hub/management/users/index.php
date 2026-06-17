@@ -118,6 +118,9 @@ $router->get(function () {
                 array_map(fn($member) => (int)$member->id, $teamMembers),
                 (int)$currentOwnerId
             );
+            foreach ($teamMembers as $member) {
+                $member->team_contract = $memberLatestContracts[(int)$member->id] ?? null;
+            }
         }
         
         $clients = $clientsUsersRepo->getClientsByOwner($currentOwnerId, $filters);
@@ -324,3 +327,4 @@ function generateTemporaryPassword() {
 }
 
 $router->run();
+

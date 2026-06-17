@@ -95,7 +95,7 @@
                                         {% endif %}
                                     </td>
                                     <td>
-                                        {% set latest_contract = attribute(member_latest_contracts, member.id) %}
+                                        {% set latest_contract = member.team_contract ?: attribute(member_latest_contracts, member.id) %}
                                         {% if latest_contract %}
                                             <span class="badge bg-{{ latest_contract.status in ['SIGNED','VALIDATED','MANUALLY_UPLOADED'] ? 'success' : (latest_contract.status == 'REJECTED' ? 'danger' : 'warning') }}">
                                                 {{ latest_contract.status }}
@@ -103,9 +103,7 @@
                                         {% else %}
                                             <span class="badge bg-secondary">NOT_ASSIGNED</span>
                                         {% endif %}
-                                        <div class="mt-1">
-                                            <a href="{{ path('panel/planner-hub/management/users/contracts?id=' ~ member.id) }}" class="btn btn-sm btn-outline-primary">Contracts</a>
-                                        </div>
+
                                     </td>
                                     <td>
                                         <form method="post" class="d-inline">
@@ -125,6 +123,7 @@
                                     </td>
                                     <td>
                                         <a href="{{ path('panel/planner-hub/management/users/edit?id=' ~ member.id) }}" class="btn btn-sm btn-outline-warning">✏️ Edit</a>
+                                        <a href="{{ path('panel/planner-hub/management/users/contracts?id=' ~ member.id) }}" class="btn btn-sm btn-outline-primary">Upload / Contracts</a>
                                         <form method="post" class="d-inline">
                                             <input type="hidden" name="id" value="{{ member.id }}">
                                             {% if member.password_updated == 0 %}
@@ -232,3 +231,7 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 
 {% endblock %}
+
+
+
+
