@@ -248,6 +248,33 @@ class PaymentProvidersRepository extends BaseRepository
         return null;
     }
 
+    /**
+     * Devuelve el id_owner a usar para cobros (order-access).
+     * Si la orden fue creada por un usuario nivel 2 que tiene proveedor configurado, usa ese;
+     * si no, usa order.id_owner (nivel 1 / institucion).
+     */
+    public function getPaymentOwnerIdForOrder(object $order): int
+    {
+        $ownerId = (int)($order->id_owner ?? 0);
+        if (empty($order->id_user)) {
+            return $ownerId;
+        }
+
+        $userRepo = new UserRepository();
+        $creator = $userRepo->getOne(['id' => $order->id_user]);
+        if (!$creator || (int)$creator->level !== 2) {
+            return $ownerId;
+        }
+
+        $siteKey = isset($order->site_key) ? (string)$order->site_key : null;
+        $provider = $this->getActiveProviderForOwner((int)$order->id_user, $siteKey);
+        if ($provider) {
+            return (int)$order->id_user;
+        }
+
+        return $ownerId;
+    }
+
     public function providerNameExists(int $ownerId, string $providerType, string $providerName): bool
     {
         $this->db->query("
