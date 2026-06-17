@@ -201,6 +201,78 @@
     color: #fff;
 }
 
+.vnvx-mobile-appbar{
+    display: none;
+}
+
+.vnvx-mobile-header-offset{
+    display: none;
+}
+
+.vnvx-mobile-appbar__menu,
+.vnvx-mobile-appbar__call,
+.vnvx-mobile-appbar__request{
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 0;
+    text-decoration: none;
+    font-weight: 900;
+    line-height: 1;
+    white-space: nowrap;
+}
+
+.vnvx-mobile-appbar__menu{
+    width: 46px;
+    height: 46px;
+    border-radius: 16px;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(94,234,212,0.18);
+    flex-direction: column;
+    gap: 5px;
+}
+
+.vnvx-mobile-appbar__menu span{
+    width: 19px;
+    height: 2px;
+    border-radius: 999px;
+    background: #5eead4;
+    transition: all .22s ease;
+}
+
+.vnvx-mobile-appbar__menu.is-active span:nth-child(1){
+    transform: translateY(7px) rotate(45deg);
+}
+
+.vnvx-mobile-appbar__menu.is-active span:nth-child(2){
+    opacity: 0;
+}
+
+.vnvx-mobile-appbar__menu.is-active span:nth-child(3){
+    transform: translateY(-7px) rotate(-45deg);
+}
+
+.vnvx-mobile-appbar__call{
+    min-height: 46px;
+    padding: 0 14px;
+    border-radius: 16px;
+    color: #d7fff7;
+    background: rgba(255,255,255,0.075);
+    border: 1px solid rgba(255,255,255,0.08);
+    gap: 7px;
+    font-size: .78rem;
+}
+
+.vnvx-mobile-appbar__request{
+    min-height: 46px;
+    padding: 0 15px;
+    border-radius: 16px;
+    color: #061211;
+    background: linear-gradient(135deg, #5eead4 0%, #2dd4bf 100%);
+    box-shadow: 0 14px 30px rgba(45,212,191,0.22);
+    font-size: .78rem;
+}
+
 /* Tablet / laptop */
 @media (max-width: 1100px){
     .vnvx-header__nav a{
@@ -215,11 +287,34 @@
 
 /* Mobile */
 @media (max-width: 860px){
+    .vnvx-header{
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        background: rgba(18,21,25,0.88);
+        backdrop-filter: blur(22px);
+        border-bottom: 1px solid rgba(94,234,212,0.16);
+        box-shadow: 0 18px 40px rgba(0,0,0,0.28);
+    }
+
+    .vnvx-header__wrap{
+        max-width: none;
+        padding-left: max(12px, env(safe-area-inset-left));
+        padding-right: max(12px, env(safe-area-inset-right));
+    }
+
     .vnvx-header__row{
-        min-height: 76px;
+        min-height: calc(68px + env(safe-area-inset-top));
+        padding-top: env(safe-area-inset-top);
+        justify-content: center;
     }
 
     .vnvx-header__nav{
+        display: none;
+    }
+
+    .vnvx-header__right{
         display: none;
     }
 
@@ -227,8 +322,42 @@
         display: none;
     }
 
-    .vnvx-header__toggle{
-        display: inline-flex;
+    .vnvx-mobile-appbar{
+        display: grid;
+        grid-template-columns: 46px minmax(0, 1fr) minmax(0, 1.05fr);
+        align-items: center;
+        gap: 9px;
+        width: 100%;
+    }
+
+    .vnvx-mobile{
+        background: rgba(18,21,25,0.96);
+        border-top: 1px solid rgba(94,234,212,0.13);
+        box-shadow: 0 22px 44px rgba(0,0,0,0.34);
+    }
+
+    .vnvx-mobile__content{
+        padding: 14px max(4px, env(safe-area-inset-left)) 22px;
+    }
+
+    .vnvx-mobile__content > a{
+        color: rgba(255,255,255,0.86);
+        border-bottom-color: rgba(255,255,255,0.08);
+    }
+
+    .vnvx-mobile__meta a{
+        color: #5eead4;
+    }
+
+    .vnvx-mobile__socials a{
+        background: rgba(255,255,255,0.08);
+        border: 1px solid rgba(255,255,255,0.08);
+        color: #fff;
+    }
+
+    .vnvx-mobile-header-offset{
+        display: block;
+        height: calc(68px + env(safe-area-inset-top));
     }
 }
 </style>
@@ -236,6 +365,21 @@
  <header class="vnvx-header" id="vnvxHeader">
     <div class="vnvx-header__wrap container">
         <div class="vnvx-header__row">
+            <div class="vnvx-mobile-appbar" aria-label="Mobile quick actions">
+                <button class="vnvx-mobile-appbar__menu" type="button" aria-label="Open menu" data-vnvx-toggle>
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+                <a class="vnvx-mobile-appbar__call" href="tel:+13052045427">
+                    <i class="fa-solid fa-phone"></i>
+                    <span>Click to call</span>
+                </a>
+                <a class="vnvx-mobile-appbar__request" href="#" data-vnv-open-request>
+                    New Request
+                </a>
+            </div>
+
             <nav class="vnvx-header__nav" aria-label="Main navigation">
                 <a href="{{ path('/') }}">Home</a>
                 <a href="{{ path('/#services') }}">Services</a>
@@ -295,6 +439,8 @@
         </div>
     </div>
 </header>
+
+<div class="vnvx-mobile-header-offset" aria-hidden="true"></div>
 
 
 <script>
