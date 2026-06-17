@@ -53,6 +53,179 @@
             width: fit-content;
         }
 
+        .vnv-events-sidebar {
+            --vnv-side-ink: #ecfffa;
+            --vnv-side-muted: rgba(236, 255, 250, .62);
+            --vnv-side-green: #49f2c2;
+            --vnv-side-teal: #10b9a5;
+            --vnv-side-deep: #071b22;
+            --vnv-side-panel: rgba(255, 255, 255, .055);
+            background:
+                radial-gradient(circle at 18% 4%, rgba(73, 242, 194, .20), transparent 26%),
+                radial-gradient(circle at 86% 18%, rgba(16, 185, 165, .18), transparent 32%),
+                linear-gradient(180deg, #071b22 0%, #092d35 44%, #06171d 100%) !important;
+            border-right: 1px solid rgba(73, 242, 194, .12);
+            box-shadow: inset -1px 0 0 rgba(255,255,255,.04), 18px 0 44px rgba(7, 27, 34, .18);
+        }
+
+        .vnv-events-sidebar .sidebar-content {
+            background: transparent !important;
+            position: relative;
+        }
+
+        .vnv-events-sidebar .sidebar-content:before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            background:
+                linear-gradient(90deg, rgba(255,255,255,.035), transparent 38%),
+                repeating-linear-gradient(135deg, rgba(255,255,255,.025) 0 1px, transparent 1px 18px);
+            opacity: .7;
+        }
+
+        .vnv-events-sidebar .sidebar-brand {
+            position: relative;
+            z-index: 1;
+            margin: 14px 14px 10px;
+            padding: 18px 16px;
+            border: 1px solid rgba(73, 242, 194, .18);
+            border-radius: 22px;
+            background:
+                radial-gradient(circle at top right, rgba(73, 242, 194, .24), transparent 42%),
+                linear-gradient(135deg, rgba(255,255,255,.12), rgba(255,255,255,.04));
+            color: #fff !important;
+            font-weight: 950;
+            letter-spacing: -.02em;
+            box-shadow: 0 18px 36px rgba(0,0,0,.18);
+        }
+
+        .vnv-events-sidebar .sidebar-brand span:before {
+            content: "VNV Events";
+            display: block;
+            margin-bottom: 4px;
+            color: var(--vnv-side-green);
+            font-size: .72rem;
+            font-weight: 950;
+            letter-spacing: .16em;
+            text-transform: uppercase;
+        }
+
+        .vnv-events-sidebar .sidebar-nav {
+            position: relative;
+            z-index: 1;
+            padding: 4px 10px 26px;
+        }
+
+        .vnv-events-sidebar .sidebar-header {
+            margin: 20px 8px 8px;
+            padding: 0;
+            color: var(--vnv-side-green) !important;
+            font-size: .68rem;
+            font-weight: 950;
+            letter-spacing: .16em;
+            text-transform: uppercase;
+            opacity: 1;
+        }
+
+        .vnv-events-sidebar .sidebar-header:first-child {
+            color: rgba(236,255,250,.45) !important;
+        }
+
+        .vnv-events-sidebar .sidebar-item {
+            margin: 3px 0;
+        }
+
+        .vnv-events-sidebar .sidebar-link {
+            position: relative;
+            min-height: 46px;
+            margin: 0;
+            padding: 10px 12px;
+            border: 1px solid transparent;
+            border-radius: 16px;
+            color: var(--vnv-side-muted) !important;
+            background: transparent !important;
+            font-weight: 780;
+            transition: transform .16s ease, background .16s ease, border-color .16s ease, color .16s ease, box-shadow .16s ease;
+        }
+
+        .vnv-events-sidebar .sidebar-link i,
+        .vnv-events-sidebar .sidebar-link svg {
+            width: 18px;
+            height: 18px;
+            color: var(--vnv-side-green) !important;
+            filter: drop-shadow(0 0 10px rgba(73, 242, 194, .22));
+        }
+
+        .vnv-events-sidebar .sidebar-link:before {
+            content: "";
+            width: 30px;
+            height: 30px;
+            position: absolute;
+            left: 7px;
+            top: 50%;
+            transform: translateY(-50%) scale(.92);
+            border-radius: 12px;
+            background: rgba(73, 242, 194, .075);
+            opacity: 0;
+            transition: opacity .16s ease, transform .16s ease;
+        }
+
+        .vnv-events-sidebar .sidebar-link:hover,
+        .vnv-events-sidebar .sidebar-item.active > .sidebar-link,
+        .vnv-events-sidebar .sidebar-link[aria-expanded="true"] {
+            color: var(--vnv-side-ink) !important;
+            border-color: rgba(73, 242, 194, .20);
+            background:
+                linear-gradient(135deg, rgba(73, 242, 194, .16), rgba(255,255,255,.065)) !important;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,.08), 0 12px 26px rgba(0,0,0,.16);
+            transform: translateX(2px);
+        }
+
+        .vnv-events-sidebar .sidebar-link:hover:before,
+        .vnv-events-sidebar .sidebar-item.active > .sidebar-link:before,
+        .vnv-events-sidebar .sidebar-link[aria-expanded="true"]:before {
+            opacity: 1;
+            transform: translateY(-50%) scale(1);
+        }
+
+        .vnv-events-sidebar .sidebar-link span {
+            position: relative;
+            z-index: 1;
+            color: inherit !important;
+        }
+
+        .vnv-events-sidebar .sidebar-dropdown {
+            margin: 4px 0 10px 18px;
+            padding-left: 8px;
+            border-left: 1px solid rgba(73, 242, 194, .14);
+        }
+
+        .vnv-events-sidebar .sidebar-dropdown .sidebar-link {
+            min-height: 38px;
+            border-radius: 13px;
+            color: rgba(236,255,250,.56) !important;
+            font-size: .88rem;
+        }
+
+        .vnv-events-sidebar .sidebar-dropdown .sidebar-link:before {
+            display: none;
+        }
+
+        .vnv-events-sidebar .simplebar-scrollbar:before {
+            background: rgba(73, 242, 194, .42);
+        }
+
+        @media (max-width: 767.98px) {
+            .vnv-events-sidebar .sidebar-brand {
+                margin: 12px;
+            }
+
+            .vnv-events-sidebar .sidebar-link {
+                min-height: 48px;
+            }
+        }
+
         .floating-whatsapp{
             position:fixed;
             right:20px;
