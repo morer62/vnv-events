@@ -1,69 +1,133 @@
 {% extends 'templates/base.admin.twig' %}
 
 {% block body %}
-<h1 class="h3 mb-4">💳 My Cards</h1>
+<main class="container mt-4">
+    <section class="p-4 p-lg-5 rounded-4 shadow-sm mb-4 text-white" style="background: linear-gradient(135deg, #15191d, #0f766e);">
+        <div class="row align-items-center g-4">
+            <div class="col-lg-8">
+                <p class="text-uppercase fw-bold small mb-2" style="letter-spacing:.08em; color:#5eead4;">VNV Events Wallet</p>
+                <h1 class="h2 fw-bold mb-2 text-white">Payment methods</h1>
+                <p class="fs-6 mb-0" style="color:#d7fff7;">Manage cards saved from your dashboard and cards saved during order payments.</p>
+            </div>
+            <div class="col-lg-4 text-lg-end">
+                <a href="{{ path('panel/billing') }}" class="btn btn-light rounded-pill fw-bold px-4">Billing details</a>
+            </div>
+        </div>
+    </section>
 
-<a href="{{ path('panel/billing') }}" class="btn btn-outline-primary mb-4">
-    🧾 Update Billing Information
-</a>
-
-<div class="row">
-    <div class="col-md-6">
-        <form id="card-form">
-            <div class="card">
-                <div class="card-body">
-                    <div id="card-element" class="form-control mb-3 py-3"></div>
-                    <div id="card-errors" class="text-danger mb-2"></div>
-                    <button class="btn btn-dark w-100" id="submit-card" type="submit">
-                        Add Card
-                    </button>
-                    <div id="loading-text" class="text-center text-muted mt-2" style="display:none;">
-                        Processing card, please wait...
+    <div class="row g-4">
+        <div class="col-lg-5">
+            <form id="card-form">
+                <div class="card border-0 shadow-sm rounded-4">
+                    <div class="card-body p-4">
+                        <h2 class="h5 fw-bold mb-2">Add new dashboard card</h2>
+                        <p class="text-muted small mb-3">This card can be used as your main dashboard payment method.</p>
+                        <div id="card-element" class="form-control mb-3 py-3"></div>
+                        <div id="card-errors" class="text-danger mb-2"></div>
+                        <button class="btn btn-dark w-100 rounded-pill fw-bold" id="submit-card" type="submit">Add card</button>
+                        <div id="loading-text" class="text-center text-muted mt-2" style="display:none;">Processing card, please wait...</div>
                     </div>
                 </div>
-            </div>
-        </form>
-    </div>
+            </form>
+        </div>
 
-    <div class="col-md-6">
-        <h5>💼 Saved Cards</h5>
-        <table class="table table-bordered">
-            <thead>
-                <tr>
-                    <th>Brand</th>
-                    <th>Last 4</th>
-                    <th>Exp</th>
-                    <th>Main</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for card in cards %}
-                    <tr>
-                        <td>{{ card.brand }}</td>
-                        <td>**** **** **** {{ card.last4 }}</td>
-                        <td>{{ card.exp }}</td>
-                        <td>{% if card.main_card == 'yes' %}✅{% endif %}</td>
-                        <td>
-                            {% if card.main_card != 'yes' %}
-                                <form method="post" class="d-inline">
-                                    <input type="hidden" name="set_main" value="{{ card.id }}">
-                                    <button type="submit" class="btn btn-sm btn-outline-success">Make Main</button>
-                                </form>
-                            {% endif %}
-                            <form method="post" class="d-inline">
-                                <input type="hidden" name="delete_card" value="{{ card.id }}">
-                                <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
-                            </form>
-                        </td>
-                    </tr>
-                {% else %}
-                    <tr><td colspan="5" class="text-center">No cards saved.</td></tr>
-                {% endfor %}
-            </tbody>
-        </table>
+        <div class="col-lg-7">
+            <div class="card border-0 shadow-sm rounded-4 mb-4">
+                <div class="card-body p-4">
+                    <h2 class="h5 fw-bold mb-1">Dashboard cards</h2>
+                    <p class="text-muted small mb-3">Cards saved directly from this dashboard.</p>
+
+                    {% if cards %}
+                        <div class="d-grid gap-3">
+                            {% for card in cards %}
+                                <div class="border rounded-4 p-3 bg-light">
+                                    <div class="d-flex flex-column flex-md-row justify-content-between gap-3">
+                                        <div>
+                                            <div class="fw-bold text-uppercase small text-muted">{{ card.brand }}</div>
+                                            <div class="fs-5 fw-bold">**** **** **** {{ card.last4 }}</div>
+                                            <div class="text-muted small">Expires {{ card.exp }}</div>
+                                        </div>
+                                        <div class="d-flex flex-wrap gap-2 align-items-center">
+                                            {% if card.main_card == 'yes' %}
+                                                <span class="badge rounded-pill bg-success px-3 py-2">Default</span>
+                                            {% else %}
+                                                <form method="post" class="m-0">
+                                                    <input type="hidden" name="set_main" value="{{ card.id }}">
+                                                    <button type="submit" class="btn btn-sm btn-outline-success rounded-pill">Make default</button>
+                                                </form>
+                                            {% endif %}
+                                            <form method="post" class="m-0" onsubmit="return confirm('Remove this saved card?');">
+                                                <input type="hidden" name="delete_card" value="{{ card.id }}">
+                                                <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill">Delete</button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center border rounded-4 p-4 bg-light">
+                            <h3 class="h6 fw-bold mb-2">No dashboard cards yet</h3>
+                            <p class="text-muted mb-0">Add one from the form on this page.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-body p-4">
+                    <h2 class="h5 fw-bold mb-1">Order payment cards</h2>
+                    <p class="text-muted small mb-3">Cards saved when paying first payments, second payments, full balances, partial payments, tips or suborders.</p>
+
+                    {% if saved_methods %}
+                        <div class="d-grid gap-3">
+                            {% for method in saved_methods %}
+                                <div class="border rounded-4 p-3 bg-light">
+                                    <div class="d-flex flex-column flex-md-row justify-content-between gap-3">
+                                        <div>
+                                            <div class="fw-bold text-uppercase small text-muted">{{ method.payment_provider }} {% if method.brand %}- {{ method.brand }}{% endif %}</div>
+                                            <div class="fs-5 fw-bold">**** **** **** {{ method.last4 ?: 'saved' }}</div>
+                                            <div class="text-muted small">
+                                                {% if method.exp_month and method.exp_year %}
+                                                    Expires {{ "%02d"|format(method.exp_month) }}/{{ method.exp_year }}
+                                                {% else %}
+                                                    Expiration not provided
+                                                {% endif %}
+                                            </div>
+                                            {% if method.billing_email %}
+                                                <div class="text-muted small">{{ method.billing_email }}</div>
+                                            {% endif %}
+                                        </div>
+                                        <div class="d-flex flex-wrap gap-2 align-items-center">
+                                            {% if method.is_default %}
+                                                <span class="badge rounded-pill bg-success px-3 py-2">Default</span>
+                                            {% else %}
+                                                <form method="post" class="m-0">
+                                                    <input type="hidden" name="set_saved_method_default" value="{{ method.id }}">
+                                                    <input type="hidden" name="business_id" value="{{ method.id_user_business }}">
+                                                    <button type="submit" class="btn btn-sm btn-outline-success rounded-pill">Make default</button>
+                                                </form>
+                                            {% endif %}
+                                            <form method="post" class="m-0" onsubmit="return confirm('Remove this saved payment method?');">
+                                                <input type="hidden" name="delete_saved_method" value="{{ method.id }}">
+                                                <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill">Delete</button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center border rounded-4 p-4 bg-light">
+                            <h3 class="h6 fw-bold mb-2">No order payment cards yet</h3>
+                            <p class="text-muted mb-0">When you choose to save a card during an order payment, it will appear here.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
     </div>
-</div>
+</main>
 {% endblock %}
 
 {% block scripts %}
@@ -78,39 +142,44 @@
         e.preventDefault();
         const submitBtn = document.getElementById("submit-card");
         const loadingText = document.getElementById("loading-text");
+        const errorBox = document.getElementById("card-errors");
         submitBtn.disabled = true;
         loadingText.style.display = "block";
+        errorBox.textContent = "";
 
         const { token, error } = await stripe.createToken(card);
         if (error) {
-            document.getElementById("card-errors").textContent = error.message;
+            errorBox.textContent = error.message;
             submitBtn.disabled = false;
             loadingText.style.display = "none";
-        } else {
-            const cardInfo = {
-                brand: token.card.brand,
-                last4: token.card.last4,
-                exp: token.card.exp_month + "/" + token.card.exp_year
-            };
-
-            const formData = new FormData();
-            formData.append("token", token.id);
-            formData.append("card_info", JSON.stringify(cardInfo));
-
-            const res = await fetch(location.href, {
-                method: "POST",
-                body: formData
-            });
-
-            const result = await res.json();
-            if (result.success) {
-                window.location.reload();
-            } else {
-                document.getElementById("card-errors").textContent = result.message || "Something went wrong.";
-                submitBtn.disabled = false;
-                loadingText.style.display = "none";
-            }
+            return;
         }
+
+        const cardInfo = {
+            brand: token.card.brand,
+            last4: token.card.last4,
+            exp: token.card.exp_month + "/" + token.card.exp_year
+        };
+
+        const formData = new FormData();
+        formData.append("token", token.id);
+        formData.append("card_info", JSON.stringify(cardInfo));
+
+        const res = await fetch(location.href, {
+            method: "POST",
+            body: formData
+        });
+
+        const result = await res.json();
+        if (result.success) {
+            window.location.reload();
+            return;
+        }
+
+        errorBox.textContent = result.message || "Something went wrong.";
+        submitBtn.disabled = false;
+        loadingText.style.display = "none";
     });
 </script>
 {% endblock %}
+

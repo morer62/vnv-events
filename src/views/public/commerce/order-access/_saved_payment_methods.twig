@@ -1,4 +1,10 @@
 {% if supports_future_payment_methods %}
+    <input type="hidden" name="payment_token_type" id="payment-token-type" value="new_card">
+    <input type="hidden" name="card_brand" id="payment-card-brand">
+    <input type="hidden" name="card_last4" id="payment-card-last4">
+    <input type="hidden" name="card_exp_month" id="payment-card-exp-month">
+    <input type="hidden" name="card_exp_year" id="payment-card-exp-year">
+
     {% if can_use_saved_payment_methods and saved_payment_methods|length > 0 %}
         <div class="mb-3" id="saved-payment-method-section">
             <label class="form-label fw-bold">Saved payment method</label>
@@ -30,4 +36,60 @@
         </div>
         <small class="text-muted d-block mt-2">Consent version {{ payment_consent_version }}. Both options are optional and unchecked by default.</small>
     </div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const savedSelect = document.getElementById('saved-payment-method-id');
+        const tokenTypeInput = document.getElementById('payment-token-type');
+        const cardWrap = document.getElementById('payment-card-container')?.closest('.mb-4')
+            || document.getElementById('card-section')
+            || document.getElementById('cardSection');
+        const customerTokenInput = document.getElementById('payment-customer-token') || document.getElementById('customer_token');
+        const saveInput = document.getElementById('save-payment-method');
+        const consentInput = document.getElementById('auto-charge-consent');
+        const form = savedSelect ? savedSelect.closest('form') : null;
+        let submittingSavedMethod = false;
+
+        function syncSavedMethodMode() {
+            const usesSaved = !!(savedSelect && savedSelect.value);
+            if (tokenTypeInput) tokenTypeInput.value = usesSaved ? 'stored_card' : 'new_card';
+            if (customerTokenInput && usesSaved) customerTokenInput.value = '';
+            if (cardWrap) cardWrap.style.display = usesSaved ? 'none' : '';
+            if (saveInput) {
+                saveInput.disabled = usesSaved;
+                if (usesSaved) saveInput.checked = false;
+            }
+            if (consentInput && usesSaved) {
+                consentInput.disabled = false;
+            }
+        }
+
+        if (savedSelect) {
+            savedSelect.addEventListener('change', syncSavedMethodMode);
+            syncSavedMethodMode();
+        }
+
+        if (consentInput && saveInput) {
+            consentInput.addEventListener('change', function () {
+                if (consentInput.checked && !saveInput.disabled) {
+                    saveInput.checked = true;
+                }
+            });
+        }
+
+        if (form && savedSelect) {
+            form.addEventListener('submit', function (event) {
+                if (!savedSelect.value || submittingSavedMethod) {
+                    return;
+                }
+
+                submittingSavedMethod = true;
+                event.preventDefault();
+                event.stopImmediatePropagation();
+                if (customerTokenInput) customerTokenInput.value = '';
+                form.submit();
+            }, true);
+        }
+    });
+    </script>
 {% endif %}

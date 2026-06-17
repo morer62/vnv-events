@@ -2,6 +2,7 @@
 
 use App\Repositories\UserCardsRepository;
 use App\Repositories\UserBillingInfoRepository;
+use App\Repositories\ClientSavedPaymentMethodsRepository;
 use App\Services\LoginService;
 use App\Services\StripeService;
 use App\Utils\JsonResponse;
@@ -24,10 +25,13 @@ $router->get(function () {
 
     $cardRepo = new UserCardsRepository();
     $cards = $cardRepo->getByUserId($user->getId());
+    $savedMethodRepo = new ClientSavedPaymentMethodsRepository();
+    $savedMethods = $savedMethodRepo->getActiveForClientAcrossBusinesses((int)$user->getId());
 
     return TemplateResponse::render(__DIR__ . "/index.twig", [
         "stripe_key" => $_ENV["STRIPE_PUBLIC"],
-        "cards" => $cards
+        "cards" => $cards,
+        "saved_methods" => $savedMethods
     ]);
 });
 
@@ -35,6 +39,21 @@ $router->post(function () {
     try {
         $user = LoginService::getSession();
         $repo = new UserCardsRepository();
+        $savedMethodRepo = new ClientSavedPaymentMethodsRepository();
+
+        if (isset($_POST["delete_saved_method"])) {
+            $savedMethodRepo->deactivateForClient((int)$_POST["delete_saved_method"], (int)$user->getId());
+            LocationUtils::redirectInternal("panel/cards");
+        }
+
+        if (isset($_POST["set_saved_method_default"])) {
+            $methodId = (int)$_POST["set_saved_method_default"];
+            $businessId = (int)($_POST["business_id"] ?? 0);
+            if ($businessId > 0) {
+                $savedMethodRepo->setDefaultForClient($methodId, $businessId, (int)$user->getId());
+            }
+            LocationUtils::redirectInternal("panel/cards");
+        }
 
         // Eliminar tarjeta
         if (isset($_POST["delete_card"])) {
