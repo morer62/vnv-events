@@ -38,23 +38,15 @@
             <section class="vnv-request-step is-active" data-vnv-step="1">
                 <div class="vnv-request-panel">
 
-                <div class="vnv-request-cta">
-   
-
-    <div class="vnv-request-cta__content">
-      
- 
-
-<p class="vnv-request-cta__experience">
-    Visit our showroom in <span>Sunrise, FL</span>
-</p>
-
-        <a href="tel:+13052045427" class="vnv-request-cta__button">
-             
-            Call&nbsp; (305) 204-5427
-        </a>
-    </div>
-</div>
+                <a class="vnv-request-cta" href="https://maps.app.goo.gl/XE7zewaukQPHUwbFA" target="_blank" rel="noopener noreferrer">
+                    <div class="vnv-request-cta__icon">
+                        <i class="fa-solid fa-location-dot"></i>
+                    </div>
+                    <div class="vnv-request-cta__content">
+                        <strong>Visit our Sunrise showroom</strong>
+                        <p>Preview event ideas, catering direction and production details in person.</p>
+                    </div>
+                </a>
                     <h3>1) Where is your event?</h3>
 
                     <div class="vnv-request-grid vnv-request-grid--location">
@@ -326,91 +318,63 @@
 
 .vnv-request-cta{
     display: flex;
-    gap: 16px;
+    gap: 12px;
     align-items: center;
-    background: linear-gradient(135deg, #33c3c0, #5EC6C4);
-    border-radius: 18px;
-    padding: 16px;
-    margin-bottom: 18px;
-    color: #041019;
-    box-shadow: 0 15px 35px rgba(0,0,0,0.25);
-    animation: vnvCtaPulse 2.5s infinite;
+    text-decoration: none;
+    background: linear-gradient(135deg, rgba(51,195,192,0.18), rgba(94,198,196,0.08));
+    border: 1px solid rgba(94,198,196,0.22);
+    border-radius: 16px;
+    padding: 12px 14px;
+    margin-bottom: 14px;
+    color: #fff;
+    box-shadow: 0 10px 26px rgba(0,0,0,0.16);
+    transition: transform .18s ease, border-color .18s ease, background .18s ease;
+}
+
+.vnv-request-cta:hover{
+    transform: translateY(-1px);
+    border-color: rgba(94,198,196,0.42);
+    background: linear-gradient(135deg, rgba(51,195,192,0.24), rgba(94,198,196,0.12));
 }
 
 .vnv-request-cta__icon{
-    width: 60px;
-    height: 60px;
-    border-radius: 16px;
-    background: rgba(0,0,0,0.15);
+    width: 42px;
+    height: 42px;
+    border-radius: 14px;
+    background: rgba(94,198,196,0.16);
+    color: #5EC6C4;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.5rem;
+    font-size: 1.05rem;
+    flex: 0 0 auto;
 }
 
 .vnv-request-cta__content strong{
     display: block;
-    font-size: 1.1rem;
+    font-size: .95rem;
     font-weight: 900;
-    margin-bottom: 4px;
+    margin-bottom: 2px;
+    letter-spacing: .02em;
 }
 
 .vnv-request-cta__content p{
-    margin: 0 0 10px;
-    font-size: 0.9rem;
-    line-height: 1.4;
-}
-
-.vnv-request-cta__experience span{
-    display: inline-block;
-    background: #041019;
-    color: #33c3c0;
-    padding: 6px 12px;
-    border-radius: 999px;
-    margin-left: 6px;
-    font-size: 1.05rem;
-    box-shadow: 0 0 12px rgba(51,195,192,0.4);
-}
-
-.vnv-request-cta__button{
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    background: #041019;
-    color: #fff;
-    padding: 10px 16px;
-    border-radius: 999px;
-    font-weight: 900;
-    text-decoration: none;
-    transition: 0.2s ease;
-}
-
-.vnv-request-cta__button:hover{
-    transform: scale(1.05);
-    box-shadow: 0 10px 20px rgba(0,0,0,0.3);
-}
-
-@keyframes vnvCtaPulse{
-    0%{ transform: scale(1); }
-    50%{ transform: scale(1.02); }
-    100%{ transform: scale(1); }
+    margin: 0;
+    font-size: .82rem;
+    line-height: 1.35;
+    color: rgba(255,255,255,0.68);
 }
 
 /* Mobile tweak */
 @media (max-width: 768px){
     .vnv-request-cta{
-        flex-direction: column;
-        align-items: flex-start;
+        align-items: center;
+        padding: 11px 12px;
     }
 
     .vnv-request-cta__icon{
-        width: 50px;
-        height: 50px;
-    }
-
-    .vnv-request-cta__button{
-        width: 100%;
-        justify-content: center;
+        width: 38px;
+        height: 38px;
     }
 }
 
