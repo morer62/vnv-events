@@ -2,8 +2,6 @@
 
 use App\Repositories\StoreOrdersRepository;
 use App\Repositories\UserRepository;
-use App\Utils\LocationUtils;
-use App\Utils\MessageUtil;
 use App\Utils\Router;
 use App\Utils\TemplateResponse;
 
@@ -14,8 +12,12 @@ $router->get(function () {
     $token = trim($_GET['token'] ?? '');
 
     if ($token === '') {
-        MessageUtil::setMessage("Order token not found.");
-        LocationUtils::redirectInternal("/store");
+        http_response_code(404);
+        return TemplateResponse::render(__DIR__ . "/index.twig", [
+            "order" => null,
+            "existingUser" => null,
+            "errorMessage" => "Order token not found."
+        ]);
     }
 
     $ordersRepo = new StoreOrdersRepository();
@@ -24,15 +26,23 @@ $router->get(function () {
     $order = $ordersRepo->getByPublicToken($token);
 
     if (!$order) {
-        MessageUtil::setMessage("Order not found.");
-        LocationUtils::redirectInternal("/store");
+        http_response_code(404);
+        return TemplateResponse::render(__DIR__ . "/index.twig", [
+            "order" => null,
+            "existingUser" => null,
+            "errorMessage" => "Order not found."
+        ]);
     }
 
     $order = $ordersRepo->getFullOrderDetails((int)$order->id);
 
     if (!$order) {
-        MessageUtil::setMessage("Order not found.");
-        LocationUtils::redirectInternal("/store");
+        http_response_code(404);
+        return TemplateResponse::render(__DIR__ . "/index.twig", [
+            "order" => null,
+            "existingUser" => null,
+            "errorMessage" => "Order not found."
+        ]);
     }
 
     $existingUser = null;

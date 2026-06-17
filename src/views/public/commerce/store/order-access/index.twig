@@ -306,6 +306,20 @@ body{
 
 {% block body %}
 <main class="order-wrap">
+    {% if not order %}
+        <section class="order-header">
+            <h1 class="order-title">Order not found</h1>
+            <p class="order-subtitle">{{ errorMessage ?: 'This order link is unavailable or has expired.' }}</p>
+            <div class="cta-stack mt-4">
+                <a href="{{ path('store') }}" class="btn-light">
+                    <i class="fa-solid fa-store"></i> Continue Shopping
+                </a>
+                <a href="{{ path('') }}" class="btn-light">
+                    <i class="fa-solid fa-house"></i> Back to Home
+                </a>
+            </div>
+        </section>
+    {% else %}
     <section class="order-header">
         <h1 class="order-title">Your order is confirmed</h1>
         <p class="order-subtitle">
@@ -415,8 +429,8 @@ body{
                                         <div><strong>{{ item.variation_name_snapshot }}</strong></div>
                                     {% endif %}
 
-                                    {% if item.variation_options_snapshot %}
-                                        {% set variation_options = item.variation_options_snapshot|json_decode %}
+                                    {% if item.variation_options %}
+                                        {% set variation_options = item.variation_options %}
                                         {% if variation_options %}
                                             <div class="mt-1">
                                                 {% for opt in variation_options %}
@@ -496,16 +510,17 @@ body{
                         </a>
                     {% endif %}
 
-                    <a href="{{ path('/store') }}" class="btn-light">
+                    <a href="{{ path('store') }}" class="btn-light">
                         <i class="fa-solid fa-store"></i> Continue Shopping
                     </a>
 
-                    <a href="{{ path('/') }}" class="btn-light">
+                    <a href="{{ path('') }}" class="btn-light">
                         <i class="fa-solid fa-house"></i> Back to Home
                     </a>
                 </div>
             </div>
         </div>
     </section>
+    {% endif %}
 </main>
 {% endblock %}

@@ -140,6 +140,12 @@ $router->get(function () {
     }
     unset($order);
 
+    foreach ($orders as &$order) {
+        $order->status_label = StoreOrdersRepository::statusLabel($order->status ?? '');
+        $order->status_badge_class = StoreOrdersRepository::statusBadgeClass($order->status ?? '');
+    }
+    unset($order);
+
     return TemplateResponse::render(__DIR__ . "/index.twig", [
         'orders' => $orders,
         'subscription_next_charge' => $subscriptionNextCharge,

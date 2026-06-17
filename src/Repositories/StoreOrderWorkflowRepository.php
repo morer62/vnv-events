@@ -16,6 +16,8 @@ class StoreOrderWorkflowRepository extends BaseRepository
         'kitchen_ready_at',
         'sent_at',
         'delivered_at',
+        'allow_team_close_delivery',
+        'allow_chat_with_client',
         'delivery_photo_url',
         'delivery_notes',
         'created_at',
@@ -169,8 +171,8 @@ class StoreOrderWorkflowRepository extends BaseRepository
 
         return $this->update([
             'delivered_at' => date('Y-m-d H:i:s'),
-            'delivery_photo_url' => $photoUrl,
-            'delivery_notes' => $notes,
+            'delivery_photo_url' => $photoUrl ?? ($existing->delivery_photo_url ?? null),
+            'delivery_notes' => $notes ?? ($existing->delivery_notes ?? null),
             'updated_at' => date('Y-m-d H:i:s')
         ], ['id' => (int)$existing->id]);
     }
@@ -183,7 +185,7 @@ class StoreOrderWorkflowRepository extends BaseRepository
             INNER JOIN {$this->table} sow ON sow.id_store_order = so.id
             WHERE so.id_owner = :id_owner
               AND sow.kitchen_user_id = :kitchen_user_id
-              AND so.status IN ('PROCESSING', 'READY')
+              AND so.status IN ('CONFIRMED', 'PROCESSING', 'IN_PREPARATION', 'READY', 'READY_FOR_DELIVERY')
             ORDER BY so.created_at ASC
         ");
         $this->db->bind(':id_owner', $ownerId, \PDO::PARAM_INT);
@@ -199,7 +201,7 @@ class StoreOrderWorkflowRepository extends BaseRepository
             LEFT JOIN {$this->table} sow ON sow.id_store_order = so.id
             WHERE so.id_owner = :id_owner
               AND so.payment_status = 'PAID'
-              AND so.status IN ('PROCESSING', 'READY')
+              AND so.status IN ('NEW', 'CONFIRMED', 'PROCESSING', 'IN_PREPARATION', 'READY', 'READY_FOR_DELIVERY')
             ORDER BY so.created_at ASC
         ");
         $this->db->bind(':id_owner', $ownerId, \PDO::PARAM_INT);
@@ -215,7 +217,7 @@ class StoreOrderWorkflowRepository extends BaseRepository
             WHERE so.id_owner = :id_owner
               AND sow.delivery_user_id = :delivery_user_id
               AND (
-                so.status IN ('PROCESSING', 'READY', 'DELIVERED')
+                so.status IN ('READY', 'READY_FOR_DELIVERY', 'OUT_FOR_DELIVERY', 'DELIVERY_ATTEMPTED', 'REDELIVERY_SCHEDULED', 'DELIVERED', 'COMPLETED')
                 OR COALESCE(TRIM(so.status), '') = ''
               )
             ORDER BY so.created_at ASC

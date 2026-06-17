@@ -41,10 +41,9 @@
                     <label class="form-label">Order Status</label>
                     <select name="status" class="form-select">
                         <option value="">All</option>
-                        <option value="PROCESSING" {% if filters.status == 'PROCESSING' %}selected{% endif %}>Paid / Preparing</option>
-                        <option value="READY" {% if filters.status == 'READY' %}selected{% endif %}>Sending</option>
-                        <option value="DELIVERED" {% if filters.status == 'DELIVERED' %}selected{% endif %}>Received</option>
-                        <option value="CANCELLED" {% if filters.status == 'CANCELLED' %}selected{% endif %}>Cancelled</option>
+                        {% for value, label in orderStatusOptions %}
+                            <option value="{{ value }}" {% if filters.status == value %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
                     </select>
                 </div>
 
@@ -153,17 +152,7 @@
                                     </td>
                                     <td>
                                         <div class="d-flex align-items-center gap-2">
-                                            {% if o.status == 'PROCESSING' %}
-                                                <span class="badge bg-info text-dark">Paid / Preparing</span>
-                                            {% elseif o.status == 'READY' %}
-                                                <span class="badge bg-warning text-dark">Sending</span>
-                                            {% elseif o.status == 'DELIVERED' %}
-                                                <span class="badge bg-success">Received</span>
-                                            {% elseif o.status == 'CANCELLED' %}
-                                                <span class="badge bg-danger">Cancelled</span>
-                                            {% else %}
-                                                <span class="badge bg-secondary">{{ o.status }}</span>
-                                            {% endif %}
+                                            <span class="badge {{ o.status_badge_class }}">{{ o.status_label }}</span>
                                             <button type="button"
                                                     class="btn btn-sm btn-outline-secondary"
                                                     data-bs-toggle="modal"
@@ -175,12 +164,14 @@
                                         </div>
                                     </td>
                                     <td class="small">
-                                        <div>{{ o.delivery_assignee_name ?: '—' }}</div>
+                                        <div><strong>Kitchen:</strong> {{ o.kitchen_assignee_name ?: 'Unassigned' }}</div>
+                                        <div><strong>Delivery:</strong> {{ o.delivery_assignee_name ?: 'Unassigned' }}</div>
                                         <button type="button"
                                                 class="btn btn-sm btn-outline-secondary mt-1"
                                                 data-bs-toggle="modal"
                                                 data-bs-target="#assignDeliveryModal"
                                                 data-order-id="{{ o.id }}"
+                                                data-kitchen-user-id="{{ o.kitchen_user_id }}"
                                                 data-delivery-user-id="{{ o.delivery_user_id }}">
                                             Assign
                                         </button>
@@ -305,10 +296,9 @@
                         <div class="mb-3">
                             <label class="form-label">Order status</label>
                             <select name="status" id="editStatusSelect" class="form-select">
-                                <option value="PROCESSING">Paid / Preparing</option>
-                                <option value="READY">Sending</option>
-                                <option value="DELIVERED">Received</option>
-                                <option value="CANCELLED">Cancelled</option>
+                                {% for value, label in orderStatusOptions %}
+                                    <option value="{{ value }}">{{ label }}</option>
+                                {% endfor %}
                             </select>
                         </div>
                     </div>
@@ -332,6 +322,15 @@
                     <div class="modal-body">
                         <input type="hidden" name="action" value="assign_delivery">
                         <input type="hidden" name="order_id" id="assignDeliveryOrderId">
+                        <div class="mb-3">
+                            <label class="form-label">Kitchen user</label>
+                            <select class="form-select" name="kitchen_user_id" id="assignKitchenUserSelect">
+                                <option value="">Unassigned</option>
+                                {% for u in kitchenUsers %}
+                                    <option value="{{ u.id_user }}">{{ (u.name ~ ' ' ~ u.lastname)|trim }}{% if u.email %} ({{ u.email }}){% endif %}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
                         <div class="mb-0">
                             <label class="form-label">Delivery user</label>
                             <select class="form-select" name="delivery_user_id" id="assignDeliveryUserSelect">
@@ -468,10 +467,13 @@
                     const button = event.relatedTarget;
                     if (!button) return;
                     const orderId = button.getAttribute('data-order-id') || '';
+                    const kitchenId = button.getAttribute('data-kitchen-user-id') || '';
                     const deliveryId = button.getAttribute('data-delivery-user-id') || '';
                     const idInput = document.getElementById('assignDeliveryOrderId');
+                    const kitchenSelect = document.getElementById('assignKitchenUserSelect');
                     const select = document.getElementById('assignDeliveryUserSelect');
                     if (idInput) idInput.value = orderId;
+                    if (kitchenSelect) kitchenSelect.value = kitchenId;
                     if (select) select.value = deliveryId;
                 });
             }

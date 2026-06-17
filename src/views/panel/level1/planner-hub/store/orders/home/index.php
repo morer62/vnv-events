@@ -4,7 +4,6 @@ use App\Repositories\StoreOrdersRepository;
 use App\Repositories\StoreOrderItemsRepository;
 use App\Repositories\StoreOrderWorkflowRepository;
 use App\Repositories\StoreUserRolesRepository;
-use App\Services\LoginService;
 use App\Utils\LocationUtils;
 use App\Utils\Router;
 use App\Utils\TemplateResponse;
@@ -18,7 +17,6 @@ $router->get(function () {
     $itemsRepo = new StoreOrderItemsRepository();
     $workflowRepo = new StoreOrderWorkflowRepository();
     $storeRolesRepo = new StoreUserRolesRepository();
-    $session = LoginService::getSession();
 
     $ownerId = AvomealContext::ownerId();
 
@@ -67,11 +65,16 @@ $router->get(function () {
     }
 
     $deliveryUsers = $storeRolesRepo->getUsersByOwnerAndRole($ownerId, 'delivery');
+    $kitchenUsers = $storeRolesRepo->getUsersByOwnerAndRole($ownerId, 'kitchen');
     $orderIds = array_map(fn($o) => (int)$o->id, $orders);
     $workflowMap = $workflowRepo->getMapByOrders($orderIds);
     $deliveryUsersById = [];
+    $kitchenUsersById = [];
     foreach ($deliveryUsers as $u) {
         $deliveryUsersById[(int)$u->id_user] = trim(($u->name ?? '') . ' ' . ($u->lastname ?? ''));
+    }
+    foreach ($kitchenUsers as $u) {
+        $kitchenUsersById[(int)$u->id_user] = trim(($u->name ?? '') . ' ' . ($u->lastname ?? ''));
     }
 
     foreach ($orders as &$order) {
@@ -118,7 +121,13 @@ $router->get(function () {
         $order->items_modal = $modalItems;
         $order->items_modal_json = json_encode($modalItems);
         $wf = $workflowMap[(int)$order->id] ?? null;
+        $order->status_label = StoreOrdersRepository::statusLabel($order->status ?? '');
+        $order->status_badge_class = StoreOrdersRepository::statusBadgeClass($order->status ?? '');
+        $order->kitchen_user_id = $wf ? (int)($wf->kitchen_user_id ?? 0) : 0;
         $order->delivery_user_id = $wf ? (int)($wf->delivery_user_id ?? 0) : 0;
+        $order->kitchen_assignee_name = $order->kitchen_user_id > 0
+            ? ($kitchenUsersById[$order->kitchen_user_id] ?? '')
+            : '';
         $order->delivery_assignee_name = $order->delivery_user_id > 0
             ? ($deliveryUsersById[$order->delivery_user_id] ?? '')
             : '';
@@ -128,6 +137,8 @@ $router->get(function () {
     return TemplateResponse::render(__DIR__ . "/index.twig", [
         "orders" => $orders,
         "deliveryUsers" => $deliveryUsers,
+        "kitchenUsers" => $kitchenUsers,
+        "orderStatusOptions" => StoreOrdersRepository::statusOptions(),
         "filters" => [
             "week_start" => $weekStart->format('Y-m-d'),
             "week_end" => $weekEnd->format('Y-m-d'),
@@ -159,12 +170,27 @@ $router->post(function () {
 
     if ($action === 'update_status') {
         $newStatus = trim($_POST['status'] ?? '');
-        if ($newStatus === '') {
+        if ($newStatus === '' || !array_key_exists($newStatus, StoreOrdersRepository::statusOptions())) {
             MessageUtil::setMessage('Select a valid status.');
             LocationUtils::reload();
         }
 
         $ok = $ordersRepo->updateStatus($orderId, $newStatus);
+        if ($ok && in_array($newStatus, [
+            StoreOrdersRepository::STATUS_READY,
+            StoreOrdersRepository::STATUS_READY_FOR_DELIVERY,
+        ], true)) {
+            $workflowRepo->markKitchenReady($orderId);
+        }
+        if ($ok && $newStatus === StoreOrdersRepository::STATUS_OUT_FOR_DELIVERY) {
+            $workflowRepo->markSending($orderId);
+        }
+        if ($ok && in_array($newStatus, [
+            StoreOrdersRepository::STATUS_DELIVERED,
+            StoreOrdersRepository::STATUS_COMPLETED,
+        ], true)) {
+            $workflowRepo->markDelivered($orderId, null, null);
+        }
         MessageUtil::setMessage($ok ? 'Order status updated.' : 'Failed to update order status.');
         LocationUtils::reload();
     }
@@ -184,13 +210,14 @@ $router->post(function () {
     }
 
     if ($action === 'assign_delivery') {
+        $kitchenUserId = isset($_POST['kitchen_user_id']) && $_POST['kitchen_user_id'] !== ''
+            ? (int)$_POST['kitchen_user_id']
+            : null;
         $deliveryUserId = isset($_POST['delivery_user_id']) && $_POST['delivery_user_id'] !== ''
             ? (int)$_POST['delivery_user_id']
             : null;
-        $existing = $workflowRepo->getByOrder($orderId);
-        $kitchenUserId = $existing ? (int)($existing->kitchen_user_id ?? 0) : 0;
-        $ok = $workflowRepo->upsertAssignments($ownerId, $orderId, $kitchenUserId > 0 ? $kitchenUserId : null, $deliveryUserId);
-        MessageUtil::setMessage($ok ? 'Delivery assignment updated.' : 'Failed to update delivery assignment.');
+        $ok = $workflowRepo->upsertAssignments($ownerId, $orderId, $kitchenUserId, $deliveryUserId);
+        MessageUtil::setMessage($ok ? 'Order assignments updated.' : 'Failed to update order assignments.');
         LocationUtils::reload();
     }
 

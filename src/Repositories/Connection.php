@@ -13,7 +13,24 @@ class Connection
 
     public function setTimezone($timezone): void
     {
-        $this->dbh->exec("SET time_zone = '$timezone'");
+        $timezone = trim((string)$timezone);
+        if ($timezone === '') {
+            return;
+        }
+
+        if (!preg_match('/^[+-][0-1][0-9]:[0-5][0-9]$/', $timezone)) {
+            try {
+                $dateTime = new \DateTimeImmutable('now', new \DateTimeZone($timezone));
+                $offset = $dateTime->getOffset();
+                $sign = $offset < 0 ? '-' : '+';
+                $offset = abs($offset);
+                $timezone = sprintf('%s%02d:%02d', $sign, intdiv($offset, 3600), intdiv($offset % 3600, 60));
+            } catch (\Throwable $e) {
+                $timezone = '+00:00';
+            }
+        }
+
+        $this->dbh->exec("SET time_zone = " . $this->dbh->quote($timezone));
     }
 
     public function __construct()  {

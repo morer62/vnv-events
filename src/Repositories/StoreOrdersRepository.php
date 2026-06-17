@@ -14,11 +14,24 @@ class StoreOrdersRepository extends BaseRepository
     const PAYMENT_REFUNDED = 'REFUNDED';
 
     const STATUS_NEW = 'NEW';
+    const STATUS_CONFIRMED = 'CONFIRMED';
     const STATUS_PROCESSING = 'PROCESSING';
+    const STATUS_IN_PREPARATION = 'IN_PREPARATION';
     const STATUS_READY = 'READY';
+    const STATUS_READY_FOR_DELIVERY = 'READY_FOR_DELIVERY';
+    const STATUS_OUT_FOR_DELIVERY = 'OUT_FOR_DELIVERY';
+    const STATUS_DELIVERY_ATTEMPTED = 'DELIVERY_ATTEMPTED';
+    const STATUS_RETURNED_TO_BUSINESS = 'RETURNED_TO_BUSINESS';
+    const STATUS_REDELIVERY_SCHEDULED = 'REDELIVERY_SCHEDULED';
     const STATUS_SENDING = 'READY';
     const STATUS_DELIVERED = 'DELIVERED';
+    const STATUS_COMPLETED = 'COMPLETED';
     const STATUS_CANCELLED = 'CANCELLED';
+    const STATUS_RETURN_REQUESTED = 'RETURN_REQUESTED';
+    const STATUS_RETURN_APPROVED = 'RETURN_APPROVED';
+    const STATUS_RETURN_REJECTED = 'RETURN_REJECTED';
+    const STATUS_RETURNED = 'RETURNED';
+    const STATUS_CLOSED = 'CLOSED';
 
     const PRICING_PAYG = 'PAYG';
     const PRICING_SUBSCRIPTION = 'SUBSCRIPTION';
@@ -58,10 +71,73 @@ class StoreOrdersRepository extends BaseRepository
         'shipping_city',
         'shipping_state',
         'shipping_zip',
+        'cooked_at',
+        'expiration_date',
         'notes',
+        'return_notes',
+        'return_requested_at',
+        'return_admin_message',
+        'return_decision_at',
+        'return_closed_at',
         'created_at',
         'updated_at'
     ];
+
+    public static function statusOptions(): array
+    {
+        return [
+            self::STATUS_NEW => 'New',
+            self::STATUS_CONFIRMED => 'Confirmed',
+            self::STATUS_PROCESSING => 'Paid / Preparing',
+            self::STATUS_IN_PREPARATION => 'In preparation',
+            self::STATUS_READY => 'Ready',
+            self::STATUS_READY_FOR_DELIVERY => 'Ready for delivery',
+            self::STATUS_OUT_FOR_DELIVERY => 'Out for delivery',
+            self::STATUS_DELIVERY_ATTEMPTED => 'Delivery attempted',
+            self::STATUS_RETURNED_TO_BUSINESS => 'Returned to business',
+            self::STATUS_REDELIVERY_SCHEDULED => 'Redelivery scheduled',
+            self::STATUS_DELIVERED => 'Delivered',
+            self::STATUS_COMPLETED => 'Completed',
+            self::STATUS_RETURN_REQUESTED => 'Return requested',
+            self::STATUS_RETURN_APPROVED => 'Return approved',
+            self::STATUS_RETURN_REJECTED => 'Return rejected',
+            self::STATUS_RETURNED => 'Returned',
+            self::STATUS_CANCELLED => 'Cancelled',
+            self::STATUS_CLOSED => 'Closed',
+        ];
+    }
+
+    public static function statusLabel(?string $status): string
+    {
+        $status = strtoupper(trim((string)$status));
+        $options = self::statusOptions();
+
+        return $options[$status] ?? ($status !== '' ? ucwords(strtolower(str_replace('_', ' ', $status))) : 'New');
+    }
+
+    public static function statusBadgeClass(?string $status): string
+    {
+        return match (strtoupper(trim((string)$status))) {
+            self::STATUS_PROCESSING,
+            self::STATUS_IN_PREPARATION,
+            self::STATUS_CONFIRMED => 'bg-info text-dark',
+            self::STATUS_READY,
+            self::STATUS_READY_FOR_DELIVERY,
+            self::STATUS_OUT_FOR_DELIVERY,
+            self::STATUS_DELIVERY_ATTEMPTED,
+            self::STATUS_REDELIVERY_SCHEDULED => 'bg-warning text-dark',
+            self::STATUS_DELIVERED,
+            self::STATUS_COMPLETED => 'bg-success',
+            self::STATUS_CANCELLED,
+            self::STATUS_RETURN_REJECTED => 'bg-danger',
+            self::STATUS_RETURN_REQUESTED,
+            self::STATUS_RETURN_APPROVED,
+            self::STATUS_RETURNED,
+            self::STATUS_RETURNED_TO_BUSINESS,
+            self::STATUS_CLOSED => 'bg-secondary',
+            default => 'bg-secondary',
+        };
+    }
 
     public function __construct()
     {

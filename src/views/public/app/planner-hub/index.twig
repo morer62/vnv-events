@@ -139,6 +139,10 @@ h1, h2, h3, h4, .luxury-font {
     color: #000 !important;
 }
 
+.hero-mobile-request-cta {
+    display: none;
+}
+
 .section-vnv {
     padding: 160px 0;
     position: relative;
@@ -1243,37 +1247,44 @@ h1, h2, h3, h4, .luxury-font {
 
     /* HERO */
     .vnv-hero-master {
-        min-height: auto;
-        background:
-            radial-gradient(circle at top left, rgba(94,198,196,0.10), transparent 30%),
-            linear-gradient(180deg, #f5f2ec 0%, #efe9df 100%);
+        min-height: 100svh;
+        background: #000;
+        overflow: hidden;
     }
 
     .hero-split-container {
         display: flex;
         flex-direction: column;
+        min-height: 100svh;
+        position: relative;
     }
 
     .hero-info-pane {
-        padding: 92px 22px 30px;
+        min-height: 100svh;
+        padding: 112px 22px 46px;
         background: transparent;
         text-align: center;
+        position: relative;
+        z-index: 2;
+        justify-content: center;
     }
 
     .vnv-badge {
         font-size: 0.68rem;
         letter-spacing: 2px;
         padding: 8px 14px;
-        background: rgba(94,198,196,.10);
-        color: #45b8b6;
+        background: rgba(255,255,255,.14);
+        color: #fff;
         margin-bottom: 18px;
+        backdrop-filter: blur(12px);
     }
 
     .hero-info-pane h1 {
         font-size: 2.85rem;
         line-height: 1.03;
         margin-bottom: 20px;
-        color: #171b1c;
+        color: #fff;
+        text-shadow: 0 18px 42px rgba(0,0,0,.58);
     }
 
     .text-gold {
@@ -1285,27 +1296,32 @@ h1, h2, h3, h4, .luxury-font {
     .hero-description {
         font-size: 1.3rem;
         line-height: 1.5;
-        color: #596366;
+        color: rgba(255,255,255,.86);
         max-width: 320px;
         margin: 0 auto 26px;
+        text-shadow: 0 8px 28px rgba(0,0,0,.5);
     }
 
     .hero-visual-pane {
         display: block;
-        height: 220px;
-        margin: 0 22px 22px;
-        border-radius: 30px;
+        position: absolute;
+        inset: 0;
+        height: auto;
+        margin: 0;
+        border-radius: 0;
         overflow: hidden;
         clip-path: none;
-        box-shadow: 0 18px 45px rgba(0,0,0,0.12);
-        position: relative;
+        box-shadow: none;
+        z-index: 0;
     }
 
     .hero-visual-pane::after {
         content: "";
         position: absolute;
         inset: 0;
-        background: linear-gradient(to top, rgba(0,0,0,0.20), rgba(0,0,0,0.04));
+        background:
+            radial-gradient(circle at top, rgba(94,198,196,.20), transparent 36%),
+            linear-gradient(180deg, rgba(0,0,0,.28), rgba(0,0,0,.66) 45%, rgba(0,0,0,.88));
         pointer-events: none;
     }
 
@@ -1313,13 +1329,24 @@ h1, h2, h3, h4, .luxury-font {
         width: 100%;
         height: 100%;
         object-fit: cover;
-        filter: saturate(0.95) contrast(1.02);
+        filter: saturate(0.98) contrast(1.05) brightness(.78);
     }
 
     .vnv-btn {
         width: 100%;
         padding: 18px 24px;
         letter-spacing: 2px;
+    }
+
+    .hero-mobile-request-cta {
+        display: inline-flex;
+    }
+
+    .hero-info-pane .btn-outline-vnv {
+        border-color: rgba(255,255,255,.82);
+        color: #fff !important;
+        background: rgba(255,255,255,.08);
+        backdrop-filter: blur(12px);
     }
 
     /* SERVICES */
@@ -1465,6 +1492,7 @@ h1, h2, h3, h4, .luxury-font {
             </p>
             <div class="d-flex flex-wrap gap-4 justify-content-center justify-content-lg-start">
                 <a href="tel:+13052045427" class="vnv-btn btn-gold-vnv">Call (305)204-5427</a>
+                <button type="button" data-vnv-open-request class="vnv-btn btn-outline-vnv hero-mobile-request-cta">Plan My Event</button>
                 <a href="{{ path('login') }}" class="vnv-btn btn-outline-vnv">Login</a>
             </div>
             <br><br>
