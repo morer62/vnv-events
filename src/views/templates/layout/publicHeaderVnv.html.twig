@@ -161,6 +161,18 @@
     gap: 8px;
 }
 
+.vnvx-mobile__brand-card{
+    display: none;
+}
+
+.vnvx-mobile__section-label{
+    display: none;
+}
+
+.vnvx-mobile__account-link{
+    display: none;
+}
+
 .vnvx-mobile__content > a{
     text-decoration: none;
     color: #11181a;
@@ -340,12 +352,102 @@
         padding: 14px max(4px, env(safe-area-inset-left)) 22px;
     }
 
+    .vnvx-mobile__brand-card{
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 14px;
+        margin-bottom: 8px;
+        border-radius: 22px;
+        background:
+            radial-gradient(circle at top left, rgba(94,234,212,0.20), transparent 42%),
+            linear-gradient(135deg, rgba(255,255,255,0.09), rgba(255,255,255,0.035));
+        border: 1px solid rgba(94,234,212,0.16);
+        box-shadow: inset 0 1px 0 rgba(255,255,255,0.08), 0 16px 34px rgba(0,0,0,0.22);
+    }
+
+    .vnvx-mobile__brand-logo{
+        width: 48px;
+        height: 48px;
+        border-radius: 17px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(8,12,14,0.62);
+        border: 1px solid rgba(94,234,212,0.18);
+        overflow: hidden;
+        flex: 0 0 auto;
+    }
+
+    .vnvx-mobile__brand-logo img{
+        width: 34px;
+        height: 34px;
+        object-fit: contain;
+    }
+
+    .vnvx-mobile__brand-copy strong{
+        display: block;
+        color: #fff;
+        font-size: .96rem;
+        letter-spacing: .08em;
+        text-transform: uppercase;
+        line-height: 1.1;
+    }
+
+    .vnvx-mobile__brand-copy small{
+        display: block;
+        margin-top: 4px;
+        color: rgba(94,234,212,0.86);
+        font-size: .72rem;
+        font-weight: 800;
+        letter-spacing: .16em;
+        text-transform: uppercase;
+    }
+
     .vnvx-mobile__content > a{
         color: rgba(255,255,255,0.86);
         border-bottom-color: rgba(255,255,255,0.08);
     }
 
     .vnvx-mobile__meta a{
+        color: #5eead4;
+    }
+
+    .vnvx-mobile__meta{
+        margin-top: 10px;
+        padding-top: 16px;
+        border-top: 1px solid rgba(94,234,212,0.14);
+    }
+
+    .vnvx-mobile__section-label{
+        display: block;
+        color: rgba(255,255,255,0.44);
+        font-size: .7rem;
+        font-weight: 900;
+        letter-spacing: .22em;
+        text-transform: uppercase;
+    }
+
+    .vnvx-mobile__account-link{
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 14px 15px;
+        border-radius: 18px;
+        color: #d7fff7 !important;
+        background: rgba(255,255,255,0.065);
+        border: 1px solid rgba(255,255,255,0.08);
+        box-shadow: inset 0 1px 0 rgba(255,255,255,0.06);
+    }
+
+    .vnvx-mobile__account-link span{
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .vnvx-mobile__account-link i{
         color: #5eead4;
     }
 
@@ -416,6 +518,16 @@
     <div class="vnvx-mobile" data-vnvx-panel>
         <div class="container">
             <div class="vnvx-mobile__content">
+                <div class="vnvx-mobile__brand-card">
+                    <div class="vnvx-mobile__brand-logo">
+                        <img src="{{ asset_for('assets/images/planner-hub-logo-negative.png') }}" alt="VNV Events">
+                    </div>
+                    <div class="vnvx-mobile__brand-copy">
+                        <strong>VNV Events</strong>
+                        <small>Mobile Suite</small>
+                    </div>
+                </div>
+
                 <a href="{{ path('/') }}">Home</a>
                 <a href="{{ path('/#services') }}">Services</a> 
                 <a href="{{ path('/#podcast') }}">Sessions</a>
@@ -423,7 +535,11 @@
                 <a href="{{ path('/store-categories') }}" >Services & Pricing</a>
 
                 <div class="vnvx-mobile__meta">
-                      <a href="#" data-vnv-open-request >Click for New Request</a> 
+                    <span class="vnvx-mobile__section-label">Your Account</span>
+                    <a href="{{ path('/login') }}" class="vnvx-mobile__account-link">
+                        <span><i class="fa-solid fa-user-lock"></i> Login / Client Access</span>
+                        <i class="fa-solid fa-arrow-right"></i>
+                    </a>
                 </div> 
 
                 <div class="vnvx-mobile__socials">
