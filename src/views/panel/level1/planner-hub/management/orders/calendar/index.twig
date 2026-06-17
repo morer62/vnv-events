@@ -1,0 +1,513 @@
+{% extends 'templates/base.admin.twig' %}
+
+{% block style %}
+	<style>
+		.orders-calendar-shell {
+			display: flex;
+			flex-direction: column;
+			gap: 1rem;
+		}
+		.orders-calendar-toolbar {
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			gap: 1rem;
+			flex-wrap: wrap;
+		}
+		.orders-calendar-actions {
+			display: flex;
+			gap: .5rem;
+			flex-wrap: wrap;
+			justify-content: flex-end;
+		}
+		.orders-calendar-tabs {
+			display: inline-flex;
+			border: 1px solid #d7dee8;
+			border-radius: 8px;
+			overflow: hidden;
+			background: #fff;
+		}
+		.orders-calendar-tabs button {
+			border: 0;
+			background: transparent;
+			color: #4b5563;
+			font-weight: 700;
+			padding: .55rem .9rem;
+		}
+		.orders-calendar-tabs button.is-active {
+			background: #111827;
+			color: #fff;
+		}
+		.orders-calendar-grid {
+			display: grid;
+			grid-template-columns: repeat(7, minmax(140px, 1fr));
+			gap: .75rem;
+			align-items: start;
+		}
+		.orders-calendar-day {
+			min-height: 420px;
+			background: #fff;
+			border: 1px solid #dde4ee;
+			border-radius: 8px;
+			overflow: hidden;
+		}
+		.orders-calendar-day-header {
+			padding: .85rem;
+			background: #f8fafc;
+			border-bottom: 1px solid #dde4ee;
+		}
+		.orders-calendar-day-header.is-today {
+			background: #eaf5ff;
+			border-bottom-color: #a7d8ff;
+		}
+		.orders-calendar-day-name {
+			font-size: .78rem;
+			text-transform: uppercase;
+			letter-spacing: .04em;
+			color: #64748b;
+			font-weight: 800;
+		}
+		.orders-calendar-day-number {
+			font-size: 1.2rem;
+			font-weight: 800;
+			color: #111827;
+		}
+		.orders-calendar-events {
+			padding: .75rem;
+			display: flex;
+			flex-direction: column;
+			gap: .65rem;
+		}
+		.orders-calendar-event {
+			display: block;
+			width: 100%;
+			text-align: left;
+			text-decoration: none;
+			border: 1px solid #d7dee8;
+			border-left: 4px solid #64748b;
+			border-radius: 7px;
+			padding: .65rem;
+			color: #111827;
+			background: #fff;
+			box-shadow: 0 8px 18px rgba(15, 23, 42, .05);
+			overflow-wrap: anywhere;
+			cursor: pointer;
+		}
+		.orders-calendar-event:hover {
+			color: #111827;
+			transform: translateY(-1px);
+			box-shadow: 0 12px 22px rgba(15, 23, 42, .08);
+		}
+		.orders-calendar-event.is-paid { border-left-color: #16a34a; }
+		.orders-calendar-event.is-partial { border-left-color: #2563eb; }
+		.orders-calendar-event.is-ready { border-left-color: #f59e0b; }
+		.orders-calendar-event.is-draft { border-left-color: #64748b; }
+		.orders-calendar-event.is-expired { border-left-color: #dc2626; }
+		.orders-calendar-time {
+			font-weight: 800;
+			font-size: .85rem;
+			color: #0f766e;
+			margin-bottom: .25rem;
+		}
+		.orders-calendar-title {
+			font-weight: 800;
+			line-height: 1.25;
+			margin-bottom: .25rem;
+		}
+		.orders-calendar-meta {
+			font-size: .78rem;
+			color: #64748b;
+			line-height: 1.35;
+		}
+		.orders-calendar-status {
+			display: inline-flex;
+			margin-top: .45rem;
+			font-size: .72rem;
+			font-weight: 800;
+			border-radius: 999px;
+			padding: .18rem .5rem;
+			background: #eef2f7;
+			color: #475569;
+		}
+		.orders-calendar-detail-hint {
+			display: inline-flex;
+			align-items: center;
+			gap: .25rem;
+			margin-top: .5rem;
+			color: #0f766e;
+			font-size: .78rem;
+			font-weight: 900;
+		}
+		.orders-calendar-modal-actions {
+			display: flex;
+			flex-wrap: wrap;
+			gap: .5rem;
+		}
+		.orders-no-time {
+			border-top: 1px dashed #d7dee8;
+			margin-top: .25rem;
+			padding-top: .65rem;
+		}
+		.orders-no-time-label {
+			font-size: .72rem;
+			text-transform: uppercase;
+			color: #9a3412;
+			font-weight: 900;
+			margin-bottom: .45rem;
+		}
+		.orders-calendar-empty {
+			color: #94a3b8;
+			font-size: .88rem;
+			padding: .75rem;
+			border: 1px dashed #d7dee8;
+			border-radius: 7px;
+			text-align: center;
+		}
+		.orders-agenda-view {
+			display: none;
+		}
+		.orders-agenda-day {
+			background: #fff;
+			border: 1px solid #dde4ee;
+			border-radius: 8px;
+			margin-bottom: .85rem;
+			padding: 1rem;
+		}
+		.orders-agenda-day-title {
+			font-weight: 900;
+			color: #111827;
+			margin-bottom: .75rem;
+		}
+		.orders-calendar-shell[data-view="agenda"] .orders-week-view {
+			display: none;
+		}
+		.orders-calendar-shell[data-view="agenda"] .orders-agenda-view {
+			display: block;
+		}
+		@media (max-width: 1199px) {
+			.orders-calendar-grid {
+				grid-template-columns: repeat(2, minmax(0, 1fr));
+			}
+			.orders-calendar-day {
+				min-height: 260px;
+			}
+		}
+		@media (max-width: 767px) {
+			.orders-calendar-toolbar {
+				align-items: stretch;
+				flex-direction: column;
+			}
+			.orders-calendar-toolbar > * {
+				width: 100%;
+			}
+			.orders-calendar-actions {
+				display: grid;
+				grid-template-columns: repeat(2, minmax(0, 1fr));
+				width: 100%;
+			}
+			.orders-calendar-actions .btn,
+			.orders-calendar-toolbar form .btn,
+			.orders-calendar-toolbar form .form-select {
+				width: 100%;
+			}
+			.orders-calendar-grid {
+				display: block;
+			}
+			.orders-calendar-day {
+				margin-bottom: .85rem;
+				min-height: auto;
+			}
+			.orders-calendar-tabs,
+			.orders-calendar-tabs button {
+				width: 100%;
+			}
+			.orders-calendar-tabs {
+				display: grid;
+				grid-template-columns: repeat(2, minmax(0, 1fr));
+			}
+		}
+	</style>
+{% endblock %}
+
+{% block body %}
+	<div class="ophyra-page-header">
+		<div>
+			<div class="ophyra-page-kicker">Orders</div>
+			<h2 class="h3 mb-1">Calendar View</h2>
+			<p class="text-muted mb-0">See weekly operations by day, time, client and order status.</p>
+		</div>
+	</div>
+
+	<div class="orders-calendar-shell" id="ordersCalendarShell" data-view="week">
+		<div class="orders-calendar-toolbar">
+			<div>
+				<div class="text-muted small fw-bold text-uppercase mb-1">{{ calendar_level_label|default('Orders') }}</div>
+				<h3 class="h5 mb-1">{{ calendar.range_label }}</h3>
+				<p class="text-muted mb-0">
+					{{ calendar.total_orders }} orders in this week
+					{% if calendar.no_time_total > 0 %}
+						<span class="text-warning">- {{ calendar.no_time_total }} without assigned time</span>
+					{% endif %}
+				</p>
+			</div>
+
+			<div class="orders-calendar-actions">
+				<a class="btn btn-outline-secondary" href="{{ path(calendar_route ~ '?week=' ~ calendar.previous_week ~ '&status=' ~ calendar.status_filter) }}">
+					<i data-feather="chevron-left"></i> Previous
+				</a>
+				<a class="btn btn-outline-dark" href="{{ path(calendar_route ~ '?week=' ~ calendar.today_week ~ '&status=' ~ calendar.status_filter) }}">
+					Today
+				</a>
+				<a class="btn btn-outline-secondary" href="{{ path(calendar_route ~ '?week=' ~ calendar.next_week ~ '&status=' ~ calendar.status_filter) }}">
+					Next <i data-feather="chevron-right"></i>
+				</a>
+				<a class="btn btn-dark" href="{{ path(list_route) }}">
+					<i data-feather="list"></i> List View
+				</a>
+			</div>
+		</div>
+
+		<div class="orders-calendar-toolbar">
+			<div class="orders-calendar-tabs" role="group" aria-label="Calendar display">
+				<button type="button" class="is-active" data-calendar-view="week">Week</button>
+				<button type="button" data-calendar-view="agenda">Agenda</button>
+			</div>
+
+			<form method="get" class="d-flex gap-2 flex-wrap align-items-center">
+				<input type="hidden" name="week" value="{{ calendar.week_start }}">
+				<select name="status" class="form-select" style="min-width: 240px;">
+					<option value="all" {{ calendar.status_filter == 'all' ? 'selected' : '' }}>All statuses</option>
+					{% for value, label in calendar.statuses %}
+						<option value="{{ value }}" {{ calendar.status_filter == value ? 'selected' : '' }}>{{ label }}</option>
+					{% endfor %}
+				</select>
+				<button type="submit" class="btn btn-outline-primary">Filter</button>
+			</form>
+		</div>
+
+		<section class="orders-week-view">
+			<div class="orders-calendar-grid">
+				{% for day in calendar.days %}
+					<div class="orders-calendar-day">
+						<div class="orders-calendar-day-header {{ day.is_today ? 'is-today' : '' }}">
+							<div class="orders-calendar-day-name">{{ day.day_name }}</div>
+							<div class="orders-calendar-day-number">{{ day.month }} {{ day.day_number }}</div>
+						</div>
+						<div class="orders-calendar-events">
+							{% for order in day.orders %}
+								<button type="button" class="orders-calendar-event {{ order.status_class }}" data-order-calendar-details='{{ order|json_encode|e('html_attr') }}' data-detail-url="{{ order.detail_url|e('html_attr') }}" data-edit-url="{{ path(order.edit_url)|e('html_attr') }}" data-status-url="{{ path(order.status_url)|e('html_attr') }}" data-payments-url="{{ path(order.payments_url)|e('html_attr') }}">
+									<div class="orders-calendar-time">{{ order.range_label }}</div>
+									<div class="orders-calendar-title">{{ order.title }}</div>
+									<div class="orders-calendar-meta">
+										{{ order.code }}<br>
+										Client: {{ order.client_name }}
+										{% if order.address %}
+											<br>{{ order.address }}
+										{% endif %}
+									</div>
+									<span class="orders-calendar-status">{{ order.status_label }}</span>
+									<span class="orders-calendar-detail-hint">{{ trans('planner_hub.view_details') }} <i data-feather="arrow-right"></i></span>
+								</button>
+							{% endfor %}
+
+							{% if day.no_time_orders|length > 0 %}
+								<div class="orders-no-time">
+									<div class="orders-no-time-label">No time assigned</div>
+									{% for order in day.no_time_orders %}
+										<button type="button" class="orders-calendar-event {{ order.status_class }}" data-order-calendar-details='{{ order|json_encode|e('html_attr') }}' data-detail-url="{{ order.detail_url|e('html_attr') }}" data-edit-url="{{ path(order.edit_url)|e('html_attr') }}" data-status-url="{{ path(order.status_url)|e('html_attr') }}" data-payments-url="{{ path(order.payments_url)|e('html_attr') }}">
+											<div class="orders-calendar-time">No time assigned</div>
+											<div class="orders-calendar-title">{{ order.title }}</div>
+											<div class="orders-calendar-meta">{{ order.code }} - {{ order.client_name }}</div>
+											<span class="orders-calendar-status">{{ order.status_label }}</span>
+											<span class="orders-calendar-detail-hint">{{ trans('planner_hub.view_details') }} <i data-feather="arrow-right"></i></span>
+										</button>
+									{% endfor %}
+								</div>
+							{% endif %}
+
+							{% if day.orders|length == 0 and day.no_time_orders|length == 0 %}
+								<div class="orders-calendar-empty">No orders scheduled</div>
+							{% endif %}
+						</div>
+					</div>
+				{% endfor %}
+			</div>
+		</section>
+
+		<section class="orders-agenda-view">
+			{% for day in calendar.days %}
+				<div class="orders-agenda-day">
+					<div class="orders-agenda-day-title">{{ day.day_name }}, {{ day.month }} {{ day.day_number }}</div>
+					{% for order in day.orders %}
+						<button type="button" class="orders-calendar-event {{ order.status_class }} mb-2" data-order-calendar-details='{{ order|json_encode|e('html_attr') }}' data-detail-url="{{ order.detail_url|e('html_attr') }}" data-edit-url="{{ path(order.edit_url)|e('html_attr') }}" data-status-url="{{ path(order.status_url)|e('html_attr') }}" data-payments-url="{{ path(order.payments_url)|e('html_attr') }}">
+							<div class="orders-calendar-time">{{ order.range_label }}</div>
+							<div class="orders-calendar-title">{{ order.title }}</div>
+							<div class="orders-calendar-meta">
+								{{ order.code }} - Client: {{ order.client_name }}
+								{% if order.address %}<br>{{ order.address }}{% endif %}
+							</div>
+							<span class="orders-calendar-status">{{ order.status_label }}</span>
+							<span class="orders-calendar-detail-hint">{{ trans('planner_hub.view_details') }} <i data-feather="arrow-right"></i></span>
+						</button>
+					{% endfor %}
+					{% if day.no_time_orders|length > 0 %}
+						<div class="orders-no-time">
+							<div class="orders-no-time-label">No time assigned</div>
+							{% for order in day.no_time_orders %}
+								<button type="button" class="orders-calendar-event {{ order.status_class }} mb-2" data-order-calendar-details='{{ order|json_encode|e('html_attr') }}' data-detail-url="{{ order.detail_url|e('html_attr') }}" data-edit-url="{{ path(order.edit_url)|e('html_attr') }}" data-status-url="{{ path(order.status_url)|e('html_attr') }}" data-payments-url="{{ path(order.payments_url)|e('html_attr') }}">
+									<div class="orders-calendar-title">{{ order.title }}</div>
+									<div class="orders-calendar-meta">{{ order.code }} - Client: {{ order.client_name }}</div>
+									<span class="orders-calendar-status">{{ order.status_label }}</span>
+									<span class="orders-calendar-detail-hint">{{ trans('planner_hub.view_details') }} <i data-feather="arrow-right"></i></span>
+								</button>
+							{% endfor %}
+						</div>
+					{% endif %}
+					{% if day.orders|length == 0 and day.no_time_orders|length == 0 %}
+						<div class="orders-calendar-empty">No orders scheduled</div>
+					{% endif %}
+				</div>
+			{% endfor %}
+		</section>
+	</div>
+
+	<div class="modal fade" id="calendarOrderDetailsModal" tabindex="-1" aria-labelledby="calendarOrderDetailsModalLabel" aria-hidden="true">
+		<div class="modal-dialog modal-xl modal-dialog-scrollable">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h5 class="modal-title" id="calendarOrderDetailsModalLabel">{{ trans('planner_hub.order_details') }}</h5>
+					<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ trans('planner_hub.close') }}"></button>
+				</div>
+				<div class="modal-body" id="calendarOrderDetailsContent">
+					<div class="text-center py-4">
+						<div class="spinner-border text-primary" role="status">
+							<span class="visually-hidden">{{ trans('planner_hub.loading') }}</span>
+						</div>
+					</div>
+				</div>
+				<div class="modal-footer orders-calendar-modal-actions">
+					<a id="calendarOrderDetailsLink" class="btn btn-primary" href="#">
+						<i data-feather="external-link"></i>
+						{{ trans('planner_hub.view_details') }}
+					</a>
+					<a id="calendarOrderEditLink" class="btn btn-outline-secondary" href="#">
+						<i data-feather="edit"></i>
+						{{ trans('planner_hub.edit') }} order
+					</a>
+					<a id="calendarOrderStatusLink" class="btn btn-outline-warning" href="#">
+						<i data-feather="settings"></i>
+						{{ trans('planner_hub.manage_status') }}
+					</a>
+					<a id="calendarOrderPaymentsLink" class="btn btn-outline-primary" href="#">
+						<i data-feather="credit-card"></i>
+						{{ trans('planner_hub.payments') }}
+					</a>
+					<button type="button" class="btn btn-secondary ms-auto" data-bs-dismiss="modal">{{ trans('planner_hub.close') }}</button>
+				</div>
+			</div>
+		</div>
+	</div>
+{% endblock %}
+
+{% block scripts %}
+	<script>
+		function escapeCalendarDetail(value) {
+			return String(value === null || value === undefined ? '' : value)
+				.replace(/&/g, '&amp;')
+				.replace(/</g, '&lt;')
+				.replace(/>/g, '&gt;')
+				.replace(/"/g, '&quot;')
+				.replace(/'/g, '&#039;');
+		}
+
+		function openCalendarOrderDetails(order) {
+			var content = document.getElementById('calendarOrderDetailsContent');
+			var title = document.getElementById('calendarOrderDetailsModalLabel');
+			var detailsLink = document.getElementById('calendarOrderDetailsLink');
+			var editLink = document.getElementById('calendarOrderEditLink');
+			var statusLink = document.getElementById('calendarOrderStatusLink');
+			var paymentsLink = document.getElementById('calendarOrderPaymentsLink');
+
+			if (!content || !title || !detailsLink || !editLink || !statusLink || !paymentsLink) {
+				return;
+			}
+
+			title.textContent = '{{ trans('planner_hub.order_details') }} - ' + (order.code || ('#' + order.id));
+			detailsLink.href = order.detail_url_resolved || '#';
+			detailsLink.target = '_blank';
+			editLink.href = order.edit_url_resolved || '#';
+			statusLink.href = order.status_url_resolved || '#';
+			paymentsLink.href = order.payments_url_resolved || '#';
+
+			var rows = [
+				['{{ trans('planner_hub.id') }}', order.code || order.id],
+				['{{ trans('planner_hub.client') }}', order.client_name],
+				['{{ trans('ui.email') }}', order.client_email],
+				['{{ trans('planner_hub.event_date') }}', order.event_date],
+				['{{ trans('planner_hub.start_end') }}', order.range_label],
+				['{{ trans('planner_hub.status') }}', order.status_label],
+				['{{ trans('planner_hub.address') }}', order.address]
+			];
+
+			var html = '<div class="table-responsive"><table class="table table-bordered table-hover align-middle"><tbody>';
+			rows.forEach(function(row) {
+				if (!row[1]) {
+					return;
+				}
+				html += '<tr>';
+				html += '<td class="fw-bold text-nowrap align-top" style="width:30%;">' + escapeCalendarDetail(row[0]) + ':</td>';
+				html += '<td class="text-break align-top">' + escapeCalendarDetail(row[1]) + '</td>';
+				html += '</tr>';
+			});
+			html += '</tbody></table></div>';
+			content.innerHTML = html;
+
+			if (typeof feather !== 'undefined') {
+				feather.replace();
+			}
+
+			new bootstrap.Modal(document.getElementById('calendarOrderDetailsModal')).show();
+		}
+
+		document.querySelectorAll('[data-order-calendar-details]').forEach(function (eventButton) {
+			eventButton.addEventListener('click', function () {
+				try {
+					var order = JSON.parse(eventButton.getAttribute('data-order-calendar-details') || '{}');
+					order.detail_url_resolved = eventButton.getAttribute('data-detail-url') || '#';
+					order.edit_url_resolved = eventButton.getAttribute('data-edit-url') || '#';
+					order.status_url_resolved = eventButton.getAttribute('data-status-url') || '#';
+					order.payments_url_resolved = eventButton.getAttribute('data-payments-url') || '#';
+					openCalendarOrderDetails(order);
+				} catch (error) {
+					console.error('Error opening calendar order details:', error);
+				}
+			});
+		});
+
+		document.querySelectorAll('[data-calendar-view]').forEach(function (button) {
+			button.addEventListener('click', function () {
+				var view = button.getAttribute('data-calendar-view');
+				var shell = document.getElementById('ordersCalendarShell');
+				if (!shell) {
+					return;
+				}
+				shell.setAttribute('data-view', view);
+				document.querySelectorAll('[data-calendar-view]').forEach(function (tab) {
+					tab.classList.toggle('is-active', tab === button);
+				});
+			});
+		});
+
+		(function () {
+			var shell = document.getElementById('ordersCalendarShell');
+			if (!shell || !window.matchMedia('(max-width: 767px)').matches) {
+				return;
+			}
+
+			var agendaButton = document.querySelector('[data-calendar-view="agenda"]');
+			if (agendaButton) {
+				agendaButton.click();
+			}
+		})();
+	</script>
+{% endblock %}

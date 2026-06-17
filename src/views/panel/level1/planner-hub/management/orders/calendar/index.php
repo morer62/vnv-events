@@ -1,6 +1,8 @@
 <?php
 
+use App\Repositories\OrdersRepository;
 use App\Repositories\UserRepository;
+use App\Services\CentralOperationsContextService;
 use App\Services\LoginService;
 use App\Services\OrdersCalendarService;
 use App\Utils\Router;
@@ -10,23 +12,39 @@ $router = new Router();
 
 $router->get(callback: function () {
     $user = LoginService::getSession();
-    $service = new OrdersCalendarService();
+    if (!$user) {
+        return '';
+    }
+
+    $week = $_GET['week'] ?? null;
+    $status = $_GET['status'] ?? 'all';
+
+    $calendarService = new OrdersCalendarService();
+    [$weekStart, $weekEnd] = $calendarService->getWeekBounds($week);
+
+    $ordersRepo = new OrdersRepository();
     $clientRepo = new UserRepository();
+    $context = (new CentralOperationsContextService())->getOperations($user->getOwner());
+    $ownerId = (int)($context['vnv_events']['owner_id'] ?? $user->getOwner());
 
-    $weekStart = $service->normalizeWeekStart($_GET['week'] ?? null);
-    $weekEnd = $service->weekEnd($weekStart);
-    $search = $_GET['search'] ?? null;
+    $orders = $ordersRepo->getFiltered2([
+        'id_owner' => $ownerId,
+        'is_archived' => 0,
+    ], null, $weekStart->format('Y-m-d'), $weekEnd->format('Y-m-d'));
 
-    $orders = $service->fetchManagementOrders($search, $weekStart, $weekEnd);
-    $clients = $clientRepo->getAllAssociatedClients($user->getOwner());
-    $calendar = $service->buildManagementCalendar($orders, $clients, $weekStart);
+    $clients = $clientRepo->getAllAssociatedClients($ownerId);
+    $calendar = $calendarService->buildWeek($orders, $clients, $weekStart->format('Y-m-d'), $status);
 
-    return TemplateResponse::render(__DIR__ . '/../../../../../shared/orders-calendar/index.twig', [
+    return TemplateResponse::render(__DIR__ . '/index.twig', [
         'calendar' => $calendar,
-        'search' => $search,
-        'listUrl' => '/panel/planner-hub/management/orders/orders',
-        'calendarUrl' => '/panel/planner-hub/management/orders/calendar',
+        'list_route' => 'panel/planner-hub/management/orders/orders',
+        'calendar_route' => 'panel/planner-hub/management/orders/calendar',
+        'calendar_level_label' => 'Platform operations',
     ]);
 });
 
-$router->run();
+try {
+    $router->run();
+} catch (Throwable $e) {
+    echo $e->getMessage();
+}

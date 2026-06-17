@@ -1,50 +1,281 @@
 {% extends 'templates/base.admin.twig' %}
 {% import 'templates/macros.twig' as macros %}
 
+{% block style %}
+<style>
+  .vnv-suite {
+    --suite-ink: #102536;
+    --suite-muted: #64748b;
+    --suite-line: #dbe5ee;
+    --suite-mint: #08796f;
+    --suite-teal: #11a796;
+    --suite-cream: #f7f2e8;
+    display: grid;
+    gap: 1.25rem;
+  }
+
+  .vnv-suite-hero {
+    position: relative;
+    overflow: hidden;
+    border-radius: 34px;
+    padding: clamp(1.4rem, 3vw, 2.6rem);
+    color: #fff;
+    background:
+      radial-gradient(circle at 12% 18%, rgba(217, 249, 157, .34), transparent 28%),
+      radial-gradient(circle at 84% 14%, rgba(17, 167, 150, .38), transparent 34%),
+      linear-gradient(135deg, #102536 0%, #0b4f4a 52%, #08796f 100%);
+    box-shadow: 0 28px 80px rgba(16, 37, 54, .22);
+  }
+
+  .vnv-suite-hero:after {
+    content: "";
+    position: absolute;
+    inset: auto -8% -42% 38%;
+    height: 260px;
+    border-radius: 999px;
+    background: rgba(255,255,255,.12);
+    transform: rotate(-8deg);
+  }
+
+  .vnv-suite-kicker {
+    position: relative;
+    z-index: 1;
+    display: inline-flex;
+    align-items: center;
+    gap: .5rem;
+    border: 1px solid rgba(255,255,255,.26);
+    border-radius: 999px;
+    padding: .42rem .8rem;
+    background: rgba(255,255,255,.12);
+    font-size: .76rem;
+    font-weight: 950;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+  }
+
+  .vnv-suite-hero h1 {
+    position: relative;
+    z-index: 1;
+    max-width: 760px;
+    margin: 1rem 0 .65rem;
+    color: #fff;
+    font-size: clamp(2rem, 5vw, 4.15rem);
+    line-height: .95;
+    letter-spacing: -.06em;
+    font-weight: 950;
+  }
+
+  .vnv-suite-hero p {
+    position: relative;
+    z-index: 1;
+    max-width: 690px;
+    margin: 0;
+    color: rgba(255,255,255,.82);
+    font-size: 1.05rem;
+  }
+
+  .vnv-suite-actions {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-wrap: wrap;
+    gap: .75rem;
+    margin-top: 1.35rem;
+  }
+
+  .vnv-suite-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: .5rem;
+    min-height: 46px;
+    border-radius: 999px;
+    padding: .75rem 1.15rem;
+    font-weight: 950;
+    text-decoration: none;
+  }
+
+  .vnv-suite-btn.primary {
+    color: #102536;
+    background: #d9f99d;
+  }
+
+  .vnv-suite-btn.secondary {
+    color: #fff;
+    border: 1px solid rgba(255,255,255,.35);
+    background: rgba(255,255,255,.12);
+  }
+
+  .vnv-suite-grid {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    gap: 1rem;
+  }
+
+  .vnv-suite-card {
+    grid-column: span 4;
+    position: relative;
+    overflow: hidden;
+    min-height: 220px;
+    border: 1px solid var(--suite-line);
+    border-radius: 28px;
+    padding: 1.25rem;
+    background: #fff;
+    box-shadow: 0 18px 46px rgba(16, 37, 54, .08);
+    text-decoration: none;
+    color: var(--suite-ink);
+    transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+  }
+
+  .vnv-suite-card:hover {
+    transform: translateY(-3px);
+    color: var(--suite-ink);
+    border-color: rgba(17, 167, 150, .58);
+    box-shadow: 0 26px 58px rgba(16, 37, 54, .13);
+  }
+
+  .vnv-suite-card.feature {
+    grid-column: span 6;
+    min-height: 260px;
+    background:
+      radial-gradient(circle at 86% 12%, rgba(17,167,150,.20), transparent 28%),
+      linear-gradient(135deg, #ffffff, #f4fbf9);
+  }
+
+  .vnv-suite-icon {
+    width: 54px;
+    height: 54px;
+    border-radius: 18px;
+    display: grid;
+    place-items: center;
+    margin-bottom: 1rem;
+    color: #fff;
+    background: linear-gradient(135deg, var(--suite-mint), var(--suite-teal));
+    box-shadow: inset 0 -10px 22px rgba(0,0,0,.13);
+    font-size: 1.35rem;
+  }
+
+  .vnv-suite-card h2 {
+    margin: 0 0 .45rem;
+    font-size: 1.28rem;
+    font-weight: 950;
+    letter-spacing: -.03em;
+  }
+
+  .vnv-suite-card p {
+    margin: 0;
+    color: var(--suite-muted);
+    line-height: 1.45;
+  }
+
+  .vnv-suite-link {
+    position: absolute;
+    left: 1.25rem;
+    bottom: 1.2rem;
+    display: inline-flex;
+    align-items: center;
+    gap: .45rem;
+    color: var(--suite-mint);
+    font-weight: 950;
+  }
+
+  .vnv-suite-strip {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 1rem;
+  }
+
+  .vnv-suite-mini {
+    border: 1px solid var(--suite-line);
+    border-radius: 24px;
+    padding: 1rem;
+    background: var(--suite-cream);
+    color: var(--suite-ink);
+    text-decoration: none;
+    font-weight: 950;
+  }
+
+  .vnv-suite-mini span {
+    display: block;
+    margin-top: .35rem;
+    color: var(--suite-muted);
+    font-weight: 700;
+    font-size: .9rem;
+  }
+
+  @media (max-width: 991px) {
+    .vnv-suite-card,
+    .vnv-suite-card.feature { grid-column: span 6; }
+    .vnv-suite-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+
+  @media (max-width: 575px) {
+    .vnv-suite-card,
+    .vnv-suite-card.feature { grid-column: span 12; }
+    .vnv-suite-strip { grid-template-columns: 1fr; }
+    .vnv-suite-actions { flex-direction: column; }
+    .vnv-suite-btn { width: 100%; }
+  }
+</style>
+{% endblock %}
+
 {% block body %}
-<main class="mt-4 container vnv-panel">
+<main class="mt-4 container-fluid vnv-suite">
   {{ macros.breadcrumb2() }}
 
-  <div class="vnv-page-header">
-    <div>
-      <p class="vnv-kicker">Operations</p>
-      <h1>VNV Events Operations</h1>
-      <p>Manage event orders, team work, payments, CRM, inventory and daily execution from one place.</p>
+  <section class="vnv-suite-hero">
+    <div class="vnv-suite-kicker">VNV Events Suite</div>
+    <h1>Command center for service operations.</h1>
+    <p>Orders, clients, calendars, payments, contracts and team communication in one operational cockpit for VNV Events.</p>
+    <div class="vnv-suite-actions">
+      <a class="vnv-suite-btn primary" href="{{ path('panel/planner-hub/management/orders/orders') }}">Open Orders</a>
+      <a class="vnv-suite-btn secondary" href="{{ path('panel/planner-hub/management/orders/calendar') }}">Weekly Calendar</a>
+      <a class="vnv-suite-btn secondary" href="{{ path('panel/planner-hub/team/chat') }}">Team Chat</a>
     </div>
-  </div>
+  </section>
 
-  {% if user.level in [1, 2, 3] %}
-    <div class="alert alert-success text-center mb-4" role="alert">
-      <a href="{{ path('panel/planner-hub/institution-profile') }}" class="fw-bold text-decoration-none">Edit your VNV Events business profile</a>
-    </div>
+  <section class="vnv-suite-grid">
+    <a class="vnv-suite-card feature" href="{{ path('panel/planner-hub/management/orders/orders') }}">
+      <div class="vnv-suite-icon"><i class="fa-solid fa-clipboard-list"></i></div>
+      <h2>Service Orders</h2>
+      <p>Create, track and move every event service through signature, payments, files and closure.</p>
+      <div class="vnv-suite-link">Manage orders <i class="fa-solid fa-arrow-right"></i></div>
+    </a>
 
-    {% if isWeb %}
-      <div class="alert alert-primary text-center mb-5" role="alert">
-        <a href="{{ path('panel/planner-hub/management/payments/') }}" class="fw-bold text-decoration-none">Verify Stripe to receive credit card payments</a>
-      </div>
-    {% endif %}
-  {% elseif user.level == 4 %}
-    {% if isWeb %}
-      <div class="alert alert-primary text-center mb-5" role="alert">
-        <a href="{{ path('panel/planner-hub/team/payments') }}" class="fw-bold text-decoration-none">Verify Stripe to receive credit card payments</a>
-      </div>
-    {% endif %}
-  {% endif %}
+    <a class="vnv-suite-card feature" href="{{ path('panel/planner-hub/management/orders/calendar') }}">
+      <div class="vnv-suite-icon"><i class="fa-solid fa-calendar-days"></i></div>
+      <h2>Operations Calendar</h2>
+      <p>See the week by day, time, client and order status with the same popup workflow as Ophyra.</p>
+      <div class="vnv-suite-link">View calendar <i class="fa-solid fa-arrow-right"></i></div>
+    </a>
 
-  <section class="vnv-grid vnv-grid-2">
-    <div class="vnv-card text-center">
-      <img src="{{ asset_for('assets/images/icons_website/icon_1.png') }}" alt="Team Area" class="mb-4" style="height: 110px;">
-      <h2 class="h4 fw-bold mb-2">Team Area</h2>
-      <p class="text-muted fs-6 mb-3">Track time, payroll, assignments and upcoming events.</p>
-      <a href="{{ path('panel/planner-hub/team') }}" class="vnv-btn vnv-btn-primary">Access</a>
-    </div>
+    <a class="vnv-suite-card" href="{{ path('panel/planner-hub/management/crm') }}">
+      <div class="vnv-suite-icon"><i class="fa-solid fa-address-book"></i></div>
+      <h2>CRM</h2>
+      <p>Keep clients, companies and service history organized.</p>
+      <div class="vnv-suite-link">Open CRM <i class="fa-solid fa-arrow-right"></i></div>
+    </a>
 
-    <div class="vnv-card text-center">
-      <img src="{{ asset_for('assets/images/icons_website/icon_2.png') }}" alt="Management Area" class="mb-4" style="height: 110px;">
-      <h2 class="h4 fw-bold mb-2">Management Area</h2>
-      <p class="text-muted fs-6 mb-3">Create orders, assign team members, manage CRM and review operations.</p>
-      <a href="{{ path('panel/planner-hub/management') }}" class="vnv-btn vnv-btn-secondary">Access</a>
-    </div>
+    <a class="vnv-suite-card" href="{{ path('panel/planner-hub/team/chat') }}">
+      <div class="vnv-suite-icon"><i class="fa-solid fa-comments"></i></div>
+      <h2>Messages Hub</h2>
+      <p>Central inbox for admin, team and client communication.</p>
+      <div class="vnv-suite-link">Open chat <i class="fa-solid fa-arrow-right"></i></div>
+    </a>
+
+    <a class="vnv-suite-card" href="{{ path('panel/planner-hub/management/payroll') }}">
+      <div class="vnv-suite-icon"><i class="fa-solid fa-user-clock"></i></div>
+      <h2>Payroll & Clock</h2>
+      <p>Review hours, contract status and payroll operations for team members.</p>
+      <div class="vnv-suite-link">Open payroll <i class="fa-solid fa-arrow-right"></i></div>
+    </a>
+  </section>
+
+  <section class="vnv-suite-strip">
+    <a class="vnv-suite-mini" href="{{ path('panel/planner-hub/management/orders/contracts') }}">Contracts<span>Service acceptance templates</span></a>
+    <a class="vnv-suite-mini" href="{{ path('panel/planner-hub/management/orders/services') }}">Services<span>Catalog and service tasks</span></a>
+    <a class="vnv-suite-mini" href="{{ path('panel/planner-hub/management/storage') }}">Inventory<span>Storage and event assets</span></a>
+    <a class="vnv-suite-mini" href="{{ path('panel/planner-hub/management/payments') }}">Payments<span>Stripe, balances and payouts</span></a>
   </section>
 </main>
 {% endblock %}
