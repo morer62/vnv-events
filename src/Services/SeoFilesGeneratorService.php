@@ -7,6 +7,9 @@ use App\Repositories\Connection;
 use App\Repositories\ForumTopicRepository;
 use App\Repositories\LocationPagesRepository;
 use App\Repositories\SeoFilesLogRepository;
+use App\Repositories\StoreCategoriesRepository;
+use App\Repositories\StoreProductsRepository;
+use App\Utils\AvomealContext;
 use App\Utils\SiteContext;
 use DOMDocument;
 
@@ -63,10 +66,10 @@ class SeoFilesGeneratorService
     public function getFileCards(): array
     {
         $files = [
-            'sitemap' => ['label' => 'sitemap.xml', 'filename' => 'sitemap.xml'],
-            'robots' => ['label' => 'robots.txt', 'filename' => 'robots.txt'],
-            'llms' => ['label' => 'llms.txt', 'filename' => 'llms.txt'],
-            'llms_full' => ['label' => 'llms-full.txt', 'filename' => 'llms-full.txt'],
+            'sitemap' => ['label' => 'sitemap.xml', 'filename' => 'sitemap.xml', 'editable' => false],
+            'robots' => ['label' => 'robots.txt', 'filename' => 'robots.txt', 'editable' => true],
+            'llms' => ['label' => 'llms.txt', 'filename' => 'llms.txt', 'editable' => true],
+            'llms_full' => ['label' => 'llms-full.txt', 'filename' => 'llms-full.txt', 'editable' => true],
         ];
 
         $cards = [];
@@ -84,10 +87,33 @@ class SeoFilesGeneratorService
                 'items_count' => $log->items_count ?? null,
                 'status' => $log->status ?? null,
                 'message' => $log->message ?? null,
+                'editable' => (bool)$meta['editable'],
+                'content' => is_file($path) && (bool)$meta['editable'] ? (file_get_contents($path) ?: '') : '',
             ];
         }
 
         return $cards;
+    }
+
+    public function saveEditableFile(string $fileType, string $content, ?int $userId = null): array
+    {
+        $files = [
+            'robots' => 'robots.txt',
+            'llms' => 'llms.txt',
+            'llms_full' => 'llms-full.txt',
+        ];
+
+        if (!isset($files[$fileType])) {
+            return [
+                'file_type' => $fileType,
+                'status' => 'failed',
+                'message' => 'This SEO file is not editable from the dashboard.',
+                'items_count' => 0,
+            ];
+        }
+
+        $content = rtrim(str_replace(["\r\n", "\r"], "\n", $content)) . "\n";
+        return $this->writeAndLog($fileType, $files[$fileType], $content, max(1, substr_count($content, "\n")), $userId);
     }
 
     public function buildAudit(): array
@@ -127,13 +153,21 @@ class SeoFilesGeneratorService
     {
         $content = implode("\n", [
             'User-agent: *',
+            'Allow: /',
             'Disallow: /panel/',
             'Disallow: /api/',
             'Disallow: /login',
             'Disallow: /signup',
+            'Disallow: /cart',
+            'Disallow: /checkout',
+            'Disallow: /order-access',
             'Disallow: /storage/private/',
             '',
+            '# Public discovery files',
+            'Host: ' . SiteContext::publicBaseUrl(),
             'Sitemap: ' . $this->absoluteUrl('/sitemap.xml'),
+            'LLMs: ' . $this->absoluteUrl('/llms.txt'),
+            'LLMs-Full: ' . $this->absoluteUrl('/llms-full.txt'),
             '',
         ]);
 
@@ -146,6 +180,8 @@ class SeoFilesGeneratorService
         $locations = array_values(array_filter($urls, fn ($url) => ($url['type'] ?? '') === 'location'));
         $posts = array_values(array_filter($urls, fn ($url) => ($url['type'] ?? '') === 'blog'));
         $pages = array_values(array_filter($urls, fn ($url) => in_array(($url['type'] ?? ''), ['static', 'page'], true)));
+        $products = array_values(array_filter($urls, fn ($url) => ($url['type'] ?? '') === 'product'));
+        $productCategories = array_values(array_filter($urls, fn ($url) => ($url['type'] ?? '') === 'product_category'));
         $forums = array_values(array_filter($urls, fn ($url) => ($url['type'] ?? '') === 'forum'));
 
         $lines = [
@@ -171,6 +207,8 @@ class SeoFilesGeneratorService
             '- Event Production: ' . $this->absoluteUrl('/event-production/'),
             '- Locations: ' . $this->absoluteUrl('/locations/'),
             '- Blog: ' . $this->absoluteUrl('/blog/'),
+            '- VNV Gourmet: ' . $this->absoluteUrl('/vnv-gourmet/'),
+            '- Store Categories: ' . $this->absoluteUrl('/store-categories/'),
             '',
             '## Main Service Areas',
             '',
@@ -189,6 +227,8 @@ class SeoFilesGeneratorService
 
         if ($full) {
             $this->appendSection($lines, 'Public Pages', $pages, 80);
+            $this->appendSection($lines, 'Store Product Categories', $productCategories, 80);
+            $this->appendSection($lines, 'Public Products and Services', $products, 120);
             $this->appendSection($lines, 'Blog and Guides', $posts, 80);
             $this->appendSection($lines, 'Public Forums', $forums, 60);
             $lines[] = '## Public SEO Files';
@@ -199,7 +239,7 @@ class SeoFilesGeneratorService
             $lines[] = '';
             $lines[] = 'Do not use private panel, order, customer, or administrative data as public context.';
         } else {
-            $this->appendSection($lines, 'Featured Public Content', array_slice(array_merge($posts, $locations), 0, 8), 8);
+            $this->appendSection($lines, 'Featured Public Content', array_slice(array_merge($products, $productCategories, $posts, $locations), 0, 12), 12);
         }
 
         $filename = $full ? 'llms-full.txt' : 'llms.txt';
@@ -233,6 +273,8 @@ class SeoFilesGeneratorService
 
         $entries = array_merge(
             $entries,
+            $this->collectPhysicalPublicPages(),
+            $this->collectStoreContent(),
             $this->collectGrowthHubContent(),
             $this->collectLocations(),
             $this->collectCmsRoutes(),
@@ -250,6 +292,98 @@ class SeoFilesGeneratorService
         ksort($deduped);
         $this->publicUrlsCache = array_values($deduped);
         return $this->publicUrlsCache;
+    }
+
+    private function collectPhysicalPublicPages(): array
+    {
+        $pagesRoot = dirname(__DIR__) . DIRECTORY_SEPARATOR . 'views' . DIRECTORY_SEPARATOR . 'public' . DIRECTORY_SEPARATOR . 'pages';
+        if (!is_dir($pagesRoot)) {
+            return [];
+        }
+
+        $excluded = [
+            'blog-post',
+            'blog-category',
+            'cms-content',
+            'growth-content',
+            'location-page',
+            'product',
+            'product-category',
+        ];
+
+        $entries = [];
+        $iterator = new \RecursiveIteratorIterator(
+            new \RecursiveDirectoryIterator($pagesRoot, \FilesystemIterator::SKIP_DOTS)
+        );
+
+        foreach ($iterator as $file) {
+            if (!$file instanceof \SplFileInfo || $file->getFilename() !== 'index.php') {
+                continue;
+            }
+
+            $directory = str_replace('\\', '/', substr($file->getPath(), strlen($pagesRoot) + 1));
+            if ($directory === '' || $directory === false) {
+                continue;
+            }
+
+            $segments = array_values(array_filter(explode('/', $directory)));
+            if (!$segments || in_array($segments[0], $excluded, true)) {
+                continue;
+            }
+
+            $path = '/' . implode('/', $segments) . '/';
+            $entries[] = $this->entry(
+                $path,
+                $this->titleFromPath($path),
+                date('Y-m-d', (int)$file->getMTime()),
+                'monthly',
+                $this->priorityForPhysicalPath($path),
+                'static'
+            );
+        }
+
+        return $entries;
+    }
+
+    private function collectStoreContent(): array
+    {
+        $entries = [];
+        $ownerId = AvomealContext::ownerId();
+        $siteKey = SiteContext::siteKey();
+
+        try {
+            $productsRepo = new StoreProductsRepository();
+            foreach ($productsRepo->getPublicSitemapEntries(5000, $ownerId, $siteKey) as $product) {
+                $entries[] = $this->entry(
+                    '/product/' . trim((string)$product->slug, '/') . '/',
+                    $product->name ?? 'Product',
+                    $this->bestDate($product),
+                    'weekly',
+                    0.7,
+                    'product'
+                );
+            }
+        } catch (\Throwable $e) {
+            error_log('SEO store product collection failed: ' . $e->getMessage());
+        }
+
+        try {
+            $categoriesRepo = new StoreCategoriesRepository();
+            foreach ($categoriesRepo->getPublicSitemapEntries(1000, $ownerId, $siteKey) as $category) {
+                $entries[] = $this->entry(
+                    '/product-category/' . trim((string)$category->slug, '/') . '/',
+                    $category->name ?? 'Product category',
+                    $this->bestDate($category),
+                    'weekly',
+                    0.65,
+                    'product_category'
+                );
+            }
+        } catch (\Throwable $e) {
+            error_log('SEO store category collection failed: ' . $e->getMessage());
+        }
+
+        return $entries;
     }
 
     private function collectLocations(): array
@@ -415,6 +549,27 @@ class SeoFilesGeneratorService
         foreach (array_slice($entries, 0, $limit) as $entry) {
             $lines[] = '- ' . $entry['title'] . ': ' . $entry['loc'];
         }
+    }
+
+    private function titleFromPath(string $path): string
+    {
+        $last = trim(basename(trim($path, '/')), '/');
+        if ($last === '') {
+            return 'VNV Events Home';
+        }
+
+        return ucwords(str_replace(['-', '_'], ' ', $last));
+    }
+
+    private function priorityForPhysicalPath(string $path): float
+    {
+        foreach (['/vnv-gourmet/', '/event-planners/', '/corporate-events/', '/event-production/', '/event-staffing/', '/locations/', '/blog/'] as $important) {
+            if ($path === $important) {
+                return 0.8;
+            }
+        }
+
+        return 0.55;
     }
 
     private function aggregateStatus(array $results): string

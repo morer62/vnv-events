@@ -25,7 +25,7 @@ $router->get(function () {
 
 $router->post(function () {
     $action = strtolower(trim($_POST['action'] ?? 'all'));
-    $allowed = ['all', 'sitemap', 'robots', 'llms', 'llms_full'];
+    $allowed = ['all', 'sitemap', 'robots', 'llms', 'llms_full', 'save_file'];
 
     if (!in_array($action, $allowed, true)) {
         MessageUtil::setMessage('Invalid SEO action.', 'Error', 'error');
@@ -34,7 +34,14 @@ $router->post(function () {
     }
 
     $user = LoginService::getSession();
-    $result = (new SeoFilesGeneratorService())->generate($action, $user?->getId());
+    $service = new SeoFilesGeneratorService();
+    if ($action === 'save_file') {
+        $fileType = strtolower(trim($_POST['file_type'] ?? ''));
+        $content = (string)($_POST['content'] ?? '');
+        $result = $service->saveEditableFile($fileType, $content, $user?->getId());
+    } else {
+        $result = $service->generate($action, $user?->getId());
+    }
     $status = $result['status'] ?? 'failed';
 
     MessageUtil::setMessage(
