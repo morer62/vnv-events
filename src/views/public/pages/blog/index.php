@@ -1,37 +1,45 @@
 ﻿<?php
 
-use App\Repositories\Connection;
 use App\Utils\SiteContext;
 use App\Utils\TemplateResponse;
 
-$db = new Connection();
 $siteKey = strtolower(trim(SiteContext::siteKey()));
 $categories = [];
 $posts = [];
 $featuredPosts = [];
 $recentPosts = [];
 
-function vnv_blog_table_exists(Connection $db, string $table): bool
+function vnv_blog_query(\App\Repositories\Connection $db, string $sql, array $params = []): array
+{
+    $db->query($sql);
+    foreach ($params as $param => $value) {
+        $db->bind($param, $value);
+    }
+
+    return array_map(static fn ($row) => (array)$row, $db->fetchAll());
+}
+
+function vnv_blog_table_exists(\App\Repositories\Connection $db, string $table): bool
 {
     try {
-        $result = $db->query("SHOW TABLES LIKE :table_name", [':table_name' => $table]);
+        $result = vnv_blog_query($db, "SHOW TABLES LIKE :table_name", [':table_name' => $table]);
         return !empty($result);
     } catch (Throwable $e) {
         return false;
     }
 }
 
-function vnv_blog_column_exists(Connection $db, string $table, string $column): bool
+function vnv_blog_column_exists(\App\Repositories\Connection $db, string $table, string $column): bool
 {
     try {
-        $result = $db->query("SHOW COLUMNS FROM `{$table}` LIKE :column_name", [':column_name' => $column]);
+        $result = vnv_blog_query($db, "SHOW COLUMNS FROM `{$table}` LIKE :column_name", [':column_name' => $column]);
         return !empty($result);
     } catch (Throwable $e) {
         return false;
     }
 }
 
-function vnv_blog_first_existing_column(Connection $db, string $table, array $columns): ?string
+function vnv_blog_first_existing_column(\App\Repositories\Connection $db, string $table, array $columns): ?string
 {
     foreach ($columns as $column) {
         if (vnv_blog_column_exists($db, $table, $column)) {
@@ -43,6 +51,7 @@ function vnv_blog_first_existing_column(Connection $db, string $table, array $co
 }
 
 try {
+    $db = new \App\Repositories\Connection();
     $hasCategories = vnv_blog_table_exists($db, 'blog_categories');
     $hasContents = vnv_blog_table_exists($db, 'cms_contents');
     $hasRoutes = vnv_blog_table_exists($db, 'cms_routes');
@@ -68,7 +77,7 @@ try {
         }
         $categorySql .= $categoryOrder;
 
-        $categories = $db->query($categorySql, $categoryParams) ?: [];
+        $categories = vnv_blog_query($db, $categorySql, $categoryParams);
     }
 
     if ($hasContents) {
@@ -102,7 +111,16 @@ try {
         $routeSelect = $hasRoutes ? "r.route AS main_route," : "NULL AS main_route,";
         $routeJoin = '';
         if ($hasRoutes) {
-            $routeJoin = "LEFT JOIN cms_routes r ON r.content_id = c.id AND r.language = 'en' AND (r.is_primary = 1 OR r.route = CONCAT('/blog/', c.slug, '/'))";
+            $routeFilters = [];
+            if (vnv_blog_column_exists($db, 'cms_routes', 'status')) {
+                $routeFilters[] = "LOWER(COALESCE(r.status, 'active')) IN ('active', 'published', '1')";
+            }
+            if ($siteKey !== '' && vnv_blog_column_exists($db, 'cms_routes', 'site_key')) {
+                $routeFilters[] = "(r.site_key IS NULL OR r.site_key = '' OR LOWER(r.site_key) IN (:route_site_key, 'shared', 'global', 'all_sites'))";
+                $contentParams[':route_site_key'] = $siteKey;
+            }
+            $routeFilterSql = $routeFilters ? " AND " . implode(' AND ', $routeFilters) : "";
+            $routeJoin = "LEFT JOIN cms_routes r ON r.id_content = c.id AND r.language = c.language AND (r.is_main = 1 OR r.route = CONCAT('/blog/', c.slug, '/')){$routeFilterSql}";
         }
 
         $categoryJoin = $hasCategories ? "LEFT JOIN blog_categories bc ON bc.id_blog_category = c.id_blog_category" : "";
@@ -125,7 +143,7 @@ try {
             LIMIT 48
         ";
 
-        $posts = $db->query($postSql, $contentParams) ?: [];
+        $posts = vnv_blog_query($db, $postSql, $contentParams);
     }
 
     $categoriesById = [];
@@ -170,10 +188,11 @@ try {
     $recentPosts = [];
 }
 
-return TemplateResponse::render(__DIR__ . '/index.twig', [
+echo TemplateResponse::render(__DIR__ . '/index.twig', [
     'categories' => $categories,
     'featured_posts' => $featuredPosts,
     'recent_posts' => $recentPosts,
     'meta_title' => 'Tips and Advices | VNV Events',
     'meta_description' => 'Ideas, planning tips, and expert guidance for stress-free luxury events in South Florida.',
 ]);
+exit;

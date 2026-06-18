@@ -452,12 +452,16 @@ class Kernel
                     $this->includeGrowthHubContentAndExit($route, 'location');
                 }
 
-                $repo = new LocationPagesRepository();
-                if ($repo->getPublishedBySlug($urlViews[1])) {
-                    $locationPageView = LocationUtils::getRootLocation()
-                        . "/src/views/public/pages/location-page/index.php";
+                try {
+                    $repo = new LocationPagesRepository();
+                    if ($repo->getPublishedBySlug($urlViews[1])) {
+                        $locationPageView = LocationUtils::getRootLocation()
+                            . "/src/views/public/pages/location-page/index.php";
 
-                    $this->includeResolvedFileAndExit($locationPageView);
+                        $this->includeResolvedFileAndExit($locationPageView);
+                    }
+                } catch (\Throwable $e) {
+                    error_log('Location page lookup failed: ' . $e->getMessage());
                 }
             }
 
@@ -467,8 +471,13 @@ class Kernel
                 $slug = $urlViews[0];
 
                 if (!$this->isReservedDynamicSlug($slug)) {
-                    $repo = new LocationPagesRepository();
-                    $page = $repo->getPublishedBySlug($slug);
+                    $page = null;
+                    try {
+                        $repo = new LocationPagesRepository();
+                        $page = $repo->getPublishedBySlug($slug);
+                    } catch (\Throwable $e) {
+                        error_log('Root location slug lookup failed: ' . $e->getMessage());
+                    }
 
                     if ($page) {
                         $locationPageView = LocationUtils::getRootLocation()
@@ -538,32 +547,36 @@ class Kernel
                 $cmsRoutePath .= '/';
             }
 
-            $cmsRoutesRepository = new CmsRoutesRepository();
-            $cmsRoutesRepository->db = new \App\Repositories\Connection();
+            try {
+                $cmsRoutesRepository = new CmsRoutesRepository();
+                $cmsRoutesRepository->db = new \App\Repositories\Connection();
 
-            $cmsRoute = $cmsRoutesRepository->getByRoute($cmsRoutePath, 'en');
+                $cmsRoute = $cmsRoutesRepository->getByRoute($cmsRoutePath, 'en');
 
-            if ($cmsRoute && ($cmsRoute->content_status ?? '') === 'PUBLISHED') {
-                $cmsPublicType = $this->normalizeGrowthHubContentType((string)(
-                    ($cmsRoute->content_type ?? '')
-                    ?: ($cmsRoute->route_type ?? '')
-                    ?: ($cmsRoute->type ?? '')
-                    ?: 'page'
-                ));
+                if ($cmsRoute && ($cmsRoute->content_status ?? '') === 'PUBLISHED') {
+                    $cmsPublicType = $this->normalizeGrowthHubContentType((string)(
+                        ($cmsRoute->content_type ?? '')
+                        ?: ($cmsRoute->route_type ?? '')
+                        ?: ($cmsRoute->type ?? '')
+                        ?: 'page'
+                    ));
 
-                if ($cmsPublicType === 'page' || $cmsPublicType === 'location') {
-                    $cmsContentView = LocationUtils::getRootLocation()
-                        . "/src/views/public/pages/cms-content/index.php";
+                    if ($cmsPublicType === 'page' || $cmsPublicType === 'location') {
+                        $cmsContentView = LocationUtils::getRootLocation()
+                            . "/src/views/public/pages/cms-content/index.php";
 
-                    $this->includeResolvedFileAndExit($cmsContentView);
+                        $this->includeResolvedFileAndExit($cmsContentView);
+                    }
+
+                    if ($cmsPublicType === 'blog') {
+                        $blogPostView = LocationUtils::getRootLocation()
+                            . "/src/views/public/pages/blog-post/index.php";
+
+                        $this->includeResolvedFileAndExit($blogPostView);
+                    }
                 }
-
-                if ($cmsPublicType === 'blog') {
-                    $blogPostView = LocationUtils::getRootLocation()
-                        . "/src/views/public/pages/blog-post/index.php";
-
-                    $this->includeResolvedFileAndExit($blogPostView);
-                }
+            } catch (\Throwable $e) {
+                error_log('CMS route lookup failed: ' . $e->getMessage());
             }
 
             // Fallback por compatibilidad
