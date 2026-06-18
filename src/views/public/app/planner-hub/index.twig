@@ -1,4 +1,11 @@
 {% extends "templates/base.twig" %}
+{% set defer_public_third_party = true %}
+{% set skip_public_app_bundle = true %}
+{% set skip_public_google_maps = true %}
+{% set skip_public_stripe = true %}
+{% set skip_base_fontawesome = true %}
+{% set skip_base_inter_font = true %}
+{% set skip_base_app_css = true %}
 
 {#
     VNV EVENTS - CLEANED / MOBILE FIXED VERSION
@@ -7,8 +14,13 @@
 {% set show_whatsapp = true %}
 
 {% block styles %}
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@200;300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,700;0,900;1,700;1,900&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" onload="this.onload=null;this.rel='stylesheet'">
+<noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"></noscript>
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&family=Playfair+Display:wght@700;900&display=swap" onload="this.onload=null;this.rel='stylesheet'">
+<noscript><link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet"></noscript>
 
 <style>
 :root {
@@ -52,6 +64,12 @@ body {
     line-height: 1.8;
     -webkit-font-smoothing: antialiased;
     overflow-x: hidden;
+}
+
+.vnv-hero-master {
+    background:
+        radial-gradient(circle at 78% 24%, rgba(94,198,196,.22), transparent 34%),
+        linear-gradient(135deg, #07100f 0%, #102a27 48%, #050706 100%);
 }
 
 section,
@@ -1498,9 +1516,9 @@ h1, h2, h3, h4, .luxury-font {
             <br><br>
         </div>
 
-        <div class="hero-visual-pane">
-            <video class="hero-video-src" autoplay muted loop playsinline preload="metadata">
-                <source src="{{ asset_for('assets/video/intro_vnv.mp4') }}" type="video/mp4">
+        <div class="hero-visual-pane" aria-hidden="true">
+            <video class="hero-video-src" muted loop playsinline preload="none" data-vnv-lazy-video>
+                <source data-src="{{ asset_for('assets/video/intro_vnv.mp4') }}" type="video/mp4">
             </video>
         </div>
     </div>
@@ -1541,8 +1559,8 @@ h1, h2, h3, h4, .luxury-font {
 
 <section class="section-services-vnv" id="services">
     <div class="services-bg-video-wrap">
-        <video class="services-bg-video" autoplay muted loop playsinline preload="metadata">
-            <source src="{{ asset_for('assets/video/intro.mp4') }}" type="video/mp4">
+        <video class="services-bg-video" muted loop playsinline preload="none" data-vnv-lazy-video="observe">
+            <source data-src="{{ asset_for('assets/video/intro.mp4') }}" type="video/mp4">
         </video>
         <div class="services-bg-overlay"></div>
     </div>
@@ -1959,9 +1977,10 @@ h1, h2, h3, h4, .luxury-font {
 
                         <div class="vnv-embed-frame ratio ratio-16x9">
                             <iframe
-                                src="https://www.youtube.com/embed?listType=playlist&list=PL8hdMpm11FxmEz_1IrnoN3DpbOoMHtFkP"
+                                data-src="https://www.youtube.com/embed?listType=playlist&list=PL8hdMpm11FxmEz_1IrnoN3DpbOoMHtFkP"
                                 title="VNV Sessions Playlist"
                                 frameborder="0"
+                                loading="lazy"
                                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                                 allowfullscreen>
                             </iframe>
@@ -1981,9 +2000,10 @@ h1, h2, h3, h4, .luxury-font {
 
                         <div class="vnv-audio-frame">
                             <iframe
-                                src="https://widget.spreaker.com/player?show_id=5869072&theme=light&playlist=show&playlist-continuous=true&chapters-image=true"
+                                data-src="https://widget.spreaker.com/player?show_id=5869072&theme=light&playlist=show&playlist-continuous=true&chapters-image=true"
                                 width="100%"
                                 height="420"
+                                loading="lazy"
                                 frameborder="0">
                             </iframe>
                         </div>
@@ -2172,5 +2192,85 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
         });
     });
 });
+
+(function () {
+    const loadVideo = (video) => {
+        if (!video || video.dataset.vnvLoaded === '1') return;
+        video.querySelectorAll('source[data-src]').forEach(source => {
+            source.src = source.dataset.src;
+            source.removeAttribute('data-src');
+        });
+        video.dataset.vnvLoaded = '1';
+        video.load();
+        video.play().catch(() => {});
+    };
+
+    const heroVideo = document.querySelector('.hero-video-src');
+    const servicesVideo = document.querySelector('.services-bg-video');
+    const isDesktop = window.matchMedia('(min-width: 768px)').matches;
+
+    if (isDesktop) {
+        window.addEventListener('load', () => {
+            window.setTimeout(() => loadVideo(heroVideo), 900);
+        }, { once: true });
+    } else {
+        ['touchstart', 'pointerdown', 'scroll'].forEach(eventName => {
+            window.addEventListener(eventName, () => loadVideo(heroVideo), { once: true, passive: true });
+        });
+    }
+
+    if ('IntersectionObserver' in window && servicesVideo) {
+        const serviceObserver = new IntersectionObserver((entries, observer) => {
+            entries.forEach(entry => {
+                if (!entry.isIntersecting) return;
+                loadVideo(servicesVideo);
+                observer.disconnect();
+            });
+        }, { rootMargin: '300px 0px' });
+        serviceObserver.observe(servicesVideo);
+    }
+
+    const lazyFrames = document.querySelectorAll('iframe[data-src]');
+    if ('IntersectionObserver' in window) {
+        const frameObserver = new IntersectionObserver((entries, observer) => {
+            entries.forEach(entry => {
+                if (!entry.isIntersecting) return;
+                const frame = entry.target;
+                frame.src = frame.dataset.src;
+                frame.removeAttribute('data-src');
+                observer.unobserve(frame);
+            });
+        }, { rootMargin: '500px 0px' });
+        lazyFrames.forEach(frame => frameObserver.observe(frame));
+    }
+
+    let mapsLoading = false;
+    const loadGooglePlaces = () => {
+        if (mapsLoading || window.google?.maps?.places) return;
+        mapsLoading = true;
+
+        const mapsHelper = document.createElement('script');
+        mapsHelper.src = "{{ asset_for('assets/js/googleMaps.js') }}";
+        mapsHelper.defer = true;
+        mapsHelper.onload = function () {
+            const mapsScript = document.createElement('script');
+            mapsScript.src = "https://maps.googleapis.com/maps/api/js?key={{ env.GOOGLE_KEY }}&libraries=places&callback=initMap";
+            mapsScript.async = true;
+            mapsScript.defer = true;
+            document.head.appendChild(mapsScript);
+        };
+        document.head.appendChild(mapsHelper);
+    };
+
+    document.querySelectorAll('[data-vnv-open-request]').forEach(trigger => {
+        trigger.addEventListener('click', loadGooglePlaces, { once: true });
+    });
+
+    document.addEventListener('focusin', function (event) {
+        if (event.target && event.target.matches('[data-places]')) {
+            loadGooglePlaces();
+        }
+    });
+})();
 </script>
 {% endblock %}
