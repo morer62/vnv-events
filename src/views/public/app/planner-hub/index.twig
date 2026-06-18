@@ -1,4 +1,4 @@
-{% extends "templates/base.twig" %}
+﻿{% extends "templates/base.twig" %}
 {% set defer_public_third_party = true %}
 {% set skip_public_app_bundle = true %}
 {% set skip_public_google_maps = true %}
@@ -15,12 +15,25 @@
 #}
 
 {% set show_whatsapp = true %}
+{% set seo = {
+    title: 'VNV Events | Full-Service Luxury Event Planning & Catering Studio in South Florida',
+    canonical: 'https://vnvevents.com/',
+    description: 'VNV Events is a full-service luxury event planning, catering, production, entertainment and event rental studio serving Miami, Broward, Palm Beach and South Florida.'
+} %}
 
 {% block canonical %}https://vnvevents.com/{% endblock %}
 {% block meta_description %}VNV Events is a full-service luxury event planning, catering, production, entertainment and event rental studio serving Miami, Broward, Palm Beach and South Florida.{% endblock %}
 {% block meta_keywords %}VNV Events, South Florida event planning, Miami event planner, Broward event planner, catering South Florida, wedding planning, corporate events, event rentals, DJ services, photo booth, event production{% endblock %}
 
 {% block styles %}
+<link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" onload="this.onload=null;this.rel='stylesheet'">
+<noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"></noscript>
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&family=Playfair+Display:wght@700;900&display=swap" onload="this.onload=null;this.rel='stylesheet'">
+<noscript><link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet"></noscript>
+
 <style>
 :root {
     --vnv-primary: #5EC6C4;
@@ -145,51 +158,6 @@ html, body {
     height: 100%;
 }
 
-.fa-solid,
-.fa-regular,
-.fa-brands {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    font-family: inherit;
-    font-style: normal;
-    font-weight: 900;
-    line-height: 1;
-}
-
-.fa-calendar-check::before { content: "✓"; }
-.fa-utensils::before { content: "◈"; }
-.fa-seedling::before { content: "✦"; }
-.fa-music::before { content: "♪"; }
-.fa-camera-retro::before { content: "◉"; }
-.fa-box-open::before { content: "□"; }
-.fa-gears::before { content: "⚙"; }
-.fa-user-group::before,
-.fa-people-group::before { content: "◎"; }
-.fa-briefcase::before { content: "▣"; }
-.fa-sparkles::before { content: "✦"; }
-.fa-martini-glass-citrus::before { content: "◌"; }
-.fa-wallet::before { content: "$"; }
-.fa-cloud::before { content: "☁"; }
-.fa-volume-high::before { content: "▸"; }
-.fa-cheese::before { content: "◍"; }
-.fa-arrow-right::before { content: "→"; }
-.fa-circle-check::before { content: "✓"; }
-.fa-shield-halved::before { content: "◆"; }
-.fa-clock-rotate-left::before,
-.fa-clock::before { content: "◷"; }
-.fa-headphones::before { content: "♫"; }
-.fa-location-dot::before { content: "⌖"; }
-.fa-calendar-days::before { content: "▦"; }
-.fa-xmark::before { content: "×"; }
-.fa-instagram::before { content: "IG"; font-size: .68em; letter-spacing: .04em; }
-.fa-youtube::before { content: "YT"; font-size: .68em; letter-spacing: .04em; }
-.fa-facebook-f::before { content: "FB"; font-size: .68em; letter-spacing: .04em; }
-.fa-tiktok::before { content: "TT"; font-size: .68em; letter-spacing: .04em; }
-.fa-yelp::before { content: "YP"; font-size: .68em; letter-spacing: .04em; }
-.fa-linkedin-in::before { content: "IN"; font-size: .68em; letter-spacing: .04em; }
-.fa-pinterest-p::before { content: "PI"; font-size: .68em; letter-spacing: .04em; }
-
 @media (min-width: 768px) {
     .col-sm-6 { flex: 0 0 auto; width: 50%; }
     .col-md-4 { flex: 0 0 auto; width: 33.333333%; }
@@ -220,7 +188,7 @@ html, body {
 body {
     background-color: var(--vnv-dark-deep);
     color: var(--vnv-text-light);
-    font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+    font-family: 'Plus Jakarta Sans', sans-serif;
     line-height: 1.8;
     -webkit-font-smoothing: antialiased;
     overflow-x: hidden;
@@ -260,7 +228,7 @@ section,
 }
 
 h1, h2, h3, h4, .luxury-font {
-    font-family: Georgia, "Times New Roman", serif;
+    font-family: 'Playfair Display', serif;
 }
 
 .text-gold {
@@ -274,6 +242,17 @@ h1, h2, h3, h4, .luxury-font {
 .text-vnv-muted { color: rgba(94, 198, 196, 0.82) !important; }
 .border-vnv { border-color: var(--vnv-primary) !important; }
 .letter-spacing-lg { letter-spacing: 5px; }
+
+.section-light .text-vnv,
+.section-podcast-vnv .text-vnv,
+.vnv-media-mini-label {
+    color: #0f766e !important;
+}
+
+.section-light .text-muted,
+.section-podcast-vnv .text-muted {
+    color: #4f5b5e !important;
+}
 
 .vnv-btn {
     padding: 22px 50px;
@@ -1013,6 +992,10 @@ h1, h2, h3, h4, .luxury-font {
     font-size:1.05rem;
     font-weight:800;
     color:var(--vnv-text-dark);
+}
+
+.vnv-media-intro-card h3 {
+    color: var(--vnv-text-dark);
 }
 
 .vnv-media-intro-card p {
@@ -1759,7 +1742,7 @@ h1, h2, h3, h4, .luxury-font {
                     <div class="service-icon-box"><i class="fa-solid fa-calendar-check"></i></div>
                     <h3>Planner & Coordinator</h3>
                     <p>Refined event planning and event-day coordination for weddings, social events and corporate functions.</p>
-                    <a href="{{ path('event-planners') }}" class="vnv-link-gold">REQUEST SERVICE →</a>
+                    <a href="{{ path('event-planners') }}" class="vnv-link-gold">REQUEST SERVICE â†’</a>
                 </div>
             </div>
 
@@ -1769,7 +1752,7 @@ h1, h2, h3, h4, .luxury-font {
                     <div class="service-icon-box"><i class="fa-solid fa-utensils"></i></div>
                     <h3>Catering & Bartender</h3>
                     <p>Gourmet food experiences, staffed service, drink planning and polished presentation for intimate or large events.</p>
-                    <a href="{{ path('vnv-gourmet') }}" class="vnv-link-gold">REQUEST SERVICE →</a>
+                    <a href="{{ path('vnv-gourmet') }}" class="vnv-link-gold">REQUEST SERVICE â†’</a>
                 </div>
             </div>
 
@@ -1777,9 +1760,9 @@ h1, h2, h3, h4, .luxury-font {
                 <div class="vnv-service-grid-card">
                     <span class="service-num-floating">03</span>
                     <div class="service-icon-box"><i class="fa-solid fa-seedling"></i></div>
-                    <h3>Décor & Floral Design</h3>
+                    <h3>DÃ©cor & Floral Design</h3>
                     <p>Floral arrangements, statement pieces and space styling designed to create a memorable visual impact.</p>
-                    <a href="{{ path('vnv-deco-flowers') }}" class="vnv-link-gold">REQUEST SERVICE →</a>
+                    <a href="{{ path('vnv-deco-flowers') }}" class="vnv-link-gold">REQUEST SERVICE â†’</a>
                 </div>
             </div>
 
@@ -1789,7 +1772,7 @@ h1, h2, h3, h4, .luxury-font {
                     <div class="service-icon-box"><i class="fa-solid fa-music"></i></div>
                     <h3>DJ Services</h3>
                     <p>Music direction and energy led by professionals with years of experience shaping celebrations and dance floors.</p>
-                    <a href="{{ path('vnv-live') }}" class="vnv-link-gold">REQUEST SERVICE →</a>
+                    <a href="{{ path('vnv-live') }}" class="vnv-link-gold">REQUEST SERVICE â†’</a>
                 </div>
             </div>
 
@@ -1799,7 +1782,7 @@ h1, h2, h3, h4, .luxury-font {
                     <div class="service-icon-box"><i class="fa-solid fa-camera-retro"></i></div>
                     <h3>Photography & Videography</h3>
                     <p>Photography and videography services that preserve the atmosphere, details and story behind every event.</p>
-                    <a href="{{ path('photo-booth-rental-video-photography-services-in-south-florida') }}" class="vnv-link-gold">REQUEST SERVICE →</a>
+                    <a href="{{ path('photo-booth-rental-video-photography-services-in-south-florida') }}" class="vnv-link-gold">REQUEST SERVICE â†’</a>
                 </div>
             </div>
 
@@ -1809,7 +1792,7 @@ h1, h2, h3, h4, .luxury-font {
                     <div class="service-icon-box"><i class="fa-solid fa-box-open"></i></div>
                     <h3>Rentals</h3>
                     <p>Tables, chairs, linens, tents and essential event pieces selected to support both aesthetics and functionality.</p>
-                    <a href="{{ path('party-tents-and-event-rental-services-in-south-florida') }}" class="vnv-link-gold">REQUEST SERVICE →</a>
+                    <a href="{{ path('party-tents-and-event-rental-services-in-south-florida') }}" class="vnv-link-gold">REQUEST SERVICE â†’</a>
                 </div>
             </div>
 
@@ -1819,7 +1802,7 @@ h1, h2, h3, h4, .luxury-font {
                     <div class="service-icon-box"><i class="fa-solid fa-gears"></i></div>
                     <h3>Event Production</h3>
                     <p>Setup, logistics, flow and behind-the-scenes execution designed to keep every moving part organized and on time.</p>
-                    <a href="{{ path('event-production') }}" class="vnv-link-gold">REQUEST SERVICE →</a>
+                    <a href="{{ path('event-production') }}" class="vnv-link-gold">REQUEST SERVICE â†’</a>
                 </div>
             </div>
 
@@ -1829,7 +1812,7 @@ h1, h2, h3, h4, .luxury-font {
                     <div class="service-icon-box"><i class="fa-solid fa-user-group"></i></div>
                     <h3>Event Staffing</h3>
                     <p>Professional support for setup, service and guest-facing operations when order, reliability and presentation matter most.</p>
-                    <a href="{{ path('event-staffing/') }}" class="vnv-link-gold">REQUEST SERVICE →</a>
+                    <a href="{{ path('event-staffing/') }}" class="vnv-link-gold">REQUEST SERVICE â†’</a>
                 </div>
             </div>
 
@@ -1839,7 +1822,7 @@ h1, h2, h3, h4, .luxury-font {
                     <div class="service-icon-box"><i class="fa-solid fa-briefcase"></i></div>
                     <h3>Corporate Events</h3>
                     <p>Whether it be a holiday party, fundraiser, marketing event, celebration, seminar, off-site meeting or shopping event.</p>
-                    <a href="{{ path('corporate-events') }}" class="vnv-link-gold">REQUEST SERVICE →</a>
+                    <a href="{{ path('corporate-events') }}" class="vnv-link-gold">REQUEST SERVICE â†’</a>
                 </div>
             </div>
         </div>
@@ -1857,7 +1840,7 @@ h1, h2, h3, h4, .luxury-font {
             <h2>Free tools that make <span class="text-vnv">event planning easier</span></h2>
 
             <p>
-                Explore interactive calculators and planning utilities built to help with drinks, budgets, layouts, food counts, décor, sound, staffing and media decisions before you even request a proposal.
+                Explore interactive calculators and planning utilities built to help with drinks, budgets, layouts, food counts, dÃ©cor, sound, staffing and media decisions before you even request a proposal.
             </p>
         </div>
 
@@ -1901,7 +1884,7 @@ h1, h2, h3, h4, .luxury-font {
                             <span class="tool-bento-badge">Budgeting</span>
                         </div>
                         <h3>Event Budget Calculator</h3>
-                        <p>Build a stronger starting point and understand how venue, décor, food, media and rentals affect the total budget.</p>
+                        <p>Build a stronger starting point and understand how venue, dÃ©cor, food, media and rentals affect the total budget.</p>
                     </div>
                     <div class="tool-bento-footer">
                         <span>Budget Clarity</span>
@@ -1913,7 +1896,7 @@ h1, h2, h3, h4, .luxury-font {
                     <div>
                         <div class="tool-bento-top">
                             <div class="tool-bento-icon"><i class="fa-solid fa-cloud"></i></div>
-                            <span class="tool-bento-badge">Décor</span>
+                            <span class="tool-bento-badge">DÃ©cor</span>
                         </div>
                         <h3>Balloon Pricing Calculator</h3>
                         <p>Estimate balloon installation pricing faster.</p>
@@ -2256,7 +2239,7 @@ h1, h2, h3, h4, .luxury-font {
                     <h2 class="display-3 fw-bold text-white mb-4">We design experiences<br>people remember.</h2>
                     <p class="fs-5 mb-5">
                         Discover upcoming VNV productions, immersive concepts and community-driven experiences across South Florida.
-                        Explore what’s next, view event details and secure your tickets before they sell out.
+                        Explore whatâ€™s next, view event details and secure your tickets before they sell out.
                     </p>
                 </div>
 
@@ -2366,3 +2349,4 @@ h1, h2, h3, h4, .luxury-font {
 })();
 </script>
 {% endblock %}
+
