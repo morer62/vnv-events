@@ -74,13 +74,20 @@ class OrdersTeamTasksRepository extends BaseRepository
                    o.end_time AS order_end_time,
                    o.address AS order_address,
                    o.id_client,
+                   osn.install_time AS task_setup_time,
+                   osn.start_time AS task_activity_start_time,
+                   osn.execution_time AS task_activity_end_time,
+                   osn.breakdown_time AS task_breakdown_time,
                    TRIM(CONCAT(COALESCE(c.name, ''), ' ', COALESCE(c.lastname, ''))) AS contact_name,
                    c.email AS contact_email
             FROM {$this->table} t
             LEFT JOIN orders o ON o.id = t.id_order
+            LEFT JOIN orders_services_notes osn ON osn.id_order = o.id
+                AND osn.id_service = t.id_service
+                AND (osn.id_suborder IS NULL OR osn.id_suborder = 0)
             LEFT JOIN users c ON c.id = o.id_client
             WHERE t.id_user = :user AND t.id_owner = :owner
-            ORDER BY o.event_date ASC, o.start_time ASC, t.is_done ASC, t.created_at DESC, t.id DESC
+            ORDER BY o.event_date ASC, COALESCE(osn.install_time, o.start_time) ASC, t.is_done ASC, t.created_at DESC, t.id DESC
         ");
         $this->db->bind(':user', $userId);
         $this->db->bind(':owner', $ownerId);

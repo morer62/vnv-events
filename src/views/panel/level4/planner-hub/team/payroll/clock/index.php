@@ -125,7 +125,7 @@ $router->get(function () use ($repo, $user): string {
                     $eventsByOrder[$orderId] = [
                         'id' => $orderId,
                         'event_date' => $taskRow->event_date ?? null,
-                        'start_time' => $taskRow->order_start_time ?? null,
+                        'start_time' => $taskRow->task_setup_time ?? $taskRow->order_start_time ?? null,
                         'end_time' => $taskRow->order_end_time ?? null,
                         'address' => $taskRow->order_address ?? '',
                         'contact_name' => $contactName !== '' ? $contactName : ($taskRow->contact_email ?? ''),
@@ -138,8 +138,10 @@ $router->get(function () use ($repo, $user): string {
                 $eventsByOrder[$orderId]['tasks'][] = [
                     'id' => (int)($taskRow->id ?? 0),
                     'title' => $taskTitle !== '' ? $taskTitle : 'Task',
-                    'start_time' => $taskRow->start_time ?? $taskRow->order_start_time ?? null,
-                    'end_time' => $taskRow->end_time ?? $taskRow->order_end_time ?? null,
+                    'setup_time' => $taskRow->task_setup_time ?? $taskRow->start_time ?? $taskRow->order_start_time ?? null,
+                    'activity_start_time' => $taskRow->task_activity_start_time ?? $taskRow->order_start_time ?? null,
+                    'activity_end_time' => $taskRow->task_activity_end_time ?? $taskRow->end_time ?? $taskRow->order_end_time ?? null,
+                    'breakdown_time' => $taskRow->task_breakdown_time ?? null,
                     'notes' => $taskRow->notes ?? $taskRow->note ?? $taskRow->instructions ?? '',
                     'is_done' => (int)($taskRow->is_done ?? $taskRow->is_completed ?? 0),
                 ];

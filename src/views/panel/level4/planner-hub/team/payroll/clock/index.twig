@@ -1091,15 +1091,17 @@ function switchInstitution(institutionId, role) {
                           <label class="clock-task-card">
                             <input type="checkbox" disabled {% if task.is_done %}checked{% endif %}>
                             <span>
-                              <p class="clock-task-title">{{ task.title|default(trans('planner_hub.clock_assignments_task')) }}</p>
+                              <p class="clock-task-title">{{ task.title|default('Task') }}</p>
                               <span class="clock-task-meta">
-                                <span class="clock-task-chip"><i data-feather="play-circle"></i> Start: {{ task.start_time ? task.start_time|date('g:i A') : '-' }}</span>
-                                <span class="clock-task-chip"><i data-feather="stop-circle"></i> End: {{ task.end_time ? task.end_time|date('g:i A') : '-' }}</span>
+                                <span class="clock-task-chip"><i data-feather="tool"></i> Setup / Installation: {{ task.setup_time ? task.setup_time|date('g:i A') : '-' }}</span>
+                                <span class="clock-task-chip"><i data-feather="play-circle"></i> Activity Start: {{ task.activity_start_time ? task.activity_start_time|date('g:i A') : '-' }}</span>
+                                <span class="clock-task-chip"><i data-feather="stop-circle"></i> End: {{ task.activity_end_time ? task.activity_end_time|date('g:i A') : '-' }}</span>
+                                <span class="clock-task-chip"><i data-feather="package"></i> Breakdown: {{ task.breakdown_time ? task.breakdown_time|date('g:i A') : '-' }}</span>
                               </span>
-                              <p class="clock-task-notes"><strong>Notes:</strong> {{ task.notes|default(trans('planner_hub.clock_assignments_no_notes')) ?: trans('planner_hub.clock_assignments_no_notes') }}</p>
+                              <p class="clock-task-notes"><strong>Notes:</strong> {{ task.notes|default('No notes') ?: 'No notes' }}</p>
                             </span>
                             <span class="clock-task-status {% if task.is_done %}is-done{% endif %}">
-                              {{ task.is_done ? trans('planner_hub.clock_assignments_done') : trans('planner_hub.clock_assignments_pending') }}
+                              {{ task.is_done ? 'Done' : 'Pending' }}
                             </span>
                           </label>
                         {% else %}
