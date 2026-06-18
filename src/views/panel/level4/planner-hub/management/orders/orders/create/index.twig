@@ -1,4 +1,4 @@
-{% extends 'templates/base.admin.twig' %}
+﻿{% extends 'templates/base.admin.twig' %}
 {% import 'templates/macros.twig' as macros %}
 
 {% block style %}
@@ -14,9 +14,9 @@
 
 {% block body %}
 {% if isSubOrder %}
-    <h2 class="mb-4">📋 Create Sub-Order for Order VNV 341{{ parentOrder.id }}</h2>
+    <h2 class="mb-4">ðŸ“‹ Create Sub-Order for Order VNV 341{{ parentOrder.id }}</h2>
 {% else %}
-    <h2 class="mb-4">📋 Create New Order admin</h2>
+    <h2 class="mb-4">ðŸ“‹ Create New Order admin</h2>
 {% endif %}
 
 {{ macros.breadcrumb2() }}
@@ -27,7 +27,7 @@
 
 {% if isSubOrder %}
 <div class="alert alert-info mb-4">
-    <h5>📋 Sub-Order Information</h5>
+    <h5>ðŸ“‹ Sub-Order Information</h5>
     <p><strong>Parent Order:</strong> VNV 341{{ parentOrder.id }}</p>
     <p><strong>Event Date:</strong> {{ parentOrder.event_date|date("l, M j, Y") }}</p>
     <p><strong>Time:</strong> {{ parentOrder.start_time|date("g:i A") }} - {{ parentOrder.end_time|date("g:i A") }}</p>
@@ -59,8 +59,8 @@
                                 <datalist id="clientOptions"></datalist>
                                 <button type="button" class="btn btn-outline-secondary" onclick="checkClientEmail()">Check</button>
                             </div>
-                            <div id="clientInfoBox" class="mb-3"></div>
-                            <input type="hidden" name="id_client" id="id_client" required>
+                            <div id="clientInfoBox" class="mb-3">{% if prefillClient %}<span class="text-success">Client selected: <strong>{{ (prefillClient.name ~ ' ' ~ prefillClient.lastname)|trim }}</strong><br><small>{{ prefillClient.email }} - {{ prefillClient.phone }}</small></span>{% endif %}</div>
+                            <input type="hidden" name="id_client" id="id_client" value="{{ prefillClient ? prefillClient.id : '' }}" required>
                     </div>
                     <div class="col-md-3">
                         <label class="form-label">Event Date <span class="text-danger">*</span></label> 
@@ -73,8 +73,8 @@
                         <label class="form-label">Contract <span class="text-danger">*</span></label>
                         {% if contracts is empty %}
                                 <div class="alert alert-warning">
-                                    ⚠️ No contracts available.
-                                    <a href="{{ path('panel/planner-hub/management/orders/contracts/create') }}" class="btn btn-sm btn-outline-primary ms-2">➕ Create Contract</a>
+                                    âš ï¸ No contracts available.
+                                    <a href="{{ path('panel/planner-hub/management/orders/contracts/create') }}" class="btn btn-sm btn-outline-primary ms-2">âž• Create Contract</a>
                                 </div>
                             {% else %}
                                 <select name="id_contract" class="form-select" required>
@@ -104,15 +104,15 @@
                 </div>
             {% endif %}
 
-           <h4 class="mb-3">🛠 Services</h4>
+           <h4 class="mb-3">ðŸ›  Services</h4>
             <div class="alert alert-info mb-3">
                 <i data-feather="info"></i>
                 <strong>Tip:</strong> Start typing the service name to see suggestions.
             </div>
             {% if services is empty %}
                 <div class="alert alert-warning">
-                    ⚠️ No services available.
-                    <a href="{{ path('panel/planner-hub/management/orders/services/create') }}" class="btn btn-sm btn-outline-primary ms-2">➕ Create Service</a>
+                    âš ï¸ No services available.
+                    <a href="{{ path('panel/planner-hub/management/orders/services/create') }}" class="btn btn-sm btn-outline-primary ms-2">âž• Create Service</a>
                 </div>
             {% else %}
                 <div id="servicesTable" class="mb-4">
@@ -157,7 +157,7 @@
 
             <div class="row mb-4">
                 <div class="col-md-4">
-                    <label class="form-label">💵 Tip (Optional)</label>
+                    <label class="form-label">ðŸ’µ Tip (Optional)</label>
                     <select name="id_tip" class="form-select" id="tipSelect">
                         <option value="">No Tip</option>
                         {% for tip in tips %}
@@ -170,7 +170,7 @@
             </div>
 
             <div class="mb-4">
-                <label class="form-label">📝 Event Notes</label>
+                <label class="form-label">ðŸ“ Event Notes</label>
                 <textarea name="notes" class="form-control" rows="10" placeholder="Playlist, schedule, timeline, speeches, and event details..."></textarea>
             </div>
 
@@ -184,9 +184,9 @@
             <div class="mt-3">
             <div class="card mb-4">
                 <div class="card-body">
-                    <h5>💳 Payment Type</h5>
+                    <h5>ðŸ’³ Payment Type</h5>
                     <p class="text-muted small">
-                    ⚠️ This setting cannot be changed later.
+                    âš ï¸ This setting cannot be changed later.
                     </p>
 
                     <div class="mb-3">
@@ -214,7 +214,7 @@
                 <div class="form-check mb-3">
                     <input class="form-check-input" type="checkbox" value="1" id="addToCalendarAfterSave" name="add_to_calendar">
                     <label class="form-check-label" for="addToCalendarAfterSave">
-                        📅 Add to client's Google Calendar after saving
+                        ðŸ“… Add to client's Google Calendar after saving
                     </label>
                 </div>
                 {% endif %}
@@ -255,12 +255,12 @@
     </div>
 </div>
 
-<!-- Modal de validación -->
+<!-- Modal de validaciÃ³n -->
 <div class="modal fade" id="validationModal" tabindex="-1" aria-labelledby="validationModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="validationModalLabel">⚠️ Missing Required Fields</h5>
+                <h5 class="modal-title" id="validationModalLabel">âš ï¸ Missing Required Fields</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
@@ -422,7 +422,7 @@
         const removeBtn = document.createElement("button");
         removeBtn.type = "button";
         removeBtn.className = "btn btn-danger btn-sm remove-service-btn";
-        removeBtn.innerHTML = "❌";
+        removeBtn.innerHTML = "âŒ";
         removeBtn.addEventListener("click", function() { 
             row.remove(); 
             updateSubtotal(); 
@@ -488,7 +488,7 @@
                 
             item.innerHTML = `
                 <div class="fw-bold">${service.name}</div>
-                <small class="text-muted">${priceDisplay} - ${service.description || 'Sin descripción'}</small>
+                <small class="text-muted">${priceDisplay} - ${service.description || 'Sin descripciÃ³n'}</small>
                
             `;
             
@@ -707,10 +707,12 @@ let subtotalServicios = 0;
     }
 
     function getBasePath() {
-        const path = window.location.pathname;
-        const segments = path.split('/');
-        const base = segments.length > 1 ? `/${segments[1]}` : '';
-        return base === '/panel' || base === '/api' ? '' : base;
+        const firstSegment = window.location.pathname.split('/').filter(Boolean)[0] || '';
+        return firstSegment && firstSegment !== 'panel' && firstSegment !== 'api' ? `/${firstSegment}` : '';
+    }
+
+    function getApiUrl(path) {
+        return `${window.location.origin}${getBasePath()}${path}`;
     }
 
     function checkClientEmail() {
@@ -718,39 +720,44 @@ let subtotalServicios = 0;
         const infoBox = document.getElementById("clientInfoBox");
         if (!email) return;
 
-        infoBox.innerHTML = "🔍 Checking...";
+        infoBox.innerHTML = "ðŸ” Checking...";
 
-        fetch(`${getBasePath()}/api/clients/check?email=${encodeURIComponent(email)}`)
-            .then(res => res.json())
+        fetch(getApiUrl(`/api/clients/check?email=${encodeURIComponent(email)}`), { credentials: "same-origin" })
+            .then(async res => {
+                const text = await res.text();
+                try { return JSON.parse(text); } catch (e) { throw new Error(text.slice(0, 120) || `HTTP ${res.status}`); }
+            })
             .then(data => {
                 if (data.exists) {
                     if (data.is_linked) {
-                        infoBox.innerHTML = `✅ Client found: <strong>${data.name}</strong><br>
+                        infoBox.innerHTML = `âœ… Client found: <strong>${data.name}</strong><br>
                             <small>${data.email} - ${data.phone}</small>`;
                         document.getElementById("id_client").value = data.id;
                     } else {
                         infoBox.innerHTML = `
-                            ⚠️ This client exists but is not linked to your account.<br>
+                            âš ï¸ This client exists but is not linked to your account.<br>
                             <strong>${data.name}</strong><br>
                             <small>${data.email} - ${data.phone}</small><br>
-                            <button type="button" class="btn btn-sm btn-outline-success mt-2" onclick="associateClient(${data.id})">🔗 Associate to My Account</button>
+                            <button type="button" class="btn btn-sm btn-outline-success mt-2" onclick="associateClient(${data.id})">ðŸ”— Associate to My Account</button>
                         `;
                     }
                 } else {
-                    infoBox.innerHTML = `<span class="text-danger">❌ No client found.</span>
+                    infoBox.innerHTML = `<span class="text-danger">âŒ No client found.</span>
                         <br>
                         <a href="{{ base_url }}/panel/planner-hub/management/users/create" class="btn btn-sm btn-outline-primary mt-2">
-                            ➕ Create New Client
+                            âž• Create New Client
                         </a>`;
                 }
             })
         .catch(error => {
-            infoBox.innerHTML = `<span class="text-danger">❌ Error checking client. Please try again.</span>`;
+            console.error("Client check failed", error);
+            infoBox.innerHTML = `<span class="text-danger">Error checking client. Please try again.</span>`;
         });
     }
 
     function associateClient(clientId) {
-        fetch(`${getBasePath()}/api/clients/associate`, {
+        fetch(getApiUrl(`/api/clients/associate`), {
+            credentials: "same-origin",
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ id: clientId })
@@ -759,17 +766,17 @@ let subtotalServicios = 0;
         .then(data => {
             if (data.success) {
                 document.getElementById("clientInfoBox").innerHTML = `
-                    ✅ Client associated successfully.<br>
+                    âœ… Client associated successfully.<br>
                     <strong>${data.name} ${data.lastname}</strong><br>
                     <small>${data.email} - ${data.phone}</small>
                 `;
                 document.getElementById("id_client").value = data.id;
             } else {
-                document.getElementById("clientInfoBox").innerHTML = `❌ ${data.message}`;
+                document.getElementById("clientInfoBox").innerHTML = `âŒ ${data.message}`;
             }
         })
         .catch(error => {
-            document.getElementById("clientInfoBox").innerHTML = `❌ Error associating client. Please try again.`;
+            document.getElementById("clientInfoBox").innerHTML = `âŒ Error associating client. Please try again.`;
         });
     }
 
@@ -860,7 +867,7 @@ let subtotalServicios = 0;
 
             if (missingFields.length > 0) {
                 const message = "The following required fields are empty:<br><br>" + 
-                    missingFields.map(field => "• " + field).join("<br>");
+                    missingFields.map(field => "â€¢ " + field).join("<br>");
                 
                 document.getElementById("validationMessage").innerHTML = message;
                 
@@ -1016,3 +1023,5 @@ let subtotalServicios = 0;
     });
 </script>
 {% endblock %}
+
+

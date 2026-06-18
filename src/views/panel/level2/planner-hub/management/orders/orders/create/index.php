@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 use App\Services\LoginService;
 use App\Repositories\OrdersServiceRepository;
@@ -92,6 +92,15 @@ $router->get(function () {
     }
 
     $prefillEmail = $_GET['client_email'] ?? null;
+    $prefillClientId = isset($_GET['client_id']) ? (int)$_GET['client_id'] : 0;
+    $prefillClient = null;
+    if ($prefillClientId > 0) {
+        $candidateClient = $userRepo->getOneWithoutOwnership(["id" => $prefillClientId, "level" => 5]);
+        if ($candidateClient && (!$prefillEmail || strcasecmp((string)$candidateClient->email, (string)$prefillEmail) === 0)) {
+            $prefillClient = $candidateClient;
+            $prefillEmail = $candidateClient->email;
+        }
+    }
 
     return TemplateResponse::render(__DIR__ . "/index.twig", [
         "services" => $services,
@@ -102,6 +111,7 @@ $router->get(function () {
         "parentOrder" => $parentOrder,
         "isSubOrder" => $isSubOrder,
         "prefillEmail" => $prefillEmail,
+        "prefillClient" => $prefillClient,
         "tips" => $tips
     ]);
 });
@@ -154,7 +164,7 @@ $router->post(function () {
         $date = $_POST["event_date"] ?? null;
         $today = date("Y-m-d");
         if ($date < $today) {
-            MessageUtil::setMessage("❌ Event date cannot be in the past.");
+            MessageUtil::setMessage("âŒ Event date cannot be in the past.");
             LocationUtils::reload();
         }
 
@@ -225,7 +235,7 @@ $router->post(function () {
             }
             
             foreach ($services as $item) {
-                // Obtener el precio y descripción del servicio para guardarlo como histórico
+                // Obtener el precio y descripciÃ³n del servicio para guardarlo como histÃ³rico
                 $serviceRepo = new OrdersServiceRepository();
                 $service = $serviceRepo->getByIdWithoutOwnershipCheck($item["service"]);
                 $unitPrice = ($item["is_variable"] ?? "NO") === "YES" && isset($item["variable_price"]) 
@@ -309,7 +319,7 @@ $router->post(function () {
             $serviceOwnerId = $ownerData['id_owner'] ?? $user->getOwner();
             
             foreach ($services as $item) {
-                // Obtener el precio y descripción del servicio para guardarlo como histórico
+                // Obtener el precio y descripciÃ³n del servicio para guardarlo como histÃ³rico
                 $serviceRepo = new OrdersServiceRepository();
                 $service = $serviceRepo->getByIdWithoutOwnershipCheck($item["service"]);
                 $unitPrice = ($item["is_variable"] ?? "NO") === "YES" && isset($item["variable_price"]) 
@@ -406,9 +416,9 @@ $router->post(function () {
             
             if ($clientInfo && $clientInfo->email) {
                 if ($isSubOrder) {
-                    $subject = "📝 New Sub-Order Created - Sub-Order #" . $suborderId . " for Order #VNV341" . $parentOrderId;
+                    $subject = "ðŸ“ New Sub-Order Created - Sub-Order #" . $suborderId . " for Order #VNV341" . $parentOrderId;
                 } else {
-                    $subject = "📝 New Order Created - Order #VNV341" . $orderId;
+                    $subject = "ðŸ“ New Order Created - Order #VNV341" . $orderId;
                 }
                 
                 if ($isSubOrder) {
@@ -435,11 +445,11 @@ $router->post(function () {
                 foreach ($assignedServices as $assigned) {
                     $service = $serviceRepo->getOne(["id" => $assigned->id_service]);
                     if ($service) {
-                        // Usar el precio histórico almacenado (unit_price) si existe
+                        // Usar el precio histÃ³rico almacenado (unit_price) si existe
                         if (isset($assigned->unit_price) && $assigned->unit_price > 0) {
                             $unitPrice = $assigned->unit_price;
                         } else {
-                            // Fallback para órdenes antiguas
+                            // Fallback para Ã³rdenes antiguas
                             $unitPrice = ($assigned->is_variable === 'YES' && $assigned->variable_price !== null) 
                                 ? $assigned->variable_price 
                                 : $service->price;
@@ -553,3 +563,6 @@ $router->post(function () {
 });
 
 $router->run();
+
+
+
