@@ -13,7 +13,13 @@ use Exception;
 
 class ContractPdfGenerator
 {
-    public static function generateAndSave(int $orderId, string $userTimestamp = null): string
+    /**
+     * Generates the signed contract PDF, uploads it, and returns the file URL and content hash for audit.
+     * Hash is computed over the final PDF bytes for tamper-evident contract records.
+     *
+     * @return array{file_path: string, hash: string}
+     */
+    public static function generateAndSave(int $orderId, ?string $userTimestamp = null): array
     {
         $orderRepo = new OrdersRepository();
         $userRepo = new UserRepository();
@@ -180,6 +186,12 @@ class ContractPdfGenerator
 
         $content = $dompdf->output();
 
-        return FileUtils::saveFileFromContent($content, 'documents_contracts', 'pdf');
+        $contentHash = hash('sha256', $content);
+        $filePath = FileUtils::saveFileFromContent($content, 'documents_contracts', 'pdf');
+
+        return [
+            'file_path' => $filePath,
+            'hash' => $contentHash,
+        ];
     }
 }

@@ -276,8 +276,8 @@ $router->post(function () {
         return Response::createResponse(TranslationService::trans('planner_hub.no_signature_provided'));
 
     $result = ContractPdfGenerator::generateAndSave($parentOrder->id, $userLocalTimestamp);
-    $filename = $result['file_path'];
-    $contentHash = $result['hash'];
+    $filename = is_array($result) ? ($result['file_path'] ?? '') : (string)$result;
+    $contentHash = is_array($result) ? ($result['hash'] ?? hash('sha256', $filename)) : hash('sha256', $filename);
 
     if (!$filename)
         return Response::createResponse(TranslationService::trans('planner_hub.no_signature_provided'));
