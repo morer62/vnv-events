@@ -7,10 +7,12 @@ class PublicSeoService
     private const SITE_URL = 'https://vnvevents.com';
     private const SITE_NAME = 'VNV Events';
     private const LOGO_URL = 'https://vnvevents.com/assets/images/planner-hub-logo-negative.png';
+    private const LOCAL_BUSINESS_ID = 'https://vnvevents.com/#localbusiness';
+    private const WEBSITE_ID = 'https://vnvevents.com/#website';
 
     public static function locationSeo(object $page): array
     {
-        $canonical = self::canonical($page->canonical_url ?? null, '/' . trim((string)($page->slug ?? ''), '/') . '/');
+        $canonical = self::canonical($page->canonical_url ?? null, '/locations/' . trim((string)($page->slug ?? ''), '/') . '/');
         $title = self::firstFilled([
             $page->meta_title ?? null,
             $page->hero_title ?? null,
@@ -35,7 +37,7 @@ class PublicSeoService
 
     public static function locationSchema(object $page, array $faqs = []): array
     {
-        $canonical = self::canonical($page->canonical_url ?? null, '/' . trim((string)($page->slug ?? ''), '/') . '/');
+        $canonical = self::canonical($page->canonical_url ?? null, '/locations/' . trim((string)($page->slug ?? ''), '/') . '/');
         $title = self::firstFilled([$page->meta_title ?? null, $page->hero_title ?? null, $page->title ?? null]);
         $description = self::firstFilled([$page->meta_description ?? null, $page->excerpt ?? null]);
         $city = self::clean($page->city ?? '');
@@ -51,8 +53,8 @@ class PublicSeoService
                 'url' => $canonical,
                 'name' => $title,
                 'description' => $description,
-                'isPartOf' => ['@id' => self::SITE_URL . '/#website'],
-                'about' => ['@id' => self::SITE_URL . '/#organization'],
+                'isPartOf' => ['@id' => self::WEBSITE_ID],
+                'about' => ['@id' => self::LOCAL_BUSINESS_ID],
                 'breadcrumb' => ['@id' => $canonical . '#breadcrumb'],
                 'inLanguage' => 'en-US',
             ],
@@ -63,14 +65,14 @@ class PublicSeoService
                     $page->primary_keyword ?? null,
                     $city ? 'Event Planning Services in ' . $city : 'Event Planning Services',
                 ]),
-                'provider' => ['@id' => self::SITE_URL . '/#organization'],
-                'areaServed' => $city ? [
+                'provider' => ['@id' => self::LOCAL_BUSINESS_ID],
+                'areaServed' => $city ? [[
                     '@type' => 'City',
                     'name' => $areaName ?: $city,
-                ] : [
+                ]] : [[
                     '@type' => 'AdministrativeArea',
                     'name' => 'South Florida',
-                ],
+                ]],
                 'serviceType' => 'Event planning, event rentals, decor, DJ, photo and video',
                 'url' => $canonical,
             ],
@@ -124,20 +126,25 @@ class PublicSeoService
                 'url' => $canonical,
                 'name' => self::firstFilled([$post->meta_title ?? null, $post->title ?? null]),
                 'description' => self::firstFilled([$post->meta_description ?? null, $post->excerpt ?? null]),
-                'isPartOf' => ['@id' => self::SITE_URL . '/#website'],
-                'about' => ['@id' => self::SITE_URL . '/#organization'],
+                'isPartOf' => ['@id' => self::WEBSITE_ID],
+                'about' => ['@id' => self::LOCAL_BUSINESS_ID],
                 'breadcrumb' => ['@id' => $canonical . '#breadcrumb'],
                 'inLanguage' => 'en-US',
             ],
             [
                 '@type' => 'BlogPosting',
-                '@id' => $canonical . '#article',
+                '@id' => $canonical . '#blogposting',
                 'headline' => self::clean($post->title ?? ''),
                 'description' => self::firstFilled([$post->meta_description ?? null, $post->excerpt ?? null]),
                 'datePublished' => self::dateIso($post->published_at ?? $post->created_at ?? null),
                 'dateModified' => self::dateIso($post->updated_at ?? $post->published_at ?? null),
                 'mainEntityOfPage' => ['@id' => $canonical . '#webpage'],
-                'publisher' => ['@id' => self::SITE_URL . '/#organization'],
+                'author' => [
+                    '@type' => 'Organization',
+                    '@id' => self::LOCAL_BUSINESS_ID,
+                    'name' => self::SITE_NAME,
+                ],
+                'publisher' => ['@id' => self::LOCAL_BUSINESS_ID],
             ],
             self::breadcrumbNode($canonical, [
                 ['name' => 'Home', 'url' => self::SITE_URL . '/'],
@@ -167,8 +174,8 @@ class PublicSeoService
                 'url' => $canonical,
                 'name' => self::firstFilled([$page->meta_title ?? null, $page->title ?? null]),
                 'description' => self::firstFilled([$page->meta_description ?? null, $page->excerpt ?? null]),
-                'isPartOf' => ['@id' => self::SITE_URL . '/#website'],
-                'about' => ['@id' => self::SITE_URL . '/#organization'],
+                'isPartOf' => ['@id' => self::WEBSITE_ID],
+                'about' => ['@id' => self::LOCAL_BUSINESS_ID],
                 'breadcrumb' => ['@id' => $canonical . '#breadcrumb'],
                 'inLanguage' => 'en-US',
             ],
@@ -183,11 +190,8 @@ class PublicSeoService
                 '@type' => 'Service',
                 '@id' => $canonical . '#service',
                 'name' => self::clean($page->title ?? 'VNV Events Service'),
-                'provider' => ['@id' => self::SITE_URL . '/#organization'],
-                'areaServed' => [
-                    '@type' => 'AdministrativeArea',
-                    'name' => 'South Florida',
-                ],
+                'provider' => ['@id' => self::LOCAL_BUSINESS_ID],
+                'areaServed' => self::defaultAreaServed(false),
                 'serviceType' => self::clean($page->title ?? 'Event services'),
                 'url' => $canonical,
             ];
@@ -239,8 +243,8 @@ class PublicSeoService
                 'url' => $canonical,
                 'name' => self::firstFilled([$topic->seo_title ?? null, $topic->title ?? null]),
                 'description' => self::firstFilled([$topic->seo_description ?? null, $topic->excerpt ?? null]),
-                'isPartOf' => ['@id' => self::SITE_URL . '/#website'],
-                'about' => ['@id' => self::SITE_URL . '/#organization'],
+                'isPartOf' => ['@id' => self::WEBSITE_ID],
+                'about' => ['@id' => self::LOCAL_BUSINESS_ID],
                 'breadcrumb' => ['@id' => $canonical . '#breadcrumb'],
                 'inLanguage' => 'en-US',
             ],
@@ -255,7 +259,7 @@ class PublicSeoService
                     '@type' => 'Person',
                     'name' => self::clean(trim(($topic->user_name ?? '') . ' ' . ($topic->user_lastname ?? ''))) ?: self::SITE_NAME,
                 ],
-                'publisher' => ['@id' => self::SITE_URL . '/#organization'],
+                'publisher' => ['@id' => self::LOCAL_BUSINESS_ID],
                 'mainEntityOfPage' => ['@id' => $canonical . '#webpage'],
             ],
             self::breadcrumbNode($canonical, [
@@ -290,6 +294,32 @@ class PublicSeoService
         ];
     }
 
+    public static function defaultSchema(string $canonical, array $seo = [], string $templateChild = ''): array
+    {
+        $canonical = self::absoluteUrl($canonical);
+        $title = self::firstFilled([$seo['title'] ?? null, self::SITE_NAME]);
+        $description = self::firstFilled([
+            $seo['description'] ?? null,
+            'VNV Events is a full-service event company in South Florida specializing in event planning, catering, decor, floral design, entertainment, rentals, media, staffing, and production.',
+        ]);
+
+        $graph = [
+            self::organizationNode(),
+            self::websiteNode(),
+            self::webPageNode($canonical, $title, $description),
+        ];
+
+        if ($canonical !== self::SITE_URL . '/') {
+            $graph[] = self::breadcrumbNode($canonical, self::breadcrumbsFromCanonical($canonical, $title));
+        }
+
+        if ($canonical !== self::SITE_URL . '/' && self::pathLooksLikeService(self::pathFromCanonical($canonical), $title . ' ' . $description . ' ' . $templateChild)) {
+            $graph[] = self::serviceNode($canonical, $title, $description);
+        }
+
+        return self::schema($graph);
+    }
+
     private static function schema(array $graph): array
     {
         return [
@@ -301,16 +331,36 @@ class PublicSeoService
     private static function organizationNode(): array
     {
         return [
-            '@type' => 'Organization',
-            '@id' => self::SITE_URL . '/#organization',
+            '@type' => 'LocalBusiness',
+            '@id' => self::LOCAL_BUSINESS_ID,
             'name' => self::SITE_NAME,
-            'url' => self::SITE_URL,
+            'url' => self::SITE_URL . '/',
+            'telephone' => '+13052045427',
+            'email' => 'info@vnvevents.com',
+            'additionalType' => [
+                'https://schema.org/EventPlanner',
+                'https://schema.org/FoodEstablishment',
+                'https://schema.org/Florist',
+                'https://schema.org/EntertainmentBusiness',
+            ],
             'logo' => [
                 '@type' => 'ImageObject',
                 'url' => self::LOGO_URL,
             ],
-            'email' => 'info@vnvevents.com',
-            'telephone' => '+1 305-204-5427',
+            'image' => self::LOGO_URL,
+            'description' => 'VNV Events LLC provides event planning, catering, decor, floral design, entertainment, rentals, photography, videography, event staffing, and event production services in South Florida.',
+            'address' => [
+                '@type' => 'PostalAddress',
+                'streetAddress' => '10258 NW 47th St',
+                'addressLocality' => 'Sunrise',
+                'addressRegion' => 'FL',
+                'postalCode' => '33351',
+                'addressCountry' => 'US',
+            ],
+            'areaServed' => self::defaultAreaServed(true),
+            'sameAs' => [
+                'https://www.instagram.com/vnvevents/',
+            ],
         ];
     }
 
@@ -318,23 +368,66 @@ class PublicSeoService
     {
         return [
             '@type' => 'WebSite',
-            '@id' => self::SITE_URL . '/#website',
-            'url' => self::SITE_URL,
+            '@id' => self::WEBSITE_ID,
+            'url' => self::SITE_URL . '/',
             'name' => self::SITE_NAME,
-            'publisher' => ['@id' => self::SITE_URL . '/#organization'],
+            'publisher' => ['@id' => self::LOCAL_BUSINESS_ID],
             'inLanguage' => 'en-US',
+        ];
+    }
+
+    private static function webPageNode(string $canonical, string $title, string $description): array
+    {
+        $node = [
+            '@type' => 'WebPage',
+            '@id' => $canonical . '#webpage',
+            'url' => $canonical,
+            'name' => $title,
+            'description' => $description,
+            'isPartOf' => ['@id' => self::WEBSITE_ID],
+            'about' => ['@id' => self::LOCAL_BUSINESS_ID],
+            'inLanguage' => 'en-US',
+        ];
+
+        if ($canonical !== self::SITE_URL . '/') {
+            $node['breadcrumb'] = ['@id' => $canonical . '#breadcrumb'];
+        }
+
+        return $node;
+    }
+
+    private static function serviceNode(string $canonical, string $title, string $description, ?string $areaName = null): array
+    {
+        return [
+            '@type' => 'Service',
+            '@id' => $canonical . '#service',
+            'name' => $title,
+            'url' => $canonical,
+            'description' => $description,
+            'provider' => ['@id' => self::LOCAL_BUSINESS_ID],
+            'areaServed' => $areaName
+                ? [['@type' => 'Place', 'name' => $areaName]]
+                : self::defaultAreaServed(false),
+            'serviceType' => self::serviceTypeFromText($title),
         ];
     }
 
     private static function breadcrumbNode(string $canonical, array $items): array
     {
         $elements = [];
+        $seen = [];
         foreach (array_values($items) as $index => $item) {
+            $name = self::clean($item['name'] ?? '');
+            $url = self::absoluteUrl($item['url'] ?? $canonical);
+            if ($name === '' || isset($seen[$url])) {
+                continue;
+            }
+            $seen[$url] = true;
             $elements[] = [
                 '@type' => 'ListItem',
-                'position' => $index + 1,
-                'name' => self::clean($item['name'] ?? ''),
-                'item' => self::absoluteUrl($item['url'] ?? $canonical),
+                'position' => count($elements) + 1,
+                'name' => $name,
+                'item' => $url,
             ];
         }
 
@@ -400,7 +493,7 @@ class PublicSeoService
     private static function looksLikeServicePage(object $page, array $contentJson): bool
     {
         $haystack = strtolower(($page->title ?? '') . ' ' . ($page->slug ?? '') . ' ' . ($page->excerpt ?? ''));
-        foreach (['service', 'event', 'wedding', 'corporate', 'production', 'catering', 'rental', 'photo', 'dj'] as $needle) {
+        foreach (self::serviceNeedles() as $needle) {
             if (strpos($haystack, $needle) !== false) {
                 return true;
             }
@@ -417,6 +510,7 @@ class PublicSeoService
 
     private static function canonical(?string $stored, string $fallbackPath): string
     {
+        $stored = self::validCanonical($stored);
         return self::absoluteUrl(self::firstFilled([$stored, $fallbackPath]));
     }
 
@@ -454,10 +548,175 @@ class PublicSeoService
         }
 
         if (preg_match('#^https?://#i', $url)) {
-            return $url;
+            $path = parse_url($url, PHP_URL_PATH) ?: '/';
+            return self::SITE_URL . self::normalizePath($path);
         }
 
-        return self::SITE_URL . '/' . ltrim($url, '/');
+        return self::SITE_URL . self::normalizePath($url);
+    }
+
+    private static function validCanonical(?string $url): ?string
+    {
+        $url = trim((string)$url);
+        if ($url === '') {
+            return null;
+        }
+
+        if (preg_match('#^https?://#i', $url)) {
+            $host = strtolower((string)(parse_url($url, PHP_URL_HOST) ?: ''));
+            if (!in_array($host, ['vnvevents.com', 'www.vnvevents.com'], true)) {
+                return null;
+            }
+        }
+
+        return $url;
+    }
+
+    private static function normalizePath(string $path): string
+    {
+        $path = parse_url($path, PHP_URL_PATH) ?: '/';
+        $path = '/' . ltrim($path, '/');
+        $path = preg_replace('#/+#', '/', $path) ?: '/';
+
+        if ($path !== '/') {
+            $path = rtrim($path, '/') . '/';
+        }
+
+        return $path;
+    }
+
+    private static function pathFromCanonical(string $canonical): string
+    {
+        return self::normalizePath(parse_url($canonical, PHP_URL_PATH) ?: '/');
+    }
+
+    private static function breadcrumbsFromCanonical(string $canonical, string $title): array
+    {
+        $path = trim(self::pathFromCanonical($canonical), '/');
+        $items = [['name' => 'Home', 'url' => self::SITE_URL . '/']];
+
+        if ($path === '') {
+            return $items;
+        }
+
+        $segments = explode('/', $path);
+        $running = '';
+        foreach ($segments as $index => $segment) {
+            $running .= '/' . $segment;
+            $isLast = $index === count($segments) - 1;
+            $items[] = [
+                'name' => $isLast ? $title : self::titleFromSlug($segment),
+                'url' => self::SITE_URL . self::normalizePath($running),
+            ];
+        }
+
+        return $items;
+    }
+
+    private static function titleFromSlug(string $slug): string
+    {
+        $special = [
+            'blog' => 'Blog',
+            'locations' => 'Locations',
+            'vnv-gourmet' => 'VNV Gourmet',
+            'product' => 'Products',
+            'product-category' => 'Product Categories',
+            'services' => 'Services',
+        ];
+
+        return $special[$slug] ?? ucwords(str_replace(['-', '_'], ' ', $slug));
+    }
+
+    private static function pathLooksLikeService(string $path, string $text): bool
+    {
+        $haystack = strtolower($path . ' ' . $text);
+        if (str_contains($haystack, '/blog/')) {
+            return false;
+        }
+
+        foreach (self::serviceNeedles() as $needle) {
+            if (str_contains($haystack, $needle)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static function serviceNeedles(): array
+    {
+        return [
+            'service',
+            'event',
+            'wedding',
+            'corporate',
+            'production',
+            'catering',
+            'rental',
+            'photo',
+            'photography',
+            'videography',
+            'video',
+            'dj',
+            'floral',
+            'decor',
+            'bartending',
+            'staffing',
+            'quince',
+            'baby shower',
+            'private party',
+            'vnv-gourmet',
+            'pasta station',
+            'paella',
+            'tapas',
+            'pizza station',
+            'taco station',
+            'brunch station',
+            'crepes',
+            'sushi boat',
+            'dessert station',
+            'appetizer',
+        ];
+    }
+
+    private static function serviceTypeFromText(string $text): string
+    {
+        $text = strtolower($text);
+        foreach ([
+            'wedding' => 'Wedding planning',
+            'catering' => 'Event catering',
+            'gourmet' => 'Event catering',
+            'dj' => 'DJ services',
+            'photo' => 'Photography and videography',
+            'video' => 'Photography and videography',
+            'floral' => 'Floral design',
+            'decor' => 'Event decor',
+            'rental' => 'Event rentals',
+            'staff' => 'Event staffing',
+            'corporate' => 'Corporate events',
+            'bartending' => 'Bartending',
+        ] as $needle => $type) {
+            if (str_contains($text, $needle)) {
+                return $type;
+            }
+        }
+
+        return 'Event services';
+    }
+
+    private static function defaultAreaServed(bool $includeSouthFlorida): array
+    {
+        $areas = [
+            ['@type' => 'AdministrativeArea', 'name' => 'Miami-Dade County'],
+            ['@type' => 'AdministrativeArea', 'name' => 'Broward County'],
+            ['@type' => 'AdministrativeArea', 'name' => 'Palm Beach County'],
+        ];
+
+        if ($includeSouthFlorida) {
+            $areas[] = ['@type' => 'Place', 'name' => 'South Florida'];
+        }
+
+        return $areas;
     }
 
     private static function dateIso($date): ?string

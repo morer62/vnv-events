@@ -96,8 +96,9 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
     {# -------------------------------------------------------
        CANONICAL / FAVICON / APP ICONS
        ------------------------------------------------------- #}
-    {% set canonical_value = page_seo.canonical|default(block('canonical') is defined ? block('canonical')|striptags|trim : site_url) %}
-    <link rel="canonical" href="{{ canonical_value ?: site_url }}">
+    {% set fallback_canonical = page_seo.canonical|default(block('canonical') is defined ? block('canonical')|striptags|trim : site_url ~ '/') %}
+    {% set canonical_value = current_canonical_url|default(fallback_canonical) %}
+    <link rel="canonical" href="{{ canonical_value ?: fallback_canonical }}">
     <link rel="icon" type="image/png" href="{{ site_favicon }}">
     <link rel="shortcut icon" href="{{ site_favicon }}">
     <link rel="apple-touch-icon" href="{{ site_favicon }}">
@@ -132,12 +133,12 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
     {% set og_type_value = page_seo.og_type|default(block('og_type') is defined ? block('og_type')|striptags|trim : 'website') %}
     {% set og_title_value = page_seo.title|default(block('og_title') is defined ? block('og_title')|striptags|trim : title_value) %}
     {% set og_description_value = page_seo.description|default(block('og_description') is defined ? block('og_description')|striptags|trim : description_value) %}
-    {% set og_url_value = page_seo.canonical|default(block('og_url') is defined ? block('og_url')|striptags|trim : canonical_value) %}
+    {% set og_url_value = current_canonical_url|default(page_seo.canonical|default(block('og_url') is defined ? block('og_url')|striptags|trim : canonical_value)) %}
     {% set og_image_value = page_seo.og_image|default(block('og_image') is defined ? block('og_image')|striptags|trim : default_og_image) %}
     <meta property="og:type" content="{{ og_type_value ?: 'website' }}">
     <meta property="og:title" content="{{ og_title_value ?: default_title }}">
     <meta property="og:description" content="{{ og_description_value ?: default_description }}">
-    <meta property="og:url" content="{{ og_url_value ?: site_url }}">
+    <meta property="og:url" content="{{ og_url_value ?: fallback_canonical }}">
     <meta property="og:image" content="{{ og_image_value ?: default_og_image }}">
     <meta property="og:image:alt" content="{{ page_seo.og_image_alt|default(block('og_image_alt') is defined ? block('og_image_alt')|striptags|trim : 'VNV Events logo') }}">
     <meta property="og:locale" content="en_US">
@@ -629,8 +630,6 @@ body::before{
        ------------------------------------------------------- #}
     {% if schemaJson is defined and schemaJson %}
         <script type="application/ld+json">{{ schemaJson|json_encode(320)|raw }}</script>
-    {% else %}
-        <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Organization","@id":"https://vnvevents.com/#organization","name":"VNV Events","url":"https://vnvevents.com","logo":{"@type":"ImageObject","url":"{{ site_logo }}"},"email":"info@vnvevents.com","telephone":"+1 305-204-5427"},{"@type":"WebSite","@id":"https://vnvevents.com/#website","url":"https://vnvevents.com","name":"VNV Events","publisher":{"@id":"https://vnvevents.com/#organization"},"inLanguage":"en-US"}]}</script>
     {% endif %}
 </head>
 <body>

@@ -4,6 +4,7 @@ namespace App\Utils;
 
 use App\Entity\User;
 use App\Services\LoginService;
+use App\Services\PublicSeoService;
 use App\Services\TranslationService;
 use Twig\Environment;
 use Twig\Error\LoaderError;
@@ -105,10 +106,20 @@ class TemplateResponse
             $chatUnreadCount = 0;
         }
 
+        $currentCanonicalUrl = self::getCurrentCanonicalUrl();
+        if (empty($data['schemaJson'])) {
+            $data['schemaJson'] = PublicSeoService::defaultSchema(
+                $currentCanonicalUrl,
+                is_array($data['seo'] ?? null) ? $data['seo'] : [],
+                $templateChild
+            );
+        }
+
         return $twig->render($templateChild, [
             "user" => LoginService::getSession(),
             "alertMessage" => MessageUtil::getMessage(),
             "env" => $_ENV,
+            "current_canonical_url" => $currentCanonicalUrl,
             "current_location" => TwigUtils::getCurrentLocation($templateChild),
             "notifications" => $notifications,
             "notifications_count" => $notifications_count,
@@ -207,10 +218,20 @@ class TemplateResponse
             $chatUnreadCount = 0;
         }
 
+        $currentCanonicalUrl = self::getCurrentCanonicalUrl();
+        if (empty($data['schemaJson'])) {
+            $data['schemaJson'] = PublicSeoService::defaultSchema(
+                $currentCanonicalUrl,
+                is_array($data['seo'] ?? null) ? $data['seo'] : [],
+                "templates" . DIRECTORY_SEPARATOR . $templateName
+            );
+        }
+
         return $twig->render("templates".DIRECTORY_SEPARATOR.$templateName, [
             "user" => LoginService::getSession(),
             "alertMessage" => MessageUtil::getMessage(),
             "env" => $_ENV,
+            "current_canonical_url" => $currentCanonicalUrl,
             "notifications" => $notifications,
             "notifications_count" => $notifications_count,
             "chat_unread_threads" => $chatUnreadThreads,
@@ -220,6 +241,29 @@ class TemplateResponse
             "isWeb" => PlatformDetector::isWeb(),
             ...$data
         ]);
+    }
+
+    private static function getCurrentCanonicalUrl(): string
+    {
+        $baseUrl = 'https://vnvevents.com';
+        $path = '/';
+
+        if (class_exists(\Symfony\Component\HttpFoundation\Request::class)) {
+            $request = \Symfony\Component\HttpFoundation\Request::createFromGlobals();
+            $path = $request->getPathInfo() ?: '/';
+        } else {
+            $requestUri = (string)($_SERVER['REQUEST_URI'] ?? '/');
+            $path = parse_url($requestUri, PHP_URL_PATH) ?: '/';
+        }
+
+        $path = '/' . ltrim($path, '/');
+        $path = preg_replace('#/+#', '/', $path) ?: '/';
+
+        if ($path !== '/') {
+            $path = rtrim($path, '/') . '/';
+        }
+
+        return $baseUrl . $path;
     }
 
 }

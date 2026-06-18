@@ -4,7 +4,7 @@
     {% set cms_title = cms_page.meta_title ?? cms_page.title ?? 'VNV Events' %}
     {% set cms_description = cms_page.meta_description ?? 'VNV Events is a full-service luxury event company in South Florida specializing in weddings, corporate events, private parties, catering, DJs, rentals, photo booth services, and event production.' %}
     {% set cms_keywords = cms_page.meta_keywords ?? 'VNV Events, event planning South Florida, luxury events, weddings, corporate events, catering, DJ services, event rentals, photo booth, event production' %}
-    {% set cms_canonical = cms_page.canonical_url ?? site_url ?? 'https://vnvevents.com' %}
+    {% set cms_canonical = cms_page.canonical_url ?? current_canonical_url ?? site_url ?? 'https://vnvevents.com/' %}
     {% set cms_og_title = cms_page.og_title ?? cms_page.meta_title ?? cms_page.title ?? 'VNV Events | Luxury Event Planning & Services' %}
     {% set cms_og_description = cms_page.og_description ?? cms_page.meta_description ?? cms_description %}
     {% set cms_og_image = cms_page.og_image ?? cms_page.meta_thumbnail ?? asset_for('assets/images/planner-hub-logo-negative.png') %}
@@ -64,7 +64,7 @@
     {# -------------------------------------------------------
        CANONICAL / FAVICON / APP ICONS
        ------------------------------------------------------- #}
-    <link rel="canonical" href="{% block canonical %}{{ cms_canonical }}{% endblock %}">
+    <link rel="canonical" href="{{ current_canonical_url|default(cms_canonical) }}">
     <link rel="icon" type="image/png" href="{{ site_favicon }}">
     <link rel="shortcut icon" href="{{ site_favicon }}">
     <link rel="apple-touch-icon" href="{{ site_favicon }}">
@@ -91,7 +91,7 @@
     <meta property="og:type" content="{% block og_type %}website{% endblock %}">
     <meta property="og:title" content="{% block og_title %}{{ cms_og_title }}{% endblock %}">
     <meta property="og:description" content="{% block og_description %}{{ cms_og_description }}{% endblock %}">
-    <meta property="og:url" content="{% block og_url %}{{ cms_canonical }}{% endblock %}">
+    <meta property="og:url" content="{{ current_canonical_url|default(cms_canonical) }}">
     <meta property="og:image" content="{% block og_image %}{{ cms_og_image }}{% endblock %}">
     <meta property="og:image:alt" content="{% block og_image_alt %}{{ cms_page.title ?? 'VNV Events page image' }}{% endblock %}">
     <meta property="og:locale" content="en_US">
@@ -199,86 +199,9 @@
         </style>
     {% endif %}
 
-    {# -------------------------------------------------------
-       DEFAULT STRUCTURED DATA
-       Keep the brand schema unless a page adds its own extra schema.
-       ------------------------------------------------------- #}
-    <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@graph": [
-        {
-          "@type": "Organization",
-          "@id": "{{ site_url }}#organization",
-          "name": "VNV Events",
-          "alternateName": [
-            "VNV Events South Florida",
-            "VNV Events Planning",
-            "VNV Events Catering",
-            "VNV Events Services"
-          ],
-          "url": "{{ site_url }}",
-          "logo": {
-            "@type": "ImageObject",
-            "url": "{{ site_logo }}"
-          },
-          "image": "{{ site_logo }}",
-          "description": "VNV Events is a South Florida full-service event company offering planning, catering, DJs, rentals, photo booth services, and event production for private, wedding, and corporate events.",
-          "telephone": "{{ site_phone_raw }}",
-          "email": "{{ site_email }}",
-          "areaServed": [
-            {"@type":"AdministrativeArea","name":"Broward County"},
-            {"@type":"AdministrativeArea","name":"Miami-Dade County"},
-            {"@type":"AdministrativeArea","name":"Palm Beach County"},
-            {"@type":"City","name":"Fort Lauderdale"},
-            {"@type":"City","name":"Hollywood"},
-            {"@type":"City","name":"Pembroke Pines"},
-            {"@type":"City","name":"Miramar"},
-            {"@type":"City","name":"Sunrise"},
-            {"@type":"City","name":"Plantation"},
-            {"@type":"City","name":"Davie"},
-            {"@type":"City","name":"Coral Springs"},
-            {"@type":"City","name":"Weston"},
-            {"@type":"City","name":"Boca Raton"},
-            {"@type":"City","name":"Delray Beach"},
-            {"@type":"City","name":"West Palm Beach"},
-            {"@type":"City","name":"Miami"},
-            {"@type":"City","name":"Miami Beach"},
-            {"@type":"City","name":"Aventura"},
-            {"@type":"City","name":"Doral"},
-            {"@type":"City","name":"Hialeah"},
-            {"@type":"City","name":"Coral Gables"}
-          ],
-          "contactPoint": [
-            {
-              "@type": "ContactPoint",
-              "telephone": "{{ site_phone_raw }}",
-              "contactType": "customer service",
-              "areaServed": "US-FL",
-              "availableLanguage": ["English", "Spanish"]
-            },
-            {
-              "@type": "ContactPoint",
-              "telephone": "{{ site_phone_raw }}",
-              "contactType": "sales",
-              "areaServed": "US-FL",
-              "availableLanguage": ["English", "Spanish"]
-            }
-          ]
-        },
-        {
-          "@type": "WebSite",
-          "@id": "{{ site_url }}#website",
-          "url": "{{ site_url }}",
-          "name": "VNV Events",
-          "publisher": {
-            "@id": "{{ site_url }}#organization"
-          },
-          "inLanguage": "en-US"
-        }
-      ]
-    }
-    </script>
+    {% if schemaJson is defined and schemaJson %}
+        <script type="application/ld+json">{{ schemaJson|json_encode(320)|raw }}</script>
+    {% endif %}
 </head>
 <body>
 

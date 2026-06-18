@@ -6,16 +6,19 @@ class LocationUtils
 {
 
     public static function assetFor(string $uri, array $queryParams = []): string {
+        $queryString = '';
 
         if (!empty($queryParams)) {
-            $uri .= "?".http_build_query($queryParams);
+            $queryString = "?" . http_build_query($queryParams);
         }
 
-        return self::getBasePath()."/".$uri;
+        $uri = ltrim($uri, '/');
+        return rtrim(self::getBasePath(), '/') . ($uri === '' ? '/' : '/' . $uri) . $queryString;
     }
 
     public static function pathFor(string $uri): string {
-        return self::getBasePath()."/".$uri;
+        $uri = ltrim($uri, '/');
+        return rtrim(self::getBasePath(), '/') . ($uri === '' ? '/' : '/' . $uri);
     }
 
     public static function getBasePath(): string {
