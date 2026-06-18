@@ -32,7 +32,8 @@ class OrdersRepository extends BaseRepository
             LEFT JOIN orders_staff_invites osi ON osi.id_order = o.id AND osi.id_user = :userId
             WHERE ott.id_user = :userId
             AND is_archived = 0
-            ORDER BY o.event_date DESC
+            AND o.event_date >= CURDATE()
+            ORDER BY o.event_date ASC, o.start_time ASC
         ";
 
         $this->db->query($sql);
@@ -78,7 +79,8 @@ class OrdersRepository extends BaseRepository
             LEFT JOIN institution_profile i ON i.id_owner = o.id_owner
             WHERE osi.id_user = :userId
             AND is_archived = 0
-            ORDER BY o.event_date DESC
+            AND o.event_date >= CURDATE()
+            ORDER BY o.event_date ASC, o.start_time ASC
         ";
 
         $this->db->query(sql: $sql);

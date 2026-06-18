@@ -89,6 +89,7 @@ class OrdersTeamTasksRepository extends BaseRepository
             LEFT JOIN orders_services s ON s.id = t.id_service
             LEFT JOIN users c ON c.id = o.id_client
             WHERE t.id_user = :user AND t.id_owner = :owner
+              AND o.event_date >= CURDATE()
             ORDER BY o.event_date ASC, COALESCE(osn.install_time, o.start_time) ASC, t.is_done ASC, t.created_at DESC, t.id DESC
         ");
         $this->db->bind(':user', $userId);
