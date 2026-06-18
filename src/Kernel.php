@@ -434,7 +434,9 @@ class Kernel
             // Public CMS generated in Ophyra Growth Hub. VNV Events consumes only
             // `site_key=vnvevents`; other brand content stays in Ophyra.
             if (count($urlViews) === 1 && $urlViews[0] === 'blog') {
-                $this->includeGrowthHubContentAndExit('/blog', null, 'blog');
+                $blogIndexView = LocationUtils::getRootLocation()
+                    . "/src/views/public/pages/blog/index.php";
+                $this->includeResolvedFileAndExit($blogIndexView);
             }
 
             if (count($urlViews) === 2 && $urlViews[0] === 'blog' && !empty($urlViews[1])) {
