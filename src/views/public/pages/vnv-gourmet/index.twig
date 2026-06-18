@@ -1,11 +1,31 @@
 {% extends "templates/base.twig" %}
 
 {% set show_whatsapp = true %}
+{% set defer_public_third_party = true %}
+{% set skip_public_gtm_initial = true %}
+{% set skip_public_app_bundle = true %}
+{% set skip_public_google_maps = true %}
+{% set skip_public_stripe = true %}
+{% set skip_public_bootstrap_js = true %}
+{% set skip_base_fontawesome = true %}
+{% set skip_base_inter_font = true %}
+{% set skip_base_app_css = true %}
+
+{% block title %}VNV Gourmet | Luxury Event Catering in South Florida{% endblock %}
+{% block meta_description %}Premium event catering in South Florida by VNV Gourmet: chef-led stations, corporate catering, private parties, weddings, staffing, bartenders and full-service event support.{% endblock %}
+{% block meta_keywords %}VNV Gourmet, South Florida catering, Miami catering, Broward catering, event catering, corporate catering, wedding catering, food stations, pasta station, paella station, dessert station, VNV Events{% endblock %}
+{% block canonical %}https://vnvevents.com/vnv-gourmet{% endblock %}
+
+{% block head %}
+<link rel="preload" as="image" href="{{ asset_for('assets/images/vnv-gourmet-hero.webp') }}" fetchpriority="high">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+{% endblock %}
 
 {% block styles %}
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@200;300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,700;0,900;1,700;1,900&display=swap" rel="stylesheet">
+<link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" onload="this.onload=null;this.rel='stylesheet'">
+<noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"></noscript>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,700;0,900;1,700;1,900&display=swap" rel="stylesheet">
 
 <style>
 :root {
@@ -148,7 +168,10 @@ h1, h2, h3, h4, h5, .luxury-font {
     overflow: hidden;
     background:
         linear-gradient(90deg, rgba(10,12,12,.88) 0%, rgba(10,12,12,.68) 42%, rgba(10,12,12,.42) 100%),
-        url('{{ asset_for('assets/images/vnv-gourmet-hero.jpg') }}') center/cover no-repeat;
+        image-set(
+            url('{{ asset_for('assets/images/vnv-gourmet-hero.webp') }}') type('image/webp'),
+            url('{{ asset_for('assets/images/vnv-gourmet-hero.jpg') }}') type('image/jpeg')
+        ) center/cover no-repeat;
 }
 
 .hero-gourmet::after {
@@ -267,27 +290,27 @@ h1, h2, h3, h4, h5, .luxury-font {
 }
 
 .service-showcase-body h3,
-.holiday-card h4,
-.mini-card h4,
+.holiday-card h3,
+.mini-card h3,
 .contact-card h4,
-.instagram-card h4,
+.instagram-card h2,
 .feature-copy h3,
 .gourmet-copy h3 {
     margin-bottom: 16px;
 }
 
 .section-dark .service-showcase-body h3,
-.section-dark .holiday-card h4,
-.section-dark .mini-card h4,
+.section-dark .holiday-card h3,
+.section-dark .mini-card h3,
 .section-dark .contact-card h4,
 .section-dark .gourmet-copy h3 {
     color: #fff;
 }
 
 .section-white .service-showcase-body h3,
-.section-white .holiday-card h4,
-.section-white .mini-card h4,
-.section-white .instagram-card h4,
+.section-white .holiday-card h3,
+.section-white .mini-card h3,
+.section-white .instagram-card h2,
 .section-white .feature-copy h3,
 .section-white .gourmet-copy h3 {
     color: var(--vnv-text-dark);
@@ -378,10 +401,19 @@ h1, h2, h3, h4, h5, .luxury-font {
     border-top: 1px solid rgba(17,24,26,.08);
 }
 .call-strip a {
-    color: var(--vnv-primary);
+    color: #0f766e;
     text-decoration: none;
     font-weight: 800;
     letter-spacing: 1px;
+}
+.section-dark .call-strip a {
+    color: #7cf3e5;
+}
+.call-strip a:hover {
+    color: #0b5f59;
+}
+.section-dark .call-strip a:hover {
+    color: #adfff6;
 }
 
 .split-feature {
@@ -474,7 +506,10 @@ h1, h2, h3, h4, h5, .luxury-font {
     min-height: 420px;
     background:
         linear-gradient(180deg, rgba(0,0,0,.08), rgba(0,0,0,.22)),
-        url('{{ asset_for('assets/images/vnv-gourmet-instagram.jpg') }}') center/cover no-repeat;
+        image-set(
+            url('{{ asset_for('assets/images/vnv-gourmet-instagram.webp') }}') type('image/webp'),
+            url('{{ asset_for('assets/images/vnv-gourmet-instagram.jpg') }}') type('image/jpeg')
+        ) center/cover no-repeat;
     border: 1px solid rgba(17,24,26,.08);
 }
 
@@ -647,6 +682,32 @@ h1, h2, h3, h4, h5, .luxury-font {
     margin: 0 auto;
     opacity: .98;
 }
+
+@keyframes gourmetFadeUp {
+    from { opacity: 0; transform: translateY(18px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.service-showcase-card,
+.holiday-card,
+.mini-card,
+.feature-box,
+.gourmet-card,
+.instagram-card {
+    animation: gourmetFadeUp .55s ease both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .service-showcase-card,
+    .holiday-card,
+    .mini-card,
+    .feature-box,
+    .gourmet-card,
+    .instagram-card {
+        animation: none;
+    }
+}
 </style>
 {% endblock %}
 
@@ -654,6 +715,7 @@ h1, h2, h3, h4, h5, .luxury-font {
 
 {% include "templates/layout/publicHeaderVnv.html.twig" %}
 
+<main id="main-content" class="gourmet-page">
 <section class="hero-gourmet">
     <div class="container hero-gourmet-inner">
         <span class="vnv-badge">VNV Gourmet</span>
@@ -694,22 +756,22 @@ h1, h2, h3, h4, h5, .luxury-font {
         <div class="row g-4 justify-content-center">
             <div class="col-12 col-lg-3">
                 <div class="metric-item">
-                    <h3 class="metric-val">5+</h3>
+                    <div class="metric-val" aria-label="More than five years of experience">5+</div>
                     <p class="metric-label">YEARS OF EXPERIENCE</p>
                 </div>
             </div>
 
             <div class="col-12 col-lg-3">
                 <div class="metric-item">
-                    <h3 class="metric-val">200+</h3>
+                    <div class="metric-val" aria-label="More than two hundred events per year">200+</div>
                     <p class="metric-label">EVENTS PER YEAR</p>
                 </div>
             </div>
 
             <div class="col-12 col-lg-3">
                 <div class="metric-item">
-                    <h3 class="metric-val">5.0</h3>
-                    <p class="metric-label">GOOGLE STARTS REVIEWS</p>
+                    <div class="metric-val" aria-label="Five star Google reviews">5.0</div>
+                    <p class="metric-label">GOOGLE STARS REVIEWS</p>
                 </div>
             </div>
 
@@ -717,7 +779,7 @@ h1, h2, h3, h4, h5, .luxury-font {
                 <div class="metric-logo-block">
                     <img class="metric-logo-vnv" 
                          src="{{ asset_for('assets/images/planner-hub-logo-positive.png') }}" 
-                         alt="VNV Events"  loading="lazy" decoding="async">
+                         alt="VNV Events" width="280" height="280" loading="lazy" decoding="async">
                 </div>
             </div>
         </div>
@@ -741,7 +803,7 @@ h1, h2, h3, h4, h5, .luxury-font {
             <div class="col-12">
                 <div class="service-showcase-card">
                     <div class="service-showcase-media">
-                        <img   loading="lazy" decoding="async" src="{{ asset_for('assets/images/service_photos/appetizers.webp') }}" alt="VNV Gourmet appetizers"  >
+                        <img loading="lazy" decoding="async" width="1200" height="675" src="{{ asset_for('assets/images/service_photos/appetizers_lite.webp') }}" alt="VNV Gourmet appetizers">
                     </div>
                     <div class="service-showcase-body">
                         <div>
@@ -766,7 +828,7 @@ h1, h2, h3, h4, h5, .luxury-font {
             <div class="col-12">
                 <div class="service-showcase-card">
                     <div class="service-showcase-media">
-                        <img   loading="lazy" decoding="async" src="{{ asset_for('assets/images/service_photos/brunch_tation.webp') }}" alt="VNV Gourmet brunch station"  >
+                        <img loading="lazy" decoding="async" width="1200" height="675" src="{{ asset_for('assets/images/service_photos/brunch_tation_lite.webp') }}" alt="VNV Gourmet brunch station">
                     </div>
                     <div class="service-showcase-body">
                         <div>
@@ -791,7 +853,7 @@ h1, h2, h3, h4, h5, .luxury-font {
             <div class="col-12">
                 <div class="service-showcase-card">
                     <div class="service-showcase-media">
-                        <img  loading="lazy" decoding="async" src="{{ asset_for('assets/images/service_photos/crepes_station_1.webp') }}" alt="VNV Gourmet crepes station"  >
+                        <img loading="lazy" decoding="async" width="1200" height="675" src="{{ asset_for('assets/images/service_photos/crepes_station_1_lite.webp') }}" alt="VNV Gourmet crepes station">
                     </div>
                     <div class="service-showcase-body">
                         <div>
@@ -816,7 +878,7 @@ h1, h2, h3, h4, h5, .luxury-font {
             <div class="col-12">
                 <div class="service-showcase-card">
                     <div class="service-showcase-media">
-                        <img  loading="lazy" decoding="async" src="{{ asset_for('assets/images/service_photos/pasta_station_1.webp') }}" alt="VNV Gourmet pasta station"  >
+                        <img loading="lazy" decoding="async" width="1200" height="675" src="{{ asset_for('assets/images/service_photos/pasta_station_1.webp') }}" alt="VNV Gourmet pasta station">
                     </div>
                     <div class="service-showcase-body">
                         <div>
@@ -841,7 +903,7 @@ h1, h2, h3, h4, h5, .luxury-font {
             <div class="col-12">
                 <div class="service-showcase-card">
                     <div class="service-showcase-media">
-                        <img  loading="lazy" decoding="async" src="{{ asset_for('assets/images/service_photos/pizza_station.webp') }}" alt="VNV Gourmet pizza station"  >
+                        <img loading="lazy" decoding="async" width="1200" height="675" src="{{ asset_for('assets/images/service_photos/pizza_station.webp') }}" alt="VNV Gourmet pizza station">
                     </div>
                     <div class="service-showcase-body">
                         <div>
@@ -866,7 +928,7 @@ h1, h2, h3, h4, h5, .luxury-font {
             <div class="col-12">
                 <div class="service-showcase-card">
                     <div class="service-showcase-media">
-                        <img  loading="lazy" decoding="async" src="{{ asset_for('assets/images/service_photos/paella_station.webp') }}" alt="VNV Gourmet paella station"  >
+                        <img loading="lazy" decoding="async" width="1200" height="675" src="{{ asset_for('assets/images/service_photos/paella_station.webp') }}" alt="VNV Gourmet paella station">
                     </div>
                     <div class="service-showcase-body">
                         <div>
@@ -891,7 +953,7 @@ h1, h2, h3, h4, h5, .luxury-font {
             <div class="col-12">
                 <div class="service-showcase-card">
                     <div class="service-showcase-media">
-                        <img   loading="lazy" decoding="async" src="{{ asset_for('assets/images/service_photos/tacos.webp') }}" alt="VNV Gourmet taco station"  >
+                        <img loading="lazy" decoding="async" width="1200" height="675" src="{{ asset_for('assets/images/service_photos/tacos.webp') }}" alt="VNV Gourmet taco station">
                     </div>
                     <div class="service-showcase-body">
                         <div>
@@ -916,7 +978,7 @@ h1, h2, h3, h4, h5, .luxury-font {
             <div class="col-12">
                 <div class="service-showcase-card">
                     <div class="service-showcase-media">
-                        <img  loading="lazy" decoding="async" src="{{ asset_for('assets/images/service_photos/sushi.webp') }}" alt="VNV Gourmet sushi boat packages" >
+                        <img loading="lazy" decoding="async" width="1152" height="2048" src="{{ asset_for('assets/images/service_photos/sushi_lite.webp') }}" alt="VNV Gourmet sushi boat packages">
                     </div>
                     <div class="service-showcase-body">
                         <div>
@@ -941,7 +1003,7 @@ h1, h2, h3, h4, h5, .luxury-font {
             <div class="col-12">
                 <div class="service-showcase-card">
                     <div class="service-showcase-media">
-                        <img  loading="lazy" decoding="async" src="{{ asset_for('assets/images/service_photos/dessert_station_2.webp') }}" alt="VNV Gourmet dessert station"  >
+                        <img loading="lazy" decoding="async" width="1200" height="2133" src="{{ asset_for('assets/images/service_photos/dessert_station_2_lite.webp') }}" alt="VNV Gourmet dessert station">
                     </div>
                     <div class="service-showcase-body">
                         <div>
@@ -966,7 +1028,7 @@ h1, h2, h3, h4, h5, .luxury-font {
             <div class="col-12">
                 <div class="service-showcase-card">
                     <div class="service-showcase-media">
-                        <img  loading="lazy" decoding="async" src="{{ asset_for('assets/images/service_photos/pasta_station_2.webp') }}" alt="VNV Gourmet entrees and sides"  >
+                        <img loading="lazy" decoding="async" width="1200" height="675" src="{{ asset_for('assets/images/service_photos/pasta_station_2.webp') }}" alt="VNV Gourmet entrees and sides">
                     </div>
                     <div class="service-showcase-body">
                         <div>
@@ -1005,7 +1067,7 @@ h1, h2, h3, h4, h5, .luxury-font {
         <div class="row g-4">
             <div class="col-lg-6">
                 <div class="holiday-card">
-                    <h4>Corporate Event Catering</h4>
+                    <h3>Corporate Event Catering</h3>
                     <p>Built for office celebrations, employee appreciation moments, activations and business gatherings that need smooth service and strong presentation.</p>
 
                     <div class="menu-top-actions">
@@ -1026,7 +1088,7 @@ h1, h2, h3, h4, h5, .luxury-font {
 
             <div class="col-lg-6">
                 <div class="holiday-card">
-                    <h4>Private Celebrations &amp; Seasonal Events</h4>
+                    <h3>Private Celebrations &amp; Seasonal Events</h3>
                     <p>When the occasion matters, seasonal packages and chef-led stations help the celebration feel thoughtful, warm and elevated.</p>
                     <ul>
                         <li>Holiday, birthday, shower and family celebration formats</li>
@@ -1097,49 +1159,49 @@ h1, h2, h3, h4, h5, .luxury-font {
         <div class="row g-4">
             <div class="col-md-6 col-xl-4">
                 <div class="mini-card">
-                    <h4>Planner &amp; Coordinator</h4>
+                    <h3>Planner &amp; Coordinator</h3>
                     <p>When the menu is only one part of a bigger event and you need timeline, flow and execution support.</p>
-                    <a href="https://vnvevents.com/product-category/event-planners-and-coordinator/" class="vnv-btn btn-outline-vnv">More Info</a>
+                    <a href="https://vnvevents.com/product-category/event-planners-and-coordinator/" class="vnv-btn btn-outline-vnv">Planner Details</a>
                 </div>
             </div>
 
             <div class="col-md-6 col-xl-4">
                 <div class="mini-card">
-                    <h4>Decoration</h4>
+                    <h3>Decoration</h3>
                     <p>Backdrops, balloons, floral touches and visual styling that elevate the perception of the whole setup.</p>
-                    <a href="https://vnvevents.com/product-category/balloons-and-flower/" class="vnv-btn btn-outline-vnv">More Info</a>
+                    <a href="https://vnvevents.com/product-category/balloons-and-flower/" class="vnv-btn btn-outline-vnv">Decoration Details</a>
                 </div>
             </div>
 
             <div class="col-md-6 col-xl-4">
                 <div class="mini-card">
-                    <h4>Rentals &amp; Setup</h4>
+                    <h3>Rentals &amp; Setup</h3>
                     <p>Tables, chairs, linens and the physical foundation that helps the food setup feel organized and intentional.</p>
-                    <a href="https://vnvevents.com/product-category/rental-services/" class="vnv-btn btn-outline-vnv">More Info</a>
+                    <a href="https://vnvevents.com/product-category/rental-services/" class="vnv-btn btn-outline-vnv">Rental Details</a>
                 </div>
             </div>
 
             <div class="col-md-6 col-xl-4">
                 <div class="mini-card">
-                    <h4>DJ &amp; Entertainment</h4>
+                    <h3>DJ &amp; Entertainment</h3>
                     <p>Great food lands even better when the energy, timing and atmosphere are handled by the right music team.</p>
-                    <a href="https://vnvevents.com/product-category/dj-services-live-music/" class="vnv-btn btn-outline-vnv">More Info</a>
+                    <a href="https://vnvevents.com/product-category/dj-services-live-music/" class="vnv-btn btn-outline-vnv">DJ Details</a>
                 </div>
             </div>
 
             <div class="col-md-6 col-xl-4">
                 <div class="mini-card">
-                    <h4>Photo Booth, Photo &amp; Video</h4>
+                    <h3>Photo Booth, Photo &amp; Video</h3>
                     <p>Capture the plated moments, guest reactions and branded content opportunities around your event.</p>
-                    <a href="https://vnvevents.com/product-category/photo-video-booths/" class="vnv-btn btn-outline-vnv">More Info</a>
+                    <a href="https://vnvevents.com/product-category/photo-video-booths/" class="vnv-btn btn-outline-vnv">Photo Details</a>
                 </div>
             </div>
 
             <div class="col-md-6 col-xl-4">
                 <div class="mini-card">
-                    <h4>Event Staffing</h4>
+                    <h3>Event Staffing</h3>
                     <p>Add servers and hospitality support when service style matters as much as the menu itself.</p>
-                    <a href="https://vnvevents.com/product/professional-servers/" class="vnv-btn btn-outline-vnv">More Info</a>
+                    <a href="https://vnvevents.com/product/professional-servers/" class="vnv-btn btn-outline-vnv">Staffing Details</a>
                 </div>
             </div>
         </div>
@@ -1186,10 +1248,10 @@ h1, h2, h3, h4, h5, .luxury-font {
 
             <div class="gourmet-visuals">
                 <div class="gourmet-shot">
-                    <img  loading="lazy" decoding="async" src="{{ asset_for('assets/images/service_photos/vnv_gourmet_1.png') }}" alt="VNV Gourmet event catering"   >
+                    <img loading="lazy" decoding="async" width="1080" height="1080" src="{{ asset_for('assets/images/service_photos/vnv_gourmet_1.webp') }}" alt="VNV Gourmet event catering">
                 </div>
                 <div class="gourmet-shot">
-                    <img  loading="lazy" decoding="async" src="{{ asset_for('assets/images/service_photos/vnv_gourmet_2.png') }}" alt="VNV Gourmet event service"   >
+                    <img loading="lazy" decoding="async" width="1080" height="1080" src="{{ asset_for('assets/images/service_photos/vnv_gourmet_2.webp') }}" alt="VNV Gourmet event service">
                 </div>
             </div>
         </div>
@@ -1202,7 +1264,7 @@ h1, h2, h3, h4, h5, .luxury-font {
             <div class="col-lg-6">
                 <div class="instagram-card">
                     <span class="vnv-badge">Visit our Instagram Gallery</span>
-                    <h4 style="font-size:2.3rem;">See the setups, the stations, the styling and the kind of event atmosphere we build in real life.</h4>
+                    <h2 style="font-size:2.3rem;">See the setups, the stations, the styling and the kind of event atmosphere we build in real life.</h2>
                     <p>
                         This section stays important because a lot of people decide with their eyes first. Let them see the scale, finish and presentation.
                     </p>
@@ -1215,6 +1277,7 @@ h1, h2, h3, h4, h5, .luxury-font {
         </div>
     </div>
 </section>
+</main>
 
 {% include "templates/components/publicEventRequestModal.html.twig" with {
     request_form_action: "/api/public/event-request"
@@ -1225,54 +1288,30 @@ h1, h2, h3, h4, h5, .luxury-font {
 {% endblock %}
 
 {% block scripts %}
-<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
-
 <script>
-if (typeof gsap !== 'undefined' && typeof ScrollTrigger !== 'undefined') {
-    const isMobile = window.innerWidth <= 767;
-
-    if (!isMobile) {
-        gsap.registerPlugin(ScrollTrigger);
-
-        gsap.utils.toArray('.service-showcase-card, .holiday-card, .mini-card, .contact-card, .instagram-card, .gourmet-card').forEach((card) => {
-            gsap.from(card, {
-                scrollTrigger: {
-                    trigger: card,
-                    start: "top 88%"
-                },
-                y: 36,
-                opacity: 0,
-                duration: 0.9,
-                ease: "power3.out"
-            });
-        });
-
-        gsap.from('.feature-box', {
-            scrollTrigger: {
-                trigger: '.feature-box',
-                start: 'top 82%'
-            },
-            y: 40,
-            opacity: 0,
-            duration: 1.1,
-            ease: "power3.out"
-        });
-
-        gsap.utils.toArray('.gourmet-shot').forEach((shot, index) => {
-            gsap.from(shot, {
-                scrollTrigger: {
-                    trigger: shot,
-                    start: "top 90%"
-                },
-                y: 32,
-                opacity: 0,
-                duration: 0.8,
-                delay: index * 0.08,
-                ease: "power3.out"
-            });
-        });
+(function () {
+    let mapsLoading = false;
+    function loadMapsOnce() {
+        if (mapsLoading || window.google?.maps) return;
+        mapsLoading = true;
+        const script = document.createElement('script');
+        script.src = 'https://maps.googleapis.com/maps/api/js?key={{ GOOGLE_MAPS_API_KEY }}&libraries=places&callback=initPublicEventRequestMap';
+        script.async = true;
+        script.defer = true;
+        document.head.appendChild(script);
     }
-}
+
+    document.addEventListener('click', function (event) {
+        if (event.target.closest('[data-vnv-open-request]')) {
+            loadMapsOnce();
+        }
+    }, { passive: true });
+
+    document.addEventListener('focusin', function (event) {
+        if (event.target.matches('#request_event_location, [data-places-autocomplete]')) {
+            loadMapsOnce();
+        }
+    });
+})();
 </script>
 {% endblock %}
