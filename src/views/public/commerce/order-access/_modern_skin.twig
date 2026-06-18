@@ -191,3 +191,73 @@
     }
   }
 </style>
+
+{# Make the electronic signature consent impossible to miss without changing form behavior #}
+<style>
+main.container .consent-checkbox-card {
+    position: relative;
+    display: flex !important;
+    align-items: center !important;
+    gap: 1rem !important;
+    padding: 1.25rem 1.35rem !important;
+    border: 2px solid rgba(10, 122, 108, .28) !important;
+    border-radius: 22px !important;
+    background: linear-gradient(135deg, rgba(10, 122, 108, .08), #ffffff 72%) !important;
+    box-shadow: 0 16px 34px rgba(12, 31, 30, .10) !important;
+    cursor: pointer;
+}
+
+main.container .consent-checkbox-card::before {
+    content: 'Required step';
+    position: absolute;
+    top: -13px;
+    left: 18px;
+    padding: .2rem .7rem;
+    border-radius: 999px;
+    background: #ffb703;
+    color: #102323;
+    font-size: .72rem;
+    font-weight: 900;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    box-shadow: 0 8px 20px rgba(255, 183, 3, .28);
+}
+
+main.container .consent-checkbox-card .form-check-input {
+    width: 2.15rem !important;
+    height: 2.15rem !important;
+    min-width: 2.15rem !important;
+    margin-top: 0 !important;
+    border: 2px solid #0a7a6c !important;
+    box-shadow: 0 8px 18px rgba(10, 122, 108, .16) !important;
+    cursor: pointer;
+}
+
+main.container .consent-checkbox-card .form-check-input:checked {
+    background-color: #0a7a6c !important;
+    border-color: #0a7a6c !important;
+}
+
+main.container .consent-checkbox-card .form-check-label {
+    cursor: pointer;
+    font-size: 1rem !important;
+    line-height: 1.55 !important;
+    color: #263033 !important;
+}
+
+main.container .consent-checkbox-card .form-check-label strong {
+    display: block;
+    margin-bottom: .18rem;
+    color: #102323;
+    font-size: 1.08rem;
+}
+
+main.container .consent-checkbox-card.border-danger {
+    border-color: #dc3545 !important;
+    background: linear-gradient(135deg, rgba(220, 53, 69, .08), #ffffff 72%) !important;
+}
+
+main.container .consent-checkbox-card.border-success {
+    border-color: #0a7a6c !important;
+}
+</style>

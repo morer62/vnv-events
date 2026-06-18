@@ -134,7 +134,7 @@
 					</svg>
 				</div>
 				<div class="flex-grow-1">
-					<h5 class="alert-heading mb-2">âœ… Contract Signed Successfully!</h5>
+					<h5 class="alert-heading mb-2"><i class="bi bi-check-circle-fill me-2"></i>Contract Signed Successfully!</h5>
 					<p class="mb-0">Your contract has been signed and is now ready for payment.</p>
 					<button type="button" class="btn btn-sm btn-outline-secondary mt-2" data-bs-dismiss="alert">Close</button>
 				</div>
@@ -151,7 +151,7 @@
 					</svg>
 				</div>
 				<div class="flex-grow-1">
-					<h5 class="alert-heading mb-2">ðŸ’š {{ trans('planner_hub.thank_you_generosity') }}</h5>
+					<h5 class="alert-heading mb-2"><i class="bi bi-heart-fill me-2"></i>{{ trans('planner_hub.thank_you_generosity') }}</h5>
 					<p class="mb-2">{{ trans('planner_hub.your_tip_amount') }} <strong>{{ currency_code|default('USD') }} {{ last_tip_payment.amount|number_format(2) }}</strong> {{ trans('planner_hub.has_been_successfully_processed') }}</p>
 					<hr>
 					<div class="d-flex gap-2 flex-wrap">
@@ -173,7 +173,7 @@
 		<div class="row mb-4">
 			<div class="col-12">
 				<div class="d-flex align-items-center justify-content-between mb-3">
-					<h1 class="h2 mb-0">ðŸ“„ {{ trans('planner_hub.your_order_details') }}</h1>
+					<h1 class="h2 mb-0"><i class="bi bi-file-earmark-text me-2"></i>{{ trans('planner_hub.your_order_details') }}</h1>
 					<span class="status-badge 
 						{% if current_status == 'INVOICE_DRAFT' %}bg-warning text-dark
 						{% elseif current_status == 'INVOICE_READY' %}bg-info text-white
@@ -182,15 +182,15 @@
 						{% elseif current_status == 'INVOICE_EXPIRED' %}bg-danger text-white
 						{% else %}bg-secondary text-white{% endif %}">
 						{% if current_status == 'INVOICE_DRAFT' %}
-							ðŸ“ {{ trans('planner_hub.signature_required') }}
+							<i class="bi bi-pencil-square me-1"></i>{{ trans('planner_hub.signature_required') }}
 						{% elseif current_status == 'INVOICE_READY' %}
-							âœï¸ {{ trans('planner_hub.signed_payment_pending') }}
+							<i class="bi bi-pen me-1"></i>{{ trans('planner_hub.signed_payment_pending') }}
 						{% elseif current_status == 'INVOICE_PARTIAL' %}
-							ðŸ’³ {{ trans('planner_hub.partially_paid') }}
+							<i class="bi bi-credit-card me-1"></i>{{ trans('planner_hub.partially_paid') }}
 						{% elseif current_status == 'INVOICE_PAID' %}
-							âœ… {{ trans('planner_hub.fully_paid') }}
+							<i class="bi bi-check-circle me-1"></i>{{ trans('planner_hub.fully_paid') }}
 						{% elseif current_status == 'INVOICE_EXPIRED' %}
-							â° {{ trans('planner_hub.expired') }}
+							<i class="bi bi-clock-history me-1"></i>{{ trans('planner_hub.expired') }}
 						{% else %}
 							{{ current_status }}
 						{% endif %}
@@ -199,7 +199,7 @@
 				{% if can_view_all_orders and all_orders_url %}
 				<div class="mb-2">
 					<a href="{{ all_orders_url }}" class="dashboard-link-btn">
-						ðŸ“‹ {{ trans('planner_hub.orders_dashboard') }}
+						<i class="bi bi-list-check me-1"></i>{{ trans('planner_hub.orders_dashboard') }}
 					</a>
 				</div>
 				{% endif %}
@@ -239,7 +239,7 @@
 					{% endif %}
 					<div class="col-md-6">
 						<div class="d-flex align-items-start">
-							<span class="badge bg-secondary me-2">ðŸ“… {{ trans('planner_hub.date_label') }}</span>
+							<span class="badge bg-secondary me-2"><i class="bi bi-calendar-event me-1"></i>{{ trans('planner_hub.date_label') }}</span>
 							<div>
 								<strong class="d-block">{{ order.event_date|date("F j, Y") }}</strong>
 								<small class="text-muted">{{ trans('planner_hub.event_date_label') }}</small>
@@ -248,7 +248,7 @@
 					</div>
 					<div class="col-md-6">
 						<div class="d-flex align-items-start">
-							<span class="badge bg-secondary me-2">ðŸ• {{ trans('planner_hub.time_label') }}</span>
+							<span class="badge bg-secondary me-2"><i class="bi bi-clock me-1"></i>{{ trans('planner_hub.time_label') }}</span>
 							<div>
 								<strong class="d-block">{{ order.start_time|date("g:i A") }} - {{ order.end_time|date("g:i A") }}</strong>
 								<small class="text-muted">{{ trans('planner_hub.event_duration') }}</small>
@@ -257,7 +257,7 @@
 					</div>
 					<div class="col-12">
 						<div class="d-flex align-items-start">
-							<span class="badge bg-secondary me-2">ðŸ“ {{ trans('planner_hub.location_label') }}</span>
+							<span class="badge bg-secondary me-2"><i class="bi bi-geo-alt me-1"></i>{{ trans('planner_hub.location_label') }}</span>
 							<div>
 								<strong class="d-block">{{ order.address }}</strong>
 								<small class="text-muted">{{ trans('planner_hub.event_venue_address') }}</small>
@@ -275,7 +275,7 @@
 			</div>
 			<div class="card-body">
 				<div class="info-note mb-3">
-					<strong>ðŸ’¡ {{ trans('planner_hub.services_note') }}</strong>
+					<strong><i class="bi bi-lightbulb me-1"></i>{{ trans('planner_hub.services_note') }}</strong>
 				</div>
 				
 				<div class="table-responsive">
@@ -318,7 +318,7 @@
 					<div class="col-md-6 offset-md-6">
 						<div class="card bg-light">
 							<div class="card-body">
-								<h6 class="card-title mb-3">ðŸ’° {{ trans('planner_hub.pricing_summary') }}</h6>
+								<h6 class="card-title mb-3"><i class="bi bi-cash-stack me-1"></i>{{ trans('planner_hub.pricing_summary') }}</h6>
 								<table class="table table-sm mb-0">
 									<tr>
 										<td>{{ trans('planner_hub.subtotal_label') }}</td>
@@ -362,12 +362,12 @@
 									<p class="mb-1"><strong>{{ trans('planner_hub.payment_schedule') }}</strong></p>
 									<p class="mb-1">{{ trans('planner_hub.first_payment_label') }} <strong>{{ currency_code|default('USD') }} {{ first_payment_amount | number_format(2) }}</strong></p>
 									<p class="mb-0">{{ trans('planner_hub.second_payment_label') }} <strong>{{ currency_code|default('USD') }} {{ second_payment_original | number_format(2) }}</strong></p>
-									<small class="text-muted d-block mt-2">ðŸ’¡ {{ trans('planner_hub.payment_schedule_note') }}</small>
+									<small class="text-muted d-block mt-2"><i class="bi bi-lightbulb me-1"></i>{{ trans('planner_hub.payment_schedule_note') }}</small>
 								</div>
 								{% else %}
 								<div class="mt-3 pt-3 border-top">
 									<p class="mb-0"><strong>{{ trans('planner_hub.full_payment_label') }}</strong> <span class="fs-5">{{ currency_code|default('USD') }} {{ total | number_format(2) }}</span></p>
-									<small class="text-muted d-block mt-2">ðŸ’¡ {{ trans('planner_hub.single_payment_note') }}</small>
+									<small class="text-muted d-block mt-2"><i class="bi bi-lightbulb me-1"></i>{{ trans('planner_hub.single_payment_note') }}</small>
 								</div>
 								{% endif %}
 							</div>
@@ -385,7 +385,7 @@
 			</div>
 			<div class="card-body">
 				<div class="info-note mb-3">
-					<strong>ðŸ’¡ {{ trans('planner_hub.suborders_note') }}</strong>
+					<strong><i class="bi bi-lightbulb me-1"></i>{{ trans('planner_hub.suborders_note') }}</strong>
 				</div>
 				<div class="table-responsive">
 					<table class="table table-hover">
@@ -438,7 +438,7 @@
 			</div>
 			<div class="card-body">
 				<div class="alert alert-info mb-4">
-					<strong>ðŸ“‹ {{ trans('planner_hub.important_review_contract') }}</strong>
+					<strong><i class="bi bi-clipboard-check me-1"></i>{{ trans('planner_hub.important_review_contract') }}</strong>
 				</div>
 
 				<div class="border rounded p-3 bg-light mb-4" style="font-size: 0.875rem;">
@@ -457,7 +457,7 @@
 						</div>
 						<small class="text-muted d-block mt-2">{{ trans('planner_hub.contract_agreeing_by_signing') }}</small>
 					</div>
-					<small class="text-muted d-block mt-2">ðŸ’¡ This is the contract that you are agreeing to by signing below.</small>
+					<small class="text-muted d-block mt-2"><i class="bi bi-lightbulb me-1"></i>This is the contract that you are agreeing to by signing below.</small>
 				</div>
 
 					<div class="row">
@@ -565,14 +565,14 @@
 					{% endif %}
 				{% elseif is_event_past %}
 					<div class="alert alert-warning mb-0">
-						<strong>âš ï¸ Event date passed.</strong> Payments are no longer available for this order.
+						<strong><i class="bi bi-exclamation-triangle me-1"></i>Event date passed.</strong> Payments are no longer available for this order.
 					</div>
 				{% elseif not isPaymentReady %}
 					<div class="alert alert-warning mb-0">
-						<strong>âš ï¸ {{ trans('planner_hub.payment_unavailable') }}</strong> {{ trans('planner_hub.payments_unavailable_contact') }}
+						<strong><i class="bi bi-exclamation-triangle me-1"></i>{{ trans('planner_hub.payment_unavailable') }}</strong> {{ trans('planner_hub.payments_unavailable_contact') }}
 						<div class="mt-2">
 							<a href="{{ base_url }}/panel/planner-hub/settings/payment-providers" class="btn btn-outline-warning btn-sm">
-								âš™ï¸ {{ trans('planner_hub.configure_payment_method') }}
+								<i class="bi bi-gear me-1"></i>{{ trans('planner_hub.configure_payment_method') }}
 							</a>
 						</div>
 					</div>
@@ -900,7 +900,7 @@
 					
 					if (submitButton && isValid) {
 						submitButton.disabled = true;
-						submitButton.innerHTML = 'â³ {{ trans('planner_hub.processing')|e('js') }}';
+						submitButton.innerHTML = '{{ trans('planner_hub.processing')|e('js') }}';
 						submitButton.style.opacity = '0.6';
 
 						window.VnvProcessingModal.show('orderAccessProcessingModal', {
@@ -921,7 +921,7 @@
 					const submitButton = acceptanceForm.querySelector('button[type="submit"]');
 					if (submitButton && !submitButton.disabled) {
 						submitButton.disabled = true;
-						submitButton.innerHTML = 'â³ {{ trans('planner_hub.processing')|e('js') }}';
+						submitButton.innerHTML = '{{ trans('planner_hub.processing')|e('js') }}';
 						submitButton.style.opacity = '0.6';
 						window.VnvProcessingModal.show('orderAccessProcessingModal', {
 							title: '{{ trans('planner_hub.saving_acceptance')|e('js') }}',
@@ -938,7 +938,7 @@
 					const submitButton = docusignForm.querySelector('button[type="submit"]');
 					if (submitButton && !submitButton.disabled) {
 						submitButton.disabled = true;
-						submitButton.innerHTML = 'â³ Redirecting to DocuSign...';
+						submitButton.innerHTML = 'Redirecting to DocuSign...';
 						submitButton.style.opacity = '0.6';
 
 						window.VnvProcessingModal.show('orderAccessProcessingModal', {
@@ -1093,4 +1093,6 @@
 		{% endif %}
 	</script>
 {% endblock %}
+
+
 
