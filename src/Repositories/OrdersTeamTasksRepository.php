@@ -78,6 +78,7 @@ class OrdersTeamTasksRepository extends BaseRepository
                    osn.start_time AS task_activity_start_time,
                    osn.execution_time AS task_activity_end_time,
                    osn.breakdown_time AS task_breakdown_time,
+                   s.name AS assigned_service_name,
                    TRIM(CONCAT(COALESCE(c.name, ''), ' ', COALESCE(c.lastname, ''))) AS contact_name,
                    c.email AS contact_email
             FROM {$this->table} t
@@ -85,6 +86,7 @@ class OrdersTeamTasksRepository extends BaseRepository
             LEFT JOIN orders_services_notes osn ON osn.id_order = o.id
                 AND osn.id_service = t.id_service
                 AND (osn.id_suborder IS NULL OR osn.id_suborder = 0)
+            LEFT JOIN orders_services s ON s.id = t.id_service
             LEFT JOIN users c ON c.id = o.id_client
             WHERE t.id_user = :user AND t.id_owner = :owner
             ORDER BY o.event_date ASC, COALESCE(osn.install_time, o.start_time) ASC, t.is_done ASC, t.created_at DESC, t.id DESC
