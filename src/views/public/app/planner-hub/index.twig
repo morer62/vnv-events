@@ -6,6 +6,7 @@
 {% set skip_base_fontawesome = true %}
 {% set skip_base_inter_font = true %}
 {% set skip_base_app_css = true %}
+{% set skip_base_bootstrap_css = true %}
 {% set skip_public_gtm_initial = true %}
 {% set skip_public_bootstrap_js = true %}
 
@@ -16,11 +17,8 @@
 {% set show_whatsapp = true %}
 
 {% block styles %}
-<link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" onload="this.onload=null;this.rel='stylesheet'">
-<noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"></noscript>
 <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&family=Playfair+Display:wght@700;900&display=swap" onload="this.onload=null;this.rel='stylesheet'">
 <noscript><link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet"></noscript>
 
@@ -57,6 +55,122 @@ html, body {
 
 *, *::before, *::after {
     box-sizing: border-box;
+}
+
+.container {
+    width: 100%;
+    max-width: 1140px;
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: 15px;
+    padding-right: 15px;
+}
+
+.container-fluid {
+    width: 100%;
+    padding-left: 15px;
+    padding-right: 15px;
+}
+
+.row {
+    display: flex;
+    flex-wrap: wrap;
+    margin-left: -12px;
+    margin-right: -12px;
+}
+
+.row > * {
+    width: 100%;
+    max-width: 100%;
+    padding-left: 12px;
+    padding-right: 12px;
+}
+
+.g-3 { row-gap: 1rem; }
+.g-4 { row-gap: 1.5rem; }
+.g-5 { row-gap: 3rem; }
+.g-3 > *, .g-4 > *, .g-5 > * { margin-bottom: 0; }
+
+.col-12 { flex: 0 0 auto; width: 100%; }
+.col-6 { flex: 0 0 auto; width: 50%; }
+
+.d-block { display: block; }
+.d-flex { display: flex; }
+.inline-flex { display: inline-flex; }
+.flex-wrap { flex-wrap: wrap; }
+.flex-column { flex-direction: column; }
+.align-items-center { align-items: center; }
+.align-items-start { align-items: flex-start; }
+.justify-content-center { justify-content: center; }
+.justify-content-end { justify-content: flex-end; }
+.gap-3 { gap: 1rem; }
+.gap-4 { gap: 1.5rem; }
+.gap-5 { gap: 3rem; }
+.position-relative { position: relative; }
+.text-center { text-align: center; }
+.text-lg-end { text-align: inherit; }
+.text-white { color: #fff !important; }
+.text-muted { color: #6c757d !important; }
+.fw-bold { font-weight: 700; }
+.fw-black { font-weight: 900; }
+.small { font-size: .875rem; }
+.opacity-50 { opacity: .5; }
+.opacity-75 { opacity: .75; }
+.m-0 { margin: 0 !important; }
+.mb-1 { margin-bottom: .25rem !important; }
+.mb-2 { margin-bottom: .5rem !important; }
+.mb-3 { margin-bottom: 1rem !important; }
+.mb-4 { margin-bottom: 1.5rem !important; }
+.mb-5 { margin-bottom: 3rem !important; }
+.mt-5 { margin-top: 3rem !important; }
+.pb-5 { padding-bottom: 3rem !important; }
+.ms-2 { margin-left: .5rem !important; }
+.fs-3 { font-size: 1.75rem !important; }
+.fs-4 { font-size: 1.5rem !important; }
+.fs-5 { font-size: 1.25rem !important; }
+.display-2 { font-size: clamp(3rem, 6vw, 5.5rem); line-height: 1.04; }
+.display-3 { font-size: clamp(2.5rem, 5vw, 4.5rem); line-height: 1.05; }
+.ratio {
+    position: relative;
+    width: 100%;
+}
+.ratio::before {
+    content: "";
+    display: block;
+}
+.ratio-16x9::before { padding-top: 56.25%; }
+.ratio > * {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+}
+
+@media (min-width: 768px) {
+    .col-sm-6 { flex: 0 0 auto; width: 50%; }
+    .col-md-4 { flex: 0 0 auto; width: 33.333333%; }
+    .col-md-6 { flex: 0 0 auto; width: 50%; }
+}
+
+@media (min-width: 992px) {
+    .container { max-width: 960px; }
+    .col-lg-3 { flex: 0 0 auto; width: 25%; }
+    .col-lg-2 { flex: 0 0 auto; width: 16.666667%; }
+    .col-lg-4 { flex: 0 0 auto; width: 33.333333%; }
+    .col-lg-5 { flex: 0 0 auto; width: 41.666667%; }
+    .col-lg-6 { flex: 0 0 auto; width: 50%; }
+    .col-lg-7 { flex: 0 0 auto; width: 58.333333%; }
+    .mb-lg-0 { margin-bottom: 0 !important; }
+    .mt-lg-0 { margin-top: 0 !important; }
+    .justify-content-lg-start { justify-content: flex-start; }
+    .justify-content-lg-end { justify-content: flex-end; }
+    .text-lg-start { text-align: left; }
+    .text-lg-end { text-align: right; }
+    .flex-lg-row { flex-direction: row; }
+}
+
+@media (min-width: 1200px) {
+    .container { max-width: 1140px; }
 }
 
 body {
@@ -2115,23 +2229,22 @@ h1, h2, h3, h4, .luxury-font {
 
 {% block scripts %}
 <script>
-document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-    anchor.addEventListener('click', function (e) {
-        const target = this.getAttribute('href');
-        if (!target || target === '#') return;
-
-        const el = document.querySelector(target);
-        if (!el) return;
-
-        e.preventDefault();
-        el.scrollIntoView({
-            behavior: 'smooth',
-            block: 'start'
-        });
-    });
-});
-
 (function () {
+    const loadFontAwesome = () => {
+        if (document.querySelector('link[data-vnv-fa]')) return;
+        const link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.href = 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css';
+        link.dataset.vnvFa = 'true';
+        document.head.appendChild(link);
+    };
+
+    if ('requestIdleCallback' in window) {
+        requestIdleCallback(loadFontAwesome, { timeout: 2500 });
+    } else {
+        window.addEventListener('load', () => window.setTimeout(loadFontAwesome, 1200), { once: true });
+    }
+
     const loadVideo = (video) => {
         if (!video || video.dataset.vnvLoaded === '1') return;
         video.querySelectorAll('source[data-src]').forEach(source => {
