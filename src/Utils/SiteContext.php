@@ -11,14 +11,14 @@ class SiteContext
 
     public static function siteKey(): string
     {
-        $siteKey = trim((string)($_ENV['SITE_KEY'] ?? $_ENV['AVOMEAL_SITE_KEY'] ?? ''));
+        $siteKey = trim((string)($_ENV['SITE_KEY'] ?? ''));
 
         return $siteKey !== '' ? strtolower($siteKey) : self::DEFAULT_SITE_KEY;
     }
 
     public static function siteName(): string
     {
-        $siteName = trim((string)($_ENV['SITE_NAME'] ?? $_ENV['AVOMEAL_BRAND_NAME'] ?? ''));
+        $siteName = trim((string)($_ENV['SITE_NAME'] ?? ''));
 
         return $siteName !== '' ? $siteName : self::DEFAULT_SITE_NAME;
     }
