@@ -6,6 +6,8 @@
 {% set skip_base_fontawesome = true %}
 {% set skip_base_inter_font = true %}
 {% set skip_base_app_css = true %}
+{% set skip_public_gtm_initial = true %}
+{% set skip_public_bootstrap_js = true %}
 
 {#
     VNV EVENTS - CLEANED / MOBILE FIXED VERSION
@@ -70,6 +72,15 @@ body {
     background:
         radial-gradient(circle at 78% 24%, rgba(94,198,196,.22), transparent 34%),
         linear-gradient(135deg, #07100f 0%, #102a27 48%, #050706 100%);
+}
+
+.vnv-media-mini-label {
+    color: #0f766e !important;
+}
+
+.vnv-core-feature-title {
+    font-size: 1rem;
+    line-height: 1.25;
 }
 
 section,
@@ -858,7 +869,7 @@ h1, h2, h3, h4, .luxury-font {
     font-weight:800;
     text-transform:uppercase;
     letter-spacing:1.5px;
-    color:var(--vnv-primary);
+    color:#0f766e;
     margin-bottom:8px;
 }
 
@@ -1529,28 +1540,28 @@ h1, h2, h3, h4, .luxury-font {
         <div class="row g-4 justify-content-center">
             <div class="col-12 col-lg-3">
                 <div class="metric-item">
-                    <h3 class="metric-val">5+</h3>
+                    <div class="metric-val" aria-label="More than five years of experience">5+</div>
                     <p class="metric-label">YEARS OF EXPERIENCE</p>
                 </div>
             </div>
 
             <div class="col-12 col-lg-3">
                 <div class="metric-item">
-                    <h3 class="metric-val">200+</h3>
+                    <div class="metric-val" aria-label="More than two hundred events per year">200+</div>
                     <p class="metric-label">EVENTS PER YEAR</p>
                 </div>
             </div>
 
             <div class="col-12 col-lg-3">
                 <div class="metric-item">
-                    <h3 class="metric-val">FULL</h3>
+                    <div class="metric-val" aria-label="Full service support">FULL</div>
                     <p class="metric-label">SERVICE SUPPORT</p>
                 </div>
             </div>
 
             <div class="col-12 col-lg-3">
                 <div class="metric-logo-block">
-                    <img class="metric-logo-vnv" src="{{ asset_for('assets/images/planner-hub-logo-positive.png') }}" alt="VNV Events">
+                    <img class="metric-logo-vnv" src="{{ asset_for('assets/images/vnv-logo.webp') }}" alt="VNV Events" width="210" height="134" loading="lazy" decoding="async">
                 </div>
             </div>
         </div>
@@ -1817,11 +1828,11 @@ h1, h2, h3, h4, .luxury-font {
             <div class="col-lg-6 mb-5 mb-lg-0 text-center">
                 <div class="choose-visual-composition">
                     <div class="choose-main-frame">
-                        <img src="{{ asset_for('assets/images/choose-us-team.jpg') }}" alt="VNV planning team" class="choose-img-main">
+                        <img src="{{ asset_for('assets/images/choose-us-team.jpg') }}" alt="VNV planning team" class="choose-img-main" width="720" height="900" loading="lazy" decoding="async">
                     </div>
 
                     <div class="choose-secondary-frame">
-                        <img src="{{ asset_for('assets/images/choose-us-secondary.jpg') }}" alt="VNV guest experience" class="choose-img-secondary">
+                        <img src="{{ asset_for('assets/images/choose-us-secondary.jpg') }}" alt="VNV guest experience" class="choose-img-secondary" width="560" height="420" loading="lazy" decoding="async">
                     </div>
                 </div>
             </div>
@@ -1833,7 +1844,7 @@ h1, h2, h3, h4, .luxury-font {
                 <div class="mb-5 d-flex gap-4">
                     <i class="fa-solid fa-circle-check check-vnv"></i>
                     <div>
-                        <h4 class="fw-bold mb-2">Everything is connected under one vision.</h4>
+                        <h3 class="fw-bold mb-2">Everything is connected under one vision.</h3>
                         <p class="text-muted">Planning, production, hospitality and media work together so your event feels cohesive, elevated and easier to manage.</p>
                     </div>
                 </div>
@@ -1841,7 +1852,7 @@ h1, h2, h3, h4, .luxury-font {
                 <div class="mb-5 d-flex gap-4">
                     <i class="fa-solid fa-circle-check check-vnv"></i>
                     <div>
-                        <h4 class="fw-bold mb-2">You get high-touch service with modern structure.</h4>
+                        <h3 class="fw-bold mb-2">You get high-touch service with modern structure.</h3>
                         <p class="text-muted">We combine personalized guidance with organized workflows, clear communication and a more polished client journey.</p>
                     </div>
                 </div>
@@ -1849,7 +1860,7 @@ h1, h2, h3, h4, .luxury-font {
                 <div class="mb-5 d-flex gap-4">
                     <i class="fa-solid fa-circle-check check-vnv"></i>
                     <div>
-                        <h4 class="fw-bold mb-2">Best relation between price and quality.</h4>
+                        <h3 class="fw-bold mb-2">Best relation between price and quality.</h3>
                         <p class="text-muted">Our experts will focus on providing the best list of prices in the market while keeping the highest quality standards.</p>
                     </div>
                 </div>
@@ -1874,7 +1885,7 @@ h1, h2, h3, h4, .luxury-font {
                             <div class="d-flex gap-3">
                                 <i class="fa-solid fa-shield-halved text-vnv fs-3"></i>
                                 <div>
-                                    <h6 class="text-white mb-1">Secure Payments</h6>
+                                    <h3 class="text-white mb-1 vnv-core-feature-title">Secure Payments</h3>
                                     <p class="small opacity-50 mb-0">A cleaner and more transparent process.</p>
                                 </div>
                             </div>
@@ -1884,7 +1895,7 @@ h1, h2, h3, h4, .luxury-font {
                             <div class="d-flex gap-3">
                                 <i class="fa-solid fa-clock-rotate-left text-vnv fs-3"></i>
                                 <div>
-                                    <h6 class="text-white mb-1">Live Updates</h6>
+                                    <h3 class="text-white mb-1 vnv-core-feature-title">Live Updates</h3>
                                     <p class="small opacity-50 mb-0">A better overview of your event journey.</p>
                                 </div>
                             </div>
@@ -1904,11 +1915,11 @@ h1, h2, h3, h4, .luxury-font {
 
                         <div class="vnv-app-download-badges">
                             <a href="https://play.google.com/store/apps/details?id=com.vnvevents.eplannerhub" target="_blank" rel="noopener">
-                                <img src="{{ asset_for('assets/images/google-play-store-badge.png') }}" alt="Get it on Google Play">
+                                <img src="{{ asset_for('assets/images/google-play-store-badge.png') }}" alt="Get it on Google Play" width="160" height="48" loading="lazy" decoding="async">
                             </a>
 
                             <a href="https://apps.apple.com/us/app/vnv-events/id6747983836" target="_blank" rel="noopener">
-                                <img src="{{ asset_for('assets/images/download-on-the-app-store-apple-logo.png') }}" alt="Download on the App Store">
+                                <img src="{{ asset_for('assets/images/download-on-the-app-store-apple-logo.png') }}" alt="Download on the App Store" width="160" height="48" loading="lazy" decoding="async">
                             </a>
                         </div>
                     </div>
@@ -1938,7 +1949,7 @@ h1, h2, h3, h4, .luxury-font {
                         <i class="fa-solid fa-headphones"></i>
                     </div>
                     <div>
-                        <h4 class="mb-2">Music for the mood. Conversations for the planning.</h4>
+                        <h3 class="mb-2">Music for the mood. Conversations for the planning.</h3>
                         <p class="m-0">
                             The sessions are built to set the tone. The podcast is built to share ideas, guidance and creative direction behind memorable events.
                         </p>
@@ -2001,6 +2012,7 @@ h1, h2, h3, h4, .luxury-font {
                         <div class="vnv-audio-frame">
                             <iframe
                                 data-src="https://widget.spreaker.com/player?show_id=5869072&theme=light&playlist=show&playlist-continuous=true&chapters-image=true"
+                                title="VNV Events podcast player"
                                 width="100%"
                                 height="420"
                                 loading="lazy"
@@ -2029,7 +2041,7 @@ h1, h2, h3, h4, .luxury-font {
                     Get inspired by what we create across South Florida.
                 </p>
 
-                <a href="https://www.instagram.com/vnv_events/" target="_blank" class="vnv-btn btn-outline-vnv">
+                <a href="https://www.instagram.com/vnv_events/" target="_blank" rel="noopener" class="vnv-btn btn-outline-vnv">
                     View Instagram Portfolio
                 </a>
             </div>
@@ -2051,7 +2063,7 @@ h1, h2, h3, h4, .luxury-font {
                     </div>
 
                     <div class="vnv-studio-actions">
-                        <a href="https://maps.google.com/?q=10258+NW+47th+St+Sunrise+FL+33351" target="_blank" class="vnv-btn btn-ghost-white">
+                        <a href="https://maps.google.com/?q=10258+NW+47th+St+Sunrise+FL+33351" target="_blank" rel="noopener" class="vnv-btn btn-ghost-white">
                             Get Directions
                         </a>
 
@@ -2102,81 +2114,7 @@ h1, h2, h3, h4, .luxury-font {
 {% endblock %}
 
 {% block scripts %}
-<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
-
 <script>
-if (typeof gsap !== 'undefined' && typeof ScrollTrigger !== 'undefined') {
-    const isMobile = window.innerWidth <= 767;
-
-    if (!isMobile) {
-        gsap.registerPlugin(ScrollTrigger);
-
-        gsap.utils.toArray('.vnv-service-grid-card').forEach(card => {
-            gsap.from(card, {
-                scrollTrigger: {
-                    trigger: card,
-                    start: "top 85%"
-                },
-                y: 60,
-                opacity: 0,
-                duration: 1.1,
-                ease: "power4.out"
-            });
-        });
-
-        gsap.from(".choose-visual-composition", {
-            scrollTrigger: {
-                trigger: ".choose-visual-composition",
-                start: "top 80%"
-            },
-            scale: 0.8,
-            opacity: 0,
-            duration: 1.4,
-            ease: "expo.out"
-        });
-
-        gsap.from(".plan-vnv-card", {
-            scrollTrigger: {
-                trigger: ".plan-vnv-card",
-                start: "top 85%"
-            },
-            y: 40,
-            opacity: 0,
-            duration: 1.1,
-            ease: "power3.out"
-        });
-
-        gsap.utils.toArray('.ig-modern-card').forEach((card, index) => {
-            gsap.from(card, {
-                scrollTrigger: {
-                    trigger: card,
-                    start: "top 90%"
-                },
-                y: 40,
-                opacity: 0,
-                duration: 0.9,
-                delay: index * 0.05,
-                ease: "power3.out"
-            });
-        });
-
-        const servicesBgVideo = document.querySelector('.services-bg-video');
-        if (servicesBgVideo) {
-            gsap.to('.services-bg-video', {
-                yPercent: 12,
-                ease: 'none',
-                scrollTrigger: {
-                    trigger: '#services',
-                    start: 'top bottom',
-                    end: 'bottom top',
-                    scrub: true
-                }
-            });
-        }
-    }
-}
-
 document.querySelectorAll('a[href^="#"]').forEach(anchor => {
     anchor.addEventListener('click', function (e) {
         const target = this.getAttribute('href');

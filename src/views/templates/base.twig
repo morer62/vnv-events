@@ -15,7 +15,26 @@
 
 
 <!-- Google Tag Manager -->
-{% if defer_public_third_party|default(false) %}
+{% if skip_public_gtm_initial|default(false) %}
+<script>
+window.dataLayer = window.dataLayer || [];
+(function () {
+    let loaded = false;
+    function loadGtmOnce() {
+        if (loaded) return;
+        loaded = true;
+        (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+        new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+        j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+        'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+        })(window,document,'script','dataLayer','GTM-T9SFK2QR');
+    }
+    ['pointerdown', 'keydown', 'touchstart'].forEach(function (eventName) {
+        window.addEventListener(eventName, loadGtmOnce, { once: true, passive: true });
+    });
+})();
+</script>
+{% elseif defer_public_third_party|default(false) %}
 <script>
 window.dataLayer = window.dataLayer || [];
 window.addEventListener('load', function () {
@@ -617,10 +636,12 @@ body::before{
 
  
 
-<!-- Google Tag Manager (noscript) -->
-<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-T9SFK2QR"
-height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
-<!-- End Google Tag Manager (noscript) -->
+{% if not skip_public_gtm_initial|default(false) %}
+    <!-- Google Tag Manager (noscript) -->
+    <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-T9SFK2QR"
+    height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+    <!-- End Google Tag Manager (noscript) -->
+{% endif %}
 
     {% block body %}
     {% endblock %}
@@ -629,8 +650,9 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         <a href="https://wa.me/13053761210"
         class="floating-whatsapp"
         target="_blank"
-        rel="noopener noreferrer">
-            <i class="fa-brands fa-whatsapp"></i>
+        rel="noopener noreferrer"
+        aria-label="Chat with VNV Events on WhatsApp">
+            <i class="fa-brands fa-whatsapp" aria-hidden="true"></i>
             <span>Chat with us</span>
         </a>
     {% endif %}
@@ -644,7 +666,9 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     {% endif %}
 
     <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" defer></script>
+    {% if not skip_public_bootstrap_js|default(false) %}
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" defer></script>
+    {% endif %}
     <!-- Stripe JS -->
     {% if not skip_public_stripe|default(false) %}
         <script src="https://js.stripe.com/v3/" defer></script>

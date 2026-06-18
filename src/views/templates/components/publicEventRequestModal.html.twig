@@ -878,11 +878,6 @@ body.vnv-request-lock{
 }
 </style>
 
-{# NUEVO: script de recaptcha, sin tocar el resto #}
-{% if env.RECAPTCHA_SITE_KEY is defined and env.RECAPTCHA_SITE_KEY %}
-<script src="https://www.google.com/recaptcha/api.js?render={{ env.RECAPTCHA_SITE_KEY }}"></script>
-{% endif %}
-
 <script>
 (function () {
     const modal = document.getElementById('vnvRequestModal');
@@ -1236,20 +1231,47 @@ body.vnv-request-lock{
                 return;
             }
 
-            if (!window.grecaptcha || typeof window.grecaptcha.ready !== 'function') {
-                reject(new Error('grecaptcha_not_available'));
+            function executeRecaptcha() {
+                if (!window.grecaptcha || typeof window.grecaptcha.ready !== 'function') {
+                    reject(new Error('grecaptcha_not_available'));
+                    return;
+                }
+
+                window.grecaptcha.ready(function() {
+                    window.grecaptcha.execute(siteKey, { action: 'public_event_request' })
+                        .then(function(token) {
+                            resolve(token || '');
+                        })
+                        .catch(function(error) {
+                            reject(error);
+                        });
+                });
+            }
+
+            if (window.grecaptcha && typeof window.grecaptcha.ready === 'function') {
+                executeRecaptcha();
                 return;
             }
 
-            window.grecaptcha.ready(function() {
-                window.grecaptcha.execute(siteKey, { action: 'public_event_request' })
-                    .then(function(token) {
-                        resolve(token || '');
-                    })
-                    .catch(function(error) {
-                        reject(error);
-                    });
-            });
+            const existingScript = document.querySelector('script[data-vnv-recaptcha]');
+            if (existingScript) {
+                existingScript.addEventListener('load', executeRecaptcha, { once: true });
+                existingScript.addEventListener('error', function () {
+                    reject(new Error('grecaptcha_load_failed'));
+                }, { once: true });
+                return;
+            }
+
+            const script = document.createElement('script');
+            script.src = 'https://www.google.com/recaptcha/api.js?render=' + encodeURIComponent(siteKey);
+            script.async = true;
+            script.defer = true;
+            script.setAttribute('data-vnv-recaptcha', '1');
+            script.addEventListener('load', executeRecaptcha, { once: true });
+            script.addEventListener('error', function () {
+                reject(new Error('grecaptcha_load_failed'));
+            }, { once: true });
+            document.head.appendChild(script);
         });
     }
 
