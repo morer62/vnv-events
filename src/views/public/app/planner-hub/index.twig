@@ -16,12 +16,11 @@
 
 {% set show_whatsapp = true %}
 
-{% block styles %}
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&family=Playfair+Display:wght@700;900&display=swap" onload="this.onload=null;this.rel='stylesheet'">
-<noscript><link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet"></noscript>
+{% block canonical %}https://vnvevents.com/{% endblock %}
+{% block meta_description %}VNV Events is a full-service luxury event planning, catering, production, entertainment and event rental studio serving Miami, Broward, Palm Beach and South Florida.{% endblock %}
+{% block meta_keywords %}VNV Events, South Florida event planning, Miami event planner, Broward event planner, catering South Florida, wedding planning, corporate events, event rentals, DJ services, photo booth, event production{% endblock %}
 
+{% block styles %}
 <style>
 :root {
     --vnv-primary: #5EC6C4;
@@ -146,6 +145,51 @@ html, body {
     height: 100%;
 }
 
+.fa-solid,
+.fa-regular,
+.fa-brands {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-family: inherit;
+    font-style: normal;
+    font-weight: 900;
+    line-height: 1;
+}
+
+.fa-calendar-check::before { content: "✓"; }
+.fa-utensils::before { content: "◈"; }
+.fa-seedling::before { content: "✦"; }
+.fa-music::before { content: "♪"; }
+.fa-camera-retro::before { content: "◉"; }
+.fa-box-open::before { content: "□"; }
+.fa-gears::before { content: "⚙"; }
+.fa-user-group::before,
+.fa-people-group::before { content: "◎"; }
+.fa-briefcase::before { content: "▣"; }
+.fa-sparkles::before { content: "✦"; }
+.fa-martini-glass-citrus::before { content: "◌"; }
+.fa-wallet::before { content: "$"; }
+.fa-cloud::before { content: "☁"; }
+.fa-volume-high::before { content: "▸"; }
+.fa-cheese::before { content: "◍"; }
+.fa-arrow-right::before { content: "→"; }
+.fa-circle-check::before { content: "✓"; }
+.fa-shield-halved::before { content: "◆"; }
+.fa-clock-rotate-left::before,
+.fa-clock::before { content: "◷"; }
+.fa-headphones::before { content: "♫"; }
+.fa-location-dot::before { content: "⌖"; }
+.fa-calendar-days::before { content: "▦"; }
+.fa-xmark::before { content: "×"; }
+.fa-instagram::before { content: "IG"; font-size: .68em; letter-spacing: .04em; }
+.fa-youtube::before { content: "YT"; font-size: .68em; letter-spacing: .04em; }
+.fa-facebook-f::before { content: "FB"; font-size: .68em; letter-spacing: .04em; }
+.fa-tiktok::before { content: "TT"; font-size: .68em; letter-spacing: .04em; }
+.fa-yelp::before { content: "YP"; font-size: .68em; letter-spacing: .04em; }
+.fa-linkedin-in::before { content: "IN"; font-size: .68em; letter-spacing: .04em; }
+.fa-pinterest-p::before { content: "PI"; font-size: .68em; letter-spacing: .04em; }
+
 @media (min-width: 768px) {
     .col-sm-6 { flex: 0 0 auto; width: 50%; }
     .col-md-4 { flex: 0 0 auto; width: 33.333333%; }
@@ -176,7 +220,7 @@ html, body {
 body {
     background-color: var(--vnv-dark-deep);
     color: var(--vnv-text-light);
-    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-family: "Trebuchet MS", "Segoe UI", sans-serif;
     line-height: 1.8;
     -webkit-font-smoothing: antialiased;
     overflow-x: hidden;
@@ -216,7 +260,7 @@ section,
 }
 
 h1, h2, h3, h4, .luxury-font {
-    font-family: 'Playfair Display', serif;
+    font-family: Georgia, "Times New Roman", serif;
 }
 
 .text-gold {
@@ -289,6 +333,18 @@ h1, h2, h3, h4, .luxury-font {
 .section-vnv {
     padding: 160px 0;
     position: relative;
+}
+
+.metric-strip-vnv,
+.section-services-vnv,
+.section-tools-bento,
+.section-light,
+.section-ophyra-vnv,
+.section-podcast-vnv,
+.section-instagram-vnv,
+.section-plan-vnv {
+    content-visibility: auto;
+    contain-intrinsic-size: 900px;
 }
 
 .section-light {
@@ -2230,21 +2286,6 @@ h1, h2, h3, h4, .luxury-font {
 {% block scripts %}
 <script>
 (function () {
-    const loadFontAwesome = () => {
-        if (document.querySelector('link[data-vnv-fa]')) return;
-        const link = document.createElement('link');
-        link.rel = 'stylesheet';
-        link.href = 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css';
-        link.dataset.vnvFa = 'true';
-        document.head.appendChild(link);
-    };
-
-    if ('requestIdleCallback' in window) {
-        requestIdleCallback(loadFontAwesome, { timeout: 2500 });
-    } else {
-        window.addEventListener('load', () => window.setTimeout(loadFontAwesome, 1200), { once: true });
-    }
-
     const loadVideo = (video) => {
         if (!video || video.dataset.vnvLoaded === '1') return;
         video.querySelectorAll('source[data-src]').forEach(source => {
