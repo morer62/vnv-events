@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 use App\Services\LoginService;
 use App\Repositories\PayrollTimeLogsRepository;
@@ -34,13 +34,13 @@ $router->get(function () use ($repo, $user): string {
     $userInstitutions = [];
     $hasMultipleInstitutions = false;
     
-    // Validar que usuarios de nivel 4 tengan al menos una instituciÃ³n asociada
+    // Validar que usuarios de nivel 4 tengan al menos una instituciÃƒÂ³n asociada
     if ($isLevel4) {
         $workspaceContextService->getTeamContext($user);
         $userInstitutions = $userInstitutionService->getUserAvailableInstitutions($user->getId());
         
         if (empty($userInstitutions)) {
-            MessageUtil::setMessage("âš ï¸ You need to be associated with a company to use the clock. Please contact your administrator to be assigned to a company.");
+            MessageUtil::setMessage("Ã¢Å¡Â Ã¯Â¸Â You need to be associated with a company to use the clock. Please contact your administrator to be assigned to a company.");
             LocationUtils::redirectInternal("panel/home");
             exit;
         }
@@ -85,9 +85,9 @@ $router->get(function () use ($repo, $user): string {
     } catch (Exception $e) {
     }
 
-    // Para nivel 4, debe tener una instituciÃ³n vÃ¡lida
+    // Para nivel 4, debe tener una instituciÃƒÂ³n vÃƒÂ¡lida
     if ($isLevel4 && !$currentInstitution) {
-        MessageUtil::setMessage("âš ï¸ You need to be associated with a company to use the clock. Please contact your administrator to be assigned to a company.");
+        MessageUtil::setMessage("Ã¢Å¡Â Ã¯Â¸Â You need to be associated with a company to use the clock. Please contact your administrator to be assigned to a company.");
         LocationUtils::redirectInternal("panel/home");
         exit;
     }
@@ -96,7 +96,7 @@ $router->get(function () use ($repo, $user): string {
 
     // Validar que currentInstitutionOwner no sea null para nivel 4
     if ($isLevel4 && !$currentInstitutionOwner) {
-        MessageUtil::setMessage("âš ï¸ Unable to determine company owner. Please contact your administrator.");
+        MessageUtil::setMessage("Ã¢Å¡Â Ã¯Â¸Â Unable to determine company owner. Please contact your administrator.");
         LocationUtils::redirectInternal("panel/home");
         exit;
     }
@@ -137,7 +137,7 @@ $router->get(function () use ($repo, $user): string {
                 $taskTitle = trim((string)($taskRow->title ?? $taskRow->name ?? $taskRow->task_title ?? $taskRow->work_type ?? ''));
                 $eventsByOrder[$orderId]['tasks'][] = [
                     'id' => (int)($taskRow->id ?? 0),
-                    'title' => $taskTitle !== '' ? $taskTitle : TranslationService::trans('planner_hub.clock_assignments_task'),
+                    'title' => $taskTitle !== '' ? $taskTitle : 'Task',
                     'start_time' => $taskRow->start_time ?? $taskRow->order_start_time ?? null,
                     'end_time' => $taskRow->end_time ?? $taskRow->order_end_time ?? null,
                     'notes' => $taskRow->notes ?? $taskRow->note ?? $taskRow->instructions ?? '',
@@ -199,7 +199,7 @@ $router->post(callback: function () use ($repo, $user): void {
     $userInstitutionService = new UserInstitutionService();
     $institutionRepo = new InstitutionProfileRepository();
     
-    // Para nivel 4, obtener la instituciÃ³n correcta
+    // Para nivel 4, obtener la instituciÃƒÂ³n correcta
     $currentInstitutionOwner = null;
     $isLevel4 = $user->getLevel() == 4;
     
@@ -213,7 +213,7 @@ $router->post(callback: function () use ($repo, $user): void {
             }
         }
         
-        // Si no hay instituciÃ³n en sesiÃ³n, obtener la primaria
+        // Si no hay instituciÃƒÂ³n en sesiÃƒÂ³n, obtener la primaria
         if (!$currentInstitutionOwner) {
             $primaryInstitution = $userInstitutionService->getUserPrimaryInstitution($user->getId());
             if ($primaryInstitution) {
@@ -225,9 +225,9 @@ $router->post(callback: function () use ($repo, $user): void {
             }
         }
         
-        // Validar que tenga instituciÃ³n antes de continuar
+        // Validar que tenga instituciÃƒÂ³n antes de continuar
         if (!$currentInstitutionOwner) {
-            MessageUtil::setMessage("âš ï¸ You need to be associated with a company to use the clock. Please contact your administrator to be assigned to a company.");
+            MessageUtil::setMessage("Ã¢Å¡Â Ã¯Â¸Â You need to be associated with a company to use the clock. Please contact your administrator to be assigned to a company.");
             LocationUtils::redirectInternal("panel/home");
             exit;
         }
@@ -245,7 +245,7 @@ $router->post(callback: function () use ($repo, $user): void {
 
         $contractService = new TeamMemberContractService();
         if (!$contractService->isClockInAllowed($user->getId(), $currentInstitutionOwner)) {
-            MessageUtil::setMessage(TranslationService::trans('planner_hub.team_contract_clock_blocked'), 'Contract required', 'warning');
+            MessageUtil::setMessage('You need a signed or approved contract before using the clock.', 'Contract required', 'warning');
             LocationUtils::reload();
         }
 
@@ -263,7 +263,7 @@ $router->post(callback: function () use ($repo, $user): void {
             );
         } catch (Throwable $e) {
             error_log('[Level4 Clock] Clock-in failed: ' . $e->getMessage());
-            MessageUtil::setMessage(TranslationService::trans('planner_hub.clock_start_failed'), 'Error', 'error');
+            MessageUtil::setMessage('Unable to start the clock. Please try again.', 'Error', 'error');
             LocationUtils::reload();
         }
 
@@ -298,7 +298,7 @@ $router->post(callback: function () use ($repo, $user): void {
             );
         } catch (Throwable $e) {
             error_log('[Level4 Clock] Clock-out failed: ' . $e->getMessage());
-            MessageUtil::setMessage(TranslationService::trans('planner_hub.clock_stop_failed'), 'Error', 'error');
+            MessageUtil::setMessage('Unable to stop the clock. Please try again.', 'Error', 'error');
             LocationUtils::reload();
         }
 
@@ -324,7 +324,8 @@ try {
     $router->run();
 } catch (Throwable $e) {
     error_log('[Level4 Clock] Unhandled route failure: ' . $e->getMessage());
-    MessageUtil::setMessage(TranslationService::trans('planner_hub.clock_action_failed'), 'Error', 'error');
+    MessageUtil::setMessage('Clock action failed. Please try again.', 'Error', 'error');
     LocationUtils::redirectInternal("panel/home");
 }
+
 

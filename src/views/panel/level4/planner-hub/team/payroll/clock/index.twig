@@ -1,4 +1,4 @@
-{% extends 'templates/base.admin.twig' %}
+﻿{% extends 'templates/base.admin.twig' %}
 {% import 'templates/macros.twig' as macros %}
 
 {% block style %}
@@ -693,10 +693,10 @@
   <section class="clock-hero mb-4">
     <div class="clock-eyebrow">
       <i data-feather="clock"></i>
-      {{ trans('planner_hub.my_clock') }}
+      My Clock
     </div>
-    <h1>{{ activeLog ? trans('planner_hub.session_active') : trans('planner_hub.start_clock') }}</h1>
-    <p>{{ activeLog ? trans('planner_hub.session_started_at') ~ ' ' ~ activeLog.start_time : trans('planner_hub.no_active_work_session') }}</p>
+    <h1>{{ activeLog ? 'Session Active' : 'Start Clock' }}</h1>
+    <p>{{ activeLog ? 'Session started at ' ~ activeLog.start_time : 'No active work session' }}</p>
   </section>
 
   {{ macros.breadcrumb2() }}
@@ -712,21 +712,21 @@
           <h2 class="h4 fw-bold mb-1">{{ currentInstitution.company_name }}</h2>
           <div class="clock-meta">
             {% if currentInstitutionRole == 'owner' %}
-              <span class="clock-pill"><i data-feather="shield"></i> {{ trans('planner_hub.clock_owner') }}</span>
+              <span class="clock-pill"><i data-feather="shield"></i> Owner</span>
             {% elseif roleName %}
               <span class="clock-pill"><i data-feather="user-check"></i> {{ roleName }}</span>
             {% else %}
-              <span class="clock-pill"><i data-feather="user"></i> {{ trans('planner_hub.clock_no_role') }}</span>
+              <span class="clock-pill"><i data-feather="user"></i> No role assigned</span>
             {% endif %}
 
             {% if hourlyRate and hourlyRate > 0 %}
               <span class="clock-pill"><i data-feather="dollar-sign"></i> ${{ hourlyRate|number_format(2) }}/hr</span>
             {% else %}
-              <span class="clock-pill"><i data-feather="minus-circle"></i> {{ trans('planner_hub.clock_not_set') }}</span>
+              <span class="clock-pill"><i data-feather="minus-circle"></i> Not set</span>
             {% endif %}
 
             {% if hasMultipleInstitutions %}
-              <span class="clock-pill"><i data-feather="shuffle"></i> {{ trans('planner_hub.clock_multiple_companies') }}</span>
+              <span class="clock-pill"><i data-feather="shuffle"></i> Multiple companies available</span>
             {% endif %}
           </div>
         </div>
@@ -735,7 +735,7 @@
       <div class="d-flex align-items-center">
         <button class="btn btn-outline-primary clock-switch-btn px-4 py-2" type="button" onclick="showInstitutionSwitcher()">
           <i data-feather="repeat"></i>
-          {{ trans('planner_hub.clock_switch_company') }}
+          Switch Company
         </button>
       </div>
       {% endif %}
@@ -750,9 +750,9 @@
           <div class="clock-orbit is-running">
             <div class="clock-orbit-content">
               <div>
-                <span class="clock-status is-running"><span class="clock-status-dot"></span> {{ trans('planner_hub.session_active') }}</span>
+                <span class="clock-status is-running"><span class="clock-status-dot"></span> Session Active</span>
                 <div class="clock-time" id="elapsed-time">00:00:00</div>
-                <div class="clock-subtext">{{ trans('planner_hub.session_started_at') }} {{ activeLog.start_time }}</div>
+                <div class="clock-subtext">Session started at {{ activeLog.start_time }}</div>
               </div>
             </div>
           </div>
@@ -766,16 +766,16 @@
 
             <button class="clock-action-button is-stop" type="button" onclick="openNotesModal()">
               <span class="clock-action-icon"><i data-feather="square"></i></span>
-              {{ trans('planner_hub.stop_clock') }}
+              Stop Clock
             </button>
           </form>
         {% else %}
           <div class="clock-orbit is-idle">
             <div class="clock-orbit-content">
               <div>
-                <span class="clock-status is-idle"><span class="clock-status-dot"></span> {{ trans('planner_hub.no_active_work_session') }}</span>
+                <span class="clock-status is-idle"><span class="clock-status-dot"></span> No active work session</span>
                 <div class="clock-time">00:00:00</div>
-                <div class="clock-subtext">{{ trans('planner_hub.push_to_start_clock') }}</div>
+                <div class="clock-subtext">Press start when you are ready to begin your shift.</div>
               </div>
             </div>
           </div>
@@ -788,20 +788,20 @@
 
             <button class="clock-action-button is-start" type="submit">
               <span class="clock-action-icon"><i data-feather="play"></i></span>
-              {{ trans('planner_hub.start_clock') }}
+              Start Clock
             </button>
           </form>
         {% endif %}
 
         <div class="clock-location-state" id="locationState" data-ready="0">
           <i data-feather="map-pin"></i>
-          <span>{{ trans('planner_hub.clock_requesting_location') }}</span>
+          <span>Requesting location...</span>
         </div>
 
         <button class="clock-assignment-trigger" type="button" data-bs-toggle="modal" data-bs-target="#clockAssignmentsModal">
           <span class="clock-assignment-trigger-main">
             <i data-feather="calendar-check"></i>
-            {{ trans('planner_hub.clock_assignments_button') }}
+            View Assigned Events
           </span>
           <span class="clock-assignment-trigger-meta">
             <span class="clock-assignment-badge">{{ assignedEvents|default([])|length }}</span>
@@ -814,24 +814,24 @@
       {% set contractStatus = clockContractStatus|default({'allowed': false}) %}
       {% set contractAllowed = contractStatus.allowed|default(false) %}
       <section class="clock-side-card">
-        <div class="clock-side-label">{{ trans('planner_hub.clock_timezone') }}</div>
+        <div class="clock-side-label">Timezone</div>
         <div class="clock-side-value" id="clockTimezone">-</div>
       </section>
       <section class="clock-side-card {% if contractAllowed %}is-approved{% endif %}">
-        <div class="clock-side-label">{{ trans('planner_hub.clock_contract_rule') }}</div>
+        <div class="clock-side-label">Clock Access</div>
         {% if contractAllowed %}
-          <div class="clock-side-value">{{ trans('planner_hub.clock_contract_approved') }}</div>
-          <p class="text-muted mb-0 mt-2 small">{{ trans('planner_hub.clock_contract_approved_body') }}</p>
+          <div class="clock-side-value">Contract approved</div>
+          <p class="text-muted mb-0 mt-2 small">Your employee contract is signed or admin-validated. You can clock in normally.</p>
         {% else %}
-          <div class="clock-side-value">{{ trans('planner_hub.clock_contract_required_before_clock_in') }}</div>
-          <p class="text-muted mb-0 mt-2 small">{{ trans('planner_hub.team_contract_clock_blocked') }}</p>
+          <div class="clock-side-value">Contract required before clock in</div>
+          <p class="text-muted mb-0 mt-2 small">You need a signed or approved contract before using the clock.</p>
         {% endif %}
       </section>
       {% if isLevel4 and currentInstitution %}
       <section class="clock-side-card">
-        <div class="clock-side-label">{{ trans('planner_hub.clock_current_company') }}</div>
+        <div class="clock-side-label">Current Company</div>
         <div class="clock-side-value">{{ currentInstitution.company_name }}</div>
-        <p class="text-muted mb-0 mt-2 small">{{ trans('planner_hub.clock_company_hours_scope') }}</p>
+        <p class="text-muted mb-0 mt-2 small">Your hours will be recorded under this company.</p>
       </section>
       {% endif %}
     </div>
@@ -877,7 +877,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   document.querySelectorAll('.clock-form').forEach((form) => {
     setLocationFields(form).catch(() => {
-      updateLocationState('{{ trans('planner_hub.clock_location_optional')|e('js') }}', false);
+      updateLocationState('Location is optional for this session.', false);
     });
   });
 
@@ -906,7 +906,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (startForm.dataset.locationReady === '1') return;
 
       event.preventDefault();
-      const locationMessage = '{{ trans('planner_hub.clock_location_starting_without_gps')|e('js') }}';
+      const locationMessage = 'Starting without GPS location.';
       updateLocationState(locationMessage, false);
       alert(locationMessage);
       startForm.submit();
@@ -939,7 +939,7 @@ async function setLocationFields(form) {
       latInput.value = position.coords.latitude;
       lngInput.value = position.coords.longitude;
       form.dataset.locationReady = '1';
-      updateLocationState('{{ trans('planner_hub.clock_location_captured')|e('js') }}', true);
+      updateLocationState('Location captured.', true);
       resolve();
     }, reject, { enableHighAccuracy: true, timeout: 3500, maximumAge: 60000 });
   });
@@ -978,7 +978,7 @@ function submitWithNotes() {
   });
 
   if (form.dataset.locationReady !== '1') {
-    updateLocationState('{{ trans('planner_hub.clock_location_out_without_refresh')|e('js') }}', false);
+    updateLocationState('Clocking out without refreshing location.', false);
   }
 
   form.submit();
@@ -1042,9 +1042,9 @@ function switchInstitution(institutionId, role) {
       <div class="clock-assignments-hero">
         <div class="d-flex justify-content-between align-items-start gap-3">
           <div>
-            <small><i data-feather="calendar-check"></i> {{ trans('planner_hub.clock_assignments_title') }}</small>
-            <h5>{{ trans('planner_hub.clock_assignments_title') }}</h5>
-            <p>{{ trans('planner_hub.clock_assignments_subtitle') }}</p>
+            <small><i data-feather="calendar-check"></i> Assigned Events</small>
+            <h5>Assigned Events</h5>
+            <p>Review the events and tasks assigned to your shift.</p>
           </div>
           <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
@@ -1056,17 +1056,17 @@ function switchInstitution(institutionId, role) {
             <table class="table clock-events-table align-middle">
               <thead>
                 <tr>
-                  <th>{{ trans('planner_hub.clock_assignments_start_time') }}</th>
-                  <th>{{ trans('planner_hub.clock_assignments_address') }}</th>
-                  <th>{{ trans('planner_hub.clock_assignments_contact') }}</th>
-                  <th class="text-end">{{ trans('planner_hub.actions') }}</th>
+                  <th>Start Time</th>
+                  <th>Address</th>
+                  <th>Contact</th>
+                  <th class="text-end">Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {% for event in events %}
                   {% set eventKey = 'clockEventTasks' ~ event.id %}
                   <tr class="clock-event-row">
-                    <td class="clock-event-time" data-label="{{ trans('planner_hub.clock_assignments_start_time') }}">
+                    <td class="clock-event-time" data-label="Start Time">
                       {% if event.event_date and event.start_time %}
                         {{ (event.event_date ~ ' ' ~ event.start_time)|date('g:i A') }}
                       {% elseif event.start_time %}
@@ -1075,12 +1075,12 @@ function switchInstitution(institutionId, role) {
                         -
                       {% endif %}
                     </td>
-                    <td class="clock-event-address" data-label="{{ trans('planner_hub.clock_assignments_address') }}">{{ event.address|default('-') ?: '-' }}</td>
-                    <td class="clock-event-contact" data-label="{{ trans('planner_hub.clock_assignments_contact') }}">{{ event.contact_name|default(event.contact_email|default('-')) ?: '-' }}</td>
-                    <td class="text-end" data-label="{{ trans('planner_hub.actions') }}">
-                      <button class="clock-task-toggle" type="button" data-clock-task-toggle="{{ eventKey }}" data-show-label="{{ trans('planner_hub.clock_assignments_view_tasks') }}" data-hide-label="{{ trans('planner_hub.clock_assignments_hide_tasks') }}">
+                    <td class="clock-event-address" data-label="Address">{{ event.address|default('-') ?: '-' }}</td>
+                    <td class="clock-event-contact" data-label="Contact">{{ event.contact_name|default(event.contact_email|default('-')) ?: '-' }}</td>
+                    <td class="text-end" data-label="Actions">
+                      <button class="clock-task-toggle" type="button" data-clock-task-toggle="{{ eventKey }}" data-show-label="View Tasks" data-hide-label="Hide Tasks">
                         <i data-feather="list"></i>
-                        <span data-task-toggle-label>{{ trans('planner_hub.clock_assignments_view_tasks') }}</span>
+                        <span data-task-toggle-label>View Tasks</span>
                       </button>
                     </td>
                   </tr>
@@ -1093,17 +1093,17 @@ function switchInstitution(institutionId, role) {
                             <span>
                               <p class="clock-task-title">{{ task.title|default(trans('planner_hub.clock_assignments_task')) }}</p>
                               <span class="clock-task-meta">
-                                <span class="clock-task-chip"><i data-feather="play-circle"></i> {{ trans('planner_hub.clock_assignments_task_start') }}: {{ task.start_time ? task.start_time|date('g:i A') : '-' }}</span>
-                                <span class="clock-task-chip"><i data-feather="stop-circle"></i> {{ trans('planner_hub.clock_assignments_task_end') }}: {{ task.end_time ? task.end_time|date('g:i A') : '-' }}</span>
+                                <span class="clock-task-chip"><i data-feather="play-circle"></i> Start: {{ task.start_time ? task.start_time|date('g:i A') : '-' }}</span>
+                                <span class="clock-task-chip"><i data-feather="stop-circle"></i> End: {{ task.end_time ? task.end_time|date('g:i A') : '-' }}</span>
                               </span>
-                              <p class="clock-task-notes"><strong>{{ trans('planner_hub.clock_assignments_notes') }}:</strong> {{ task.notes|default(trans('planner_hub.clock_assignments_no_notes')) ?: trans('planner_hub.clock_assignments_no_notes') }}</p>
+                              <p class="clock-task-notes"><strong>Notes:</strong> {{ task.notes|default(trans('planner_hub.clock_assignments_no_notes')) ?: trans('planner_hub.clock_assignments_no_notes') }}</p>
                             </span>
                             <span class="clock-task-status {% if task.is_done %}is-done{% endif %}">
                               {{ task.is_done ? trans('planner_hub.clock_assignments_done') : trans('planner_hub.clock_assignments_pending') }}
                             </span>
                           </label>
                         {% else %}
-                          <div class="clock-empty-assignments">{{ trans('planner_hub.clock_assignments_no_tasks') }}</div>
+                          <div class="clock-empty-assignments">No tasks assigned for this event.</div>
                         {% endfor %}
                       </div>
                     </td>
@@ -1115,8 +1115,8 @@ function switchInstitution(institutionId, role) {
         {% else %}
           <div class="clock-empty-assignments">
             <i data-feather="calendar"></i>
-            <p class="fw-bold mt-3 mb-1">{{ trans('planner_hub.clock_assignments_empty') }}</p>
-            <span>{{ trans('planner_hub.clock_assignments_empty_body') }}</span>
+            <p class="fw-bold mt-3 mb-1">No assigned events found</p>
+            <span>When events are assigned to you, they will appear here.</span>
           </div>
         {% endif %}
       </div>
@@ -1128,11 +1128,11 @@ function switchInstitution(institutionId, role) {
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content rounded-4">
       <div class="modal-header">
-        <h5 class="modal-title fw-bold">{{ trans('planner_hub.clock_switch_company') }}</h5>
+        <h5 class="modal-title fw-bold">Switch Company</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
-        <p class="mb-3">{{ trans('planner_hub.clock_select_company') }}</p>
+        <p class="mb-3">Select the company where this work session should be recorded.</p>
         <div class="list-group">
           {% for institution in userInstitutions %}
           <div class="list-group-item d-flex justify-content-between align-items-center gap-3">
@@ -1140,30 +1140,30 @@ function switchInstitution(institutionId, role) {
               <h6 class="mb-1">{{ institution.company_name }}</h6>
               <small class="text-muted">
                 {% if institution.relationship_type == 'primary' %}
-                  {{ trans('planner_hub.role') }}: <span class="badge bg-success">{{ trans('planner_hub.clock_owner') }}</span>
+                  Role: <span class="badge bg-success">Owner</span>
                 {% else %}
-                  {{ trans('planner_hub.role') }}:
+                  Role:
                   {% if institution.role_name %}
                     <span class="badge bg-info">{{ institution.role_name }}</span>
                   {% else %}
-                    <span class="text-muted">{{ trans('planner_hub.clock_no_role') }}</span>
+                    <span class="text-muted">No role assigned</span>
                   {% endif %}
-                  | {{ trans('planner_hub.hourly_rate') }}:
+                  | Hourly Rate:
                   {% if institution.hourly_rate and institution.hourly_rate > 0 %}
                     ${{ institution.hourly_rate|number_format(2) }}/hr
                   {% else %}
-                    <span class="text-muted">{{ trans('planner_hub.clock_not_set') }}</span>
+                    <span class="text-muted">Not set</span>
                   {% endif %}
                 {% endif %}
                 {% if institution.working_institution_id == currentInstitution.id %}
-                  <span class="badge bg-success ms-2">{{ trans('planner_hub.current') }}</span>
+                  <span class="badge bg-success ms-2">Current</span>
                 {% endif %}
               </small>
             </div>
             {% if institution.working_institution_id != currentInstitution.id %}
             {% set institutionRole = institution.relationship_type == 'primary' ? 'owner' : 'employee' %}
             <button class="btn btn-outline-primary btn-sm" onclick="switchInstitution('{{ institution.working_institution_id }}', '{{ institutionRole }}')">
-              {{ trans('planner_hub.clock_switch_company') }}
+              Switch Company
             </button>
             {% endif %}
           </div>
@@ -1171,7 +1171,7 @@ function switchInstitution(institutionId, role) {
         </div>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ trans('ui.cancel') }}</button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
       </div>
     </div>
   </div>
@@ -1182,20 +1182,21 @@ function switchInstitution(institutionId, role) {
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content rounded-4">
       <div class="modal-header">
-        <h5 class="modal-title" id="notesModalLabel">{{ trans('planner_hub.clock_out_notes_title') }}</h5>
+        <h5 class="modal-title" id="notesModalLabel">Clock-out Notes</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
-        <p class="mb-2">{{ trans('planner_hub.clock_out_notes_body') }}</p>
-        <textarea id="notesInput" class="form-control" rows="3" maxlength="240" placeholder="{{ trans('planner_hub.clock_out_notes_placeholder') }}"></textarea>
+        <p class="mb-2">Add a short note about this work session before clocking out.</p>
+        <textarea id="notesInput" class="form-control" rows="3" maxlength="240" placeholder="Optional notes for this session"></textarea>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">{{ trans('ui.cancel') }}</button>
-        <button type="button" class="btn btn-danger" onclick="submitWithNotes()">{{ trans('planner_hub.stop_clock') }}</button>
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-danger" onclick="submitWithNotes()">Stop Clock</button>
       </div>
     </div>
   </div>
 </div>
 {% endblock %}
+
 
 
