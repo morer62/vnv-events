@@ -14,9 +14,9 @@
 
 {% block body %}
 {% if isSubOrder %}
-    <h2 class="mb-4">ðŸ“‹ Create Sub-Order for Order VNV 341{{ parentOrder.id }}</h2>
+    <h2 class="mb-4">Create Sub-Order for Order VNV 341{{ parentOrder.id }}</h2>
 {% else %}
-    <h2 class="mb-4">ðŸ“‹ Create New Order admin</h2>
+    <h2 class="mb-4">Create New Order admin</h2>
 {% endif %}
 
 {{ macros.breadcrumb2() }}
@@ -720,7 +720,7 @@ let subtotalServicios = 0;
         const infoBox = document.getElementById("clientInfoBox");
         if (!email) return;
 
-        infoBox.innerHTML = "ðŸ” Checking...";
+        infoBox.innerHTML = "Checking...";
 
         fetch(getApiUrl(`/api/clients/check?email=${encodeURIComponent(email)}`), { credentials: "same-origin" })
             .then(async res => {
@@ -730,22 +730,22 @@ let subtotalServicios = 0;
             .then(data => {
                 if (data.exists) {
                     if (data.is_linked) {
-                        infoBox.innerHTML = `âœ… Client found: <strong>${data.name}</strong><br>
+                        infoBox.innerHTML = `Client found: <strong>${data.name}</strong><br>
                             <small>${data.email} - ${data.phone}</small>`;
                         document.getElementById("id_client").value = data.id;
                     } else {
                         infoBox.innerHTML = `
-                            âš ï¸ This client exists but is not linked to your account.<br>
+                            This client exists but is not linked to your account.<br>
                             <strong>${data.name}</strong><br>
                             <small>${data.email} - ${data.phone}</small><br>
-                            <button type="button" class="btn btn-sm btn-outline-success mt-2" onclick="associateClient(${data.id})">ðŸ”— Associate to My Account</button>
+                            <button type="button" class="btn btn-sm btn-outline-success mt-2" onclick="associateClient(${data.id})">Associate to My Account</button>
                         `;
                     }
                 } else {
-                    infoBox.innerHTML = `<span class="text-danger">âŒ No client found.</span>
+                    infoBox.innerHTML = `<span class="text-danger">No client found.</span>
                         <br>
                         <a href="{{ base_url }}/panel/planner-hub/management/users/create" class="btn btn-sm btn-outline-primary mt-2">
-                            âž• Create New Client
+                            Create New Client
                         </a>`;
                 }
             })
@@ -766,17 +766,17 @@ let subtotalServicios = 0;
         .then(data => {
             if (data.success) {
                 document.getElementById("clientInfoBox").innerHTML = `
-                    âœ… Client associated successfully.<br>
+                    Client associated successfully.<br>
                     <strong>${data.name} ${data.lastname}</strong><br>
                     <small>${data.email} - ${data.phone}</small>
                 `;
                 document.getElementById("id_client").value = data.id;
             } else {
-                document.getElementById("clientInfoBox").innerHTML = `âŒ ${data.message}`;
+                document.getElementById("clientInfoBox").innerHTML = `${data.message}`;
             }
         })
         .catch(error => {
-            document.getElementById("clientInfoBox").innerHTML = `âŒ Error associating client. Please try again.`;
+            document.getElementById("clientInfoBox").innerHTML = `Error associating client. Please try again.`;
         });
     }
 
@@ -1023,5 +1023,7 @@ let subtotalServicios = 0;
     });
 </script>
 {% endblock %}
+
+
 
 

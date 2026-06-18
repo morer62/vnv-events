@@ -59,8 +59,8 @@
                                 <datalist id="clientOptions"></datalist>
                                 <button type="button" class="btn btn-outline-secondary" onclick="checkClientEmail()">Check</button>
                             </div>
-                            <div id="clientInfoBox" class="mb-3">{% if prefillClient %}<span class="text-success">Client selected: <strong>{{ (prefillClient.name ~ ' ' ~ prefillClient.lastname)|trim }}</strong><br><small>{{ prefillClient.email }} - {{ prefillClient.phone }}</small></span>{% endif %}</div>
-                            <input type="hidden" name="id_client" id="id_client" value="{{ prefillClient ? prefillClient.id : '' }}" required>
+                            <div id="clientInfoBox" class="mb-3"></div>
+                            <input type="hidden" name="id_client" id="id_client" required>
                     </div>
                     <div class="col-md-3">
                         <label class="form-label">Event Date <span class="text-danger">*</span></label> 
@@ -707,12 +707,10 @@ let subtotalServicios = 0;
     }
 
     function getBasePath() {
-        const firstSegment = window.location.pathname.split('/').filter(Boolean)[0] || '';
-        return firstSegment && firstSegment !== 'panel' && firstSegment !== 'api' ? `/${firstSegment}` : '';
-    }
-
-    function getApiUrl(path) {
-        return `${window.location.origin}${getBasePath()}${path}`;
+        const path = window.location.pathname;
+        const segments = path.split('/');
+        const base = segments.length > 1 ? `/${segments[1]}` : '';
+        return base === '/panel' || base === '/api' ? '' : base;
     }
 
     function checkClientEmail() {
@@ -722,11 +720,8 @@ let subtotalServicios = 0;
 
         infoBox.innerHTML = "ðŸ” Checking...";
 
-        fetch(getApiUrl(`/api/clients/check?email=${encodeURIComponent(email)}`), { credentials: "same-origin" })
-            .then(async res => {
-                const text = await res.text();
-                try { return JSON.parse(text); } catch (e) { throw new Error(text.slice(0, 120) || `HTTP ${res.status}`); }
-            })
+        fetch(`${getBasePath()}/api/clients/check?email=${encodeURIComponent(email)}`)
+            .then(res => res.json())
             .then(data => {
                 if (data.exists) {
                     if (data.is_linked) {
@@ -1023,5 +1018,6 @@ let subtotalServicios = 0;
     });
 </script>
 {% endblock %}
+
 
 
