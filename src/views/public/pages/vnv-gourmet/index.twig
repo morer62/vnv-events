@@ -17,15 +17,15 @@
 {% block canonical %}https://vnvevents.com/vnv-gourmet{% endblock %}
 
 {% block head %}
-<link rel="preload" as="image" href="{{ asset_for('assets/images/vnv-gourmet-hero.webp') }}" fetchpriority="high">
+<link rel="preload" as="image" href="{{ asset_for('assets/images/vnv-gourmet-hero-mobile.webp') }}" media="(max-width: 767px)" fetchpriority="high">
+<link rel="preload" as="image" href="{{ asset_for('assets/images/vnv-gourmet-hero-small.webp') }}" media="(min-width: 768px)" fetchpriority="high">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 {% endblock %}
 
 {% block styles %}
-<link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" onload="this.onload=null;this.rel='stylesheet'">
-<noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"></noscript>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,700;0,900;1,700;1,900&display=swap" rel="stylesheet">
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,700;0,900;1,700;1,900&display=swap" onload="this.onload=null;this.rel='stylesheet'">
+<noscript><link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,700;0,900;1,700;1,900&display=swap" rel="stylesheet"></noscript>
 
 <style>
 :root {
@@ -169,7 +169,7 @@ h1, h2, h3, h4, h5, .luxury-font {
     background:
         linear-gradient(90deg, rgba(10,12,12,.88) 0%, rgba(10,12,12,.68) 42%, rgba(10,12,12,.42) 100%),
         image-set(
-            url('{{ asset_for('assets/images/vnv-gourmet-hero.webp') }}') type('image/webp'),
+            url('{{ asset_for('assets/images/vnv-gourmet-hero-small.webp') }}') type('image/webp'),
             url('{{ asset_for('assets/images/vnv-gourmet-hero.jpg') }}') type('image/jpeg')
         ) center/cover no-repeat;
 }
@@ -549,6 +549,9 @@ h1, h2, h3, h4, h5, .luxury-font {
         min-height: auto;
         padding: 120px 0 80px;
         background-position: center center;
+        background-image:
+            linear-gradient(90deg, rgba(10,12,12,.88) 0%, rgba(10,12,12,.68) 42%, rgba(10,12,12,.42) 100%),
+            url('{{ asset_for('assets/images/vnv-gourmet-hero-mobile.webp') }}');
     }
 
     .feature-copy {
@@ -1290,6 +1293,23 @@ h1, h2, h3, h4, h5, .luxury-font {
 {% block scripts %}
 <script>
 (function () {
+    function loadFontAwesome() {
+        if (document.querySelector('link[data-vnv-fa]')) return;
+        const link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.href = 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css';
+        link.dataset.vnvFa = 'true';
+        document.head.appendChild(link);
+    }
+
+    if ('requestIdleCallback' in window) {
+        requestIdleCallback(loadFontAwesome, { timeout: 2500 });
+    } else {
+        window.addEventListener('load', function () {
+            window.setTimeout(loadFontAwesome, 1200);
+        }, { once: true });
+    }
+
     let mapsLoading = false;
     function loadMapsOnce() {
         if (mapsLoading || window.google?.maps) return;
