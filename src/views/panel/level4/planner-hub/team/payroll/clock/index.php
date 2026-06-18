@@ -134,7 +134,7 @@ $router->get(function () use ($repo, $user): string {
                     ];
                 }
 
-                $taskTitle = trim((string)($taskRow->title ?? $taskRow->name ?? $taskRow->task_title ?? $taskRow->description ?? $taskRow->work_type ?? $taskRow->assigned_service_name ?? ''));
+                $taskTitle = trim((string)($taskRow->task_description ?? $taskRow->title ?? $taskRow->name ?? $taskRow->task_title ?? $taskRow->description ?? $taskRow->work_type ?? $taskRow->assigned_service_name ?? ''));
                 $eventsByOrder[$orderId]['tasks'][] = [
                     'id' => (int)($taskRow->id ?? 0),
                     'title' => $taskTitle !== '' ? $taskTitle : 'Task',
