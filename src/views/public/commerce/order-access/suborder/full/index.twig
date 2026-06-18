@@ -1,4 +1,8 @@
-{% extends 'templates/base.twig' %}
+﻿{% extends 'templates/base.twig' %}
+
+{% block styles %}
+    {% include 'public/commerce/order-access/_modern_skin.twig' %}
+{% endblock %}
 
 {% block styles %}
 <style>
@@ -82,12 +86,12 @@
 <div class="payment-container">
     <div class="payment-card">
         <div class="payment-header">
-            <div class="suborder-badge">📋 {{ trans('planner_hub.suborder_payment') }}</div>
-            <h2>💳 {{ trans('planner_hub.full_payment') }}</h2>
+            <div class="suborder-badge">ðŸ“‹ {{ trans('planner_hub.suborder_payment') }}</div>
+            <h2>ðŸ’³ {{ trans('planner_hub.full_payment') }}</h2>
             {% if suborder.status_workflow %}
             <div class="mb-2">
                 {% if suborder.status_workflow == 'INVOICE_DRAFT' %}
-                    <span class="badge bg-warning text-dark">📝 {{ trans('planner_hub.pending_signature') }}</span>
+                    <span class="badge bg-warning text-dark">ðŸ“ {{ trans('planner_hub.pending_signature') }}</span>
                 {% elseif suborder.status_workflow == 'INVOICE_READY' %}
                     <span class="badge bg-secondary">{{ trans('planner_hub.signed_payment_pending') }}</span>
                 {% elseif suborder.status_workflow == 'INVOICE_PARTIAL' %}
@@ -102,7 +106,7 @@
         </div>
 
         <div class="alert alert-info">
-            <h5>📋 {{ trans('planner_hub.payment_details') }}</h5>
+            <h5>ðŸ“‹ {{ trans('planner_hub.payment_details') }}</h5>
             <p><strong>{{ trans('planner_hub.parent_order_label') }}</strong> VNV-341{{ parentOrder.id }}</p>
             <p><strong>{{ trans('planner_hub.suborder_id_label') }}</strong> #{{ suborder.id }}</p>
             <p><strong>{{ trans('planner_hub.event_date_label') }}</strong> {{ parentOrder.event_date|date("F j, Y") }}</p>
@@ -138,7 +142,7 @@
             {% endif %}
 
             <button type="submit" id="submit-button" class="payment-button" {% if active_provider_type == 'paypal' %}style="display:none;"{% endif %}>
-                💳 {{ trans('planner_hub.pay_now') }} {{ currency_code|default('USD') }} {{ total_amount | number_format(2) }}
+                ðŸ’³ {{ trans('planner_hub.pay_now') }} {{ currency_code|default('USD') }} {{ total_amount | number_format(2) }}
             </button>
         </form>
 
@@ -186,7 +190,7 @@
         syncSavedMethodState();
 
         function setProcessingState(isProcessing) {
-            if (submitButton) { submitButton.disabled = isProcessing; submitButton.textContent = isProcessing ? '⏳ Processing...' : originalButtonText; }
+            if (submitButton) { submitButton.disabled = isProcessing; submitButton.textContent = isProcessing ? 'â³ Processing...' : originalButtonText; }
             if (isProcessing) window.VnvProcessingModal.show('orderAccessProcessingModal', { title: 'Processing payment...', message: 'We are confirming your payment. Please wait.' });
             else window.VnvProcessingModal.hide('orderAccessProcessingModal');
         }
@@ -280,3 +284,4 @@
     })();
 </script>
 {% endblock %}
+

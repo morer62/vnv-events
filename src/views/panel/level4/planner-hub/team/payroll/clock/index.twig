@@ -798,13 +798,19 @@
           <span>Requesting location...</span>
         </div>
 
+        {% if hasAssignedEventsWithoutTasks|default(false) %}
+          <div class="alert alert-danger mt-3 mb-3 fw-bold" role="alert">
+            You have assigned events but no tasks assigned. Please contact administration immediately.
+          </div>
+        {% endif %}
+
         <button class="clock-assignment-trigger" type="button" data-bs-toggle="modal" data-bs-target="#clockAssignmentsModal">
           <span class="clock-assignment-trigger-main">
             <i data-feather="calendar-check"></i>
             View Assigned Events
           </span>
           <span class="clock-assignment-trigger-meta">
-            <span class="clock-assignment-badge">{{ assignedEvents|default([])|length }}</span>
+            <span class="clock-assignment-badge">{{ assignedOrdersCount|default(assignedEvents|default([])|length) }}</span>
           </span>
         </button>
       </section>

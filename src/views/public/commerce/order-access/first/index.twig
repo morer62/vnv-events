@@ -1,8 +1,12 @@
-{% extends 'templates/base.twig' %}
+﻿{% extends 'templates/base.twig' %}
+
+{% block styles %}
+    {% include 'public/commerce/order-access/_modern_skin.twig' %}
+{% endblock %}
 
 {% block body %}
 <main class="container mt-5" style="max-width:500px;">
-    <h2 class="mb-4 text-center">💳 {{ trans('planner_hub.pay_first_installment') }}</h2>
+    <h2 class="mb-4 text-center">ðŸ’³ {{ trans('planner_hub.pay_first_installment') }}</h2>
 
     <div class="alert alert-info text-center">
         {{ trans('planner_hub.amount_to_pay') }} <strong>{{ currency_code|default('USD') }} {{ first_payment_amount | number_format(2) }}</strong>
@@ -161,3 +165,4 @@
     })();
 </script>
 {% endblock %}
+

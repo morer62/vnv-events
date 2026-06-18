@@ -1,6 +1,7 @@
-{% extends 'templates/base.twig' %}
+﻿{% extends 'templates/base.twig' %}
 
 {% block styles %}
+    {% include 'public/commerce/order-access/_modern_skin.twig' %}
 	<style>
 		.summary-box {
 			background: #fff;
@@ -98,11 +99,11 @@
 
 {% block body %}
 	<main class="container mt-5">
-		<div class="suborder-badge">📋 {{ trans('planner_hub.suborder_payment') }}</div>
-		<h2 class="mb-4">📄 {{ trans('planner_hub.sign_pay_suborder') }}</h2>
+		<div class="suborder-badge">ðŸ“‹ {{ trans('planner_hub.suborder_payment') }}</div>
+		<h2 class="mb-4">ðŸ“„ {{ trans('planner_hub.sign_pay_suborder') }}</h2>
 
 		<div class="summary-box">
-			<h4>📋 {{ trans('planner_hub.parent_order_information') }}</h4>
+			<h4>ðŸ“‹ {{ trans('planner_hub.parent_order_information') }}</h4>
 			<table>
 				<tr>
 					<td><strong>{{ trans('planner_hub.parent_order_id') }}</strong></td>
@@ -123,15 +124,15 @@
 							{% elseif current_status == 'INVOICE_EXPIRED' %}bg-danger
 							{% else %}bg-secondary{% endif %}">
 							{% if current_status == 'INVOICE_DRAFT' %}
-								📝 {{ trans('planner_hub.signature_pending') }}
+								ðŸ“ {{ trans('planner_hub.signature_pending') }}
 							{% elseif current_status == 'INVOICE_READY' %}
-								✍️ {{ trans('planner_hub.signed_payment_pending') }}
+								âœï¸ {{ trans('planner_hub.signed_payment_pending') }}
 							{% elseif current_status == 'INVOICE_PARTIAL' %}
-								💳 {{ trans('planner_hub.first_payment_completed') }}
+								ðŸ’³ {{ trans('planner_hub.first_payment_completed') }}
 							{% elseif current_status == 'INVOICE_PAID' %}
-								✅ {{ trans('planner_hub.fully_paid') }}
+								âœ… {{ trans('planner_hub.fully_paid') }}
 							{% elseif current_status == 'INVOICE_EXPIRED' %}
-								⏰ {{ trans('planner_hub.expired') }}
+								â° {{ trans('planner_hub.expired') }}
 							{% else %}
 								{{ current_status }}
 							{% endif %}
@@ -161,7 +162,7 @@
 		</div>
 
 		<div class="summary-box">
-			<h4>🛠️ {{ trans('planner_hub.suborder_services') }}</h4>
+			<h4>ðŸ› ï¸ {{ trans('planner_hub.suborder_services') }}</h4>
 			<div class="table-scroll-wrapper">
 				<table class="service-table" style="text-align:center">
 					<thead>
@@ -278,35 +279,35 @@
 					</label>
 				</div>
 
-				<button type="submit" class="btn btn-success w-100 mt-4" id="signButton">✅ {{ trans('planner_hub.submit_sign') }}</button><br><br><br>
+				<button type="submit" class="btn btn-success w-100 mt-4" id="signButton">âœ… {{ trans('planner_hub.submit_sign') }}</button><br><br><br>
 			</form>
 		{% else %}
-			<div class="alert alert-success">✅ {{ trans('planner_hub.contract_signed_proceed_payment') }}</div>
+			<div class="alert alert-success">âœ… {{ trans('planner_hub.contract_signed_proceed_payment') }}</div>
 
 			{% if not isPaymentReady %}
 				<div class="alert alert-warning text-center">
-					<strong>⚠️ {{ trans('planner_hub.payment_unavailable') }}</strong> {{ trans('planner_hub.payments_unavailable_contact') }}
+					<strong>âš ï¸ {{ trans('planner_hub.payment_unavailable') }}</strong> {{ trans('planner_hub.payments_unavailable_contact') }}
 					<div class="mt-2">
 						<a href="{{ base_url }}/panel/planner-hub/settings/payment-providers" class="btn btn-outline-warning btn-sm">
-							⚙️ {{ trans('planner_hub.configure_payment_method') }}
+							âš™ï¸ {{ trans('planner_hub.configure_payment_method') }}
 						</a>
 					</div>
 				</div>
 			{% else %}
 				{% if payment_type == "split" and paymentStatus == "pending_first" %}
 					<a href="{{ path('order-access/suborder/first/', { token: token }) }}" class="btn btn-primary w-100 payment-button">
-						💳 {{ trans('planner_hub.pay_first_installment_suborder') }} ({{ currency_code|default('USD') }} {{ first_payment_amount | number_format(2) }})
+						ðŸ’³ {{ trans('planner_hub.pay_first_installment_suborder') }} ({{ currency_code|default('USD') }} {{ first_payment_amount | number_format(2) }})
 					</a>
 				{% elseif payment_type == "split" and paymentStatus == "pending_second" %}
 					<a href="{{ path('order-access/suborder/second/', { token: token }) }}" class="btn btn-primary w-100 payment-button">
-						💳 {{ trans('planner_hub.pay_remaining_balance_suborder') }} ({{ currency_code|default('USD') }} {{ second_payment_amount | number_format(2) }})
+						ðŸ’³ {{ trans('planner_hub.pay_remaining_balance_suborder') }} ({{ currency_code|default('USD') }} {{ second_payment_amount | number_format(2) }})
 					</a>
 				{% elseif payment_type == "one" and paymentStatus == "pending_first" %}
 					<a href="{{ path('order-access/suborder/full/', { token: token }) }}" class="btn btn-primary w-100 payment-button">
-						💳 {{ trans('planner_hub.pay_full_amount_suborder') }} ({{ currency_code|default('USD') }} {{ total | number_format(2) }})
+						ðŸ’³ {{ trans('planner_hub.pay_full_amount_suborder') }} ({{ currency_code|default('USD') }} {{ total | number_format(2) }})
 					</a>
 				{% else %}
-					<div class="alert alert-info mt-3">✅ {{ trans('planner_hub.all_payments_completed') }}</div>
+					<div class="alert alert-info mt-3">âœ… {{ trans('planner_hub.all_payments_completed') }}</div>
 				{% endif %}
 				{% if total > 0 and paymentStatus != 'complete' %}
 
@@ -486,7 +487,7 @@
 			}
 		});
 
-		// Prevenir clics múltiples en botones
+		// Prevenir clics mÃºltiples en botones
 		document.addEventListener('DOMContentLoaded', function() {
 			// Para el formulario de firma
 			document.getElementById('eSignConsentSub')?.addEventListener('change', toggleSuborderSign);
@@ -502,7 +503,7 @@
 					
 					if (submitButton && isValid) {
 						submitButton.disabled = true;
-						submitButton.innerHTML = '⏳ {{ trans('planner_hub.processing')|e('js') }}';
+						submitButton.innerHTML = 'â³ {{ trans('planner_hub.processing')|e('js') }}';
 						submitButton.style.opacity = '0.6';
 
 						window.VnvProcessingModal.show('orderAccessProcessingModal', {
@@ -523,7 +524,7 @@
 					}
 					
 					this.disabled = true;
-					this.innerHTML = '⏳ {{ trans('planner_hub.processing')|e('js') }}';
+					this.innerHTML = 'â³ {{ trans('planner_hub.processing')|e('js') }}';
 					this.style.opacity = '0.6';
 
 					window.VnvProcessingModal.show('orderAccessProcessingModal', {
@@ -534,7 +535,7 @@
 			});
 		});
 
-		// Capturar hora local del usuario al cargar la página
+		// Capturar hora local del usuario al cargar la pÃ¡gina
 		document.addEventListener('DOMContentLoaded', function() {
 			const now = new Date();
 			const timestamp = now.getFullYear() + '-' + 
@@ -552,3 +553,4 @@
 		});
 	</script>
 {% endblock %}
+

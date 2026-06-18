@@ -108,8 +108,16 @@ $router->get(function () use ($repo, $user): string {
     $clockContractStatus = $contractService->getClockContractStatus($user->getId(), (int)$currentInstitutionOwner);
 
     $assignedEvents = [];
+    $assignedOrdersCount = 0;
+    $hasAssignedEventsWithoutTasks = false;
     if ($isLevel4 && $currentInstitutionOwner) {
         try {
+            $ordersRepo = new OrdersRepository();
+            $assignedOrders = array_filter($ordersRepo->getOrdersByInvitation((int)$user->getId()), static function ($order) {
+                return (int)($order->is_confirmed ?? 0) === 1;
+            });
+            $assignedOrdersCount = count($assignedOrders);
+
             $tasksRepo = new OrdersTeamTasksRepository();
             $taskRows = $tasksRepo->getForUserAndOwnerDetailed((int)$user->getId(), (int)$currentInstitutionOwner);
             $eventsByOrder = [];
@@ -148,6 +156,7 @@ $router->get(function () use ($repo, $user): string {
             }
 
             $assignedEvents = array_values($eventsByOrder);
+            $hasAssignedEventsWithoutTasks = $assignedOrdersCount > count($assignedEvents);
         } catch (Throwable $e) {
             error_log('[Level4 Clock] Assigned events popup failed: ' . $e->getMessage());
         }
@@ -165,7 +174,9 @@ $router->get(function () use ($repo, $user): string {
         'roleName' => $roleName,
         'hourlyRate' => $hourlyRate,
         'clockContractStatus' => $clockContractStatus,
-        'assignedEvents' => $assignedEvents
+        'assignedEvents' => $assignedEvents,
+        'assignedOrdersCount' => $assignedOrdersCount,
+        'hasAssignedEventsWithoutTasks' => $hasAssignedEventsWithoutTasks
     ]);
 });
 

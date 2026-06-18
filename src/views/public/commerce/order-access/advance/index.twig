@@ -1,8 +1,12 @@
-{% extends 'templates/base.twig' %}
+﻿{% extends 'templates/base.twig' %}
+
+{% block styles %}
+    {% include 'public/commerce/order-access/_modern_skin.twig' %}
+{% endblock %}
 
 {% block body %}
 <main class="container mt-5" style="max-width:520px;">
-    <h2 class="mb-4 text-center">💵 {{ trans('planner_hub.add_advance_order') }}</h2>
+    <h2 class="mb-4 text-center">ðŸ’µ {{ trans('planner_hub.add_advance_order') }}</h2>
 
     <div class="alert alert-secondary">
         <div><strong>{{ trans('planner_hub.order_label') }}</strong> VNV-341{{ order.id }}</div>
@@ -41,7 +45,7 @@
             <div id="card-errors" class="text-danger mt-2"></div>
         </div>
 
-        <button class="btn btn-success w-100 btn-lg mb-3">✅ {{ trans('planner_hub.confirm_advance') }}</button>
+        <button class="btn btn-success w-100 btn-lg mb-3">âœ… {{ trans('planner_hub.confirm_advance') }}</button>
         <div id="loading" class="text-muted text-center" style="display:none;">{{ trans('planner_hub.processing_advance') }}</div>
     </form>
 

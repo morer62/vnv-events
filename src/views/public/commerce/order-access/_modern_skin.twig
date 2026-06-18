@@ -1,0 +1,193 @@
+﻿<style>
+  main.container {
+    position: relative;
+    padding-top: 32px;
+    padding-bottom: 72px;
+  }
+
+  main.container::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    background:
+      radial-gradient(circle at 10% 10%, rgba(77, 247, 210, 0.12), transparent 28rem),
+      radial-gradient(circle at 88% 8%, rgba(231, 187, 85, 0.13), transparent 24rem),
+      linear-gradient(135deg, #f7f8f6 0%, #edf3f1 42%, #f9fbfa 100%);
+  }
+
+  main.container > .row:first-of-type,
+  main.container > h2:first-child,
+  main.container > .suborder-badge + h2 {
+    padding: 28px 30px;
+    border: 1px solid rgba(13, 82, 75, 0.12);
+    border-radius: 30px;
+    background:
+      linear-gradient(135deg, rgba(12, 26, 26, 0.96), rgba(13, 118, 105, 0.88)),
+      repeating-linear-gradient(135deg, rgba(77, 247, 210, 0.05) 0 1px, transparent 1px 18px);
+    color: #fff;
+    box-shadow: 0 28px 70px rgba(10, 25, 25, 0.18);
+  }
+
+  main.container > .row:first-of-type h1,
+  main.container > h2:first-child,
+  main.container > .suborder-badge + h2 {
+    color: #fff;
+    letter-spacing: -0.04em;
+  }
+
+  main.container > .row:first-of-type .text-muted,
+  main.container > h2:first-child + .alert,
+  main.container > .suborder-badge + h2 + .summary-box {
+    color: rgba(255, 255, 255, 0.78) !important;
+  }
+
+  .status-badge,
+  .suborder-badge {
+    border-radius: 999px !important;
+    padding: 0.7rem 1rem !important;
+    box-shadow: 0 14px 30px rgba(0, 0, 0, 0.12);
+  }
+
+  main.container .card,
+  main.container .summary-box,
+  main.container form#payment-form,
+  main.container form#advance-form {
+    border: 1px solid rgba(18, 47, 45, 0.1) !important;
+    border-radius: 28px !important;
+    background: rgba(255, 255, 255, 0.92) !important;
+    box-shadow: 0 22px 60px rgba(12, 31, 30, 0.12) !important;
+    overflow: hidden;
+  }
+
+  main.container form#payment-form,
+  main.container form#advance-form {
+    padding: 24px;
+  }
+
+  main.container .card-header {
+    border: 0 !important;
+    padding: 20px 28px !important;
+    background: linear-gradient(135deg, #102323, #0a7a6c) !important;
+    color: #fff !important;
+  }
+
+  main.container .card-header.bg-success,
+  main.container .card-header.bg-primary,
+  main.container .card-header.bg-info {
+    background: linear-gradient(135deg, #102323, #0a7a6c) !important;
+  }
+
+  main.container .card-body,
+  main.container .summary-box {
+    padding: 26px !important;
+  }
+
+  main.container .badge.bg-secondary,
+  main.container .badge.bg-primary,
+  main.container .badge.bg-info,
+  main.container .badge.bg-success,
+  main.container .badge.bg-warning,
+  main.container .badge.bg-danger {
+    border-radius: 999px;
+    padding: 0.42rem 0.72rem;
+    letter-spacing: 0.01em;
+  }
+
+  main.container .badge.bg-secondary {
+    background: #142828 !important;
+  }
+
+  main.container table {
+    border-collapse: separate !important;
+    border-spacing: 0;
+  }
+
+  main.container .table,
+  main.container .service-table {
+    overflow: hidden;
+    border-radius: 20px;
+  }
+
+  main.container .table thead th,
+  main.container .service-table thead th {
+    background: #f4f8f7 !important;
+    color: #0d2524 !important;
+    border-bottom: 1px solid rgba(18, 47, 45, 0.12) !important;
+    font-size: 0.78rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  main.container .table td,
+  main.container .service-table td,
+  main.container .service-table th {
+    border-color: rgba(18, 47, 45, 0.1) !important;
+    vertical-align: middle;
+  }
+
+  main.container .info-note,
+  main.container .alert-info,
+  main.container .alert-secondary,
+  main.container #new-payment-method-options {
+    border: 1px solid rgba(10, 122, 108, 0.16) !important;
+    border-left: 5px solid #0a7a6c !important;
+    border-radius: 18px !important;
+    background: linear-gradient(135deg, rgba(10, 122, 108, 0.08), rgba(255, 255, 255, 0.86)) !important;
+    color: #263a3a !important;
+  }
+
+  main.container .signature-box {
+    border-radius: 24px !important;
+    border: 2px dashed rgba(10, 122, 108, 0.32) !important;
+    background: linear-gradient(135deg, #ffffff, #f1faf8) !important;
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.8);
+  }
+
+  main.container .form-control,
+  main.container .form-select,
+  main.container #payment-card-container,
+  main.container #card-element {
+    border-radius: 16px !important;
+    border-color: rgba(18, 47, 45, 0.16) !important;
+    background-color: rgba(255, 255, 255, 0.96) !important;
+  }
+
+  main.container .form-control:focus,
+  main.container .form-select:focus {
+    border-color: #0a7a6c !important;
+    box-shadow: 0 0 0 0.2rem rgba(10, 122, 108, 0.16) !important;
+  }
+
+  main.container .payment-card,
+  main.container .service-item {
+    border-radius: 22px;
+    background: #fff;
+    box-shadow: 0 14px 32px rgba(12, 31, 30, 0.08);
+  }
+
+  main.container .service-item {
+    border-left-color: #0a7a6c !important;
+  }
+
+  @media (max-width: 767.98px) {
+    main.container {
+      padding-left: 14px;
+      padding-right: 14px;
+    }
+
+    main.container > .row:first-of-type,
+    main.container > h2:first-child,
+    main.container > .suborder-badge + h2 {
+      padding: 24px 20px;
+      border-radius: 24px;
+    }
+
+    main.container .card-body,
+    main.container .summary-box,
+    main.container form#payment-form,
+    main.container form#advance-form {
+      padding: 18px !important;
+    }
+  }
+</style>
