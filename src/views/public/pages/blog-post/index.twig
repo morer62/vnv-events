@@ -222,8 +222,10 @@
     }
 
     .blog-post-back{ margin-top:48px; }
+    .blog-post-top-back{ margin:0 0 18px; }
 
-    .blog-post-back a{
+    .blog-post-back a,
+    .blog-post-top-back a{
         display:inline-flex;
         align-items:center;
         justify-content:center;
@@ -238,7 +240,8 @@
         box-shadow:0 8px 22px rgba(17,13,9,.08);
     }
 
-    .blog-post-back a:hover{ background:#e5e7eb; }
+    .blog-post-back a:hover,
+    .blog-post-top-back a:hover{ background:#e5e7eb; }
 
     @media (max-width: 768px){
         .blog-post-shell{ padding:48px 0 58px; }
@@ -251,6 +254,14 @@
     <div class="container">
         <div class="row justify-content-center">
             <div class="col-lg-10">
+                <div class="blog-post-top-back">
+                    {% if category %}
+                        <a href="{{ path('blog/' ~ category.slug ~ '/') }}">&larr; Back to {{ category.name }}</a>
+                    {% else %}
+                        <a href="{{ path('blog') }}">&larr; Back to Blog</a>
+                    {% endif %}
+                </div>
+
                 <header class="blog-post-hero">
                     {% if category %}
                         <a class="blog-post-category" href="{{ path('blog/' ~ category.slug ~ '/') }}">
@@ -327,9 +338,9 @@
 
                 <div class="blog-post-back">
                     {% if category %}
-                        <a href="{{ path('blog/' ~ category.slug ~ '/') }}">← Back to {{ category.name }}</a>
+                        <a href="{{ path('blog/' ~ category.slug ~ '/') }}">&larr; Back to {{ category.name }}</a>
                     {% else %}
-                        <a href="/">← Back</a>
+                        <a href="{{ path('blog') }}">&larr; Back to Blog</a>
                     {% endif %}
                 </div>
             </div>

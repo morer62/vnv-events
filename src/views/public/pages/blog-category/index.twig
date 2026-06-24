@@ -4,6 +4,8 @@
 {% set categoryTitle = category.name ?: 'Category' %}
 {% set placeholderImage = asset_for(placeholder_image|default('assets/images/cms-image-needed.svg')) %}
 {% set categoryImage = category.featured_image_url|default('') ?: placeholderImage %}
+{% set categoryIndexPath = category_type == 'location' ? 'locations' : (category_type == 'blog' ? 'blog' : 'pages') %}
+{% set categoryIndexLabel = category_type == 'location' ? 'all locations' : (category_type == 'blog' ? 'all blog' : 'all pages') %}
 
 {% block title %}
     {{ category.meta_title ?: (categoryTitle ~ ' - ' ~ categoryTypeLabel ~ ' | VNV Events') }}
@@ -110,6 +112,14 @@
     }
 
     .blog-cat-desc{margin:0;color:rgba(255,255,255,.92);max-width:780px;line-height:1.86;font-size:1.03rem;}
+    .blog-cat-actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:22px;}
+    .blog-cat-back{
+      display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:42px;
+      padding:0 16px;border-radius:999px;border:1px solid rgba(255,255,255,.28);
+      color:#fff;background:rgba(255,255,255,.08);text-decoration:none;font-weight:900;
+      letter-spacing:.04em;text-transform:uppercase;font-size:.78rem;transition:.2s ease;
+    }
+    .blog-cat-back:hover{background:#fff;color:var(--vnv-primary);text-decoration:none;}
     .blog-cat-tools{
       display:flex;
       align-items:center;
@@ -177,6 +187,9 @@
                 {% if category.description %}
                     <p class="blog-cat-desc">{{ category.description }}</p>
                 {% endif %}
+                <div class="blog-cat-actions">
+                    <a class="blog-cat-back" href="{{ path(categoryIndexPath) }}">&larr; Back to {{ categoryIndexLabel }}</a>
+                </div>
             </div>
             <figure class="blog-cat-hero-image">
                 <img src="{{ categoryImage }}" alt="{{ categoryTitle }}">
