@@ -291,7 +291,7 @@
 
                 <div class="cms-field">
                     <label class="cms-label">Content Type</label>
-                    <select name="content_type" class="cms-select">
+                    <select name="content_type" class="cms-select" data-content-type-select>
                         {% for type in ['page', 'location', 'blog'] %}
                             <option value="{{ type }}" {% if old.content_type == type %}selected{% endif %}>
                                 {{ type|title }}
@@ -299,6 +299,25 @@
                         {% endfor %}
                     </select>
                     <div class="cms-help">Page uses /slug/, Location uses /locations/slug/, Blog uses /blog/slug/.</div>
+                </div>
+
+                <div class="cms-field">
+                    <label class="cms-label">Category</label>
+                    <select name="id_cms_category" class="cms-select" data-cms-category-select>
+                        <option value="">No category</option>
+                        {% for category in categories %}
+                            <option
+                                value="{{ category.id }}"
+                                data-applies-pages="{{ category.applies_to_pages ? '1' : '0' }}"
+                                data-applies-blog="{{ category.applies_to_blog ? '1' : '0' }}"
+                                data-applies-locations="{{ category.applies_to_locations ? '1' : '0' }}"
+                                {% if old.id_cms_category == category.id %}selected{% endif %}
+                            >
+                                {{ category.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                    <div class="cms-help">Only categories enabled for the selected content type are available.</div>
                 </div>
 
                 <div class="cms-field">
@@ -435,4 +454,38 @@
         </div>
     </form>
 </div>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    var typeSelect = document.querySelector('[data-content-type-select]');
+    var categorySelect = document.querySelector('[data-cms-category-select]');
+    if (!typeSelect || !categorySelect) {
+        return;
+    }
+
+    function optionApplies(option, type) {
+        if (!option.value) {
+            return true;
+        }
+
+        var attr = type === 'location' ? 'appliesLocations' : (type === 'blog' ? 'appliesBlog' : 'appliesPages');
+        return option.dataset[attr] === '1';
+    }
+
+    function filterCategories() {
+        var type = typeSelect.value || 'page';
+        var selectedOption = categorySelect.options[categorySelect.selectedIndex];
+
+        Array.prototype.forEach.call(categorySelect.options, function (option) {
+            option.hidden = !optionApplies(option, type);
+        });
+
+        if (selectedOption && !optionApplies(selectedOption, type)) {
+            categorySelect.value = '';
+        }
+    }
+
+    typeSelect.addEventListener('change', filterCategories);
+    filterCategories();
+});
+</script>
 {% endblock %}

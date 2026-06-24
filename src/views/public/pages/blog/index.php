@@ -52,7 +52,8 @@ function vnv_blog_first_existing_column(\App\Repositories\Connection $db, string
 
 try {
     $db = new \App\Repositories\Connection();
-    $hasCategories = vnv_blog_table_exists($db, 'blog_categories');
+    $hasCategories = vnv_blog_table_exists($db, 'cms_categories');
+    $hasLegacyCategories = vnv_blog_table_exists($db, 'blog_categories');
     $hasContents = vnv_blog_table_exists($db, 'cms_contents');
     $hasRoutes = vnv_blog_table_exists($db, 'cms_routes');
 
@@ -60,18 +61,22 @@ try {
         $categoryWhere = [];
         $categoryParams = [];
 
-        if (vnv_blog_column_exists($db, 'blog_categories', 'status')) {
-            $categoryWhere[] = "LOWER(COALESCE(status, 'active')) IN ('active', 'published', '1')";
+        if (vnv_blog_column_exists($db, 'cms_categories', 'is_active')) {
+            $categoryWhere[] = "COALESCE(is_active, 1) = 1";
         }
 
-        if ($siteKey !== '' && vnv_blog_column_exists($db, 'blog_categories', 'site_key')) {
+        if (vnv_blog_column_exists($db, 'cms_categories', 'applies_to_blog')) {
+            $categoryWhere[] = "COALESCE(applies_to_blog, 1) = 1";
+        }
+
+        if ($siteKey !== '' && vnv_blog_column_exists($db, 'cms_categories', 'site_key')) {
             $categoryWhere[] = "(site_key IS NULL OR site_key = '' OR LOWER(site_key) IN (:category_site_key, 'shared', 'global', 'all_sites'))";
             $categoryParams[':category_site_key'] = $siteKey;
         }
 
-        $categoryOrderColumn = vnv_blog_first_existing_column($db, 'blog_categories', ['sort_order', 'display_order', 'position', 'name']);
-        $categoryOrder = $categoryOrderColumn ? " ORDER BY {$categoryOrderColumn} ASC" : " ORDER BY id_blog_category ASC";
-        $categorySql = "SELECT * FROM blog_categories";
+        $categoryOrderColumn = vnv_blog_first_existing_column($db, 'cms_categories', ['sort_order', 'display_order', 'position', 'name']);
+        $categoryOrder = $categoryOrderColumn ? " ORDER BY {$categoryOrderColumn} ASC" : " ORDER BY id ASC";
+        $categorySql = "SELECT * FROM cms_categories";
         if (!empty($categoryWhere)) {
             $categorySql .= " WHERE " . implode(' AND ', $categoryWhere);
         }
@@ -123,8 +128,25 @@ try {
             $routeJoin = "LEFT JOIN cms_routes r ON r.id_content = c.id AND r.language = c.language AND (r.is_main = 1 OR r.route = CONCAT('/blog/', c.slug, '/')){$routeFilterSql}";
         }
 
-        $categoryJoin = $hasCategories ? "LEFT JOIN blog_categories bc ON bc.id_blog_category = c.id_blog_category" : "";
-        $categorySelect = $hasCategories ? "bc.name AS category_name, bc.slug AS category_slug, bc.featured_image_url AS category_featured_image_url" : "NULL AS category_name, NULL AS category_slug, NULL AS category_featured_image_url";
+        $categoryJoinParts = [];
+        if ($hasCategories && vnv_blog_column_exists($db, 'cms_contents', 'id_cms_category')) {
+            $categoryJoinParts[] = "LEFT JOIN cms_categories cc ON cc.id = c.id_cms_category";
+        }
+        $legacyCategoryIdColumn = null;
+        if ($hasLegacyCategories) {
+            $legacyCategoryIdColumn = vnv_blog_first_existing_column($db, 'blog_categories', ['id_blog_category', 'id']);
+        }
+        if ($hasLegacyCategories && $legacyCategoryIdColumn && vnv_blog_column_exists($db, 'cms_contents', 'id_blog_category')) {
+            $categoryJoinParts[] = "LEFT JOIN blog_categories bc ON bc.{$legacyCategoryIdColumn} = c.id_blog_category";
+        }
+        $categoryJoin = implode("\n            ", $categoryJoinParts);
+        $hasLegacyJoin = $hasLegacyCategories && $legacyCategoryIdColumn && vnv_blog_column_exists($db, 'cms_contents', 'id_blog_category');
+        $legacyNameSelect = $hasLegacyJoin ? "bc.name" : "NULL";
+        $legacySlugSelect = $hasLegacyJoin ? "bc.slug" : "NULL";
+        $legacyImageSelect = $hasLegacyJoin && vnv_blog_column_exists($db, 'blog_categories', 'featured_image_url') ? "bc.featured_image_url" : "NULL";
+        $categorySelect = $hasCategories
+            ? "COALESCE(cc.name, {$legacyNameSelect}) AS category_name, COALESCE(cc.slug, {$legacySlugSelect}) AS category_slug, COALESCE(cc.featured_image_url, {$legacyImageSelect}) AS category_featured_image_url"
+            : ($hasLegacyJoin ? "bc.name AS category_name, bc.slug AS category_slug, {$legacyImageSelect} AS category_featured_image_url" : "NULL AS category_name, NULL AS category_slug, NULL AS category_featured_image_url");
 
         $orderColumn = vnv_blog_first_existing_column($db, 'cms_contents', ['published_at', 'updated_at', 'created_at', 'id']);
         $orderBy = $orderColumn ? "c.{$orderColumn} DESC" : "c.id DESC";
@@ -147,19 +169,34 @@ try {
     }
 
     $categoriesById = [];
+    $categoriesBySlug = [];
     foreach ($categories as $index => $category) {
-        $id = (int)($category['id_blog_category'] ?? $category['id'] ?? 0);
+        $id = (int)($category['id'] ?? $category['id_blog_category'] ?? 0);
+        $slug = (string)($category['slug'] ?? '');
         $categories[$index]['posts_count'] = 0;
         $categories[$index]['dynamic_image_url'] = $category['featured_image_url'] ?? $category['image_url'] ?? $category['cover_image_url'] ?? '';
         if ($id > 0) {
             $categoriesById[$id] = $index;
         }
+        if ($slug !== '') {
+            $categoriesBySlug[$slug] = $index;
+        }
     }
 
     foreach ($posts as $post) {
-        $categoryId = (int)($post['id_blog_category'] ?? 0);
+        $categoryId = (int)($post['id_cms_category'] ?? $post['id_blog_category'] ?? 0);
         if ($categoryId > 0 && isset($categoriesById[$categoryId])) {
             $categoryIndex = $categoriesById[$categoryId];
+            $categories[$categoryIndex]['posts_count']++;
+            if (empty($categories[$categoryIndex]['dynamic_image_url']) && !empty($post['featured_image_url'])) {
+                $categories[$categoryIndex]['dynamic_image_url'] = $post['featured_image_url'];
+            }
+            continue;
+        }
+
+        $categorySlug = (string)($post['category_slug'] ?? '');
+        if ($categorySlug !== '' && isset($categoriesBySlug[$categorySlug])) {
+            $categoryIndex = $categoriesBySlug[$categorySlug];
             $categories[$categoryIndex]['posts_count']++;
             if (empty($categories[$categoryIndex]['dynamic_image_url']) && !empty($post['featured_image_url'])) {
                 $categories[$categoryIndex]['dynamic_image_url'] = $post['featured_image_url'];
@@ -183,7 +220,6 @@ try {
     $featuredPosts = array_slice($posts, 0, 3);
     $recentPosts = array_slice($posts, 3, 9);
 } catch (Throwable $e) {
-    $categories = [];
     $featuredPosts = [];
     $recentPosts = [];
 }

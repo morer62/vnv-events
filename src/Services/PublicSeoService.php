@@ -149,7 +149,7 @@ class PublicSeoService
             self::breadcrumbNode($canonical, [
                 ['name' => 'Home', 'url' => self::SITE_URL . '/'],
                 ['name' => 'Blog', 'url' => self::SITE_URL . '/blog/'],
-                ['name' => $category->name ?? 'Article', 'url' => $category ? self::SITE_URL . '/category/blog/' . trim((string)$category->slug, '/') . '/' : $canonical],
+                ['name' => $category->name ?? 'Article', 'url' => $category ? self::SITE_URL . '/blog/' . trim((string)$category->slug, '/') . '/' : $canonical],
                 ['name' => $post->title ?? 'Article', 'url' => $canonical],
             ]),
         ];

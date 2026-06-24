@@ -2,7 +2,6 @@
 
 use App\Services\OphyraGrowthHubClient;
 use App\Services\PublicSeoService;
-use App\Repositories\BlogCategoriesRepository;
 use App\Repositories\CmsCategoriesRepository;
 use App\Repositories\Connection;
 use App\Utils\TemplateResponse;
@@ -130,14 +129,20 @@ function growth_hub_local_content_list(string $listType, string $siteKey, int $l
         $db = new Connection();
         $hasCmsCategoryImage = growth_hub_table_has_column($db, 'cms_categories', 'featured_image_url');
         $hasBlogCategoryImage = growth_hub_table_has_column($db, 'blog_categories', 'featured_image_url');
+        $hasRouteType = growth_hub_table_has_column($db, 'cms_routes', 'route_type');
+        $hasApproval = growth_hub_table_has_column($db, 'cms_contents', 'approval_status');
 
-        $typeExpression = "LOWER(COALESCE(NULLIF(c.content_type, ''), NULLIF(r.route_type, ''), NULLIF(c.type, ''), 'page'))";
+        $typeExpression = $hasRouteType
+            ? "LOWER(COALESCE(NULLIF(c.content_type, ''), NULLIF(r.route_type, ''), NULLIF(c.type, ''), 'page'))"
+            : "LOWER(COALESCE(NULLIF(c.content_type, ''), NULLIF(c.type, ''), 'page'))";
         $typeValues = $listType === 'blog'
             ? "'blog', 'post', 'blog_post', 'blog-post', 'guide', 'faq_page', 'comparison', 'case_study'"
             : "'location', 'locations', 'location_page', 'location-page'";
 
         $cmsCategoryImageSelect = $hasCmsCategoryImage ? "cc.featured_image_url" : "NULL";
         $blogCategoryImageSelect = $hasBlogCategoryImage ? "bc.featured_image_url" : "NULL";
+        $routeTypeSelect = $hasRouteType ? "r.route_type" : "NULL";
+        $approvalFilter = $hasApproval ? "AND COALESCE(c.approval_status, 'APPROVED') IN ('APPROVED', 'PUBLISHED')" : "";
 
         $db->query("
             SELECT
@@ -155,7 +160,7 @@ function growth_hub_local_content_list(string $listType, string $siteKey, int $l
                 c.id_cms_category,
                 c.id_blog_category,
                 r.route,
-                r.route_type,
+                {$routeTypeSelect} AS route_type,
                 COALESCE(bc.name, cc.name) AS category_name,
                 COALESCE(bc.slug, cc.slug) AS category_slug,
                 COALESCE({$blogCategoryImageSelect}, {$cmsCategoryImageSelect}) AS category_image_url
@@ -165,7 +170,7 @@ function growth_hub_local_content_list(string $listType, string $siteKey, int $l
             LEFT JOIN cms_categories cc ON cc.id = c.id_cms_category
             WHERE {$typeExpression} IN ({$typeValues})
               AND c.status = 'PUBLISHED'
-              AND COALESCE(c.approval_status, 'APPROVED') IN ('APPROVED', 'PUBLISHED')
+              {$approvalFilter}
               AND COALESCE(r.status, 'ACTIVE') = 'ACTIVE'
               AND COALESCE(c.language, 'en') = 'en'
               AND c.site_key IN (:site_key, 'shared', 'global', 'all_sites')
@@ -197,12 +202,7 @@ function growth_hub_list_categories(string $listType): array
     try {
         $db = new Connection();
 
-        if ($listType === 'blog') {
-            $repo = new BlogCategoriesRepository();
-        } else {
-            $repo = new CmsCategoriesRepository();
-        }
-
+        $repo = new CmsCategoriesRepository();
         $repo->db = $db;
 
         return array_map(static function ($category) {
@@ -213,7 +213,7 @@ function growth_hub_list_categories(string $listType): array
                 'description' => (string)($category->description ?? ''),
                 'image_url' => (string)($category->featured_image_url ?? ''),
             ];
-        }, $repo->getActive() ?: []);
+        }, $repo->getActiveForContentType($listType) ?: []);
     } catch (\Throwable $e) {
         error_log('Growth Hub category list failed: ' . $e->getMessage());
         return [];

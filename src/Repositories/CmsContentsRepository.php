@@ -19,6 +19,7 @@ class CmsContentsRepository extends BaseRepository
         'content_type',
         'id_template',
         'id_blog_category',
+        'id_cms_category',
         'type',
         'title',
         'slug',

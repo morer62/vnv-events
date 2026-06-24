@@ -6,6 +6,7 @@ use App\Core\FindViewTrait;
 use App\Core\GetViewTrait;
 use App\Core\IncludeViewTrait;
 use App\Entity\User;
+use App\Repositories\CmsCategoriesRepository;
 use App\Repositories\CmsRoutesRepository;
 use App\Repositories\InstitutionProfileRepository;
 use App\Repositories\LocationPagesRepository;
@@ -312,6 +313,33 @@ class Kernel
         return null;
     }
 
+    private function publicCategoryExistsForType(string $slug, string $contentType): bool
+    {
+        try {
+            $repo = new CmsCategoriesRepository();
+            $repo->db = new \App\Repositories\Connection();
+
+            return (bool)$repo->getActiveBySlugForContentType($slug, $contentType);
+        } catch (\Throwable $e) {
+            error_log('Public category lookup failed: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    private function publishedCmsRouteExists(string $route): bool
+    {
+        try {
+            $repo = new CmsRoutesRepository();
+            $repo->db = new \App\Repositories\Connection();
+            $cmsRoute = $repo->getByRoute($route, 'en');
+
+            return $cmsRoute && ($cmsRoute->content_status ?? '') === 'PUBLISHED';
+        } catch (\Throwable $e) {
+            error_log('Published CMS route lookup failed: ' . $e->getMessage());
+            return false;
+        }
+    }
+
     /**
      * @throws Exception
      */
@@ -465,6 +493,27 @@ class Kernel
                 }
             }
 
+            if (
+                count($urlViews) === 2 &&
+                in_array($urlViews[0], ['pages', 'blog', 'locations'], true) &&
+                !empty($urlViews[1])
+            ) {
+                $publicCategoryType = $this->normalizePublicCategoryType($urlViews[0]);
+                $categoryRoute = '/' . trim($urlViews[0], '/') . '/' . trim($urlViews[1], '/') . '/';
+                if (
+                    $publicCategoryType &&
+                    !$this->publishedCmsRouteExists($categoryRoute) &&
+                    $this->publicCategoryExistsForType($urlViews[1], $publicCategoryType)
+                ) {
+                    $GLOBALS['public_category_type'] = $publicCategoryType;
+                    $GLOBALS['public_category_slug'] = $urlViews[1];
+                    $blogCategoryView = LocationUtils::getRootLocation()
+                        . "/src/views/public/pages/blog-category/index.php";
+
+                    $this->includeResolvedFileAndExit($blogCategoryView);
+                }
+            }
+
             // Location pages dinámicas por slug raíz
             // Ej: /sunrise -> src/views/public/pages/location-page/index.php
             if (count($urlViews) === 1) {
@@ -511,6 +560,7 @@ class Kernel
                 !empty($urlViews[2])
             ) {
                 $GLOBALS['public_category_type'] = $this->normalizePublicCategoryType($urlViews[1]);
+                $GLOBALS['public_category_slug'] = $urlViews[2];
                 $blogCategoryView = LocationUtils::getRootLocation()
                     . "/src/views/public/pages/blog-category/index.php";
 

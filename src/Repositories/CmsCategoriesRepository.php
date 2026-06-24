@@ -21,6 +21,9 @@ class CmsCategoriesRepository extends BaseRepository
         'description',
         'featured_image_url',
         'featured_image_alt',
+        'applies_to_pages',
+        'applies_to_blog',
+        'applies_to_locations',
         'is_active',
         'content_origin',
         'origin_site_key',
@@ -44,6 +47,24 @@ class CmsCategoriesRepository extends BaseRepository
         return $this->db->fetchAll();
     }
 
+    public function getActiveForContentType(string $contentType): array
+    {
+        $column = $this->appliesColumnForContentType($contentType);
+        $siteSql = $this->siteScopeSql();
+
+        $this->db->query("
+            SELECT *
+            FROM `{$this->table}`
+            WHERE `is_active` = 1
+              AND `{$column}` = 1
+              {$siteSql}
+            ORDER BY `name` ASC
+        ");
+        $this->bindSiteScope();
+
+        return $this->db->fetchAll() ?: [];
+    }
+
     public function getAllForPanel(): array
     {
         $siteSql = $this->siteScopeSql();
@@ -58,6 +79,48 @@ class CmsCategoriesRepository extends BaseRepository
         return $this->getOne([
             'slug' => $slug
         ]);
+    }
+
+    public function getActiveBySlugForContentType(string $slug, string $contentType): ?object
+    {
+        $column = $this->appliesColumnForContentType($contentType);
+        $siteSql = $this->siteScopeSql();
+
+        $this->db->query("
+            SELECT *
+            FROM `{$this->table}`
+            WHERE `slug` = :slug
+              AND `is_active` = 1
+              AND `{$column}` = 1
+              {$siteSql}
+            LIMIT 1
+        ");
+        $this->db->bind(':slug', $slug);
+        $this->bindSiteScope();
+
+        $result = $this->db->fetchOne();
+        return $result ?: null;
+    }
+
+    public function supportsContentType(object $category, string $contentType): bool
+    {
+        $column = $this->appliesColumnForContentType($contentType);
+        return (int)($category->{$column} ?? 0) === 1;
+    }
+
+    private function appliesColumnForContentType(string $contentType): string
+    {
+        $contentType = strtolower(trim($contentType));
+
+        if (in_array($contentType, ['blog', 'post', 'blog_post', 'blog-post'], true)) {
+            return 'applies_to_blog';
+        }
+
+        if (in_array($contentType, ['location', 'locations', 'location_page', 'location-page'], true)) {
+            return 'applies_to_locations';
+        }
+
+        return 'applies_to_pages';
     }
 
     public function slugExists(string $slug, int $excludeId = 0): bool

@@ -151,6 +151,10 @@
     .blog-empty{text-align:center;background:var(--vnv-surface);border:1px dashed #cbb79a;border-radius:var(--vnv-radius-lg);padding:44px 22px;color:var(--vnv-muted);box-shadow:var(--vnv-shadow);}
     .blog-empty strong{display:block;color:var(--vnv-text);margin-bottom:8px;font-family:Georgia,"Times New Roman",serif;font-size:1.2rem;}
     .blog-filter-empty{margin-top:22px;}
+    .blog-pagination{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:center;margin-top:30px;}
+    .blog-page-link{display:inline-flex;align-items:center;justify-content:center;min-width:42px;height:42px;padding:0 14px;border-radius:999px;border:1px solid var(--vnv-border);background:#fff;color:var(--vnv-text);font-weight:900;text-decoration:none;box-shadow:0 10px 22px rgba(24,18,10,.08);}
+    .blog-page-link:hover,.blog-page-link.is-active{background:var(--vnv-primary);color:#fff;text-decoration:none;border-color:var(--vnv-primary);}
+    .blog-page-link.is-disabled{opacity:.44;pointer-events:none;}
 
     @media (max-width:768px){
       .blog-cat-shell{padding:52px 0 60px;}
@@ -197,7 +201,7 @@
                             <img src="{{ itemImage }}" alt="{{ item.title }}">
                         </a>
                         <div class="blog-card-body">
-                            <a class="blog-card-category" href="{{ path('category/' ~ category_type ~ '/' ~ category.slug ~ '/') }}">{{ categoryTitle }}</a>
+                            <a class="blog-card-category" href="{{ path(pagination.base_path|trim('/')) }}">{{ categoryTitle }}</a>
                             <a href="{{ itemHref }}"><div class="blog-card-title">{{ item.title }}</div></a>
                             {% if excerpt %}
                                 <div class="blog-card-excerpt">{{ excerpt|striptags|slice(0, 145) }}{% if excerpt|length > 145 %}...{% endif %}</div>
@@ -211,6 +215,17 @@
                 <strong>No matching results</strong>
                 Try another word or clear the search field.
             </div>
+            {% if pagination.total_pages > 1 %}
+                <nav class="blog-pagination" aria-label="{{ categoryTitle }} pagination">
+                    {% set prevPage = pagination.current_page - 1 %}
+                    {% set nextPage = pagination.current_page + 1 %}
+                    <a class="blog-page-link {{ pagination.current_page == 1 ? 'is-disabled' : '' }}" href="{{ path(pagination.base_path|trim('/')) }}{% if prevPage > 1 %}?page={{ prevPage }}{% endif %}">Previous</a>
+                    {% for page in 1..pagination.total_pages %}
+                        <a class="blog-page-link {{ page == pagination.current_page ? 'is-active' : '' }}" href="{{ path(pagination.base_path|trim('/')) }}{% if page > 1 %}?page={{ page }}{% endif %}">{{ page }}</a>
+                    {% endfor %}
+                    <a class="blog-page-link {{ pagination.current_page == pagination.total_pages ? 'is-disabled' : '' }}" href="{{ path(pagination.base_path|trim('/')) }}?page={{ nextPage }}">Next</a>
+                </nav>
+            {% endif %}
         {% else %}
             <div class="blog-empty">
                 <strong>No results found yet</strong>

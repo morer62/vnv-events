@@ -110,8 +110,9 @@
     .loc-cat-button{
         display:inline-flex;align-items:center;gap:9px;border:1px solid #dde5e8;background:#fff;color:#334155;
         border-radius:999px;padding:7px 13px 7px 7px;font-size:.78rem;font-weight:800;box-shadow:0 6px 18px rgba(15,23,42,.05);
-        cursor:pointer;transition:.2s ease;font-family:inherit;white-space:nowrap;
+        cursor:pointer;transition:.2s ease;font-family:inherit;white-space:nowrap;text-decoration:none;
     }
+    .loc-cat-button:hover{text-decoration:none;}
     .loc-cat-button:hover,.loc-cat-button.is-active{background:#11181a;color:#fff;border-color:#11181a;}
     .loc-cat-button img{
         width:32px;height:32px;border-radius:999px;object-fit:cover;background:#edf2f7;border:1px solid rgba(255,255,255,.7);
@@ -209,18 +210,18 @@
 
         <div class="loc-pill-row" aria-label="Filter locations by category">
             <div class="loc-pills">
-                <button type="button" class="loc-cat-button is-active" data-loc-category-filter="all">
+                <a class="loc-cat-button is-active" href="{{ path('locations') }}">
                     <img src="{{ placeholderImage }}" alt="">
                     <span>All</span>
                     <span class="loc-cat-count">{{ pages|length }}</span>
-                </button>
+                </a>
                 {% for category in categories|default([]) %}
                     {% set categoryImage = category.image_url|default('') ?: placeholderImage %}
-                    <button type="button" class="loc-cat-button" data-loc-category-filter="{{ category.slug|e('html_attr') }}">
+                    <a class="loc-cat-button" href="{{ path('locations/' ~ category.slug ~ '/') }}">
                         <img src="{{ categoryImage }}" alt="">
                         <span>{{ category.name }}</span>
                         <span class="loc-cat-count">{{ category.count }}</span>
-                    </button>
+                    </a>
                 {% endfor %}
             </div>
         </div>
@@ -270,8 +271,6 @@
     var cards = root.querySelectorAll('[data-loc-card]');
     var empty = root.querySelector('[data-loc-empty]');
     var hint = root.querySelector('[data-loc-search-hint]');
-    var categoryButtons = document.querySelectorAll('[data-loc-category-filter]');
-    var activeCategory = 'all';
     if (!input || !cards.length) return;
 
     var total = cards.length;
@@ -294,10 +293,8 @@
         var n = 0;
         for (var i = 0; i < cards.length; i++) {
             var hay = norm(cards[i].getAttribute('data-loc-search') || '');
-            var cardCategory = cards[i].getAttribute('data-loc-category') || 'location';
             var matchesSearch = !q || hay.indexOf(q) !== -1;
-            var matchesCategory = activeCategory === 'all' || cardCategory === activeCategory;
-            var show = matchesSearch && matchesCategory;
+            var show = matchesSearch;
             cards[i].hidden = !show;
             if (show) n++;
         }
@@ -307,15 +304,6 @@
 
     input.addEventListener('input', apply);
     input.addEventListener('keydown', function(e){ if (e.key === 'Enter') e.preventDefault(); });
-    categoryButtons.forEach(function(button){
-        button.addEventListener('click', function(){
-            activeCategory = button.getAttribute('data-loc-category-filter') || 'all';
-            categoryButtons.forEach(function(item){
-                item.classList.toggle('is-active', item === button);
-            });
-            apply();
-        });
-    });
     apply();
 })();
 </script>

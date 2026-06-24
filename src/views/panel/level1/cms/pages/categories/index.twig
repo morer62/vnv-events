@@ -230,6 +230,7 @@
                             <th>Image</th>
                             <th>Name</th>
                             <th>Slug</th>
+                            <th>Applies To</th>
                             <th>Public Path</th>
                             <th>Description</th>
                             <th>Status</th>
@@ -257,9 +258,20 @@
                                     <span class="cms-slug">{{ item.slug }}</span>
                                 </td>
                                 <td>
-                                    <a href="{{ path('category/page/' ~ item.slug ~ '/') }}" target="_blank" rel="noopener noreferrer" class="cms-path">
-                                        /category/page/{{ item.slug }}/
-                                    </a>
+                                    {% if item.applies_to_pages %}<span class="cms-badge active">Pages</span>{% endif %}
+                                    {% if item.applies_to_blog %}<span class="cms-badge active">Blog</span>{% endif %}
+                                    {% if item.applies_to_locations %}<span class="cms-badge active">Locations</span>{% endif %}
+                                </td>
+                                <td>
+                                    {% if item.applies_to_pages %}
+                                        <a href="{{ path('pages/' ~ item.slug ~ '/') }}" target="_blank" rel="noopener noreferrer" class="cms-path">/pages/{{ item.slug }}/</a>
+                                    {% endif %}
+                                    {% if item.applies_to_blog %}
+                                        <a href="{{ path('blog/' ~ item.slug ~ '/') }}" target="_blank" rel="noopener noreferrer" class="cms-path">/blog/{{ item.slug }}/</a>
+                                    {% endif %}
+                                    {% if item.applies_to_locations %}
+                                        <a href="{{ path('locations/' ~ item.slug ~ '/') }}" target="_blank" rel="noopener noreferrer" class="cms-path">/locations/{{ item.slug }}/</a>
+                                    {% endif %}
                                 </td>
                                 <td>
                                     {{ item.description ?: '—' }}

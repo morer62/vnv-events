@@ -213,7 +213,8 @@
         <div style="display:flex; gap:10px; flex-wrap:wrap;">
             <a href="{{ path('panel/cms/pages/categories') }}" class="cms-btn cms-btn-light">← Back to Categories</a>
             {% if old.slug %}
-                <a href="{{ path('category/page/' ~ old.slug ~ '/') }}" target="_blank" rel="noopener noreferrer" class="cms-btn cms-btn-light">Open Public Page</a>
+                {% set preview_path = old.applies_to_pages ? 'pages/' : (old.applies_to_blog ? 'blog/' : 'locations/') %}
+                <a href="{{ path(preview_path ~ old.slug ~ '/') }}" target="_blank" rel="noopener noreferrer" class="cms-btn cms-btn-light">Open Public Page</a>
             {% endif %}
         </div>
     </div>
@@ -257,10 +258,16 @@
                     </div>
                     {% if old.slug %}
                         <div class="cms-help">
-                            Public URL:
-                            <a href="{{ path('category/page/' ~ old.slug ~ '/') }}" target="_blank" rel="noopener noreferrer" class="cms-path">
-                                /category/page/{{ old.slug }}/
-                            </a>
+                            Public URLs:
+                            {% if old.applies_to_pages %}
+                                <a href="{{ path('pages/' ~ old.slug ~ '/') }}" target="_blank" rel="noopener noreferrer" class="cms-path">/pages/{{ old.slug }}/</a>
+                            {% endif %}
+                            {% if old.applies_to_blog %}
+                                <a href="{{ path('blog/' ~ old.slug ~ '/') }}" target="_blank" rel="noopener noreferrer" class="cms-path">/blog/{{ old.slug }}/</a>
+                            {% endif %}
+                            {% if old.applies_to_locations %}
+                                <a href="{{ path('locations/' ~ old.slug ~ '/') }}" target="_blank" rel="noopener noreferrer" class="cms-path">/locations/{{ old.slug }}/</a>
+                            {% endif %}
                         </div>
                     {% endif %}
                 </div>
@@ -272,6 +279,25 @@
                         class="cms-textarea"
                         placeholder="Optional internal description for this category."
                     >{{ old.description }}</textarea>
+                </div>
+
+                <div class="cms-field full">
+                    <label class="cms-label">Applies To *</label>
+                    <label class="cms-check">
+                        <input type="checkbox" name="applies_to_pages" value="1" {% if old.applies_to_pages %}checked{% endif %}>
+                        <span>Pages</span>
+                    </label>
+                    <label class="cms-check">
+                        <input type="checkbox" name="applies_to_blog" value="1" {% if old.applies_to_blog %}checked{% endif %}>
+                        <span>Blog</span>
+                    </label>
+                    <label class="cms-check">
+                        <input type="checkbox" name="applies_to_locations" value="1" {% if old.applies_to_locations %}checked{% endif %}>
+                        <span>Locations</span>
+                    </label>
+                    <div class="cms-help">
+                        Controls where this category can be selected and which public category URLs exist.
+                    </div>
                 </div>
 
                 <div class="cms-field">

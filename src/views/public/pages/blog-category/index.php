@@ -15,11 +15,16 @@ if (isset($GLOBALS['public_category_type']) && is_string($GLOBALS['public_catego
     $rawCategoryType = $GLOBALS['public_category_type'];
 }
 
+$rawCategorySlug = null;
+if (isset($GLOBALS['public_category_slug']) && is_string($GLOBALS['public_category_slug'])) {
+    $rawCategorySlug = $GLOBALS['public_category_slug'];
+}
+
 $url = trim($_GET['url'] ?? '', '/');
 $parts = $url !== '' ? explode('/', $url) : [];
 
 $categoryType = normalize_public_category_type((string)($rawCategoryType ?? $parts[1] ?? ''));
-$slug = $parts[2] ?? null;
+$slug = $rawCategorySlug ?? ($parts[2] ?? null);
 
 if (!$categoryType && !empty($parts[1])) {
     $categoryType = normalize_public_category_type($parts[1]);
@@ -37,38 +42,52 @@ $typeWhere = "1 = 0";
 $categoryRepository = null;
 $categoryTitle = '';
 $categoryLabel = normalize_public_category_type_label($categoryType);
+$perPage = 20;
+$currentPage = max(1, (int)($_GET['page'] ?? 1));
+$totalItems = 0;
+$totalPages = 1;
 
-if ($categoryType === 'blog') {
-    $categoryRepository = new BlogCategoriesRepository();
-    $categoryRepository->db = $db;
+$categoryRepository = new CmsCategoriesRepository();
+$categoryRepository->db = $db;
 
-    $category = $categoryRepository->getBySlug($slug);
-    if (!$category || ($category->status ?? null) !== 'ACTIVE' || !public_category_matches_site($category, $siteKey)) {
-        http_response_code(404);
-        echo "Category not found";
-        exit;
+$category = $categoryRepository->getActiveBySlugForContentType((string)$slug, $categoryType);
+if ((!$category || !public_category_matches_site($category, $siteKey)) && $categoryType === 'blog') {
+    $legacyCategoryRepository = new BlogCategoriesRepository();
+    $legacyCategoryRepository->db = $db;
+    $legacyCategory = $legacyCategoryRepository->getBySlug((string)$slug);
+
+    if ($legacyCategory && ($legacyCategory->status ?? null) === 'ACTIVE' && public_category_matches_site($legacyCategory, $siteKey)) {
+        $category = $legacyCategory;
+        $categoryColumn = "c.id_blog_category";
     }
-
-    $categoryId = (int)($category->id ?? 0);
-    $categoryColumn = "c.id_blog_category";
-    $typeWhere = "(c.type = 'post' OR c.content_type = 'blog' OR c.content_type = 'blog_post')";
-} else {
-    $categoryRepository = new CmsCategoriesRepository();
-    $categoryRepository->db = $db;
-
-    $category = $categoryRepository->getBySlug($slug);
-    if (!$category || (int)($category->is_active ?? 0) !== 1 || !public_category_matches_site($category, $siteKey)) {
-        http_response_code(404);
-        echo "Category not found";
-        exit;
-    }
-
-    $categoryId = (int)($category->id ?? 0);
-    $categoryColumn = "c.id_cms_category";
-    $typeWhere = $categoryType === 'location'
-        ? "(c.content_type IN ('location','location_page','location-page') OR c.type = 'location')"
-        : "(c.type = 'page' OR c.content_type = 'page' OR c.content_type = '' OR c.content_type IS NULL)";
 }
+
+if (!$category || !public_category_matches_site($category, $siteKey)) {
+    http_response_code(404);
+    echo "Category not found";
+    exit;
+}
+
+$categoryId = (int)($category->id ?? 0);
+$categoryColumn = $categoryColumn ?? "c.id_cms_category";
+$legacyCategoryId = 0;
+if ($categoryType === 'blog' && $categoryColumn === "c.id_cms_category") {
+    $legacyCategoryRepository = new BlogCategoriesRepository();
+    $legacyCategoryRepository->db = $db;
+    $legacyCategory = $legacyCategoryRepository->getBySlug((string)$slug);
+    if ($legacyCategory && ($legacyCategory->status ?? null) === 'ACTIVE' && public_category_matches_site($legacyCategory, $siteKey)) {
+        $legacyCategoryId = (int)($legacyCategory->id ?? 0);
+    }
+}
+$categoryFilterSql = "{$categoryColumn} = :category_id";
+if ($legacyCategoryId > 0) {
+    $categoryFilterSql = "(c.id_cms_category = :category_id OR c.id_blog_category = :legacy_category_id)";
+}
+$typeWhere = match ($categoryType) {
+    'blog' => "(c.type = 'post' OR c.content_type = 'blog' OR c.content_type = 'blog_post')",
+    'location' => "(c.content_type IN ('location','location_page','location-page') OR c.type = 'location')",
+    default => "(c.type = 'page' OR c.content_type = 'page' OR c.content_type = '' OR c.content_type IS NULL)",
+};
 
 if (!$categoryId) {
     http_response_code(404);
@@ -116,6 +135,40 @@ try {
     $contentSiteKeyFilter = $hasContentSiteKey ? " AND c.site_key IN (:content_site_key, 'shared', 'global', 'all_sites')" : "";
     $routeSiteKeyFilter = $hasRouteSiteKey ? " AND r.site_key IN (:route_site_key, 'shared', 'global', 'all_sites')" : "";
 
+    $countSql = "
+        SELECT COUNT(*) AS total
+        FROM cms_contents c
+        LEFT JOIN cms_routes r
+            ON r.id_content = c.id
+           AND r.is_main = 1
+           AND r.language = c.language
+           {$routeStatusFilter}
+           {$routeSiteKeyFilter}
+        WHERE {$categoryFilterSql}
+          AND c.language = 'en'
+          {$contentStatusFilter}
+          {$approvalFilter}
+          {$contentSiteKeyFilter}
+          AND {$typeWhere}
+    ";
+
+    $db->query($countSql);
+    $db->bind(':category_id', $categoryId);
+    if ($legacyCategoryId > 0) {
+        $db->bind(':legacy_category_id', $legacyCategoryId);
+    }
+    if ($hasContentSiteKey) {
+        $db->bind(':content_site_key', $siteKey);
+    }
+    if ($hasRouteSiteKey) {
+        $db->bind(':route_site_key', $siteKey);
+    }
+    $countRow = $db->fetchOne();
+    $totalItems = $countRow ? (int)($countRow->total ?? 0) : 0;
+    $totalPages = max(1, (int)ceil($totalItems / $perPage));
+    $currentPage = min($currentPage, $totalPages);
+    $offset = ($currentPage - 1) * $perPage;
+
     $db->query("
         SELECT
             c.*,
@@ -127,16 +180,20 @@ try {
            AND r.language = c.language
            {$routeStatusFilter}
            {$routeSiteKeyFilter}
-        WHERE {$categoryColumn} = :category_id
+        WHERE {$categoryFilterSql}
           AND c.language = 'en'
           {$contentStatusFilter}
           {$approvalFilter}
           {$contentSiteKeyFilter}
           AND {$typeWhere}
         ORDER BY c.published_at DESC, c.id DESC
+        LIMIT {$perPage} OFFSET {$offset}
     ");
 
     $db->bind(':category_id', $categoryId);
+    if ($legacyCategoryId > 0) {
+        $db->bind(':legacy_category_id', $legacyCategoryId);
+    }
     if ($hasContentSiteKey) {
         $db->bind(':content_site_key', $siteKey);
     }
@@ -161,6 +218,13 @@ echo TemplateResponse::render(__DIR__ . "/index.twig", [
     "category_type_label" => $categoryLabel,
     "category_title" => $categoryTitle,
     "items" => $items,
+    "pagination" => [
+        "current_page" => $currentPage,
+        "total_pages" => $totalPages,
+        "total_items" => $totalItems,
+        "per_page" => $perPage,
+        "base_path" => public_category_path($categoryType, (string)$slug),
+    ],
     "placeholder_image" => "assets/images/cms-image-needed.svg",
     "show_whatsapp" => true,
 ]);
@@ -195,6 +259,17 @@ function normalize_public_category_type_label(string $type): string
     }
 
     return 'Blog';
+}
+
+function public_category_path(string $type, string $slug): string
+{
+    $prefix = match ($type) {
+        'blog' => 'blog',
+        'location' => 'locations',
+        default => 'pages',
+    };
+
+    return '/' . $prefix . '/' . trim($slug, '/') . '/';
 }
 
 function public_category_matches_site(object $category, string $siteKey): bool

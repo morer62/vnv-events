@@ -1,6 +1,7 @@
 <?php
 
 use App\Repositories\BlogCategoriesRepository;
+use App\Repositories\CmsCategoriesRepository;
 use App\Repositories\CmsContentsRepository;
 use App\Repositories\CmsRoutesRepository;
 use App\Repositories\Connection;
@@ -14,6 +15,9 @@ $contentsRepository->db = $db;
 
 $routesRepository = new CmsRoutesRepository();
 $routesRepository->db = $db;
+
+$cmsCategoriesRepository = new CmsCategoriesRepository();
+$cmsCategoriesRepository->db = $db;
 
 $blogCategoriesRepository = new BlogCategoriesRepository();
 $blogCategoriesRepository->db = $db;
@@ -68,12 +72,22 @@ if (!empty($post->content_json)) {
 
 // Categoría
 $category = null;
-if (!empty($post->id_blog_category)) {
+if (!empty($post->id_cms_category)) {
+    $category = $cmsCategoriesRepository->getOne([
+        'id' => (int)$post->id_cms_category
+    ]);
+
+    if ($category && ((int)($category->is_active ?? 0) !== 1 || !$cmsCategoriesRepository->supportsContentType($category, 'blog'))) {
+        $category = null;
+    }
+}
+
+if (!$category && !empty($post->id_blog_category)) {
     $category = $blogCategoriesRepository->getOne([
         'id' => (int)$post->id_blog_category
     ]);
 
-    if ($category && $category->status !== 'ACTIVE') {
+    if ($category && ($category->status ?? null) !== 'ACTIVE') {
         $category = null;
     }
 }

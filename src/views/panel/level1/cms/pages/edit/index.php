@@ -1,6 +1,7 @@
 <?php
 
 use App\Repositories\CmsContentsRepository;
+use App\Repositories\CmsCategoriesRepository;
 use App\Repositories\CmsRoutesRepository;
 use App\Repositories\CmsTemplatesRepository;
 use App\Repositories\Connection;
@@ -61,6 +62,9 @@ $router->get(function () {
     $contentsRepository = new CmsContentsRepository();
     $contentsRepository->db = $db;
 
+    $categoriesRepository = new CmsCategoriesRepository();
+    $categoriesRepository->db = $db;
+
     $routesRepository = new CmsRoutesRepository();
     $routesRepository->db = $db;
 
@@ -80,15 +84,18 @@ $router->get(function () {
 
     $mainRoute = $routesRepository->getMainRouteByContent((int)$page->id, $page->language ?? 'en');
     $templates = $templatesRepository->getActive();
+    $categories = $categoriesRepository->getActive();
 
     return TemplateResponse::render(__DIR__ . "/index.twig", [
         "title" => "Edit CMS Page",
         "errors" => [],
         "templates" => $templates,
+        "categories" => $categories,
         "page" => $page,
         "old" => [
             "id" => $page->id,
             "id_template" => $page->id_template ?? "",
+            "id_cms_category" => $page->id_cms_category ?? "",
             "content_type" => cmsNormalizeContentTypeEdit((string)($page->content_type ?? 'page')),
             "title" => $page->title ?? "",
             "slug" => $page->slug ?? "",
@@ -123,16 +130,21 @@ $router->post(function () {
     $contentsRepository = new CmsContentsRepository();
     $contentsRepository->db = $db;
 
+    $categoriesRepository = new CmsCategoriesRepository();
+    $categoriesRepository->db = $db;
+
     $routesRepository = new CmsRoutesRepository();
     $routesRepository->db = $db;
 
     $templates = $templatesRepository->getActive();
+    $categories = $categoriesRepository->getActive();
     $sessionUser = LoginService::getSession();
     $authorUserId = $sessionUser ? (int)$sessionUser->getId() : null;
     $ownerId = $sessionUser && $sessionUser->getOwner() ? (int)$sessionUser->getOwner() : SiteContext::businessOwnerId();
 
     $id                = (int)($_POST['id'] ?? 0);
     $idTemplate        = (int)($_POST['id_template'] ?? 0);
+    $idCmsCategory     = (int)($_POST['id_cms_category'] ?? 0);
     $contentType       = cmsNormalizeContentTypeEdit((string)($_POST['content_type'] ?? 'page'));
     $title             = trim($_POST['title'] ?? '');
     $slug              = trim($_POST['slug'] ?? '');
@@ -198,6 +210,7 @@ $router->post(function () {
 
     $errors = [];
     $selectedTemplate = null;
+    $selectedCategory = null;
 
     if ($title === '') {
         $errors[] = "Title is required.";
@@ -235,6 +248,18 @@ $router->post(function () {
         }
     }
 
+    if ($idCmsCategory > 0) {
+        $selectedCategory = $categoriesRepository->getOne([
+            'id' => $idCmsCategory
+        ]);
+
+        if (!$selectedCategory || (int)($selectedCategory->is_active ?? 0) !== 1) {
+            $errors[] = "Selected category is invalid.";
+        } elseif (!$categoriesRepository->supportsContentType($selectedCategory, $contentType)) {
+            $errors[] = "Selected category does not apply to this content type.";
+        }
+    }
+
     if ($contentsRepository->slugExists($slug, $ownerId, $page->language ?? 'en', $id)) {
         $errors[] = "That slug already exists.";
     }
@@ -263,10 +288,12 @@ $router->post(function () {
             "title" => "Edit CMS Page",
             "errors" => $errors,
             "templates" => $templates,
+            "categories" => $categories,
             "page" => $page,
             "old" => [
                 "id" => $id,
                 "id_template" => $idTemplate > 0 ? $idTemplate : "",
+                "id_cms_category" => $idCmsCategory > 0 ? $idCmsCategory : "",
                 "content_type" => $contentType,
                 "title" => $title,
                 "slug" => $slug,
@@ -304,6 +331,7 @@ $router->post(function () {
     $ok = $contentsRepository->update($contentsRepository->withVnvEventsOrigin([
         "id_owner" => $ownerId,
         "id_template" => $idTemplate > 0 ? $idTemplate : null,
+        "id_cms_category" => $idCmsCategory > 0 ? $idCmsCategory : null,
         "content_type" => $contentType,
         "title" => $title,
         "slug" => $slug,
@@ -330,10 +358,12 @@ $router->post(function () {
             "title" => "Edit CMS Page",
             "errors" => ["The page could not be updated."],
             "templates" => $templates,
+            "categories" => $categories,
             "page" => $page,
             "old" => [
                 "id" => $id,
                 "id_template" => $idTemplate > 0 ? $idTemplate : "",
+                "id_cms_category" => $idCmsCategory > 0 ? $idCmsCategory : "",
                 "content_type" => $contentType,
                 "title" => $title,
                 "slug" => $slug,

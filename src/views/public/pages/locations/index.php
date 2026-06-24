@@ -18,7 +18,7 @@ foreach (get_growth_hub_location_pages() as $page) {
 }
 
 $pages = array_values($pagesByRoute);
-$categories = build_location_categories($pages);
+$categories = get_location_categories($pages);
 
 echo TemplateResponse::render(__DIR__ . '/index.twig', [
     'pages' => $pages,
@@ -55,7 +55,15 @@ function get_growth_hub_location_pages(): array
     try {
         $db = new Connection();
         $hasCmsCategoryImage = table_has_column($db, 'cms_categories', 'featured_image_url');
+        $hasApproval = table_has_column($db, 'cms_contents', 'approval_status');
+        $hasTargetLocation = table_has_column($db, 'cms_contents', 'target_location');
+        $hasRouteType = table_has_column($db, 'cms_routes', 'route_type');
         $categoryImageSelect = $hasCmsCategoryImage ? 'cc.featured_image_url' : 'NULL';
+        $approvalFilter = $hasApproval ? "AND COALESCE(c.approval_status, 'APPROVED') IN ('APPROVED', 'PUBLISHED')" : "";
+        $targetLocationSelect = $hasTargetLocation ? 'c.target_location' : 'NULL';
+        $typeExpression = $hasRouteType
+            ? "LOWER(COALESCE(NULLIF(c.content_type, ''), NULLIF(r.route_type, ''), NULLIF(c.type, ''), 'page'))"
+            : "LOWER(COALESCE(NULLIF(c.content_type, ''), NULLIF(c.type, ''), 'page'))";
         $siteKey = SiteContext::siteKey();
 
         $db->query("
@@ -64,8 +72,9 @@ function get_growth_hub_location_pages(): array
                 c.slug,
                 c.excerpt,
                 c.meta_description,
-                c.target_location,
+                {$targetLocationSelect} AS target_location,
                 c.featured_image_url,
+                c.id_cms_category,
                 r.route,
                 cc.name AS category_name,
                 cc.slug AS category_slug,
@@ -73,9 +82,9 @@ function get_growth_hub_location_pages(): array
             FROM cms_contents c
             INNER JOIN cms_routes r ON r.id_content = c.id AND r.is_main = 1
             LEFT JOIN cms_categories cc ON cc.id = c.id_cms_category
-            WHERE LOWER(COALESCE(NULLIF(c.content_type, ''), NULLIF(r.route_type, ''), NULLIF(c.type, ''), 'page')) IN ('location', 'locations', 'location_page', 'location-page')
+            WHERE {$typeExpression} IN ('location', 'locations', 'location_page', 'location-page')
               AND c.status = 'PUBLISHED'
-              AND COALESCE(c.approval_status, 'APPROVED') IN ('APPROVED', 'PUBLISHED')
+              {$approvalFilter}
               AND COALESCE(r.status, 'ACTIVE') = 'ACTIVE'
               AND COALESCE(c.language, 'en') = 'en'
               AND c.site_key IN (:site_key, 'shared', 'global', 'all_sites')
@@ -96,6 +105,7 @@ function get_growth_hub_location_pages(): array
                 'public_path' => (string)($row->route ?? ('/locations/' . trim((string)($row->slug ?? ''), '/') . '/')),
                 'category' => $category,
                 'category_slug' => (string)($row->category_slug ?? '') ?: slugify_location_value($category),
+                'category_id' => (int)($row->id_cms_category ?? 0),
                 'category_image_url' => (string)($row->category_image_url ?? ''),
                 'hero_image' => (string)($row->featured_image_url ?? ''),
                 'excerpt' => (string)(($row->excerpt ?? '') ?: ($row->meta_description ?? '')),
@@ -113,29 +123,70 @@ function get_growth_hub_location_pages(): array
     }
 }
 
-function build_location_categories(array $pages): array
+function get_location_categories(array $pages): array
 {
-    $categories = [];
+    $countsById = [];
+    $countsBySlug = [];
+    $imagesBySlug = [];
 
     foreach ($pages as $page) {
-        $slug = (string)($page['category_slug'] ?? 'location');
-        if (!isset($categories[$slug])) {
-            $categories[$slug] = [
-                'name' => (string)($page['category'] ?? 'Location'),
-                'slug' => $slug,
-                'image_url' => (string)($page['category_image_url'] ?? ''),
-                'count' => 0,
-            ];
+        $id = (int)($page['category_id'] ?? 0);
+        $slug = (string)($page['category_slug'] ?? '');
+
+        if ($id > 0) {
+            $countsById[$id] = ($countsById[$id] ?? 0) + 1;
         }
 
-        $categories[$slug]['count']++;
-
-        if ($categories[$slug]['image_url'] === '' && !empty($page['category_image_url'])) {
-            $categories[$slug]['image_url'] = (string)$page['category_image_url'];
+        if ($slug !== '') {
+            $countsBySlug[$slug] = ($countsBySlug[$slug] ?? 0) + 1;
+            if (empty($imagesBySlug[$slug]) && !empty($page['category_image_url'])) {
+                $imagesBySlug[$slug] = (string)$page['category_image_url'];
+            }
         }
     }
 
-    uasort($categories, static fn ($a, $b) => strcmp($a['name'], $b['name']));
+    $categories = [];
+    try {
+        $db = new Connection();
+        $siteKey = strtolower(trim(SiteContext::siteKey()));
+        $where = ["COALESCE(is_active, 1) = 1"];
+
+        if (table_has_column($db, 'cms_categories', 'applies_to_locations')) {
+            $where[] = "COALESCE(applies_to_locations, 1) = 1";
+        }
+
+        if ($siteKey !== '' && table_has_column($db, 'cms_categories', 'site_key')) {
+            $where[] = "(site_key IS NULL OR site_key = '' OR LOWER(site_key) IN (:site_key, 'shared', 'global', 'all_sites'))";
+        }
+
+        $db->query("
+            SELECT id, name, slug, description, featured_image_url
+            FROM cms_categories
+            WHERE " . implode(' AND ', $where) . "
+            ORDER BY name ASC
+        ");
+        if ($siteKey !== '' && table_has_column($db, 'cms_categories', 'site_key')) {
+            $db->bind(':site_key', $siteKey);
+        }
+
+        foreach ($db->fetchAll() ?: [] as $category) {
+            $slug = (string)($category->slug ?? '');
+            if ($slug === '') {
+                continue;
+            }
+
+            $categories[$slug] = [
+                'id' => (int)($category->id ?? 0),
+                'name' => (string)($category->name ?? 'Location'),
+                'slug' => $slug,
+                'description' => (string)($category->description ?? ''),
+                'image_url' => (string)(($category->featured_image_url ?? '') ?: ($imagesBySlug[$slug] ?? '')),
+                'count' => (int)($countsById[(int)($category->id ?? 0)] ?? $countsBySlug[$slug] ?? 0),
+            ];
+        }
+    } catch (\Throwable $e) {
+        error_log('Location categories failed: ' . $e->getMessage());
+    }
 
     return array_values($categories);
 }

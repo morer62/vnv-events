@@ -598,7 +598,7 @@
                     <div class="vnv-blog-category-grid">
                         {% for category in categories %}
                             {% set categoryImage = category.dynamic_image_url ?: placeholderImage %}
-                            <a class="vnv-blog-category-card" href="{{ path('category/blog/' ~ category.slug ~ '/') }}">
+                            <a class="vnv-blog-category-card" href="{{ path('blog/' ~ category.slug ~ '/') }}">
                                 <img src="{{ categoryImage starts with 'http' or categoryImage starts with '/' ? categoryImage : asset_for(categoryImage) }}" alt="{{ category.name }}">
                                 <div class="vnv-blog-category-content">
                                     <span class="vnv-blog-category-count">{{ category.posts_count ?: 0 }} article{{ (category.posts_count ?: 0) == 1 ? '' : 's' }}</span>

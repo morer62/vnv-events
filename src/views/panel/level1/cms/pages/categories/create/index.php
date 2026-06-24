@@ -31,6 +31,9 @@ $router->get(function () {
             "description" => "",
             "featured_image_url" => "",
             "featured_image_alt" => "",
+            "applies_to_pages" => 1,
+            "applies_to_blog" => 1,
+            "applies_to_locations" => 1,
             "is_active" => 1,
         ],
     ]);
@@ -50,6 +53,9 @@ $router->post(function () {
     $description = trim($_POST['description'] ?? '');
     $featuredImageUrl = trim($_POST['featured_image_url'] ?? '');
     $featuredImageAlt = trim($_POST['featured_image_alt'] ?? '');
+    $appliesToPages = isset($_POST['applies_to_pages']) ? 1 : 0;
+    $appliesToBlog = isset($_POST['applies_to_blog']) ? 1 : 0;
+    $appliesToLocations = isset($_POST['applies_to_locations']) ? 1 : 0;
     $isActive = isset($_POST['is_active']) ? 1 : 0;
     $errors = [];
 
@@ -79,6 +85,10 @@ $router->post(function () {
         $errors[] = "That slug already exists. Please choose another one.";
     }
 
+    if (!$appliesToPages && !$appliesToBlog && !$appliesToLocations) {
+        $errors[] = "Select at least one content pillar for this category.";
+    }
+
     if (!empty($errors)) {
         return TemplateResponse::render(__DIR__ . "/index.twig", [
             "title"  => "Create CMS Category",
@@ -89,6 +99,9 @@ $router->post(function () {
                 "description" => $description,
                 "featured_image_url" => $featuredImageUrl,
                 "featured_image_alt" => $featuredImageAlt,
+                "applies_to_pages" => $appliesToPages,
+                "applies_to_blog" => $appliesToBlog,
+                "applies_to_locations" => $appliesToLocations,
                 "is_active" => $isActive,
             ],
         ]);
@@ -101,6 +114,9 @@ $router->post(function () {
         "description" => $description,
         "featured_image_url" => $featuredImageUrl !== '' ? $featuredImageUrl : null,
         "featured_image_alt" => $featuredImageAlt !== '' ? $featuredImageAlt : null,
+        "applies_to_pages" => $appliesToPages,
+        "applies_to_blog" => $appliesToBlog,
+        "applies_to_locations" => $appliesToLocations,
         "is_active" => $isActive,
     ], $authorUserId, $ownerId));
 
@@ -114,6 +130,9 @@ $router->post(function () {
                 "description" => $description,
                 "featured_image_url" => $featuredImageUrl,
                 "featured_image_alt" => $featuredImageAlt,
+                "applies_to_pages" => $appliesToPages,
+                "applies_to_blog" => $appliesToBlog,
+                "applies_to_locations" => $appliesToLocations,
                 "is_active" => $isActive,
             ],
         ]);
