@@ -107,6 +107,33 @@ class CmsContentsRepository extends BaseRepository
         return $result ?: null;
     }
 
+    public function getAllForPanel(string $language = 'en', ?string $siteKey = null): array
+    {
+        $siteSql = $this->siteScopeSql($siteKey, 'c');
+        $query = "
+            SELECT
+                c.*,
+                t.name AS template_name,
+                t.template_key,
+                t.type AS template_type,
+                t.preview_html,
+                t.template_structure_json,
+                t.css_text AS template_css_text,
+                t.metadata_json AS template_metadata_json
+            FROM `{$this->table}` c
+            LEFT JOIN `cms_templates` t ON t.id = c.id_template
+            WHERE c.language = :language
+              {$siteSql}
+            ORDER BY c.id DESC
+        ";
+
+        $this->db->query($query);
+        $this->db->bind(':language', $language);
+        $this->bindSiteScope($siteKey);
+
+        return $this->db->fetchAll() ?: [];
+    }
+
     public function getBySlugTypeAndLanguage(string $slug, string $type = 'page', string $language = 'en', ?string $siteKey = null): ?object
     {
         $siteSql = $this->publicVisibilitySql('cms_content', $siteKey, 'c');

@@ -77,7 +77,7 @@ $router->get(function () {
 
     $page = $contentsRepository->getOneWithTemplate($id);
 
-    if (!$page || ($page->type ?? '') !== 'page') {
+    if (!$page) {
         echo "Page not found.";
         exit;
     }
@@ -171,7 +171,7 @@ $router->post(function () {
 
     $page = $contentsRepository->getOneWithTemplate($id);
 
-    if (!$page || ($page->type ?? '') !== 'page') {
+    if (!$page) {
         echo "Page not found.";
         exit;
     }

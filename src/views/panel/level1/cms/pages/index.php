@@ -26,7 +26,7 @@ $router->get(function () {
         'q' => trim((string)($_GET['q'] ?? '')),
     ];
 
-    $pages = $contentsRepository->getAllByType('page', 'en', SiteContext::siteKey());
+    $pages = $contentsRepository->getAllForPanel('en', SiteContext::siteKey());
 
     $pages = array_values(array_filter($pages, static function ($page) use ($filters): bool {
         if ($filters['status'] !== '' && strtoupper((string)($page->status ?? '')) !== $filters['status']) {
