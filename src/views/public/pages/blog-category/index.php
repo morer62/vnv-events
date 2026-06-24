@@ -113,10 +113,6 @@ try {
     $db->bind(':column_name', 'status');
     $hasStatus = (bool)$db->fetchOne();
 
-    $db->query("SHOW COLUMNS FROM cms_contents LIKE :column_name");
-    $db->bind(':column_name', 'approval_status');
-    $hasApproval = (bool)$db->fetchOne();
-
     $db->query("SHOW COLUMNS FROM cms_routes LIKE :column_name");
     $db->bind(':column_name', 'status');
     $hasRouteStatus = (bool)$db->fetchOne();
@@ -130,7 +126,6 @@ try {
     $hasRouteSiteKey = (bool)$db->fetchOne();
 
     $contentStatusFilter = $hasStatus ? " AND c.status = 'PUBLISHED'" : "";
-    $approvalFilter = $hasApproval ? " AND c.approval_status IN ('APPROVED', 'PUBLISHED')" : "";
     $routeStatusFilter = $hasRouteStatus ? " AND r.status = 'ACTIVE'" : "";
     $contentSiteKeyFilter = $hasContentSiteKey ? " AND c.site_key IN (:content_site_key, 'shared', 'global', 'all_sites')" : "";
     $routeSiteKeyFilter = $hasRouteSiteKey ? " AND r.site_key IN (:route_site_key, 'shared', 'global', 'all_sites')" : "";
@@ -147,7 +142,6 @@ try {
         WHERE {$categoryFilterSql}
           AND c.language = 'en'
           {$contentStatusFilter}
-          {$approvalFilter}
           {$contentSiteKeyFilter}
           AND {$typeWhere}
     ";
@@ -183,7 +177,6 @@ try {
         WHERE {$categoryFilterSql}
           AND c.language = 'en'
           {$contentStatusFilter}
-          {$approvalFilter}
           {$contentSiteKeyFilter}
           AND {$typeWhere}
         ORDER BY c.published_at DESC, c.id DESC

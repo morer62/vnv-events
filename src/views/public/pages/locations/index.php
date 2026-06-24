@@ -55,11 +55,9 @@ function get_growth_hub_location_pages(): array
     try {
         $db = new Connection();
         $hasCmsCategoryImage = table_has_column($db, 'cms_categories', 'featured_image_url');
-        $hasApproval = table_has_column($db, 'cms_contents', 'approval_status');
         $hasTargetLocation = table_has_column($db, 'cms_contents', 'target_location');
         $hasRouteType = table_has_column($db, 'cms_routes', 'route_type');
         $categoryImageSelect = $hasCmsCategoryImage ? 'cc.featured_image_url' : 'NULL';
-        $approvalFilter = $hasApproval ? "AND COALESCE(c.approval_status, 'APPROVED') IN ('APPROVED', 'PUBLISHED')" : "";
         $targetLocationSelect = $hasTargetLocation ? 'c.target_location' : 'NULL';
         $typeExpression = $hasRouteType
             ? "LOWER(COALESCE(NULLIF(c.content_type, ''), NULLIF(r.route_type, ''), NULLIF(c.type, ''), 'page'))"
@@ -84,7 +82,6 @@ function get_growth_hub_location_pages(): array
             LEFT JOIN cms_categories cc ON cc.id = c.id_cms_category
             WHERE {$typeExpression} IN ('location', 'locations', 'location_page', 'location-page')
               AND c.status = 'PUBLISHED'
-              {$approvalFilter}
               AND COALESCE(r.status, 'ACTIVE') = 'ACTIVE'
               AND COALESCE(c.language, 'en') = 'en'
               AND c.site_key IN (:site_key, 'shared', 'global', 'all_sites')

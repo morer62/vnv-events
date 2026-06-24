@@ -130,7 +130,6 @@ function growth_hub_local_content_list(string $listType, string $siteKey, int $l
         $hasCmsCategoryImage = growth_hub_table_has_column($db, 'cms_categories', 'featured_image_url');
         $hasBlogCategoryImage = growth_hub_table_has_column($db, 'blog_categories', 'featured_image_url');
         $hasRouteType = growth_hub_table_has_column($db, 'cms_routes', 'route_type');
-        $hasApproval = growth_hub_table_has_column($db, 'cms_contents', 'approval_status');
 
         $typeExpression = $hasRouteType
             ? "LOWER(COALESCE(NULLIF(c.content_type, ''), NULLIF(r.route_type, ''), NULLIF(c.type, ''), 'page'))"
@@ -142,8 +141,6 @@ function growth_hub_local_content_list(string $listType, string $siteKey, int $l
         $cmsCategoryImageSelect = $hasCmsCategoryImage ? "cc.featured_image_url" : "NULL";
         $blogCategoryImageSelect = $hasBlogCategoryImage ? "bc.featured_image_url" : "NULL";
         $routeTypeSelect = $hasRouteType ? "r.route_type" : "NULL";
-        $approvalFilter = $hasApproval ? "AND COALESCE(c.approval_status, 'APPROVED') IN ('APPROVED', 'PUBLISHED')" : "";
-
         $db->query("
             SELECT
                 c.id,
@@ -170,7 +167,6 @@ function growth_hub_local_content_list(string $listType, string $siteKey, int $l
             LEFT JOIN cms_categories cc ON cc.id = c.id_cms_category
             WHERE {$typeExpression} IN ({$typeValues})
               AND c.status = 'PUBLISHED'
-              {$approvalFilter}
               AND COALESCE(r.status, 'ACTIVE') = 'ACTIVE'
               AND COALESCE(c.language, 'en') = 'en'
               AND c.site_key IN (:site_key, 'shared', 'global', 'all_sites')

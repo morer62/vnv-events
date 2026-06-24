@@ -93,10 +93,6 @@ try {
             $contentWhere[] = "LOWER(COALESCE(c.status, 'published')) IN ('published', 'active', '1')";
         }
 
-        if (vnv_blog_column_exists($db, 'cms_contents', 'approval_status')) {
-            $contentWhere[] = "LOWER(COALESCE(c.approval_status, 'approved')) IN ('approved', 'published', 'active', '')";
-        }
-
         if ($siteKey !== '' && vnv_blog_column_exists($db, 'cms_contents', 'site_key')) {
             $contentWhere[] = "(c.site_key IS NULL OR c.site_key = '' OR LOWER(c.site_key) IN (:content_site_key, 'shared', 'global', 'all_sites'))";
             $contentParams[':content_site_key'] = $siteKey;
