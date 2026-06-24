@@ -7,6 +7,7 @@ use App\Utils\Router;
 use App\Utils\TemplateResponse;
 use App\Utils\LocationUtils;
 use App\Utils\SiteContext;
+use App\Utils\FileUtils;
 
 $router = new Router();
 
@@ -54,6 +55,8 @@ $router->get(function () {
             "name" => $category->name ?? '',
             "slug" => $category->slug ?? '',
             "description" => $category->description ?? '',
+            "featured_image_url" => $category->featured_image_url ?? '',
+            "featured_image_alt" => $category->featured_image_alt ?? '',
             "is_active" => (int)($category->is_active ?? 0),
         ],
     ]);
@@ -64,6 +67,9 @@ $router->post(function () {
 
     $categoriesRepository = new CmsCategoriesRepository();
     $categoriesRepository->db = $db;
+    $sessionUser = LoginService::getSession();
+    $authorUserId = $sessionUser ? (int)$sessionUser->getId() : null;
+    $ownerId = $sessionUser && $sessionUser->getOwner() ? (int)$sessionUser->getOwner() : SiteContext::businessOwnerId();
 
     $id = (int)($_POST['id'] ?? 0);
 
@@ -84,6 +90,8 @@ $router->post(function () {
     $name = trim($_POST['name'] ?? '');
     $slug = trim($_POST['slug'] ?? '');
     $description = trim($_POST['description'] ?? '');
+    $featuredImageUrl = trim($_POST['featured_image_url'] ?? ($category->featured_image_url ?? ''));
+    $featuredImageAlt = trim($_POST['featured_image_alt'] ?? ($category->featured_image_alt ?? ''));
     $isActive = isset($_POST['is_active']) ? 1 : 0;
 
     if ($slug === '') {
@@ -93,6 +101,14 @@ $router->post(function () {
     }
 
     $errors = [];
+
+    if (FileUtils::hasFile($_FILES, 'featured_image')) {
+        try {
+            $featuredImageUrl = FileUtils::saveFile($_FILES['featured_image'], 'cms/categories/featured');
+        } catch (Exception $e) {
+            $errors[] = "The featured image could not be uploaded: " . $e->getMessage();
+        }
+    }
 
     if ($name === '') {
         $errors[] = "Name is required.";
@@ -116,6 +132,8 @@ $router->post(function () {
                 "name" => $name,
                 "slug" => $slug,
                 "description" => $description,
+                "featured_image_url" => $featuredImageUrl,
+                "featured_image_alt" => $featuredImageAlt,
                 "is_active" => $isActive,
             ],
         ]);
@@ -126,6 +144,8 @@ $router->post(function () {
         "name" => $name,
         "slug" => $slug,
         "description" => $description,
+        "featured_image_url" => $featuredImageUrl !== '' ? $featuredImageUrl : null,
+        "featured_image_alt" => $featuredImageAlt !== '' ? $featuredImageAlt : null,
         "is_active" => $isActive,
     ], $authorUserId, $ownerId), [
         "id" => $id
@@ -141,6 +161,8 @@ $router->post(function () {
                 "name" => $name,
                 "slug" => $slug,
                 "description" => $description,
+                "featured_image_url" => $featuredImageUrl,
+                "featured_image_alt" => $featuredImageAlt,
                 "is_active" => $isActive,
             ],
         ]);

@@ -172,6 +172,20 @@
         padding-left:18px;
     }
 
+    .cms-image-preview{
+        margin-top:10px;
+    }
+
+    .cms-image-preview img{
+        display:block;
+        width:100%;
+        max-width:260px;
+        aspect-ratio:16 / 9;
+        object-fit:cover;
+        border:1px solid #e5e7eb;
+        border-radius:14px;
+    }
+
     @media (max-width:768px){
         .cms-wrap{
             padding:16px;
@@ -215,7 +229,7 @@
             </div>
         {% endif %}
 
-        <form method="POST">
+        <form method="POST" enctype="multipart/form-data">
             <input type="hidden" name="id" value="{{ old.id }}">
 
             <div class="cms-grid">
@@ -260,6 +274,41 @@
                         class="cms-textarea"
                         placeholder="Optional internal description for this category."
                     >{{ old.description }}</textarea>
+                </div>
+
+                <div class="cms-field">
+                    <label class="cms-label">Featured Image URL</label>
+                    <input
+                        type="text"
+                        name="featured_image_url"
+                        class="cms-input"
+                        value="{{ old.featured_image_url }}"
+                        placeholder="https://..."
+                    >
+                    <div class="cms-help">
+                        Used on public category pages and as a fallback card image.
+                    </div>
+                </div>
+
+                <div class="cms-field">
+                    <label class="cms-label">Featured Image Alt Text</label>
+                    <input
+                        type="text"
+                        name="featured_image_alt"
+                        class="cms-input"
+                        value="{{ old.featured_image_alt }}"
+                        placeholder="Describe the image for SEO and accessibility"
+                    >
+                </div>
+
+                <div class="cms-field full">
+                    <label class="cms-label">Featured Image Upload</label>
+                    <input type="file" name="featured_image" class="cms-input" accept="image/*">
+                    {% if old.featured_image_url %}
+                        <div class="cms-image-preview">
+                            <img src="{{ old.featured_image_url }}" alt="{{ old.featured_image_alt ?: 'Category featured image' }}">
+                        </div>
+                    {% endif %}
                 </div>
 
                 <div class="cms-field full">

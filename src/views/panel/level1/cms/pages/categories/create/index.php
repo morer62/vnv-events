@@ -7,6 +7,7 @@ use App\Utils\Router;
 use App\Utils\TemplateResponse;
 use App\Utils\LocationUtils;
 use App\Utils\SiteContext;
+use App\Utils\FileUtils;
 
 $router = new Router();
 
@@ -28,6 +29,8 @@ $router->get(function () {
             "name" => "",
             "slug" => "",
             "description" => "",
+            "featured_image_url" => "",
+            "featured_image_alt" => "",
             "is_active" => 1,
         ],
     ]);
@@ -45,15 +48,24 @@ $router->post(function () {
     $name = trim($_POST['name'] ?? '');
     $slug = trim($_POST['slug'] ?? '');
     $description = trim($_POST['description'] ?? '');
+    $featuredImageUrl = trim($_POST['featured_image_url'] ?? '');
+    $featuredImageAlt = trim($_POST['featured_image_alt'] ?? '');
     $isActive = isset($_POST['is_active']) ? 1 : 0;
+    $errors = [];
+
+    if (FileUtils::hasFile($_FILES, 'featured_image')) {
+        try {
+            $featuredImageUrl = FileUtils::saveFile($_FILES['featured_image'], 'cms/categories/featured');
+        } catch (Exception $e) {
+            $errors[] = "The featured image could not be uploaded: " . $e->getMessage();
+        }
+    }
 
     if ($slug === '') {
         $slug = cmsCategorySlugify($name);
     } else {
         $slug = cmsCategorySlugify($slug);
     }
-
-    $errors = [];
 
     if ($name === '') {
         $errors[] = "Name is required.";
@@ -75,6 +87,8 @@ $router->post(function () {
                 "name" => $name,
                 "slug" => $slug,
                 "description" => $description,
+                "featured_image_url" => $featuredImageUrl,
+                "featured_image_alt" => $featuredImageAlt,
                 "is_active" => $isActive,
             ],
         ]);
@@ -85,6 +99,8 @@ $router->post(function () {
         "name" => $name,
         "slug" => $slug,
         "description" => $description,
+        "featured_image_url" => $featuredImageUrl !== '' ? $featuredImageUrl : null,
+        "featured_image_alt" => $featuredImageAlt !== '' ? $featuredImageAlt : null,
         "is_active" => $isActive,
     ], $authorUserId, $ownerId));
 
@@ -96,6 +112,8 @@ $router->post(function () {
                 "name" => $name,
                 "slug" => $slug,
                 "description" => $description,
+                "featured_image_url" => $featuredImageUrl,
+                "featured_image_alt" => $featuredImageAlt,
                 "is_active" => $isActive,
             ],
         ]);

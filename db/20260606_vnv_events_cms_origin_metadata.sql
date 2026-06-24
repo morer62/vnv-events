@@ -31,6 +31,8 @@ CREATE TABLE IF NOT EXISTS cms_categories (
   name VARCHAR(190) NOT NULL,
   slug VARCHAR(190) NOT NULL,
   description TEXT NULL,
+  featured_image_url VARCHAR(500) NULL,
+  featured_image_alt VARCHAR(255) NULL,
   is_active TINYINT(1) NOT NULL DEFAULT 1,
   content_origin VARCHAR(80) NOT NULL DEFAULT 'vnv_events',
   origin_site_key VARCHAR(80) NOT NULL DEFAULT 'vnvevents',
@@ -266,6 +268,8 @@ ALTER TABLE blog_categories
 ALTER TABLE cms_categories
     ADD COLUMN IF NOT EXISTS id_owner INT NULL AFTER id,
     ADD COLUMN IF NOT EXISTS site_key VARCHAR(80) NOT NULL DEFAULT 'vnvevents' AFTER id_owner,
+    ADD COLUMN IF NOT EXISTS featured_image_url VARCHAR(500) NULL AFTER description,
+    ADD COLUMN IF NOT EXISTS featured_image_alt VARCHAR(255) NULL AFTER featured_image_url,
     ADD COLUMN IF NOT EXISTS content_origin VARCHAR(80) NOT NULL DEFAULT 'vnv_events' AFTER is_active,
     ADD COLUMN IF NOT EXISTS origin_site_key VARCHAR(80) NOT NULL DEFAULT 'vnvevents' AFTER content_origin,
     ADD COLUMN IF NOT EXISTS created_by INT NULL AFTER origin_site_key,
