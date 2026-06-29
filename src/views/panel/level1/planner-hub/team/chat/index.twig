@@ -466,18 +466,18 @@
 <div class="ophyra-chat {{ thread ? 'has-thread' : 'is-inbox' }}" data-chat-root>
     <aside class="chat-rail">
         <div class="chat-brand-card">
-            <small>MESSAGES HUB</small>
-            <h2>Team Messages</h2>
+            <small>{{ trans('messages_hub.kicker') }}</small>
+            <h2>{{ trans('messages_hub.hero_title') }}</h2>
         </div>
 
         <div class="chat-search-wrap">
-            <input class="chat-search" type="search" data-chat-search placeholder="Search conversations...">
+            <input class="chat-search" type="search" data-chat-search placeholder="{{ trans('messages_hub.search_placeholder') }}">
         </div>
 
-        <div class="chat-section-title">Conversations</div>
+        <div class="chat-section-title">{{ trans('messages_hub.conversations') }}</div>
         <div data-chat-list>
             {% if threads is empty %}
-                <p class="text-muted px-1">No active conversations yet.</p>
+                <p class="text-muted px-1">{{ trans('messages_hub.no_conversations') }}</p>
             {% else %}
                 {% for t in threads %}
                     {% set partnerId = t.id_user_1 == me.getId() ? t.id_user_2 : t.id_user_1 %}
@@ -489,7 +489,7 @@
                     <a href="?thread={{ t.id }}" class="chat-card thread {{ thread and thread.id == t.id ? 'active' }}" data-search-text="{{ (partnerName ~ ' ' ~ partnerEmail ~ ' ' ~ companyLabel ~ ' ' ~ (t.last_message ?? ''))|lower|e('html_attr') }}">
                         <div class="chat-avatar">{{ initials }}</div>
                         <div>
-                            <div class="chat-name">{{ partnerName is not empty ? partnerName : 'User #' ~ partnerId }}</div>
+                            <div class="chat-name">{{ partnerName is not empty ? partnerName : trans('messages_hub.user_fallback') ~ ' ' ~ partnerId }}</div>
                             {% if companyLabel %}<div class="chat-company">{{ companyLabel }}</div>{% endif %}
                             <div class="chat-meta">{{ partnerEmail ?? '' }}</div>
                             {% if t.last_message %}<div class="chat-preview">{{ t.last_message|slice(0, 56) }}{% if t.last_message|length > 56 %}...{% endif %}</div>{% endif %}
@@ -501,7 +501,7 @@
         </div>
 
         {% if users is not empty %}
-            <div class="chat-section-title">Available contacts</div>
+            <div class="chat-section-title">{{ trans('messages_hub.available_contacts') }}</div>
             <div data-chat-contacts>
                 {% for u in users %}
                     {% if u.id != me.getId() and u.id not in threadPartnerIds %}
@@ -511,7 +511,7 @@
                         <a href="?to={{ u.id }}" class="chat-card contact" data-search-text="{{ (fullName ~ ' ' ~ (u.email ?? '') ~ ' ' ~ companyLabel)|lower|e('html_attr') }}">
                             <div class="chat-avatar">{{ initials }}</div>
                             <div>
-                                <div class="chat-name">{{ fullName ?: ('User #' ~ u.id) }}</div>
+                                <div class="chat-name">{{ fullName ?: (trans('messages_hub.user_fallback') ~ ' ' ~ u.id) }}</div>
                                 {% if companyLabel %}<div class="chat-company">{{ companyLabel }}</div>{% endif %}
                                 <div class="chat-meta">{{ u.email ?? '' }}</div>
                             </div>
@@ -527,24 +527,24 @@
         {% if thread %}
             <header class="chat-topbar">
                 <div>
-                    <a class="chat-back mb-2" href="?" data-chat-back>Back to chats</a>
-                    <h3>{{ activePartnerName is not empty ? activePartnerName : 'User #' ~ activePartnerId }}</h3>
-                    <p>{{ activePartnerEmail ?? '' }}{% if activeCompany %} · {{ activeCompany }}{% endif %}</p>
+                    <a class="chat-back mb-2" href="?" data-chat-back>{{ trans('messages_hub.back_to_chats') }}</a>
+                    <h3>{{ activePartnerName is not empty ? activePartnerName : trans('messages_hub.user_fallback') ~ ' ' ~ activePartnerId }}</h3>
+                    <p>{{ activePartnerEmail ?? '' }}{% if activeCompany %} Â· {{ activeCompany }}{% endif %}</p>
                 </div>
-                <div class="chat-status-pill">Secure thread</div>
+                <div class="chat-status-pill">{{ trans('messages_hub.secure_thread') }}</div>
             </header>
 
             <section class="chat-messages" id="chatMessages" data-thread-id="{{ thread.id }}" data-me-id="{{ me.getId() }}">
                 {% if messages is empty %}
                     <div class="chat-empty" data-empty-chat>
-                        <h3>Thread ready</h3>
-                        <p>Send the first message to start this conversation.</p>
+                        <h3>{{ trans('messages_hub.thread_ready') }}</h3>
+                        <p>{{ trans('messages_hub.first_message') }}</p>
                     </div>
                 {% else %}
                     {% for msg in messages %}
                         <article class="chat-bubble {{ msg.id_sender == me.getId() ? 'me' : 'them' }}">
                             {% if msg.id_sender != me.getId() %}
-                                <div class="sender-info">{{ msg.sender_name ?? ('User #' ~ msg.id_sender) }} · {{ msg.sender_email ?? '' }}</div>
+                                <div class="sender-info">{{ msg.sender_name ?? (trans('messages_hub.user_fallback') ~ ' ' ~ msg.id_sender) }} Â· {{ msg.sender_email ?? '' }}</div>
                             {% endif %}
                             <div class="chat-message-text">{{ msg.message }}</div>
                             <div class="timestamp">{{ msg.created_at|date("H:i") }}</div>
@@ -556,14 +556,14 @@
             <form method="post" class="chat-compose" data-chat-form>
                 <input type="hidden" name="to" value="{{ activePartnerId }}" />
                 <div class="chat-compose-inner">
-                    <input type="text" name="message" placeholder="Type a message..." autocomplete="off" required autofocus />
-                    <button type="submit">Send</button>
+                    <input type="text" name="message" placeholder="{{ trans('messages_hub.write_placeholder') }}" autocomplete="off" required autofocus />
+                    <button type="submit">{{ trans('messages_hub.send') }}</button>
                 </div>
             </form>
         {% else %}
             <div class="chat-empty">
-                <h3>Select a conversation</h3>
-                <p>Choose an existing thread or start a new chat from the contacts list.</p>
+                <h3>{{ trans('messages_hub.select_conversation') }}</h3>
+                <p>{{ trans('messages_hub.select_conversation_body') }}</p>
             </div>
         {% endif %}
     </main>
@@ -582,12 +582,12 @@
     const meId = messages ? Number(messages.dataset.meId) : null;
     const threadId = messages ? messages.dataset.threadId : null;
     const chatI18n = {
-        threadReady: "Thread ready",
-        firstMessage: "Send the first message to start this conversation.",
-        userFallback: "User #",
-        sending: "Sending...",
-        send: "Send",
-        requestFailed: "Request failed"
+        threadReady: "{{ trans('messages_hub.thread_ready')|e('js') }}",
+        firstMessage: "{{ trans('messages_hub.first_message')|e('js') }}",
+        userFallback: "{{ trans('messages_hub.user_fallback')|e('js') }}",
+        sending: "{{ trans('messages_hub.sending')|e('js') }}",
+        send: "{{ trans('messages_hub.send')|e('js') }}",
+        requestFailed: "{{ trans('messages_hub.request_failed')|e('js') }}"
     };
 
     const scrollBottom = () => {
@@ -643,7 +643,7 @@
             const time = created.length >= 16 ? created.slice(11, 16) : '';
             const article = document.createElement('article');
             article.className = `chat-bubble ${mine ? 'me' : 'them'}`;
-            article.innerHTML = `${mine ? '' : `<div class="sender-info">${escapeHtml(msg.sender_name || (chatI18n.userFallback + ' ' + msg.id_sender))} · ${escapeHtml(msg.sender_email || '')}</div>`}<div class="chat-message-text">${escapeHtml(msg.message)}</div><div class="timestamp">${escapeHtml(time)}</div>`;
+            article.innerHTML = `${mine ? '' : `<div class="sender-info">${escapeHtml(msg.sender_name || (chatI18n.userFallback + ' ' + msg.id_sender))} Â· ${escapeHtml(msg.sender_email || '')}</div>`}<div class="chat-message-text">${escapeHtml(msg.message)}</div><div class="timestamp">${escapeHtml(time)}</div>`;
             messages.appendChild(article);
         });
         scrollBottom();

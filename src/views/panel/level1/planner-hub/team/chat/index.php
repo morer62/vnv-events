@@ -6,6 +6,7 @@ use App\Repositories\UserRepository;
 use App\Repositories\ClientsUsersRepository;
 use App\Repositories\InstitutionProfileRepository;
 use App\Services\LoginService;
+use App\Services\TranslationService;
 use App\Utils\TemplateResponse;
 use App\Utils\Router;
 use App\Utils\MessageUtil;
@@ -110,7 +111,7 @@ $router->get(function () use ($threadRepo, $messageRepo, $userRepo, $clientsRepo
     if ($toUserId > 0 && $threadId <= 0) {
         $target = $userRepo->getByIdEvenIfAssociated($toUserId);
         if (!$target || !chat_panel_can_message_target($user, $target, $clientsRepo)) {
-            MessageUtil::setMessage('You are not allowed to start this conversation.');
+            MessageUtil::setMessage(TranslationService::trans('messages_hub.not_allowed'));
             header("Location: index.php");
             exit;
         }
@@ -189,7 +190,7 @@ $router->post(function () use ($threadRepo, $messageRepo, $userRepo, $clientsRep
 
     $target = $userRepo->getByIdEvenIfAssociated($to);
     if (!$target || !chat_panel_can_message_target($user, $target, $clientsRepo)) {
-        MessageUtil::setMessage('You are not allowed to start this conversation.');
+        MessageUtil::setMessage(TranslationService::trans('messages_hub.not_allowed'));
         header("Location: index.php");
         exit;
     }

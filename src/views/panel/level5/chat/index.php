@@ -8,6 +8,7 @@ use App\Repositories\UserRepository;
 use App\Repositories\ClientsUsersRepository;
 use App\Repositories\InstitutionProfileRepository;
 use App\Services\LoginService;
+use App\Services\TranslationService;
 use App\Services\UserWorkspaceContextService;
 use App\Utils\TemplateResponse;
 use App\Utils\Router;
@@ -39,7 +40,7 @@ $router->get(function () use ($threadRepo, $messageRepo, $userRepo, $clientsRepo
     $toUserId = $_GET['to'] ?? null;
     if ($toUserId && !$threadId) {
         if (!isClientChatTargetAllowed($currentUserId, $toUserId, $associatedOwnerIds, $selectedOwnerId, $userRepo, $clientsRepo, $ordersTaskRepo, $storeTaskRepo, false)) {
-            MessageUtil::setMessage('You can only start conversations with companies linked to your account.');
+            MessageUtil::setMessage(TranslationService::trans('messages_hub.client_company_only'));
             header("Location: index.php");
             exit;
         }
@@ -166,7 +167,7 @@ $router->post(function () use ($threadRepo, $messageRepo, $userRepo, $clientsRep
     $target = $userRepo->getOneWithoutOwnership(["id" => (int)$to]);
 
     if (!$target) {
-        MessageUtil::setMessage('User not found.');
+        MessageUtil::setMessage(TranslationService::trans('messages_hub.user_not_found'));
         header("Location: index.php");
         exit;
     }
@@ -189,7 +190,7 @@ $router->post(function () use ($threadRepo, $messageRepo, $userRepo, $clientsRep
         ($level === 5 && (clientHasExistingThread($threadRepo, $currentUserId, (int)$to) || isClientChatTargetAllowed($currentUserId, (int)$to, $associatedOwnerIds, $selectedOwnerId, $userRepo, $clientsRepo, $ordersTaskRepo, $storeTaskRepo, true)));
 
     if (!$isAllowed) {
-        MessageUtil::setMessage('You are not allowed to start this conversation.');
+        MessageUtil::setMessage(TranslationService::trans('messages_hub.not_allowed'));
         header("Location: index.php");
         exit;
     }

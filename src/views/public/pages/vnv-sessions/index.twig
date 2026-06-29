@@ -1,0 +1,608 @@
+{% extends "templates/base.twig" %}
+
+{% set show_whatsapp = true %}
+{% set defer_public_third_party = true %}
+{% set skip_public_gtm_initial = true %}
+{% set skip_public_app_bundle = true %}
+{% set skip_public_google_maps = true %}
+{% set skip_public_stripe = true %}
+{% set skip_public_bootstrap_js = true %}
+{% set skip_base_fontawesome = true %}
+{% set skip_base_inter_font = true %}
+{% set skip_base_app_css = true %}
+{% set skip_base_bootstrap_css = true %}
+
+{% block title %}VNV Sessions & Podcast | VNV Events{% endblock %}
+
+{% block meta_description %}
+    VNV Sessions brings together DJ Jonny in the Mix, curated event music, podcast conversations and creative ideas from the VNV Events world.
+{% endblock %}
+
+{% block styles %}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,800;1,800&display=swap" rel="stylesheet">
+<style>
+:root {
+    --sessions-ink: #0b1010;
+    --sessions-panel: #111819;
+    --sessions-soft: #f5f7f7;
+    --sessions-line: rgba(17, 24, 26, .1);
+    --sessions-muted: #617073;
+    --sessions-teal: #45e3cf;
+    --sessions-teal-dark: #0f766e;
+    --sessions-gold: #d8ad45;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    margin: 0;
+    background:
+        radial-gradient(circle at 9% 18%, rgba(69, 227, 207, .16), transparent 24rem),
+        radial-gradient(circle at 90% 10%, rgba(216, 173, 69, .14), transparent 24rem),
+        linear-gradient(180deg, #eef4f4 0%, #ffffff 42%, #0b1010 100%);
+    color: var(--sessions-ink);
+    font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    overflow-x: hidden;
+}
+
+.sessions-page {
+    min-height: 100vh;
+}
+
+.sessions-wrap {
+    width: min(1320px, calc(100% - 40px));
+    margin: 0 auto;
+}
+
+.sessions-hero {
+    padding: 84px 0 72px;
+}
+
+.sessions-hero__grid {
+    display: grid;
+    grid-template-columns: minmax(0, .9fr) minmax(420px, 1.1fr);
+    gap: 38px;
+    align-items: center;
+}
+
+.sessions-kicker,
+.sessions-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    border-radius: 999px;
+    padding: 10px 16px;
+    background: rgba(69, 227, 207, .12);
+    color: var(--sessions-teal-dark);
+    font-size: .76rem;
+    font-weight: 900;
+    letter-spacing: 1.6px;
+    text-transform: uppercase;
+}
+
+.sessions-hero h1 {
+    margin: 24px 0 22px;
+    max-width: 760px;
+    font-family: "Playfair Display", Georgia, serif;
+    font-size: clamp(4rem, 8vw, 8.4rem);
+    line-height: .88;
+    letter-spacing: 0;
+}
+
+.sessions-hero h1 span {
+    color: var(--sessions-teal-dark);
+    font-style: italic;
+}
+
+.sessions-lede {
+    max-width: 650px;
+    margin: 0 0 28px;
+    color: #425053;
+    font-size: clamp(1.08rem, 1.8vw, 1.32rem);
+    line-height: 1.75;
+}
+
+.sessions-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    margin-top: 30px;
+}
+
+.sessions-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    min-height: 52px;
+    padding: 0 22px;
+    border-radius: 999px;
+    color: #091010;
+    background: linear-gradient(135deg, #f3d779 0%, var(--sessions-gold) 100%);
+    font-size: .82rem;
+    font-weight: 900;
+    letter-spacing: 1.2px;
+    text-decoration: none;
+    text-transform: uppercase;
+    box-shadow: 0 20px 44px rgba(216, 173, 69, .24);
+}
+
+.sessions-btn--ghost {
+    color: var(--sessions-ink);
+    background: rgba(255, 255, 255, .65);
+    border: 1px solid rgba(17, 24, 26, .12);
+    box-shadow: none;
+}
+
+.sessions-intro-card {
+    display: flex;
+    gap: 16px;
+    max-width: 660px;
+    padding: 20px;
+    border: 1px solid var(--sessions-line);
+    border-radius: 8px;
+    background: rgba(255, 255, 255, .72);
+    box-shadow: 0 20px 60px rgba(17, 24, 26, .08);
+    backdrop-filter: blur(14px);
+}
+
+.sessions-intro-card i {
+    width: 52px;
+    height: 52px;
+    flex: 0 0 52px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    background: rgba(69, 227, 207, .14);
+    color: var(--sessions-teal-dark);
+    font-size: 1.2rem;
+}
+
+.sessions-intro-card h2 {
+    margin: 0 0 6px;
+    font-size: 1.08rem;
+}
+
+.sessions-intro-card p {
+    margin: 0;
+    color: var(--sessions-muted);
+    line-height: 1.7;
+}
+
+.sessions-feature {
+    position: relative;
+    min-height: 620px;
+    border-radius: 8px;
+    overflow: hidden;
+    background:
+        linear-gradient(135deg, rgba(8, 13, 13, .96), rgba(8, 13, 13, .48)),
+        url("{{ asset_for('assets/images/dj3.jpg') }}") center/cover no-repeat;
+    box-shadow: 0 34px 90px rgba(0, 0, 0, .24);
+}
+
+.sessions-feature__content {
+    position: absolute;
+    inset: auto 0 0 0;
+    padding: 34px;
+    color: #fff;
+}
+
+.sessions-feature__tag {
+    color: var(--sessions-teal);
+    font-size: .76rem;
+    font-weight: 900;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+}
+
+.sessions-feature h2 {
+    margin: 14px 0 12px;
+    max-width: 620px;
+    font-size: clamp(2rem, 4vw, 4.2rem);
+    line-height: .98;
+}
+
+.sessions-feature p {
+    max-width: 620px;
+    margin: 0;
+    color: rgba(255, 255, 255, .76);
+    line-height: 1.75;
+}
+
+.sessions-mini-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+    margin-top: 18px;
+}
+
+.sessions-mini-card {
+    border: 1px solid var(--sessions-line);
+    border-radius: 8px;
+    padding: 18px;
+    background: rgba(255, 255, 255, .76);
+}
+
+.sessions-mini-card strong {
+    display: block;
+    margin-bottom: 8px;
+    color: var(--sessions-teal-dark);
+    font-size: .8rem;
+    letter-spacing: 1.4px;
+    text-transform: uppercase;
+}
+
+.sessions-mini-card p {
+    margin: 0;
+    color: var(--sessions-muted);
+    line-height: 1.65;
+}
+
+.sessions-section {
+    padding: 74px 0;
+}
+
+.sessions-section--dark {
+    background: var(--sessions-ink);
+    color: #fff;
+}
+
+.sessions-heading {
+    max-width: 820px;
+    margin-bottom: 32px;
+}
+
+.sessions-heading h2 {
+    margin: 14px 0 12px;
+    font-family: "Playfair Display", Georgia, serif;
+    font-size: clamp(2.5rem, 5vw, 5.4rem);
+    line-height: .96;
+}
+
+.sessions-heading p {
+    margin: 0;
+    color: var(--sessions-muted);
+    font-size: 1.08rem;
+    line-height: 1.75;
+}
+
+.sessions-section--dark .sessions-heading p {
+    color: rgba(255, 255, 255, .68);
+}
+
+.sessions-media-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 24px;
+}
+
+.sessions-media-card {
+    min-width: 0;
+    border-radius: 8px;
+    padding: 22px;
+    background: linear-gradient(145deg, #101617 0%, #171f20 100%);
+    border: 1px solid rgba(255, 255, 255, .08);
+    box-shadow: 0 26px 70px rgba(0, 0, 0, .25);
+}
+
+.sessions-media-card--light {
+    background: #fff;
+    border-color: var(--sessions-line);
+    box-shadow: 0 20px 60px rgba(17, 24, 26, .08);
+}
+
+.sessions-media-card h3 {
+    margin: 12px 0 8px;
+    color: #fff;
+    font-size: clamp(1.4rem, 2.2vw, 2rem);
+}
+
+.sessions-media-card--light h3 {
+    color: var(--sessions-ink);
+}
+
+.sessions-media-card p {
+    margin: 0 0 18px;
+    color: rgba(255, 255, 255, .7);
+    line-height: 1.7;
+}
+
+.sessions-media-card--light p {
+    color: var(--sessions-muted);
+}
+
+.sessions-player {
+    overflow: hidden;
+    border-radius: 8px;
+    background: #050707;
+    border: 1px solid rgba(255, 255, 255, .08);
+}
+
+.sessions-player--audio {
+    background: #f0f3f3;
+    border-color: var(--sessions-line);
+}
+
+.sessions-player iframe {
+    display: block;
+    width: 100%;
+    border: 0;
+}
+
+.sessions-video {
+    aspect-ratio: 16 / 9;
+}
+
+.sessions-video iframe {
+    height: 100%;
+}
+
+.sessions-audio iframe {
+    height: 420px;
+}
+
+.sessions-details-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 18px;
+}
+
+.sessions-detail-card {
+    min-height: 220px;
+    border-radius: 8px;
+    padding: 24px;
+    background: rgba(255, 255, 255, .06);
+    border: 1px solid rgba(255, 255, 255, .1);
+}
+
+.sessions-detail-card i {
+    color: var(--sessions-teal);
+    font-size: 1.5rem;
+}
+
+.sessions-detail-card h3 {
+    margin: 18px 0 10px;
+    color: #fff;
+}
+
+.sessions-detail-card p {
+    margin: 0;
+    color: rgba(255, 255, 255, .68);
+    line-height: 1.7;
+}
+
+.sessions-cta {
+    padding: 84px 0;
+    background:
+        linear-gradient(135deg, rgba(69, 227, 207, .12), rgba(216, 173, 69, .1)),
+        #f7f9f9;
+}
+
+.sessions-cta__box {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 26px;
+    align-items: center;
+    border-radius: 8px;
+    padding: 32px;
+    background: #fff;
+    border: 1px solid var(--sessions-line);
+    box-shadow: 0 22px 70px rgba(17, 24, 26, .1);
+}
+
+.sessions-cta h2 {
+    margin: 0 0 8px;
+    font-family: "Playfair Display", Georgia, serif;
+    font-size: clamp(2rem, 4vw, 4rem);
+    line-height: 1;
+}
+
+.sessions-cta p {
+    max-width: 760px;
+    margin: 0;
+    color: var(--sessions-muted);
+    line-height: 1.75;
+}
+
+@media (max-width: 1100px) {
+    .sessions-hero__grid,
+    .sessions-media-grid,
+    .sessions-cta__box {
+        grid-template-columns: 1fr;
+    }
+
+    .sessions-feature {
+        min-height: 520px;
+    }
+}
+
+@media (max-width: 760px) {
+    .sessions-wrap {
+        width: min(100% - 28px, 1320px);
+    }
+
+    .sessions-hero {
+        padding: 54px 0 48px;
+    }
+
+    .sessions-hero h1 {
+        font-size: clamp(3.2rem, 18vw, 5rem);
+    }
+
+    .sessions-intro-card {
+        flex-direction: column;
+    }
+
+    .sessions-feature {
+        min-height: 470px;
+    }
+
+    .sessions-feature__content {
+        padding: 24px;
+    }
+
+    .sessions-mini-grid,
+    .sessions-details-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .sessions-section {
+        padding: 56px 0;
+    }
+
+    .sessions-media-card,
+    .sessions-cta__box {
+        padding: 18px;
+    }
+}
+</style>
+{% endblock %}
+
+{% block body %}
+{% include "templates/layout/publicHeaderVnv.html.twig" %}
+
+<main class="sessions-page">
+    <section class="sessions-hero">
+        <div class="sessions-wrap">
+            <div class="sessions-hero__grid">
+                <div>
+                    <span class="sessions-kicker"><i class="fa-solid fa-headphones"></i> Listen & Watch</span>
+                    <h1>VNV <span>Sessions</span> & Podcast</h1>
+                    <p class="sessions-lede">
+                        Explore two sides of the VNV experience: curated DJ sessions by <strong>DJ Jonny in the Mix</strong> and podcast-style content with practical ideas, inspiration and event insight.
+                    </p>
+
+                    <div class="sessions-intro-card">
+                        <i class="fa-solid fa-wave-square"></i>
+                        <div>
+                            <h2>Music for the mood. Conversations for the planning.</h2>
+                            <p>
+                                The sessions are built to set the tone. The podcast is built to share ideas, guidance and creative direction behind memorable events.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="sessions-actions">
+                        <a class="sessions-btn" href="#music"><i class="fa-solid fa-play"></i> Play Sessions</a>
+                        <a class="sessions-btn sessions-btn--ghost" href="#podcast"><i class="fa-solid fa-microphone-lines"></i> Open Podcast</a>
+                    </div>
+                </div>
+
+                <div class="sessions-feature" aria-label="VNV Sessions event music">
+                    <div class="sessions-feature__content">
+                        <div class="sessions-feature__tag">DJ Jonny in the Mix</div>
+                        <h2>Curated sound for events, drives, workouts and creative planning.</h2>
+                        <p>
+                            Open-format mixes, stylish sound and event-ready energy designed to move between elegant atmosphere and dance-floor momentum.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="sessions-mini-grid">
+                <div class="sessions-mini-card">
+                    <strong>VNV Sessions</strong>
+                    <p>Open-format mixes, live energy, stylish sound and curated vibes for events, workouts, drives or inspiration.</p>
+                </div>
+                <div class="sessions-mini-card">
+                    <strong>Podcast</strong>
+                    <p>Tips, ideas and conversations around events, creativity, production and the guest experience.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="sessions-section sessions-section--dark" id="music">
+        <div class="sessions-wrap">
+            <div class="sessions-heading">
+                <span class="sessions-pill"><i class="fa-solid fa-music"></i> Music Sessions</span>
+                <h2>VNV Sessions by DJ Jonny in the Mix</h2>
+                <p>
+                    A curated playlist of mixes designed to bring energy, rhythm and atmosphere to any setting.
+                </p>
+            </div>
+
+            <div class="sessions-media-grid">
+                <div class="sessions-media-card">
+                    <span class="sessions-pill">Playlist</span>
+                    <h3>Press play and set the room.</h3>
+                    <p>
+                        Use the playlist when you want to feel the VNV sound before an event, share a vibe with a client or simply keep the day moving.
+                    </p>
+                    <div class="sessions-player sessions-video">
+                        <iframe
+                            src="https://www.youtube.com/embed?listType=playlist&list=PL8hdMpm11FxmEz_1IrnoN3DpbOoMHtFkP"
+                            title="VNV Sessions Playlist"
+                            loading="lazy"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                            allowfullscreen>
+                        </iframe>
+                    </div>
+                </div>
+
+                <div class="sessions-media-card sessions-media-card--light" id="podcast">
+                    <span class="sessions-pill">Podcast</span>
+                    <h3>Event Ideas, Tips & Creative Conversations</h3>
+                    <p>
+                        Practical content created to help clients, creatives and event lovers think through the details that shape a great experience.
+                    </p>
+                    <div class="sessions-player sessions-player--audio sessions-audio">
+                        <iframe
+                            src="https://widget.spreaker.com/player?show_id=5869072&theme=light&playlist=show&playlist-continuous=true&chapters-image=true"
+                            title="VNV Events podcast player"
+                            loading="lazy">
+                        </iframe>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="sessions-section sessions-section--dark">
+        <div class="sessions-wrap">
+            <div class="sessions-details-grid">
+                <div class="sessions-detail-card">
+                    <i class="fa-solid fa-record-vinyl"></i>
+                    <h3>Music Direction</h3>
+                    <p>Sets that help clients understand tone, rhythm and transition before the event day arrives.</p>
+                </div>
+                <div class="sessions-detail-card">
+                    <i class="fa-solid fa-microphone"></i>
+                    <h3>Podcast Thinking</h3>
+                    <p>Conversations and practical ideas about planning, hospitality, production and guest flow.</p>
+                </div>
+                <div class="sessions-detail-card">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i>
+                    <h3>Creative Energy</h3>
+                    <p>A living media space for the VNV point of view: polished, useful, musical and easy to share.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="sessions-cta">
+        <div class="sessions-wrap">
+            <div class="sessions-cta__box">
+                <div>
+                    <h2>Want this energy at your event?</h2>
+                    <p>
+                        Bring VNV music direction, production support and planning insight into the room. Start a new request and tell us the atmosphere you want guests to feel.
+                    </p>
+                </div>
+                <a class="sessions-btn" href="#" data-vnv-open-request><i class="fa-solid fa-paper-plane"></i> New Request</a>
+            </div>
+        </div>
+    </section>
+</main>
+
+{% include "templates/components/publicEventRequestModal.html.twig" with {
+    request_form_action: "/api/public/event-request"
+} %}
+
+{% include "templates/layout/publicFooterVnv.html.twig" %}
+{% endblock %}

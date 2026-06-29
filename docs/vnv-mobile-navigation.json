@@ -1,0 +1,239 @@
+{
+  "schema": "ophyra.mobile_navigation.v1",
+  "brand": "vnv_events",
+  "updated_at": "2026-06-29",
+  "public_base_url": "https://vnvevents.com",
+  "webview": {
+    "token_route_pattern": "https://vnvevents.com/Panel/Tokenapi/{token}/{route}",
+    "route_format": "internal_path_without_leading_slash",
+    "default_query": {
+      "mobile_context": "1",
+      "source": "vnv_mobile_app"
+    }
+  },
+  "location_bridge": {
+    "required_for": [
+      "level_4.time_clock"
+    ],
+    "webview_global_names": [
+      "OPHYRA_MOBILE_LOCATION",
+      "VNV_MOBILE_LOCATION"
+    ],
+    "accepted_query_params": {
+      "latitude": [
+        "mobile_lat",
+        "lat",
+        "location_lat"
+      ],
+      "longitude": [
+        "mobile_lng",
+        "lng",
+        "long",
+        "location_long"
+      ]
+    },
+    "accepted_message_types": [
+      "OPHYRA_MOBILE_LOCATION",
+      "VNV_MOBILE_LOCATION"
+    ],
+    "ping_endpoint": {
+      "method": "POST",
+      "path": "/api/mobile/location/ping",
+      "auth": "Bearer token, session, or token field",
+      "body": {
+        "latitude": "number|required",
+        "longitude": "number|required",
+        "accuracy": "number|optional",
+        "platform": "ios|android|web|optional",
+        "source": "vnv_mobile_app|optional",
+        "permission_status": "granted|denied|limited|optional",
+        "device_id": "string|optional",
+        "context": "payroll_clock|delivery|event_task|optional",
+        "event_type": "CLOCK_IN|CLOCK_OUT|LOCATION_UPDATE|optional",
+        "id_owner": "number|optional"
+      }
+    }
+  },
+  "levels": {
+    "1": {
+      "name": "Owner / Admin",
+      "home": {
+        "label": "Dashboard",
+        "route": "panel/home"
+      },
+      "primary_buttons": [
+        {
+          "key": "event_orders",
+          "label": "Event Orders",
+          "route": "panel/planner-hub/management/orders",
+          "purpose": "Manage event orders and order details."
+        },
+        {
+          "key": "order_calendar",
+          "label": "Order Calendar",
+          "route": "panel/planner-hub/management/orders/calendar",
+          "purpose": "Review events by date."
+        },
+        {
+          "key": "crm",
+          "label": "CRM",
+          "route": "panel/planner-hub/management/crm",
+          "purpose": "Manage contacts, clients, and commercial follow up."
+        },
+        {
+          "key": "team",
+          "label": "Team",
+          "route": "panel/planner-hub/management/users",
+          "purpose": "Manage team members and access."
+        }
+      ],
+      "secondary_buttons": [
+        {
+          "key": "payroll",
+          "label": "Payroll",
+          "route": "panel/planner-hub/management/payroll"
+        },
+        {
+          "key": "storage",
+          "label": "Storage",
+          "route": "panel/planner-hub/management/storage"
+        },
+        {
+          "key": "team_chat",
+          "label": "Team Chat",
+          "route": "panel/planner-hub/team/chat"
+        },
+        {
+          "key": "planning_tools",
+          "label": "Planning Tools",
+          "route": "panel/planning-tools"
+        },
+        {
+          "key": "cms",
+          "label": "CMS",
+          "route": "panel/cms"
+        },
+        {
+          "key": "seo_center",
+          "label": "SEO Center",
+          "route": "panel/seo-center"
+        },
+        {
+          "key": "settings",
+          "label": "Settings",
+          "route": "panel/settings"
+        }
+      ]
+    },
+    "4": {
+      "name": "Team Member",
+      "home": {
+        "label": "Team Dashboard",
+        "route": "panel/home"
+      },
+      "primary_buttons": [
+        {
+          "key": "time_clock",
+          "label": "Time Clock",
+          "route": "panel/planner-hub/team/payroll/clock",
+          "requires_location_bridge": true,
+          "location_context": "payroll_clock",
+          "purpose": "Clock in and out with mobile geolocation."
+        },
+        {
+          "key": "assigned_orders",
+          "label": "Assigned Jobs",
+          "route": "panel/planner-hub/team/orders/orders/",
+          "purpose": "Open assigned event orders."
+        },
+        {
+          "key": "my_work",
+          "label": "My Work",
+          "route": "panel/planner-hub/team/my-work",
+          "purpose": "Review assigned event tasks in event/date order."
+        },
+        {
+          "key": "order_calendar",
+          "label": "Order Calendar",
+          "route": "panel/planner-hub/team/orders/calendar",
+          "purpose": "See assigned event schedule."
+        }
+      ],
+      "secondary_buttons": [
+        {
+          "key": "pending_hours",
+          "label": "Pending Hours",
+          "route": "panel/planner-hub/team/payroll/pending"
+        },
+        {
+          "key": "contracts",
+          "label": "Contracts",
+          "route": "panel/planner-hub/team/contracts"
+        },
+        {
+          "key": "team_chat",
+          "label": "Team Chat",
+          "route": "panel/planner-hub/team/chat"
+        },
+        {
+          "key": "planning_tools",
+          "label": "Planning Tools",
+          "route": "panel/planning-tools"
+        },
+        {
+          "key": "vnv_sessions",
+          "label": "VNV Sessions",
+          "route": "search/multimedia-sessions/main"
+        },
+        {
+          "key": "settings",
+          "label": "Settings",
+          "route": "panel/settings"
+        }
+      ]
+    },
+    "5": {
+      "name": "Client",
+      "home": {
+        "label": "Client Dashboard",
+        "route": "panel/home"
+      },
+      "primary_buttons": [
+        {
+          "key": "my_orders",
+          "label": "My Orders",
+          "route": "panel/planner-hub/orders/orders",
+          "purpose": "Review client orders and event details."
+        },
+        {
+          "key": "vnv_sessions",
+          "label": "VNV Sessions",
+          "route": "search/multimedia-sessions/main",
+          "purpose": "Open music sessions and podcast content."
+        }
+      ],
+      "secondary_buttons": [
+        {
+          "key": "planning_tools",
+          "label": "Planning Tools",
+          "route": "panel/planning-tools"
+        },
+        {
+          "key": "chat",
+          "label": "Chat",
+          "route": "panel/chat"
+        },
+        {
+          "key": "forums",
+          "label": "Forums",
+          "route": "forums"
+        },
+        {
+          "key": "settings",
+          "label": "Settings",
+          "route": "panel/settings"
+        }
+      ]
+    }
+  }
+}

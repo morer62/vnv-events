@@ -930,26 +930,96 @@ function updateLocationState(message, ready) {
 
 async function setLocationFields(form) {
   return new Promise((resolve, reject) => {
+    const bridgedLocation = getMobileLocationBridge();
+    if (bridgedLocation && applyLocationToForm(form, bridgedLocation)) {
+      updateLocationState('Mobile app location captured.', true);
+      resolve();
+      return;
+    }
+
     if (!("geolocation" in navigator) || !form) {
       reject(new Error("Geolocation is unavailable."));
       return;
     }
     navigator.geolocation.getCurrentPosition((position) => {
-      const latInput = form.querySelector("input[name='location_lat']");
-      const lngInput = form.querySelector("input[name='location_long']");
-      if (!latInput || !lngInput) {
+      if (!applyLocationToForm(form, {
+        latitude: position.coords.latitude,
+        longitude: position.coords.longitude
+      })) {
         reject(new Error("Location fields are unavailable."));
         return;
       }
 
-      latInput.value = position.coords.latitude;
-      lngInput.value = position.coords.longitude;
-      form.dataset.locationReady = '1';
       updateLocationState('Location captured.', true);
       resolve();
     }, reject, { enableHighAccuracy: true, timeout: 3500, maximumAge: 60000 });
   });
 }
+
+function applyLocationToForm(form, location) {
+  if (!form || !location) return false;
+
+  const latitude = Number(location.latitude ?? location.lat ?? location.location_lat);
+  const longitude = Number(location.longitude ?? location.lng ?? location.long ?? location.location_long);
+  if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) return false;
+
+  const latInput = form.querySelector("input[name='location_lat']");
+  const lngInput = form.querySelector("input[name='location_long']");
+  if (!latInput || !lngInput) return false;
+
+  latInput.value = String(latitude);
+  lngInput.value = String(longitude);
+  form.dataset.locationReady = '1';
+  return true;
+}
+
+function getMobileLocationBridge() {
+  const fromWindow = window.OPHYRA_MOBILE_LOCATION || window.VNV_MOBILE_LOCATION;
+  if (fromWindow && typeof fromWindow === 'object') {
+    return fromWindow;
+  }
+
+  const params = new URLSearchParams(window.location.search);
+  const latitude = params.get('mobile_lat') || params.get('lat') || params.get('location_lat');
+  const longitude = params.get('mobile_lng') || params.get('lng') || params.get('long') || params.get('location_long');
+  if (latitude && longitude) {
+    return { latitude, longitude };
+  }
+
+  return null;
+}
+
+function receiveMobileLocation(location) {
+  window.OPHYRA_MOBILE_LOCATION = location;
+  document.querySelectorAll('.clock-form').forEach((form) => {
+    if (applyLocationToForm(form, location)) {
+      updateLocationState('Mobile app location captured.', true);
+    }
+  });
+}
+
+window.addEventListener('ophyra:mobile-location', (event) => {
+  receiveMobileLocation(event.detail || {});
+});
+
+window.addEventListener('message', (event) => {
+  let payload = event.data;
+  if (typeof payload === 'string') {
+    try {
+      payload = JSON.parse(payload);
+    } catch (error) {
+      return;
+    }
+  }
+
+  if (payload && (payload.type === 'OPHYRA_MOBILE_LOCATION' || payload.type === 'VNV_MOBILE_LOCATION')) {
+    receiveMobileLocation(payload.location || payload);
+  }
+});
+
+document.addEventListener('message', (event) => {
+  window.dispatchEvent(new MessageEvent('message', { data: event.data }));
+});
 
 function openNotesModal() {
   const modalElement = document.getElementById('notesModal');
