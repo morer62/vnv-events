@@ -198,18 +198,6 @@
 
         {% set placeholderImage = asset_for(placeholder_image|default('assets/images/cms-image-needed.svg')) %}
         {% if pages|length > 0 or categories|length > 0 %}
-        {% if pages|length > 0 %}
-        <div class="loc-toolbar">
-            <div class="loc-toolbar-search">
-                <label class="visually-hidden" for="loc-search-input">Search locations</label>
-                <div class="loc-search" role="search">
-                    <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
-                    <input type="text" id="loc-search-input" name="loc_q" inputmode="search" enterkeyhint="search" autocomplete="off" placeholder="Search by city, county, or location name…" data-loc-search-input>
-                </div>
-            </div>
-            <p class="loc-search-meta" data-loc-search-hint aria-live="polite"></p>
-        </div>
-        {% endif %}
 
         {% if categories|length > 0 %}
         <div class="loc-pill-row" aria-label="Filter locations by category">
@@ -228,6 +216,18 @@
                     </a>
                 {% endfor %}
             </div>
+        </div>
+        {% endif %}
+        {% if pages|length > 0 %}
+        <div class="loc-toolbar">
+            <div class="loc-toolbar-search">
+                <label class="visually-hidden" for="loc-search-input">Search locations</label>
+                <div class="loc-search" role="search">
+                    <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+                    <input type="text" id="loc-search-input" name="loc_q" inputmode="search" enterkeyhint="search" autocomplete="off" placeholder="Search by city, county, or location name…" data-loc-search-input>
+                </div>
+            </div>
+            <p class="loc-search-meta" data-loc-search-hint aria-live="polite"></p>
         </div>
         {% endif %}
 

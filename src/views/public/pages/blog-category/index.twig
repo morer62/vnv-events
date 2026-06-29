@@ -6,6 +6,7 @@
 {% set categoryImage = category.featured_image_url|default('') ?: placeholderImage %}
 {% set categoryIndexPath = category_type == 'location' ? 'locations' : (category_type == 'blog' ? 'blog' : 'pages') %}
 {% set categoryIndexLabel = category_type == 'location' ? 'all locations' : (category_type == 'blog' ? 'all blog' : 'all pages') %}
+{% set itemCtaLabel = category_type == 'location' ? 'View location' : 'Read more' %}
 
 {% block title %}
     {{ category.meta_title ?: (categoryTitle ~ ' - ' ~ categoryTypeLabel ~ ' | VNV Events') }}
@@ -220,7 +221,7 @@
                             {% if excerpt %}
                                 <div class="blog-card-excerpt">{{ excerpt|striptags|slice(0, 145) }}{% if excerpt|length > 145 %}...{% endif %}</div>
                             {% endif %}
-                            <a class="blog-card-cta" href="{{ itemHref }}">Read more</a>
+                            <a class="blog-card-cta" href="{{ itemHref }}">{{ itemCtaLabel }}</a>
                         </div>
                     </article>
                 {% endfor %}

@@ -146,6 +146,8 @@ function get_location_categories(array $pages): array
     try {
         $db = new Connection();
         $siteKey = strtolower(trim(SiteContext::siteKey()));
+        $hasCategoryImage = table_has_column($db, 'cms_categories', 'featured_image_url');
+        $categoryImageSelect = $hasCategoryImage ? 'featured_image_url' : "NULL AS featured_image_url";
         $where = ["COALESCE(is_active, 1) = 1"];
 
         if (table_has_column($db, 'cms_categories', 'applies_to_locations')) {
@@ -157,7 +159,7 @@ function get_location_categories(array $pages): array
         }
 
         $db->query("
-            SELECT id, name, slug, description, featured_image_url
+            SELECT id, name, slug, description, {$categoryImageSelect}
             FROM cms_categories
             WHERE " . implode(' AND ', $where) . "
             ORDER BY name ASC
@@ -183,6 +185,22 @@ function get_location_categories(array $pages): array
         }
     } catch (\Throwable $e) {
         error_log('Location categories failed: ' . $e->getMessage());
+    }
+
+    foreach ($pages as $page) {
+        $slug = (string)($page['category_slug'] ?? '');
+        if ($slug === '' || isset($categories[$slug])) {
+            continue;
+        }
+
+        $categories[$slug] = [
+            'id' => (int)($page['category_id'] ?? 0),
+            'name' => (string)($page['category'] ?? 'Location'),
+            'slug' => $slug,
+            'description' => '',
+            'image_url' => (string)($page['category_image_url'] ?? ''),
+            'count' => (int)($countsBySlug[$slug] ?? 1),
+        ];
     }
 
     return array_values($categories);
