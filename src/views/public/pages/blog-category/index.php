@@ -85,7 +85,7 @@ if ($legacyCategoryId > 0) {
 }
 $typeWhere = match ($categoryType) {
     'blog' => "(c.type = 'post' OR c.content_type = 'blog' OR c.content_type = 'blog_post')",
-    'location' => "(c.content_type IN ('location','location_page','location-page') OR c.type = 'location')",
+    'location' => "c.content_type IN ('location','location_page','location-page')",
     default => "(c.type = 'page' OR c.content_type = 'page' OR c.content_type = '' OR c.content_type IS NULL)",
 };
 

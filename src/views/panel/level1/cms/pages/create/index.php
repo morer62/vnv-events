@@ -56,7 +56,6 @@ function cmsRouteForContentType(string $contentType, string $slug): string
 function cmsLegacyTypeForContentType(string $contentType): string
 {
     return match (cmsNormalizeContentType($contentType)) {
-        'location' => 'location',
         'blog' => 'post',
         default => 'page',
     };
@@ -64,7 +63,7 @@ function cmsLegacyTypeForContentType(string $contentType): string
 
 function cmsCanonicalUrlForRoute(string $route): string
 {
-    return 'https://vnvevents.com/' . trim($route, '/') . '/';
+    return SiteContext::publicBaseUrl() . '/' . trim($route, '/') . '/';
 }
 
 function cmsShouldUseGeneratedCanonical(string $canonicalUrl, string $contentType, string $slug): bool
