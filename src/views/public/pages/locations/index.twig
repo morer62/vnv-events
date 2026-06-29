@@ -121,13 +121,13 @@
     .loc-cat-count{opacity:.72;font-size:.72rem;}
 
     .loc-grid{
-        display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px;
+        display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;
     }
-    @media (max-width: 980px){.loc-grid{grid-template-columns:repeat(2,minmax(0,1fr));}}
-    @media (max-width: 640px){.loc-grid{grid-template-columns:1fr;}}
+    @media (max-width: 760px){.loc-grid{grid-template-columns:1fr;}}
     .loc-card{
         text-decoration:none;color:inherit;background:#fff;border-radius:20px;border:1px solid #e3ebee;
-        box-shadow:0 14px 36px rgba(15,23,42,.07);overflow:hidden;display:flex;flex-direction:column;
+        box-shadow:0 12px 30px rgba(15,23,42,.06);overflow:hidden;display:grid;grid-template-columns:64px minmax(0,1fr) auto;
+        align-items:center;gap:14px;padding:12px 14px;
         transition:transform .28s ease,box-shadow .28s ease,border-color .28s ease;
     }
     .loc-card:hover{
@@ -136,26 +136,21 @@
         border-color:rgba(94,198,196,.35);
     }
     .loc-card[hidden]{display:none!important;}
-    .loc-card-image-wrap{display:block;position:relative;overflow:hidden;}
-    .loc-card-image-wrap::after{
-        content:'';position:absolute;inset:0;background:linear-gradient(to top,rgba(15,20,22,.35),transparent 45%);
-        opacity:.85;transition:opacity .3s;
-    }
-    .loc-card:hover .loc-card-image-wrap::after{opacity:1;}
-    .loc-card-image{width:100%;height:180px;object-fit:cover;background:linear-gradient(135deg,#dfe8eb,#eef3f5);transition:transform .5s ease;}
-    .loc-card:hover .loc-card-image{transform:scale(1.04);}
-    .loc-card-body{padding:16px 18px 18px;display:flex;flex-direction:column;flex:1;}
+    .loc-card-image-wrap{display:block;position:relative;overflow:hidden;width:64px;height:64px;border-radius:999px;border:1px solid #dde5e8;background:#edf2f7;}
+    .loc-card-image{width:100%;height:100%;object-fit:cover;transition:transform .5s ease;}
+    .loc-card:hover .loc-card-image{transform:scale(1.06);}
+    .loc-card-body{min-width:0;}
     .loc-badge{
         display:inline-flex;align-items:center;padding:6px 10px;border-radius:999px;background:#ecfdff;color:#0f766e;
-        font-size:.72rem;font-weight:800;letter-spacing:.05em;text-transform:uppercase;margin-bottom:10px;width:fit-content;
+        font-size:.68rem;font-weight:800;letter-spacing:.05em;text-transform:uppercase;margin-bottom:5px;width:fit-content;
     }
     .loc-title{
-        font-size:1.08rem;font-weight:800;color:#0f172a;line-height:1.32;margin-bottom:8px;
+        font-size:1.08rem;font-weight:800;color:#0f172a;line-height:1.32;margin-bottom:2px;
         text-decoration:none;display:block;transition:color .2s;
     }
     .loc-title:hover{color:var(--loc-primary-deep);}
-    .loc-sub{font-size:.93rem;color:var(--loc-muted);line-height:1.65;margin-bottom:4px;}
-    .loc-meta{display:flex;gap:8px;flex-wrap:wrap;margin-top:auto;padding-top:10px;}
+    .loc-sub{font-size:.86rem;color:var(--loc-muted);line-height:1.45;margin-bottom:0;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+    .loc-meta{display:none;}
     .loc-chip{
         display:inline-flex;align-items:center;padding:5px 10px;border-radius:999px;background:#f8fafc;border:1px solid #e2e8f0;
         font-size:.74rem;color:#334155;font-weight:700;
@@ -165,24 +160,36 @@
         color:#64748b;backdrop-filter:blur(4px);
     }
     .loc-no-results h3{font-size:1.1rem;color:#334155;margin:0 0 8px;font-weight:800;}
-    .loc-card-actions{display:flex;gap:10px;margin-top:14px;padding-top:14px;border-top:1px dashed #e2e8f0;}
+    .loc-card-actions{display:flex;flex-direction:column;gap:8px;margin:0;width:136px;}
     .loc-link-btn{
-        flex:1;display:inline-flex;justify-content:center;align-items:center;text-decoration:none;border-radius:999px;
+        display:inline-flex;justify-content:center;align-items:center;text-decoration:none;border-radius:999px;
         padding:11px 14px;font-size:.72rem;font-weight:800;letter-spacing:.05em;text-transform:uppercase;transition:.22s ease;border:none;cursor:pointer;font-family:inherit;
     }
     .loc-link-main{background:#11181a;color:#fff;}
     .loc-link-main:hover{background:#000;color:#fff;}
     .loc-link-request{background:#ecfdff;color:#0f766e;border:1px solid #b9f2ef;}
     .loc-link-request:hover{background:#def9f8;}
+    .loc-pagination{display:flex;flex-wrap:wrap;justify-content:center;gap:9px;margin-top:26px;}
+    .loc-page-link{
+        display:inline-flex;align-items:center;justify-content:center;min-width:40px;height:40px;padding:0 14px;
+        border-radius:999px;border:1px solid #dde5e8;background:#fff;color:#334155;text-decoration:none;
+        font-size:.82rem;font-weight:900;box-shadow:0 8px 18px rgba(15,23,42,.06);
+    }
+    .loc-page-link:hover,.loc-page-link.is-active{background:#11181a;color:#fff;border-color:#11181a;text-decoration:none;}
+    .loc-page-link.is-disabled{opacity:.45;pointer-events:none;}
     @media (max-width: 640px){
         .loc-page{padding-top:28px;padding-bottom:64px;}
         .loc-head{padding:26px 22px 24px;border-radius:22px;}
         .loc-head-actions{flex-direction:column;align-items:stretch;}
         .loc-btn{justify-content:center;}
+        .loc-card{grid-template-columns:54px minmax(0,1fr);align-items:start;}
+        .loc-card-image-wrap{width:54px;height:54px;}
+        .loc-card-actions{grid-column:1 / -1;flex-direction:row;width:100%;}
+        .loc-link-btn{flex:1;}
     }
 </style>
 
-<section class="loc-page">
+<section class="loc-page" data-loc-total="{{ pagination.total_items|default(pages|length) }}">
     <div class="loc-container">
         <div class="loc-head">
             <div class="loc-head-inner">
@@ -205,7 +212,7 @@
                 <a class="loc-cat-button is-active" href="{{ path('locations') }}">
                     <img src="{{ placeholderImage }}" alt="">
                     <span>All</span>
-                    <span class="loc-cat-count">{{ pages|length }}</span>
+                    <span class="loc-cat-count">{{ pagination.total_items|default(pages|length) }}</span>
                 </a>
                 {% for category in categories|default([]) %}
                     {% set categoryImage = category.image_url|default('') ?: placeholderImage %}
@@ -250,10 +257,10 @@
                             {% if p.county %}<span class="loc-chip">{{ p.county }}</span>{% endif %}
                             {% if p.state %}<span class="loc-chip">{{ p.state }}</span>{% endif %}
                         </div>
-                        <div class="loc-card-actions">
-                            <a class="loc-link-btn loc-link-main" href="{{ cardHref }}">View location</a>
-                            <button type="button" data-vnv-open-request class="loc-link-btn loc-link-request">Request</button>
-                        </div>
+                    </div>
+                    <div class="loc-card-actions">
+                        <a class="loc-link-btn loc-link-main" href="{{ cardHref }}">View location</a>
+                        <button type="button" data-vnv-open-request class="loc-link-btn loc-link-request">Request</button>
                     </div>
                 </article>
             {% endfor %}
@@ -262,6 +269,17 @@
             <h3>No locations match</h3>
             <p>Try another city, county, or keyword — or <a href="#" data-vnv-open-request>tell us where you’re planning</a> and we’ll help.</p>
         </div>
+        {% if pagination.total_pages|default(1) > 1 %}
+            <nav class="loc-pagination" aria-label="Locations pagination">
+                {% set prevPage = pagination.current_page - 1 %}
+                {% set nextPage = pagination.current_page + 1 %}
+                <a class="loc-page-link {{ pagination.current_page == 1 ? 'is-disabled' : '' }}" href="{{ path(pagination.base_path|default('locations')|trim('/')) }}{% if prevPage > 1 %}?page={{ prevPage }}{% endif %}">Previous</a>
+                {% for page in 1..pagination.total_pages %}
+                    <a class="loc-page-link {{ page == pagination.current_page ? 'is-active' : '' }}" href="{{ path(pagination.base_path|default('locations')|trim('/')) }}{% if page > 1 %}?page={{ page }}{% endif %}">{{ page }}</a>
+                {% endfor %}
+                <a class="loc-page-link {{ pagination.current_page == pagination.total_pages ? 'is-disabled' : '' }}" href="{{ path(pagination.base_path|default('locations')|trim('/')) }}?page={{ nextPage }}">Next</a>
+            </nav>
+        {% endif %}
         {% else %}
             <div class="loc-empty">No published location pages are attached to these categories yet.</div>
         {% endif %}
@@ -282,14 +300,19 @@
     var hint = root.querySelector('[data-loc-search-hint]');
     if (!input || !cards.length) return;
 
-    var total = cards.length;
+    var visiblePageTotal = cards.length;
+    var total = parseInt(root.getAttribute('data-loc-total') || visiblePageTotal, 10) || visiblePageTotal;
 
     function norm(s){ return (s || '').toLowerCase().replace(/\s+/g, ' ').trim(); }
 
     function refreshHint(n, q){
         if (!hint) return;
         if (!q) {
-            hint.innerHTML = 'Showing <strong>' + total + '</strong> location' + (total === 1 ? '' : 's');
+            if (total > visiblePageTotal) {
+                hint.innerHTML = 'Showing <strong>' + visiblePageTotal + '</strong> of <strong>' + total + '</strong> locations';
+            } else {
+                hint.innerHTML = 'Showing <strong>' + visiblePageTotal + '</strong> location' + (visiblePageTotal === 1 ? '' : 's');
+            }
         } else if (n === 0) {
             hint.innerHTML = 'No locations match your search';
         } else {

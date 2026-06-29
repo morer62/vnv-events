@@ -17,12 +17,26 @@ foreach (get_growth_hub_location_pages() as $page) {
     $pagesByRoute[$page['public_path']] = $page;
 }
 
-$pages = array_values($pagesByRoute);
-$categories = get_location_categories($pages);
+$allPages = array_values($pagesByRoute);
+$categories = get_location_categories($allPages);
+$perPage = 20;
+$currentPage = max(1, (int)($_GET['page'] ?? 1));
+$totalItems = count($allPages);
+$totalPages = max(1, (int)ceil($totalItems / $perPage));
+$currentPage = min($currentPage, $totalPages);
+$offset = ($currentPage - 1) * $perPage;
+$pages = array_slice($allPages, $offset, $perPage);
 
 echo TemplateResponse::render(__DIR__ . '/index.twig', [
     'pages' => $pages,
     'categories' => $categories,
+    'pagination' => [
+        'current_page' => $currentPage,
+        'total_pages' => $totalPages,
+        'total_items' => $totalItems,
+        'per_page' => $perPage,
+        'base_path' => 'locations',
+    ],
     'placeholder_image' => 'assets/images/cms-image-needed.svg',
     'show_whatsapp' => true
 ]);
