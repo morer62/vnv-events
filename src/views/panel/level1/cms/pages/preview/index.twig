@@ -20,7 +20,8 @@
     .cms-preview-code { background: #0f172a; border-radius: 8px; color: #e5e7eb; font-family: Consolas, Monaco, monospace; font-size: .86rem; margin-top: 1rem; overflow: auto; padding: 1rem; white-space: pre-wrap; }
 </style>
 
-{% set route = page.route|default(page.canonical_url|default('/' ~ page.slug ~ '/')) %}
+{% set route = page.main_route.route|default(page.route|default(page.canonical_url|default('/' ~ page.slug ~ '/'))) %}
+{% set previewType = page.content_type|default(page.type|default('page')) %}
 {% set sampleBody %}
     {% if page.body_html|default('') %}
         {{ page.body_html|raw }}
@@ -53,7 +54,7 @@
     </div>
 
     <section class="cms-preview-meta">
-        <div><span>Type</span>{{ page.type|default('page') }}</div>
+        <div><span>Type</span>{{ previewType|replace({'_':' '})|title }}</div>
         <div><span>Status</span>{{ page.status|default('DRAFT') }}</div>
         <div><span>Template</span>{{ page.template_name|default('None') }}</div>
         <div><span>Route</span><code>{{ route }}</code></div>

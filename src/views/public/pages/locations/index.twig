@@ -196,8 +196,9 @@
             </div>
         </div>
 
-        {% if pages|length > 0 %}
         {% set placeholderImage = asset_for(placeholder_image|default('assets/images/cms-image-needed.svg')) %}
+        {% if pages|length > 0 or categories|length > 0 %}
+        {% if pages|length > 0 %}
         <div class="loc-toolbar">
             <div class="loc-toolbar-search">
                 <label class="visually-hidden" for="loc-search-input">Search locations</label>
@@ -208,7 +209,9 @@
             </div>
             <p class="loc-search-meta" data-loc-search-hint aria-live="polite"></p>
         </div>
+        {% endif %}
 
+        {% if categories|length > 0 %}
         <div class="loc-pill-row" aria-label="Filter locations by category">
             <div class="loc-pills">
                 <a class="loc-cat-button is-active" href="{{ path('locations') }}">
@@ -226,7 +229,9 @@
                 {% endfor %}
             </div>
         </div>
+        {% endif %}
 
+        {% if pages|length > 0 %}
         <div class="loc-grid" data-loc-grid>
             {% for p in pages %}
                 {% set q = (p.title|default('') ~ ' ' ~ p.city|default('') ~ ' ' ~ p.county|default('') ~ ' ' ~ p.state|default('') ~ ' ' ~ p.excerpt|default('') ~ ' ' ~ p.category|default(''))|lower|trim %}
@@ -257,6 +262,9 @@
             <h3>No locations match</h3>
             <p>Try another city, county, or keyword — or <a href="#" data-vnv-open-request>tell us where you’re planning</a> and we’ll help.</p>
         </div>
+        {% else %}
+            <div class="loc-empty">No published location pages are attached to these categories yet.</div>
+        {% endif %}
         {% else %}
             <div class="loc-empty">No published locations available yet.</div>
         {% endif %}

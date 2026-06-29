@@ -1,6 +1,7 @@
 <?php
 
 use App\Repositories\CmsContentsRepository;
+use App\Repositories\CmsRoutesRepository;
 use App\Repositories\Connection;
 use App\Utils\Router;
 use App\Utils\TemplateResponse;
@@ -20,6 +21,9 @@ $router->get(function () {
     $contentsRepository = new CmsContentsRepository();
     $contentsRepository->db = $db;
 
+    $routesRepository = new CmsRoutesRepository();
+    $routesRepository->db = $db;
+
     $page = $contentsRepository->getOneWithTemplate($id);
 
     if (!$page) {
@@ -27,10 +31,12 @@ $router->get(function () {
         exit;
     }
 
-    if (($page->type ?? '') !== 'page' && ($page->type ?? '') !== 'post') {
+    if (!in_array(($page->type ?? ''), ['page', 'post', 'location'], true)) {
         echo "Invalid content type for preview.";
         exit;
     }
+
+    $page->main_route = $routesRepository->getMainRouteByContent((int)$page->id, $page->language ?? 'en');
 
     return TemplateResponse::render(__DIR__ . "/index.twig", [
         "title" => "Preview CMS Content",

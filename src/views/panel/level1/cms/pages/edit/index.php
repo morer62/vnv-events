@@ -53,6 +53,34 @@ function cmsRouteForContentTypeEdit(string $contentType, string $slug): string
     };
 }
 
+function cmsLegacyTypeForContentTypeEdit(string $contentType): string
+{
+    return match (cmsNormalizeContentTypeEdit($contentType)) {
+        'location' => 'location',
+        'blog' => 'post',
+        default => 'page',
+    };
+}
+
+function cmsCanonicalUrlForRouteEdit(string $route): string
+{
+    return 'https://vnvevents.com/' . trim($route, '/') . '/';
+}
+
+function cmsShouldUseGeneratedCanonicalEdit(string $canonicalUrl, string $contentType, string $slug): bool
+{
+    if ($canonicalUrl === '') {
+        return true;
+    }
+
+    if (cmsNormalizeContentTypeEdit($contentType) === 'page') {
+        return false;
+    }
+
+    $path = parse_url($canonicalUrl, PHP_URL_PATH);
+    return is_string($path) && trim($path, '/') === $slug;
+}
+
 $router->get(function () {
     $db = new Connection();
 
@@ -208,6 +236,10 @@ $router->post(function () {
         ? $routesRepository->normalizeRoute($manualRoute)
         : $routesRepository->normalizeRoute(cmsRouteForContentTypeEdit($contentType, $slug));
 
+    if (cmsShouldUseGeneratedCanonicalEdit($canonicalUrl, $contentType, $slug)) {
+        $canonicalUrl = cmsCanonicalUrlForRouteEdit($route);
+    }
+
     $errors = [];
     $selectedTemplate = null;
     $selectedCategory = null;
@@ -333,6 +365,7 @@ $router->post(function () {
         "id_template" => $idTemplate > 0 ? $idTemplate : null,
         "id_cms_category" => $idCmsCategory > 0 ? $idCmsCategory : null,
         "content_type" => $contentType,
+        "type" => cmsLegacyTypeForContentTypeEdit($contentType),
         "title" => $title,
         "slug" => $slug,
         "content_mode" => $contentMode,
