@@ -278,6 +278,7 @@ class SeoFilesGeneratorService
             $this->collectGrowthHubContent(),
             $this->collectLocations(),
             $this->collectCmsRoutes(),
+            $this->collectCmsCategories(),
             $this->collectForums()
         );
 
@@ -449,8 +450,8 @@ class SeoFilesGeneratorService
             $repo->db = new Connection();
             $siteKey = SiteContext::siteKey();
             return array_map(function ($content) {
-                $route = $content->canonical_url ?: ($content->route ?? null);
-                $type = ($content->type ?? '') === 'post' ? 'blog' : 'page';
+                $route = $content->route ?: ($content->canonical_url ?? null);
+                $type = $this->typeForCmsContent($content);
 
                 return $this->entry(
                     $route ?: '/' . trim((string)$content->slug, '/') . '/',
@@ -464,6 +465,193 @@ class SeoFilesGeneratorService
         } catch (\Throwable $e) {
             error_log('SEO CMS collection failed: ' . $e->getMessage());
             return [];
+        }
+    }
+
+    private function collectCmsCategories(): array
+    {
+        try {
+            $db = new Connection();
+            if (!$this->tableExists($db, 'cms_categories') || !$this->tableExists($db, 'cms_contents')) {
+                return [];
+            }
+
+            $entries = [];
+            foreach ($this->cmsCategoryTargets($db) as $target) {
+                foreach ($this->fetchCmsCategoriesForTarget($db, $target) as $category) {
+                    $entries[] = $this->entry(
+                        $target['path'] . trim((string)$category->slug, '/') . '/',
+                        (string)($category->name ?? $category->slug ?? 'Category'),
+                        $this->bestDate((object)[
+                            'updated_at' => $category->content_updated_at ?? null,
+                            'created_at' => $category->updated_at ?? null,
+                        ]),
+                        'weekly',
+                        $target['priority'],
+                        $target['type']
+                    );
+                }
+            }
+
+            return $entries;
+        } catch (\Throwable $e) {
+            error_log('SEO CMS category collection failed: ' . $e->getMessage());
+            return [];
+        }
+    }
+
+    private function cmsCategoryTargets(Connection $db): array
+    {
+        $hasContentType = $this->columnExists($db, 'cms_contents', 'content_type');
+        $hasLegacyType = $this->columnExists($db, 'cms_contents', 'type');
+
+        $typeSql = static function (array $contentTypes, ?string $legacyType = null) use ($hasContentType, $hasLegacyType): string {
+            $parts = [];
+
+            if ($hasContentType) {
+                $quoted = array_map(static fn ($value) => "'" . str_replace("'", "''", $value) . "'", $contentTypes);
+                $parts[] = "LOWER(COALESCE(c.content_type, '')) IN (" . implode(',', $quoted) . ")";
+            }
+
+            if ($hasLegacyType && $legacyType !== null) {
+                $parts[] = "LOWER(COALESCE(c.type, '')) = '" . str_replace("'", "''", $legacyType) . "'";
+            }
+
+            return '(' . implode(' OR ', $parts ?: ['1=0']) . ')';
+        };
+
+        return [
+            [
+                'type' => 'blog',
+                'path' => '/blog/',
+                'applies_column' => 'applies_to_blog',
+                'content_sql' => $typeSql(['blog', 'blog_post', 'post'], 'post'),
+                'priority' => 0.65,
+            ],
+            [
+                'type' => 'location',
+                'path' => '/locations/',
+                'applies_column' => 'applies_to_locations',
+                'content_sql' => $typeSql(['location', 'locations', 'location_page', 'location-page'], null),
+                'priority' => 0.75,
+            ],
+            [
+                'type' => 'page',
+                'path' => '/pages/',
+                'applies_column' => 'applies_to_pages',
+                'content_sql' => $typeSql(['page', 'landing', 'custom'], 'page'),
+                'priority' => 0.55,
+            ],
+        ];
+    }
+
+    private function fetchCmsCategoriesForTarget(Connection $db, array $target): array
+    {
+        $hasCategorySiteKey = $this->columnExists($db, 'cms_categories', 'site_key');
+        $hasContentSiteKey = $this->columnExists($db, 'cms_contents', 'site_key');
+        $hasCategoryActive = $this->columnExists($db, 'cms_categories', 'is_active');
+        $hasAppliesColumn = $this->columnExists($db, 'cms_categories', (string)$target['applies_column']);
+        $contentSql = (string)$target['content_sql'];
+        $contentSqlForLatest = str_replace('c.', 'c2.', $contentSql);
+
+        $where = [
+            "COALESCE(cc.slug, '') <> ''",
+            "EXISTS (
+                SELECT 1
+                FROM cms_contents c
+                WHERE c.id_cms_category = cc.id
+                  AND c.status = 'PUBLISHED'
+                  AND (c.robots IS NULL OR LOWER(c.robots) NOT LIKE '%noindex%')
+                  AND {$contentSql}
+                  {$this->siteScopeSql($db, 'cms_contents', 'c')}
+            )",
+        ];
+
+        if ($hasCategoryActive) {
+            $where[] = 'COALESCE(cc.is_active, 1) = 1';
+        }
+
+        if ($hasAppliesColumn) {
+            $where[] = "COALESCE(cc.{$target['applies_column']}, 1) = 1";
+        }
+
+        $sql = "
+            SELECT
+                cc.id,
+                cc.name,
+                cc.slug,
+                cc.updated_at,
+                (
+                    SELECT MAX(COALESCE(c2.updated_at, c2.published_at, c2.created_at))
+                    FROM cms_contents c2
+                    WHERE c2.id_cms_category = cc.id
+                      AND c2.status = 'PUBLISHED'
+                      AND {$contentSqlForLatest}
+                      {$this->siteScopeSql($db, 'cms_contents', 'c2')}
+                ) AS content_updated_at
+            FROM cms_categories cc
+            WHERE " . implode("\n              AND ", $where) . "
+              {$this->siteScopeSql($db, 'cms_categories', 'cc')}
+            ORDER BY cc.name ASC
+        ";
+
+        $db->query($sql);
+        if ($hasCategorySiteKey || $hasContentSiteKey) {
+            $db->bind(':site_key', SiteContext::siteKey());
+        }
+
+        return $db->fetchAll() ?: [];
+    }
+
+    private function typeForCmsContent(object $content): string
+    {
+        $contentType = strtolower(trim((string)($content->content_type ?? '')));
+
+        if (in_array($contentType, ['blog', 'blog_post', 'post'], true)) {
+            return 'blog';
+        }
+
+        if (in_array($contentType, ['location', 'locations', 'location_page', 'location-page'], true)) {
+            return 'location';
+        }
+
+        return strtolower(trim((string)($content->type ?? ''))) === 'post' ? 'blog' : 'page';
+    }
+
+    private function siteScopeSql(Connection $db, string $table, string $alias): string
+    {
+        if (!$this->columnExists($db, $table, 'site_key')) {
+            return '';
+        }
+
+        return " AND ({$alias}.site_key = :site_key OR {$alias}.site_key IN ('shared', 'global', 'all_sites'))";
+    }
+
+    private function tableExists(Connection $db, string $table): bool
+    {
+        try {
+            $db->query("
+                SELECT 1
+                FROM information_schema.TABLES
+                WHERE TABLE_SCHEMA = DATABASE()
+                  AND TABLE_NAME = :table
+                LIMIT 1
+            ");
+            $db->bind(':table', $table);
+            return (bool)$db->fetchOne();
+        } catch (\Throwable $e) {
+            return false;
+        }
+    }
+
+    private function columnExists(Connection $db, string $table, string $column): bool
+    {
+        try {
+            $db->query("SHOW COLUMNS FROM `{$table}` LIKE :column");
+            $db->bind(':column', $column);
+            return (bool)$db->fetchOne();
+        } catch (\Throwable $e) {
+            return false;
         }
     }
 

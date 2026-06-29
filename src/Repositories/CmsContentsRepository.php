@@ -198,11 +198,12 @@ class CmsContentsRepository extends BaseRepository
 
     public function getPublishedSitemapEntries(string $language = 'en', ?string $siteKey = null): array
     {
-        $siteSql = $this->publicVisibilitySql('cms_content', $siteKey, 'c');
+        $siteSql = $this->siteScopeSql($siteKey, 'c');
         $query = "
             SELECT
                 c.id,
                 c.type,
+                c.content_type,
                 c.title,
                 c.slug,
                 c.canonical_url,

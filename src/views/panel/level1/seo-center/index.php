@@ -4,21 +4,24 @@ use App\Services\LoginService;
 use App\Services\SeoFilesGeneratorService;
 use App\Utils\MessageUtil;
 use App\Utils\Router;
+use App\Utils\SiteContext;
 use App\Utils\TemplateResponse;
 
 $router = new Router();
 
 $router->get(function () {
     $service = new SeoFilesGeneratorService();
+    $baseUrl = SiteContext::publicBaseUrl();
 
     return TemplateResponse::render(__DIR__ . '/index.twig', [
         'files' => $service->getFileCards(),
         'audit' => $service->buildAudit(),
+        'sitemapUrl' => $baseUrl . '/sitemap.xml',
         'submitUrls' => [
-            'Sitemap' => 'https://vnvevents.com/sitemap.xml',
-            'Robots' => 'https://vnvevents.com/robots.txt',
-            'LLMs' => 'https://vnvevents.com/llms.txt',
-            'LLMs Full' => 'https://vnvevents.com/llms-full.txt',
+            'Sitemap' => $baseUrl . '/sitemap.xml',
+            'Robots' => $baseUrl . '/robots.txt',
+            'LLMs' => $baseUrl . '/llms.txt',
+            'LLMs Full' => $baseUrl . '/llms-full.txt',
         ],
     ]);
 });
