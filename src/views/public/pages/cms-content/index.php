@@ -62,14 +62,30 @@ if (!empty($content->content_json)) {
     }
 }
 
+$seo = PublicSeoService::contentSeo($content, $route, $publicType === 'location' ? 'location' : 'page');
+$schemaJson = PublicSeoService::pageSchema($content, $route, $contentJson);
+
+if (cms_body_is_full_twig_template((string)($content->body_html ?? ''))) {
+    echo TemplateResponse::renderString((string)$content->body_html, [
+        "page" => $content,
+        "route" => $route,
+        "content_json" => $contentJson,
+        "internal_links" => PublicSeoService::defaultInternalLinks(),
+        "seo" => $seo,
+        "schemaJson" => $schemaJson,
+        "show_whatsapp" => true,
+    ]);
+    exit;
+}
+
 // Render
 echo TemplateResponse::render(__DIR__ . "/index.twig", [
     "page" => $content,
     "route" => $route,
     "content_json" => $contentJson,
     "internal_links" => PublicSeoService::defaultInternalLinks(),
-    "seo" => PublicSeoService::contentSeo($content, $route, 'page'),
-    "schemaJson" => PublicSeoService::pageSchema($content, $route, $contentJson),
+    "seo" => $seo,
+    "schemaJson" => $schemaJson,
     "show_whatsapp" => true,
 ]);
 exit;
@@ -87,4 +103,13 @@ function normalize_public_cms_content_type(string $contentType): string
     }
 
     return 'page';
+}
+
+function cms_body_is_full_twig_template(string $bodyHtml): bool
+{
+    $bodyHtml = ltrim($bodyHtml);
+
+    return str_contains($bodyHtml, '{% extends ')
+        || str_contains($bodyHtml, '{% block body %}')
+        || str_contains($bodyHtml, '{% block styles %}');
 }

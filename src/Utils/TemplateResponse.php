@@ -10,6 +10,8 @@ use Twig\Environment;
 use Twig\Error\LoaderError;
 use Twig\Error\RuntimeError;
 use Twig\Error\SyntaxError;
+use Twig\Loader\ArrayLoader;
+use Twig\Loader\ChainLoader;
 use Twig\Loader\FilesystemLoader;
 use Twig\TwigFilter;
 use Twig\TwigFunction;
@@ -239,6 +241,67 @@ class TemplateResponse
             "chat_unread_base_route" => $chatUnreadBaseRoute,
             "isMobileApp" => PlatformDetector::isMobileApp(),
             "isWeb" => PlatformDetector::isWeb(),
+            ...$data
+        ]);
+    }
+
+    /**
+     * Render a trusted Twig template stored outside the filesystem, such as a CMS
+     * page body that contains full `{% extends %}` / `{% block %}` markup.
+     *
+     * @throws RuntimeError
+     * @throws SyntaxError
+     * @throws LoaderError
+     */
+    public static function renderString(string $templateSource, array $data = []): string
+    {
+        $templatesFolder = __DIR__ . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "views";
+
+        $loader = new ChainLoader([
+            new ArrayLoader([
+                "__cms_inline_template.twig" => $templateSource,
+            ]),
+            new FilesystemLoader($templatesFolder),
+        ]);
+
+        $twig = new Environment($loader);
+
+        $twig->addFunction(new TwigFunction('asset_for', [LocationUtils::class, 'assetFor']));
+        $twig->addFunction(new TwigFunction('path', [LocationUtils::class, 'assetFor']));
+        $twig->addFunction(new TwigFunction('trans', [TranslationService::class, 'trans']));
+        $twig->addFunction(new TwigFunction('get_csrf', [CSRF::class, 'generateCSRF']));
+        $twig->addFunction(new TwigFunction('csrf_token', [CSRF::class, 'generateCSRF']));
+        $twig->addFunction(new TwigFunction('contain_permission', [TwigUtils::class, 'hasPerm']));
+        $twig->addFilter(new TwigFilter('truncate', [TwigUtils::class, 'truncate']));
+        $twig->addFilter(new TwigFilter('html_to_text', [TwigUtils::class, 'htmlToText']));
+        $twig->addFilter(new TwigFilter('json_decode', [TwigUtils::class, 'jsonDecode']));
+        $twig->addFunction(new TwigFunction('getTreeRoutes', function () {
+            return TwigUtils::getTreeRoutes("__cms_inline_template.twig");
+        }));
+
+        $currentCanonicalUrl = self::getCurrentCanonicalUrl();
+        if (empty($data['schemaJson'])) {
+            $data['schemaJson'] = PublicSeoService::defaultSchema(
+                $currentCanonicalUrl,
+                is_array($data['seo'] ?? null) ? $data['seo'] : [],
+                "__cms_inline_template.twig"
+            );
+        }
+
+        return $twig->render("__cms_inline_template.twig", [
+            "user" => LoginService::getSession(),
+            "alertMessage" => MessageUtil::getMessage(),
+            "env" => $_ENV,
+            "current_canonical_url" => $currentCanonicalUrl,
+            "current_location" => TwigUtils::getCurrentLocation("__cms_inline_template.twig"),
+            "notifications" => $GLOBALS['notifications'] ?? [],
+            "notifications_count" => $GLOBALS['notifications_count'] ?? 0,
+            "chat_unread_threads" => [],
+            "chat_unread_count" => 0,
+            "chat_unread_base_route" => "panel/planner-hub/team/chat",
+            "isMobileApp" => PlatformDetector::isMobileApp(),
+            "isWeb" => PlatformDetector::isWeb(),
+            "GOOGLE_MAPS_API_KEY" => $_ENV['GOOGLE_MAPS_API_KEY'] ?? getenv('GOOGLE_MAPS_API_KEY') ?: '',
             ...$data
         ]);
     }
