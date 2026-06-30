@@ -364,7 +364,7 @@ $router->post(function () {
             if ($shouldAddCalendar) {
                 MessageUtil::setMessage($message);
                 $clientId = $client;
-                LocationUtils::redirectInternal("panel/pland-hub/management/orders/orders/?add_calendar=1&order_id=" . urlencode((string)$orderId) . "&client_id=" . urlencode((string)$clientId));
+                LocationUtils::redirectInternal("panel/planner-hub/management/orders/orders/?add_calendar=1&order_id=" . urlencode((string)$orderId) . "&client_id=" . urlencode((string)$clientId));
             }
             
         } catch (\Throwable $e) {
