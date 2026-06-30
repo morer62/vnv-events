@@ -140,6 +140,11 @@ class SeoFilesGeneratorService
         ];
     }
 
+    public function getPublicUrlEntries(): array
+    {
+        return $this->collectPublicUrls();
+    }
+
     private function generateSitemap(?int $userId): array
     {
         $urls = $this->collectPublicUrls();

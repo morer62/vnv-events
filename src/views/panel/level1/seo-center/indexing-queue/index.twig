@@ -1,0 +1,174 @@
+{% extends 'templates/base.admin.twig' %}
+{% import 'templates/macros.twig' as macros %}
+{% set csrf_token = get_csrf() %}
+
+{% block body %}
+<div class="container-fluid py-4">
+    {{ macros.breadcrumb2() }}
+
+    <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3 mb-4">
+        <div>
+            <h1 class="h3 fw-bold mb-1">
+                <i data-feather="send"></i> SEO Indexing Queue
+            </h1>
+            <p class="text-muted mb-0">Manual checklist for public URLs that need indexing follow-up.</p>
+        </div>
+        <div class="d-flex flex-wrap gap-2">
+            <a href="{{ path('panel/seo-center') }}" class="btn btn-outline-secondary">
+                <i data-feather="arrow-left"></i> Back to SEO Center
+            </a>
+            <form method="POST">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                <input type="hidden" name="action" value="sync">
+                <button type="submit" class="btn btn-primary">
+                    <i data-feather="refresh-cw"></i> Sync Published URLs
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="text-muted small">Site</div>
+                    <div class="fs-5 fw-bold">{{ site_key }}</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="text-muted small">Pending</div>
+                    <div class="fs-3 fw-bold">{{ counts.pending|default(0) }}</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="text-muted small">Indexed</div>
+                    <div class="fs-3 fw-bold">{{ counts.indexed|default(0) }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if synced_count|default(0) > 0 %}
+        <div class="alert alert-success border-0 shadow-sm">
+            {{ synced_count }} new public URLs were added to the pending queue.
+        </div>
+    {% endif %}
+
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white border-bottom">
+            <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3">
+                <ul class="nav nav-pills">
+                    <li class="nav-item">
+                        <a class="nav-link {{ active_status == 'pending' ? 'active' : '' }}" href="{{ path('panel/seo-center/indexing-queue?status=pending') }}">
+                            Pending <span class="badge {{ active_status == 'pending' ? 'bg-light text-dark' : 'bg-secondary' }} ms-1">{{ counts.pending|default(0) }}</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {{ active_status == 'indexed' ? 'active' : '' }}" href="{{ path('panel/seo-center/indexing-queue?status=indexed') }}">
+                            Indexed <span class="badge {{ active_status == 'indexed' ? 'bg-light text-dark' : 'bg-secondary' }} ms-1">{{ counts.indexed|default(0) }}</span>
+                        </a>
+                    </li>
+                </ul>
+                <div class="small text-muted">
+                    Synced from public sitemap routes. Existing URLs are not duplicated.
+                </div>
+            </div>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th>Title</th>
+                        <th>URL</th>
+                        <th>Route / Source</th>
+                        <th>{{ active_status == 'indexed' ? 'Indexed' : 'Created' }}</th>
+                        <th class="text-end">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in items %}
+                        <tr>
+                            <td>
+                                <div class="fw-semibold">{{ item.title ?: item.route }}</div>
+                                <div class="small text-muted">#{{ item.id }}</div>
+                            </td>
+                            <td style="min-width: 320px;">
+                                <div class="input-group input-group-sm">
+                                    <input type="text" class="form-control" value="{{ item.url }}" readonly>
+                                    <a class="btn btn-outline-primary" href="{{ item.url }}" target="_blank" rel="noopener" title="Open">
+                                        <i data-feather="external-link"></i>
+                                    </a>
+                                    <button type="button" class="btn btn-outline-secondary" data-copy="{{ item.url }}" title="Copy">
+                                        <i data-feather="copy"></i>
+                                    </button>
+                                </div>
+                            </td>
+                            <td>
+                                <code>{{ item.route }}</code>
+                                <div class="small text-muted">{{ item.source_type }}{% if item.source_id %} #{{ item.source_id }}{% endif %}</div>
+                            </td>
+                            <td>
+                                {% if active_status == 'indexed' %}
+                                    {{ item.indexed_at ? item.indexed_at|date('M d, Y g:i A') : '-' }}
+                                    {% if item.indexed_by_name %}
+                                        <div class="small text-muted">{{ item.indexed_by_name }} {{ item.indexed_by_lastname }}</div>
+                                    {% endif %}
+                                {% else %}
+                                    {{ item.created_at ? item.created_at|date('M d, Y g:i A') : '-' }}
+                                {% endif %}
+                            </td>
+                            <td class="text-end">
+                                <form method="POST" class="d-inline">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                                    <input type="hidden" name="id" value="{{ item.id }}">
+                                    {% if active_status == 'indexed' %}
+                                        <input type="hidden" name="action" value="mark_pending">
+                                        <button type="submit" class="btn btn-outline-warning btn-sm">
+                                            <i data-feather="rotate-ccw"></i> Return to Pending
+                                        </button>
+                                    {% else %}
+                                        <input type="hidden" name="action" value="mark_indexed">
+                                        <button type="submit" class="btn btn-success btn-sm">
+                                            <i data-feather="check-circle"></i> Mark Indexed
+                                        </button>
+                                    {% endif %}
+                                </form>
+                            </td>
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <td colspan="5" class="text-center py-5">
+                                <div class="fw-semibold">No {{ active_status }} URLs found</div>
+                                <div class="text-muted">Published URLs will appear here after sync.</div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+document.querySelectorAll('[data-copy]').forEach(function (button) {
+    button.addEventListener('click', function () {
+        var value = button.getAttribute('data-copy');
+        navigator.clipboard.writeText(value).then(function () {
+            button.classList.remove('btn-outline-secondary');
+            button.classList.add('btn-success');
+            setTimeout(function () {
+                button.classList.remove('btn-success');
+                button.classList.add('btn-outline-secondary');
+            }, 1200);
+        });
+    });
+});
+</script>
+{% endblock %}
