@@ -23,15 +23,39 @@
     </div>
 
     <div class="row g-3 mb-4">
-        <div class="col-md-6 col-xl-3">
+        <div class="col-md-6 col-xl-2">
             <div class="card border-0 shadow-sm h-100">
                 <div class="card-body">
-                    <div class="text-muted small">Public URLs detected</div>
+                    <div class="text-muted small">Total public URLs</div>
                     <div class="fs-3 fw-bold">{{ audit.total_detected|default(0) }}</div>
                 </div>
             </div>
         </div>
-        <div class="col-md-6 col-xl-3">
+        <div class="col-md-6 col-xl-2">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="text-muted small">Pages + Blog</div>
+                    <div class="fs-3 fw-bold">{{ audit.pages_blog_detected|default(0) }}</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 col-xl-2">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="text-muted small">Store URLs</div>
+                    <div class="fs-3 fw-bold">{{ audit.store_detected|default(0) }}</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 col-xl-2">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="text-muted small">Locations URLs</div>
+                    <div class="fs-3 fw-bold">{{ audit.locations_detected|default(0) }}</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 col-xl-2">
             <div class="card border-0 shadow-sm h-100">
                 <div class="card-body">
                     <div class="text-muted small">Last generation</div>
@@ -41,16 +65,15 @@
                 </div>
             </div>
         </div>
-        <div class="col-xl-6">
+        <div class="col-md-6 col-xl-2">
             <div class="card border-0 shadow-sm h-100">
                 <div class="card-body">
                     <div class="text-muted small mb-2">Google Search Console Sitemap</div>
-                    <div class="input-group">
-                        <input type="text" class="form-control" value="{{ sitemapUrl }}" readonly>
-                        <button type="button" class="btn btn-outline-secondary" data-copy="{{ sitemapUrl }}">
-                            <i data-feather="copy"></i> Copy
+                    <div class="d-grid gap-2">
+                        <button type="button" class="btn btn-outline-secondary btn-sm" data-copy="{{ sitemapUrl }}">
+                            <i data-feather="copy"></i> Copy sitemap.xml
                         </button>
-                        <a class="btn btn-outline-primary" href="{{ sitemapUrl }}" target="_blank" rel="noopener">
+                        <a class="btn btn-outline-primary btn-sm" href="{{ sitemapUrl }}" target="_blank" rel="noopener">
                             <i data-feather="external-link"></i> Open
                         </a>
                     </div>
@@ -196,7 +219,10 @@
                 <div class="card-body">
                     {% set actions = {
                         'all': 'Regenerate All SEO Files',
-                        'sitemap': 'Regenerate Sitemap Only',
+                        'sitemap': 'Regenerate Sitemap Index + Children',
+                        'sitemap_pages': 'Regenerate Pages + Blog Sitemap',
+                        'sitemap_store': 'Regenerate Store Sitemap',
+                        'sitemap_locations': 'Regenerate Locations Sitemap',
                         'robots': 'Regenerate Robots.txt Only',
                         'llms': 'Regenerate LLMs.txt Only',
                         'llms_full': 'Regenerate LLMs Full Only'

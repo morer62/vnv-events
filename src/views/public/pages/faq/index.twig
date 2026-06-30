@@ -1,0 +1,620 @@
+{% extends "templates/base.twig" %}
+
+{% set show_whatsapp = true %}
+{% set defer_public_third_party = true %}
+{% set skip_public_gtm_initial = true %}
+{% set skip_public_app_bundle = true %}
+{% set skip_public_google_maps = true %}
+{% set skip_public_stripe = true %}
+{% set skip_public_bootstrap_js = true %}
+{% set skip_base_fontawesome = true %}
+{% set skip_base_inter_font = true %}
+{% set skip_base_app_css = true %}
+{% set skip_base_bootstrap_css = true %}
+
+{% block title %}South Florida Event Planning and Catering FAQ | VNV Events{% endblock %}
+
+{% block meta_description %}
+    VNV Events FAQ for South Florida event planning, catering, decor, DJ, rentals, staffing, contracts, service areas, Miami catering costs and Broward event production.
+{% endblock %}
+
+{% block styles %}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,800;1,800&display=swap" rel="stylesheet">
+<style>
+:root {
+    --faq-ink: #0a1011;
+    --faq-panel: #111819;
+    --faq-muted: #617174;
+    --faq-line: rgba(12, 22, 24, .12);
+    --faq-soft: #f4f7f7;
+    --faq-teal: #45e3cf;
+    --faq-teal-dark: #087267;
+    --faq-gold: #d8ad45;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    margin: 0;
+    background:
+        radial-gradient(circle at 8% 18%, rgba(69, 227, 207, .14), transparent 25rem),
+        radial-gradient(circle at 88% 12%, rgba(216, 173, 69, .16), transparent 25rem),
+        linear-gradient(180deg, #eef4f4 0%, #ffffff 52%, #0a1011 100%);
+    color: var(--faq-ink);
+    font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    overflow-x: hidden;
+}
+
+.faq-page {
+    min-height: 100vh;
+}
+
+.faq-wrap {
+    width: min(1220px, calc(100% - 40px));
+    margin: 0 auto;
+}
+
+.faq-hero {
+    padding: 78px 0 50px;
+}
+
+.faq-hero__grid {
+    display: grid;
+    grid-template-columns: minmax(0, .92fr) minmax(380px, 1.08fr);
+    gap: 34px;
+    align-items: stretch;
+}
+
+.faq-kicker,
+.faq-pill {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 999px;
+    border: 1px solid rgba(69, 227, 207, .24);
+    background: rgba(69, 227, 207, .12);
+    color: var(--faq-teal-dark);
+    font-size: 12px;
+    font-weight: 900;
+    letter-spacing: .14em;
+    line-height: 1;
+    padding: 11px 15px;
+    text-transform: uppercase;
+}
+
+.faq-hero h1 {
+    max-width: 720px;
+    margin: 20px 0 18px;
+    color: #101717;
+    font-family: "Playfair Display", Georgia, serif;
+    font-size: clamp(48px, 7vw, 88px);
+    font-weight: 800;
+    line-height: .92;
+}
+
+.faq-hero h1 span {
+    color: var(--faq-gold);
+    font-style: italic;
+}
+
+.faq-lede {
+    max-width: 660px;
+    margin: 0;
+    color: #405154;
+    font-size: 18px;
+    line-height: 1.75;
+}
+
+.faq-hero__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 28px;
+}
+
+.faq-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 48px;
+    border-radius: 999px;
+    border: 1px solid transparent;
+    background: var(--faq-ink);
+    color: #fff;
+    font-size: 13px;
+    font-weight: 900;
+    letter-spacing: .08em;
+    padding: 0 20px;
+    text-decoration: none;
+    text-transform: uppercase;
+}
+
+.faq-btn--gold {
+    background: linear-gradient(135deg, #f1da86, var(--faq-gold));
+    color: #101717;
+}
+
+.faq-btn--ghost {
+    background: rgba(255, 255, 255, .64);
+    border-color: rgba(12, 22, 24, .16);
+    color: #101717;
+}
+
+.faq-visual {
+    min-height: 560px;
+    border-radius: 34px;
+    overflow: hidden;
+    position: relative;
+    background:
+        linear-gradient(90deg, rgba(10, 16, 17, .94), rgba(10, 16, 17, .48)),
+        url("/assets/images/service_photos/vnv_gourmet_1.webp") center / cover;
+    box-shadow: 0 32px 80px rgba(8, 25, 25, .22);
+}
+
+.faq-visual__panel {
+    position: absolute;
+    left: 28px;
+    right: 28px;
+    bottom: 28px;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.faq-stat {
+    min-height: 118px;
+    border-radius: 18px;
+    border: 1px solid rgba(255, 255, 255, .14);
+    background: rgba(10, 16, 17, .78);
+    color: #fff;
+    padding: 18px;
+    backdrop-filter: blur(12px);
+}
+
+.faq-stat strong {
+    display: block;
+    color: var(--faq-teal);
+    font-size: 28px;
+    font-weight: 900;
+}
+
+.faq-stat span {
+    display: block;
+    margin-top: 8px;
+    color: rgba(255, 255, 255, .74);
+    font-size: 12px;
+    font-weight: 900;
+    letter-spacing: .08em;
+    line-height: 1.5;
+    text-transform: uppercase;
+}
+
+.faq-search-band {
+    padding: 0 0 48px;
+}
+
+.faq-search-shell {
+    border-radius: 26px;
+    background: rgba(255, 255, 255, .86);
+    border: 1px solid rgba(12, 22, 24, .08);
+    box-shadow: 0 28px 80px rgba(14, 31, 34, .12);
+    padding: 22px;
+}
+
+.faq-search-row {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 16px;
+    align-items: center;
+}
+
+.faq-search {
+    width: 100%;
+    min-height: 62px;
+    border-radius: 999px;
+    border: 1px solid rgba(12, 22, 24, .16);
+    background: #fff;
+    color: #111819;
+    font-size: 18px;
+    font-weight: 700;
+    outline: none;
+    padding: 0 22px;
+}
+
+.faq-search:focus {
+    border-color: rgba(8, 114, 103, .65);
+    box-shadow: 0 0 0 4px rgba(69, 227, 207, .14);
+}
+
+.faq-count {
+    white-space: nowrap;
+    color: var(--faq-muted);
+    font-size: 14px;
+    font-weight: 800;
+}
+
+.faq-count strong {
+    color: var(--faq-ink);
+}
+
+.faq-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 16px;
+}
+
+.faq-chip {
+    border: 1px solid rgba(12, 22, 24, .12);
+    border-radius: 999px;
+    background: #fff;
+    color: #233436;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 900;
+    letter-spacing: .05em;
+    min-height: 40px;
+    padding: 0 14px;
+    text-transform: uppercase;
+}
+
+.faq-chip.is-active {
+    background: #101717;
+    border-color: #101717;
+    color: #fff;
+}
+
+.faq-section {
+    padding: 20px 0 76px;
+}
+
+.faq-heading {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(280px, .42fr);
+    gap: 28px;
+    align-items: end;
+    margin-bottom: 28px;
+}
+
+.faq-heading h2 {
+    margin: 14px 0 0;
+    color: #101717;
+    font-family: "Playfair Display", Georgia, serif;
+    font-size: clamp(36px, 4.6vw, 62px);
+    line-height: 1;
+}
+
+.faq-heading p {
+    margin: 0;
+    color: var(--faq-muted);
+    font-size: 15px;
+    line-height: 1.8;
+}
+
+.faq-grid {
+    display: grid;
+    gap: 14px;
+}
+
+.faq-item {
+    border: 1px solid rgba(12, 22, 24, .1);
+    border-radius: 18px;
+    background: rgba(255, 255, 255, .92);
+    box-shadow: 0 14px 40px rgba(14, 31, 34, .08);
+    overflow: hidden;
+}
+
+.faq-question {
+    width: 100%;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    gap: 14px;
+    align-items: center;
+    border: 0;
+    background: transparent;
+    color: #101717;
+    cursor: pointer;
+    font: inherit;
+    padding: 20px 22px;
+    text-align: left;
+}
+
+.faq-question strong {
+    width: 36px;
+    height: 36px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: rgba(69, 227, 207, .14);
+    color: var(--faq-teal-dark);
+    font-size: 12px;
+    font-weight: 900;
+}
+
+.faq-question span {
+    font-size: 17px;
+    font-weight: 900;
+    line-height: 1.45;
+}
+
+.faq-toggle {
+    color: var(--faq-gold);
+    font-size: 22px;
+    font-weight: 900;
+}
+
+.faq-answer {
+    display: none;
+    border-top: 1px solid rgba(12, 22, 24, .08);
+    color: #415154;
+    font-size: 15px;
+    line-height: 1.8;
+    padding: 0 22px 22px 72px;
+}
+
+.faq-item.is-open .faq-answer {
+    display: block;
+}
+
+.faq-empty {
+    display: none;
+    border: 1px dashed rgba(8, 114, 103, .36);
+    border-radius: 22px;
+    background: rgba(255, 255, 255, .7);
+    color: #415154;
+    font-weight: 800;
+    padding: 28px;
+    text-align: center;
+}
+
+.faq-empty.is-visible {
+    display: block;
+}
+
+.faq-cta {
+    padding: 70px 0 86px;
+    background: #0a1011;
+    color: #fff;
+}
+
+.faq-cta__box {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 28px;
+    align-items: center;
+    border-radius: 28px;
+    border: 1px solid rgba(255, 255, 255, .1);
+    background:
+        radial-gradient(circle at 8% 15%, rgba(69, 227, 207, .18), transparent 22rem),
+        linear-gradient(135deg, #121a1b, #0a1011);
+    padding: 34px;
+}
+
+.faq-cta h2 {
+    margin: 0 0 10px;
+    font-family: "Playfair Display", Georgia, serif;
+    font-size: clamp(34px, 4vw, 56px);
+    line-height: 1;
+}
+
+.faq-cta p {
+    max-width: 780px;
+    margin: 0;
+    color: rgba(255, 255, 255, .72);
+    font-size: 16px;
+    line-height: 1.8;
+}
+
+@media (max-width: 980px) {
+    .faq-hero__grid,
+    .faq-heading,
+    .faq-cta__box {
+        grid-template-columns: 1fr;
+    }
+
+    .faq-visual {
+        min-height: 460px;
+    }
+}
+
+@media (max-width: 700px) {
+    .faq-wrap {
+        width: min(100% - 28px, 1220px);
+    }
+
+    .faq-hero {
+        padding-top: 50px;
+    }
+
+    .faq-search-row {
+        grid-template-columns: 1fr;
+    }
+
+    .faq-visual__panel {
+        grid-template-columns: 1fr;
+    }
+
+    .faq-question {
+        grid-template-columns: minmax(0, 1fr) auto;
+    }
+
+    .faq-question strong {
+        display: none;
+    }
+
+    .faq-answer {
+        padding-left: 22px;
+    }
+}
+</style>
+{% endblock %}
+
+{% block body %}
+{% include "templates/layout/publicHeaderVnv.html.twig" %}
+
+<main class="faq-page">
+    <section class="faq-hero">
+        <div class="faq-wrap">
+            <div class="faq-hero__grid">
+                <div>
+                    <span class="faq-kicker">South Florida event answers</span>
+                    <h1>Planning, catering and production <span>FAQ</span></h1>
+                    <p class="faq-lede">
+                        A central VNV Events knowledge page for the questions clients, search engines and AI assistants ask before a South Florida event: pricing, service areas, catering stations, contracts, staffing, decor, DJ, rentals and venue logistics.
+                    </p>
+                    <div class="faq-hero__actions">
+                        <a class="faq-btn faq-btn--gold" href="#faq-search">Search questions</a>
+                        <a class="faq-btn faq-btn--ghost" href="#" data-vnv-open-request>Start a request</a>
+                    </div>
+                </div>
+
+                <div class="faq-visual" aria-label="VNV Events catering and event production">
+                    <div class="faq-visual__panel">
+                        <div class="faq-stat">
+                            <strong>100</strong>
+                            <span>VNV-specific answers</span>
+                        </div>
+                        <div class="faq-stat">
+                            <strong>3</strong>
+                            <span>South Florida counties</span>
+                        </div>
+                        <div class="faq-stat">
+                            <strong>9</strong>
+                            <span>Core service lines</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="faq-search-band" id="faq-search">
+        <div class="faq-wrap">
+            <div class="faq-search-shell">
+                <div class="faq-search-row">
+                    <input class="faq-search" type="search" id="faqSearch" placeholder="Search Miami catering cost, coordinator, bartender, rentals, contract..." aria-label="Search VNV Events FAQ">
+                    <div class="faq-count"><strong id="faqVisibleCount">{{ faqs|length }}</strong> of {{ faqs|length }} questions</div>
+                </div>
+                <div class="faq-chips" aria-label="FAQ shortcuts">
+                    <button class="faq-chip is-active" type="button" data-query="">All</button>
+                    <button class="faq-chip" type="button" data-query="catering cost">Catering cost</button>
+                    <button class="faq-chip" type="button" data-query="Miami">Miami GEO</button>
+                    <button class="faq-chip" type="button" data-query="coordinator planner">Planning</button>
+                    <button class="faq-chip" type="button" data-query="contract retainer payment">Contract</button>
+                    <button class="faq-chip" type="button" data-query="DJ photo video">Media</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="faq-section">
+        <div class="faq-wrap">
+            <div class="faq-heading">
+                <div>
+                    <span class="faq-pill">Built from VNV services</span>
+                    <h2>Real answers clients can use.</h2>
+                </div>
+                <p>
+                    Pricing references are examples from the current VNV store and public service pages. Final event pricing always follows the approved written proposal, venue logistics, timing and guest count.
+                </p>
+            </div>
+
+            <div class="faq-grid" id="faqList">
+                {% for faq in faqs %}
+                    <article class="faq-item{% if loop.first %} is-open{% endif %}" data-faq-item data-search="{{ (faq.question ~ ' ' ~ faq.answer)|lower|e('html_attr') }}">
+                        <button class="faq-question" type="button" aria-expanded="{{ loop.first ? 'true' : 'false' }}">
+                            <strong>{{ "%02d"|format(loop.index) }}</strong>
+                            <span>{{ faq.question }}</span>
+                            <b class="faq-toggle" aria-hidden="true">{{ loop.first ? '-' : '+' }}</b>
+                        </button>
+                        <div class="faq-answer">
+                            {{ faq.answer }}
+                        </div>
+                    </article>
+                {% endfor %}
+            </div>
+
+            <div class="faq-empty" id="faqEmpty">No matching VNV FAQ found. Try a city, service, price, contract term or event type.</div>
+        </div>
+    </section>
+
+    <section class="faq-cta">
+        <div class="faq-wrap">
+            <div class="faq-cta__box">
+                <div>
+                    <h2>Need the exact number for your event?</h2>
+                    <p>
+                        Send the date, city, venue, guest count and services you need. VNV will turn the FAQ into an actual event scope for catering, planning, decor, staffing, DJ, rentals or production.
+                    </p>
+                </div>
+                <a class="faq-btn faq-btn--gold" href="#" data-vnv-open-request>New request</a>
+            </div>
+        </div>
+    </section>
+</main>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const search = document.getElementById('faqSearch');
+    const items = Array.from(document.querySelectorAll('[data-faq-item]'));
+    const visibleCount = document.getElementById('faqVisibleCount');
+    const empty = document.getElementById('faqEmpty');
+    const chips = Array.from(document.querySelectorAll('.faq-chip'));
+
+    const filter = function (query) {
+        const normalized = (query || '').trim().toLowerCase();
+        let count = 0;
+
+        items.forEach(function (item) {
+            const haystack = item.getAttribute('data-search') || '';
+            const visible = normalized === '' || normalized.split(/\s+/).every(function (part) {
+                return haystack.includes(part);
+            });
+            item.style.display = visible ? '' : 'none';
+            if (visible) {
+                count += 1;
+            }
+        });
+
+        visibleCount.textContent = String(count);
+        empty.classList.toggle('is-visible', count === 0);
+    };
+
+    items.forEach(function (item) {
+        const button = item.querySelector('.faq-question');
+        const toggle = item.querySelector('.faq-toggle');
+        button.addEventListener('click', function () {
+            const open = item.classList.toggle('is-open');
+            button.setAttribute('aria-expanded', open ? 'true' : 'false');
+            toggle.textContent = open ? '-' : '+';
+        });
+    });
+
+    search.addEventListener('input', function () {
+        chips.forEach(function (chip) {
+            chip.classList.toggle('is-active', chip.dataset.query === '' && search.value.trim() === '');
+        });
+        filter(search.value);
+    });
+
+    chips.forEach(function (chip) {
+        chip.addEventListener('click', function () {
+            chips.forEach(function (entry) { entry.classList.remove('is-active'); });
+            chip.classList.add('is-active');
+            search.value = chip.dataset.query || '';
+            filter(search.value);
+        });
+    });
+});
+</script>
+
+{% include "templates/components/publicEventRequestModal.html.twig" with {
+    request_form_action: "/api/public/event-request"
+} %}
+
+{% include "templates/layout/publicFooterVnv.html.twig" %}
+{% endblock %}

@@ -9,6 +9,7 @@ class PublicSeoService
     private const LOGO_URL = 'https://vnvevents.com/assets/images/planner-hub-logo-negative.png';
     private const LOCAL_BUSINESS_ID = 'https://vnvevents.com/#localbusiness';
     private const WEBSITE_ID = 'https://vnvevents.com/#website';
+    private const GOOGLE_BUSINESS_PROFILE_URL = 'https://share.google/dQqX7hhKBHLVaZaqQ';
 
     public static function locationSeo(object $page): array
     {
@@ -47,6 +48,7 @@ class PublicSeoService
         $graph = [
             self::organizationNode(),
             self::websiteNode(),
+            self::locationBusinessNode($canonical, $page, $areaName),
             [
                 '@type' => 'WebPage',
                 '@id' => $canonical . '#webpage',
@@ -54,7 +56,7 @@ class PublicSeoService
                 'name' => $title,
                 'description' => $description,
                 'isPartOf' => ['@id' => self::WEBSITE_ID],
-                'about' => ['@id' => self::LOCAL_BUSINESS_ID],
+                'about' => ['@id' => $canonical . '#localbusiness'],
                 'breadcrumb' => ['@id' => $canonical . '#breadcrumb'],
                 'inLanguage' => 'en-US',
             ],
@@ -80,6 +82,83 @@ class PublicSeoService
                 ['name' => 'Home', 'url' => self::SITE_URL . '/'],
                 ['name' => 'Locations', 'url' => self::SITE_URL . '/locations/'],
                 ['name' => $city ?: ($page->title ?? 'Location'), 'url' => $canonical],
+            ]),
+        ];
+
+        $faqNode = self::faqNode($canonical, $faqs);
+        if ($faqNode) {
+            $graph[] = $faqNode;
+        }
+
+        return self::schema($graph);
+    }
+
+    public static function homepageSchema(array $seo = []): array
+    {
+        $canonical = self::SITE_URL . '/';
+        return self::schema([
+            self::organizationNode(),
+            self::websiteNode(),
+            self::webPageNode(
+                $canonical,
+                self::firstFilled([$seo['title'] ?? null, 'VNV Events | South Florida Event Planning, Catering and Production']),
+                self::firstFilled([
+                    $seo['description'] ?? null,
+                    'VNV Events is a full-service luxury event planning, catering, production, entertainment and event rental studio serving Miami, Broward, Palm Beach and South Florida.',
+                ])
+            ),
+        ]);
+    }
+
+    public static function productSchema(object $product, array $faqs = []): array
+    {
+        $canonical = self::SITE_URL . '/product/' . trim((string)($product->slug ?? ''), '/') . '/';
+        $name = self::clean($product->name ?? 'VNV Events Product');
+        $description = self::firstFilled([
+            $product->short_description ?? null,
+            $product->description ?? null,
+            $name,
+        ]);
+        $image = self::absoluteUrl(self::firstFilled([$product->main_image ?? null, self::LOGO_URL]));
+
+        $productNode = [
+            '@type' => 'Product',
+            '@id' => $canonical . '#product',
+            'name' => $name,
+            'url' => $canonical,
+            'description' => $description,
+            'image' => [$image],
+            'brand' => ['@id' => self::LOCAL_BUSINESS_ID],
+            'seller' => ['@id' => self::LOCAL_BUSINESS_ID],
+            'category' => self::productCategoryName($product),
+            'offers' => self::productOffersNode($product, $canonical),
+        ];
+
+        $sku = self::clean($product->sku ?? '');
+        if ($sku !== '') {
+            $productNode['sku'] = $sku;
+        }
+
+        $graph = [
+            self::organizationNode(),
+            self::websiteNode(),
+            [
+                '@type' => 'WebPage',
+                '@id' => $canonical . '#webpage',
+                'url' => $canonical,
+                'name' => $name . ' | VNV Events Store',
+                'description' => $description,
+                'isPartOf' => ['@id' => self::WEBSITE_ID],
+                'about' => ['@id' => $canonical . '#product'],
+                'breadcrumb' => ['@id' => $canonical . '#breadcrumb'],
+                'inLanguage' => 'en-US',
+            ],
+            $productNode,
+            self::breadcrumbNode($canonical, [
+                ['name' => 'Home', 'url' => self::SITE_URL . '/'],
+                ['name' => 'Store', 'url' => self::SITE_URL . '/store-categories/'],
+                ['name' => self::productCategoryName($product), 'url' => self::productCategoryUrl($product)],
+                ['name' => $name, 'url' => $canonical],
             ]),
         ];
 
@@ -337,6 +416,7 @@ class PublicSeoService
             'url' => self::SITE_URL . '/',
             'telephone' => '+13052045427',
             'email' => 'info@vnvevents.com',
+            'priceRange' => '$$-$$$$',
             'additionalType' => [
                 'https://schema.org/EventPlanner',
                 'https://schema.org/FoodEstablishment',
@@ -357,8 +437,152 @@ class PublicSeoService
                 'postalCode' => '33351',
                 'addressCountry' => 'US',
             ],
+            'geo' => [
+                '@type' => 'GeoCoordinates',
+                'address' => '10258 NW 47th St, Sunrise, FL 33351',
+            ],
             'areaServed' => self::defaultAreaServed(true),
+            'openingHoursSpecification' => [
+                [
+                    '@type' => 'OpeningHoursSpecification',
+                    'dayOfWeek' => ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'],
+                    'opens' => '10:00',
+                    'closes' => '17:00',
+                ],
+                [
+                    '@type' => 'OpeningHoursSpecification',
+                    'dayOfWeek' => 'Saturday',
+                    'opens' => '10:00',
+                    'closes' => '14:00',
+                ],
+            ],
+            'contactPoint' => [
+                [
+                    '@type' => 'ContactPoint',
+                    'telephone' => '+13052045427',
+                    'contactType' => 'customer service',
+                    'areaServed' => 'US-FL',
+                    'availableLanguage' => ['English', 'Spanish'],
+                ],
+            ],
+            'makesOffer' => [
+                ['@type' => 'Offer', 'itemOffered' => ['@type' => 'Service', 'name' => 'Event planning and coordination']],
+                ['@type' => 'Offer', 'itemOffered' => ['@type' => 'Service', 'name' => 'Catering and chef-led food stations']],
+                ['@type' => 'Offer', 'itemOffered' => ['@type' => 'Service', 'name' => 'Event rentals, decor and floral design']],
+                ['@type' => 'Offer', 'itemOffered' => ['@type' => 'Service', 'name' => 'DJ, sound, lighting and event production']],
+                ['@type' => 'Offer', 'itemOffered' => ['@type' => 'Service', 'name' => 'Photography, videography, photo booths and streaming']],
+                ['@type' => 'Offer', 'itemOffered' => ['@type' => 'Service', 'name' => 'Bartending and event staffing']],
+            ],
+            'aggregateRating' => [
+                '@type' => 'AggregateRating',
+                'ratingValue' => '5.0',
+                'bestRating' => '5',
+                'worstRating' => '1',
+                'reviewCount' => '62',
+                'ratingCount' => '62',
+            ],
+            'review' => [
+                [
+                    '@type' => 'Review',
+                    'reviewRating' => [
+                        '@type' => 'Rating',
+                        'ratingValue' => '5',
+                        'bestRating' => '5',
+                        'worstRating' => '1',
+                    ],
+                    'author' => [
+                        '@type' => 'Person',
+                        'name' => 'Stacy S',
+                    ],
+                    'reviewBody' => 'Recently hosted a corporate event and Vivian was absolutely perfect to work with. Music, food, vibes and theme were immaculate.',
+                    'publisher' => [
+                        '@type' => 'Organization',
+                        'name' => 'Google Business Profile',
+                        'url' => self::GOOGLE_BUSINESS_PROFILE_URL,
+                    ],
+                ],
+                [
+                    '@type' => 'Review',
+                    'reviewRating' => [
+                        '@type' => 'Rating',
+                        'ratingValue' => '5',
+                        'bestRating' => '5',
+                        'worstRating' => '1',
+                    ],
+                    'author' => [
+                        '@type' => 'Person',
+                        'name' => 'Christy R',
+                    ],
+                    'reviewBody' => 'Isabel was amazing to work with and knew exactly what I needed. The pasta station experience made the party more enjoyable and service was top notch.',
+                    'publisher' => [
+                        '@type' => 'Organization',
+                        'name' => 'Google Business Profile',
+                        'url' => self::GOOGLE_BUSINESS_PROFILE_URL,
+                    ],
+                ],
+                [
+                    '@type' => 'Review',
+                    'reviewRating' => [
+                        '@type' => 'Rating',
+                        'ratingValue' => '5',
+                        'bestRating' => '5',
+                        'worstRating' => '1',
+                    ],
+                    'author' => [
+                        '@type' => 'Person',
+                        'name' => 'Nicole S',
+                    ],
+                    'reviewBody' => 'The team was incredible. They were attentive to detail and made sure everything was running smoothly.',
+                    'publisher' => [
+                        '@type' => 'Organization',
+                        'name' => 'Google Business Profile',
+                        'url' => self::GOOGLE_BUSINESS_PROFILE_URL,
+                    ],
+                ],
+            ],
             'sameAs' => [
+                'https://www.instagram.com/vnvevents/',
+                self::GOOGLE_BUSINESS_PROFILE_URL,
+            ],
+        ];
+    }
+
+    private static function locationBusinessNode(string $canonical, object $page, string $areaName): array
+    {
+        $city = self::clean($page->city ?? '');
+        $state = self::clean($page->state ?? '');
+        $nameArea = $areaName !== '' ? $areaName : self::firstFilled([$city, $page->title ?? null, 'South Florida']);
+
+        return [
+            '@type' => 'LocalBusiness',
+            '@id' => $canonical . '#localbusiness',
+            'name' => 'VNV Events in ' . $nameArea,
+            'url' => $canonical,
+            'telephone' => '+13052045427',
+            'email' => 'info@vnvevents.com',
+            'description' => self::firstFilled([
+                $page->meta_description ?? null,
+                $page->excerpt ?? null,
+                'VNV Events provides event planning, catering, rentals, decor, DJ, staffing and production services in ' . $nameArea . '.',
+            ]),
+            'parentOrganization' => ['@id' => self::LOCAL_BUSINESS_ID],
+            'address' => [
+                '@type' => 'PostalAddress',
+                'streetAddress' => '10258 NW 47th St',
+                'addressLocality' => 'Sunrise',
+                'addressRegion' => 'FL',
+                'postalCode' => '33351',
+                'addressCountry' => 'US',
+            ],
+            'areaServed' => [[
+                '@type' => $city !== '' ? 'City' : 'AdministrativeArea',
+                'name' => $nameArea,
+                'addressRegion' => $state ?: 'FL',
+            ]],
+            'priceRange' => '$$-$$$$',
+            'image' => self::absoluteUrl(self::firstFilled([$page->hero_image ?? null, $page->og_image ?? null, self::LOGO_URL])),
+            'sameAs' => [
+                self::GOOGLE_BUSINESS_PROFILE_URL,
                 'https://www.instagram.com/vnvevents/',
             ],
         ];
@@ -410,6 +634,91 @@ class PublicSeoService
                 : self::defaultAreaServed(false),
             'serviceType' => self::serviceTypeFromText($title),
         ];
+    }
+
+    private static function productOffersNode(object $product, string $canonical): array
+    {
+        $productType = strtoupper((string)($product->product_type ?? 'FIXED'));
+        $availability = ((int)($product->stock_quantity ?? 0) > 0 || $productType === 'VARIABLE')
+            ? 'https://schema.org/InStock'
+            : 'https://schema.org/OutOfStock';
+
+        if ($productType === 'VARIABLE') {
+            $lowPrice = self::moneyValue($product->min_price ?? $product->display_price ?? $product->price ?? 0);
+            $highPrice = self::moneyValue($product->max_price ?? $product->display_price ?? $product->price ?? $lowPrice);
+            $offers = [];
+
+            foreach (($product->variations ?? []) as $variation) {
+                $variationPrice = self::moneyValue($variation->effective_price ?? $variation->price ?? $lowPrice);
+                if ((float)$variationPrice <= 0) {
+                    continue;
+                }
+
+                $offers[] = [
+                    '@type' => 'Offer',
+                    'name' => self::clean($variation->name ?? ($product->name ?? 'Product option')),
+                    'url' => $canonical,
+                    'priceCurrency' => 'USD',
+                    'price' => $variationPrice,
+                    'availability' => 'https://schema.org/InStock',
+                    'itemCondition' => 'https://schema.org/NewCondition',
+                    'seller' => ['@id' => self::LOCAL_BUSINESS_ID],
+                ];
+            }
+
+            return array_filter([
+                '@type' => 'AggregateOffer',
+                'url' => $canonical,
+                'priceCurrency' => 'USD',
+                'lowPrice' => $lowPrice,
+                'highPrice' => $highPrice,
+                'offerCount' => max(1, count($offers)),
+                'availability' => $availability,
+                'seller' => ['@id' => self::LOCAL_BUSINESS_ID],
+                'offers' => $offers ?: null,
+            ]);
+        }
+
+        return [
+            '@type' => 'Offer',
+            'url' => $canonical,
+            'priceCurrency' => 'USD',
+            'price' => self::moneyValue($product->display_price ?? $product->promo_price ?? $product->price ?? 0),
+            'availability' => $availability,
+            'itemCondition' => 'https://schema.org/NewCondition',
+            'seller' => ['@id' => self::LOCAL_BUSINESS_ID],
+        ];
+    }
+
+    private static function productCategoryName(object $product): string
+    {
+        $categories = $product->categories ?? [];
+        if (is_array($categories) && !empty($categories)) {
+            $category = reset($categories);
+            return self::firstFilled([$category->name ?? null, 'VNV Events Services']);
+        }
+
+        return 'VNV Events Services';
+    }
+
+    private static function productCategoryUrl(object $product): string
+    {
+        $categories = $product->categories ?? [];
+        if (is_array($categories) && !empty($categories)) {
+            $category = reset($categories);
+            $slug = trim((string)($category->slug ?? ''), '/');
+            if ($slug !== '') {
+                return self::SITE_URL . '/product-category/' . $slug . '/';
+            }
+        }
+
+        return self::SITE_URL . '/store-categories/';
+    }
+
+    private static function moneyValue($value): string
+    {
+        $amount = max(0, (float)$value);
+        return number_format($amount, 2, '.', '');
     }
 
     private static function breadcrumbNode(string $canonical, array $items): array

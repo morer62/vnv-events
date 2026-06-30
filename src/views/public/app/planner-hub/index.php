@@ -1,6 +1,7 @@
 <?php
 
 use App\Repositories\StoreProductsAudiencesRepository;
+use App\Services\PublicSeoService;
 use App\Utils\Router;
 use App\Utils\TemplateResponse;
 $router = new Router();
@@ -44,8 +45,15 @@ $router->get(function () {
         ],
     ];
 
+    $seo = [
+        'title' => 'VNV Events | South Florida Event Planning, Catering and Production',
+        'description' => 'VNV Events is a full-service luxury event planning, catering, production, entertainment and event rental studio serving Miami, Broward, Palm Beach and South Florida.',
+    ];
+
     return TemplateResponse::render(__DIR__ . "/index.twig", [
-        "audienceBlocks" => $audienceBlocks
+        "audienceBlocks" => $audienceBlocks,
+        "seo" => $seo,
+        "schemaJson" => PublicSeoService::homepageSchema($seo),
     ]);
 });
 

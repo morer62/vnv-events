@@ -51,6 +51,9 @@ class SeoFilesGeneratorService
 
         return match ($target) {
             'sitemap' => $this->generateSitemap($userId),
+            'sitemap_pages' => $this->generateSitemapGroup('sitemap_pages', 'sitemap-pages.xml', 'pages', $userId),
+            'sitemap_store' => $this->generateSitemapGroup('sitemap_store', 'sitemap-store.xml', 'store', $userId),
+            'sitemap_locations' => $this->generateSitemapGroup('sitemap_locations', 'sitemap-locations.xml', 'locations', $userId),
             'robots' => $this->generateRobots($userId),
             'llms' => $this->generateLlms($userId, false),
             'llms_full' => $this->generateLlms($userId, true),
@@ -66,7 +69,10 @@ class SeoFilesGeneratorService
     public function getFileCards(): array
     {
         $files = [
-            'sitemap' => ['label' => 'sitemap.xml', 'filename' => 'sitemap.xml', 'editable' => false],
+            'sitemap' => ['label' => 'sitemap.xml (index)', 'filename' => 'sitemap.xml', 'editable' => false],
+            'sitemap_pages' => ['label' => 'sitemap-pages.xml', 'filename' => 'sitemap-pages.xml', 'editable' => false],
+            'sitemap_store' => ['label' => 'sitemap-store.xml', 'filename' => 'sitemap-store.xml', 'editable' => false],
+            'sitemap_locations' => ['label' => 'sitemap-locations.xml', 'filename' => 'sitemap-locations.xml', 'editable' => false],
             'robots' => ['label' => 'robots.txt', 'filename' => 'robots.txt', 'editable' => true],
             'llms' => ['label' => 'llms.txt', 'filename' => 'llms.txt', 'editable' => true],
             'llms_full' => ['label' => 'llms-full.txt', 'filename' => 'llms-full.txt', 'editable' => true],
@@ -120,9 +126,13 @@ class SeoFilesGeneratorService
     {
         $urls = $this->collectPublicUrls();
         $latest = $this->logRepository?->getLatest();
+        $groups = $this->groupSitemapUrls($urls);
 
         return [
             'total_detected' => count($urls),
+            'pages_blog_detected' => count($groups['pages']),
+            'store_detected' => count($groups['store']),
+            'locations_detected' => count($groups['locations']),
             'last_generation' => $latest->created_at ?? null,
         ];
     }
@@ -130,6 +140,55 @@ class SeoFilesGeneratorService
     private function generateSitemap(?int $userId): array
     {
         $urls = $this->collectPublicUrls();
+        $groups = $this->groupSitemapUrls($urls);
+
+        $children = [
+            'sitemap_pages' => [
+                'filename' => 'sitemap-pages.xml',
+                'path' => '/sitemap-pages.xml',
+                'urls' => $groups['pages'],
+            ],
+            'sitemap_store' => [
+                'filename' => 'sitemap-store.xml',
+                'path' => '/sitemap-store.xml',
+                'urls' => $groups['store'],
+            ],
+            'sitemap_locations' => [
+                'filename' => 'sitemap-locations.xml',
+                'path' => '/sitemap-locations.xml',
+                'urls' => $groups['locations'],
+            ],
+        ];
+
+        $results = [];
+        foreach ($children as $fileType => $child) {
+            $results[$fileType] = $this->generateSitemapUrlset(
+                $fileType,
+                $child['filename'],
+                $child['urls'],
+                $userId
+            );
+        }
+
+        $indexResult = $this->generateSitemapIndex($children, $urls, $userId);
+
+        $status = $this->aggregateStatus([...$results, 'sitemap' => $indexResult]);
+        if ($status !== 'success') {
+            $indexResult['status'] = $status;
+            $indexResult['message'] = 'Sitemap index generated with one or more child sitemap issues.';
+        }
+
+        return $indexResult;
+    }
+
+    private function generateSitemapGroup(string $fileType, string $filename, string $groupKey, ?int $userId): array
+    {
+        $groups = $this->groupSitemapUrls($this->collectPublicUrls());
+        return $this->generateSitemapUrlset($fileType, $filename, $groups[$groupKey] ?? [], $userId);
+    }
+
+    private function generateSitemapUrlset(string $fileType, string $filename, array $urls, ?int $userId): array
+    {
         $dom = new DOMDocument('1.0', 'UTF-8');
         $dom->formatOutput = true;
 
@@ -146,7 +205,27 @@ class SeoFilesGeneratorService
             $urlset->appendChild($node);
         }
 
-        return $this->writeAndLog('sitemap', 'sitemap.xml', $dom->saveXML() ?: '', count($urls), $userId);
+        return $this->writeAndLog($fileType, $filename, $dom->saveXML() ?: '', count($urls), $userId);
+    }
+
+    private function generateSitemapIndex(array $children, array $allUrls, ?int $userId): array
+    {
+        $dom = new DOMDocument('1.0', 'UTF-8');
+        $dom->formatOutput = true;
+
+        $index = $dom->createElement('sitemapindex');
+        $index->setAttribute('xmlns', 'http://www.sitemaps.org/schemas/sitemap/0.9');
+        $dom->appendChild($index);
+
+        $today = $this->today();
+        foreach ($children as $child) {
+            $node = $dom->createElement('sitemap');
+            $node->appendChild($dom->createElement('loc', $this->absoluteUrl($child['path'])));
+            $node->appendChild($dom->createElement('lastmod', $today));
+            $index->appendChild($node);
+        }
+
+        return $this->writeAndLog('sitemap', 'sitemap.xml', $dom->saveXML() ?: '', count($allUrls), $userId);
     }
 
     private function generateRobots(?int $userId): array
@@ -207,6 +286,7 @@ class SeoFilesGeneratorService
             '- Event Production: ' . $this->absoluteUrl('/event-production/'),
             '- Locations: ' . $this->absoluteUrl('/locations/'),
             '- Blog: ' . $this->absoluteUrl('/blog/'),
+            '- FAQ: ' . $this->absoluteUrl('/faq/'),
             '- VNV Gourmet: ' . $this->absoluteUrl('/vnv-gourmet/'),
             '- Store Categories: ' . $this->absoluteUrl('/store-categories/'),
             '',
@@ -234,6 +314,9 @@ class SeoFilesGeneratorService
             $lines[] = '## Public SEO Files';
             $lines[] = '';
             $lines[] = '- Sitemap: ' . $this->absoluteUrl('/sitemap.xml');
+            $lines[] = '- Pages and Blog Sitemap: ' . $this->absoluteUrl('/sitemap-pages.xml');
+            $lines[] = '- Store Sitemap: ' . $this->absoluteUrl('/sitemap-store.xml');
+            $lines[] = '- Locations Sitemap: ' . $this->absoluteUrl('/sitemap-locations.xml');
             $lines[] = '- Robots: ' . $this->absoluteUrl('/robots.txt');
             $lines[] = '- LLMs: ' . $this->absoluteUrl('/llms.txt');
             $lines[] = '';
@@ -265,6 +348,7 @@ class SeoFilesGeneratorService
             ['/event-staffing/', 'Event Staffing', 'weekly', 0.7],
             ['/locations/', 'VNV Events Locations', 'weekly', 0.8],
             ['/blog/', 'VNV Events Blog', 'weekly', 0.7],
+            ['/faq/', 'VNV Events FAQ', 'weekly', 0.8],
         ];
 
         foreach ($static as [$path, $title, $freq, $priority]) {
@@ -293,6 +377,33 @@ class SeoFilesGeneratorService
         ksort($deduped);
         $this->publicUrlsCache = array_values($deduped);
         return $this->publicUrlsCache;
+    }
+
+    private function groupSitemapUrls(array $urls): array
+    {
+        $groups = [
+            'pages' => [],
+            'store' => [],
+            'locations' => [],
+        ];
+
+        foreach ($urls as $url) {
+            $type = (string)($url['type'] ?? '');
+
+            if ($type === 'location') {
+                $groups['locations'][] = $url;
+                continue;
+            }
+
+            if (in_array($type, ['product', 'product_category'], true)) {
+                $groups['store'][] = $url;
+                continue;
+            }
+
+            $groups['pages'][] = $url;
+        }
+
+        return $groups;
     }
 
     private function collectPhysicalPublicPages(): array
