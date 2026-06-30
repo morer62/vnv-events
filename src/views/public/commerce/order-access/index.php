@@ -18,6 +18,7 @@ use App\Services\NotificationService;
 use App\Services\EmailService;
 use App\Services\DocuSignService;
 use App\Services\LoginService;
+use App\Services\OrderAccessSavedPaymentMethodService;
 use App\Repositories\SquareAccountsRepository;
 use App\Repositories\PaymentProvidersRepository;
 use App\Repositories\NotificationsRepository;
@@ -205,6 +206,20 @@ $router->get(function () {
     $activeProvider = $paymentProvidersRepo->getActiveProviderForOwner($paymentOwnerId);
     $isPaymentReady = $activeProvider && $activeProvider->is_verified && in_array($activeProvider->provider_type, ['stripe', 'square', 'paypal'], true);
     $isSquareReady = $isPaymentReady && $activeProvider->provider_type === 'square';
+    $savedPaymentContext = [
+        'can_use_saved_payment_methods' => false,
+        'saved_payment_methods' => [],
+        'supports_future_payment_methods' => false,
+        'payment_consent_text' => '',
+        'payment_consent_version' => '',
+    ];
+    if ($isPaymentReady && $activeProvider) {
+        $savedPaymentContext = (new OrderAccessSavedPaymentMethodService())->viewDataForOrder(
+            $order,
+            (int)$paymentOwnerId,
+            strtolower((string)$activeProvider->provider_type)
+        );
+    }
 
     $docuSignService = new DocuSignService();
     $isDocuSignReady = $docuSignService->isConfigured();
@@ -555,6 +570,11 @@ $router->get(function () {
         "paypal_client_id" => ($activeProvider && $activeProvider->provider_type === 'paypal') ? ($activeProvider->api_key ?? '') : '',
         "paypal_environment" => ($activeProvider && $activeProvider->provider_type === 'paypal') ? ($activeProvider->environment ?? 'sandbox') : 'sandbox',
         "payment_request" => $paymentRequest,
+        "can_use_saved_payment_methods" => $savedPaymentContext["can_use_saved_payment_methods"] ?? false,
+        "saved_payment_methods" => $savedPaymentContext["saved_payment_methods"] ?? [],
+        "supports_future_payment_methods" => $savedPaymentContext["supports_future_payment_methods"] ?? false,
+        "payment_consent_text" => $savedPaymentContext["payment_consent_text"] ?? '',
+        "payment_consent_version" => $savedPaymentContext["payment_consent_version"] ?? '',
         "is_event_past" => $isEventPast,
         "tip_success" => $tipSuccess,
         "last_tip_payment" => $lastTipPayment,

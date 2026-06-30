@@ -618,6 +618,12 @@
 									required
 								>
 							</div>
+							{% if activeProvider.provider_type == 'stripe' %}
+							<div class="mb-3" id="payment-billing-zip-wrap">
+								<label class="form-label fw-bold">{{ trans('zip_code') }}</label>
+								<input type="text" name="billing_zip" id="payment-billing-zip" class="form-control form-control-lg" required>
+							</div>
+							{% endif %}
 							<div class="mb-4">
 								<div id="paypal-button-container"></div>
 							</div>
@@ -672,6 +678,15 @@
 									required
 								>
 							</div>
+
+							{% if activeProvider.provider_type == 'stripe' %}
+							<div class="mb-3" id="payment-billing-zip-wrap">
+								<label class="form-label fw-bold">{{ trans('zip_code') }}</label>
+								<input type="text" name="billing_zip" id="payment-billing-zip" class="form-control form-control-lg" required>
+							</div>
+							{% endif %}
+
+							{% include 'public/commerce/order-access/_saved_payment_methods.twig' %}
 
 							<div class="mb-4">
 								<label class="form-label fw-bold">{{ trans('planner_hub.card_information') }}</label>
@@ -989,8 +1004,12 @@
 			const payButton = document.getElementById('payment-pay-button');
 			const errorDiv = document.getElementById('payment-card-errors');
 			const tokenInput = document.getElementById('payment-customer-token');
+			const tokenTypeInput = document.getElementById('payment-token-type');
 
 			form.addEventListener('submit', async function(event) {
+				if (tokenTypeInput && tokenTypeInput.value === 'stored_card') {
+					return;
+				}
 				event.preventDefault();
 				payButton.disabled = true;
 				payButton.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>{{ trans('planner_hub.processing')|e('js') }}';
@@ -1027,8 +1046,12 @@
 				const payButton = document.getElementById('payment-pay-button');
 				const errorDiv = document.getElementById('payment-card-errors');
 				const tokenInput = document.getElementById('payment-customer-token');
+				const tokenTypeInput = document.getElementById('payment-token-type');
 
 				form.addEventListener('submit', async function(event) {
+					if (tokenTypeInput && tokenTypeInput.value === 'stored_card') {
+						return;
+					}
 					event.preventDefault();
 					payButton.disabled = true;
 					payButton.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>{{ trans('planner_hub.processing')|e('js') }}';

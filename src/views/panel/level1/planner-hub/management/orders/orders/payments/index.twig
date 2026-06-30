@@ -21,6 +21,41 @@
     </div>
 {% endif %}
 
+{% if id_order and manualCharge %}
+    <section class="card mb-3">
+        <div class="card-body">
+            <h5 class="mb-2">Charge saved payment method</h5>
+            {% if manualCharge.eligible %}
+                <p class="text-muted mb-3">
+                    The client has an authorized saved payment method. Pending balance:
+                    <strong>${{ manualCharge.balance|number_format(2) }}</strong>
+                </p>
+                {% for method in manualCharge.methods %}
+                    <form method="post" class="border rounded p-3 mb-2" onsubmit="return confirmAuthorizedCharge(this);">
+                        <input type="hidden" name="action" value="authorized_manual_charge">
+                        <input type="hidden" name="saved_payment_method_id" value="{{ method.id }}">
+                        <input type="hidden" name="manual_charge_amount" value="{{ manualCharge.balance }}">
+                        <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
+                            <div>
+                                <strong>{{ method.payment_provider|capitalize }}</strong>
+                                <span class="text-muted">
+                                    {{ method.brand ?: method.method_type }}{% if method.last4 %} **** {{ method.last4 }}{% endif %}
+                                </span>
+                                <div class="small text-success">Future/manual charge authorization accepted.</div>
+                            </div>
+                            <button class="btn btn-sm btn-primary">
+                                Confirm charge
+                            </button>
+                        </div>
+                    </form>
+                {% endfor %}
+            {% else %}
+                <p class="text-muted mb-0">{{ manualCharge.reason }}</p>
+            {% endif %}
+        </div>
+    </section>
+{% endif %}
+
 
 <section class="card">
     <div class="card-body">
@@ -122,6 +157,12 @@
         
     </div>
 </section>
+<script>
+function confirmAuthorizedCharge(form) {
+    const amount = form.querySelector('input[name="manual_charge_amount"]')?.value || '0.00';
+    return confirm('Charge the saved payment method for $' + Number(amount).toFixed(2) + '?');
+}
+</script>
 {% endblock %}
 
 {% block scripts %}

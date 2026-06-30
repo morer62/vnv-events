@@ -44,6 +44,8 @@
         const cardWrap = document.getElementById('payment-card-container')?.closest('.mb-4')
             || document.getElementById('card-section')
             || document.getElementById('cardSection');
+        const billingZipWrap = document.getElementById('payment-billing-zip-wrap');
+        const billingZipInput = document.getElementById('payment-billing-zip');
         const customerTokenInput = document.getElementById('payment-customer-token') || document.getElementById('customer_token');
         const saveInput = document.getElementById('save-payment-method');
         const consentInput = document.getElementById('auto-charge-consent');
@@ -55,6 +57,8 @@
             if (tokenTypeInput) tokenTypeInput.value = usesSaved ? 'stored_card' : 'new_card';
             if (customerTokenInput && usesSaved) customerTokenInput.value = '';
             if (cardWrap) cardWrap.style.display = usesSaved ? 'none' : '';
+            if (billingZipWrap) billingZipWrap.style.display = usesSaved ? 'none' : '';
+            if (billingZipInput) billingZipInput.required = !usesSaved;
             if (saveInput) {
                 saveInput.disabled = usesSaved;
                 if (usesSaved) saveInput.checked = false;

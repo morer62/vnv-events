@@ -2,9 +2,11 @@
 
 use App\Repositories\OrderPaymentRefunds;
 use App\Services\LoginService;
+use App\Repositories\OrdersRepository;
 use App\Repositories\OrdersPaymentsRepository;
 use App\Repositories\SquareAccountsRepository;
 use App\Services\SquareServiceV2;
+use App\Services\AuthorizedManualChargeService;
 use App\Utils\LocationUtils;
 use App\Utils\TemplateResponse;
 use App\Utils\MessageUtil;
@@ -17,6 +19,8 @@ $router->get(function () {
     $user = LoginService::getSession();
     $paymentRepo = new OrdersPaymentsRepository();
     $squareRepo = new SquareAccountsRepository();
+    $orderRepo = new OrdersRepository();
+    $manualCharge = null;
 
     $id_order = $_GET['id'] ?? null;
 
@@ -44,6 +48,29 @@ $router->get(function () {
         }
     }
     $account = $squareRepo->getByUser($user->getId());
+    if ($id_order) {
+        $order = $orderRepo->getByIdWithoutOwnershipCheck((int)$id_order);
+        if ($order) {
+            $summary = (new AuthorizedManualChargeService())->getOrderAuthorizationSummary((object)$order);
+            $reason = 'No active saved payment method and authorization are available for this order.';
+            if (($summary['balance'] ?? 0) <= 0.01) {
+                $reason = 'This order has no pending balance.';
+            } elseif (empty($summary['method'])) {
+                $reason = 'The client has no saved payment method for the active provider.';
+            } elseif (empty($summary['consent'])) {
+                $reason = 'The client has not authorized future/manual charges for this saved method.';
+            } elseif (empty($summary['provider_supports_saved_charges'])) {
+                $reason = 'The active payment provider cannot charge saved payment methods.';
+            }
+
+            $manualCharge = [
+                'eligible' => (bool)($summary['can_charge'] ?? false),
+                'balance' => (float)($summary['balance'] ?? 0),
+                'methods' => !empty($summary['method']) ? [$summary['method']] : [],
+                'reason' => $reason,
+            ];
+        }
+    }
 
     // Unificar pagos + abonos en una sola lista para mostrar "como pagos"
     $paymentsAll = [];
@@ -93,7 +120,8 @@ $router->get(function () {
         "payments" => $paymentsAll,
         "account" => $account,
         "id_order" => $id_order,
-        "advances" => $advances
+        "advances" => $advances,
+        "manualCharge" => $manualCharge
     ]);
 });
 
@@ -102,6 +130,24 @@ $router->post(function () {
     $squareService = new SquareServiceV2();
     $squareRepo = new SquareAccountsRepository();
     $refundRepo = new OrderPaymentRefunds();
+    $action = $_POST['action'] ?? 'refund';
+    if ($action === 'authorized_manual_charge') {
+        $id_order = (int)($_GET['id'] ?? 0);
+        $amount = (float)($_POST['manual_charge_amount'] ?? 0);
+        $session = LoginService::getSession();
+        $result = (new AuthorizedManualChargeService())->chargeOrderBalance(
+            $id_order,
+            (int)$session->getId(),
+            (int)$session->getLevel(),
+            $amount > 0 ? $amount : null
+        );
+        MessageUtil::setMessage(
+            $result['message'] ?? ($result['success'] ? 'Charge processed.' : 'Charge failed.'),
+            $result['success'] ? 'Success' : 'Error',
+            $result['success'] ? 'success' : 'error'
+        );
+        LocationUtils::reload();
+    }
 
     $account = $squareRepo->getByUser(LoginService::getSession()->getId());
 
