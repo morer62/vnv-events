@@ -358,6 +358,7 @@ class SeoFilesGeneratorService
             ['/locations/', 'VNV Events Locations', 'weekly', 0.8],
             ['/blog/', 'VNV Events Blog', 'weekly', 0.7],
             ['/faq/', 'VNV Events FAQ', 'weekly', 0.8],
+            ['/vnv-sessions/', 'VNV Sessions', 'weekly', 0.7],
         ];
 
         foreach ($static as [$path, $title, $freq, $priority]) {
@@ -380,6 +381,11 @@ class SeoFilesGeneratorService
             if (!$this->isValidPublicUrl($entry['loc'])) {
                 continue;
             }
+
+            if (isset($deduped[$entry['loc']]) && !$this->isBetterSitemapEntry($entry, $deduped[$entry['loc']])) {
+                continue;
+            }
+
             $deduped[$entry['loc']] = $entry;
         }
 
@@ -583,8 +589,8 @@ class SeoFilesGeneratorService
                     $route ?: '/' . trim((string)$content->slug, '/') . '/',
                     $content->title ?? 'Public page',
                     $this->bestDate($content),
-                    $type === 'blog' ? 'weekly' : 'monthly',
-                    $type === 'blog' ? 0.7 : 0.6,
+                    in_array($type, ['blog', 'location'], true) ? 'weekly' : 'monthly',
+                    $type === 'location' ? 0.8 : ($type === 'blog' ? 0.7 : 0.6),
                     $type
                 );
             }, $repo->getPublishedSitemapEntries('en', $siteKey));
@@ -812,6 +818,35 @@ class SeoFilesGeneratorService
             'priority' => $priority,
             'type' => $type,
         ];
+    }
+
+    private function isBetterSitemapEntry(array $candidate, array $current): bool
+    {
+        $candidatePriority = (float)($candidate['priority'] ?? 0);
+        $currentPriority = (float)($current['priority'] ?? 0);
+
+        if ($candidatePriority !== $currentPriority) {
+            return $candidatePriority > $currentPriority;
+        }
+
+        $frequencyRank = [
+            'always' => 6,
+            'hourly' => 5,
+            'daily' => 4,
+            'weekly' => 3,
+            'monthly' => 2,
+            'yearly' => 1,
+            'never' => 0,
+        ];
+
+        $candidateFrequency = $frequencyRank[strtolower((string)($candidate['changefreq'] ?? ''))] ?? 0;
+        $currentFrequency = $frequencyRank[strtolower((string)($current['changefreq'] ?? ''))] ?? 0;
+
+        if ($candidateFrequency !== $currentFrequency) {
+            return $candidateFrequency > $currentFrequency;
+        }
+
+        return strcmp((string)($candidate['lastmod'] ?? ''), (string)($current['lastmod'] ?? '')) > 0;
     }
 
     private function writeAndLog(string $fileType, string $filename, string $content, int $count, ?int $userId): array
