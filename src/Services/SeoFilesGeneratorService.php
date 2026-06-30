@@ -52,6 +52,7 @@ class SeoFilesGeneratorService
         return match ($target) {
             'sitemap' => $this->generateSitemap($userId),
             'sitemap_pages' => $this->generateSitemapGroup('sitemap_pages', 'sitemap-pages.xml', 'pages', $userId),
+            'sitemap_blog' => $this->generateSitemapGroup('sitemap_blog', 'sitemap-blog.xml', 'blog', $userId),
             'sitemap_store' => $this->generateSitemapGroup('sitemap_store', 'sitemap-store.xml', 'store', $userId),
             'sitemap_locations' => $this->generateSitemapGroup('sitemap_locations', 'sitemap-locations.xml', 'locations', $userId),
             'robots' => $this->generateRobots($userId),
@@ -71,6 +72,7 @@ class SeoFilesGeneratorService
         $files = [
             'sitemap' => ['label' => 'sitemap.xml (index)', 'filename' => 'sitemap.xml', 'editable' => false],
             'sitemap_pages' => ['label' => 'sitemap-pages.xml', 'filename' => 'sitemap-pages.xml', 'editable' => false],
+            'sitemap_blog' => ['label' => 'sitemap-blog.xml', 'filename' => 'sitemap-blog.xml', 'editable' => false],
             'sitemap_store' => ['label' => 'sitemap-store.xml', 'filename' => 'sitemap-store.xml', 'editable' => false],
             'sitemap_locations' => ['label' => 'sitemap-locations.xml', 'filename' => 'sitemap-locations.xml', 'editable' => false],
             'robots' => ['label' => 'robots.txt', 'filename' => 'robots.txt', 'editable' => true],
@@ -130,7 +132,8 @@ class SeoFilesGeneratorService
 
         return [
             'total_detected' => count($urls),
-            'pages_blog_detected' => count($groups['pages']),
+            'pages_detected' => count($groups['pages']),
+            'blog_detected' => count($groups['blog']),
             'store_detected' => count($groups['store']),
             'locations_detected' => count($groups['locations']),
             'last_generation' => $latest->created_at ?? null,
@@ -147,6 +150,11 @@ class SeoFilesGeneratorService
                 'filename' => 'sitemap-pages.xml',
                 'path' => '/sitemap-pages.xml',
                 'urls' => $groups['pages'],
+            ],
+            'sitemap_blog' => [
+                'filename' => 'sitemap-blog.xml',
+                'path' => '/sitemap-blog.xml',
+                'urls' => $groups['blog'],
             ],
             'sitemap_store' => [
                 'filename' => 'sitemap-store.xml',
@@ -314,7 +322,8 @@ class SeoFilesGeneratorService
             $lines[] = '## Public SEO Files';
             $lines[] = '';
             $lines[] = '- Sitemap: ' . $this->absoluteUrl('/sitemap.xml');
-            $lines[] = '- Pages and Blog Sitemap: ' . $this->absoluteUrl('/sitemap-pages.xml');
+            $lines[] = '- Pages Sitemap: ' . $this->absoluteUrl('/sitemap-pages.xml');
+            $lines[] = '- Blog Sitemap: ' . $this->absoluteUrl('/sitemap-blog.xml');
             $lines[] = '- Store Sitemap: ' . $this->absoluteUrl('/sitemap-store.xml');
             $lines[] = '- Locations Sitemap: ' . $this->absoluteUrl('/sitemap-locations.xml');
             $lines[] = '- Robots: ' . $this->absoluteUrl('/robots.txt');
@@ -383,6 +392,7 @@ class SeoFilesGeneratorService
     {
         $groups = [
             'pages' => [],
+            'blog' => [],
             'store' => [],
             'locations' => [],
         ];
@@ -392,6 +402,11 @@ class SeoFilesGeneratorService
 
             if ($type === 'location') {
                 $groups['locations'][] = $url;
+                continue;
+            }
+
+            if ($type === 'blog') {
+                $groups['blog'][] = $url;
                 continue;
             }
 

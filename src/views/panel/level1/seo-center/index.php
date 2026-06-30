@@ -19,7 +19,8 @@ $router->get(function () {
         'sitemapUrl' => $baseUrl . '/sitemap.xml',
         'submitUrls' => [
             'Sitemap Index' => $baseUrl . '/sitemap.xml',
-            'Pages + Blog Sitemap' => $baseUrl . '/sitemap-pages.xml',
+            'Pages Sitemap' => $baseUrl . '/sitemap-pages.xml',
+            'Blog Sitemap' => $baseUrl . '/sitemap-blog.xml',
             'Store Sitemap' => $baseUrl . '/sitemap-store.xml',
             'Locations Sitemap' => $baseUrl . '/sitemap-locations.xml',
             'Robots' => $baseUrl . '/robots.txt',
@@ -31,7 +32,7 @@ $router->get(function () {
 
 $router->post(function () {
     $action = strtolower(trim($_POST['action'] ?? 'all'));
-    $allowed = ['all', 'sitemap', 'sitemap_pages', 'sitemap_store', 'sitemap_locations', 'robots', 'llms', 'llms_full', 'save_file'];
+    $allowed = ['all', 'sitemap', 'sitemap_pages', 'sitemap_blog', 'sitemap_store', 'sitemap_locations', 'robots', 'llms', 'llms_full', 'save_file'];
 
     if (!in_array($action, $allowed, true)) {
         MessageUtil::setMessage('Invalid SEO action.', 'Error', 'error');

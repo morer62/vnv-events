@@ -23,7 +23,7 @@
     </div>
 
     <div class="row g-3 mb-4">
-        <div class="col-md-6 col-xl-2">
+        <div class="col-md-6 col-xl">
             <div class="card border-0 shadow-sm h-100">
                 <div class="card-body">
                     <div class="text-muted small">Total public URLs</div>
@@ -31,15 +31,23 @@
                 </div>
             </div>
         </div>
-        <div class="col-md-6 col-xl-2">
+        <div class="col-md-6 col-xl">
             <div class="card border-0 shadow-sm h-100">
                 <div class="card-body">
-                    <div class="text-muted small">Pages + Blog</div>
-                    <div class="fs-3 fw-bold">{{ audit.pages_blog_detected|default(0) }}</div>
+                    <div class="text-muted small">Pages URLs</div>
+                    <div class="fs-3 fw-bold">{{ audit.pages_detected|default(0) }}</div>
                 </div>
             </div>
         </div>
-        <div class="col-md-6 col-xl-2">
+        <div class="col-md-6 col-xl">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="text-muted small">Blog URLs</div>
+                    <div class="fs-3 fw-bold">{{ audit.blog_detected|default(0) }}</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 col-xl">
             <div class="card border-0 shadow-sm h-100">
                 <div class="card-body">
                     <div class="text-muted small">Store URLs</div>
@@ -47,7 +55,7 @@
                 </div>
             </div>
         </div>
-        <div class="col-md-6 col-xl-2">
+        <div class="col-md-6 col-xl">
             <div class="card border-0 shadow-sm h-100">
                 <div class="card-body">
                     <div class="text-muted small">Locations URLs</div>
@@ -55,7 +63,7 @@
                 </div>
             </div>
         </div>
-        <div class="col-md-6 col-xl-2">
+        <div class="col-md-6 col-xl">
             <div class="card border-0 shadow-sm h-100">
                 <div class="card-body">
                     <div class="text-muted small">Last generation</div>
@@ -65,7 +73,7 @@
                 </div>
             </div>
         </div>
-        <div class="col-md-6 col-xl-2">
+        <div class="col-md-6 col-xl">
             <div class="card border-0 shadow-sm h-100">
                 <div class="card-body">
                     <div class="text-muted small mb-2">Google Search Console Sitemap</div>
@@ -220,7 +228,8 @@
                     {% set actions = {
                         'all': 'Regenerate All SEO Files',
                         'sitemap': 'Regenerate Sitemap Index + Children',
-                        'sitemap_pages': 'Regenerate Pages + Blog Sitemap',
+                        'sitemap_pages': 'Regenerate Pages Sitemap',
+                        'sitemap_blog': 'Regenerate Blog Sitemap',
                         'sitemap_store': 'Regenerate Store Sitemap',
                         'sitemap_locations': 'Regenerate Locations Sitemap',
                         'robots': 'Regenerate Robots.txt Only',
