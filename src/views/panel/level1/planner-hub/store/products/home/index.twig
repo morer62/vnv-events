@@ -198,6 +198,45 @@
             padding:1.25rem;
         }
 
+        .sp-filter-card{
+            background:#fff;
+            border:1px solid var(--store-border);
+            border-radius:24px;
+            box-shadow:var(--store-shadow);
+            padding:1rem;
+            margin-bottom:1.25rem;
+        }
+
+        .sp-filter-grid{
+            display:grid;
+            grid-template-columns:minmax(260px,1fr) minmax(220px,.35fr) minmax(130px,.18fr) auto auto;
+            gap:.75rem;
+            align-items:end;
+        }
+
+        .sp-filter-card label{
+            display:block;
+            margin-bottom:.35rem;
+            color:var(--store-muted);
+            font-size:.78rem;
+            font-weight:900;
+            letter-spacing:.04em;
+            text-transform:uppercase;
+        }
+
+        .sp-filter-card .form-control,
+        .sp-filter-card .form-select{
+            min-height:48px;
+            border-radius:14px;
+            border-color:#dbe3ea;
+        }
+
+        .sp-filter-summary{
+            color:var(--store-muted);
+            font-weight:800;
+            margin-top:.8rem;
+        }
+
         .sp-table{
             margin-bottom:0;
         }
@@ -423,10 +462,57 @@
             margin-bottom:1.2rem;
         }
 
+        .sp-pagination{
+            display:flex;
+            flex-wrap:wrap;
+            align-items:center;
+            justify-content:space-between;
+            gap:1rem;
+            margin-top:1rem;
+            color:var(--store-muted);
+            font-weight:800;
+        }
+
+        .sp-pagination-links{
+            display:flex;
+            flex-wrap:wrap;
+            gap:.4rem;
+        }
+
+        .sp-page-link{
+            min-width:42px;
+            min-height:42px;
+            display:inline-flex;
+            align-items:center;
+            justify-content:center;
+            border:1px solid #dbe3ea;
+            border-radius:999px;
+            background:#fff;
+            color:var(--store-text);
+            padding:0 .85rem;
+            text-decoration:none;
+            font-weight:900;
+        }
+
+        .sp-page-link.active{
+            background:#111827;
+            border-color:#111827;
+            color:#fff !important;
+        }
+
+        .sp-page-link.disabled{
+            pointer-events:none;
+            opacity:.45;
+        }
+
         @media (max-width: 991px){
             .sp-hero-top{
                 flex-direction:column;
                 align-items:flex-start;
+            }
+
+            .sp-filter-grid{
+                grid-template-columns:1fr 1fr;
             }
         }
 
@@ -452,6 +538,10 @@
 
             .btn-sp-main{
                 width:100%;
+            }
+
+            .sp-filter-grid{
+                grid-template-columns:1fr;
             }
         }
     </style>
@@ -512,6 +602,39 @@
                     </a>
                 </div>
             </div>
+        </div>
+    </section>
+
+    {% set filterQuery = '&q=' ~ filters.q|url_encode ~ '&category=' ~ filters.category ~ '&per_page=' ~ filters.per_page %}
+
+    <section class="sp-filter-card">
+        <form method="get" action="{{ path('panel/planner-hub/store/products/home') }}" class="sp-filter-grid">
+            <div>
+                <label for="productSearch">Search</label>
+                <input id="productSearch" class="form-control" type="search" name="q" value="{{ filters.q }}" placeholder="Product name, slug, SKU or description">
+            </div>
+            <div>
+                <label for="productCategory">Category</label>
+                <select id="productCategory" class="form-select" name="category">
+                    <option value="0">All categories</option>
+                    {% for category in categories %}
+                        <option value="{{ category.id }}" {{ filters.category == category.id ? 'selected' : '' }}>{{ category.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label for="productPerPage">Per page</label>
+                <select id="productPerPage" class="form-select" name="per_page">
+                    {% for size in [10, 25, 50, 100] %}
+                        <option value="{{ size }}" {{ filters.per_page == size ? 'selected' : '' }}>{{ size }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <button class="btn btn-dark" type="submit"><i class="fa-solid fa-filter"></i> Filter</button>
+            <a class="btn btn-outline-secondary" href="{{ path('panel/planner-hub/store/products/home') }}">Reset</a>
+        </form>
+        <div class="sp-filter-summary">
+            Showing {{ filters.from }}-{{ filters.to }} of {{ filters.total }} product{{ filters.total == 1 ? '' : 's' }}.
         </div>
     </section>
 
@@ -641,16 +764,47 @@
                         </tbody>
                     </table>
                 </div>
+                <div class="sp-pagination">
+                    <span>Page {{ filters.page }} of {{ filters.total_pages }}</span>
+                    <div class="sp-pagination-links">
+                        <a class="sp-page-link {{ filters.page <= 1 ? 'disabled' : '' }}" href="{{ path('panel/planner-hub/store/products/home') }}?page={{ filters.page - 1 }}{{ filterQuery }}">Prev</a>
+                        {% if filters.pages[0]|default(1) > 1 %}
+                            <a class="sp-page-link" href="{{ path('panel/planner-hub/store/products/home') }}?page=1{{ filterQuery }}">1</a>
+                            {% if filters.pages[0] > 2 %}
+                                <span class="sp-page-link disabled">...</span>
+                            {% endif %}
+                        {% endif %}
+                        {% for pageNumber in filters.pages %}
+                            <a class="sp-page-link {{ pageNumber == filters.page ? 'active' : '' }}" href="{{ path('panel/planner-hub/store/products/home') }}?page={{ pageNumber }}{{ filterQuery }}">{{ pageNumber }}</a>
+                        {% endfor %}
+                        {% set lastWindowPage = filters.pages|last %}
+                        {% if lastWindowPage < filters.total_pages %}
+                            {% if lastWindowPage < filters.total_pages - 1 %}
+                                <span class="sp-page-link disabled">...</span>
+                            {% endif %}
+                            <a class="sp-page-link" href="{{ path('panel/planner-hub/store/products/home') }}?page={{ filters.total_pages }}{{ filterQuery }}">{{ filters.total_pages }}</a>
+                        {% endif %}
+                        <a class="sp-page-link {{ filters.page >= filters.total_pages ? 'disabled' : '' }}" href="{{ path('panel/planner-hub/store/products/home') }}?page={{ filters.page + 1 }}{{ filterQuery }}">Next</a>
+                    </div>
+                </div>
             {% else %}
                 <div class="sp-empty">
                     <div class="sp-empty-icon">
                         <i class="fa-solid fa-store"></i>
                     </div>
-                    <h5>No products created yet</h5>
-                    <p>Start by creating your first store product. From there you can define whether it is fixed-price or variable and then organize categories and attributes as support modules.</p>
-                    <a href="{{ path('panel/planner-hub/store/products/create') }}" class="btn-sp-main">
-                        <i class="fa-solid fa-plus"></i> Create Product
-                    </a>
+                    {% if filters.q or filters.category %}
+                        <h5>No products match these filters</h5>
+                        <p>Try a different search term or category.</p>
+                        <a href="{{ path('panel/planner-hub/store/products/home') }}" class="btn-sp-main">
+                            Reset Filters
+                        </a>
+                    {% else %}
+                        <h5>No products created yet</h5>
+                        <p>Start by creating your first store product. From there you can define whether it is fixed-price or variable and then organize categories and attributes as support modules.</p>
+                        <a href="{{ path('panel/planner-hub/store/products/create') }}" class="btn-sp-main">
+                            <i class="fa-solid fa-plus"></i> Create Product
+                        </a>
+                    {% endif %}
                 </div>
             {% endif %}
         </div>

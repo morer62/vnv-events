@@ -390,6 +390,91 @@ class StoreProductsRepository extends BaseRepository
         return $this->appendComputedPricingToProducts($rows);
     }
 
+    private function buildOwnerCatalogFilterSql(?string $search = null, int $categoryId = 0, ?string $siteKey = null): string
+    {
+        $sql = "
+            FROM {$this->table} sp
+            WHERE sp.id_owner = :id_owner
+            {$this->siteScopeSql($siteKey, 'sp')}
+        ";
+
+        if ($search !== null && trim($search) !== '') {
+            $sql .= "
+                AND (
+                    sp.name LIKE :search
+                    OR sp.slug LIKE :search
+                    OR sp.sku LIKE :search
+                    OR sp.short_description LIKE :search
+                    OR sp.description LIKE :search
+                )
+            ";
+        }
+
+        if ($categoryId > 0) {
+            $sql .= "
+                AND EXISTS (
+                    SELECT 1
+                    FROM store_products_categories spc
+                    WHERE spc.id_product = sp.id
+                      AND spc.id_category = :category_id
+                )
+            ";
+        }
+
+        return $sql;
+    }
+
+    private function bindOwnerCatalogFilters(int $ownerId, ?string $search = null, int $categoryId = 0, ?string $siteKey = null): void
+    {
+        $this->db->bind(':id_owner', $ownerId, \PDO::PARAM_INT);
+        $this->bindSiteScope($siteKey);
+
+        if ($search !== null && trim($search) !== '') {
+            $this->db->bind(':search', '%' . trim($search) . '%');
+        }
+
+        if ($categoryId > 0) {
+            $this->db->bind(':category_id', $categoryId, \PDO::PARAM_INT);
+        }
+    }
+
+    public function countOwnerCatalog(int $ownerId, ?string $search = null, int $categoryId = 0, ?string $siteKey = null): int
+    {
+        $this->db->query("
+            SELECT COUNT(DISTINCT sp.id) AS total
+            {$this->buildOwnerCatalogFilterSql($search, $categoryId, $siteKey)}
+        ");
+        $this->bindOwnerCatalogFilters($ownerId, $search, $categoryId, $siteKey);
+
+        $row = $this->db->fetchOne();
+        return (int)($row->total ?? 0);
+    }
+
+    public function getOwnerCatalogPage(
+        int $ownerId,
+        ?string $search = null,
+        int $categoryId = 0,
+        int $limit = 25,
+        int $offset = 0,
+        ?string $siteKey = null
+    ): array {
+        $limit = max(1, min(100, $limit));
+        $offset = max(0, $offset);
+
+        $this->db->query("
+            SELECT DISTINCT sp.*
+            {$this->buildOwnerCatalogFilterSql($search, $categoryId, $siteKey)}
+            ORDER BY sp.id DESC
+            LIMIT :limit OFFSET :offset
+        ");
+        $this->bindOwnerCatalogFilters($ownerId, $search, $categoryId, $siteKey);
+        $this->db->bind(':limit', $limit, \PDO::PARAM_INT);
+        $this->db->bind(':offset', $offset, \PDO::PARAM_INT);
+
+        $rows = $this->db->fetchAll();
+        return $this->appendComputedPricingToProducts($rows ?: []);
+    }
+
     public function getActivePublic(int $limit = 500, ?int $ownerId = null, ?string $siteKey = null): array
     {
         $ownerSql = $ownerId !== null && $ownerId > 0 ? "AND id_owner = :id_owner" : "";
