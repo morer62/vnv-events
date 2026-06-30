@@ -65,6 +65,35 @@ class ClientsUsersRepository extends BaseRepository
 
     }
 
+    public function getAssociatedCompaniesForClient(int $clientId): array
+    {
+        $this->db->query("
+            SELECT
+                cu.id,
+                cu.client_id,
+                cu.id_owner_asociated AS owner_id,
+                ip.id AS institution_id,
+                ip.company_name,
+                ip.logo_path,
+                ip.email,
+                ip.phone,
+                ip.address_line1,
+                ip.city,
+                ip.state,
+                ip.zip,
+                ip.country,
+                ip.payment_method_accepted,
+                cu.created_at
+            FROM {$this->table} cu
+            LEFT JOIN institution_profile ip ON ip.id_owner = cu.id_owner_asociated
+            WHERE cu.client_id = :client_id
+            ORDER BY COALESCE(ip.company_name, '') ASC, cu.created_at DESC
+        ");
+        $this->db->bind(":client_id", $clientId);
+
+        return $this->db->fetchAll();
+    }
+
     public function deleteRelation(int $clientId, int $ownerId): void
     {
         $this->db->query("

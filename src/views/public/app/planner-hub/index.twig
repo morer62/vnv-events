@@ -858,13 +858,21 @@ h1, h2, h3, h4, .luxury-font {
 }
 
 .ophyra-ui-console {
-    background: #000;
+    background:
+        linear-gradient(90deg, rgba(0, 0, 0, .71), rgba(0, 0, 0, .43) 48%, rgba(0, 0, 0, .55)),
+        linear-gradient(180deg, rgba(0, 0, 0, .45), rgba(0, 0, 0, .67)),
+        url("{{ path('/assets/images/vnv-core-brunch-mansion-hero.png') }}") center 46% / cover fixed;
     border-radius: 35px;
     padding: 80px;
     border: 1px solid var(--vnv-border);
     box-shadow: var(--vnv-glow);
     position: relative;
     overflow: hidden;
+}
+
+.ophyra-ui-console > .row {
+    position: relative;
+    z-index: 2;
 }
 
 .ophyra-ui-console::before {
@@ -1095,7 +1103,10 @@ h1, h2, h3, h4, .luxury-font {
 
 /* INSTAGRAM */
 .section-instagram-vnv {
-    background: #0d1011;
+    background:
+        linear-gradient(90deg, rgba(8, 12, 13, .62), rgba(8, 12, 13, .38)),
+        linear-gradient(180deg, rgba(8, 12, 13, .5), rgba(8, 12, 13, .68)),
+        url("{{ path('/assets/images/faq-event-answers-hero.png') }}") center 42% / cover fixed;
     padding: 160px 0;
     position: relative;
     overflow: hidden;
@@ -1176,11 +1187,12 @@ h1, h2, h3, h4, .luxury-font {
 }
 
 .vnv-studio-card {
-    background: linear-gradient(145deg, #161a1b 0%, #0d0f0f 100%);
+    background: linear-gradient(145deg, rgba(22, 26, 27, .94) 0%, rgba(13, 15, 15, .92) 100%);
     border-radius: 30px;
     padding: 50px;
     border: 1px solid rgba(255,255,255,0.06);
     box-shadow: 0 20px 60px rgba(0,0,0,0.35);
+    backdrop-filter: blur(6px);
 }
 
 .vnv-studio-card h3 {
@@ -1612,6 +1624,11 @@ h1, h2, h3, h4, .luxury-font {
     }
 
     /* INSTAGRAM */
+    .section-instagram-vnv {
+        background-attachment: scroll;
+        background-position: center;
+    }
+
     .ig-modern-caption {
         font-size: 0.82rem;
         left: 14px;
@@ -1642,6 +1659,11 @@ h1, h2, h3, h4, .luxury-font {
         width: 100%;
         max-width: 300px;
         gap: 14px;
+    }
+
+    .ophyra-ui-console {
+        background-attachment: scroll;
+        background-position: center;
     }
 
     .vnv-studio-card {

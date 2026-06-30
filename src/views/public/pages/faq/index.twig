@@ -12,10 +12,222 @@
 {% set skip_base_app_css = true %}
 {% set skip_base_bootstrap_css = true %}
 
+{% if faqs is not defined %}
+{% set faqs = [
+    { category: "Catering", question: "How much does catering cost per guest at VNV Gourmet?", answer: "Pricing depends on the station you choose. Current published per-guest rates include the Pasta Station from $19.00, Crepes Station at $19.99, Desserts at $19.00, Salad Station at $19.77, Entree & Sides from $18.00, Appetizers (Hors d'oeuvres) at $21.77, and the Paella & Tapas Station from $27.77. Most stations require a 25-guest minimum. Final pricing is confirmed once you select your stations, guest count and any add-ons in the proposal." },
+    { category: "Catering", question: "What is the minimum guest count for VNV catering?", answer: "Most food stations, including Pasta, Paella, Appetizers, Crepes, Desserts, Salad, and Entree & Sides, require a 25-guest minimum. Corporate Team Appreciation Catering requires a 50-guest minimum, and Seasonal Holiday Catering has a lower 15-guest minimum. If your event is smaller than these thresholds, contact VNV directly to discuss options." },
+    { category: "Catering", question: "Can I combine multiple catering stations for one event?", answer: "Yes. Several stations offer bundled add-on pricing, for example the Pasta Station can be combined with Appetizers or a Dessert Table for a higher per-guest rate, or both together for the full combination price. Most clients mix two or three stations (such as a main protein station, a side or salad station, and a dessert station) to build a fuller menu." },
+    { category: "Catering", question: "What is included in the Pasta Station package?", answer: "The Pasta Station includes 3 varieties of pasta, 3 classic sauces, a selection of fresh ingredients, 2 protein options, buffet setup and decoration, and 2 hours of live chefs who interact with guests and customize each dish. Clients choose 3 pasta types, 2 proteins and 3 sauces from a defined list during planning." },
+    { category: "Catering", question: "Do you accommodate dietary restrictions like vegan, gluten-free or nut allergies?", answer: "Yes. VNV Gourmet caters to dietary needs such as vegan, gluten-free, nut-free and other restrictions to make sure all guests are accommodated. Mention any allergies or dietary requirements when building your order so the kitchen team can plan accordingly." },
+    { category: "Catering", question: "Is bartending and bar service available?", answer: "Yes. VNV offers a Drinks/Bartender service priced at $40 per hour, with bar setup available for just $80 per event. This can be added to any catering order to provide full beverage service alongside your food stations." },
+    { category: "Catering", question: "Do catering packages include servers and setup?", answer: "Catering packages include servers, chafers, dinnerware and tablecloths. Tables themselves are not included and must be provided by the client or rented separately through VNV's rental services. Professional Servers are also available as a standalone add-on if you need additional guest-facing support beyond what's bundled into a station package." },
+    { category: "Catering", question: "How much notice do you need to book catering?", answer: "VNV requires at least 2 hours for setup on the day of the event. A 50% deposit is required to secure your booking, with the remaining 50% due 2 days before the event. For larger or more complex catering orders, booking further in advance is strongly recommended to guarantee date and station availability." },
+    { category: "Catering", question: "What catering stations does VNV Gourmet offer?", answer: "Current stations include the Pasta Station, Paella & Tapas Station, Taco Station, Pizza Station, Salad Station, Crepes Station, Appetizers (Hors d'oeuvres), Desserts, Entrees & Sides, Brunch Specials, Sushi Boat Packages, Corporate Team Appreciation Catering and Seasonal Holiday Catering." },
+    { category: "Catering", question: "Is corporate catering different from event catering pricing?", answer: "VNV offers a dedicated Corporate Team Appreciation Catering package at $22.50 per person with a 50-guest minimum, separate from the individual station pricing used for weddings and private events. This package is designed for office events, team appreciation lunches and corporate gatherings." },
+    { category: "Catering", question: "Can I get holiday or seasonal catering for a smaller group?", answer: "Yes. VNV's Seasonal Holiday Catering has a 15-guest minimum, which is lower than most standard catering stations. Pricing is per person and is intended for holiday parties, family gatherings and smaller seasonal celebrations." },
+    { category: "Catering", question: "What does the live chef experience include at food stations?", answer: "Most stations, like the Pasta Station, include live chefs who prepare and customize dishes in front of guests for a set service window (typically 2 hours). This creates an interactive, made-to-order experience rather than a static buffet." },
+    { category: "Decoration", question: "Do I need to provide tables for catering setup?", answer: "No, but you do need to arrange for them separately. Catering packages include service items like chafers, dinnerware and tablecloths, but tables are not included in the catering price. Tables can be rented through VNV's rental services or provided independently by the client." },
+    { category: "Catering", question: "Can I taste the food before booking catering for my event?", answer: "Yes. VNV offers a complimentary tasting at the VNV Studio in Sunrise, FL, where you can experience the flavor, style and hospitality behind the event concepts before finalizing your catering order." },
+    { category: "Catering", question: "What types of cuisine does VNV Gourmet offer?", answer: "VNV provides a wide range of cuisine styles, from traditional Italian (pasta stations), Spanish (paella and tapas), Mexican-inspired (taco station), to custom menus built around dietary preferences and restrictions. The team can also build international or custom menus based on a client's specific cultural or culinary requests." },
+    { category: "Catering", question: "How does pricing change if I add extra toppings or sides to a station?", answer: "Some stations allow additional toppings or extras at a set add-on price. For example, the Pasta Station offers an Additional Topping option at $3.00. These add-ons let you customize a station beyond its base offering without switching to a full combination package." },
+    { category: "Contract", question: "Is the deposit (retainer) refundable if I cancel my event?", answer: "No. The 50% retainer required to reserve your date is strictly non-refundable. It is treated as Liquidated Damages under the service agreement, compensating VNV Events for planning time, administrative work and the loss of opportunity to book other clients for that date. This applies regardless of the reason for cancellation." },
+    { category: "Contract", question: "When is the final balance due for my event?", answer: "The remaining balance must be paid no later than 48 hours before the event. If payment is not submitted on time, the booking is immediately cancelled and the full retainer is forfeited. There is no grace period built into the agreement, so clients should plan final payment well ahead of the 48-hour deadline." },
+    { category: "Contract", question: "What payment methods does VNV Events accept?", answer: "VNV Events accepts payment only through Stripe, Square, or bank transfer. Cash is not accepted under any circumstance per the official service agreement." },
+    { category: "Contract", question: "Can I get a refund if I'm not satisfied with the event?", answer: "No. Once services are executed or rendered, all sales are final. No refunds, credits or reversals are issued due to dissatisfaction, subjective opinion, personal preference, guest behavior, venue conditions, weather or third-party actions. This is a firm no-refund policy stated explicitly in the agreement." },
+    { category: "Contract", question: "What happens if I try to file a chargeback with my bank?", answer: "Attempting a chargeback or payment dispute is considered a material breach of the agreement. It results in a $500 administrative fee plus all legal and collection costs the company incurs in responding to the dispute. By allowing VNV Events to begin setup or service delivery, the client has already provided final acceptance and waived the right to dispute the charge." },
+    { category: "Contract", question: "When are my event fees considered \"fully earned\" by VNV Events?", answer: "Fees are considered fully earned once the event becomes executable. This happens when any one of the following occurs: VNV Events staff arrives at the event location, equipment, decor, food or rentals are delivered, installed or prepared, or VNV Events is fully staffed, equipped and available to perform at the scheduled time. Once any of these conditions are met, the service is treated as rendered." },
+    { category: "Contract", question: "Can I change or downgrade the services in my contract after paying the retainer?", answer: "Once the retainer is paid, the agreement cannot be unilaterally modified by the client. Requests to decrease or swap services are subject to VNV Events' discretion and may incur additional fees. If a requested modification is declined, the full original balance still remains due, and disagreement with that decision is not grounds for a refund or chargeback." },
+    { category: "Contract", question: "What if I want to add services after my retainer is already paid?", answer: "Additional services requested during or after the event require written approval from VNV Events and must be paid in full within 48 hours after the event takes place." },
+    { category: "Planning", question: "What happens if it rains on my outdoor event day?", answer: "VNV Events is not responsible for weather-related issues. For outdoor events, the client is required to provide a covered, dry and safe area for equipment and staff. If conditions like rain, wind or excessive heat threaten the safety of equipment or staff, VNV Events reserves the right to suspend services without issuing a refund." },
+    { category: "Contract", question: "Will VNV Events refund me if a venue restricts access or causes delays?", answer: "No. VNV Events is not responsible for delays or interruptions caused by venue restrictions, late access, or interference from the client, guests, or third parties. The agreement places that risk on the client and venue, not on VNV Events." },
+    { category: "Planning", question: "How much access time does VNV Events need before and after my event?", answer: "The client must grant venue access at least 3 hours before the event for setup and 2 hours after for breakdown. The exact address and venue contact information must also be provided at least 48 hours prior to the event." },
+    { category: "Planning", question: "What power requirements does VNV Events need at my venue?", answer: "The client must provide at least 2 functional power outlets within 10 feet of the equipment that requires power, such as catering stations, DJ equipment, or lighting." },
+    { category: "DJ", question: "By when do I need to submit my menu, playlist or event details?", answer: "All relevant event details, including menu selections, playlists and specific event-day protocols, must be submitted no later than 48 hours before the event. If these details are not submitted on time, VNV Events is authorized to proceed using its own professional discretion, without refund or liability for the choices made." },
+    { category: "Contract", question: "Do I have to sign anything on the day of my event?", answer: "Yes, you or a designated representative are required to sign a Service Acceptance Confirmation before the event begins. However, if the client refuses or fails to sign, the event is still legally deemed executed. The lack of a signature does not invalidate the agreement or the client's acceptance of services." },
+    { category: "Contract", question: "What counts as \"accepting\" the service if I never sign anything?", answer: "This is called De Facto Acceptance. Simply allowing VNV Events to begin setup or start delivering service is treated as final acceptance of that service. Once setup begins, the client waives any future right to claim the service was not received or to initiate a payment dispute on that basis." },
+    { category: "Contract", question: "What happens if VNV Events leaves equipment at my venue after the event?", answer: "If company-owned equipment remains at the venue, pickup must be coordinated within 72 hours. If this deadline is not met, VNV Events is authorized to bill the client for the full replacement value of that equipment. VNV Events is not responsible for loss, theft, or damage caused by guests, venue staff, or other third parties." },
+    { category: "Planning", question: "Can VNV Events end services early if guests are disrespectful to staff?", answer: "Yes. The client and guests are required to treat VNV Events staff with respect. Harassment, abuse, or unsafe behavior toward staff results in immediate termination of services, and no refund is issued in that situation." },
+    { category: "Planning", question: "Will VNV Events use photos or video from my event for marketing?", answer: "By default, yes. VNV Events reserves the right to photograph or record events for marketing and social media use. If you do not want this, you must provide written notice via email to info@vnvevents.com at least 24 hours before the event. Without that notice, consent is automatically granted." },
+    { category: "Contract", question: "Is VNV Events liable if a third-party vendor fails to deliver at my event?", answer: "No. VNV Events is not responsible for third-party vendors, venue operations, guest behavior, or events caused by force majeure (circumstances outside anyone's control). The agreement also states that VNV Events is not liable for indirect or consequential damages in any dispute." },
+    { category: "Contract", question: "What happens if VNV Events has to cancel my event, not the client?", answer: "If VNV Events cancels for reasons unrelated to a client breach of contract, the client receives a refund for amounts paid beyond services already earned at that point. This refund is described in the agreement as the client's sole and exclusive remedy in that situation." },
+    { category: "Contract", question: "Can I make changes to my event within 48 hours of the date?", answer: "Requests made within 48 hours of the event may incur additional fees or may be declined entirely by VNV Events. If a last-minute change is declined, that decision does not authorize a refund, cancellation, or chargeback." },
+    { category: "Contract", question: "What happens if I leave a false or misleading review about VNV Events?", answer: "The agreement prohibits publishing false, misleading or defamatory statements, including knowingly false claims about food safety, non-performance, or service quality. Violations entitle VNV Events to liquidated damages of $2,500 per occurrence, plus any related economic losses caused by the statement." },
+    { category: "Contract", question: "Do I have to go to court if I have a dispute with VNV Events?", answer: "Before any legal claim, chargeback, or third-party dispute can be initiated, the client agrees to a mandatory 15-day good-faith negotiation period with VNV Events. This is intended to resolve issues directly before escalating to a formal legal process." },
+    { category: "Contract", question: "Do I have the right to a jury trial in a dispute with VNV Events?", answer: "No. To the fullest extent permitted by law, the client waives the right to a trial by jury in any dispute related to the service agreement." },
+    { category: "Contract", question: "Who pays attorney's fees if there's a legal dispute?", answer: "The prevailing party in any dispute is entitled to recover reasonable attorney's fees, court costs and collection expenses from the other party, as stated in the agreement." },
+    { category: "Contract", question: "What law governs the VNV Events contract, and where would a legal dispute take place?", answer: "The agreement is governed by the laws of the State of Florida. Any legal action must be brought exclusively in the county where VNV Events LLC is headquartered." },
+    { category: "Client Portal", question: "Does VNV Events sell or share my personal information?", answer: "No. VNV Events LLC does not sell, rent, or distribute client personal data to third parties for commercial purposes. Information provided when booking may be used to create a client account on the VNV Events platform for service coordination, communication and event management." },
+    { category: "Client Portal", question: "Can I stop receiving marketing emails from VNV Events?", answer: "Yes. You can opt out of promotional communications at any time using the unsubscribe link in any marketing email, or by sending a written request to info@vnvevents.com. Your email will be removed from marketing lists while essential, service-related communication (such as updates about a booked event) may still be sent when applicable." },
+    { category: "Contract", question: "Is the 50% retainer the same as a deposit I can apply later if I reschedule?", answer: "The retainer is structured as a non-refundable fee tied specifically to reserving your original date, functioning as Liquidated Damages rather than a transferable deposit. Any request to move services, change the date, or modify the booking after the retainer is paid is treated as a modification request subject to VNV Events' discretion, and the agreement does not guarantee that retainer funds automatically transfer to a new date." },
+    { category: "Contract", question: "What is considered the \"entire agreement\" between me and VNV Events?", answer: "The signed Event Services Agreement constitutes the entire agreement between the client and VNV Events LLC and supersedes all prior discussions, verbal promises, or informal representations made before signing. Only what is written in the approved proposal and the official agreement is binding." },
+    { category: "Planning", question: "What's the difference between an Event Planner and a Day-of Coordinator?", answer: "An Event Planner provides guidance throughout the entire planning process, including budget direction, timeline structure, vendor recommendations and decision support, and is led by Mary Isern. A Day Coordinator focuses specifically on event-day execution, managing vendor arrivals, timeline follow-up and issue handling. All Event Planner packages already include 8 hours of event-day coordination, so most clients who hire a planner do not need to book coordination separately." },
+    { category: "Planning", question: "How much do VNV's Event Planner packages cost?", answer: "Event Planner packages are Basic at $1,950 (up to 12 hours of consulting), Gold at $2,650 (up to 18 hours of consulting), and Premium at $3,250 (up to 24 hours of consulting). Each package includes 8 hours of event-day coordination, budget and timeline direction, vendor coordination support, and planning checklist guidance. Additional consulting hours beyond the package are billed at $220 per hour." },
+    { category: "Planning", question: "How much does a Day-of Coordinator cost if I don't need full planning?", answer: "Day Coordinator packages are Basic at $780 (6 hours), Gold at $990 (8 hours), and Premium at $1,290 (10 hours). Each includes vendor arrival coordination, timeline follow-up on event day, and issue handling and flow support. Additional hours beyond the package are billed at $180 per hour." },
+    { category: "Planning", question: "Who is Mary Isern and what is her role at VNV Events?", answer: "Mary Isern is the Event Planner, Creative Director and Founder presence behind VNV Events' planning side. She leads the planning process with structure, design sense and decision-making support throughout the project. The event-day coordinator may be Mary in some cases, but a separate coordinator can also be assigned depending on availability and event needs." },
+    { category: "Planning", question: "Do I need both a planner and a coordinator for my wedding?", answer: "Usually not. If you book an Event Planner package, 8 hours of event-day coordination are already included, so you do not need to separately book a Day Coordinator package. A standalone Day Coordinator package makes more sense for clients who have already finalized most of their decisions and only need operational support on the event day itself." },
+    { category: "Planning", question: "What does the Event Planner help with before the event day?", answer: "The Event Planner provides budget and timeline direction, vendor recommendations and decision support, guest and logistics guidance, and planning checklist guidance throughout the project. Gold and Premium packages also include guest accommodation guidance. The number of consulting hours varies by package tier (12, 18 or 24 hours)." },
+    { category: "Planning", question: "What does a Day-of Coordinator actually do during the event?", answer: "A Day Coordinator manages vendor arrivals and setup oversight, executes the agreed timeline, handles unexpected issues as they arise, and supports general guest assistance and event flow so the host does not have to manage logistics personally during the event." },
+    { category: "Planning", question: "Can I add extra hours to my planning or coordination package?", answer: "Yes. Extra consulting hours for Event Planner packages are billed at $220 per hour, and additional event-day hours for Day Coordinator packages are billed at $180 per hour, regardless of which package tier you originally selected." },
+    { category: "Planning", question: "Is planning support available for events other than weddings?", answer: "Yes. While planning and coordination are commonly associated with weddings, the same Planner and Coordinator packages support corporate functions, social events and private celebrations that need timeline structure, vendor coordination and decision support." },
+    { category: "Planning", question: "How early should I book a planner or coordinator before my event?", answer: "There's no fixed minimum stated for planning services specifically, but because planning packages involve multiple consulting hours spread across the project (up to 24 hours in the Premium tier), booking several months in advance is recommended for weddings and larger events to allow enough time for vendor coordination, budget direction and decision-making support." },
+    { category: "DJ", question: "How much does a DJ cost for an event in South Florida with VNV?", answer: "VNV Live offers three published DJ packages: Social and Corporate Gathering at $750 for 3 hours (up to 75 guests), Deluxe Ceremony Experience at $1,250 for 4 hours (up to 150 guests), and Community and Neighborhood Party at $1,500 for 4 hours (up to 300 guests). Additional hours on any package are billed at $250 per hour." },
+    { category: "DJ", question: "What's included in the Deluxe Ceremony Experience DJ package?", answer: "The Deluxe Ceremony Experience ($1,250, 4 hours) includes a high-quality sound system for up to 150 guests, an experienced MC, tailored musical ambiance, and the option to add a separate ceremony sound system upon request. It's designed for weddings, quinceaneras, Bar/Bat Mitzvahs and other ceremony-style events." },
+    { category: "DJ", question: "What sound system size do I need for a 300-guest party?", answer: "VNV's Community and Neighborhood Party package is built for events up to 300 attendees. It includes a full lighting package with four sound-activated lights and one laser, two wireless microphones, two wired microphones, and a professional DJ/MC suited for large and outdoor events, priced at $1,500 for 4 hours." },
+    { category: "DJ", question: "Can I get microphones for speeches at my event?", answer: "Yes. The Social and Corporate Gathering package includes 2 wireless microphones for speeches and presentations. The Community and Neighborhood Party package includes 2 wireless and 2 wired microphones for larger events with more speaking moments." },
+    { category: "DJ", question: "What music genres can VNV's DJs play?", answer: "VNV DJs cover a broad range including Latin rhythms, Indian melodies, Jewish harmonies, African American beats, rock and pop classics, dance floor hits, Afrobeat and Caribbean music, allowing the playlist to be tailored to a culturally diverse guest list." },
+    { category: "DJ", question: "Can I listen to a DJ's mix before booking?", answer: "Yes. VNV recommends listening to sample work before booking, and several recorded mixes are available to preview directly on the VNV Live service page so clients can evaluate the style and sound before committing to a package." },
+    { category: "DJ", question: "What special effects can I add to my event, like cold sparks or confetti cannons?", answer: "Available add-ons include Cold Sparks starting at $250, CO2 Cannons starting at $150, Confetti Cannons starting at $300, Dancing on the Clouds (a low-lying fog effect) starting at $450, and Monogram Projection starting at $125. LED screens and stage lighting are also available, with pricing provided upon request." },
+    { category: "DJ", question: "What is \"Dancing on the Clouds\" and how much does it cost?", answer: "Dancing on the Clouds is a low-lying fog effect used to create a dramatic, elegant atmosphere, often for first dances or key moments on the dance floor. It starts at $450 as an add-on to your DJ or entertainment package." },
+    { category: "DJ", question: "Is lighting included in the basic DJ package, or is it an add-on?", answer: "The Social and Corporate Gathering package ($750) includes optional sound-activated LED lighting. The Community and Neighborhood Party package ($1,500) includes a full lighting package with four sound-activated lights and one laser as a standard inclusion. Additional or specialty lighting like moving head wash lights or LED screens may be priced separately." },
+    { category: "DJ", question: "Can I extend my DJ service beyond the package hours?", answer: "Yes, all three DJ packages allow additional hours at $250 per hour, regardless of which package tier you book." },
+    { category: "Client Portal", question: "What can I do in the VNV Events client portal?", answer: "Through the VNV client portal, you can place orders for services, view the status of existing orders, make payments, sign contracts electronically, communicate directly with the VNV staff, receive promotions, and access exclusive content like podcasts and DJ sessions at no additional cost. The portal is accessible by logging in at vnvevents.com/login." },
+    { category: "Client Portal", question: "Can I sign my event contract online instead of in person?", answer: "Yes. Contracts can be signed electronically through the client portal. The service agreement explicitly recognizes that submitting payment or signing electronically authorizes services and confirms the client has read and agreed to the terms and conditions." },
+    { category: "Client Portal", question: "How do I pay my retainer or final balance online?", answer: "Payments are made through the client portal using Stripe, Square, or bank transfer, which are the only payment methods accepted under VNV's official service agreement. Cash is not accepted for any payment." },
+    { category: "Client Portal", question: "Can I track the status of my order or event booking?", answer: "Yes. The client portal lets you view the live status of your order, so you can check progress on your booking without needing to call or email the team for an update." },
+    { category: "Client Portal", question: "How do I communicate with the VNV team about my event?", answer: "You can message the VNV staff directly through the client portal, in addition to traditional contact methods like phone (305-204-5427) or email (info@vnvevents.com). The portal is designed to keep communication and event details organized in one place." },
+    { category: "Client Portal", question: "Does VNV have a mobile app for managing my event?", answer: "Yes. VNV offers a mobile app available on both Google Play and the Apple App Store, giving clients access to tools, event orders, music sessions and the client portal directly from their phone." },
+    { category: "Client Portal", question: "What free content can I access through the VNV client portal?", answer: "Clients can access exclusive content at no additional cost, including podcast episodes and curated DJ sessions by DJ Jonny in the Mix, directly through the client portal as part of the overall VNV experience." },
+    { category: "Client Portal", question: "Will I receive promotional offers if I create a VNV account?", answer: "Yes, the client portal can send promotional content and company announcements. If you prefer not to receive marketing messages, you can opt out at any time through the unsubscribe link in emails or by writing to info@vnvevents.com, while still receiving essential service-related communication about any active booking." },
+    { category: "Client Portal", question: "Is my personal information safe when I create a VNV client account?", answer: "VNV Events does not sell, rent, or distribute client personal data to third parties for commercial purposes. Information provided during booking, including name, email, phone number and event details, is used specifically for operational purposes such as service coordination, account access and event management." },
+    { category: "Decoration", question: "What rental packages does VNV offer for a 30-guest event?", answer: "VNV offers three rental packages sized for 30 guests: Basic at $200 plus delivery fee (folding chairs with white spandex covers, 3 folding tables, 3 tablecloths), Standard at $220 plus delivery fee (white resin folding chairs, same table and linen setup), and Gold at $245 plus delivery fee (Chiavari or acrylic chairs, same table and linen setup)." },
+    { category: "Decoration", question: "What size tent do I need for 100 guests?", answer: "It depends on your event style. A 20' x 30' tent (600 sq ft) accommodates up to 100 guests for stand-up cocktail style or cathedral seating, 75 guests buffet-style, or 60 guests for a sit-down dinner. A 30' x 30' tent (900 sq ft) can fit up to 150 guests cocktail-style, 113 buffet-style, or 90 seated. Choose tent size based on whether your event is cocktail, buffet, sit-down, or ceremony format." },
+    { category: "Decoration", question: "How does tent capacity change between cocktail-style and sit-down dinner events?", answer: "Sit-down dinner format requires the most space because of table spacing and service paths, generally seating about 40% fewer guests than the same tent set up for stand-up cocktail style. For example, a 20'x40' tent (800 sq ft) holds 133 guests cocktail-style but only 80 for a seated dinner." },
+    { category: "Decoration", question: "What's the largest tent size VNV offers?", answer: "The largest published tent size is 30' x 120' (3,600 sq ft), accommodating up to 600 guests for stand-up cocktail or cathedral seating, 450 for buffet dinner, and 306 for a sit-down dinner." },
+    { category: "Decoration", question: "Does VNV provide lounge furniture for outdoor events?", answer: "Yes. Beyond tents, tables and chairs, VNV can supply lounge furniture for social and cocktail areas, tablecloths, glassware and tableware, umbrellas, and outdoor heaters for cooler evenings, allowing the full physical environment of an outdoor event to be coordinated as one rental plan." },
+    { category: "Decoration", question: "Is delivery included in the rental package price?", answer: "No. All published rental packages (Basic, Standard, Gold) are listed as the package price plus a separate delivery fee, which is calculated based on your event's location and logistics." },
+    { category: "Decoration", question: "What's the difference between the Basic, Standard, and Gold rental packages?", answer: "The three packages provide the same core setup (3 folding tables, 3 tablecloths, choice of 6ft rectangular or 60\"/5ft round tables) for 30 guests, but differ in chair style: Basic uses folding chairs with white spandex covers ($200), Standard uses white resin folding chairs ($220), and Gold uses Chiavari or acrylic chairs ($245), each plus delivery fee." },
+    { category: "Decoration", question: "Do you rent dance floors and chandeliers?", answer: "Yes. Dance floors and chandeliers are part of VNV's broader rental catalog, alongside tents, chairs, tables, linens and chargers, and coolers, available to be combined into a full event rental plan." },
+    { category: "Decoration", question: "How much does event decor and floral design cost?", answer: "Decor and floral pricing is custom and depends on the scope of design work, materials and installation involved. After a discovery meeting to understand your space, color scheme, budget and inspiration, VNV's design team builds a tailored proposal. Specific items like Natural Flower Arrangements and Luxury Table Decoration Service are quoted individually based on your selections (note that the price of flowers themselves is not included in the base Natural Flower Arrangements listing)." },
+    { category: "Contract", question: "What does the decor design process look like from start to finish?", answer: "VNV's design process has three steps: a Discovery Meeting to understand your space, colors, budget and inspiration; Customized Design Proposals tailored to your style and budget; and Setup & Transformation, where the approved design is installed on-site to bring the vision to life." },
+    { category: "Contract", question: "Can VNV design a custom backdrop or photo wall for my event?", answer: "Yes. VNV Deco offers Photo-Ops & Statement Walls including balloon decor, grass walls, flower walls and fully custom-designed backdrops built to create memorable content moments for guests. Luxury Event Backdrops such as champagne walls, grass walls and floral walls are also available as individually listed products." },
+    { category: "Decoration", question: "What's included in wedding aisle and altar decoration?", answer: "Wedding aisle and altar design can include crystal floors, arches, gazebos, florals and aisle styling, all designed to shape the most visually important moments of the ceremony." },
+    { category: "Contract", question: "Does VNV offer custom neon signs for events?", answer: "Yes. VNV produces Custom Neon Signs, which are LED neon pieces with personalized wording designed to add a stronger visual identity to celebrations, branded events and specialty spaces." },
+    { category: "Decoration", question: "Can VNV decorate corporate expo booths or trade show stands?", answer: "Yes. VNV Deco offers Promotional Stands & Expo Design, providing decorative and branded structures for expo shows and public-facing activations where the design needs to attract attention and support the brand message." },
+    { category: "Decoration", question: "Are draping and ceiling installations available for events?", answer: "Yes. VNV offers Fabric Ceiling Draping priced per linear foot, Event Drapes/Curtains, and Hanging Greenery Installations, all of which can be combined with floral and lighting design to transform a venue's interior space." },
+    { category: "Catering", question: "How much does it cost to hire event staff like servers or bartenders?", answer: "Event staffing does not use flat, one-size-fits-all pricing. Rates vary based on role type, shift duration, arrival and breakdown time, service style, guest count and timeline intensity. The recommended approach is to request a custom quote based on your guest count, event type and the exact roles you need (servers, bartenders, captains, or support staff)." },
+    { category: "Catering", question: "What staffing roles does VNV offer for events?", answer: "Available roles include Servers (buffet assistance, plated service, passed appetizers, table clearing), Bartenders (cocktail, wine and beer service), Captains & Coordinators (service timing and team communication), Event Assistants (guest direction, check-in, vendor assistance), and Setup & Breakdown teams for pre- and post-event physical preparation." },
+    { category: "Catering", question: "Do I need event staffing if I already booked catering?", answer: "Professional Servers are included as an add-on within several catering packages, but dedicated event staffing (captains, event assistants, setup/breakdown crews) is a separate service designed for events that need broader operational support beyond food service, such as guest check-in, vendor coordination and timeline management." },
+    { category: "Planning", question: "Is staffing available for corporate events and brand activations, not just weddings?", answer: "Yes. VNV staffing supports weddings, corporate events (guest-facing service, registration support, beverage management), private parties (birthdays, showers, home events), and brand activations (check-in, interaction, hospitality at public or branded events)." },
+    { category: "Planning", question: "How do I get a staffing quote for my event?", answer: "Because pricing depends on role, hours and complexity, the best approach is to contact VNV directly with your guest count, event type and the specific roles you're considering, so the team can build an accurate custom quote rather than relying on a generic rate chart." },
+    { category: "Planning", question: "What is the difference between a Captain and a regular Event Assistant?", answer: "A Captain or Coordinator focuses on stronger control of service timing, team communication and overall event flow from start to finish, essentially managing the staff team itself. An Event Assistant provides more general, hands-on support such as guest direction, check-in, vendor assistance and logistics help during the event." },
+    { category: "Decoration", question: "What's included in the photobooth rental?", answer: "The photobooth package includes 1 photobooth machine (stand), an 8ft backdrop stand with drapes and flowers, a professional lighting setup, unlimited on-site prints throughout the event, a customized photo frame, and fun, stylish props for guests to use." },
+    { category: "Planning", question: "Does VNV offer drone footage for events?", answer: "Yes. Professional Videography & Drone Services are available for events that want an aerial perspective and more cinematic visual coverage, in addition to standard ground-level video coverage." },
+    { category: "Planning", question: "How much does event photography cost with VNV?", answer: "Photography pricing is not published as a flat rate online and depends on the scope of coverage needed (hours, number of locations, deliverables). Contact VNV directly with your event date, duration and coverage goals to receive a custom photography quote." },
+    { category: "Planning", question: "Can I get a livestream of my event for guests who can't attend in person?", answer: "Yes. Streaming Recording is offered as part of VNV's multimedia services, giving events the flexibility to be recorded or shared with an audience beyond the physical room." },
+    { category: "Planning", question: "Does VNV offer podcast or branded video recording outside of live events?", answer: "Yes. VNV has a podcast studio in Sunrise, FL, available for podcast-style conversations, webinars, branded interviews, promo content and other studio-based visual storytelling, separate from on-location event coverage." },
+    { category: "Planning", question: "Can the photobooth be branded for a corporate event?", answer: "Yes. VNV offers branding and personalization for photobooth experiences, including custom backdrops, branded prints, props and visual details that align the photobooth setup with a company's brand identity for corporate activations." },
+    { category: "Planning", question: "What's the difference between Event Production and standard event planning?", answer: "Standard event planning focuses on guiding a client through decisions for a single event like a wedding or private party. Event Production is built for larger, multi-layered projects such as galas, conferences, trade shows, launches and fundraisers, where VNV builds the entire system around the event, including concept, budget, digital infrastructure (ticketing/RSVP), sponsor management and on-site execution." },
+    { category: "Planning", question: "What kind of events qualify for full Event Production support?", answer: "Event Production is designed for galas needing structure, sponsors and premium execution; trade shows needing brand positioning and booth logic; launches needing concept, marketing and digital support; fundraisers needing messaging and operational control; and corporate projects requiring both polished presentation and real execution discipline." },
+    { category: "Planning", question: "Does VNV build ticketing or RSVP systems for large events?", answer: "Yes. The Digital Layer of Event Production includes RSVP systems, ticketing flows, landing pages, sales pages, email touchpoints, and even mobile app support when needed for larger productions." },
+    { category: "Planning", question: "Can VNV help with sponsor management for a conference or gala?", answer: "Yes. VNV provides support for sponsor decks, deliverables, category planning, activation placement and the operational side of partnership visibility as part of its Sponsors & Partnerships production service." },
+    { category: "Planning", question: "What is included in VNV's 8-step production method?", answer: "The process includes Discovery & Objectives, Budget & Feasibility, Concept & Brand Direction, Platform & Digital Setup, Sponsors/Sales & Audience Growth, Vendors/Team & Production Assignments, Logistics & Run of Show, and Execution & Post-Event Continuity, covering everything from initial planning through post-event reporting." },
+    { category: "Planning", question: "How much does full event production cost?", answer: "Event Production pricing is fully custom and depends on the scale, scope and number of layers involved (creative, digital, commercial and operational). Because these projects vary so widely (from a branded launch to a multi-sponsor gala), VNV builds project-specific proposals after a discovery consultation rather than publishing a flat rate." },
+    { category: "Catering", question: "What does VNV's corporate event service include?", answer: "VNV's corporate events approach centers on four pillars: Food Service (curated catering for office gatherings and activations), Sound (audio support for speeches and presentations), Multimedia (screen support and presentation-ready visuals), and Staffing (professional support for service and guest-facing operations), coordinated under one execution plan." },
+    { category: "DJ", question: "Can VNV handle catering, DJ, and staffing for one corporate event under a single booking?", answer: "Yes. Corporate Events is built specifically to combine multiple service categories, food, sound, multimedia and staffing, under one coordinated execution rather than requiring the client to hire and manage separate vendors for each piece." },
+    { category: "Catering", question: "Is VNV suitable for small office parties or only large corporate galas?", answer: "VNV's corporate offering scales across both ends, from internal office celebrations and networking events to larger client-facing gatherings and brand activations. Smaller office events typically pull from the standard catering and DJ packages, while larger corporate productions may use the full Event Production service for sponsor management and digital infrastructure." },
+    { category: "Catering", question: "Does VNV offer a dedicated catering package for corporate team appreciation events?", answer: "Yes. The Corporate Team Appreciation Catering package is priced at $22.50 per person with a 50-guest minimum, designed specifically for office celebrations, employee appreciation events and internal company gatherings." },
+    { category: "Planning", question: "What areas does VNV Events serve in South Florida?", answer: "VNV Events serves clients across Broward County, Miami-Dade County and Palm Beach County, operating from its studio location in Sunrise, FL. The team regularly works events throughout this tri-county South Florida region rather than limiting service to a single city." },
+    { category: "Planning", question: "Where is the VNV Studio located, and can I visit before booking?", answer: "VNV Studio is located at 10258 NW 47th St, Sunrise, FL 33351 (Courtyard Business Center). Clients can visit to explore event concepts, test food options through a complimentary tasting, and design their event in a more immersive, in-person way. The showroom is open Monday-Friday 10 AM-5 PM and Saturday 10 AM-2 PM, closed Sunday." },
+    { category: "Planning", question: "How do I start the process of booking an event with VNV?", answer: "You can start a request through the online form on vnvevents.com, which walks through four steps: event address, services needed (planning, catering, rentals, decor, DJ, photo/video), event details and contact info, and any final notes including options for a complimentary tasting or a 360-degree studio experience. You can also call (305) 204-5427 directly." },
+    { category: "Client Portal", question: "Is there a phone number for sales versus general inquiries?", answer: "Yes. The central line is (305) 204-5427 and the dedicated sales line is (305) 204-2547. General inquiries can also go to info@vnvevents.com, and contract or operations questions can go to contact@vnvevents.com." },
+    { category: "Client Portal", question: "Can I message VNV Events on WhatsApp?", answer: "Yes. VNV Events offers a WhatsApp chat option directly accessible from the website for quick questions and communication." },
+    { category: "Planning", question: "What is the 360-degree Studio Experience VNV offers before booking?", answer: "The 360-degree Studio Experience lets clients preview ideas, demos and production direction in person at the VNV Studio, offering a more complete and immersive vision of how different services (catering, decor, DJ, etc.) could come together for their specific event." },
+    { category: "Planning", question: "Does VNV travel to venues outside of Broward, Miami-Dade and Palm Beach County?", answer: "VNV's stated coverage area is South Florida specifically, Broward County, Miami-Dade County and Palm Beach County. For events outside this tri-county area, contact the team directly to discuss feasibility, as travel logistics and pricing would need to be evaluated case by case." },
+    { category: "Planning", question: "What are VNV's business hours for calls and studio visits?", answer: "VNV Events is open Monday through Friday from 10 AM to 5 PM, Saturday from 10 AM to 2 PM, and closed on Sundays." },
+    { category: "Planning", question: "Can I combine services from multiple categories into one request, like catering and rentals together?", answer: "Yes. The booking form is designed for clients to select services across multiple categories at once, Primary Services, Catering, Rentals, Decor/Lighting/Effects, and Photo/Video, in a single request rather than submitting separate inquiries for each service." },
+    { category: "Planning", question: "What information do I need ready before submitting an event request?", answer: "You'll need your event address, the services you're interested in, your event date and time, estimated guest count, and your contact information (name, email, phone). Providing as much detail as possible upfront helps VNV prepare a more accurate proposal." },
+    { category: "Client Portal", question: "Can I see all my VNV event orders in one place?", answer: "Yes. The client portal is designed to centralize active and past event orders so clients can review status, files, payments, contracts and related event information without depending only on email threads." },
+    { category: "Client Portal", question: "Can I access my contracts and files from the client portal?", answer: "Yes. Contracts and event files can be opened from the client portal when they are attached to the order. This helps clients keep agreements, documents, payment links and event materials organized in one secure place." },
+    { category: "Client Portal", question: "Can I make payments from my phone?", answer: "Yes. The client portal and mobile app flow are intended to support secure payment access from a phone or desktop. Payments are still processed through the approved payment methods used by VNV Events, such as Stripe, Square or bank transfer." },
+    { category: "Client Portal", question: "How do I know if my VNV order is still pending or already confirmed?", answer: "Order status is visible in the client portal when the event order has been created by the team. Confirmation depends on the approved scope, required payment, contract status and any operational requirements for the booking." },
+    { category: "Client Portal", question: "Can I message the VNV team from the portal instead of sending a text?", answer: "Yes. Portal messaging is intended to keep client communication connected to the account and event context. This is especially useful when multiple services, payments, files or staff members are involved." },
+    { category: "Client Portal", question: "Will the mobile app show the same information as the web portal?", answer: "The mobile app uses VNV web views and account context so clients can reach the same core areas from a phone, including orders, files, payments, messages and selected VNV content when available." },
+    { category: "Client Portal", question: "What should I do if I cannot see my event order after logging in?", answer: "First confirm that you are using the same email attached to the booking. If the order still does not appear, contact VNV so the team can verify the client account, owner relationship and order assignment in the system." },
+    { category: "Client Portal", question: "Can several people from my family or company access the same event information?", answer: "Access depends on how the order and client account are configured. VNV can advise whether additional contacts should be added, whether communication should stay under one primary client, or whether a business account is more appropriate." },
+    { category: "Client Portal", question: "Can I receive notifications about payments, files or order updates?", answer: "Yes. The platform is built to support notifications for important account and order activity. Clients should keep their email and phone information accurate so VNV can send relevant updates when needed." },
+    { category: "Client Portal", question: "Does creating a VNV account mean I have booked an event?", answer: "No. Creating an account gives you access to portal tools and communication, but an event is only reserved when the required proposal, contract and payment steps are completed according to the VNV service process." }
+] %}
+{% endif %}
+
 {% block title %}South Florida Event Planning and Catering FAQ | VNV Events{% endblock %}
 
 {% block meta_description %}
     VNV Events FAQ for South Florida event planning, catering, decor, DJ, rentals, staffing, contracts, service areas, Miami catering costs and Broward event production.
+{% endblock %}
+
+{% block head %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {% for faq in faqs %}
+    {
+      "@type": "Question",
+      "name": {{ faq.question|json_encode|raw }},
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": {{ faq.answer|striptags|json_encode|raw }}
+      }
+    }{% if not loop.last %},{% endif %}
+    {% endfor %}
+  ]
+}
+</script>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "LocalBusiness",
+  "@id": "https://vnvevents.com/#organization",
+  "name": "VNV Events",
+  "image": "https://vnvevents.com/assets/images/planner-hub-logo-negative.png",
+  "url": "https://vnvevents.com",
+  "telephone": "+13052045427",
+  "priceRange": "$$-$$$",
+  "address": {
+    "@type": "PostalAddress",
+    "streetAddress": "10258 NW 47th St",
+    "addressLocality": "Sunrise",
+    "addressRegion": "FL",
+    "postalCode": "33351",
+    "addressCountry": "US"
+  },
+  "geo": {
+    "@type": "GeoCoordinates",
+    "latitude": 26.1551,
+    "longitude": -80.2761
+  },
+  "openingHoursSpecification": [
+    {
+      "@type": "OpeningHoursSpecification",
+      "dayOfWeek": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+      "opens": "10:00",
+      "closes": "17:00"
+    },
+    {
+      "@type": "OpeningHoursSpecification",
+      "dayOfWeek": "Saturday",
+      "opens": "10:00",
+      "closes": "14:00"
+    }
+  ],
+  "areaServed": [
+    { "@type": "AdministrativeArea", "name": "Broward County, FL" },
+    { "@type": "AdministrativeArea", "name": "Miami-Dade County, FL" },
+    { "@type": "AdministrativeArea", "name": "Palm Beach County, FL" }
+  ],
+  "sameAs": [
+    "https://www.instagram.com/vnv_events/",
+    "https://www.facebook.com/VnvEvents/",
+    "https://www.youtube.com/@vnv_events/playlists",
+    "https://www.tiktok.com/@vnv_events",
+    "https://www.yelp.com/biz/vnv-events-sunrise",
+    "https://www.linkedin.com/company/vnv-events/",
+    "https://www.pinterest.com/VNV_Events/"
+  ]
+}
+</script>
 {% endblock %}
 
 {% block styles %}
@@ -149,8 +361,9 @@ body {
     overflow: hidden;
     position: relative;
     background:
-        linear-gradient(90deg, rgba(10, 16, 17, .94), rgba(10, 16, 17, .48)),
-        url("/assets/images/service_photos/vnv_gourmet_1.webp") center / cover;
+        linear-gradient(180deg, rgba(10, 16, 17, .12), rgba(10, 16, 17, .56) 58%, rgba(10, 16, 17, .88)),
+        linear-gradient(90deg, rgba(10, 16, 17, .32), rgba(10, 16, 17, .06) 48%, rgba(10, 16, 17, .26)),
+        url("{{ path('/assets/images/faq-event-answers-hero.png') }}") center / cover;
     box-shadow: 0 32px 80px rgba(8, 25, 25, .22);
 }
 
@@ -240,6 +453,14 @@ body {
     color: var(--faq-ink);
 }
 
+.faq-page-status {
+    display: block;
+    margin-top: 4px;
+    color: var(--faq-muted);
+    font-size: 12px;
+    font-weight: 800;
+}
+
 .faq-chips {
     display: flex;
     flex-wrap: wrap;
@@ -265,6 +486,22 @@ body {
     background: #101717;
     border-color: #101717;
     color: #fff;
+}
+
+.faq-category {
+    display: inline-flex;
+    align-items: center;
+    width: fit-content;
+    margin: 0 22px 18px 72px;
+    border-radius: 999px;
+    background: rgba(216, 173, 69, .15);
+    color: #8b6518;
+    font-size: 11px;
+    font-weight: 900;
+    letter-spacing: .08em;
+    line-height: 1;
+    padding: 8px 11px;
+    text-transform: uppercase;
 }
 
 .faq-section {
@@ -375,6 +612,38 @@ body {
     display: block;
 }
 
+.faq-pagination {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+    margin-top: 28px;
+}
+
+.faq-page-btn {
+    min-width: 42px;
+    min-height: 42px;
+    border: 1px solid rgba(12, 22, 24, .14);
+    border-radius: 999px;
+    background: #fff;
+    color: #101717;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 900;
+    padding: 0 14px;
+}
+
+.faq-page-btn.is-active {
+    background: #101717;
+    border-color: #101717;
+    color: #fff;
+}
+
+.faq-page-btn:disabled {
+    cursor: not-allowed;
+    opacity: .42;
+}
+
 .faq-cta {
     padding: 70px 0 86px;
     background: #0a1011;
@@ -449,6 +718,10 @@ body {
     .faq-answer {
         padding-left: 22px;
     }
+
+    .faq-category {
+        margin-left: 22px;
+    }
 }
 </style>
 {% endblock %}
@@ -475,7 +748,7 @@ body {
                 <div class="faq-visual" aria-label="VNV Events catering and event production">
                     <div class="faq-visual__panel">
                         <div class="faq-stat">
-                            <strong>100</strong>
+                            <strong>{{ faqs|length }}</strong>
                             <span>VNV-specific answers</span>
                         </div>
                         <div class="faq-stat">
@@ -496,16 +769,20 @@ body {
         <div class="faq-wrap">
             <div class="faq-search-shell">
                 <div class="faq-search-row">
-                    <input class="faq-search" type="search" id="faqSearch" placeholder="Search Miami catering cost, coordinator, bartender, rentals, contract..." aria-label="Search VNV Events FAQ">
-                    <div class="faq-count"><strong id="faqVisibleCount">{{ faqs|length }}</strong> of {{ faqs|length }} questions</div>
+                    <input class="faq-search" type="search" id="faqSearch" placeholder="Search catering cost, coordinator, bartender, rentals, contract..." aria-label="Search VNV Events FAQ">
+                    <div class="faq-count">
+                        <strong id="faqVisibleCount">{{ faqs|length }}</strong> matching questions
+                        <span class="faq-page-status" id="faqPageStatus">Showing 1-20</span>
+                    </div>
                 </div>
                 <div class="faq-chips" aria-label="FAQ shortcuts">
-                    <button class="faq-chip is-active" type="button" data-query="">All</button>
-                    <button class="faq-chip" type="button" data-query="catering cost">Catering cost</button>
-                    <button class="faq-chip" type="button" data-query="Miami">Miami GEO</button>
-                    <button class="faq-chip" type="button" data-query="coordinator planner">Planning</button>
-                    <button class="faq-chip" type="button" data-query="contract retainer payment">Contract</button>
-                    <button class="faq-chip" type="button" data-query="DJ photo video">Media</button>
+                    <button class="faq-chip is-active" type="button" data-category="">All</button>
+                    <button class="faq-chip" type="button" data-category="Catering">Catering</button>
+                    <button class="faq-chip" type="button" data-category="Planning">Planning</button>
+                    <button class="faq-chip" type="button" data-category="Contract">Contract</button>
+                    <button class="faq-chip" type="button" data-category="DJ">DJ</button>
+                    <button class="faq-chip" type="button" data-category="Decoration">Decoration</button>
+                    <button class="faq-chip" type="button" data-category="Client Portal">Client Portal</button>
                 </div>
             </div>
         </div>
@@ -525,12 +802,13 @@ body {
 
             <div class="faq-grid" id="faqList">
                 {% for faq in faqs %}
-                    <article class="faq-item{% if loop.first %} is-open{% endif %}" data-faq-item data-search="{{ (faq.question ~ ' ' ~ faq.answer)|lower|e('html_attr') }}">
+                    <article class="faq-item{% if loop.first %} is-open{% endif %}" data-faq-item data-category="{{ faq.category|default('Planning')|e('html_attr') }}" data-search="{{ (faq.category|default('Planning') ~ ' ' ~ faq.question ~ ' ' ~ faq.answer)|lower|e('html_attr') }}"{% if loop.index > 20 %} style="display:none"{% endif %}>
                         <button class="faq-question" type="button" aria-expanded="{{ loop.first ? 'true' : 'false' }}">
                             <strong>{{ "%02d"|format(loop.index) }}</strong>
                             <span>{{ faq.question }}</span>
                             <b class="faq-toggle" aria-hidden="true">{{ loop.first ? '-' : '+' }}</b>
                         </button>
+                        <span class="faq-category">{{ faq.category|default('Planning') }}</span>
                         <div class="faq-answer">
                             {{ faq.answer }}
                         </div>
@@ -538,7 +816,8 @@ body {
                 {% endfor %}
             </div>
 
-            <div class="faq-empty" id="faqEmpty">No matching VNV FAQ found. Try a city, service, price, contract term or event type.</div>
+            <div class="faq-empty" id="faqEmpty">No matching VNV FAQ found. Try a service, price, contract term or event type.</div>
+            <div class="faq-pagination" id="faqPagination" aria-label="FAQ pagination"></div>
         </div>
     </section>
 
@@ -564,24 +843,92 @@ document.addEventListener('DOMContentLoaded', function () {
     const visibleCount = document.getElementById('faqVisibleCount');
     const empty = document.getElementById('faqEmpty');
     const chips = Array.from(document.querySelectorAll('.faq-chip'));
+    const pagination = document.getElementById('faqPagination');
+    const pageStatus = document.getElementById('faqPageStatus');
+    const pageSize = 20;
+    let activeCategory = '';
+    let currentPage = 1;
 
-    const filter = function (query) {
+    const getMatches = function () {
+        const query = search.value || '';
         const normalized = (query || '').trim().toLowerCase();
-        let count = 0;
-
-        items.forEach(function (item) {
+        return items.filter(function (item) {
             const haystack = item.getAttribute('data-search') || '';
-            const visible = normalized === '' || normalized.split(/\s+/).every(function (part) {
+            const category = item.getAttribute('data-category') || '';
+            const categoryMatches = activeCategory === '' || category === activeCategory;
+            const searchMatches = normalized === '' || normalized.split(/\s+/).every(function (part) {
                 return haystack.includes(part);
             });
-            item.style.display = visible ? '' : 'none';
-            if (visible) {
-                count += 1;
+            return categoryMatches && searchMatches;
+        });
+    };
+
+    const renderPagination = function (totalPages) {
+        pagination.innerHTML = '';
+        if (totalPages <= 1) {
+            return;
+        }
+
+        const addButton = function (label, page, disabled, active) {
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.className = 'faq-page-btn' + (active ? ' is-active' : '');
+            button.textContent = label;
+            button.disabled = disabled;
+            button.addEventListener('click', function () {
+                currentPage = page;
+                render();
+                document.getElementById('faq-search').scrollIntoView({ behavior: 'smooth', block: 'start' });
+            });
+            pagination.appendChild(button);
+        };
+
+        addButton('Prev', Math.max(1, currentPage - 1), currentPage === 1, false);
+
+        for (let page = 1; page <= totalPages; page += 1) {
+            if (
+                page === 1 ||
+                page === totalPages ||
+                Math.abs(page - currentPage) <= 1
+            ) {
+                addButton(String(page), page, false, page === currentPage);
+            } else if (
+                page === currentPage - 2 ||
+                page === currentPage + 2
+            ) {
+                const spacer = document.createElement('span');
+                spacer.className = 'faq-page-btn';
+                spacer.textContent = '...';
+                pagination.appendChild(spacer);
             }
+        }
+
+        addButton('Next', Math.min(totalPages, currentPage + 1), currentPage === totalPages, false);
+    };
+
+    const render = function () {
+        const matches = getMatches();
+        const totalPages = Math.max(1, Math.ceil(matches.length / pageSize));
+        if (currentPage > totalPages) {
+            currentPage = totalPages;
+        }
+
+        const start = (currentPage - 1) * pageSize;
+        const end = start + pageSize;
+        const pageItems = new Set(matches.slice(start, end));
+
+        items.forEach(function (item) {
+            item.style.display = pageItems.has(item) ? '' : 'none';
         });
 
-        visibleCount.textContent = String(count);
-        empty.classList.toggle('is-visible', count === 0);
+        visibleCount.textContent = String(matches.length);
+        if (matches.length === 0) {
+            pageStatus.textContent = 'Showing 0';
+        } else {
+            pageStatus.textContent = `Showing ${start + 1}-${Math.min(end, matches.length)} of ${matches.length}`;
+        }
+        empty.classList.toggle('is-visible', matches.length === 0);
+        renderPagination(totalPages);
     };
 
     items.forEach(function (item) {
@@ -595,20 +942,21 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     search.addEventListener('input', function () {
-        chips.forEach(function (chip) {
-            chip.classList.toggle('is-active', chip.dataset.query === '' && search.value.trim() === '');
-        });
-        filter(search.value);
+        currentPage = 1;
+        render();
     });
 
     chips.forEach(function (chip) {
         chip.addEventListener('click', function () {
             chips.forEach(function (entry) { entry.classList.remove('is-active'); });
             chip.classList.add('is-active');
-            search.value = chip.dataset.query || '';
-            filter(search.value);
+            activeCategory = chip.dataset.category || '';
+            currentPage = 1;
+            render();
         });
     });
+
+    render();
 });
 </script>
 

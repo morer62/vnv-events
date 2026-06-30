@@ -426,9 +426,30 @@ class Kernel
                         LocationUtils::redirectInternal("panel/home");
                     }
 
+                    if (
+                        in_array((int)$user->getLevel(), [1, 4], true) &&
+                        isset($urlViews[1], $urlViews[2], $urlViews[3]) &&
+                        $urlViews[1] === 'planner-hub' &&
+                        $urlViews[2] === 'orders' &&
+                        $urlViews[3] === 'orders'
+                    ) {
+                        $target = 'panel/planner-hub/management/orders/orders';
+                        $suffix = array_slice($urlViews, 4);
+                        if (!empty($suffix)) {
+                            $target .= '/' . implode('/', $suffix);
+                        }
+                        $queryParams = $_GET;
+                        unset($queryParams['url']);
+                        if (!empty($queryParams)) {
+                            $target .= '?' . http_build_query($queryParams);
+                        }
+
+                        LocationUtils::redirectInternal($target);
+                    }
+
                     $this->includeAdminViewAndExit($this->getPrivateView($urlViews, $user));
                 } else {
-                    LocationUtils::redirectInternal("login");
+                    $this->renderPanelLoginFallbackAndExit();
                 }
             }
 
@@ -644,5 +665,82 @@ class Kernel
 
             $this->includeResolvedFileAndExit($this->getNotFoundView());
         }
+    }
+
+    private function renderPanelLoginFallbackAndExit(): never
+    {
+        $loginUrl = LocationUtils::pathFor('login');
+        $logoUrl = LocationUtils::assetFor('assets/images/vnv-logo.png');
+
+        http_response_code(200);
+        echo <<<HTML
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta http-equiv="refresh" content="2;url={$loginUrl}">
+    <title>VNV Events | Session Required</title>
+    <style>
+        :root { color-scheme: light; }
+        body {
+            margin: 0;
+            min-height: 100vh;
+            display: grid;
+            place-items: center;
+            background: #f5f7fb;
+            font-family: Inter, Arial, sans-serif;
+            color: #07111f;
+        }
+        .panel-auth-fallback {
+            width: min(420px, calc(100vw - 32px));
+            padding: 34px 30px;
+            border: 1px solid #dbe4ef;
+            border-radius: 18px;
+            background: #ffffff;
+            box-shadow: 0 24px 70px rgba(15, 23, 42, 0.12);
+            text-align: center;
+        }
+        .panel-auth-fallback img {
+            width: 150px;
+            max-width: 60%;
+            height: auto;
+            margin-bottom: 22px;
+        }
+        .panel-auth-fallback h1 {
+            margin: 0 0 10px;
+            font-size: 24px;
+            line-height: 1.2;
+        }
+        .panel-auth-fallback p {
+            margin: 0 0 24px;
+            color: #64748b;
+            line-height: 1.55;
+        }
+        .panel-auth-fallback a {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 44px;
+            padding: 0 18px;
+            border-radius: 999px;
+            background: #07111f;
+            color: #ffffff;
+            font-weight: 700;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <main class="panel-auth-fallback">
+        <img src="{$logoUrl}" alt="VNV Events">
+        <h1>Session required</h1>
+        <p>Your panel session is not active. Redirecting you to login so the orders page can load correctly.</p>
+        <a href="{$loginUrl}">Go to Login</a>
+    </main>
+</body>
+</html>
+HTML;
+        exit;
     }
 }
