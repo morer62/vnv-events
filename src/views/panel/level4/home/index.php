@@ -10,6 +10,7 @@ use App\Repositories\UserInstitutionsRepository;
 use App\Repositories\StoreUserRolesRepository;
 use App\Repositories\TeamMemberContractsRepository;
 use App\Utils\LocationUtils;
+use App\Utils\MessageUtil;
 
 $router = new Router();
 
@@ -112,29 +113,16 @@ $router->get(function () {
 
 $router->post(function () {
     if (isset($_POST['switch_institution'])) {
-        $institutionId = $_POST['institution_id'] ?? null;
-        $role = $_POST['role'] ?? 'employee';
-        
-        if ($institutionId) {
-            $_SESSION['current_institution_id'] = $institutionId;
-            $_SESSION['current_institution_role'] = $role;
-            
-            LoginService::reloadUserPermissions((int)$institutionId);
-            
-            header('Location: ' . $_SERVER['REQUEST_URI']);
-            exit;
-        } else {
-            header('Content-Type: application/json');
-            echo json_encode(['success' => false, 'message' => 'No institution ID provided']);
-            exit;
-        }
+        MessageUtil::setMessage('Team members can only switch between Team and Client views.');
+        LocationUtils::redirectInternal("panel/home");
+        return;
     }
     
     if (isset($_POST['level'])) {
         $user = LoginService::getSession();
         $newLevel = (int)($_POST['level'] ?? 0);
 
-        if (!$user || !in_array($newLevel, [2, 3, 4, 5])) {
+        if (!$user || $newLevel !== 5) {
             LocationUtils::redirectInternal("panel/home");
             return;
         }

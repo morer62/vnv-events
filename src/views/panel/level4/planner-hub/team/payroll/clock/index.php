@@ -183,26 +183,9 @@ $router->get(function () use ($repo, $user): string {
 
 $router->post(callback: function () use ($repo, $user): void {
     if (isset($_POST['switch_institution'])) {
-        if ($user->getLevel() != 4) {
-            header('Content-Type: application/json');
-            echo json_encode(['success' => false, 'message' => 'Unauthorized']);
-            exit;
-        }
-        
-        $institutionId = $_POST['institution_id'] ?? null;
-        $role = $_POST['role'] ?? 'employee';
-        
-        if ($institutionId) {
-            $_SESSION['current_institution_id'] = $institutionId;
-            $_SESSION['current_institution_role'] = $role;
-            
-            header('Location: ' . $_SERVER['REQUEST_URI']);
-            exit;
-        } else {
-            header('Content-Type: application/json');
-            echo json_encode(['success' => false, 'message' => 'No institution ID provided']);
-            exit;
-        }
+        MessageUtil::setMessage('Team members can only switch between Team and Client views.');
+        LocationUtils::redirectInternal('panel/planner-hub/team/payroll/clock');
+        return;
     }
     
     $action = $_POST["action"] ?? "";

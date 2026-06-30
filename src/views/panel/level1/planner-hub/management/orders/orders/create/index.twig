@@ -27,7 +27,7 @@
 
 {% if isSubOrder %}
 <div class="alert alert-info mb-4">
-    <h5>ðŸ“‹ Sub-Order Information</h5>
+    <h5><i data-feather="clipboard"></i> Sub-Order Information</h5>
     <p><strong>Parent Order:</strong> VNV 341{{ parentOrder.id }}</p>
     <p><strong>Event Date:</strong> {{ parentOrder.event_date|date("l, M j, Y") }}</p>
     <p><strong>Time:</strong> {{ parentOrder.start_time|date("g:i A") }} - {{ parentOrder.end_time|date("g:i A") }}</p>
@@ -73,8 +73,8 @@
                         <label class="form-label">Contract <span class="text-danger">*</span></label>
                         {% if contracts is empty %}
                                 <div class="alert alert-warning">
-                                    âš ï¸ No contracts available.
-                                    <a href="{{ path('panel/planner-hub/management/orders/contracts/create') }}" class="btn btn-sm btn-outline-primary ms-2">âž• Create Contract</a>
+                                    <i data-feather="alert-triangle"></i> No contracts available.
+                                    <a href="{{ path('panel/planner-hub/management/orders/contracts/create') }}" class="btn btn-sm btn-outline-primary ms-2"><i data-feather="plus"></i> Create Contract</a>
                                 </div>
                             {% else %}
                                 <select name="id_contract" class="form-select" required>
@@ -104,15 +104,15 @@
                 </div>
             {% endif %}
 
-           <h4 class="mb-3">ðŸ›  Services</h4>
+           <h4 class="mb-3"><i data-feather="tool"></i> Services</h4>
             <div class="alert alert-info mb-3">
                 <i data-feather="info"></i>
                 <strong>Tip:</strong> Start typing the service name to see suggestions.
             </div>
             {% if services is empty %}
                 <div class="alert alert-warning">
-                    âš ï¸ No services available.
-                    <a href="{{ path('panel/planner-hub/management/orders/services/create') }}" class="btn btn-sm btn-outline-primary ms-2">âž• Create Service</a>
+                    <i data-feather="alert-triangle"></i> No services available.
+                    <a href="{{ path('panel/planner-hub/management/orders/services/create') }}" class="btn btn-sm btn-outline-primary ms-2"><i data-feather="plus"></i> Create Service</a>
                 </div>
             {% else %}
                 <div id="servicesTable" class="mb-4">
@@ -157,7 +157,7 @@
 
             <div class="row mb-4">
                 <div class="col-md-4">
-                    <label class="form-label">ðŸ’µ Tip (Optional)</label>
+                    <label class="form-label">Tip (Optional)</label>
                     <select name="id_tip" class="form-select" id="tipSelect">
                         <option value="">No Tip</option>
                         {% for tip in tips %}
@@ -170,7 +170,7 @@
             </div>
 
             <div class="mb-4">
-                <label class="form-label">ðŸ“ Event Notes</label>
+                <label class="form-label">Event Notes</label>
                 <textarea name="notes" class="form-control" rows="10" placeholder="Playlist, schedule, timeline, speeches, and event details..."></textarea>
             </div>
 
@@ -184,9 +184,9 @@
             <div class="mt-3">
             <div class="card mb-4">
                 <div class="card-body">
-                    <h5>ðŸ’³ Payment Type</h5>
+                    <h5><i data-feather="credit-card"></i> Payment Type</h5>
                     <p class="text-muted small">
-                    âš ï¸ This setting cannot be changed later.
+                    <i data-feather="alert-triangle"></i> This setting cannot be changed later.
                     </p>
 
                     <div class="mb-3">
@@ -214,7 +214,7 @@
                 <div class="form-check mb-3">
                     <input class="form-check-input" type="checkbox" value="1" id="addToCalendarAfterSave" name="add_to_calendar">
                     <label class="form-check-label" for="addToCalendarAfterSave">
-                        ðŸ“… Add to client's Google Calendar after saving
+                        Add to client's Google Calendar after saving
                     </label>
                 </div>
                 {% endif %}
@@ -255,12 +255,12 @@
     </div>
 </div>
 
-<!-- Modal de validaciÃ³n -->
+<!-- Validation modal -->
 <div class="modal fade" id="validationModal" tabindex="-1" aria-labelledby="validationModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="validationModalLabel">âš ï¸ Missing Required Fields</h5>
+                <h5 class="modal-title" id="validationModalLabel"><i data-feather="alert-triangle"></i> Missing Required Fields</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
@@ -422,7 +422,7 @@
         const removeBtn = document.createElement("button");
         removeBtn.type = "button";
         removeBtn.className = "btn btn-danger btn-sm remove-service-btn";
-        removeBtn.innerHTML = "âŒ";
+        removeBtn.innerHTML = "&times;";
         removeBtn.addEventListener("click", function() { 
             row.remove(); 
             updateSubtotal(); 
@@ -488,7 +488,7 @@
                 
             item.innerHTML = `
                 <div class="fw-bold">${service.name}</div>
-                <small class="text-muted">${priceDisplay} - ${service.description || 'Sin descripciÃ³n'}</small>
+                <small class="text-muted">${priceDisplay} - ${service.description || 'No description'}</small>
                
             `;
             
@@ -867,7 +867,7 @@ let subtotalServicios = 0;
 
             if (missingFields.length > 0) {
                 const message = "The following required fields are empty:<br><br>" + 
-                    missingFields.map(field => "â€¢ " + field).join("<br>");
+                    missingFields.map(field => "&bull; " + field).join("<br>");
                 
                 document.getElementById("validationMessage").innerHTML = message;
                 

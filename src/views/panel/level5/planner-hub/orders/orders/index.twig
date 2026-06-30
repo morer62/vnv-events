@@ -3,14 +3,21 @@
 
 {% block body %}
 
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ path('panel/home') }}">Client Home</a></li>
+        <li class="breadcrumb-item active" aria-current="page">My Event Orders</li>
+    </ol>
+</nav>
+
 <div class="vnv-page-header mb-4">
     <div>
         <h1 class="h3">My Event Orders</h1>
         <p>Review your VNV Events orders, files, payments and upcoming schedule.</p>
     </div>
     <div class="vnv-action-bar">
-        <a href="{{ path('panel/') }}" class="btn vnv-btn-ghost">Back to Home</a>
-        <a href="{{ path('/panel/planner-hub/orders/calendar') }}" class="btn vnv-btn-primary">Calendar View</a>
+        <a href="{{ path('panel/home') }}" class="btn vnv-btn-ghost">Back to Home</a>
+        <a href="{{ path('panel/planner-hub/orders/calendar') }}" class="btn vnv-btn-primary">Calendar View</a>
     </div>
 </div>
 
@@ -62,9 +69,9 @@
                     <td style="min-width: 160px;">{{ order.created_at|date("Y-m-d H:i") }}</td>
                     <td style="min-width: 160px;">
                         <div class="btn-group">
-                            <a href="{{ path('/panel/planner-hub/orders/orders/files') }}?id={{ order.id }}" class="btn btn-sm btn-secondary">Files</a>
-                            <a href="{{ path('/panel/planner-hub/orders/orders/suborders') }}?id={{ order.id }}" class="btn btn-sm btn-info">Suborders</a>
-                            <a href="{{ path('/panel/planner-hub/orders/orders/print') }}?id={{ order.id }}" class="btn btn-sm btn-dark">Print</a>
+                            <a href="{{ path('panel/planner-hub/orders/orders/files') }}?id={{ order.id }}" class="btn btn-sm btn-secondary">Files</a>
+                            <a href="{{ path('panel/planner-hub/orders/orders/suborders') }}?id={{ order.id }}" class="btn btn-sm btn-info">Suborders</a>
+                            <a href="{{ path('panel/planner-hub/orders/orders/print') }}?id={{ order.id }}" class="btn btn-sm btn-dark">Print</a>
                         </div>
                     </td>
                 </tr>

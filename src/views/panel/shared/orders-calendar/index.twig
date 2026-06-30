@@ -6,17 +6,60 @@
 .vnv-calendar-shell {
     display: grid;
     gap: 1rem;
+    max-width: 1360px;
+    margin: 0 auto;
+}
+.vnv-event-calendar-hero {
+    max-width: 1360px;
+    margin: 0 auto 0;
+    position: relative;
+    overflow: hidden;
+    border-radius: 30px;
+    padding: clamp(24px, 3vw, 38px);
+    color: #fff;
+    background:
+        linear-gradient(115deg, rgba(6, 11, 13, .94), rgba(6, 11, 13, .70)),
+        url("{{ path('/assets/images/vnv-core-brunch-mansion-hero.png') }}") center 48% / cover;
+    box-shadow: 0 30px 80px rgba(8, 22, 24, .18);
+}
+.vnv-event-calendar-hero h1 {
+    max-width: 760px;
+    margin: 16px 0 0;
+    color: #fff !important;
+    font-size: clamp(34px, 4vw, 56px);
+    font-weight: 950;
+    line-height: 1;
+    letter-spacing: 0;
+}
+.vnv-event-calendar-kicker {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    border: 1px solid rgba(69, 227, 207, .28);
+    border-radius: 999px;
+    background: rgba(69, 227, 207, .12);
+    color: #45e3cf;
+    font-size: 12px;
+    font-weight: 900;
+    letter-spacing: .12em;
+    padding: 10px 14px;
+    text-transform: uppercase;
 }
 .vnv-calendar-toolbar,
 .vnv-calendar-day,
 .vnv-no-time {
     background: #fff;
     border: 1px solid #e5e7eb;
-    border-radius: 8px;
-    box-shadow: 0 8px 24px rgba(15, 23, 42, .05);
+    border-radius: 24px;
+    box-shadow: 0 22px 58px rgba(14, 31, 34, .09);
 }
 .vnv-calendar-toolbar {
+    max-width: 1240px;
+    margin: -22px auto 1rem;
+    position: relative;
+    z-index: 2;
     padding: 1rem;
+    border-color: rgba(16, 30, 33, .08);
 }
 .vnv-calendar-grid {
     display: grid;
@@ -27,7 +70,7 @@
 }
 .vnv-calendar-day {
     min-height: 260px;
-    padding: .85rem;
+    padding: 1rem;
 }
 .vnv-calendar-day__label {
     font-weight: 800;
@@ -38,15 +81,19 @@
     display: block;
     text-decoration: none;
     color: #111827;
-    border-left: 4px solid #5ec6c4;
-    background: #f8fafc;
-    border-radius: 8px;
-    padding: .7rem;
+    border-left: 0;
+    background: #f7fafa;
+    border: 1px solid rgba(14, 31, 34, .08) !important;
+    border-radius: 18px;
+    padding: .85rem;
     margin-bottom: .65rem;
+    transition: transform .18s ease, background .18s ease, border-color .18s ease;
 }
 .vnv-order-card:hover {
-    background: #eef8f8;
-    color: #0f172a;
+    transform: translateY(-1px);
+    border-color: rgba(69, 227, 207, .34) !important;
+    background: #0f1719;
+    color: #fff;
 }
 .vnv-order-time {
     font-size: .78rem;
@@ -61,6 +108,9 @@
     color: #64748b;
     font-size: .78rem;
 }
+.vnv-order-card:hover .vnv-order-meta {
+    color: rgba(255,255,255,.72);
+}
 .vnv-status {
     display: inline-flex;
     max-width: 100%;
@@ -70,6 +120,10 @@
     font-weight: 800;
     background: #111827;
     color: #fff;
+}
+.vnv-order-card:hover .vnv-status {
+    background: rgba(69, 227, 207, .18);
+    color: #45e3cf;
 }
 .vnv-no-time {
     padding: 1rem;
@@ -86,16 +140,10 @@
 <div class="container-fluid py-4 vnv-page-shell">
     {{ macros.breadcrumb2() }}
 
-    <div class="vnv-page-header">
-        <div>
-            <h1 class="h3 fw-bold mb-1">Order Calendar</h1>
-            <p class="mb-0">VNV Events operational schedule for {{ calendar.week_start|date('M d') }} - {{ calendar.week_end|date('M d, Y') }}.</p>
-        </div>
-        <div class="vnv-action-bar">
-            <a class="btn vnv-btn-ghost" href="{{ path(listUrl) }}">List View</a>
-            <a class="btn vnv-btn-primary" href="{{ path(calendarUrl) }}">Calendar View</a>
-        </div>
-    </div>
+    <section class="vnv-event-calendar-hero">
+        <span class="vnv-event-calendar-kicker"><i class="fa-solid fa-calendar-days"></i> Upcoming Events</span>
+        <h1>Your VNV event schedule.</h1>
+    </section>
 
     <section class="vnv-calendar-toolbar mb-3">
         <form method="get" class="row g-3 align-items-end">
@@ -112,6 +160,7 @@
                 <a class="btn btn-outline-secondary" href="{{ path(calendarUrl) }}?week={{ calendar.previous_week }}">Previous</a>
                 <a class="btn btn-outline-secondary" href="{{ path(calendarUrl) }}">Today</a>
                 <a class="btn btn-outline-secondary" href="{{ path(calendarUrl) }}?week={{ calendar.next_week }}">Next</a>
+                <a class="btn btn-outline-secondary" href="{{ path(listUrl) }}">List View</a>
             </div>
         </form>
     </section>

@@ -17,7 +17,7 @@
 <li class="sidebar-item">
     <a class="sidebar-link" href="{{ path('panel/home') }}">
         <i class="align-middle" data-feather="briefcase"></i>
-        <span class="align-middle">{{ trans('ui.company_workspace') }}</span>
+        <span class="align-middle">Team Home</span>
     </a>
 </li>
 
@@ -41,6 +41,13 @@
     <a class="sidebar-link" href="{{ path('panel/planner-hub/team/chat') }}">
         <i class="align-middle" data-feather="message-circle"></i>
         <span class="align-middle">{{ trans('ui.team_chat') }}</span>
+    </a>
+</li>
+
+<li class="sidebar-item">
+    <a class="sidebar-link" href="{{ path('panel/music-sessions') }}">
+        <i class="align-middle" data-feather="music"></i>
+        <span class="align-middle">VNV Sessions</span>
     </a>
 </li>
 
@@ -117,22 +124,11 @@
 </li>
 
 <li class="sidebar-item">
-    <a class="sidebar-link" href="{{ path('panel/afiliate-hub') }}">
-        <i class="align-middle" data-feather="share-2"></i>
-        <span class="align-middle">{{ trans('sidebar.affiliate_program') }}</span>
-    </a>
-</li>
-
-<li class="sidebar-item">
-    <a class="sidebar-link" href="{{ path('sign-up') }}">
-        <i class="align-middle" data-feather="plus-circle"></i>
-        <span class="align-middle">{{ trans('auth.create_business_account_button') }}</span>
-    </a>
-</li>
-
-<li class="sidebar-item">
-    <a class="sidebar-link" href="{{ path('panel/event-invitations') }}">
-        <i class="align-middle" data-feather="calendar"></i>
-        <span class="align-middle">{{ trans('ui.event_access') }}</span>
-    </a>
+    <form method="post" action="{{ path('panel/home') }}" class="m-0">
+        <input type="hidden" name="level" value="5">
+        <button type="submit" class="sidebar-link border-0 w-100 text-start" style="background: transparent;">
+            <i class="align-middle" data-feather="user"></i>
+            <span class="align-middle">Client View</span>
+        </button>
+    </form>
 </li>

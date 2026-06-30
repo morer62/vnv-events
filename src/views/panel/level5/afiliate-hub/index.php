@@ -14,6 +14,10 @@ $router->get(function () {
         \App\Utils\LocationUtils::redirectInternal("/login");
     }
 
+    \App\Utils\MessageUtil::setMessage('Affiliate tools are not available in the VNV Events client portal.');
+    \App\Utils\LocationUtils::redirectInternal('panel/home');
+    return;
+
     $affiliateService = new AffiliateService();
     $stripeRepo = new StripeAccountsRepository();
     

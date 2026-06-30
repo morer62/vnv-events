@@ -101,6 +101,26 @@ class TeamMemberContractsRepository
         return $row ?: null;
     }
 
+    public function getLatestActiveForMember(int $teamMemberId): ?object
+    {
+        if (!$this->hasStorage()) {
+            return null;
+        }
+
+        $this->db->query("
+            SELECT *
+            FROM `{$this->table}`
+            WHERE team_member_id = :team_member_id
+              AND status IN ('SIGNED', 'VALIDATED', 'MANUALLY_UPLOADED')
+            ORDER BY COALESCE(validated_at, signed_at, uploaded_at, updated_at, created_at) DESC, id DESC
+            LIMIT 1
+        ");
+        $this->db->bind(':team_member_id', $teamMemberId);
+        $row = $this->db->fetchOne();
+
+        return $row ?: null;
+    }
+
     public function getAllForMember(int $teamMemberId, int $ownerId): array
     {
         if (!$this->hasStorage()) {

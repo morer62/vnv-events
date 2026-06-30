@@ -433,18 +433,10 @@ class Kernel
                         $urlViews[2] === 'orders' &&
                         $urlViews[3] === 'orders'
                     ) {
-                        $target = 'panel/planner-hub/management/orders/orders';
-                        $suffix = array_slice($urlViews, 4);
-                        if (!empty($suffix)) {
-                            $target .= '/' . implode('/', $suffix);
-                        }
-                        $queryParams = $_GET;
-                        unset($queryParams['url']);
-                        if (!empty($queryParams)) {
-                            $target .= '?' . http_build_query($queryParams);
-                        }
-
-                        LocationUtils::redirectInternal($target);
+                        $urlViews = array_merge(
+                            [$urlViews[0], 'planner-hub', 'management', 'orders', 'orders'],
+                            array_slice($urlViews, 4)
+                        );
                     }
 
                     $this->includeAdminViewAndExit($this->getPrivateView($urlViews, $user));

@@ -2,6 +2,13 @@
 {% import 'templates/macros.twig' as macros %}
 
 {% block body %}
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ path('panel/home') }}">Client Home</a></li>
+        <li class="breadcrumb-item"><a href="{{ path('panel/planner-hub/orders/orders') }}">My Event Orders</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Sub-Orders</li>
+    </ol>
+</nav>
 
 <h2 class="mb-4">📋 Sub-Orders for Order VNV 341{{ order.id }}</h2>
 <a href="{{ path('panel/planner-hub/orders/orders') }}" class="btn btn-sm btn-light mb-3">← Back to Orders</a>
@@ -120,7 +127,7 @@
                                 </td>
                                 <td style="min-width: 160px;">
                                     <div class="btn-group">
-                                        <a href="{{ path('/panel/planner-hub/orders/orders/files') }}?id={{ order.id }}" class="btn btn-sm btn-outline-secondary">📁 Files</a>
+                                        <a href="{{ path('panel/planner-hub/orders/orders/files') }}?id={{ order.id }}" class="btn btn-sm btn-outline-secondary">📁 Files</a>
                                     </div>
                                 </td>
                             </tr>

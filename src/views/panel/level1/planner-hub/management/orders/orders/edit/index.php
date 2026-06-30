@@ -327,11 +327,17 @@ $router->post(function () {
 
     // 🔔 Notificar al cliente y al owner sobre la edición de la orden
     $order = $repo->getOne(["id" => $id]);
-    NotificationService::sendToUsers(
-        [$order->id_client, $order->id_owner],
-        '🔧 Order Updated',
-        'Order VNV 341' . $id . ' was updated. Please log in to your account to review the changes.'
-    );
+    try {
+        if ($order) {
+            NotificationService::sendToUsers(
+                [$order->id_client, $order->id_owner],
+                '🔧 Order Updated',
+                'Order VNV 341' . $id . ' was updated. Please log in to your account to review the changes.'
+            );
+        }
+    } catch (\Throwable $e) {
+        error_log("Order notification failed after edit: " . $e->getMessage());
+    }
 
     MessageUtil::setMessage("✅ Order updated successfully!");
     LocationUtils::redirectInternal("panel/planner-hub/management/orders/orders");

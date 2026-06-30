@@ -11,7 +11,7 @@ trait GetViewTrait
     {
         $root = LocationUtils::getRootLocation() . "/src";
         $privateViews = array_slice($urlViews, 1);
-        if (($privateViews[0] ?? null) === 'music-sessions') {
+        if ((int)$user->getLevel() === 1 && ($privateViews[0] ?? null) === 'music-sessions') {
             $privateViews[0] = 'multimedia-sessions';
         }
 

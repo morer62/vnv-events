@@ -2,8 +2,15 @@
 {% import 'templates/macros.twig' as macros %}
 
 {% block body %}
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ path('panel/home') }}">Client Home</a></li>
+        <li class="breadcrumb-item"><a href="{{ path('panel/planner-hub/orders/orders') }}">My Event Orders</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Order Status</li>
+    </ol>
+</nav>
 <h2 class="h4 mb-4">📜 Order Status - vnv-341{{ order.id }}</h2>
-<a href="{{ path('/panel/planner-hub/orders/orders') }}" class="btn btn-sm btn-light mb-3">← Back to Orders</a>
+<a href="{{ path('panel/planner-hub/orders/orders') }}" class="btn btn-sm btn-light mb-3">← Back to Orders</a>
 
 <div class="alert alert-info">
     ⚠️ Digital signatures and Stripe payments will be available soon. For now, please review the current status of your order.

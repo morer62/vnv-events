@@ -2,11 +2,26 @@
 
 {% block body %}
 <div class="container-fluid vnv-page-shell">
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ path('panel/home') }}">Client Home</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Payment Methods</li>
+        </ol>
+    </nav>
+
     <div class="vnv-page-header">
         <div>
             <p class="vnv-kicker">Client Dashboard</p>
             <h1>Saved payment methods</h1>
             <p>Manage saved cards and future charge authorization per business and provider.</p>
+        </div>
+        <div class="d-flex flex-wrap gap-2">
+            <a href="{{ path('panel/cards') }}" class="btn btn-light rounded-pill fw-bold px-4">
+                <i class="fa-solid fa-plus me-1"></i> Add card
+            </a>
+            <a href="{{ path('panel/billing') }}" class="btn btn-outline-light rounded-pill fw-bold px-4">
+                Billing details
+            </a>
         </div>
     </div>
 
@@ -84,6 +99,10 @@
                 <div class="text-center py-5">
                     <h5>No saved payment methods yet</h5>
                     <p class="text-muted">Methods you choose to save during checkout will appear here.</p>
+                    <div class="d-flex flex-wrap justify-content-center gap-2 mt-3">
+                        <a href="{{ path('panel/cards') }}" class="btn btn-dark rounded-pill fw-bold px-4">Add dashboard card</a>
+                        <a href="{{ path('panel/billing') }}" class="btn btn-outline-secondary rounded-pill fw-bold px-4">Update billing address</a>
+                    </div>
                 </div>
             {% endif %}
         </div>

@@ -725,20 +725,10 @@
               <span class="clock-pill"><i data-feather="minus-circle"></i> Not set</span>
             {% endif %}
 
-            {% if hasMultipleInstitutions %}
-              <span class="clock-pill"><i data-feather="shuffle"></i> Multiple companies available</span>
-            {% endif %}
+            <span class="clock-pill"><i data-feather="briefcase"></i> VNV Events Team</span>
           </div>
         </div>
       </div>
-      {% if hasMultipleInstitutions %}
-      <div class="d-flex align-items-center">
-        <button class="btn btn-outline-primary clock-switch-btn px-4 py-2" type="button" onclick="showInstitutionSwitcher()">
-          <i data-feather="repeat"></i>
-          Switch Company
-        </button>
-      </div>
-      {% endif %}
     </div>
   </section>
   {% endif %}
@@ -1060,54 +1050,6 @@ function submitWithNotes() {
   form.submit();
 }
 
-function showInstitutionSwitcher() {
-  const modalElement = document.getElementById('institutionSwitcherModal');
-  if (!modalElement) {
-    return;
-  }
-
-  try {
-    if (window.bootstrap && window.bootstrap.Modal) {
-      const modal = new window.bootstrap.Modal(modalElement);
-      modal.show();
-      return;
-    }
-  } catch (error) {
-  }
-
-  modalElement.classList.add('show');
-  modalElement.style.display = 'block';
-  modalElement.removeAttribute('aria-hidden');
-  modalElement.setAttribute('aria-modal', 'true');
-}
-
-function switchInstitution(institutionId, role) {
-  const form = document.createElement('form');
-  form.method = 'POST';
-  form.action = window.location.href;
-
-  const switchInput = document.createElement('input');
-  switchInput.type = 'hidden';
-  switchInput.name = 'switch_institution';
-  switchInput.value = '1';
-
-  const idInput = document.createElement('input');
-  idInput.type = 'hidden';
-  idInput.name = 'institution_id';
-  idInput.value = institutionId;
-
-  const roleInput = document.createElement('input');
-  roleInput.type = 'hidden';
-  roleInput.name = 'role';
-  roleInput.value = role;
-
-  form.appendChild(switchInput);
-  form.appendChild(idInput);
-  form.appendChild(roleInput);
-
-  document.body.appendChild(form);
-  form.submit();
-}
 </script>
 {% endblock %}
 
@@ -1209,60 +1151,6 @@ function switchInstitution(institutionId, role) {
     </div>
   </div>
 </div>
-
-{% if isLevel4 %}<div class="modal fade" id="institutionSwitcherModal" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content rounded-4">
-      <div class="modal-header">
-        <h5 class="modal-title fw-bold">Switch Company</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body">
-        <p class="mb-3">Select the company where this work session should be recorded.</p>
-        <div class="list-group">
-          {% for institution in userInstitutions %}
-          <div class="list-group-item d-flex justify-content-between align-items-center gap-3">
-            <div>
-              <h6 class="mb-1">{{ institution.company_name }}</h6>
-              <small class="text-muted">
-                {% if institution.relationship_type == 'primary' %}
-                  Role: <span class="badge bg-success">Owner</span>
-                {% else %}
-                  Role:
-                  {% if institution.role_name %}
-                    <span class="badge bg-info">{{ institution.role_name }}</span>
-                  {% else %}
-                    <span class="text-muted">No role assigned</span>
-                  {% endif %}
-                  | Hourly Rate:
-                  {% if institution.hourly_rate and institution.hourly_rate > 0 %}
-                    ${{ institution.hourly_rate|number_format(2) }}/hr
-                  {% else %}
-                    <span class="text-muted">Not set</span>
-                  {% endif %}
-                {% endif %}
-                {% if institution.working_institution_id == currentInstitution.id %}
-                  <span class="badge bg-success ms-2">Current</span>
-                {% endif %}
-              </small>
-            </div>
-            {% if institution.working_institution_id != currentInstitution.id %}
-            {% set institutionRole = institution.relationship_type == 'primary' ? 'owner' : 'employee' %}
-            <button class="btn btn-outline-primary btn-sm" onclick="switchInstitution('{{ institution.working_institution_id }}', '{{ institutionRole }}')">
-              Switch Company
-            </button>
-            {% endif %}
-          </div>
-          {% endfor %}
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-      </div>
-    </div>
-  </div>
-</div>
-{% endif %}
 
 <div class="modal fade" id="notesModal" tabindex="-1" aria-labelledby="notesModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">

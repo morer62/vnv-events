@@ -328,18 +328,14 @@
       </script>
 
       <li class="nav-item dropdown">
-        <a class="nav-icon dropdown-toggle d-inline-block d-sm-none" href="#" data-bs-toggle="dropdown"><i class="align-middle" data-feather="settings"></i></a>
-
-        <a class="nav-link dropdown-toggle d-none d-sm-inline-block" href="#" data-bs-toggle="dropdown">
-          <img src="{{ asset_for('template/img/avatars/profile.png') }}" class="avatar img-fluid rounded me-1" alt="Charles Hall" />
-          <span class="text-dark">{{ user.email }}</span>
+        <a class="nav-link dropdown-toggle d-inline-flex align-items-center" href="#" data-bs-toggle="dropdown" aria-label="Account menu">
+          <img src="{{ asset_for('template/img/avatars/profile.png') }}" class="avatar img-fluid rounded me-1" alt="Account" />
+          <span class="text-dark d-none d-sm-inline">{{ user.email }}</span>
         </a>
-        {% if not session.IS_MOBILE_APP %}
         <div class="dropdown-menu dropdown-menu-end">
           {#<div class="dropdown-divider"></div>#}
           <a class="dropdown-item" href="{{ path('logout') }}">Log out</a>
         </div>
-        {% endif %}
       </li>
 
     </ul>

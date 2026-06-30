@@ -49,7 +49,7 @@ $router->post(function () {
 
     if ($methodId <= 0) {
         MessageUtil::setMessage('Invalid payment method.', 'Error', 'danger');
-        LocationUtils::redirectInternal('/panel/level5/payment-methods');
+        LocationUtils::redirectInternal('panel/payment-methods');
     }
 
     if ($action === 'authorize' && $businessId > 0) {
@@ -73,7 +73,7 @@ $router->post(function () {
         MessageUtil::setMessage('Payment method removed.');
     }
 
-    LocationUtils::redirectInternal('/panel/level5/payment-methods');
+    LocationUtils::redirectInternal('panel/payment-methods');
 });
 
 $router->run();

@@ -144,14 +144,7 @@ $router->post(function () {
     $currentInstitutionId = $_SESSION['current_institution_id'] ?? null;
 
     if (isset($_POST["switch_institution"])) {
-        $institutionId = (int) $_POST["switch_institution"];
-        $result = $userInstitutionService->switchInstitutionContext($user->getId(), $institutionId);
-        
-        if ($result['success']) {
-            MessageUtil::setMessage("Institution context switched successfully.");
-        } else {
-            MessageUtil::setMessage("Error switching institution: " . $result['message']);
-        }
+        MessageUtil::setMessage("Team members can only switch between Team and Client views.");
         LocationUtils::reload();
     }
 

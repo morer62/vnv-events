@@ -164,7 +164,7 @@ $router->post(function () {
         $date = $_POST["event_date"] ?? null;
         $today = date("Y-m-d");
         if ($date < $today) {
-            MessageUtil::setMessage("âŒ Event date cannot be in the past.");
+            MessageUtil::setMessage("Event date cannot be in the past.");
             LocationUtils::reload();
         }
 
@@ -235,7 +235,7 @@ $router->post(function () {
             }
             
             foreach ($services as $item) {
-                // Obtener el precio y descripciÃ³n del servicio para guardarlo como histÃ³rico
+                // Store the service price and description as a historical snapshot.
                 $serviceRepo = new OrdersServiceRepository();
                 $service = $serviceRepo->getByIdWithoutOwnershipCheck($item["service"]);
                 $unitPrice = ($item["is_variable"] ?? "NO") === "YES" && isset($item["variable_price"]) 
@@ -319,7 +319,7 @@ $router->post(function () {
             $serviceOwnerId = $ownerData['id_owner'] ?? $user->getOwner();
             
             foreach ($services as $item) {
-                // Obtener el precio y descripciÃ³n del servicio para guardarlo como histÃ³rico
+                // Store the service price and description as a historical snapshot.
                 $serviceRepo = new OrdersServiceRepository();
                 $service = $serviceRepo->getByIdWithoutOwnershipCheck($item["service"]);
                 $unitPrice = ($item["is_variable"] ?? "NO") === "YES" && isset($item["variable_price"]) 
@@ -374,37 +374,41 @@ $router->post(function () {
     }
 
     if ($creationSuccess && $orderId) {
-        $secret = $_ENV["VNV_SECRET_KEY"] ?? "mySuperSecretKey";
-        $payload = [
-            "order_id" => (int)$orderId,
-            "user_id" => (int)$client,
-            "exp" => time() + 60 * 60 * 24 * 30,
-        ];
-        $payload["hash"] = hash_hmac("sha256", json_encode([
-            "order_id" => $payload["order_id"],
-            "user_id" => $payload["user_id"],
-            "exp" => $payload["exp"]
-        ]), $secret);
-        $orderToken = base64_encode(json_encode($payload));
-        
-        $clientOrderUrl = \App\Utils\LocationUtils::pathFor("/order-access?token=" . urlencode($orderToken));
-        $ownerOrderUrl = \App\Utils\LocationUtils::pathFor("/panel/planner-hub/management/orders/orders/");
+        try {
+            $secret = $_ENV["VNV_SECRET_KEY"] ?? "mySuperSecretKey";
+            $payload = [
+                "order_id" => (int)$orderId,
+                "user_id" => (int)$client,
+                "exp" => time() + 60 * 60 * 24 * 30,
+            ];
+            $payload["hash"] = hash_hmac("sha256", json_encode([
+                "order_id" => $payload["order_id"],
+                "user_id" => $payload["user_id"],
+                "exp" => $payload["exp"]
+            ]), $secret);
+            $orderToken = base64_encode(json_encode($payload));
+            
+            $clientOrderUrl = \App\Utils\LocationUtils::pathFor("/order-access?token=" . urlencode($orderToken));
+            $ownerOrderUrl = \App\Utils\LocationUtils::pathFor("/panel/planner-hub/management/orders/orders/");
 
-        $notificationsRepo = new NotificationsRepository();
-        
-        $clientNotificationResult = $notificationsRepo->add([
-            "id_user" => $client,
-            "mensaje" => $notificationMessage,
-            "link" => $clientOrderUrl,
-            "leido" => 0
-        ]);
-        
-        $ownerNotificationResult = $notificationsRepo->add([
-            "id_user" => $user->getOwner(),
-            "mensaje" => $notificationMessage,
-            "link" => $ownerOrderUrl,
-            "leido" => 0
-        ]);
+            $notificationsRepo = new NotificationsRepository();
+            
+            $notificationsRepo->add([
+                "id_user" => $client,
+                "mensaje" => $notificationMessage,
+                "link" => $clientOrderUrl,
+                "leido" => 0
+            ]);
+            
+            $notificationsRepo->add([
+                "id_user" => $user->getOwner(),
+                "mensaje" => $notificationMessage,
+                "link" => $ownerOrderUrl,
+                "leido" => 0
+            ]);
+        } catch (\Throwable $e) {
+            error_log("Order notification failed after create: " . $e->getMessage());
+        }
     }
 
     if ($creationSuccess && $orderId) {
@@ -416,9 +420,9 @@ $router->post(function () {
             
             if ($clientInfo && $clientInfo->email) {
                 if ($isSubOrder) {
-                    $subject = "ðŸ“ New Sub-Order Created - Sub-Order #" . $suborderId . " for Order #VNV341" . $parentOrderId;
+                    $subject = "New Sub-Order Created - Sub-Order #" . $suborderId . " for Order #VNV341" . $parentOrderId;
                 } else {
-                    $subject = "ðŸ“ New Order Created - Order #VNV341" . $orderId;
+                    $subject = "New Order Created - Order #VNV341" . $orderId;
                 }
                 
                 if ($isSubOrder) {
@@ -445,11 +449,11 @@ $router->post(function () {
                 foreach ($assignedServices as $assigned) {
                     $service = $serviceRepo->getOne(["id" => $assigned->id_service]);
                     if ($service) {
-                        // Usar el precio histÃ³rico almacenado (unit_price) si existe
+                        // Use the stored historical unit_price when available.
                         if (isset($assigned->unit_price) && $assigned->unit_price > 0) {
                             $unitPrice = $assigned->unit_price;
                         } else {
-                            // Fallback para Ã³rdenes antiguas
+                            // Fallback for older orders.
                             $unitPrice = ($assigned->is_variable === 'YES' && $assigned->variable_price !== null) 
                                 ? $assigned->variable_price 
                                 : $service->price;
@@ -545,7 +549,8 @@ $router->post(function () {
                 $templateData
             );
             }
-        } catch (Exception $e) {
+        } catch (\Throwable $e) {
+            error_log("Order email failed after create: " . $e->getMessage());
         }
     }
 

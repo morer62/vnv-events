@@ -390,21 +390,25 @@ $router->post(function () {
         $clientOrderUrl = \App\Utils\LocationUtils::pathFor("/order-access?token=" . urlencode($orderToken));
         $ownerOrderUrl = \App\Utils\LocationUtils::pathFor("/panel/planner-hub/management/orders/orders/");
 
-        $notificationsRepo = new NotificationsRepository();
-        
-        $clientNotificationResult = $notificationsRepo->add([
-            "id_user" => $client,
-            "mensaje" => $notificationMessage,
-            "link" => $clientOrderUrl,
-            "leido" => 0
-        ]);
-        
-        $ownerNotificationResult = $notificationsRepo->add([
-            "id_user" => $user->getOwner(),
-            "mensaje" => $notificationMessage,
-            "link" => $ownerOrderUrl,
-            "leido" => 0
-        ]);
+        try {
+            $notificationsRepo = new NotificationsRepository();
+
+            $notificationsRepo->add([
+                "id_user" => $client,
+                "mensaje" => $notificationMessage,
+                "link" => $clientOrderUrl,
+                "leido" => 0
+            ]);
+
+            $notificationsRepo->add([
+                "id_user" => $user->getOwner(),
+                "mensaje" => $notificationMessage,
+                "link" => $ownerOrderUrl,
+                "leido" => 0
+            ]);
+        } catch (\Throwable $e) {
+            error_log("Order notification failed after create: " . $e->getMessage());
+        }
     }
 
     if ($creationSuccess && $orderId) {
@@ -545,7 +549,8 @@ $router->post(function () {
                 $templateData
             );
             }
-        } catch (Exception $e) {
+        } catch (\Throwable $e) {
+            error_log("Order email failed after create: " . $e->getMessage());
         }
     }
 

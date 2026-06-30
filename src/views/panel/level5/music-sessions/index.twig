@@ -1,0 +1,561 @@
+{% extends 'templates/base.admin.twig' %}
+
+{% block body %}
+<main class="vnv-sessions-private container-fluid py-4">
+  <style>
+    .vnv-sessions-private {
+      --vnv-teal: #45e3cf;
+      --vnv-gold: #d8ad45;
+      --vnv-ink: #0b1012;
+      --vnv-panel: #12191b;
+      --vnv-muted: #6c7b80;
+      color: #10181a;
+    }
+
+    .sessions-shell {
+      max-width: 1360px;
+      margin: 0 auto;
+    }
+
+    .sessions-hero {
+      position: relative;
+      overflow: hidden;
+      border-radius: 30px;
+      padding: clamp(22px, 3vw, 34px);
+      color: #fff;
+      background:
+        linear-gradient(115deg, rgba(6, 11, 13, .96), rgba(6, 11, 13, .68)),
+        url("{{ path('/assets/images/vnv-core-brunch-mansion-hero.png') }}") center 48% / cover;
+      box-shadow: 0 30px 80px rgba(8, 22, 24, .20);
+    }
+
+    .sessions-hero:after {
+      content: "";
+      position: absolute;
+      inset: auto -10% -45% 34%;
+      height: 70%;
+      background: radial-gradient(circle, rgba(69, 227, 207, .16), transparent 64%);
+      pointer-events: none;
+    }
+
+    .sessions-kicker {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      border: 1px solid rgba(69, 227, 207, .28);
+      border-radius: 999px;
+      background: rgba(69, 227, 207, .12);
+      color: var(--vnv-teal);
+      font-size: 12px;
+      font-weight: 900;
+      letter-spacing: .12em;
+      padding: 10px 14px;
+      text-transform: uppercase;
+    }
+
+    .sessions-hero h1 {
+      position: relative;
+      z-index: 1;
+      margin: 16px 0 0;
+      max-width: 680px;
+      color: #fff !important;
+      font-size: clamp(34px, 4vw, 56px);
+      font-weight: 950;
+      line-height: .96;
+      letter-spacing: 0;
+    }
+
+    .session-search-panel {
+      position: relative;
+      z-index: 2;
+      margin: -26px auto 24px;
+      max-width: 1120px;
+      padding: 14px;
+      border: 1px solid rgba(16, 30, 33, .08);
+      border-radius: 26px;
+      background: rgba(255, 255, 255, .94);
+      box-shadow: 0 24px 70px rgba(10, 26, 29, .14);
+      backdrop-filter: blur(16px);
+    }
+
+    .session-search {
+      display: grid;
+      grid-template-columns: minmax(210px, .35fr) minmax(0, 1fr) auto;
+      gap: 10px;
+    }
+
+    .session-search input,
+    .session-search select {
+      min-height: 56px;
+      border: 1px solid rgba(14, 31, 34, .14);
+      border-radius: 999px;
+      padding: 0 20px;
+      font-size: 16px;
+      background-color: #fff;
+    }
+
+    .session-search button {
+      min-height: 56px;
+      border: 0;
+      border-radius: 999px;
+      background: #0f1719;
+      color: #fff;
+      padding: 0 24px;
+      font-weight: 900;
+    }
+
+    .sessions-grid {
+      display: grid;
+      grid-template-columns: minmax(0, .92fr) minmax(420px, 1.08fr);
+      gap: 18px;
+      align-items: start;
+    }
+
+    .queue-panel,
+    .now-panel {
+      border: 1px solid rgba(14, 31, 34, .08);
+      border-radius: 28px;
+      background: #fff;
+      box-shadow: 0 22px 58px rgba(14, 31, 34, .10);
+      overflow: hidden;
+    }
+
+    .queue-panel {
+      padding: 16px;
+    }
+
+    .queue-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: center;
+      margin-bottom: 14px;
+      padding: 4px 4px 0;
+    }
+
+    .queue-head h2,
+    .now-copy h2 {
+      margin: 0;
+      color: #10181a;
+      font-weight: 950;
+      letter-spacing: 0;
+    }
+
+    .queue-head span {
+      color: var(--vnv-muted);
+      font-weight: 800;
+    }
+
+    .session-list-scroll {
+      max-height: 332px;
+      overflow-y: auto;
+      padding-right: 6px;
+      scrollbar-color: rgba(69, 227, 207, .55) rgba(14, 31, 34, .08);
+      scrollbar-width: thin;
+    }
+
+    .session-list-scroll::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    .session-list-scroll::-webkit-scrollbar-track {
+      background: rgba(14, 31, 34, .06);
+      border-radius: 999px;
+    }
+
+    .session-list-scroll::-webkit-scrollbar-thumb {
+      background: rgba(69, 227, 207, .58);
+      border-radius: 999px;
+    }
+
+    .filter-empty {
+      display: none;
+      border: 1px dashed rgba(14, 31, 34, .16);
+      border-radius: 18px;
+      color: var(--vnv-muted);
+      padding: 18px;
+      text-align: center;
+      font-weight: 800;
+    }
+
+    .filter-empty.show {
+      display: block;
+    }
+
+    .session-tile {
+      width: 100%;
+      display: grid;
+      grid-template-columns: 52px minmax(0, 1fr) auto;
+      gap: 12px;
+      align-items: center;
+      border: 1px solid rgba(14, 31, 34, .08);
+      border-radius: 20px;
+      background: #f7fafa;
+      color: inherit;
+      padding: 12px;
+      text-align: left;
+      margin-bottom: 10px;
+      cursor: pointer;
+      transition: transform .18s ease, background .18s ease, border-color .18s ease;
+    }
+
+    .session-tile:hover,
+    .session-tile.active {
+      transform: translateY(-1px);
+      border-color: rgba(69, 227, 207, .34);
+      background: #0f1719;
+      color: #fff;
+    }
+
+    .session-art {
+      width: 52px;
+      height: 52px;
+      border-radius: 16px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background:
+        radial-gradient(circle at 30% 20%, rgba(69, 227, 207, .92), transparent 34%),
+        linear-gradient(145deg, #182326, #d8ad45);
+      color: #fff;
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,.18);
+    }
+
+    .session-tile strong {
+      display: block;
+      font-weight: 950;
+      line-height: 1.25;
+    }
+
+    .session-tile small {
+      display: block;
+      margin-top: 4px;
+      color: inherit;
+      opacity: .62;
+      line-height: 1.35;
+    }
+
+    .session-play-dot {
+      width: 84px;
+      height: 40px;
+      border-radius: 999px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      background: rgba(69, 227, 207, .18);
+      color: var(--vnv-teal);
+      font-size: 12px;
+      font-weight: 950;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .now-panel {
+      position: sticky;
+      top: 18px;
+      background:
+        radial-gradient(circle at 20% 0%, rgba(69, 227, 207, .18), transparent 28%),
+        linear-gradient(145deg, #0c1113, #141d20 58%, #101315);
+      color: #fff;
+      padding: clamp(20px, 3vw, 30px);
+    }
+
+    .now-visual {
+      display: grid;
+      grid-template-columns: 92px minmax(0, 1fr);
+      gap: 20px;
+      align-items: center;
+      margin-bottom: 18px;
+    }
+
+    .album-orb {
+      width: 92px;
+      height: 92px;
+      border-radius: 24px;
+      background:
+        radial-gradient(circle at 30% 20%, #5ff4df, transparent 30%),
+        radial-gradient(circle at 70% 76%, #d8ad45, transparent 34%),
+        linear-gradient(145deg, #172226, #06090a);
+      box-shadow: 0 24px 44px rgba(0,0,0,.34), inset 0 0 0 1px rgba(255,255,255,.12);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-size: 30px;
+    }
+
+    .now-copy h2 {
+      color: #fff !important;
+      font-size: clamp(18px, 1.9vw, 26px);
+      line-height: 1.14;
+      margin: 6px 0 0;
+      max-width: 760px;
+    }
+
+    .now-meta {
+      color: var(--vnv-teal);
+      font-size: 12px;
+      font-weight: 900;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+    }
+
+    .embed-drawer {
+      display: none;
+      margin: 16px 0 18px;
+      border-radius: 22px;
+      overflow: hidden;
+      background: rgba(255,255,255,.06);
+      border: 1px solid rgba(255,255,255,.12);
+    }
+
+    .embed-drawer.open {
+      display: block;
+    }
+
+    .embed-drawer iframe {
+      display: block;
+      width: 100%;
+      min-height: clamp(220px, 28vw, 340px);
+      border: 0;
+    }
+
+    .empty-sessions {
+      border: 1px dashed rgba(14, 31, 34, .2);
+      border-radius: 24px;
+      background: #fff;
+      padding: 32px;
+      color: var(--vnv-muted);
+      text-align: center;
+      box-shadow: 0 18px 44px rgba(14, 31, 34, .08);
+    }
+
+    @media (max-width: 1050px) {
+      .sessions-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .now-panel {
+        position: static;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .session-search {
+        grid-template-columns: 1fr;
+      }
+
+      .now-visual {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+
+  <div class="sessions-shell">
+    <section class="sessions-hero">
+      <span class="sessions-kicker"><i class="fa-solid fa-music"></i> VNV Sessions</span>
+      <h1>Private mixes for the VNV mood.</h1>
+    </section>
+
+    <section class="session-search-panel">
+      <form class="session-search" method="get" action="{{ path('panel/music-sessions') }}" data-session-filters>
+        <select class="form-select" name="category" data-category-filter aria-label="Filter sessions by category">
+          <option value="">All categories</option>
+          {% for category in categories %}
+            <option value="{{ category.id }}" {{ selected_category == category.id ? 'selected' : '' }}>
+              {{ category.name }} ({{ category.sessions_count }})
+            </option>
+          {% endfor %}
+        </select>
+        <input class="form-control" type="search" name="search" value="{{ search }}" placeholder="Search by session, mood, DJ, category or keyword" data-search-filter>
+        <button type="submit"><i class="fa-solid fa-search me-1"></i> Search</button>
+      </form>
+    </section>
+
+    {% if featured_session %}
+      <section class="sessions-grid">
+        <aside class="queue-panel">
+          <div class="queue-head">
+            <h2>Browse sessions</h2>
+            <span data-result-count>{{ sessions|length }} result{{ sessions|length == 1 ? '' : 's' }}</span>
+          </div>
+
+          <div class="session-list-scroll">
+            {% for session in sessions %}
+              <button type="button"
+                      class="session-tile {{ loop.first ? 'active' : '' }}"
+                      data-session-id="{{ session.id }}"
+                      data-title="{{ session.title|e('html_attr') }}"
+                      data-category="{{ session.category_name|default('VNV Sessions')|e('html_attr') }}"
+                      data-category-id="{{ session.id_category|default('') }}"
+                      data-search="{{ (session.title ~ ' ' ~ session.category_name|default('') ~ ' ' ~ session.description|default(''))|lower|e('html_attr') }}"
+                      data-url="{{ session.url|default('')|e('html_attr') }}">
+                <span class="session-art"><i class="fa-solid fa-music"></i></span>
+                <span>
+                  <strong>{{ session.title }}</strong>
+                  <small>{{ session.category_name|default('VNV Sessions') }}</small>
+                </span>
+                <span class="session-play-dot"><i class="fa-solid fa-play"></i> Video</span>
+              </button>
+            {% endfor %}
+          </div>
+          <div class="filter-empty" data-filter-empty>No sessions match this search.</div>
+        </aside>
+
+        <article class="now-panel">
+          <div class="now-visual">
+            <div class="album-orb"><i class="fa-solid fa-headphones"></i></div>
+            <div class="now-copy">
+              <div class="now-meta" data-now-category>{{ featured_session.category_name|default('VNV Sessions') }}</div>
+              <h2 data-now-title>{{ featured_session.title }}</h2>
+            </div>
+          </div>
+
+          <div class="embed-drawer" data-embed-drawer>
+            <div data-embed-target></div>
+          </div>
+
+          <a class="visually-hidden" href="{{ featured_session.url|default('#') }}" target="_blank" rel="noopener" data-now-url>View on YouTube</a>
+        </article>
+      </section>
+
+      {% for session in sessions %}
+        <template id="session-embed-{{ session.id }}">
+          {% if session.embed_code %}
+            {{ session.embed_code|raw }}
+          {% elseif session.url %}
+            <div class="p-4">
+              <a class="btn btn-light rounded-pill fw-bold px-4" href="{{ session.url }}" target="_blank" rel="noopener">View on YouTube</a>
+            </div>
+          {% endif %}
+        </template>
+      {% endfor %}
+    {% else %}
+      <div class="empty-sessions">No sessions match this category or search yet.</div>
+    {% endif %}
+  </div>
+</main>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  const tiles = Array.from(document.querySelectorAll('.session-tile'));
+  const title = document.querySelector('[data-now-title]');
+  const category = document.querySelector('[data-now-category]');
+  const url = document.querySelector('[data-now-url]');
+  const drawer = document.querySelector('[data-embed-drawer]');
+  const embedTarget = document.querySelector('[data-embed-target]');
+  const searchInput = document.querySelector('[data-search-filter]');
+  const categorySelect = document.querySelector('[data-category-filter]');
+  const resultCount = document.querySelector('[data-result-count]');
+  const emptyState = document.querySelector('[data-filter-empty]');
+  let activeId = tiles[0] ? tiles[0].dataset.sessionId : null;
+  let userStartedPlayer = false;
+
+  function enableAutoplay(container) {
+    const iframe = container ? container.querySelector('iframe') : null;
+    if (!iframe) return;
+
+    const rawSrc = iframe.getAttribute('src') || '';
+    if (!rawSrc) return;
+
+    try {
+      const src = new URL(rawSrc, window.location.origin);
+      if (src.hostname.includes('youtube.com')) {
+        src.searchParams.set('autoplay', '1');
+        src.searchParams.set('rel', '0');
+      } else if (src.hostname.includes('soundcloud.com')) {
+        src.searchParams.set('auto_play', 'true');
+      }
+      iframe.setAttribute('src', src.toString());
+    } catch (error) {
+      iframe.setAttribute('src', rawSrc + (rawSrc.includes('?') ? '&' : '?') + 'autoplay=1');
+    }
+  }
+
+  function showEmbed(autoplay) {
+    if (!activeId || !embedTarget || !drawer) return;
+    const template = document.getElementById('session-embed-' + activeId);
+    embedTarget.innerHTML = template ? template.innerHTML : '';
+    drawer.classList.add('open');
+    if (autoplay) {
+      enableAutoplay(embedTarget);
+    }
+  }
+
+  function selectSession(tile, play) {
+    if (!tile) return;
+    tiles.forEach((item) => item.classList.toggle('active', item === tile));
+    activeId = tile.dataset.sessionId;
+    if (title) title.textContent = tile.dataset.title || 'VNV Session';
+    if (category) category.textContent = tile.dataset.category || 'VNV Sessions';
+    if (url) {
+      const nextUrl = tile.dataset.url || '#';
+      url.href = nextUrl;
+      url.style.display = nextUrl === '#' ? 'none' : '';
+    }
+
+    if (play) {
+      userStartedPlayer = true;
+      showEmbed(true);
+    } else if (userStartedPlayer) {
+      showEmbed(false);
+    } else if (!userStartedPlayer && drawer && embedTarget) {
+      embedTarget.innerHTML = '';
+      drawer.classList.remove('open');
+    }
+  }
+
+  function applyFilters() {
+    const query = (searchInput ? searchInput.value : '').trim().toLowerCase();
+    const selectedCategory = categorySelect ? categorySelect.value : '';
+    let visibleCount = 0;
+    let firstVisible = null;
+
+    tiles.forEach((tile) => {
+      const matchesCategory = !selectedCategory || tile.dataset.categoryId === selectedCategory;
+      const matchesSearch = !query || (tile.dataset.search || '').includes(query);
+      const visible = matchesCategory && matchesSearch;
+      tile.hidden = !visible;
+      if (visible) {
+        visibleCount += 1;
+        firstVisible = firstVisible || tile;
+      }
+    });
+
+    if (resultCount) {
+      resultCount.textContent = visibleCount + ' result' + (visibleCount === 1 ? '' : 's');
+    }
+
+    if (emptyState) {
+      emptyState.classList.toggle('show', visibleCount === 0);
+    }
+
+    const activeTile = tiles.find((tile) => tile.classList.contains('active') && !tile.hidden);
+    if (activeTile) {
+      selectSession(activeTile, false);
+    } else if (firstVisible) {
+      selectSession(firstVisible, false);
+    } else if (drawer && embedTarget) {
+      embedTarget.innerHTML = '';
+      drawer.classList.remove('open');
+    }
+  }
+
+  tiles.forEach((tile) => {
+    tile.addEventListener('click', () => selectSession(tile, true));
+  });
+
+  if (searchInput) {
+    searchInput.addEventListener('input', applyFilters);
+  }
+
+  if (categorySelect) {
+    categorySelect.addEventListener('change', applyFilters);
+  }
+
+  applyFilters();
+});
+</script>
+{% endblock %}
