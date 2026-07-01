@@ -327,16 +327,18 @@
         });
       </script>
 
-      <li class="nav-item dropdown">
-        <a class="nav-link dropdown-toggle d-inline-flex align-items-center" href="#" data-bs-toggle="dropdown" aria-label="Account menu">
-          <img src="{{ asset_for('template/img/avatars/profile.png') }}" class="avatar img-fluid rounded me-1" alt="Account" />
-          <span class="text-dark d-none d-sm-inline">{{ user.email }}</span>
-        </a>
-        <div class="dropdown-menu dropdown-menu-end">
-          {#<div class="dropdown-divider"></div>#}
-          <a class="dropdown-item" href="{{ path('logout') }}">Log out</a>
-        </div>
-      </li>
+      {% if not session.IS_MOBILE_APP %}
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle d-inline-flex align-items-center" href="#" data-bs-toggle="dropdown" aria-label="Account menu">
+            <img src="{{ asset_for('template/img/avatars/profile.png') }}" class="avatar img-fluid rounded me-1" alt="Account" />
+            <span class="text-dark d-none d-sm-inline">{{ user.email }}</span>
+          </a>
+          <div class="dropdown-menu dropdown-menu-end">
+            {#<div class="dropdown-divider"></div>#}
+            <a class="dropdown-item" href="{{ path('logout') }}">Log out</a>
+          </div>
+        </li>
+      {% endif %}
 
     </ul>
   </div>

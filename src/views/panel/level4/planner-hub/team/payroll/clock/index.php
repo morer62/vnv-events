@@ -22,6 +22,15 @@ $router = new Router();
 $repo = new PayrollTimeLogsRepository();
 $user = LoginService::getSession();
 
+function level4ClockRedirect(): never
+{
+    if (($_SESSION['IS_MOBILE_APP'] ?? false) === true) {
+        LocationUtils::redirectInternal('panel/planner-hub/team/payroll/clock');
+    }
+
+    LocationUtils::reload();
+}
+
 $router->get(function () use ($repo, $user): string {
     $userInstitutionService = new UserInstitutionService();
     $workspaceContextService = new UserWorkspaceContextService();
@@ -237,13 +246,13 @@ $router->post(callback: function () use ($repo, $user): void {
     if ($action === "start") {
         if (count($logs) > 0) {
             MessageUtil::setMessage("You already started a session.");
-            LocationUtils::reload();
+            level4ClockRedirect();
         }
 
         $contractService = new TeamMemberContractService();
         if (!$contractService->isClockInAllowed($user->getId(), $currentInstitutionOwner)) {
             MessageUtil::setMessage('You need a signed or approved contract before using the clock.', 'Contract required', 'warning');
-            LocationUtils::reload();
+            level4ClockRedirect();
         }
 
         $latitude = trim((string)($_POST["location_lat"] ?? ""));
@@ -261,7 +270,7 @@ $router->post(callback: function () use ($repo, $user): void {
         } catch (Throwable $e) {
             error_log('[Level4 Clock] Clock-in failed: ' . $e->getMessage());
             MessageUtil::setMessage('Unable to start the clock. Please try again.', 'Error', 'error');
-            LocationUtils::reload();
+            level4ClockRedirect();
         }
 
         try {
@@ -275,7 +284,7 @@ $router->post(callback: function () use ($repo, $user): void {
             error_log('[Level4 Clock] Clock-in notification failed: ' . $e->getMessage());
         }
         MessageUtil::setMessage("Work session started.");
-        LocationUtils::reload();
+        level4ClockRedirect();
     }
 
     if ($action === "end") {
@@ -283,7 +292,7 @@ $router->post(callback: function () use ($repo, $user): void {
         
         if (!$activeLog) {
             MessageUtil::setMessage("No active session found.");
-            LocationUtils::reload();
+            level4ClockRedirect();
         }
 
         try {
@@ -296,7 +305,7 @@ $router->post(callback: function () use ($repo, $user): void {
         } catch (Throwable $e) {
             error_log('[Level4 Clock] Clock-out failed: ' . $e->getMessage());
             MessageUtil::setMessage('Unable to stop the clock. Please try again.', 'Error', 'error');
-            LocationUtils::reload();
+            level4ClockRedirect();
         }
 
         try {
@@ -310,11 +319,11 @@ $router->post(callback: function () use ($repo, $user): void {
             error_log('[Level4 Clock] Clock-out notification failed: ' . $e->getMessage());
         }
         MessageUtil::setMessage("Work session ended.");
-        LocationUtils::reload();
+        level4ClockRedirect();
     }
 
     MessageUtil::setMessage("Invalid action.");
-    LocationUtils::reload();
+    level4ClockRedirect();
 });
 
 try {
