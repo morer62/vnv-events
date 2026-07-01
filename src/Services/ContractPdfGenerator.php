@@ -168,7 +168,7 @@ class ContractPdfGenerator
 
             <div class="meta">
                 <hr style="height:1px; background:#d6dde3; border:0; margin:15px 0;"/>
-                <div>This document was electronically generated and signed via Planner Hub.</div>
+                <div>This document was electronically generated and signed by VNV Events LLC.</div>
                 <div>Browser: ' . htmlspecialchars($browser) . '</div>
             </div>
         </body>
