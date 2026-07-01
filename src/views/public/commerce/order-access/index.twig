@@ -570,11 +570,6 @@
 				{% elseif not isPaymentReady %}
 					<div class="alert alert-warning mb-0">
 						<strong><i class="bi bi-exclamation-triangle me-1"></i>{{ trans('planner_hub.payment_unavailable') }}</strong> {{ trans('planner_hub.payments_unavailable_contact') }}
-						<div class="mt-2">
-							<a href="{{ base_url }}/panel/planner-hub/settings/payment-providers" class="btn btn-outline-warning btn-sm">
-								<i class="bi bi-gear me-1"></i>{{ trans('planner_hub.configure_payment_method') }}
-							</a>
-						</div>
 					</div>
 				{% elseif activeProvider and activeProvider.provider_type == 'paypal' %}
 					<!-- Payment Form (PayPal) -->
@@ -783,6 +778,12 @@
 			
 			if (form && signBtn && consent) {
 				form.addEventListener('submit', function(e) {
+					if (form.dataset.submitting === '1') {
+						e.preventDefault();
+						e.stopPropagation();
+						return false;
+					}
+
 					const hasInitials = document.getElementById("typed_initials") && document.getElementById("typed_initials").value.trim().length > 0;
 					const hasFile = document.querySelector('input[name="signature_image"]') && document.querySelector('input[name="signature_image"]').files.length > 0;
 					const isValid = consent.checked && (hasInitials || hasFile);
@@ -837,10 +838,29 @@
 						
 						return false;
 					}
+
+					form.dataset.submitting = '1';
+					signBtn.disabled = true;
+					signBtn.innerHTML = '{{ trans('planner_hub.processing')|e('js') }}';
+					signBtn.style.opacity = '0.6';
+					signBtn.style.cursor = 'wait';
+
+					if (window.VnvProcessingModal) {
+						window.VnvProcessingModal.show('orderAccessProcessingModal', {
+							title: '{{ trans('planner_hub.signing_contract')|e('js') }}',
+							message: '{{ trans('planner_hub.saving_signature')|e('js') }}'
+						});
+					}
 				});
 				
 				// Also handle button click for visual feedback
 				signBtn.addEventListener('click', function(e) {
+					if (form.dataset.submitting === '1') {
+						e.preventDefault();
+						e.stopPropagation();
+						return false;
+					}
+
 					const hasInitials = document.getElementById("typed_initials") && document.getElementById("typed_initials").value.trim().length > 0;
 					const hasFile = document.querySelector('input[name="signature_image"]') && document.querySelector('input[name="signature_image"]').files.length > 0;
 					const isValid = consent.checked && (hasInitials || hasFile);
@@ -903,28 +923,6 @@
 
 		// Prevenir clics mÃºltiples en botones
 		document.addEventListener('DOMContentLoaded', function() {
-			// Para el formulario de firma simple
-			const form = document.querySelector('#contractForm');
-			if (form) {
-				form.addEventListener('submit', function(e) {
-					const submitButton = form.querySelector('button[type="submit"]');
-					const consent = document.getElementById("eSignConsent");
-					const hasInitials = document.getElementById("typed_initials") && document.getElementById("typed_initials").value.trim().length > 0;
-					const hasFile = document.querySelector('input[name="signature_image"]') && document.querySelector('input[name="signature_image"]').files.length > 0;
-					const isValid = consent && consent.checked && (hasInitials || hasFile);
-					
-					if (submitButton && isValid) {
-						submitButton.disabled = true;
-						submitButton.innerHTML = '{{ trans('planner_hub.processing')|e('js') }}';
-						submitButton.style.opacity = '0.6';
-
-						window.VnvProcessingModal.show('orderAccessProcessingModal', {
-							title: '{{ trans('planner_hub.signing_contract')|e('js') }}',
-							message: '{{ trans('planner_hub.saving_signature')|e('js') }}'
-						});
-					}
-				});
-			}
 			const eSignConsent = document.getElementById('eSignConsent');
 			if (eSignConsent) {
 				eSignConsent.addEventListener('change', toggleContractSubmit);

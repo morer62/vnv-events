@@ -1,69 +1,312 @@
 {% extends 'templates/base.admin.twig' %}
 
+{% block style %}
+<style>
+    .events-admin-shell {
+        max-width: 1480px;
+        margin: 0 auto;
+    }
+
+    .events-admin-hero {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 24px;
+        border-radius: 26px;
+        padding: 32px;
+        color: #fff;
+        background:
+            linear-gradient(135deg, rgba(8, 15, 18, .96), rgba(15, 34, 46, .91)),
+            url('{{ asset_for("assets/images/vnv-core-brunch-mansion-hero.png") }}') center/cover;
+        box-shadow: 0 28px 70px rgba(15, 23, 42, .16);
+    }
+
+    .events-admin-kicker {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 16px;
+        border-radius: 999px;
+        color: #5ff4df;
+        background: rgba(95, 244, 223, .12);
+        border: 1px solid rgba(95, 244, 223, .35);
+        font-size: .78rem;
+        font-weight: 900;
+        letter-spacing: .16em;
+        text-transform: uppercase;
+    }
+
+    .events-admin-hero h1 {
+        margin: 16px 0 10px;
+        font-size: clamp(2rem, 4vw, 4rem);
+        line-height: 1;
+        font-weight: 950;
+        letter-spacing: 0;
+    }
+
+    .events-admin-hero p {
+        color: rgba(255, 255, 255, .78);
+        font-size: 1.02rem;
+        line-height: 1.7;
+        max-width: 760px;
+        margin: 0;
+    }
+
+    .events-admin-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        justify-content: flex-end;
+    }
+
+    .btn-vnv-dark, .btn-vnv-gold, .btn-vnv-soft, .btn-vnv-outline {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        min-height: 42px;
+        padding: 10px 16px;
+        border-radius: 999px;
+        font-weight: 950;
+        text-decoration: none;
+        border: 0;
+    }
+
+    .btn-vnv-dark {
+        color: #fff;
+        background: #071318;
+    }
+
+    .btn-vnv-gold {
+        color: #071318;
+        background: linear-gradient(135deg, #f6e99f, #d8ad3d);
+    }
+
+    .btn-vnv-soft {
+        color: #08796f;
+        background: #ddfbf6;
+    }
+
+    .btn-vnv-outline {
+        color: #fff;
+        border: 1px solid rgba(255, 255, 255, .32);
+        background: rgba(255, 255, 255, .06);
+    }
+
+    .event-admin-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+        gap: 18px;
+        margin-top: 24px;
+    }
+
+    .event-admin-card {
+        border-radius: 24px;
+        background: #fff;
+        border: 1px solid #dce7ef;
+        box-shadow: 0 22px 60px rgba(15, 23, 42, .08);
+        overflow: hidden;
+    }
+
+    .event-admin-media {
+        height: 190px;
+        background: #071318;
+        overflow: hidden;
+    }
+
+    .event-admin-media img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+    }
+
+    .event-admin-body {
+        padding: 22px;
+    }
+
+    .event-admin-badges {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-bottom: 14px;
+    }
+
+    .event-admin-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 7px 10px;
+        border-radius: 999px;
+        color: #08796f;
+        background: #ddfbf6;
+        font-size: .75rem;
+        font-weight: 900;
+        text-transform: uppercase;
+        letter-spacing: .08em;
+    }
+
+    .event-admin-badge.dark {
+        color: #fff;
+        background: #071318;
+    }
+
+    .event-admin-card h2 {
+        color: #071318;
+        font-size: 1.15rem;
+        font-weight: 950;
+        line-height: 1.25;
+        margin: 0;
+    }
+
+    .event-admin-meta {
+        display: grid;
+        gap: 8px;
+        margin: 16px 0;
+        color: #667085;
+    }
+
+    .event-admin-description {
+        color: #667085;
+        line-height: 1.55;
+        margin: 0 0 18px;
+    }
+
+    .event-admin-card-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        padding-top: 16px;
+        border-top: 1px solid #edf2f7;
+    }
+
+    .empty-admin-events {
+        margin-top: 24px;
+        border-radius: 24px;
+        padding: 54px 24px;
+        text-align: center;
+        background: #fff;
+        border: 1px dashed #bfd0dc;
+    }
+
+    .empty-admin-events i {
+        width: 74px;
+        height: 74px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 24px;
+        color: #08796f;
+        background: #ddfbf6;
+        font-size: 1.8rem;
+        margin-bottom: 18px;
+    }
+
+    @media (max-width: 760px) {
+        .events-admin-hero {
+            flex-direction: column;
+            padding: 24px 18px;
+        }
+
+        .events-admin-actions {
+            justify-content: flex-start;
+        }
+    }
+</style>
+{% endblock %}
+
 {% block body %}
-<main class="container-fluid h-100 d-flex flex-column justify-content-center p-3">
-    <h1 class="h3 mb-3 text-center">Venue Events</h1>
+<main class="container-fluid py-4">
+    <div class="events-admin-shell">
+        <nav aria-label="breadcrumb" class="mb-3">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ path('panel/home') }}">Home</a></li>
+                <li class="breadcrumb-item"><a href="{{ path('panel/venues/home') }}">My Venues</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Events</li>
+            </ol>
+        </nav>
 
-    <nav aria-label="breadcrumb" class="text-center">
-        <ol class="breadcrumb justify-content-center">
-            <li class="breadcrumb-item"><a href="{{ path('panel/home') }}">Home</a></li>
-            <li class="breadcrumb-item"><a href="{{ path('panel/venues/home') }}">My Venues</a></li>
-            <li class="breadcrumb-item active" aria-current="page">Events</li>
-        </ol>
-    </nav>
+        <section class="events-admin-hero">
+            <div>
+                <span class="events-admin-kicker"><i class="fa-solid fa-ticket"></i> Tickets / RSVP</span>
+                <h1>{{ venue.name }} events</h1>
+                <p>Manage active events, ticket setup, external sales links and attendee access from this dashboard.</p>
+            </div>
+            <div class="events-admin-actions">
+                <a class="btn-vnv-outline" href="{{ path('panel/venues/home') }}"><i class="fa-solid fa-arrow-left"></i> Venues</a>
+                <a class="btn-vnv-gold" href="{{ path('panel/events/create?venue=' ~ venue.id) }}"><i class="fa-solid fa-plus"></i> Add Event</a>
+            </div>
+        </section>
 
-    <section class="card w-100 shadow-lg">
-        <div class="card-body">
-            <a class="btn btn-secondary mb-3" href="{{ path('panel/events/create?venue=' ~ venue.id) }}">Add Event</a>
+        {% if data is not empty %}
+            <section class="event-admin-grid">
+                {% for element in data %}
+                    <article class="event-admin-card">
+                        <div class="event-admin-media">
+                            {% if element.image %}
+                                <img src="{{ element.image }}" alt="{{ element.name }}">
+                            {% else %}
+                                <img src="{{ asset_for('assets/images/vnv-core-brunch-mansion-hero.png') }}" alt="{{ element.name }}">
+                            {% endif %}
+                        </div>
+                        <div class="event-admin-body">
+                            <div class="event-admin-badges">
+                                <span class="event-admin-badge {{ element.is_active ? '' : 'dark' }}">
+                                    <i class="fa-solid fa-calendar"></i> {{ element.is_active ? 'Active' : 'Past' }}
+                                </span>
+                                {% if element.ticket_sales_enabled %}
+                                    <span class="event-admin-badge"><i class="fa-solid fa-ticket"></i> Tickets live</span>
+                                {% else %}
+                                    <span class="event-admin-badge dark"><i class="fa-solid fa-ticket"></i> Tickets off</span>
+                                {% endif %}
+                                {% if element.ticket_type_count %}
+                                    <span class="event-admin-badge">{{ element.ticket_type_count }} types</span>
+                                {% endif %}
+                            </div>
 
-            <div class="table-responsive">
-                <table class="table table-striped table-hover table-bordered text-center" style="min-width: 1000px; table-layout: fixed;">
-                    <thead>
-                    <tr>
-                        <th>Id</th>
-                        <th>Name or Description</th>
-                        <th>Start Date</th>
-                        <th>End Date</th>
-                        <th>Image</th>
-                        <th>Venue Name</th>
-                        <th>Tickets</th>
-                        <th>Edit</th>
-                        <th>Delete</th>
-                    </tr>
-                    </thead>
+                            <h2>{{ element.name }}</h2>
 
-                    <tbody>
-                    {% for element in data %}
-                        <tr>
-                            <td>{{ element.id }}</td>
-                            <td>{{ element.name }}</td>
-                            <td>{{ element.start_date }}</td>
-                            <td>{{ element.end_date }}</td>
-                            <td>
-                                <img src="{{ element.image }}" class="img-thumbnail" width="100px" alt="venue-image-{{ element.id }}">
-                            </td>
-                            <td>{{ venue.name }}</td>
-                            <td>
-                                <a href="{{ path('panel/events/tickets?event_id=' ~ element.id) }}" class="btn btn-sm btn-primary">
-                                    <i data-feather="ticket"></i> Manage Tickets
+                            <div class="event-admin-meta">
+                                {% if element.start_date %}<div><i class="fa-solid fa-calendar-day me-2"></i>{{ element.start_date|date('M j, Y g:i A') }}</div>{% endif %}
+                                {% if element.end_date %}<div><i class="fa-solid fa-flag-checkered me-2"></i>{{ element.end_date|date('M j, Y g:i A') }}</div>{% endif %}
+                            </div>
+
+                            {% if element.description %}
+                                <p class="event-admin-description">{{ element.description|striptags|slice(0, 150) }}{% if element.description|striptags|length > 150 %}...{% endif %}</p>
+                            {% endif %}
+
+                            <div class="event-admin-card-actions">
+                                <a href="{{ path('panel/events/tickets?event_id=' ~ element.id) }}" class="btn-vnv-dark">
+                                    <i class="fa-solid fa-ticket"></i> Manage tickets
                                 </a>
-                            </td>
-                            <td>
-                                <a href="{{ path('panel/events/edit?id=' ~ element.id ~ "&venue=" ~ element.venue_id) }}">Edit</a>
-                            </td>
-                            <td>
-                                <form method="post" form-delete>
+                                <a href="{{ path('panel/events/edit?id=' ~ element.id ~ '&venue=' ~ element.venue_id) }}" class="btn-vnv-soft">
+                                    <i class="fa-solid fa-pen"></i> Edit
+                                </a>
+                                {% if element.external_link %}
+                                    <a href="{{ element.external_link }}" target="_blank" rel="noopener" class="btn-vnv-gold">
+                                        <i class="fa-solid fa-arrow-up-right-from-square"></i> Sales link
+                                    </a>
+                                {% endif %}
+                                <form method="post" form-delete class="m-0">
                                     <input type="hidden" name="action" value="delete" />
                                     <input type="hidden" name="id" value="{{ element.id }}">
-                                    <button type="submit" class="btn btn-danger">Delete</button>
+                                    <button type="submit" class="btn-vnv-soft">
+                                        <i class="fa-solid fa-trash"></i> Delete
+                                    </button>
                                 </form>
-                            </td>
-                        </tr>
-                    {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </section>
+                            </div>
+                        </div>
+                    </article>
+                {% endfor %}
+            </section>
+        {% else %}
+            <section class="empty-admin-events">
+                <i class="fa-solid fa-calendar-plus"></i>
+                <h2>No events yet</h2>
+                <p class="text-muted">Create the first event for this venue and configure its ticket flow from the dashboard.</p>
+                <a class="btn-vnv-gold" href="{{ path('panel/events/create?venue=' ~ venue.id) }}"><i class="fa-solid fa-plus"></i> Add Event</a>
+            </section>
+        {% endif %}
+    </div>
 </main>
 {% endblock %}

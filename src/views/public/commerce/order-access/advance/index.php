@@ -60,7 +60,7 @@ $router->get(function () {
     try {
         $assignedRepo = new \App\Repositories\OrdersServicesAssignedRepository();
         $serviceRepo = new \App\Repositories\OrdersServiceRepository();
-        $assigned = $assignedRepo->getAllBy(["id_order" => $order->id]);
+        $assigned = $assignedRepo->getAllWithoutOwner(["id_order" => $order->id]);
 
         foreach ($assigned as $a) {
             $service = $serviceRepo->getByIdWithoutOwnershipCheck($a->id_service);
@@ -192,7 +192,7 @@ $router->post(function () {
 
     $assignedRepo = new \App\Repositories\OrdersServicesAssignedRepository();
     $serviceRepo = new \App\Repositories\OrdersServiceRepository();
-    $assigned = $assignedRepo->getAllBy(["id_order" => $order->id]);
+    $assigned = $assignedRepo->getAllWithoutOwner(["id_order" => $order->id]);
     $subtotalCalculated = 0;
     foreach ($assigned as $a) {
         $service = $serviceRepo->getByIdWithoutOwnershipCheck($a->id_service);

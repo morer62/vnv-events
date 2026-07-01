@@ -3,7 +3,7 @@
 
 {% block body %}
 
-<h2 class="mb-4">📦 Orders Dashboard</h2>
+<h2 class="mb-4">Orders Dashboard</h2>
 {{ macros.breadcrumb2() }}
 
 <section class="card">
@@ -34,15 +34,15 @@
                         <tr>
                             <td>vnv-341{{ order.id }}</td>
                             <td>
-                                <span class="badge bg-primary">🏢 {{ order.institution_name|default('Unknown') }}</span>
+                                <span class="badge bg-primary">{{ order.institution_name|default('Unknown') }}</span>
                             </td>
                             <td style="min-inline-size: 160px;">{{ order.event_date|date("l, M j - Y" ) }}</td>
                             <td style="min-inline-size: 160px;">{{ order.start_time|date("g:i A") }} - {{ order.end_time|date("g:i A") }}</td>
                             <td style="min-inline-size: 160px;">{{ order.address }}</td>
                             <td style="min-inline-size: 160px;">
                                 <div class="btn-group" role="group">
-                                    <a href="{{ path(current_location ~ '/tasks') }}?id={{ order.id }}" class="btn btn-sm btn-info">👷 Tasks</a>
-                                    <a href="{{ path(current_location ~ '/print') }}?id={{ order.id }}" class="btn btn-sm btn-dark">🖨 Print</a>
+                                    <a href="{{ path(current_location ~ '/tasks') }}?id={{ order.id }}" class="btn btn-sm btn-info">Tasks</a>
+                                    <a href="{{ path(current_location ~ '/print') }}?id={{ order.id }}" class="btn btn-sm btn-dark">Print</a>
                                 </div>
                             </td>
                             <td style="min-width: 220px;">
@@ -51,8 +51,8 @@
                                         <input type="hidden" name="id_order" value="{{ order.id }}">
                                         <select name="is_confirmed" required>
                                             <option value="">Please confirm or reject</option>
-                                            <option value="1">✅ Accept</option>
-                                            <option value="0">❌ Decline</option>
+                                            <option value="1">Accept</option>
+                                            <option value="0">Decline</option>
                                         </select>
                                         <button type="submit" class="btn btn-sm btn-success">Continue</button>
                                     </form>
@@ -92,7 +92,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
             let message = "Are you sure you want to cancel?";
             if (diffHours < 48) {
-                message = "⚠️ Please avoid canceling less than 48 hours before the event to ensure performance is not affected. Are you sure?";
+                message = "Warning: Please avoid canceling less than 48 hours before the event to ensure performance is not affected. Are you sure?";
             }
 
             if (!confirm(message)) {

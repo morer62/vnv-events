@@ -30,9 +30,11 @@ $router->get(function () {
         LocationUtils::redirectInternal("panel/venues/home");
     }
 
-    $events = $venueEventRepo->getAllBy([
-       "venue_id" => $venueId
-    ]);
+    $events = $venueEventRepo->getActiveByVenueWithTicketConfig((int)$venueId);
+    $now = time();
+    foreach ($events as $event) {
+        $event->is_active = empty($event->end_date) || strtotime((string)$event->end_date) >= $now;
+    }
 
     return TemplateResponse::render(__DIR__ . "/index.twig", [
         "data" => $events,

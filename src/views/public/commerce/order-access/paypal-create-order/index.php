@@ -65,7 +65,7 @@ if ($tipAmount !== null && $tipAmount > 0) {
 } elseif ($paymentType === 'first' || $paymentType === 'second' || $paymentType === 'full') {
     $assignedRepo = new \App\Repositories\OrdersServicesAssignedRepository();
     $serviceRepo = new \App\Repositories\OrdersServiceRepository();
-    $assigned = $assignedRepo->getAllBy(['id_order' => $order->id]);
+    $assigned = $assignedRepo->getAllWithoutOwner(['id_order' => $order->id]);
     $subtotalCalculated = 0;
     foreach ($assigned as $a) {
         $service = $serviceRepo->getByIdWithoutOwnershipCheck($a->id_service);

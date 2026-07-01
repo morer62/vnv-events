@@ -20,7 +20,19 @@ $router = new Router();
         $ticketSalesRepo = new TicketSalesRepository();
         $venueEventsRepo = new VenueEventsRepository();
 
-        $userTickets = $ticketSalesRepo->getByBuyerEmail($user->getEmail());
+        try {
+            $userTickets = $ticketSalesRepo->getByBuyerEmail($user->getEmail());
+        } catch (\Throwable $e) {
+            error_log("Level 5 tickets failed loading user tickets: " . $e->getMessage());
+            $userTickets = [];
+        }
+
+        try {
+            $activeEvents = $venueEventsRepo->getActiveWithTicketConfig();
+        } catch (\Throwable $e) {
+            error_log("Level 5 tickets failed loading active events: " . $e->getMessage());
+            $activeEvents = [];
+        }
 
         $enrichedTickets = [];
         foreach ($userTickets as $ticket) {
@@ -73,7 +85,8 @@ $router = new Router();
             "usedTickets" => $usedTickets,
             "totalTickets" => count($enrichedTickets),
             "activeCount" => count($activeTickets),
-            "usedCount" => count($usedTickets)
+            "usedCount" => count($usedTickets),
+            "activeEvents" => $activeEvents
         ];
         
         return TemplateResponse::render(__DIR__ . "/index.twig", $templateData);

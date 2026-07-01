@@ -8,6 +8,11 @@ use App\Utils\TemplateResponse;
 use App\Repositories\PaymentProvidersRepository;
 use App\Repositories\Connection;
 
+$sessionUser = LoginService::getSession();
+if (!$sessionUser || (int)$sessionUser->getLevel() !== 1) {
+    LocationUtils::redirectInternal('/panel/home');
+}
+
 $router = new Router();
 
 function validateProviderFields(string $type, array $data): ?string
@@ -157,6 +162,16 @@ $router->post(function () {
         $existing = $repo->getAllByOwner($ownerId, 1, 1);
         $isDefault = (($existing['total'] ?? 0) === 0) ? 1 : 0;
 
+        $verificationResult = testProviderCredentials((object)[
+            'provider_type' => $providerType,
+            'api_key' => $apiKey,
+            'api_secret' => $apiSecret,
+            'public_key' => $publicKey,
+            'environment' => $environment,
+            'location_id' => $locationId,
+            'merchant_email' => $merchantEmail,
+        ]);
+
         $ok = $repo->add([
             'id_owner' => $ownerId,
             'provider_type' => $providerType,
@@ -170,13 +185,13 @@ $router->post(function () {
             'merchant_email' => $merchantEmail,
             'location_id' => $locationId,
             'is_active' => $isActive,
-            'is_verified' => 0,
+            'is_verified' => $verificationResult['success'] ? 1 : 0,
             'is_default' => $isDefault,
             'created_at' => date('Y-m-d H:i:s'),
             'updated_at' => date('Y-m-d H:i:s'),
         ]);
 
-        MessageUtil::setMessage($ok ? "Payment provider saved." : "Failed to save payment provider.");
+        MessageUtil::setMessage($ok ? "Payment provider saved. {$verificationResult['message']}" : "Failed to save payment provider.");
         LocationUtils::reload();
     }
 

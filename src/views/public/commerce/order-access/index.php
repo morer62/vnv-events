@@ -239,13 +239,17 @@ $router->get(function () {
         }
     }
 
-    $hasSigned = false;
+    $hasSigned = in_array((string)($order->status_workflow ?? ''), [
+        'INVOICE_READY',
+        'INVOICE_PARTIAL',
+        'INVOICE_PAID',
+    ], true);
     $hasSignedAcceptance = false;
     foreach ($docs as $doc) {
-        if ($doc->doc_type === 'contract_signed') {
+        if (strtolower(trim((string)($doc->doc_type ?? ''))) === 'contract_signed') {
             $hasSigned = true;
         }
-        if ($doc->doc_type === 'order_acceptance_signed') {
+        if (strtolower(trim((string)($doc->doc_type ?? ''))) === 'order_acceptance_signed') {
             $hasSignedAcceptance = true;
         }
         if ($hasSigned && $hasSignedAcceptance) break;
@@ -285,7 +289,7 @@ $router->get(function () {
     // pero respetará el locale ya establecido en $_SESSION
 
     // Servicios asignados con nombre y subtotal
-    $assigned = $assignedRepo->getAllBy(["id_order" => $order->id]);
+    $assigned = $assignedRepo->getAllWithoutOwner(["id_order" => $order->id]);
     $servicesFormatted = [];
     $subtotalCalculated = 0;
     

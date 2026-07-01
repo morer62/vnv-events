@@ -1,267 +1,483 @@
 {% extends 'templates/base.admin.twig' %}
 
+{% block style %}
+<style>
+    .tickets-shell {
+        max-width: 1480px;
+        margin: 0 auto;
+    }
+
+    .tickets-hero {
+        border-radius: 26px;
+        padding: 34px;
+        color: #fff;
+        background:
+            linear-gradient(135deg, rgba(8, 15, 18, .96), rgba(13, 40, 43, .90)),
+            url('{{ asset_for("assets/images/vnv-core-brunch-mansion-hero.png") }}') center/cover;
+        box-shadow: 0 28px 70px rgba(15, 23, 42, .16);
+        overflow: hidden;
+    }
+
+    .tickets-kicker {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 16px;
+        border-radius: 999px;
+        color: #5ff4df;
+        background: rgba(95, 244, 223, .12);
+        border: 1px solid rgba(95, 244, 223, .35);
+        font-size: .78rem;
+        font-weight: 900;
+        letter-spacing: .16em;
+        text-transform: uppercase;
+    }
+
+    .tickets-hero h1 {
+        color: #fff;
+        margin: 18px 0 10px;
+        max-width: 760px;
+        font-size: clamp(2.2rem, 5vw, 4.8rem);
+        line-height: .96;
+        font-weight: 950;
+        letter-spacing: 0;
+    }
+
+    .tickets-hero p {
+        max-width: 760px;
+        color: rgba(255, 255, 255, .78);
+        font-size: 1.05rem;
+        line-height: 1.8;
+        margin: 0;
+    }
+
+    .ticket-stat-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 14px;
+        margin-top: 26px;
+    }
+
+    .ticket-stat {
+        border-radius: 18px;
+        padding: 18px;
+        background: rgba(255, 255, 255, .08);
+        border: 1px solid rgba(255, 255, 255, .13);
+    }
+
+    .ticket-stat strong {
+        display: block;
+        color: #5ff4df;
+        font-size: 2.1rem;
+        line-height: 1;
+    }
+
+    .ticket-stat span {
+        display: block;
+        margin-top: 8px;
+        color: rgba(255, 255, 255, .74);
+        font-size: .76rem;
+        font-weight: 900;
+        text-transform: uppercase;
+        letter-spacing: .12em;
+    }
+
+    .tickets-panel {
+        margin-top: 26px;
+        border-radius: 24px;
+        background: #fff;
+        border: 1px solid #dce7ef;
+        box-shadow: 0 22px 60px rgba(15, 23, 42, .08);
+        overflow: hidden;
+    }
+
+    .tickets-panel-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 18px;
+        padding: 24px 26px;
+        border-bottom: 1px solid #e5edf4;
+    }
+
+    .tickets-panel-head h2 {
+        margin: 0;
+        color: #071318;
+        font-weight: 950;
+        letter-spacing: 0;
+    }
+
+    .tickets-panel-head p {
+        margin: 4px 0 0;
+        color: #667085;
+    }
+
+    .ticket-tabs {
+        display: inline-flex;
+        gap: 8px;
+        padding: 6px;
+        border-radius: 999px;
+        background: #eef5f3;
+    }
+
+    .ticket-tabs .nav-link {
+        border: 0;
+        border-radius: 999px;
+        color: #526071;
+        font-weight: 900;
+        padding: 10px 16px;
+    }
+
+    .ticket-tabs .nav-link.active {
+        color: #fff;
+        background: #071318;
+    }
+
+    .tickets-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(285px, 1fr));
+        gap: 18px;
+        padding: 24px;
+    }
+
+    .ticket-card, .event-card {
+        border-radius: 22px;
+        border: 1px solid #dce7ef;
+        background: #fff;
+        overflow: hidden;
+        transition: transform .18s ease, box-shadow .18s ease;
+    }
+
+    .ticket-card:hover, .event-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 18px 44px rgba(15, 23, 42, .12);
+    }
+
+    .ticket-card-body {
+        padding: 20px;
+    }
+
+    .ticket-card h3, .event-card h3 {
+        color: #071318;
+        font-size: 1.05rem;
+        font-weight: 950;
+        line-height: 1.25;
+        margin: 0;
+    }
+
+    .ticket-meta {
+        display: grid;
+        gap: 8px;
+        margin: 16px 0;
+        color: #667085;
+        font-size: .92rem;
+    }
+
+    .ticket-line {
+        display: flex;
+        justify-content: space-between;
+        gap: 18px;
+        padding: 9px 0;
+        border-top: 1px solid #edf2f7;
+        color: #667085;
+    }
+
+    .ticket-line strong {
+        color: #071318;
+    }
+
+    .ticket-code {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 10px;
+        margin-top: 10px;
+        padding: 10px 12px;
+        border-radius: 14px;
+        background: #f6faf9;
+        border: 1px solid #dce7ef;
+    }
+
+    .ticket-code code {
+        color: #071318;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .btn-vnv-dark, .btn-vnv-gold, .btn-vnv-soft {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        min-height: 42px;
+        padding: 10px 16px;
+        border-radius: 999px;
+        font-weight: 950;
+        text-decoration: none;
+        border: 0;
+    }
+
+    .btn-vnv-dark {
+        color: #fff;
+        background: #071318;
+    }
+
+    .btn-vnv-gold {
+        color: #071318;
+        background: linear-gradient(135deg, #f6e99f, #d8ad3d);
+    }
+
+    .btn-vnv-soft {
+        color: #08796f;
+        background: #ddfbf6;
+    }
+
+    .empty-ticket-state {
+        padding: 48px 24px 24px;
+        text-align: center;
+    }
+
+    .empty-ticket-state i {
+        width: 74px;
+        height: 74px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 24px;
+        color: #08796f;
+        background: #ddfbf6;
+        font-size: 1.8rem;
+        margin-bottom: 18px;
+    }
+
+    .events-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(310px, 1fr));
+        gap: 18px;
+        padding: 24px;
+    }
+
+    .event-media {
+        height: 172px;
+        background: #071318;
+        overflow: hidden;
+    }
+
+    .event-media img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+    }
+
+    .event-body {
+        padding: 20px;
+    }
+
+    .event-badges {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-bottom: 14px;
+    }
+
+    .event-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 7px 10px;
+        border-radius: 999px;
+        color: #08796f;
+        background: #ddfbf6;
+        font-size: .75rem;
+        font-weight: 900;
+        text-transform: uppercase;
+        letter-spacing: .08em;
+    }
+
+    .event-badge.dark {
+        color: #fff;
+        background: #071318;
+    }
+
+    .event-description {
+        color: #667085;
+        line-height: 1.55;
+        margin: 12px 0 18px;
+    }
+
+    .event-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    @media (max-width: 760px) {
+        .tickets-hero, .tickets-panel-head {
+            padding: 24px 18px;
+        }
+
+        .ticket-stat-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .tickets-panel-head {
+            align-items: flex-start;
+            flex-direction: column;
+        }
+    }
+</style>
+{% endblock %}
+
 {% block body %}
-<div class="container-fluid">
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="d-flex justify-content-between align-items-center">
-                <div>
-                    <h1 class="h4 mb-1 text-primary">My Tickets</h1>
-                    <p class="text-muted mb-0">Manage your event tickets</p>
+<div class="container-fluid py-4">
+    <div class="tickets-shell">
+        <section class="tickets-hero">
+            <span class="tickets-kicker"><i class="fa-solid fa-ticket"></i> VNV Tickets</span>
+            <h1>Your event access, organized.</h1>
+            <p>Review purchased tickets, QR codes and active VNV event opportunities without leaving your client dashboard.</p>
+            <div class="ticket-stat-grid">
+                <div class="ticket-stat">
+                    <strong>{{ totalTickets }}</strong>
+                    <span>Total tickets</span>
                 </div>
-                <div>
-                    <span class="badge bg-primary fs-6">{{ totalTickets }} tickets</span>
+                <div class="ticket-stat">
+                    <strong>{{ activeCount }}</strong>
+                    <span>Active tickets</span>
+                </div>
+                <div class="ticket-stat">
+                    <strong>{{ activeEvents|length }}</strong>
+                    <span>Active events</span>
                 </div>
             </div>
-        </div>
-    </div>
+        </section>
 
-    {% if totalTickets > 0 %}
-        <!-- Tabs Navigation -->
-        <div class="card mb-4">
-            <div class="card-header p-0">
-                <ul class="nav nav-tabs card-header-tabs" id="ticketTabs" role="tablist">
+        <section class="tickets-panel">
+            <div class="tickets-panel-head">
+                <div>
+                    <h2>My tickets</h2>
+                    <p>Tickets purchased with your VNV account email appear here.</p>
+                </div>
+                <ul class="nav ticket-tabs" id="ticketTabs" role="tablist">
                     <li class="nav-item" role="presentation">
                         <button class="nav-link active" id="active-tab" data-bs-toggle="tab" data-bs-target="#active" type="button" role="tab">
-                            <i class="fa-solid fa-ticket-alt me-2"></i>Active Tickets
-                            <span class="badge bg-success ms-2">{{ activeCount }}</span>
+                            Active {{ activeCount }}
                         </button>
                     </li>
                     <li class="nav-item" role="presentation">
                         <button class="nav-link" id="used-tab" data-bs-toggle="tab" data-bs-target="#used" type="button" role="tab">
-                            <i class="fa-solid fa-check-circle me-2"></i>Used Tickets
-                            <span class="badge bg-secondary ms-2">{{ usedCount }}</span>
+                            Used {{ usedCount }}
                         </button>
                     </li>
                 </ul>
             </div>
-            
-            <div class="card-body p-0">
-                <div class="tab-content" id="ticketTabsContent">
-                    <!-- Active Tickets Tab -->
-                    <div class="tab-pane fade show active" id="active" role="tabpanel">
-                        {% if activeCount > 0 %}
-                            <div class="p-4">
-                                <div class="row">
-                                    {% for ticket in activeTickets %}
-                                        <div class="col-lg-3 col-md-6 mb-4">
-                                            <div class="card shadow-sm h-100">
-                                                <div class="card-body">
-                                                    <div class="d-flex justify-content-between align-items-start mb-3">
-                                                        <h6 class="card-title text-primary mb-0">{{ ticket.event_name }}</h6>
-                                                        <span class="badge bg-success">{{ ticket.payment_status|title }}</span>
-                                                    </div>
-                                                    
-                                                    <div class="text-muted small mb-3">
-                                                        <div><i class="fa-solid fa-calendar me-1"></i>{{ ticket.event_date|date('M j, Y g:i A') }}</div>
-                                                        {% if ticket.event_location %}
-                                                            <div><i class="fa-solid fa-map-marker-alt me-1"></i>{{ ticket.event_location }}</div>
-                                                        {% endif %}
-                                                    </div>
-                                                    
-                                                    <div class="mb-3">
-                                                        <div class="d-flex justify-content-between">
-                                                            <span class="text-muted">Type:</span>
-                                                            <strong>{{ ticket.ticket_type_name }}</strong>
-                                                        </div>
-                                                        {% if ticket.sales_stage_name %}
-                                                            <div class="d-flex justify-content-between">
-                                                                <span class="text-muted">Stage:</span>
-                                                                <small class="text-muted">{{ ticket.sales_stage_name }}</small>
-                                                            </div>
-                                                        {% endif %}
-                                                        <div class="d-flex justify-content-between">
-                                                            <span class="text-muted">Qty:</span>
-                                                            <strong>{{ ticket.quantity }}</strong>
-                                                        </div>
-                                                        <div class="d-flex justify-content-between">
-                                                            <span class="text-muted">Total:</span>
-                                                            <strong class="text-success">${{ ticket.total_amount|number_format(2) }}</strong>
-                                                        </div>
-                                                    </div>
-                                                    
-                                                    <div class="mb-3">
-                                                        <small class="text-muted">Purchased:</small>
-                                                        <div class="small">{{ ticket.sold_at|date('M j, Y g:i A') }}</div>
-                                                    </div>
-                                                    
-                                                    {% if ticket.ticket_codes %}
-                                                        <div class="mb-3">
-                                                            <small class="text-muted">Codes:</small>
-                                                            <div class="mt-1">
-                                                                {% for code in ticket.ticket_codes %}
-                                                                    <div class="border rounded p-2 mb-2">
-                                                                        <div class="d-flex justify-content-between align-items-center">
-                                                                            <code class="mb-0 small flex-grow-1 me-2">{{ code }}</code>
-                                                                            <div class="d-flex gap-1">
-                                                                                <button class="btn btn-outline-primary btn-sm px-2 py-1 copy-btn" data-code="{{ code }}" title="Copy code">
-                                                                                    Copy
-                                                                                </button>
-                                                                                <button class="btn btn-outline-info btn-sm px-2 py-1 qr-btn" data-ticket-id="{{ ticket.id }}" data-code-index="{{ loop.index0 }}" title="View QR">
-                                                                                    QR
-                                                                                </button>
-                                                                            </div>
-                                                                        </div>
-                                                                    </div>
-                                                                {% endfor %}
-                                                            </div>
-                                                        </div>
-                                                    {% endif %}
-                                                    
-                                                    <div class="d-grid gap-2">
-                                                        <button class="btn btn-primary btn-sm download-btn" data-ticket-id="{{ ticket.id }}" data-code-index="0">
-                                                            <i class="fa-solid fa-download me-1"></i>Download All
-                                                        </button>
-                                                        {% if ticket.ticket_codes|length > 1 %}
-                                                            {% for code in ticket.ticket_codes %}
-                                                                <button class="btn btn-outline-primary btn-sm download-btn" data-ticket-id="{{ ticket.id }}" data-code-index="{{ loop.index0 }}">
-                                                                    <i class="fa-solid fa-download me-1"></i>Download {{ loop.index }}
-                                                                </button>
-                                                            {% endfor %}
-                                                        {% endif %}
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    {% endfor %}
-                                </div>
-                            </div>
-                        {% else %}
-                            <div class="text-center py-5">
-                                <div class="mb-4">
-                                    <span class="text-muted" style="font-size: 4rem;">🎫</span>
-                                </div>
-                                <h5 class="text-muted mb-3">No Active Tickets</h5>
-                                <p class="text-muted">All your tickets have been used.</p>
-                            </div>
-                        {% endif %}
-                    </div>
-                    
-                    <!-- Used Tickets Tab -->
-                    <div class="tab-pane fade" id="used" role="tabpanel">
-                        {% if usedCount > 0 %}
-                            <div class="p-4">
-                                <div class="row">
-                                    {% for ticket in usedTickets %}
-                                        <div class="col-lg-3 col-md-6 mb-4">
-                                            <div class="card shadow-sm h-100 bg-light">
-                                                <div class="card-body">
-                                                    <div class="d-flex justify-content-between align-items-start mb-3">
-                                                        <h6 class="card-title text-muted mb-0">{{ ticket.event_name }}</h6>
-                                                        <span class="badge bg-secondary">Used</span>
-                                                    </div>
-                                                    
-                                                    <div class="text-muted small mb-3">
-                                                        <div><i class="fa-solid fa-calendar me-1"></i>{{ ticket.event_date|date('M j, Y g:i A') }}</div>
-                                                        {% if ticket.event_location %}
-                                                            <div><i class="fa-solid fa-map-marker-alt me-1"></i>{{ ticket.event_location }}</div>
-                                                        {% endif %}
-                                                    </div>
-                                                    
-                                                    <div class="mb-3">
-                                                        <div class="d-flex justify-content-between">
-                                                            <span class="text-muted">Type:</span>
-                                                            <strong class="text-muted">{{ ticket.ticket_type_name }}</strong>
-                                                        </div>
-                                                        {% if ticket.sales_stage_name %}
-                                                            <div class="d-flex justify-content-between">
-                                                                <span class="text-muted">Stage:</span>
-                                                                <small class="text-muted">{{ ticket.sales_stage_name }}</small>
-                                                            </div>
-                                                        {% endif %}
-                                                        <div class="d-flex justify-content-between">
-                                                            <span class="text-muted">Qty:</span>
-                                                            <strong class="text-muted">{{ ticket.quantity }}</strong>
-                                                        </div>
-                                                        <div class="d-flex justify-content-between">
-                                                            <span class="text-muted">Total:</span>
-                                                            <strong class="text-muted">${{ ticket.total_amount|number_format(2) }}</strong>
-                                                        </div>
-                                                    </div>
-                                                    
-                                                    <div class="mb-3">
-                                                        <small class="text-muted">Purchased:</small>
-                                                        <div class="small text-muted">{{ ticket.sold_at|date('M j, Y g:i A') }}</div>
-                                                        <small class="text-muted">Used:</small>
-                                                        <div class="small text-muted">{{ ticket.updated_at|date('M j, Y g:i A') }}</div>
-                                                    </div>
-                                                    
-                                                    {% if ticket.ticket_codes %}
-                                                        <div class="mb-3">
-                                                            <small class="text-muted">Codes:</small>
-                                                            <div class="mt-1">
-                                                                {% for code in ticket.ticket_codes %}
-                                                                    <div class="border rounded p-2 mb-2">
-                                                                        <div class="d-flex justify-content-between align-items-center">
-                                                                            <code class="mb-0 small text-muted flex-grow-1 me-2">{{ code }}</code>
-                                                                            <div class="d-flex gap-1">
-                                                                                <button class="btn btn-outline-secondary btn-sm px-2 py-1 copy-btn" data-code="{{ code }}" title="Copy code">
-                                                                                    Copy
-                                                                                </button>
-                                                                                <button class="btn btn-outline-secondary btn-sm px-2 py-1 qr-btn" data-ticket-id="{{ ticket.id }}" data-code-index="{{ loop.index0 }}" title="View QR">
-                                                                                    QR
-                                                                                </button>
-                                                                            </div>
-                                                                        </div>
-                                                                    </div>
-                                                                {% endfor %}
-                                                            </div>
-                                                        </div>
-                                                    {% endif %}
-                                                    
-                                                    <div class="d-grid gap-2">
-                                                        <button class="btn btn-outline-secondary btn-sm download-btn" data-ticket-id="{{ ticket.id }}" data-code-index="0">
-                                                            <i class="fa-solid fa-download me-1"></i>Download All
-                                                        </button>
-                                                        {% if ticket.ticket_codes|length > 1 %}
-                                                            {% for code in ticket.ticket_codes %}
-                                                                <button class="btn btn-outline-secondary btn-sm download-btn" data-ticket-id="{{ ticket.id }}" data-code-index="{{ loop.index0 }}">
-                                                                    <i class="fa-solid fa-download me-1"></i>Download {{ loop.index }}
-                                                                </button>
-                                                            {% endfor %}
-                                                        {% endif %}
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    {% endfor %}
-                                </div>
-                            </div>
-                        {% else %}
-                            <div class="text-center py-5">
-                                <div class="mb-4">
-                                    <span class="text-muted" style="font-size: 4rem;">✅</span>
-                                </div>
-                                <h5 class="text-muted mb-3">No Used Tickets</h5>
-                                <p class="text-muted">You haven't used any tickets yet.</p>
-                            </div>
-                        {% endif %}
-                    </div>
+
+            <div class="tab-content" id="ticketTabsContent">
+                <div class="tab-pane fade show active" id="active" role="tabpanel">
+                    {% if activeCount > 0 %}
+                        <div class="tickets-grid">
+                            {% for ticket in activeTickets %}
+                                {% include 'panel/level5/tickets/_ticket_card.twig' with { ticket: ticket, used: false } %}
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="empty-ticket-state">
+                            <i class="fa-solid fa-ticket"></i>
+                            <h3>No active tickets yet</h3>
+                            <p class="text-muted mb-0">When you purchase tickets for an active VNV event, they will appear here.</p>
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="tab-pane fade" id="used" role="tabpanel">
+                    {% if usedCount > 0 %}
+                        <div class="tickets-grid">
+                            {% for ticket in usedTickets %}
+                                {% include 'panel/level5/tickets/_ticket_card.twig' with { ticket: ticket, used: true } %}
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="empty-ticket-state">
+                            <i class="fa-solid fa-circle-check"></i>
+                            <h3>No used tickets</h3>
+                            <p class="text-muted mb-0">Used or checked-in tickets will be separated here.</p>
+                        </div>
+                    {% endif %}
                 </div>
             </div>
-        </div>
-    {% else %}
-        <div class="text-center py-5">
-            <div class="mb-4">
-                <span class="text-muted" style="font-size: 4rem;">🎫</span>
+        </section>
+
+        <section class="tickets-panel">
+            <div class="tickets-panel-head">
+                <div>
+                    <h2>Active events</h2>
+                    <p>These are the current VNV event listings available inside your dashboard.</p>
+                </div>
+                <span class="event-badge dark">{{ activeEvents|length }} active</span>
             </div>
-            <h4 class="text-muted mb-3">No tickets yet</h4>
-            <p class="text-muted mb-4">When you purchase event tickets, they will appear here.</p>
-            <a href="{{ path('search/venue/main') }}" class="btn btn-primary">
-                <i class="fa-solid fa-search me-2"></i>Browse Events
-            </a>
-        </div>
-    {% endif %}
+
+            {% if activeEvents is not empty %}
+                <div class="events-grid">
+                    {% for event in activeEvents %}
+                        <article class="event-card">
+                            <div class="event-media">
+                                {% if event.image %}
+                                    <img src="{{ event.image }}" alt="{{ event.name }}">
+                                {% else %}
+                                    <img src="{{ asset_for('assets/images/vnv-core-brunch-mansion-hero.png') }}" alt="{{ event.name }}">
+                                {% endif %}
+                            </div>
+                            <div class="event-body">
+                                <div class="event-badges">
+                                    {% if event.ticket_sales_enabled %}
+                                        <span class="event-badge"><i class="fa-solid fa-ticket"></i> Tickets live</span>
+                                    {% else %}
+                                        <span class="event-badge dark"><i class="fa-solid fa-calendar"></i> Event active</span>
+                                    {% endif %}
+                                    {% if event.ticket_type_count %}
+                                        <span class="event-badge">{{ event.ticket_type_count }} options</span>
+                                    {% endif %}
+                                </div>
+                                <h3>{{ event.name }}</h3>
+                                <div class="ticket-meta">
+                                    {% if event.start_date %}<div><i class="fa-solid fa-calendar me-2"></i>{{ event.start_date|date('M j, Y g:i A') }}</div>{% endif %}
+                                    {% if event.venue_name or event.venue_location %}
+                                        <div><i class="fa-solid fa-location-dot me-2"></i>{{ event.venue_name ?: event.venue_location }}</div>
+                                    {% endif %}
+                                </div>
+                                {% if event.description %}
+                                    <p class="event-description">{{ event.description|striptags|slice(0, 145) }}{% if event.description|striptags|length > 145 %}...{% endif %}</p>
+                                {% endif %}
+                                <div class="event-actions">
+                                    {% if event.external_link %}
+                                        <a class="btn-vnv-gold" href="{{ event.external_link }}" target="_blank" rel="noopener">
+                                            <i class="fa-solid fa-arrow-up-right-from-square"></i> Open ticket link
+                                        </a>
+                                    {% else %}
+                                        <span class="btn-vnv-soft"><i class="fa-solid fa-link-slash"></i> Link pending</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </article>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="empty-ticket-state">
+                    <i class="fa-solid fa-calendar-days"></i>
+                    <h3>No active events</h3>
+                    <p class="text-muted mb-0">Active event listings will appear here once VNV publishes them.</p>
+                </div>
+            {% endif %}
+        </section>
+    </div>
 </div>
 
-<!-- QR Code Modal -->
 <div class="modal fade" id="qrModal" tabindex="-1">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">
-                    <i class="fa-solid fa-qrcode me-2"></i>Ticket QR Code
-                </h5>
+                <h5 class="modal-title"><i class="fa-solid fa-qrcode me-2"></i>Ticket QR Code</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body p-0">
@@ -273,111 +489,71 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Copy button event listeners
     document.querySelectorAll('.copy-btn').forEach(function(button) {
         button.addEventListener('click', function() {
-            const code = this.getAttribute('data-code');
-            copyToClipboard(code, this);
+            copyToClipboard(this.getAttribute('data-code'), this);
         });
     });
-    
-    // QR button event listeners
+
     document.querySelectorAll('.qr-btn').forEach(function(button) {
         button.addEventListener('click', function() {
-            const ticketId = this.getAttribute('data-ticket-id');
-            const codeIndex = this.getAttribute('data-code-index');
-            showQRCode(ticketId, codeIndex);
+            showQRCode(this.getAttribute('data-ticket-id'), this.getAttribute('data-code-index'));
         });
     });
-    
-    // Download button event listeners
+
     document.querySelectorAll('.download-btn').forEach(function(button) {
         button.addEventListener('click', function() {
-            const ticketId = this.getAttribute('data-ticket-id');
-            const codeIndex = this.getAttribute('data-code-index');
-            downloadTicket(ticketId, codeIndex);
+            downloadTicket(this.getAttribute('data-ticket-id'), this.getAttribute('data-code-index'));
         });
     });
 });
 
 function copyToClipboard(text, button) {
+    const done = function() { showCopyState(button, true); };
+    const fail = function() { showCopyState(button, false); };
     if (navigator.clipboard && window.isSecureContext) {
-        navigator.clipboard.writeText(text).then(function() {
-            showCopySuccess(button);
-        }).catch(function(err) {
-            fallbackCopyTextToClipboard(text, button);
-        });
-    } else {
-        fallbackCopyTextToClipboard(text, button);
+        navigator.clipboard.writeText(text).then(done).catch(fail);
+        return;
     }
-}
 
-function fallbackCopyTextToClipboard(text, button) {
-    const textArea = document.createElement("textarea");
+    const textArea = document.createElement('textarea');
     textArea.value = text;
-    textArea.style.top = "0";
-    textArea.style.left = "0";
-    textArea.style.position = "fixed";
+    textArea.style.position = 'fixed';
+    textArea.style.top = '0';
+    textArea.style.left = '0';
     document.body.appendChild(textArea);
     textArea.focus();
     textArea.select();
-    
     try {
-        const successful = document.execCommand('copy');
-        if (successful) {
-            showCopySuccess(button);
-        } else {
-            showCopyError(button);
-        }
+        document.execCommand('copy') ? done() : fail();
     } catch (err) {
-        showCopyError(button);
+        fail();
     }
-    
     document.body.removeChild(textArea);
 }
 
-function showCopySuccess(button) {
+function showCopyState(button, success) {
     const originalHTML = button.innerHTML;
-    const originalClasses = button.className;
-    button.innerHTML = '<i class="fa-solid fa-check"></i>';
-    button.className = button.className.replace('btn-outline-primary', 'btn-success').replace('btn-outline-secondary', 'btn-success');
-    
-    setTimeout(function() {
-        button.innerHTML = originalHTML;
-        button.className = originalClasses;
-    }, 2000);
-}
-
-function showCopyError(button) {
-    const originalHTML = button.innerHTML;
-    const originalClasses = button.className;
-    button.innerHTML = '<i class="fa-solid fa-times"></i>';
-    button.className = button.className.replace('btn-outline-primary', 'btn-danger').replace('btn-outline-secondary', 'btn-danger');
-    
-    setTimeout(function() {
-        button.innerHTML = originalHTML;
-        button.className = originalClasses;
-    }, 2000);
+    button.innerHTML = success ? '<i class="fa-solid fa-check"></i>' : '<i class="fa-solid fa-xmark"></i>';
+    setTimeout(function() { button.innerHTML = originalHTML; }, 1600);
 }
 
 function downloadTicket(ticketId, codeIndex = 0) {
-    window.open(`/vnv-venue/panel/tickets/download?ticket_id=${ticketId}&code_index=${codeIndex}`, '_blank');
+    window.open(`{{ path('panel/tickets/download') }}?ticket_id=${ticketId}&code_index=${codeIndex}`, '_blank');
 }
 
 function showQRCode(ticketId, codeIndex = 0) {
     const modal = new bootstrap.Modal(document.getElementById('qrModal'));
     const qrContent = document.getElementById('qrContent');
-    
     qrContent.innerHTML = '<div class="text-center p-5"><i class="fa-solid fa-spinner fa-spin text-primary fs-3"></i><br><small class="text-muted">Loading QR code...</small></div>';
-    
     modal.show();
-    
+
     const iframe = document.createElement('iframe');
-    iframe.src = `/vnv-venue/panel/tickets/qr?ticket_id=${ticketId}&code_index=${codeIndex}`;
+    iframe.src = `{{ path('panel/tickets/qr') }}?ticket_id=${ticketId}&code_index=${codeIndex}`;
     iframe.style.width = '100%';
     iframe.style.height = '400px';
     iframe.style.border = 'none';
-    
+
     qrContent.innerHTML = '';
     qrContent.appendChild(iframe);
 }
