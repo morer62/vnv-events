@@ -92,6 +92,31 @@
       text-transform: uppercase;
     }
 
+    .vnv-dashboard-bar {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .vnv-dashboard-bar a {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      min-height: 38px;
+      border: 1px solid rgba(8, 114, 103, .16);
+      border-radius: 999px;
+      background: rgba(255, 255, 255, .82);
+      color: var(--vnv-teal-dark);
+      font-size: 12px;
+      font-weight: 900;
+      letter-spacing: .06em;
+      padding: 0 14px;
+      text-decoration: none;
+      text-transform: uppercase;
+      box-shadow: 0 10px 28px rgba(14, 31, 34, .06);
+    }
+
     .vnv-btn-primary {
       background: linear-gradient(135deg, #f1da86, var(--vnv-gold));
       color: #0b1012 !important;
@@ -219,6 +244,13 @@
       margin: 0 0 14px;
     }
 
+    .vnv-nav-card p,
+    .vnv-section-head p,
+    .vnv-client-hero p,
+    .vnv-session-panel p {
+      display: none;
+    }
+
     .vnv-inline-link {
       color: var(--vnv-teal-dark);
       font-weight: 900;
@@ -235,7 +267,7 @@
       display: block;
       padding: 18px;
       color: inherit;
-      min-height: 190px;
+      min-height: 132px;
       text-decoration: none;
       transition: transform .2s ease, box-shadow .2s ease;
     }
@@ -419,13 +451,13 @@
   </style>
 
   <div class="vnv-shell">
+    <nav class="vnv-dashboard-bar" aria-label="Dashboard shortcuts">
+      <a href="#vnv-sessions-preview"><i class="fa-solid fa-music"></i> VNV Sessions</a>
+    </nav>
+
     <section class="vnv-client-hero">
       <span class="vnv-kicker"><i class="fa-solid fa-gem"></i> VNV Client Portal</span>
       <h1>Welcome back{% if user.name is defined and user.name %}, {{ user.name }}{% endif %}. Your event life, organized.</h1>
-      <p>
-        Review payments, contracts, upcoming events, tickets, VNV Sessions and account settings from one client dashboard built for VNV Events.
-      </p>
-
       <div class="vnv-hero-actions">
         <a class="vnv-btn vnv-btn-primary" href="{{ path('panel/planner-hub/orders/orders') }}">
           <i class="fa-solid fa-file-invoice"></i> Open Orders
@@ -458,7 +490,7 @@
       </div>
     </section>
 
-    <section class="vnv-section">
+    <section class="vnv-section" id="vnv-actions">
       <div class="vnv-section-head">
         <div>
           <h2>Action Center</h2>
@@ -471,35 +503,19 @@
         <article class="vnv-action-card{% if stats.pending_payments > 0 %} is-hot{% endif %}">
           <div class="vnv-action-icon"><i class="fa-solid fa-credit-card"></i></div>
           <h3>{{ stats.pending_payments }} payment item{{ stats.pending_payments == 1 ? '' : 's' }}</h3>
-          <p>
-            {% if stats.pending_payments > 0 %}
-              Current estimated balance due: <strong>${{ stats.balance_due|number_format(2) }}</strong>.
-            {% else %}
-              No outstanding payment alerts are visible right now.
-            {% endif %}
-          </p>
+          {% if stats.pending_payments > 0 %}<div class="vnv-balance">${{ stats.balance_due|number_format(2) }}</div>{% endif %}
           <a class="vnv-inline-link" href="{{ path('panel/planner-hub/orders/orders') }}">Review payment links</a>
         </article>
 
         <article class="vnv-action-card{% if stats.pending_signatures > 0 %} is-hot{% endif %}">
           <div class="vnv-action-icon"><i class="fa-solid fa-signature"></i></div>
           <h3>{{ stats.pending_signatures }} signature item{{ stats.pending_signatures == 1 ? '' : 's' }}</h3>
-          <p>
-            {% if stats.pending_signatures > 0 %}
-              One or more orders may need contract or acceptance review.
-            {% else %}
-              No pending signature alerts are visible right now.
-            {% endif %}
-          </p>
           <a class="vnv-inline-link" href="{{ path('panel/planner-hub/orders/orders') }}">Open contracts</a>
         </article>
 
         <article class="vnv-action-card">
           <div class="vnv-action-icon"><i class="fa-solid fa-calendar-day"></i></div>
           <h3>{{ stats.upcoming_events }} upcoming event{{ stats.upcoming_events == 1 ? '' : 's' }}</h3>
-          <p>
-            Upcoming VNV event orders appear here when the event date is today or later.
-          </p>
           <a class="vnv-inline-link" href="{{ path('panel/planner-hub/orders/calendar') }}">Open calendar</a>
         </article>
       </div>
@@ -517,25 +533,21 @@
         <a class="vnv-nav-card" href="{{ path('panel/planner-hub/orders/orders') }}">
           <i class="fa-solid fa-file-lines"></i>
           <h3>Orders</h3>
-          <p>Review event details, payment links, files, suborders and status.</p>
         </a>
 
         <a class="vnv-nav-card" href="{{ path('panel/tickets') }}">
           <i class="fa-solid fa-ticket"></i>
           <h3>Tickets</h3>
-          <p>Access active and used tickets for VNV events.</p>
         </a>
 
         <a class="vnv-nav-card" href="{{ path('panel/music-sessions') }}">
           <i class="fa-solid fa-headphones"></i>
           <h3>VNV Sessions</h3>
-          <p>Explore musical sessions, playlists and creative audio content.</p>
         </a>
 
         <a class="vnv-nav-card" href="{{ path('panel/payment-methods') }}">
           <i class="fa-solid fa-wallet"></i>
           <h3>Payment Methods</h3>
-          <p>Manage saved payment methods and future charge authorization.</p>
         </a>
       </div>
     </section>
@@ -596,14 +608,10 @@
       </div>
     </section>
 
-    <section class="vnv-section">
+    <section class="vnv-section" id="vnv-sessions-preview">
       <div class="vnv-session-panel">
         <span class="vnv-kicker"><i class="fa-solid fa-music"></i> Music Experience</span>
         <h2>VNV Sessions preview</h2>
-        <p>
-          A softer landing into the brand: mixes, playlists and audio sessions curated for the mood around VNV Events.
-        </p>
-
         <div class="vnv-session-list">
           {% for session in musicSessions %}
             <div class="vnv-session-item">
@@ -638,25 +646,21 @@
         <a class="vnv-nav-card" href="{{ path('panel/chat') }}">
           <i class="fa-solid fa-comments"></i>
           <h3>Messages</h3>
-          <p>Keep client communication connected to your event context.</p>
         </a>
 
         <a class="vnv-nav-card" href="{{ path('panel/billing') }}">
           <i class="fa-solid fa-location-dot"></i>
           <h3>Billing Details</h3>
-          <p>Update the address information used for account and payment records.</p>
         </a>
 
         <a class="vnv-nav-card" href="{{ path('panel/settings') }}">
           <i class="fa-solid fa-sliders"></i>
           <h3>Settings</h3>
-          <p>Review basic account settings and client preferences.</p>
         </a>
 
         <a class="vnv-nav-card" href="#" data-vnv-open-request>
           <i class="fa-solid fa-wand-magic-sparkles"></i>
           <h3>New Request</h3>
-          <p>Start a new event request for the VNV team to review.</p>
         </a>
 
         {% if canSwitchToTeam %}
@@ -665,7 +669,6 @@
             <button type="submit" class="vnv-nav-card vnv-nav-card-button">
               <i class="fa-solid fa-user-gear"></i>
               <h3>Team View</h3>
-              <p>Open your VNV Events team workspace, schedule, contracts and clock tools.</p>
             </button>
           </form>
         {% endif %}

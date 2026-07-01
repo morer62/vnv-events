@@ -1,6 +1,7 @@
 <?php
 
 use App\Repositories\EventRequestRepository;
+use App\Repositories\Connection;
 use App\Services\LoginService;
 use App\Services\OphyraGrowthHubClient;
 use App\Utils\LocationUtils;
@@ -9,6 +10,46 @@ use App\Utils\Router;
 use App\Utils\TemplateResponse;
 
 $router = new Router();
+
+function level1HomeOrderSummary(int $ownerId): array
+{
+    $db = new Connection();
+    $summary = [
+        'pending_orders' => 0,
+        'upcoming_events' => 0,
+        'pending_contracts' => 0,
+    ];
+
+    try {
+        $db->query("SELECT COUNT(*) AS total FROM orders WHERE id_owner = :owner AND is_archived = 0 AND (status IS NULL OR status = '' OR status NOT IN ('INVOICE_PAID', 'ORDER_COMPLETED', 'CANCELLED'))");
+        $db->bind(':owner', $ownerId);
+        $summary['pending_orders'] = (int)($db->fetchOne()->total ?? 0);
+
+        $db->query("SELECT COUNT(*) AS total FROM orders WHERE id_owner = :owner AND is_archived = 0 AND event_date >= CURDATE()");
+        $db->bind(':owner', $ownerId);
+        $summary['upcoming_events'] = (int)($db->fetchOne()->total ?? 0);
+
+        $db->query("
+            SELECT COUNT(*) AS total
+            FROM orders o
+            WHERE o.id_owner = :owner
+              AND o.is_archived = 0
+              AND o.event_date >= CURDATE()
+              AND NOT EXISTS (
+                  SELECT 1
+                  FROM document_logs dl
+                  WHERE dl.id_order = o.id
+                    AND dl.doc_type = 'contract_signed'
+              )
+        ");
+        $db->bind(':owner', $ownerId);
+        $summary['pending_contracts'] = (int)($db->fetchOne()->total ?? 0);
+    } catch (Throwable $e) {
+        error_log('[Level1 Home] Summary failed: ' . $e->getMessage());
+    }
+
+    return $summary;
+}
 
 $router->get(function () {
     $user = LoginService::getSession();
@@ -34,6 +75,7 @@ $router->get(function () {
 
     return TemplateResponse::render(__DIR__ . "/index.twig", [
         'user' => $user,
+        'orderSummary' => level1HomeOrderSummary((int)$user->getOwner()),
         'eventRequests' => $requestRepo->latestForOwner((int)$user->getOwner(), 6, false),
         'eventRequestsCount' => $requestRepo->countForOwner((int)$user->getOwner(), false),
         'eventRequestsArchivedCount' => $requestRepo->countForOwner((int)$user->getOwner(), true),
