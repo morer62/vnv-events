@@ -47,6 +47,35 @@ class NotificationsRepository extends BaseRepository
         return $row ?: null;
     }
 
+    public function getMobileBroadcastsByUser(int $userId): array
+    {
+        $this->db->query(
+            "SELECT *
+             FROM notifications
+             WHERE id_user = :id_user
+               AND link LIKE 'mobile-app-broadcast://%'
+             ORDER BY timestamp DESC"
+        );
+        $this->db->bind(":id_user", $userId);
+        return $this->db->fetchAll();
+    }
+
+    public function getMobileBroadcastByUserAndId(int $userId, int $notificationId): ?object
+    {
+        $this->db->query(
+            "SELECT *
+             FROM notifications
+             WHERE id = :id
+               AND id_user = :id_user
+               AND link LIKE 'mobile-app-broadcast://%'
+             LIMIT 1"
+        );
+        $this->db->bind(":id", $notificationId);
+        $this->db->bind(":id_user", $userId);
+        $row = $this->db->fetchOne();
+        return $row ?: null;
+    }
+
     public function markAsRead(int $notificationId): bool
     {
         error_log("DEBUG: NotificationsRepository::markAsRead() - ID: " . $notificationId);

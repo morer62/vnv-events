@@ -21,7 +21,19 @@ function mobileNotificationPayload(object $notification): array
         $body = $message;
     }
 
-    $link = (string)($notification->link ?? '');
+    $rawLink = (string)($notification->link ?? '');
+    $link = '';
+    $type = 'system';
+
+    if (str_starts_with($rawLink, 'mobile-app-broadcast://')) {
+        $type = 'mobile_app_broadcast';
+        $parts = parse_url($rawLink);
+        $query = [];
+        parse_str((string)($parts['query'] ?? ''), $query);
+        $link = (string)($query['link'] ?? '');
+    } else {
+        $link = $rawLink;
+    }
 
     return [
         'id' => (int)$notification->id,
@@ -29,9 +41,10 @@ function mobileNotificationPayload(object $notification): array
         'body' => $body,
         'message' => $message,
         'link' => $link,
+        'raw_link' => $rawLink,
         'is_read' => (int)($notification->leido ?? 0) === 1,
         'created_at' => (string)($notification->timestamp ?? ''),
-        'type' => str_starts_with($link, 'mobile-app-broadcast://') ? 'mobile_app_broadcast' : 'system',
+        'type' => $type,
     ];
 }
 
@@ -45,7 +58,7 @@ $router->get(function () {
     }
 
     $repo = new NotificationsRepository();
-    $rows = $repo->getByUser((int)$user->getId());
+    $rows = $repo->getMobileBroadcastsByUser((int)$user->getId());
 
     return JsonResponse::createResponse([
         'success' => true,
@@ -72,7 +85,7 @@ $router->post(function () {
     }
 
     $repo = new NotificationsRepository();
-    $notification = $repo->getByUserAndId((int)$user->getId(), $notificationId);
+    $notification = $repo->getMobileBroadcastByUserAndId((int)$user->getId(), $notificationId);
     if (!$notification) {
         return JsonResponse::createResponse([
             'success' => false,
@@ -81,6 +94,7 @@ $router->post(function () {
     }
 
     $repo->markAsRead($notificationId);
+    $notification->leido = 1;
 
     return JsonResponse::createResponse([
         'success' => true,

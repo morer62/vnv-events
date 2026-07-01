@@ -1,17 +1,12 @@
 <?php
 
-use App\Services\LoginService;
+use App\Utils\LocationUtils;
 use App\Utils\Router;
-use App\Utils\TemplateResponse;
 
 $router = new Router();
 
 $router->get(function () {
-    $user = LoginService::getSession();
-
-    return TemplateResponse::render(__DIR__ . "/index.twig", [
-        "user" => $user
-    ]);
+    LocationUtils::redirectInternal('panel/home');
 });
 
 try {

@@ -59,10 +59,11 @@ $router->post(function () {
 
     foreach ($recipients as $recipient) {
         $message = $title . "\n" . $body;
+        $notificationLink = 'mobile-app-broadcast://' . $broadcastId . ($link ? ('?link=' . rawurlencode($link)) : '');
         $notificationsRepo->add([
             'id_user' => (int)$recipient->id,
             'mensaje' => $message,
-            'link' => $link ?: ('mobile-app-broadcast://' . $broadcastId),
+            'link' => $notificationLink,
             'leido' => 0,
         ]);
 

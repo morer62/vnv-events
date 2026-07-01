@@ -369,7 +369,7 @@ if ($action === "deleteManualHour") {
     $notificationsRepo->add([
         "id_user" => $userId,
         "mensaje" => "💵 Payment Received - Your work hours have been marked as paid. Total amount: $" . number_format($totalNet, 2) . " for " . count($ids) . " session(s).",
-        "link" => ($_ENV["APP_URL"] ?? "vnv-venue") . "/panel/planner-hub/team/payroll/paid",
+        "link" => ($_ENV["APP_URL"] ?? "vnv-venue") . "/panel/home",
         "leido" => 0
     ]);
 
@@ -385,7 +385,7 @@ if ($action === "deleteManualHour") {
             'paymentDate' => date("F j, Y g:i A"),
             'paymentMethod' => $paymentType === 'card' ? 'Credit Card' : 'Manual Payment',
             'additionalInfo' => $additionalInfo,
-            'payrollUrl' => ($_ENV["APP_URL"] ?? "http://localhost/vnv-venue") . "/panel/planner-hub/team/payroll/paid"
+            'payrollUrl' => ($_ENV["APP_URL"] ?? "http://localhost/vnv-venue") . "/panel/home"
         ];
         
         $templatePath = \App\Utils\LocationUtils::getTemplatePath("emails/payroll_payment_confirmation.php");

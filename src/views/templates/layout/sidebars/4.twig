@@ -1,18 +1,10 @@
 <li class="sidebar-header">{{ trans('ui.my_dashboard') }}</li>
 
 {% set canOrders = user.hasPermissionForModule('orders') %}
-{% set canPayroll = user.hasPermissionForModule('payroll') %}
 {% set canCrm = user.hasPermissionForModule('crm') %}
 {% set canStorage = user.hasPermissionForModule('storage') %}
 {% set canUsers = user.hasPermissionForModule('users') %}
 {% set canManagement = canOrders or canCrm or canStorage or canUsers %}
-
-<li class="sidebar-item">
-    <a class="sidebar-link" href="{{ path('panel/planner-hub') }}">
-        <i class="align-middle" data-feather="grid"></i>
-        <span class="align-middle">{{ trans('level4_access_center.sidebar_access_center') }}</span>
-    </a>
-</li>
 
 <li class="sidebar-item">
     <a class="sidebar-link" href="{{ path('panel/home') }}">
@@ -61,16 +53,9 @@
 <li class="sidebar-header">{{ trans('ui.time') }}</li>
 
 <li class="sidebar-item">
-    <a class="sidebar-link" href="{{ path(canPayroll ? 'panel/planner-hub/team/payroll/clock' : 'panel/planner-hub/no-access?module=payroll') }}">
+    <a class="sidebar-link" href="{{ path('panel/planner-hub/team/payroll/clock') }}">
         <i class="align-middle" data-feather="clock"></i>
-        <span class="align-middle">{{ trans('ui.hours') }}</span>
-    </a>
-</li>
-
-<li class="sidebar-item">
-    <a class="sidebar-link" href="{{ path(canPayroll ? 'panel/planner-hub/team/payroll/pending' : 'panel/planner-hub/no-access?module=payroll') }}">
-        <i class="align-middle" data-feather="dollar-sign"></i>
-        <span class="align-middle">{{ trans('ui.payroll') }}</span>
+        <span class="align-middle">Clock In / Out</span>
     </a>
 </li>
 

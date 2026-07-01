@@ -1,12 +1,12 @@
 <?php
 
 use App\Utils\Router;
-use App\Utils\TemplateResponse;
+use App\Utils\LocationUtils;
 
 $router = new Router();
 
 $router->get(function () {
-    return TemplateResponse::render(__DIR__ . "/index.twig");
+    LocationUtils::redirectInternal('panel/home');
 });
 
 try {

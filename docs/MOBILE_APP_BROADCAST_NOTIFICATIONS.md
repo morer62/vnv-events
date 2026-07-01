@@ -19,6 +19,9 @@ When sent, the backend:
 1. Creates a row in `mobile_app_broadcasts`.
 2. Finds active users with a saved `expo_token`.
 3. Creates one row per recipient in the existing `notifications` table.
+   - These rows are marked internally with `link` starting with `mobile-app-broadcast://`.
+   - Mobile notification APIs only expose rows with that internal marker.
+   - Private notifications, payment alerts, contract alerts, and operational messages are not returned by the mobile broadcast APIs.
 4. Sends an Expo push notification to each recipient.
 5. Includes navigation metadata in the Expo push `data` payload.
 
@@ -75,15 +78,16 @@ Response:
       "body": "Tap to listen now.",
       "message": "New VNV Sessions mix is live\nTap to listen now.",
       "link": "https://vnvevents.com/vnv-sessions/",
+      "raw_link": "mobile-app-broadcast://12?link=https%3A%2F%2Fvnvevents.com%2Fvnv-sessions%2F",
       "is_read": false,
       "created_at": "2026-07-01 15:30:00",
-      "type": "system"
+      "type": "mobile_app_broadcast"
     }
   ]
 }
 ```
 
-The backend returns the newest notification first.
+The backend returns the newest notification first. This endpoint is not a global inbox; it only returns notifications sent from the **Mobile app push** block in CMS / Growth Content.
 
 ## Notification Detail
 
@@ -103,9 +107,10 @@ Response:
     "body": "Tap to listen now.",
     "message": "New VNV Sessions mix is live\nTap to listen now.",
     "link": "https://vnvevents.com/vnv-sessions/",
-    "is_read": false,
+    "raw_link": "mobile-app-broadcast://12?link=https%3A%2F%2Fvnvevents.com%2Fvnv-sessions%2F",
+    "is_read": true,
     "created_at": "2026-07-01 15:30:00",
-    "type": "system"
+    "type": "mobile_app_broadcast"
   }
 }
 ```

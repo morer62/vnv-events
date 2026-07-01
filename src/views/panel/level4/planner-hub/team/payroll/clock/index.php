@@ -25,7 +25,33 @@ $user = LoginService::getSession();
 function level4ClockRedirect(): never
 {
     if (($_SESSION['IS_MOBILE_APP'] ?? false) === true) {
-        LocationUtils::redirectInternal('panel/planner-hub/team/payroll/clock');
+        $target = LocationUtils::pathFor('panel/planner-hub/team/payroll/clock');
+        $safeTarget = htmlspecialchars($target, ENT_QUOTES, 'UTF-8');
+
+        header('Content-Type: text/html; charset=UTF-8');
+        echo <<<HTML
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="refresh" content="1;url={$safeTarget}">
+  <title>Updating clock</title>
+</head>
+<body style="margin:0;background:#f7fbfa;color:#102033;font-family:Arial,sans-serif;display:grid;min-height:100vh;place-items:center;">
+  <div style="text-align:center;padding:24px;">
+    <strong>Updating clock...</strong>
+  </div>
+  <script>
+    window.location.replace("{$safeTarget}");
+  </script>
+  <noscript>
+    <a href="{$safeTarget}">Continue</a>
+  </noscript>
+</body>
+</html>
+HTML;
+        exit();
     }
 
     LocationUtils::reload();
