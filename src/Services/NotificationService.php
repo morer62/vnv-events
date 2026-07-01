@@ -9,22 +9,33 @@ use App\Utils\LocationUtils;
 
 class NotificationService
 {
-    public static function sendExpoNotification(string $expoToken, string $title, string $body): void
+    public static function sendExpoNotification(string $expoToken, string $title, string $body, array $data = []): void
     {
-        $result = self::postExpoNotification($expoToken, $title, $body);
+        $result = self::postExpoNotification($expoToken, $title, $body, $data);
         if (!($result['ok'] ?? false)) {
             error_log('[ExpoPush] Send failed: ' . json_encode($result));
         }
     }
 
-    private static function postExpoNotification(string $expoToken, string $title, string $body): array
+    public static function sendExpoNotificationWithResult(string $expoToken, string $title, string $body, array $data = []): array
     {
-        $payload = json_encode([
+        return self::postExpoNotification($expoToken, $title, $body, $data);
+    }
+
+    private static function postExpoNotification(string $expoToken, string $title, string $body, array $data = []): array
+    {
+        $message = [
             "to" => $expoToken,
             "sound" => "default",
             "title" => $title,
             "body" => $body
-        ]);
+        ];
+
+        if (!empty($data)) {
+            $message['data'] = $data;
+        }
+
+        $payload = json_encode($message);
 
         $ch = curl_init("https://exp.host/--/api/v2/push/send");
         curl_setopt_array($ch, [
@@ -74,14 +85,14 @@ class NotificationService
      * Permite enviar una notificación a múltiples usuarios según su ID
      * Solo se envía si el usuario tiene un expo_token válido.
      */
-    public static function sendToUsers(array $userIds, string $title, string $body): void
+    public static function sendToUsers(array $userIds, string $title, string $body, array $data = []): void
     {
         $userRepo = new UserRepository();
 
         foreach ($userIds as $id) {
             $user = $userRepo->getOneWithoutOwnership(['id' => $id]);
             if ($user && $user->expo_token) {
-                $result = self::postExpoNotification($user->expo_token, $title, $body);
+                $result = self::postExpoNotification($user->expo_token, $title, $body, $data);
                 if ($result['ok'] ?? false) {
                     continue;
                 }

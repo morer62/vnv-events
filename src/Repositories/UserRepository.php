@@ -120,6 +120,20 @@ class UserRepository extends BaseRepository
         $this->db->execute();
     }
 
+    public function getMobileAppNotificationRecipients(): array
+    {
+        $this->db->query("
+            SELECT id, name, lastname, email, expo_token
+            FROM users
+            WHERE is_active = 1
+              AND expo_token IS NOT NULL
+              AND TRIM(expo_token) != ''
+            ORDER BY id DESC
+        ");
+
+        return $this->db->fetchAll();
+    }
+
 
 
     public function getOneWithoutOwnership(array $criteriaVals, array $columns = []): ?object

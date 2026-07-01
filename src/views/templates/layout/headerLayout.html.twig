@@ -327,7 +327,7 @@
         });
       </script>
 
-      {% if not session.IS_MOBILE_APP %}
+      {% if not isMobileApp|default(false) %}
         <li class="nav-item dropdown">
           <a class="nav-link dropdown-toggle d-inline-flex align-items-center" href="#" data-bs-toggle="dropdown" aria-label="Account menu">
             <img src="{{ asset_for('template/img/avatars/profile.png') }}" class="avatar img-fluid rounded me-1" alt="Account" />
@@ -343,3 +343,26 @@
     </ul>
   </div>
 </nav>
+
+{% if isMobileApp|default(false) %}
+  <style>
+    a[href$="/logout"],
+    a[href*="/logout?"],
+    a[href$="/vnv-events/logout"],
+    a[href*="/vnv-events/logout?"] {
+      display: none !important;
+    }
+  </style>
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      document.querySelectorAll('a[href]').forEach(function (link) {
+        const href = link.getAttribute('href') || '';
+        if (/\/logout(?:$|[?#])/.test(href)) {
+          const item = link.closest('.nav-item.dropdown') || link;
+          item.style.display = 'none';
+          item.setAttribute('aria-hidden', 'true');
+        }
+      });
+    });
+  </script>
+{% endif %}

@@ -38,6 +38,15 @@ class NotificationsRepository extends BaseRepository
         return $notifications;
     }
 
+    public function getByUserAndId(int $userId, int $notificationId): ?object
+    {
+        $this->db->query("SELECT * FROM notifications WHERE id = :id AND id_user = :id_user LIMIT 1");
+        $this->db->bind(":id", $notificationId);
+        $this->db->bind(":id_user", $userId);
+        $row = $this->db->fetchOne();
+        return $row ?: null;
+    }
+
     public function markAsRead(int $notificationId): bool
     {
         error_log("DEBUG: NotificationsRepository::markAsRead() - ID: " . $notificationId);
