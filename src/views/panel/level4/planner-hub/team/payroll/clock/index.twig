@@ -513,6 +513,38 @@
     box-shadow: 0 16px 36px rgba(15, 23, 42, .06);
 }
 
+.clock-manager-warning {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-top: 16px;
+    padding: 16px 18px;
+    border: 1px solid rgba(220, 38, 38, .26);
+    border-left: 5px solid #dc2626;
+    border-radius: 16px;
+    background: linear-gradient(135deg, rgba(254, 242, 242, .98), rgba(255, 255, 255, .96));
+    color: #991b1b;
+    box-shadow: 0 16px 34px rgba(220, 38, 38, .10);
+}
+
+.clock-manager-warning-icon {
+    width: 42px;
+    height: 42px;
+    min-width: 42px;
+    border-radius: 14px;
+    display: grid;
+    place-items: center;
+    background: rgba(220, 38, 38, .12);
+    color: #dc2626;
+}
+
+.clock-manager-warning strong {
+    display: block;
+    font-size: .95rem;
+    font-weight: 950;
+    letter-spacing: .03em;
+}
+
 .clock-side-card {
     padding: 18px;
     overflow: hidden;
@@ -789,8 +821,9 @@
         </div>
 
         {% if hasAssignedEventsWithoutTasks|default(false) %}
-          <div class="alert alert-danger mt-3 mb-3 fw-bold" role="alert">
-            You have assigned events but no tasks assigned. Please contact administration immediately.
+          <div class="clock-manager-warning" role="alert">
+            <span class="clock-manager-warning-icon"><i data-feather="alert-triangle"></i></span>
+            <strong>COMUNIQUESE CON EL MANAGER PARA REVISAR SUS TAREAS ASIGNADAS</strong>
           </div>
         {% endif %}
 
@@ -1131,7 +1164,10 @@ function submitWithNotes() {
                             </span>
                           </label>
                         {% else %}
-                          <div class="clock-empty-assignments">No tasks assigned for this event.</div>
+                          <div class="clock-manager-warning" role="alert">
+                            <span class="clock-manager-warning-icon"><i data-feather="alert-triangle"></i></span>
+                            <strong>COMUNIQUESE CON EL MANAGER PARA REVISAR SUS TAREAS ASIGNADAS</strong>
+                          </div>
                         {% endfor %}
                       </div>
                     </td>

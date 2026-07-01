@@ -24,6 +24,7 @@ function initMap() {
 
             if (place) {
                 elm.value = place.formatted_address || place.name || elm.value;
+                elm.dispatchEvent(new CustomEvent('vnv:place-selected', { detail: { place } }));
             }
 
             if (place && place.address_components && Array.isArray(place.address_components)) {
@@ -36,6 +37,11 @@ function initMap() {
                 const city = get(['locality', 'postal_town', 'administrative_area_level_2', 'sublocality_level_1', 'sublocality']);
                 const state = get(['administrative_area_level_1']);
                 const zip = get(['postal_code', 'postal_code_prefix']);
+
+                if (elm.id === 'payment-billing-address') {
+                    const zipEl = document.getElementById('payment-billing-zip');
+                    if (zipEl && zip) zipEl.value = zip.trim();
+                }
 
                 if (elm.id === 'billing_address_1' || elm.id === 'shipping_address_1') {
                     const prefix = elm.id.startsWith('billing_') ? 'billing' : 'shipping';

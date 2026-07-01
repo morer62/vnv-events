@@ -1,5 +1,71 @@
 {% extends 'templates/base.admin.twig' %}
 {% import 'templates/macros.twig' as macros %}
+{% import _self as order_ui %}
+
+{% macro orders_table(orders, empty_message) %}
+    <div class="table-responsive">
+        <table class="table table-striped table-bordered text-center align-middle vnv-table" style="min-width: 980px;">
+            <thead>
+            <tr>
+                <th>Next Step</th>
+                <th>ID</th>
+                <th>Event Date</th>
+                <th>Start - End</th>
+                <th>Address</th>
+                <th>Company</th>
+                <th>Created</th>
+                <th>Actions</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for order in orders %}
+                <tr>
+                    <td style="min-width: 230px;">
+                        {% if order.public_order_url %}
+                            <a href="{{ order.public_order_url }}" target="_blank" class="btn btn-sm {{ order.client_action_class }} w-100">
+                                {{ order.client_action_label }}
+                            </a>
+                            <div class="small text-muted mt-1">{{ order.client_status_label }}</div>
+                        {% else %}
+                            <span class="text-muted">No action available</span>
+                        {% endif %}
+                    </td>
+                    <td style="min-width: 120px;"><strong>vnv-341{{ order.id }}</strong></td>
+                    <td style="min-width: 160px;">{{ order.event_date|date("l, M j") }}</td>
+                    <td style="min-width: 160px;">{{ order.start_time|date("g:i A") }} - {{ order.end_time|date("g:i A") }}</td>
+                    <td style="min-width: 240px;"><small>{{ order.address }}</small></td>
+                    <td style="min-width: 160px;">
+                        {% if order.institution %}
+                            <button
+                                class="btn btn-sm btn-outline-primary show-institution-btn"
+                                data-institution='{{ order.institution|json_encode|e('html_attr') }}'
+                                data-owner-id="{{ order.id_owner }}">
+                                {{ order.institution.company_name|default('Company')|replace({'\\n': ' ', '\n': ' '})|trim }}
+                            </button>
+                        {% else %}
+                            <span class="text-muted">N/A</span>
+                        {% endif %}
+                    </td>
+                    <td style="min-width: 160px;">{{ order.created_at|date("Y-m-d H:i") }}</td>
+                    <td style="min-width: 160px;">
+                        <div class="btn-group">
+                            <a href="{{ path('panel/planner-hub/orders/orders/files') }}?id={{ order.id }}" class="btn btn-sm btn-secondary">Files</a>
+                            <a href="{{ path('panel/planner-hub/orders/orders/suborders') }}?id={{ order.id }}" class="btn btn-sm btn-info">Suborders</a>
+                            <a href="{{ path('panel/planner-hub/orders/orders/print') }}?id={{ order.id }}" class="btn btn-sm btn-dark">Print</a>
+                        </div>
+                    </td>
+                </tr>
+            {% else %}
+                <tr>
+                    <td colspan="8">
+                        <div class="vnv-empty-state">{{ empty_message }}</div>
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endmacro %}
 
 {% block body %}
 
@@ -23,68 +89,26 @@
 
 <section class="card vnv-panel-card">
     <div class="card-body">
+        <ul class="nav nav-tabs mb-3" id="clientOrdersTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="current-orders-tab" data-bs-toggle="tab" data-bs-target="#current-orders-panel" type="button" role="tab" aria-controls="current-orders-panel" aria-selected="true">
+                    Current Orders <span class="badge bg-primary ms-1">{{ current_orders|length }}</span>
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="past-orders-tab" data-bs-toggle="tab" data-bs-target="#past-orders-panel" type="button" role="tab" aria-controls="past-orders-panel" aria-selected="false">
+                    Past Orders <span class="badge bg-secondary ms-1">{{ past_orders|length }}</span>
+                </button>
+            </li>
+        </ul>
 
-        <div class="table-responsive">
-            <table class="table table-striped table-bordered text-center align-middle vnv-table" style="min-width: 900px;">
-                <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Event Date</th>
-                    <th>Start - End</th>
-                    <th>Address</th>
-                    <th>Company</th>
-                    <th>Payment Link</th>
-                    <th>Created</th>
-                    <th>Actions</th>
-                </tr>
-                </thead>
-                <tbody>
-                {% for order in orders %}
-                <tr>
-                    <td style="min-width: 120px;"><strong>vnv-341{{ order.id }}</strong></td>
-                    <td style="min-width: 160px;">{{ order.event_date|date("l, M j") }}</td>
-                    <td style="min-width: 160px;">{{ order.start_time|date("g:i A") }} - {{ order.end_time|date("g:i A") }}</td>
-                    <td style="min-width: 240px;"><small>{{ order.address }}</small></td>
-                    <td style="min-width: 160px;">
-                        {% if order.institution %}
-                            <button
-                                class="btn btn-sm btn-outline-primary show-institution-btn"
-                                data-institution='{{ order.institution|json_encode|e('html_attr') }}'
-                                data-owner-id="{{ order.id_owner }}">
-                                {{ order.institution.company_name|default('Company')|replace({'\\n': ' ', '\n': ' '})|trim }}
-                            </button>
-                        {% else %}
-                            <span class="text-muted">N/A</span>
-                        {% endif %}
-                    </td>
-                    <td style="min-width: 200px;">
-                        {% set token = order.contract_token ?? '' %}
-                        {% set payment_url = app_url ~ '/order-access?token=' ~ token %}
-                        {% if token %}
-                            <a href="{{ payment_url }}" target="_blank" class="btn btn-outline-primary btn-sm mb-1" title="{{ payment_url }}">Payment Link</a><br>
-                        {% else %}
-                            <span class="text-muted">No link available</span>
-                        {% endif %}
-                    </td>
-                    <td style="min-width: 160px;">{{ order.created_at|date("Y-m-d H:i") }}</td>
-                    <td style="min-width: 160px;">
-                        <div class="btn-group">
-                            <a href="{{ path('panel/planner-hub/orders/orders/files') }}?id={{ order.id }}" class="btn btn-sm btn-secondary">Files</a>
-                            <a href="{{ path('panel/planner-hub/orders/orders/suborders') }}?id={{ order.id }}" class="btn btn-sm btn-info">Suborders</a>
-                            <a href="{{ path('panel/planner-hub/orders/orders/print') }}?id={{ order.id }}" class="btn btn-sm btn-dark">Print</a>
-                        </div>
-                    </td>
-                </tr>
-
-                {% else %}
-                <tr>
-                    <td colspan="8">
-                        <div class="vnv-empty-state">No orders were found. New VNV Events orders will appear here once created by the team.</div>
-                    </td>
-                </tr>
-                {% endfor %}
-                </tbody>
-            </table>
+        <div class="tab-content" id="clientOrdersTabsContent">
+            <div class="tab-pane fade show active" id="current-orders-panel" role="tabpanel" aria-labelledby="current-orders-tab" tabindex="0">
+                {{ order_ui.orders_table(current_orders, 'No current orders were found. New and same-day VNV Events orders will appear here.') }}
+            </div>
+            <div class="tab-pane fade" id="past-orders-panel" role="tabpanel" aria-labelledby="past-orders-tab" tabindex="0">
+                {{ order_ui.orders_table(past_orders, 'No past orders yet. Orders move here the day after the event date.') }}
+            </div>
         </div>
 
     </div>

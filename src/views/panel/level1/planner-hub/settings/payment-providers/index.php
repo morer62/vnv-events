@@ -99,6 +99,7 @@ $router->get(function () {
     $ownerId = (int)$session->getOwner();
 
     $repo = new PaymentProvidersRepository();
+    $repo->normalizeSingleActiveAndDefault($ownerId);
     $providersList = $repo->getAllByOwner($ownerId, 1, 50);
     $activeProvider = $repo->getActiveProviderForOwner($ownerId);
 

@@ -108,7 +108,9 @@ class PaymentProvidersRepository extends BaseRepository
     public function add(array $data): bool
     {
         $data = $this->encryptCredentials($data);
-        $data = $this->withDefaultSiteKey($data);
+        if (empty($data['site_key'])) {
+            $data['site_key'] = 'global';
+        }
         return parent::add($data);
     }
 
@@ -122,17 +124,14 @@ class PaymentProvidersRepository extends BaseRepository
     {
         try {
             $offset = max(0, ($page - 1) * $perPage);
-            $siteSql = $this->siteScopeSql($siteKey);
             $this->db->query("
                 SELECT SQL_CALC_FOUND_ROWS *
                 FROM `{$this->table}`
                 WHERE `id_owner` = :owner_id
-                {$siteSql}
                 ORDER BY `is_default` DESC, `is_active` DESC, `provider_type`, `provider_name`
                 LIMIT :limit OFFSET :offset
             ");
             $this->db->bind(':owner_id', $ownerId);
-            $this->bindSiteScope($siteKey);
             $this->db->bind(':limit', $perPage, \PDO::PARAM_INT);
             $this->db->bind(':offset', $offset, \PDO::PARAM_INT);
             $rows = $this->db->fetchAll();
@@ -168,77 +167,86 @@ class PaymentProvidersRepository extends BaseRepository
 
     public function deactivateAllByOwner(int $ownerId, ?string $siteKey = null): bool
     {
-        $siteSql = $this->siteScopeSql($siteKey);
-        $this->db->query("UPDATE `{$this->table}` SET `is_active` = 0 WHERE `id_owner` = :owner_id {$siteSql}");
+        $this->db->query("UPDATE `{$this->table}` SET `is_active` = 0 WHERE `id_owner` = :owner_id");
         $this->db->bind(':owner_id', $ownerId);
-        $this->bindSiteScope($siteKey);
         return (bool)$this->db->execute();
     }
 
     public function setDefault(int $ownerId, int $providerId, ?string $siteKey = null): bool
     {
-        $siteSql = $this->siteScopeSql($siteKey);
-        $this->db->query("UPDATE `{$this->table}` SET `is_default` = 0 WHERE `id_owner` = :owner_id {$siteSql}");
+        $this->db->query("UPDATE `{$this->table}` SET `is_default` = 0 WHERE `id_owner` = :owner_id");
         $this->db->bind(':owner_id', $ownerId);
-        $this->bindSiteScope($siteKey);
         $this->db->execute();
 
-        $this->db->query("UPDATE `{$this->table}` SET `is_default` = 1 WHERE `id_owner` = :owner_id AND `id` = :id {$siteSql}");
+        $this->db->query("UPDATE `{$this->table}` SET `is_default` = 1 WHERE `id_owner` = :owner_id AND `id` = :id");
         $this->db->bind(':owner_id', $ownerId);
         $this->db->bind(':id', $providerId);
-        $this->bindSiteScope($siteKey);
         return (bool)$this->db->execute();
     }
 
     public function setActive(int $ownerId, int $providerId, ?string $siteKey = null): bool
     {
         $this->deactivateAllByOwner($ownerId, $siteKey);
-        $siteSql = $this->siteScopeSql($siteKey);
-        $this->db->query("UPDATE `{$this->table}` SET `is_active` = 1 WHERE `id_owner` = :owner_id AND `id` = :id {$siteSql}");
+        $this->db->query("UPDATE `{$this->table}` SET `is_active` = 1 WHERE `id_owner` = :owner_id AND `id` = :id");
         $this->db->bind(':owner_id', $ownerId);
         $this->db->bind(':id', $providerId);
-        $this->bindSiteScope($siteKey);
         return (bool)$this->db->execute();
+    }
+
+    public function normalizeSingleActiveAndDefault(int $ownerId): void
+    {
+        $this->db->query("
+            SELECT id
+            FROM `{$this->table}`
+            WHERE `id_owner` = :owner_id AND `is_active` = 1
+            ORDER BY (`environment` = 'production') DESC, `is_default` DESC, `last_used_at` DESC, `updated_at` DESC, `id` DESC
+            LIMIT 1
+        ");
+        $this->db->bind(':owner_id', $ownerId);
+        $active = $this->db->fetchOne();
+        if ($active && isset($active->id)) {
+            $this->db->query("
+                UPDATE `{$this->table}`
+                SET `is_active` = CASE WHEN `id` = :id THEN 1 ELSE 0 END
+                WHERE `id_owner` = :owner_id
+            ");
+            $this->db->bind(':id', (int)$active->id);
+            $this->db->bind(':owner_id', $ownerId);
+            $this->db->execute();
+        }
+
+        $this->db->query("
+            SELECT id
+            FROM `{$this->table}`
+            WHERE `id_owner` = :owner_id
+            ORDER BY `is_active` DESC, (`environment` = 'production') DESC, `is_default` DESC, `updated_at` DESC, `id` DESC
+            LIMIT 1
+        ");
+        $this->db->bind(':owner_id', $ownerId);
+        $default = $this->db->fetchOne();
+        if ($default && isset($default->id)) {
+            $this->db->query("
+                UPDATE `{$this->table}`
+                SET `is_default` = CASE WHEN `id` = :id THEN 1 ELSE 0 END
+                WHERE `id_owner` = :owner_id
+            ");
+            $this->db->bind(':id', (int)$default->id);
+            $this->db->bind(':owner_id', $ownerId);
+            $this->db->execute();
+        }
     }
 
     public function getActiveProviderForOwner(int $ownerId, ?string $siteKey = null): ?object
     {
-        try {
-            $configuredProviderId = (int)(new BrandSiteSettingsRepository())->get('active_payment_provider_id', 0, $siteKey);
-            if ($configuredProviderId > 0) {
-                $siteSql = $this->siteScopeSql($siteKey);
-                $this->db->query("
-                    SELECT *
-                    FROM `{$this->table}`
-                    WHERE `id_owner` = :owner_id
-                      AND `id` = :id
-                      AND `is_active` = 1
-                    {$siteSql}
-                    LIMIT 1
-                ");
-                $this->db->bind(':owner_id', $ownerId);
-                $this->db->bind(':id', $configuredProviderId);
-                $this->bindSiteScope($siteKey);
-                $row = $this->db->fetchOne();
-                if ($row) {
-                    return $this->decryptCredentials($row);
-                }
-            }
-        } catch (\Throwable $e) {
-            // Fallback to scoped active/default selection when settings are unavailable.
-        }
+        $this->normalizeSingleActiveAndDefault($ownerId);
 
-        // default provider if it is active
-        $siteSql = $this->siteScopeSql($siteKey);
         $this->db->query("
             SELECT *
             FROM `{$this->table}`
             WHERE `id_owner` = :owner_id
-            {$siteSql}
             ORDER BY `is_default` DESC, `is_active` DESC, `id` DESC
         ");
         $this->db->bind(':owner_id', $ownerId);
-        $this->bindSiteScope($siteKey);
         $rows = $this->db->fetchAll();
         foreach ($rows as $row) {
             if ((int)($row->is_active ?? 0) === 1) {
@@ -266,8 +274,7 @@ class PaymentProvidersRepository extends BaseRepository
             return $ownerId;
         }
 
-        $siteKey = isset($order->site_key) ? (string)$order->site_key : null;
-        $provider = $this->getActiveProviderForOwner((int)$order->id_user, $siteKey);
+        $provider = $this->getActiveProviderForOwner((int)$order->id_user);
         if ($provider) {
             return (int)$order->id_user;
         }

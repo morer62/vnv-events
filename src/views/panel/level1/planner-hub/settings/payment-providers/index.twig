@@ -1,24 +1,24 @@
 {% extends 'templates/base.admin.twig' %}
 
 {% block body %}
-  <h1 class="h3 mb-4">💳 Payment Providers Configuration</h1>
+  <h1 class="h3 mb-4">Payment Providers Configuration</h1>
 
   <div class="d-flex justify-content-between align-items-center mb-4">
     <p class="text-muted mb-0">
-      Configure your payment provider credentials (Stripe, Square, PayPal). Only one provider can be active at a time.
+      Configure payment provider credentials for this owner. The same active provider is used across all origins/sites.
     </p>
     <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addProviderModal">
-      ➕ Add Payment Provider
+      Add Payment Provider
     </button>
   </div>
 
   {% if providers is empty %}
     <div class="alert alert-info">
-      <h5 class="alert-heading">💳 No payment provider configured</h5>
+      <h5 class="alert-heading">No payment provider configured</h5>
       <p class="mb-2">You don't have any payment providers yet.</p>
       <p class="mb-0">
         <strong>Payment provider required.</strong>
-        Click “Add Payment Provider” to create one.
+        Click "Add Payment Provider" to create one.
       </p>
     </div>
   {% else %}
@@ -28,6 +28,7 @@
           <tr>
             <th>Provider</th>
             <th>Name</th>
+            <th>Origin</th>
             <th>Environment</th>
             <th>Currency</th>
             <th>Status</th>
@@ -40,9 +41,9 @@
             <tr class="{% if provider.is_default %}table-primary{% endif %} {% if provider.is_active %}table-success{% endif %}">
               <td>
                 <strong>
-                  {% if provider.provider_type == 'stripe' %}💳 Stripe
-                  {% elseif provider.provider_type == 'square' %}🔲 Square
-                  {% elseif provider.provider_type == 'paypal' %}🅿️ PayPal
+                  {% if provider.provider_type == 'stripe' %}Stripe
+                  {% elseif provider.provider_type == 'square' %}Square
+                  {% elseif provider.provider_type == 'paypal' %}PayPal
                   {% else %}{{ provider.provider_type|upper }}
                   {% endif %}
                 </strong>
@@ -62,6 +63,9 @@
                 {% endif %}
               </td>
               <td>
+                <span class="badge bg-light text-dark border">{{ provider.site_key|default('global') ?: 'global' }}</span>
+              </td>
+              <td>
                 {% if provider.environment == 'production' %}
                   <span class="badge bg-success">Production</span>
                 {% else %}
@@ -71,9 +75,9 @@
               <td><strong>{{ provider.currency }}</strong></td>
               <td>
                 {% if provider.is_verified %}
-                  <span class="badge bg-success">✓ Verified</span>
+                  <span class="badge bg-success">Verified</span>
                 {% else %}
-                  <span class="badge bg-warning">⚠ Not verified</span>
+                  <span class="badge bg-warning">Not verified</span>
                 {% endif %}
               </td>
               <td>
@@ -173,7 +177,7 @@
           <input type="hidden" name="provider_id" id="test_provider_id">
 
           <div class="modal-header">
-            <h5 class="modal-title">✅ Test payment provider</h5>
+            <h5 class="modal-title">Test payment provider</h5>
             <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
           </div>
 
@@ -201,7 +205,7 @@
           <input type="hidden" name="action" value="add">
 
           <div class="modal-header">
-            <h5 class="modal-title">➕ Add Payment Provider</h5>
+            <h5 class="modal-title">Add Payment Provider</h5>
             <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
           </div>
 
@@ -275,7 +279,7 @@
                   Location ID (Square) <span class="text-danger js-required js-required-location-id d-none">*</span>
                 </label>
                 <input type="text" name="location_id" class="form-control" autocomplete="off">
-                <div class="form-text">Tip: Square Dashboard → Locations.</div>
+                <div class="form-text">Tip: Square Dashboard > Locations.</div>
               </div>
             </div>
 
@@ -303,7 +307,7 @@
           <input type="hidden" name="provider_id" id="edit_provider_id" value="">
 
           <div class="modal-header">
-            <h5 class="modal-title">✏️ Edit Payment Provider</h5>
+            <h5 class="modal-title">Edit Payment Provider</h5>
             <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
           </div>
 
@@ -377,7 +381,7 @@
                   Location ID (Square) <span class="text-danger js-required js-required-location-id d-none">*</span>
                 </label>
                 <input type="text" name="location_id" id="edit_location_id" class="form-control" autocomplete="off">
-                <div class="form-text">Tip: Square Dashboard → Locations.</div>
+                <div class="form-text">Tip: Square Dashboard > Locations.</div>
               </div>
             </div>
           </div>
@@ -487,4 +491,5 @@
     }
   </script>
 {% endblock %}
+
 

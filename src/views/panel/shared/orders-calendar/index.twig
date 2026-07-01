@@ -209,7 +209,7 @@
 </div>
 
 <div class="modal fade" id="vnvOrderCalendarModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-dialog modal-dialog-centered modal-xl">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title">Order details</h5>
@@ -241,23 +241,152 @@ document.addEventListener('DOMContentLoaded', function () {
         '"': '&quot;',
         "'": '&#039;'
     }[char]));
+    const money = (value) => {
+        const number = Number(value || 0);
+        return number.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
+    };
+    const valueOrNa = (value) => esc(value || 'N/A');
+    const serviceRows = (services) => {
+        if (!Array.isArray(services) || services.length === 0) {
+            return '<tr><td colspan="4" class="text-muted">No services attached.</td></tr>';
+        }
+        return services.map((service) => `
+            <tr>
+                <td>
+                    <strong>${esc(service.name || 'Service')}</strong>
+                    ${service.description ? `<div class="small text-muted">${esc(service.description)}</div>` : ''}
+                </td>
+                <td class="text-end">${esc(service.quantity || 0)}</td>
+                <td class="text-end">${money(service.unitPrice)}</td>
+                <td class="text-end fw-semibold">${money(service.subtotal)}</td>
+            </tr>
+        `).join('');
+    };
+    const paymentRows = (payments) => {
+        if (!Array.isArray(payments) || payments.length === 0) {
+            return '<tr><td colspan="6" class="text-muted">No payment records yet.</td></tr>';
+        }
+        return payments.map((payment) => `
+            <tr>
+                <td>${valueOrNa(payment.paidAt)}</td>
+                <td>${valueOrNa(payment.concept || payment.method)}</td>
+                <td>${valueOrNa(payment.provider || payment.method)}</td>
+                <td>${valueOrNa(payment.card)}</td>
+                <td>${esc(payment.status || 'PAID')}</td>
+                <td class="text-end fw-semibold">${money(payment.netAmount)}</td>
+            </tr>
+        `).join('');
+    };
+    const totalsHtml = (totals) => {
+        const data = totals || {};
+        return `
+            <div class="row g-2">
+                <div class="col-6 col-md-4"><div class="p-3 border rounded-3"><div class="small text-muted">Subtotal</div><strong>${money(data.subtotal)}</strong></div></div>
+                <div class="col-6 col-md-4"><div class="p-3 border rounded-3"><div class="small text-muted">Discount</div><strong>${money(data.discount)}</strong></div></div>
+                <div class="col-6 col-md-4"><div class="p-3 border rounded-3"><div class="small text-muted">Tax</div><strong>${money(data.tax)}</strong></div></div>
+                <div class="col-6 col-md-4"><div class="p-3 border rounded-3"><div class="small text-muted">Total</div><strong>${money(data.total)}</strong></div></div>
+                <div class="col-6 col-md-4"><div class="p-3 border rounded-3"><div class="small text-muted">Paid</div><strong>${money(data.paid)}</strong></div></div>
+                <div class="col-6 col-md-4"><div class="p-3 border rounded-3"><div class="small text-muted">Balance</div><strong>${money(data.balance)}</strong></div></div>
+            </div>
+        `;
+    };
+    const subordersHtml = (suborders) => {
+        if (!Array.isArray(suborders) || suborders.length === 0) {
+            return '<p class="text-muted mb-0">No invoice detail found for this order.</p>';
+        }
+        return suborders.map((suborder, index) => `
+            <section class="border rounded-3 p-3 mb-3">
+                <div class="d-flex flex-wrap justify-content-between gap-2 mb-3">
+                    <strong>Invoice ${index + 1} ${suborder.id ? `#${esc(suborder.id)}` : ''}</strong>
+                    <span class="badge text-bg-dark">${esc(suborder.status || 'INVOICE_READY')}</span>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-sm align-middle mb-3">
+                        <thead>
+                            <tr>
+                                <th>Service</th>
+                                <th class="text-end">Qty</th>
+                                <th class="text-end">Unit</th>
+                                <th class="text-end">Subtotal</th>
+                            </tr>
+                        </thead>
+                        <tbody>${serviceRows(suborder.services)}</tbody>
+                    </table>
+                </div>
+                <div class="row g-2 small">
+                    <div class="col-6 col-md-2"><strong>Subtotal</strong><br>${money(suborder.subtotal)}</div>
+                    <div class="col-6 col-md-2"><strong>Discount</strong><br>${money(suborder.discount)}</div>
+                    <div class="col-6 col-md-2"><strong>Tax</strong><br>${money(suborder.tax)}</div>
+                    <div class="col-6 col-md-2"><strong>Total</strong><br>${money(suborder.total)}</div>
+                    <div class="col-6 col-md-2"><strong>Paid</strong><br>${money(suborder.paid)}</div>
+                    <div class="col-6 col-md-2"><strong>Balance</strong><br>${money(suborder.balance)}</div>
+                </div>
+            </section>
+        `).join('');
+    };
+    const chatHtml = (contacts) => {
+        if (!Array.isArray(contacts) || contacts.length === 0) {
+            return '';
+        }
+        return `
+            <section class="mt-4">
+                <h6 class="fw-bold">Team chat</h6>
+                <div class="d-flex flex-wrap gap-2">
+                    ${contacts.map((contact) => `<a class="btn btn-outline-success btn-sm" href="${esc(contact.url)}">Chat with ${esc(contact.name || 'team')}</a>`).join('')}
+                </div>
+            </section>
+        `;
+    };
 
     document.querySelectorAll('[data-vnv-order-details]').forEach((button) => {
         button.addEventListener('click', function () {
             const data = JSON.parse(this.dataset.vnvOrderDetails || '{}');
-            link.href = data.url || '#';
+            if (data.url) {
+                link.href = data.url;
+                link.classList.remove('d-none');
+            } else {
+                link.href = '#';
+                link.classList.add('d-none');
+            }
             body.innerHTML = `
-                <div class="row g-3">
-                    <div class="col-md-6"><strong>Order</strong><br>${esc(data.id)}</div>
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6"><strong>Order</strong><br>${valueOrNa(data.id)}</div>
                     <div class="col-md-6"><strong>Status</strong><br>${esc(data.status || 'ORDER')}</div>
-                    <div class="col-md-6"><strong>Client / Company</strong><br>${esc(data.client || 'N/A')}</div>
-                    <div class="col-md-6"><strong>Email</strong><br>${esc(data.email || 'N/A')}</div>
-                    <div class="col-md-6"><strong>Event date</strong><br>${esc(data.eventDate || 'N/A')}</div>
+                    <div class="col-md-6"><strong>Client / Company</strong><br>${valueOrNa(data.client)}</div>
+                    <div class="col-md-6"><strong>Email</strong><br>${valueOrNa(data.email)}</div>
+                    <div class="col-md-6"><strong>Event date</strong><br>${valueOrNa(data.eventDate)}</div>
                     <div class="col-md-6"><strong>Time</strong><br>${esc(data.time || 'No time assigned')}</div>
-                    <div class="col-12"><strong>Address</strong><br>${esc(data.address || 'N/A')}</div>
-                    <div class="col-md-6"><strong>Created</strong><br>${esc(data.createdAt || 'N/A')}</div>
-                    <div class="col-md-6"><strong>Workflow</strong><br>${esc(data.workflow || 'N/A')}</div>
+                    <div class="col-12"><strong>Address</strong><br>${valueOrNa(data.address)}</div>
+                    <div class="col-md-6"><strong>Created</strong><br>${valueOrNa(data.createdAt)}</div>
+                    <div class="col-md-6"><strong>Workflow</strong><br>${valueOrNa(data.workflow)}</div>
                 </div>
+                <section class="mb-4">
+                    <h6 class="fw-bold">Payment summary</h6>
+                    ${totalsHtml(data.totals)}
+                </section>
+                <section class="mb-4">
+                    <h6 class="fw-bold">Invoice details</h6>
+                    ${subordersHtml(data.suborders)}
+                </section>
+                <section>
+                    <h6 class="fw-bold">Payments</h6>
+                    <div class="table-responsive">
+                        <table class="table table-sm align-middle mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Concept</th>
+                                    <th>Provider</th>
+                                    <th>Card</th>
+                                    <th>Status</th>
+                                    <th class="text-end">Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody>${paymentRows(data.payments)}</tbody>
+                        </table>
+                    </div>
+                </section>
+                ${chatHtml(data.chatContacts)}
             `;
             modal.show();
         });

@@ -614,10 +614,7 @@
 								>
 							</div>
 							{% if activeProvider.provider_type == 'stripe' %}
-							<div class="mb-3" id="payment-billing-zip-wrap">
-								<label class="form-label fw-bold">{{ trans('zip_code') }}</label>
-								<input type="text" name="billing_zip" id="payment-billing-zip" class="form-control form-control-lg" required>
-							</div>
+							<input type="hidden" name="billing_zip" id="payment-billing-zip" value="">
 							{% endif %}
 							<div class="mb-4">
 								<div id="paypal-button-container"></div>
@@ -675,10 +672,7 @@
 							</div>
 
 							{% if activeProvider.provider_type == 'stripe' %}
-							<div class="mb-3" id="payment-billing-zip-wrap">
-								<label class="form-label fw-bold">{{ trans('zip_code') }}</label>
-								<input type="text" name="billing_zip" id="payment-billing-zip" class="form-control form-control-lg" required>
-							</div>
+							<input type="hidden" name="billing_zip" id="payment-billing-zip" value="">
 							{% endif %}
 
 							{% include 'public/commerce/order-access/_saved_payment_methods.twig' %}
@@ -987,9 +981,81 @@
 				timestampFieldDocuSign.value = timestamp;
 				console.log('DocuSign signing - User local timestamp captured:', timestamp);
 			}
+
+			const billingAddressInput = document.getElementById('payment-billing-address');
+			const billingZipInput = document.getElementById('payment-billing-zip');
+			const syncBillingZipFromAddress = () => {
+				if (!billingAddressInput || !billingZipInput || billingZipInput.value.trim() !== '') return;
+				const address = billingAddressInput.value || '';
+				const usZipMatch = address.match(/\b\d{5}(?:-\d{4})?\b/);
+				if (usZipMatch) {
+					billingZipInput.value = usZipMatch[0];
+				}
+			};
+			if (billingAddressInput && billingZipInput) {
+				billingAddressInput.addEventListener('input', function () {
+					billingZipInput.value = '';
+					syncBillingZipFromAddress();
+				});
+				billingAddressInput.addEventListener('change', syncBillingZipFromAddress);
+				billingAddressInput.addEventListener('vnv:place-selected', function (event) {
+					const components = event.detail?.place?.address_components || [];
+					const zipComponent = components.find((component) => component.types && component.types.includes('postal_code'));
+					if (zipComponent) {
+						billingZipInput.value = zipComponent.long_name || zipComponent.short_name || '';
+					}
+					syncBillingZipFromAddress();
+				});
+				syncBillingZipFromAddress();
+			}
 		});
 
 		{% if isPaymentReady and activeProvider and paymentStatus != "complete" and not is_event_past %}
+		window.VnvOrderAccessPayment = (function() {
+			const processingHtml = '<span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>Procesando...';
+
+			function getForm() {
+				return document.getElementById('payment-form-element');
+			}
+
+			function getPayButton() {
+				return document.getElementById('payment-pay-button');
+			}
+
+			function setProcessingState(isProcessing) {
+				const payButton = getPayButton();
+				if (!payButton) return;
+				if (!payButton.dataset.defaultHtml) {
+					payButton.dataset.defaultHtml = payButton.innerHTML;
+				}
+				payButton.disabled = isProcessing;
+				payButton.innerHTML = isProcessing ? processingHtml : payButton.dataset.defaultHtml;
+				payButton.style.opacity = isProcessing ? '0.65' : '';
+				payButton.style.cursor = isProcessing ? 'wait' : '';
+			}
+
+			function begin() {
+				const form = getForm();
+				if (!form) return true;
+				if (form.dataset.paymentSubmitting === '1') {
+					return false;
+				}
+				form.dataset.paymentSubmitting = '1';
+				setProcessingState(true);
+				return true;
+			}
+
+			function reset() {
+				const form = getForm();
+				if (form) {
+					form.dataset.paymentSubmitting = '0';
+				}
+				setProcessingState(false);
+			}
+
+			return { begin, reset };
+		})();
+
 		{% if activeProvider.provider_type == 'stripe' and stripe_publishable_key %}
 		// Stripe
 		(function() {
@@ -1009,16 +1075,16 @@
 					return;
 				}
 				event.preventDefault();
-				payButton.disabled = true;
-				payButton.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>{{ trans('planner_hub.processing')|e('js') }}';
+				if (!window.VnvOrderAccessPayment.begin()) {
+					return;
+				}
 				errorDiv.textContent = '';
 				window.VnvProcessingModal.show('orderAccessProcessingModal', { title: '{{ trans('planner_hub.processing_payment')|e('js') }}', message: '{{ trans('planner_hub.confirming_payment')|e('js') }}' });
 
 				const { token, error } = await stripe.createToken(cardElement);
 				if (error) {
 					errorDiv.textContent = error.message || '{{ trans('planner_hub.payment_failed_try_again')|e('js') }}';
-					payButton.disabled = false;
-					payButton.innerHTML = '<i class="bi bi-credit-card me-2"></i>{{ trans('planner_hub.pay_now')|e('js') }}';
+					window.VnvOrderAccessPayment.reset();
 					window.VnvProcessingModal.hide('orderAccessProcessingModal');
 					return;
 				}
@@ -1051,8 +1117,9 @@
 						return;
 					}
 					event.preventDefault();
-					payButton.disabled = true;
-					payButton.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>{{ trans('planner_hub.processing')|e('js') }}';
+					if (!window.VnvOrderAccessPayment.begin()) {
+						return;
+					}
 					errorDiv.textContent = '';
 					window.VnvProcessingModal.show('orderAccessProcessingModal', { title: '{{ trans('planner_hub.processing_payment')|e('js') }}', message: '{{ trans('planner_hub.confirming_payment')|e('js') }}' });
 
@@ -1063,14 +1130,12 @@
 							form.submit();
 						} else {
 							errorDiv.textContent = (tokenResult.errors && tokenResult.errors[0]) ? tokenResult.errors[0].detail : '{{ trans('planner_hub.payment_failed_try_again')|e('js') }}';
-							payButton.disabled = false;
-							payButton.innerHTML = '<i class="bi bi-credit-card me-2"></i>{{ trans('planner_hub.pay_now')|e('js') }}';
+							window.VnvOrderAccessPayment.reset();
 							window.VnvProcessingModal.hide('orderAccessProcessingModal');
 						}
 					} catch (error) {
 						errorDiv.textContent = '{{ trans('planner_hub.error_occurred_try_again')|e('js') }}';
-						payButton.disabled = false;
-						payButton.innerHTML = '<i class="bi bi-credit-card me-2"></i>{{ trans('planner_hub.pay_now')|e('js') }}';
+						window.VnvOrderAccessPayment.reset();
 						window.VnvProcessingModal.hide('orderAccessProcessingModal');
 					}
 				});
@@ -1100,6 +1165,9 @@
 					});
 				},
 				onApprove: function(data) {
+					if (window.VnvOrderAccessPayment && !window.VnvOrderAccessPayment.begin()) {
+						return;
+					}
 					tokenInput.value = data.orderID;
 					form.submit();
 				},

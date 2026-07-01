@@ -8,6 +8,8 @@ use App\Repositories\OrdersSuborderRepository;
 use App\Repositories\OrderSuborderServicesAssignedRepository;
 use App\Repositories\OrdersPaymentsRepository;
 use App\Repositories\OrdersTeamTasksRepository;
+use App\Repositories\DocumentsLogsRepository;
+use App\Repositories\OrdersAcceptanceContractsRepository;
 use App\Services\UserWorkspaceContextService;
 use App\Services\TranslationService;
 
@@ -20,6 +22,8 @@ $router->get(callback: function () {
     $suborderServicesRepo = new OrderSuborderServicesAssignedRepository();
     $paymentsRepo = new OrdersPaymentsRepository();
     $tasksRepo = new OrdersTeamTasksRepository();
+    $docsRepo = new DocumentsLogsRepository();
+    $acceptanceRepo = new OrdersAcceptanceContractsRepository();
     $workspaceContextService = new UserWorkspaceContextService();
     $clientContext = $workspaceContextService->getClientContext($user);
     $orders = $repo->getOrdersForClientWithCompany((int)$user->getId());
@@ -40,6 +44,12 @@ $router->get(callback: function () {
         }
     }
     
+    $appUrl = $_ENV["APP_URL"] ?? "http://localhost/vnv-venue";
+    $appUrl = rtrim($appUrl, '/');
+    $today = date('Y-m-d');
+    $currentOrders = [];
+    $pastOrders = [];
+
     foreach ($orders as &$order) {
         $order->institution = (object)[
             'company_name' => $order->company_name ?? null,
@@ -75,6 +85,14 @@ $router->get(callback: function () {
             "exp" => $payload["exp"]
         ]), $secret);
         $order->contract_token = base64_encode(json_encode($payload));
+        $order->public_order_url = $appUrl . '/order-access?token=' . urlencode($order->contract_token);
+        $order->has_signed_contract = in_array((string)($order->status_workflow ?? ''), ['INVOICE_READY', 'INVOICE_PARTIAL', 'INVOICE_PAID'], true)
+            || (bool)$docsRepo->getByType((int)$order->id, 'contract_signed');
+        $order->has_signed_acceptance = (bool)$docsRepo->getByType((int)$order->id, 'order_acceptance_signed')
+            || (bool)$acceptanceRepo->getByOrder((int)$order->id);
+        $order->client_action_label = vnv_client_order_action_label($order);
+        $order->client_action_class = vnv_client_order_action_class($order);
+        $order->client_status_label = vnv_client_order_status_label($order);
         $suborders = $suborderRepo->getByOrder($order->id);
         $order->suborders = [];
         
@@ -113,15 +131,22 @@ $router->get(callback: function () {
             
             $order->suborders[] = $suborder;
         }
-    }
 
-    $appUrl = $_ENV["APP_URL"] ?? "http://localhost/vnv-venue";
-    $appUrl = rtrim($appUrl, '/');
+        $eventDate = substr((string)($order->event_date ?? ''), 0, 10);
+        if ($eventDate !== '' && $eventDate < $today) {
+            $pastOrders[] = $order;
+        } else {
+            $currentOrders[] = $order;
+        }
+    }
+    unset($order);
     
     $mobileOwnerId = (int)($_ENV['MOBILE_OWNER_ID'] ?? 0);
 
     return TemplateResponse::render(__DIR__ . "/index.twig", [
         "orders" => $orders,
+        "current_orders" => $currentOrders,
+        "past_orders" => $pastOrders,
         "app_url" => $appUrl,
         "mobile_owner_id" => $mobileOwnerId,
         "clientContext" => $clientContext,
@@ -129,3 +154,44 @@ $router->get(callback: function () {
 });
 
 $router->run();
+
+function vnv_client_order_action_label(object $order): string
+{
+    $status = (string)($order->status_workflow ?? '');
+    if (!$order->has_signed_contract || $status === 'INVOICE_DRAFT') {
+        return 'Click to Sign Contract';
+    }
+
+    if (in_array($status, ['INVOICE_READY', 'INVOICE_PARTIAL'], true)) {
+        return 'Click to Pay';
+    }
+
+    if ($status === 'INVOICE_PAID' && empty($order->has_signed_acceptance)) {
+        return 'Click to Sign as Received';
+    }
+
+    return 'Click to View Details';
+}
+
+function vnv_client_order_action_class(object $order): string
+{
+    $label = vnv_client_order_action_label($order);
+    return match ($label) {
+        'Click to Sign Contract' => 'btn-warning text-dark',
+        'Click to Pay' => 'btn-success',
+        'Click to Sign as Received' => 'btn-info',
+        default => 'btn-outline-primary',
+    };
+}
+
+function vnv_client_order_status_label(object $order): string
+{
+    return match ((string)($order->status_workflow ?? '')) {
+        'INVOICE_DRAFT' => 'Signature Pending',
+        'INVOICE_READY' => 'Payment Pending',
+        'INVOICE_PARTIAL' => 'Partially Paid',
+        'INVOICE_PAID' => empty($order->has_signed_acceptance) ? 'Receipt Signature Pending' : 'Completed',
+        'INVOICE_EXPIRED' => 'Expired',
+        default => 'Order Details',
+    };
+}

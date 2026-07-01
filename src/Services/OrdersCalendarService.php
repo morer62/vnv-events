@@ -293,6 +293,10 @@ class OrdersCalendarService
             'createdAt' => (string)($order->created_at ?? ''),
             'workflow' => (string)($order->status_workflow ?? ''),
             'url' => $this->orderUrl($order, $mode),
+            'suborders' => $order->calendar_suborders ?? [],
+            'payments' => $order->calendar_payments ?? [],
+            'totals' => $order->calendar_totals ?? [],
+            'chatContacts' => $order->calendar_chat_contacts ?? [],
         ];
     }
 
@@ -300,14 +304,14 @@ class OrdersCalendarService
     {
         $id = (int)($order->id ?? 0);
         if ($mode === 'team') {
-            return '/panel/planner-hub/team/orders/orders/tasks?id=' . $id;
+            return LocationUtils::pathFor('panel/planner-hub/team/orders/orders/tasks?id=' . $id);
         }
 
         if ($mode === 'client') {
-            return '/panel/planner-hub/orders/orders/files?id=' . $id;
+            return LocationUtils::pathFor('panel/planner-hub/orders/orders/files?id=' . $id);
         }
 
-        return '/panel/planner-hub/management/orders/orders/edit?id=' . $id;
+        return LocationUtils::pathFor('panel/planner-hub/management/orders/orders/edit?id=' . $id);
     }
 
     private function normalizeOrder(

@@ -319,7 +319,7 @@ $router->post(function () {
     $billingAddress = trim($_POST["billing_address"] ?? "");
     $billingZip = trim((string)($_POST["billing_zip"] ?? ""));
 
-    if ((!$cardToken && $savedPaymentMethodId <= 0) || !$customerEmail || ($savedPaymentMethodId <= 0 && $activeProvider->provider_type === 'stripe' && $billingZip === '')) {
+    if ((!$cardToken && $savedPaymentMethodId <= 0) || !$customerEmail) {
         $logDir = \App\Utils\LocationUtils::getRootLocation() . '/.logs';
         $logFile = $logDir . '/app_error_' . date('Y-m-d') . '.log';
         if (is_dir($logDir)) {

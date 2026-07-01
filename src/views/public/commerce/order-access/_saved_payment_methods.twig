@@ -83,13 +83,20 @@
 
         if (form && savedSelect) {
             form.addEventListener('submit', function (event) {
-                if (!savedSelect.value || submittingSavedMethod) {
+                if (!savedSelect.value) {
                     return;
                 }
 
-                submittingSavedMethod = true;
                 event.preventDefault();
                 event.stopImmediatePropagation();
+                if (submittingSavedMethod) {
+                    return false;
+                }
+                if (window.VnvOrderAccessPayment && !window.VnvOrderAccessPayment.begin()) {
+                    return false;
+                }
+
+                submittingSavedMethod = true;
                 if (customerTokenInput) customerTokenInput.value = '';
                 form.submit();
             }, true);
