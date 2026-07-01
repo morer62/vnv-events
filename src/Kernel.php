@@ -417,6 +417,10 @@ class Kernel
                         $module = $urlViews[3];
 
                         if (!$user->hasPermissionForModule($module)) {
+                            if ($module === 'orders') {
+                                LocationUtils::redirectInternal("panel/planner-hub/team/orders/orders/");
+                            }
+
                             \App\Utils\MessageUtil::setMessage("ℹ️ This area is reserved for administrators. Let us know if you need help finding what you are looking for.");
                             LocationUtils::redirectInternal("panel/planner-hub/management");
                         }

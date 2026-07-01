@@ -2,7 +2,6 @@
 
 use App\Utils\Router;
 use App\Utils\TemplateResponse;
-use App\Utils\MessageUtil;
 use App\Utils\LocationUtils;
 use App\Services\LoginService;
 use App\Repositories\UserInstitutionsRepository;
@@ -31,8 +30,7 @@ $router->get(function () {
         }
 
         if (empty($user->getPermissions2())) {
-            MessageUtil::setMessage("ℹ️ This area is reserved for administrators. Let us know if you need help finding what you are looking for.");
-            LocationUtils::redirectInternal("panel/home");
+            LocationUtils::redirectInternal("panel/planner-hub/team");
         }
     }
 

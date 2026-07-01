@@ -104,6 +104,10 @@ class ValidationSessionService
             return self::CONTINUE_NEXT_VALIDATION;
         }
 
+        if ($urlViews[3] === 'orders') {
+            LocationUtils::redirectInternal('panel/planner-hub/team/orders/orders/');
+        }
+
         if (str_contains(implode("/",$urlViews), "planner-hub/management")) {
             return self::BREAK_CHAIN_VALIDATION_AND_RENDER;
         }
