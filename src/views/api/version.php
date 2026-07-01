@@ -10,7 +10,7 @@ $router = new Router();
 
 $router->get(function () {
     return JsonResponse::createResponse([
-        "version" => "2.0.0" // <- cambia esto cuando quieras forzar actualización
+        "version" => "4.0.10" // Change this when a mobile app update must be required.
     ]);
 });
 

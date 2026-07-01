@@ -113,6 +113,13 @@ class UserRepository extends BaseRepository
         $this->db->execute();
     }
 
+    public function clearExpoToken(int $userId): void
+    {
+        $this->db->query("UPDATE users SET expo_token = NULL WHERE id = :id");
+        $this->db->bind(":id", $userId);
+        $this->db->execute();
+    }
+
 
 
     public function getOneWithoutOwnership(array $criteriaVals, array $columns = []): ?object
