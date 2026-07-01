@@ -80,6 +80,26 @@ class TeamMemberContractsRepository
         return $row ?: null;
     }
 
+    public function getByIdAndMember(int $id, int $teamMemberId): ?object
+    {
+        if (!$this->hasStorage()) {
+            return null;
+        }
+
+        $this->db->query("
+            SELECT *
+            FROM `{$this->table}`
+            WHERE id = :id
+              AND team_member_id = :team_member_id
+            LIMIT 1
+        ");
+        $this->db->bind(':id', $id);
+        $this->db->bind(':team_member_id', $teamMemberId);
+        $row = $this->db->fetchOne();
+
+        return $row ?: null;
+    }
+
     public function getLatestForMember(int $teamMemberId, int $ownerId): ?object
     {
         if (!$this->hasStorage()) {

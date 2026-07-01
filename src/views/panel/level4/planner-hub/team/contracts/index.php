@@ -40,6 +40,33 @@ $resolveOwner = function ($user): ?int {
     return $user->getOwner();
 };
 
+$contractOwnerIsAvailableToUser = function ($user, int $contractOwnerId, ?int $resolvedOwnerId): bool {
+    if ($resolvedOwnerId && $contractOwnerId === (int)$resolvedOwnerId) {
+        return true;
+    }
+
+    if ($user->getOwner() && $contractOwnerId === (int)$user->getOwner()) {
+        return true;
+    }
+
+    $institutionRepo = new InstitutionProfileRepository();
+    $userInstitutionService = new UserInstitutionService();
+
+    foreach ($userInstitutionService->getUserAvailableInstitutions($user->getId()) as $availableInstitution) {
+        $institutionId = $availableInstitution->working_institution_id ?? $availableInstitution->institution_id ?? null;
+        if (!$institutionId) {
+            continue;
+        }
+
+        $institution = $institutionRepo->getById((int)$institutionId);
+        if ($institution && (int)($institution->id_owner ?? 0) === $contractOwnerId) {
+            return true;
+        }
+    }
+
+    return false;
+};
+
 $router->get(function () use ($resolveOwner): string {
     $user = LoginService::getSession();
     $ownerId = $resolveOwner($user);
@@ -53,14 +80,14 @@ $router->get(function () use ($resolveOwner): string {
     ]);
 });
 
-$router->post(function () use ($resolveOwner): void {
+$router->post(function () use ($resolveOwner, $contractOwnerIsAvailableToUser): void {
     $user = LoginService::getSession();
     $ownerId = $resolveOwner($user);
     $repo = new TeamMemberContractsRepository();
     $contractId = (int)($_POST['contract_id'] ?? 0);
-    $contract = $contractId > 0 && $ownerId ? $repo->getByIdAndOwner($contractId, (int)$ownerId) : null;
+    $contract = $contractId > 0 ? $repo->getByIdAndMember($contractId, $user->getId()) : null;
 
-    if (!$contract || (int)$contract->team_member_id !== $user->getId()) {
+    if (!$contract || !$contractOwnerIsAvailableToUser($user, (int)$contract->id_owner, $ownerId ? (int)$ownerId : null)) {
         MessageUtil::setMessage('Contract not found.');
         LocationUtils::reload();
     }
