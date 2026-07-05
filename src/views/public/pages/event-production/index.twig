@@ -142,22 +142,62 @@ h1, h2, h3, h4, h5, .luxury-font {
 .hero-production h1 {
     font-size: clamp(3rem, 6vw, 5.5rem);
     line-height: 1.01;
-    margin: 20px 0 28px;
+    margin: 20px 0 24px;
     max-width: 1020px;
 }
 
 .hero-production p.hero-copy {
-    font-size: 1.08rem;
+    font-size: 1.1rem;
     color: var(--vnv-text-muted);
-    max-width: 820px;
-    margin-bottom: 22px;
+    max-width: 680px;
+    margin-bottom: 26px;
+}
+
+.hero-services-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 30px;
+}
+.hero-services-row span {
+    padding: 8px 16px;
+    border-radius: 999px;
+    border: 1px solid rgba(255,255,255,.18);
+    font-size: .74rem;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: rgba(255,255,255,.8);
 }
 
 .hero-cta-row {
     display: flex;
     flex-wrap: wrap;
     gap: 16px;
-    margin-top: 26px;
+    margin-top: 20px;
+}
+
+/* Trust stats bar */
+.trust-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 44px;
+    margin-top: 42px;
+}
+.trust-stat .num {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.4rem;
+    font-weight: 900;
+    line-height: 1;
+    background: var(--vnv-gold-gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+.trust-stat .label {
+    font-size: .7rem;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--vnv-text-muted-soft);
+    margin-top: 4px;
 }
 
 .section-white {
@@ -296,6 +336,12 @@ h1, h2, h3, h4, h5, .luxury-font {
     height: 100%;
     position: relative;
     z-index: 2;
+    transition: all 0.5s cubic-bezier(0.165, 0.84, 0.44, 1);
+}
+
+.service-card:hover {
+    transform: translateY(-8px);
+    border-color: var(--vnv-gold);
 }
 
 .service-card h3 {
@@ -319,6 +365,160 @@ h1, h2, h3, h4, h5, .luxury-font {
     color: var(--vnv-gold);
     font-size: 1.6rem;
     margin-bottom: 24px;
+}
+
+/* Jonnys.media banner */
+.jonnys-banner {
+    margin-top: 30px;
+    background: linear-gradient(120deg, rgba(197,160,89,.10) 0%, rgba(94,198,196,.06) 100%);
+    border: 2px solid var(--vnv-gold);
+    border-radius: 30px;
+    padding: 44px 42px;
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: 30px;
+    align-items: center;
+    position: relative;
+    z-index: 2;
+}
+.jonnys-banner-icon {
+    width: 68px;
+    height: 68px;
+    border-radius: 20px;
+    background: var(--vnv-gold-gradient);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #000;
+    font-size: 1.8rem;
+    flex-shrink: 0;
+}
+.jonnys-banner h3 {
+    color: #fff;
+    font-size: 1.6rem;
+    margin-bottom: 10px;
+}
+.jonnys-banner p {
+    color: var(--vnv-text-muted);
+    margin: 0;
+    max-width: 640px;
+}
+.jonnys-banner-cta {
+    white-space: nowrap;
+}
+
+/* Ecosystem grid */
+.ecosystem-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+}
+.ecosystem-card {
+    background: #fff;
+    border: 1px solid rgba(17,24,26,.08);
+    border-radius: 28px;
+    padding: 36px 32px;
+    box-shadow: 0 20px 60px rgba(0,0,0,.06);
+    height: 100%;
+    transition: all 0.4s ease;
+    display: flex;
+    flex-direction: column;
+}
+.ecosystem-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 30px 70px rgba(0,0,0,.10);
+}
+.ecosystem-card .service-icon-box {
+    background: rgba(94,198,196,.1);
+    color: var(--vnv-primary-dark);
+}
+.ecosystem-card h3 {
+    color: var(--vnv-text-dark);
+    font-size: 1.35rem;
+    margin-bottom: 10px;
+}
+.ecosystem-card p {
+    color: #566164;
+    margin-bottom: 18px;
+    flex-grow: 1;
+}
+.ecosystem-card a {
+    color: var(--vnv-primary-dark) !important;
+    font-weight: 800;
+    letter-spacing: 1px;
+    font-size: .78rem;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    text-transform: uppercase;
+}
+.ecosystem-card a:hover { gap: 14px; }
+.ecosystem-card.featured {
+    border: 2px solid var(--vnv-gold);
+    background: linear-gradient(160deg, #fff 0%, #fdf9f1 100%);
+}
+.ecosystem-card.featured .service-icon-box {
+    background: var(--vnv-gold-gradient);
+    color: #000;
+}
+.ecosystem-card.featured a {
+    color: #96762f !important;
+}
+
+/* Old way vs VNV way comparison */
+.compare-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 26px;
+}
+.compare-card {
+    border-radius: 28px;
+    padding: 44px 38px;
+    height: 100%;
+}
+.compare-card.old {
+    background: rgba(255,255,255,.03);
+    border: 1px solid rgba(255,255,255,.08);
+}
+.compare-card.new {
+    background: rgba(197,160,89,.06);
+    border: 2px solid var(--vnv-gold);
+    box-shadow: 0 25px 70px rgba(197,160,89,.14);
+}
+.compare-card h3 {
+    color: #fff;
+    font-size: 1.7rem;
+    margin-bottom: 22px;
+}
+.compare-card ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+.compare-card ul li {
+    position: relative;
+    padding-left: 30px;
+    margin-bottom: 16px;
+    color: var(--vnv-text-muted);
+}
+.compare-card.old ul li::before {
+    content: "✕";
+    position: absolute;
+    left: 0;
+    top: 1px;
+    color: rgba(255,255,255,.35);
+    font-size: .82rem;
+    font-weight: 700;
+}
+.compare-card.new ul li::before {
+    content: "✓";
+    position: absolute;
+    left: 0;
+    top: 1px;
+    color: var(--vnv-primary);
+    font-weight: 800;
+    font-size: .9rem;
 }
 
 .process-grid {
@@ -522,6 +722,26 @@ h1, h2, h3, h4, h5, .luxury-font {
     top: 11px;
 }
 
+/* FAQ */
+.faq-wrap {
+    max-width: 880px;
+    margin: 0 auto;
+}
+.faq-item {
+    border-bottom: 1px solid rgba(255,255,255,.08);
+    padding: 26px 0;
+}
+.faq-item:last-child { border-bottom: none; }
+.faq-item h4 {
+    font-size: 1.15rem;
+    color: #fff;
+    margin-bottom: 8px;
+}
+.faq-item p {
+    color: var(--vnv-text-muted);
+    margin: 0;
+}
+
 .location-block {
     position: relative;
     overflow: hidden;
@@ -609,6 +829,15 @@ h1, h2, h3, h4, h5, .luxury-font {
     color: var(--vnv-text-muted-soft);
 }
 
+.final-cta-note {
+    font-size: .85rem;
+    color: var(--vnv-primary);
+    margin-top: 18px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: 700;
+}
+
 .vnv-btn-fixed {
     min-width: 240px;
     text-align: center;
@@ -619,24 +848,33 @@ h1, h2, h3, h4, h5, .luxury-font {
 
 @media (max-width: 1199px) {
     .scope-grid,
-    .blueprint-grid {
+    .blueprint-grid,
+    .ecosystem-grid {
         grid-template-columns: 1fr 1fr;
     }
     .final-cta-card {
         padding: 60px 45px;
+    }
+    .jonnys-banner {
+        grid-template-columns: auto 1fr;
+    }
+    .jonnys-banner-cta {
+        grid-column: 1 / -1;
     }
 }
 
 @media (max-width: 991px) {
     .intro-wrap,
     .production-wrap,
-    .process-grid {
+    .process-grid,
+    .compare-grid {
         grid-template-columns: 1fr;
     }
 
     .service-grid,
     .scope-grid,
-    .blueprint-grid {
+    .blueprint-grid,
+    .ecosystem-grid {
         grid-template-columns: 1fr;
     }
 
@@ -645,6 +883,13 @@ h1, h2, h3, h4, h5, .luxury-font {
     .vnv-location-card {
         padding: 32px 28px;
     }
+
+    .jonnys-banner {
+        grid-template-columns: 1fr;
+        text-align: center;
+        padding: 36px 28px;
+    }
+    .jonnys-banner-icon { margin: 0 auto; }
 
     .final-cta-card {
         padding: 50px 30px;
@@ -681,6 +926,13 @@ h1, h2, h3, h4, h5, .luxury-font {
         flex-direction: column;
     }
 
+    .trust-bar {
+        gap: 26px;
+    }
+    .trust-stat .num {
+        font-size: 1.9rem;
+    }
+
     .location-gallery-grid img {
         height: 150px;
     }
@@ -696,19 +948,38 @@ h1, h2, h3, h4, h5, .luxury-font {
     <div class="container hero-production-inner">
         <span class="vnv-badge">VNV Event Production</span>
 
-        <h1>Event Production with <span class="text-gold">strategy, structure and full 360 execution</span></h1>
+        <h1>The most complete <span class="text-gold">360° Event Agency</span> In South Florida</h1>
 
         <p class="hero-copy">
-            Some events need more than vendors. They need a real production plan. VNV helps build and execute events from concept and budgeting to logistics, branding, ticketing, digital platform support, sponsors, staffing and show flow.
+            Strategy, sponsors, logistics, entertainment, decor and content — one team owns every layer, so nothing gets lost between vendors.
         </p>
 
-        <p class="hero-copy">
-            This is ideal for galas, conferences, trade shows, launches, branded experiences, fundraisers, community events and other projects where multiple moving parts need to work as one.
-        </p>
+        <div class="hero-services-row">
+            <span>Strategy</span>
+            <span>Sponsors</span>
+            <span>Logistics</span>
+            <span>Content</span>
+            <span>Execution</span>
+        </div>
 
         <div class="hero-cta-row">
             <a href="tel:+13052045427" class="vnv-btn btn-gold-vnv">Call Now (305) 204-5427</a>
             <a href="#production-process" class="vnv-btn btn-outline-vnv">See Our Process</a>
+        </div>
+
+        <div class="trust-bar">
+            <div class="trust-stat">
+                <div class="num">200+</div>
+                <div class="label">Events Produced Yearly</div>
+            </div>
+            <div class="trust-stat">
+                <div class="num">3</div>
+                <div class="label">South Florida Counties Served</div>
+            </div>
+            <div class="trust-stat">
+                <div class="num">20+</div>
+                <div class="label">Years Combined Experience</div>
+            </div>
         </div>
     </div>
 </section>
@@ -722,12 +993,12 @@ h1, h2, h3, h4, h5, .luxury-font {
 
             <div class="intro-panel">
                 <span class="vnv-badge">Not Just Coordination</span>
-                <h3>We do not just manage the day. We help build the event.</h3>
+                <h3>We don't just manage the day. We build the event.</h3>
                 <p>
-                    Event production means taking a vision and turning it into an organized system with budget logic, brand direction, operational structure, timelines, people, platforms and execution.
+                    Event production means turning a vision into an organized system — budget logic, brand direction, operational structure, timelines, people, platforms and execution.
                 </p>
                 <p>
-                    For some clients, that means producing the full experience. For others, it means stepping into an existing project and bringing order, clarity and leadership to the moving parts that matter most.
+                    For some clients, that means producing the full experience. For others, it means stepping into an existing project and bringing order to the moving parts that matter most.
                 </p>
 
                 <ul>
@@ -754,7 +1025,7 @@ h1, h2, h3, h4, h5, .luxury-font {
     <div class="container position-relative" style="z-index:2;">
         <div class="text-center mb-5 pb-5 section-heading">
             <span class="vnv-badge">360 Event Production</span>
-            <h2 class="text-white">What full production can include <span class="text-vnv">before the event even starts</span></h2>
+            <h2 class="text-white">What Full Production Can Include <span class="text-vnv">Before The Event Even Starts</span></h2>
             <p>
                 When the project is serious, production begins long before event day. The value is in building the system that makes the event possible.
             </p>
@@ -765,7 +1036,7 @@ h1, h2, h3, h4, h5, .luxury-font {
                 <div class="service-icon-box"><i class="fa-solid fa-lightbulb"></i></div>
                 <h3>Concept & Positioning</h3>
                 <p>
-                    Defining what the event is, who it is for, how it should feel, what message it should communicate and how the brand should show up across the experience.
+                    Defining what the event is, who it's for, how it should feel and how the brand should show up across the experience.
                 </p>
             </div>
 
@@ -773,7 +1044,7 @@ h1, h2, h3, h4, h5, .luxury-font {
                 <div class="service-icon-box"><i class="fa-solid fa-chart-line"></i></div>
                 <h3>Budget & Structure</h3>
                 <p>
-                    Building a realistic production plan with priorities, resource mapping, cost logic, vendor categories and decision-making structure.
+                    Building a realistic production plan with priorities, resource mapping, cost logic and decision-making structure.
                 </p>
             </div>
 
@@ -781,7 +1052,7 @@ h1, h2, h3, h4, h5, .luxury-font {
                 <div class="service-icon-box"><i class="fa-solid fa-laptop-code"></i></div>
                 <h3>Digital Layer</h3>
                 <p>
-                    RSVP systems, ticketing flows, landing pages, sales pages, email touchpoints, digital materials and even mobile app support when needed.
+                    RSVP systems, ticketing flows, landing pages, sales pages, email touchpoints and digital materials.
                 </p>
             </div>
 
@@ -789,7 +1060,7 @@ h1, h2, h3, h4, h5, .luxury-font {
                 <div class="service-icon-box"><i class="fa-solid fa-handshake-angle"></i></div>
                 <h3>Sponsors & Partnerships</h3>
                 <p>
-                    Support for sponsor decks, deliverables, category planning, activation placement and the operational side of partnership visibility.
+                    Sponsor decks, deliverables, category planning, activation placement and the operational side of partnership visibility.
                 </p>
             </div>
 
@@ -797,7 +1068,7 @@ h1, h2, h3, h4, h5, .luxury-font {
                 <div class="service-icon-box"><i class="fa-solid fa-bullhorn"></i></div>
                 <h3>Marketing & Sales Support</h3>
                 <p>
-                    Promotion planning, audience communication, campaign alignment, ticket momentum and sales support for events that need traction before launch.
+                    Promotion planning, audience communication and campaign alignment — built with our in-house media team at Jonnys.media, not outsourced last minute.
                 </p>
             </div>
 
@@ -805,8 +1076,113 @@ h1, h2, h3, h4, h5, .luxury-font {
                 <div class="service-icon-box"><i class="fa-solid fa-gears"></i></div>
                 <h3>On-Site Execution</h3>
                 <p>
-                    Staffing, logistics, team communication, production flow, cue management, behind-the-scenes control and event-day problem solving.
+                    Staffing, logistics, team communication, cue management and event-day problem solving.
                 </p>
+            </div>
+        </div>
+
+        <div class="jonnys-banner">
+            <div class="jonnys-banner-icon"><i class="fa-solid fa-video"></i></div>
+            <div>
+                <h3>Every VNV Production Comes With Its Own Marketing</h3>
+                <p>
+                    Jonnys.media, our in-house cproject management ontent and marketing arm, handles preparations, livestreaming, sponsor, distribution and social content — captured by the same team that built the event, not a freelancer hired after the fact.
+                </p>
+            </div>
+            <a href="https://jonnys.media/" target="_blank" class="vnv-btn btn-gold-vnv jonnys-banner-cta">Visit Jonnys.media</a>
+        </div>
+    </div>
+</section>
+
+<section class="section-vnv section-white">
+    <div class="container">
+        <div class="section-heading">
+            <span class="vnv-badge">The VNV Ecosystem</span>
+            <h2>One Team. <span class="text-vnv">Every Layer.</span> No Handoffs.</h2>
+            <p>
+                Most production companies coordinate vendors. We own the vendors. Every piece of your event runs through the same company — which is exactly why the 360° approach works.
+            </p>
+        </div>
+
+        <div class="ecosystem-grid">
+            <div class="ecosystem-card">
+                <div class="service-icon-box"><i class="fa-solid fa-diagram-project"></i></div>
+                <h3>Strategic Production</h3>
+                <p>Concept, budget, sponsors and full event architecture — the layer you're on right now.</p>
+                <a href="#production-process">Explore Production →</a>
+            </div>
+
+            <div class="ecosystem-card">
+                <div class="service-icon-box"><i class="fa-solid fa-calendar-check"></i></div>
+                <h3>Planning & Coordination</h3>
+                <p>Mary Isern leads budget, vendor and timeline decisions from concept to event day.</p>
+                <a href="#">Explore Planning →</a>
+            </div>
+
+            <div class="ecosystem-card">
+                <div class="service-icon-box"><i class="fa-solid fa-utensils"></i></div>
+                <h3>Catering</h3>
+                <p>VNV Gourmet handles menu design and full-service catering for every guest count.</p>
+                <a href="#">Explore Catering →</a>
+            </div>
+
+            <div class="ecosystem-card">
+                <div class="service-icon-box"><i class="fa-solid fa-music"></i></div>
+                <h3>DJ, Sound & Karaoke</h3>
+                <p>VNV Live brings sound, lighting and karaoke to match the energy of the room.</p>
+                <a href="#">Explore VNV Live →</a>
+            </div>
+
+            <div class="ecosystem-card">
+                <div class="service-icon-box"><i class="fa-solid fa-seedling"></i></div>
+                <h3>Flowers & Decor</h3>
+                <p>VNV Flowers & Deco transforms the physical space into a fully designed environment.</p>
+                <a href="#">Explore Decor →</a>
+            </div>
+
+            <div class="ecosystem-card featured">
+                <div class="service-icon-box"><i class="fa-solid fa-video"></i></div>
+                <h3>Media & Content</h3>
+                <p>Jonnys.media captures, edits and distributes the story — for guests, sponsors and your brand.</p>
+                <a href="https://jonnys.media/" target="_blank">Explore Jonnys.media →</a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="section-vnv section-dark">
+    <div class="container">
+        <div class="text-center mb-5 pb-3 section-heading" style="margin-left:auto;margin-right:auto;">
+            <span class="vnv-badge">Why This Approach Doesn't Exist Yet</span>
+            <h2 class="text-white">Most Agencies <span class="text-vnv">Coordinate</span>. We <span class="text-gold">Own</span> The Stack.</h2>
+            <p>
+                A typical production project means managing five different vendors with five different priorities. Here's what changes when one team owns the entire experience.
+            </p>
+        </div>
+
+        <div class="compare-grid">
+            <div class="compare-card old">
+                <h3>The Fragmented Way</h3>
+                <ul>
+                    <li>A production consultant hired for strategy only</li>
+                    <li>A separate DJ booked through another vendor</li>
+                    <li>A separate florist working off their own timeline</li>
+                    <li>A freelance videographer delivering content weeks later</li>
+                    <li>Sponsor decks built by whoever has time that week</li>
+                    <li>No single person accountable for how it all comes together</li>
+                </ul>
+            </div>
+
+            <div class="compare-card new">
+                <h3>The VNV 360 Way</h3>
+                <ul>
+                    <li>One team builds the strategy, the sponsor deck and the run of show</li>
+                    <li>Planning, catering, DJ, decor and content run through the same company</li>
+                    <li>Jonnys.media captures and delivers content while the event is still fresh</li>
+                    <li>Sponsor reporting comes from the team that sold the sponsorship</li>
+                    <li>Every layer is built around the same budget and timeline from day one</li>
+                    <li>One point of accountability, start to finish</li>
+                </ul>
             </div>
         </div>
     </div>
@@ -816,9 +1192,9 @@ h1, h2, h3, h4, h5, .luxury-font {
     <div class="container">
         <div class="section-heading">
             <span class="vnv-badge">Our Production Method</span>
-            <h2>A clearer step-by-step plan for <span class="text-vnv">serious event projects</span></h2>
+            <h2>A Clearer Step-By-Step Plan For <span class="text-vnv">Serious Event Projects</span></h2>
             <p>
-                This is the part that helps clients understand we are not improvising. We are building a structured path from idea to execution.
+                This is the part that shows we're not improvising — we're building a structured path from idea to execution.
             </p>
         </div>
 
@@ -827,7 +1203,7 @@ h1, h2, h3, h4, h5, .luxury-font {
                 <div class="process-number">01</div>
                 <h3>Discovery & Objectives</h3>
                 <p>
-                    We begin by understanding the goal of the event, target audience, success criteria, stakeholders, business purpose and the overall scale of the opportunity.
+                    We start by understanding the goal of the event, audience, success criteria and overall scale of the opportunity.
                 </p>
                 <ul>
                     <li>Event purpose</li>
@@ -840,7 +1216,7 @@ h1, h2, h3, h4, h5, .luxury-font {
                 <div class="process-number">02</div>
                 <h3>Budget & Feasibility</h3>
                 <p>
-                    Before creative ideas go too far, we define the financial reality of the project and align the concept with what can be produced at the right level.
+                    Before creative ideas go too far, we define the financial reality and align the concept with what can actually be produced.
                 </p>
                 <ul>
                     <li>Budget allocation</li>
@@ -853,7 +1229,7 @@ h1, h2, h3, h4, h5, .luxury-font {
                 <div class="process-number">03</div>
                 <h3>Concept & Brand Direction</h3>
                 <p>
-                    We shape the event identity: the story, visual tone, experience logic, guest journey and how the event should be presented to the public or invited audience.
+                    We shape the event identity: story, visual tone, guest journey and how the event should be presented.
                 </p>
                 <ul>
                     <li>Theme and positioning</li>
@@ -866,7 +1242,7 @@ h1, h2, h3, h4, h5, .luxury-font {
                 <div class="process-number">04</div>
                 <h3>Platform & Digital Setup</h3>
                 <p>
-                    If the event needs ticketing, RSVP, registration, landing pages, sponsor visibility, check-in flow or digital assets, this gets built early so the event can start moving.
+                    Ticketing, RSVP, registration, landing pages and check-in flow get built early so the event can start moving.
                 </p>
                 <ul>
                     <li>RSVP or ticketing flow</li>
@@ -879,7 +1255,7 @@ h1, h2, h3, h4, h5, .luxury-font {
                 <div class="process-number">05</div>
                 <h3>Sponsors, Sales & Audience Growth</h3>
                 <p>
-                    For events that need attendance, revenue or partnerships, we create the structure needed to support sponsorship value, communications and pre-event momentum.
+                    For events that need attendance, revenue or partnerships, we build the structure needed to support sponsor value and pre-event momentum.
                 </p>
                 <ul>
                     <li>Sponsor visibility plan</li>
@@ -892,7 +1268,7 @@ h1, h2, h3, h4, h5, .luxury-font {
                 <div class="process-number">06</div>
                 <h3>Vendors, Team & Production Assignments</h3>
                 <p>
-                    Once the system is clear, we define responsibilities across vendors, staff, internal teams, assistants, coordinators and key operational roles.
+                    Once the system is clear, we define responsibilities across staff, internal teams and key operational roles.
                 </p>
                 <ul>
                     <li>Team assignment</li>
@@ -905,7 +1281,7 @@ h1, h2, h3, h4, h5, .luxury-font {
                 <div class="process-number">07</div>
                 <h3>Logistics & Run of Show</h3>
                 <p>
-                    This is where all timing, installation, guest flow, service flow, cues, room transitions, staffing movement and production timing are documented.
+                    All timing, installation, guest flow, cues, room transitions and production timing get documented here.
                 </p>
                 <ul>
                     <li>Master timeline</li>
@@ -918,7 +1294,7 @@ h1, h2, h3, h4, h5, .luxury-font {
                 <div class="process-number">08</div>
                 <h3>Execution & Post-Event Continuity</h3>
                 <p>
-                    We manage the live execution and, when needed, support what happens after: recap assets, lead capture, audience follow-up, reporting or future rollout continuity.
+                    We manage the live execution and, when needed, support what happens after: recap assets, lead capture and reporting.
                 </p>
                 <ul>
                     <li>On-site execution</li>
@@ -955,7 +1331,7 @@ h1, h2, h3, h4, h5, .luxury-font {
                 </ul>
 
                 <p class="mt-3">
-                    The real value is not just producing something beautiful. It is producing something organized, aligned and capable of delivering results.
+                    The real value isn't just producing something beautiful. It's producing something organized, aligned and capable of delivering results.
                 </p>
             </div>
         </div>
@@ -966,7 +1342,7 @@ h1, h2, h3, h4, h5, .luxury-font {
     <div class="container">
         <div class="section-heading">
             <span class="vnv-badge">Scope of Support</span>
-            <h2 class="text-white">Some projects need a planner. Others need a <span class="text-vnv">production partner</span>.</h2>
+            <h2 class="text-white">Some Projects Need A Planner. Others Need A <span class="text-vnv">Production Partner</span>.</h2>
             <p>
                 This page is built for the second type: events with multiple layers, multiple stakeholders and real operational weight behind them.
             </p>
@@ -980,17 +1356,17 @@ h1, h2, h3, h4, h5, .luxury-font {
 
             <div class="scope-card">
                 <h4>Operations</h4>
-                <p>Timelines, staffing, vendor structure, room flow, install logic, service sequence and team responsibilities.</p>
+                <p>Timelines, staffing, vendor structure, room flow, install logic and team responsibilities.</p>
             </div>
 
             <div class="scope-card">
                 <h4>Digital Infrastructure</h4>
-                <p>RSVP systems, ticketing pages, landing pages, communication assets, registration and custom digital support.</p>
+                <p>RSVP systems, ticketing pages, landing pages, communication assets and registration support.</p>
             </div>
 
             <div class="scope-card">
                 <h4>Growth & Revenue Support</h4>
-                <p>Sponsors, partner visibility, event marketing, ticket traction, outreach support and pre-event momentum strategy.</p>
+                <p>Sponsors, partner visibility, event marketing and content — powered by Jonnys.media, our in-house media arm.</p>
             </div>
         </div>
     </div>
@@ -1000,9 +1376,9 @@ h1, h2, h3, h4, h5, .luxury-font {
     <div class="container">
         <div class="section-heading">
             <span class="vnv-badge">The Production Blueprint</span>
-            <h2 class="text-white">How VNV approaches a project when the client wants the <span class="text-vnv">full picture</span></h2>
+            <h2 class="text-white">How VNV Approaches A Project When The Client Wants The <span class="text-vnv">Full Picture</span></h2>
             <p>
-                Not every event needs every layer. But when it does, we are able to design the production around the actual business and experience goals.
+                Not every event needs every layer. But when it does, we design the production around the actual business and experience goals.
             </p>
         </div>
 
@@ -1010,7 +1386,7 @@ h1, h2, h3, h4, h5, .luxury-font {
             <div class="blueprint-card">
                 <h3>Creative Layer</h3>
                 <p>
-                    We help define the event identity so the production is not just functional, but meaningful and on-brand.
+                    We help define the event identity so the production is meaningful and on-brand, not just functional.
                 </p>
                 <ul>
                     <li>Concept and messaging</li>
@@ -1022,7 +1398,7 @@ h1, h2, h3, h4, h5, .luxury-font {
             <div class="blueprint-card">
                 <h3>Commercial Layer</h3>
                 <p>
-                    For public-facing or revenue-driven events, we support the systems that help attendance, partner value and sales momentum.
+                    For public-facing or revenue-driven events, we support the systems that drive attendance, partner value and sales momentum — including the sponsor recap content Jonnys.media delivers after the event.
                 </p>
                 <ul>
                     <li>Ticketing and RSVP flow</li>
@@ -1046,6 +1422,34 @@ h1, h2, h3, h4, h5, .luxury-font {
     </div>
 </section>
 
+<section class="section-vnv section-white">
+    <div class="container">
+        <div class="text-center section-heading" style="margin-left:auto;margin-right:auto;">
+            <span class="vnv-badge">Common Questions</span>
+            <h2>Before You Call, You Might Be <span class="text-vnv">Wondering...</span></h2>
+        </div>
+
+        <div class="faq-wrap" style="color:var(--vnv-text-dark);">
+            <div class="faq-item" style="border-bottom-color: rgba(17,24,26,.08);">
+                <h4 style="color:var(--vnv-text-dark);">Do you only work with clients who need full production?</h4>
+                <p style="color:#566164;">No. Some clients need the entire system built from scratch, others just need us to step into an existing project and bring structure to sponsors, logistics or content. We scope around what's actually missing.</p>
+            </div>
+            <div class="faq-item" style="border-bottom-color: rgba(17,24,26,.08);">
+                <h4 style="color:var(--vnv-text-dark);">Is Jonnys.media only available to full production clients?</h4>
+                <p style="color:#566164;">Jonnys.media can support content and media needs on its own, but every VNV production automatically includes access to that team.</p>
+            </div>
+            <div class="faq-item" style="border-bottom-color: rgba(17,24,26,.08);">
+                <h4 style="color:var(--vnv-text-dark);">What size or type of events do you take on?</h4>
+                <p style="color:#566164;">Galas, conferences, trade shows, launches, fundraisers and branded experiences — generally projects with enough moving parts that a single vendor can't realistically cover them.</p>
+            </div>
+            <div class="faq-item" style="border-bottom: none;">
+                <h4 style="color:var(--vnv-text-dark);">How early should we bring VNV in?</h4>
+                <p style="color:#566164;">As early as possible, ideally at the concept stage. The earlier we're involved, the more the budget, sponsors and timeline are built around the right plan instead of retrofitted later.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
 <section class="section-vnv section-dark location-block">
     <div class="container position-relative" style="z-index:2;">
         <div class="row align-items-center g-5">
@@ -1053,11 +1457,11 @@ h1, h2, h3, h4, h5, .luxury-font {
                 <span class="text-vnv fw-bold d-block mb-3 letter-spacing-lg">PLAN & PRODUCE</span>
 
                 <h2 class="display-3 fw-black text-white mb-3">
-                    Let’s build the event <span class="text-vnv">before we execute it</span>
+                    Let's build the event <span class="text-vnv">before we execute it</span>
                 </h2>
 
                 <p class="fs-5 mb-4" style="color:rgba(255,255,255,0.65);">
-                    Meet with our team in South Florida to talk through concept, budget, ticketing, sponsors, logistics, team structure and the full event production roadmap.
+                    Meet with our team in South Florida to talk through concept, budget, ticketing, sponsors, logistics and the full production roadmap.
                 </p>
 
                 <a href="https://www.instagram.com/vnv_events/" target="_blank" class="vnv-btn btn-outline-vnv">
@@ -1079,7 +1483,7 @@ h1, h2, h3, h4, h5, .luxury-font {
                     <h3 class="text-white mb-3">Production support from Sunrise, serving all South Florida.</h3>
 
                     <p>
-                        We support event production projects across Broward, Miami and West Palm Beach, with planning meetings and coordination available from our Sunrise location.
+                        We support event production projects across Broward, Miami-Dade and Palm Beach, with planning meetings available from our Sunrise location.
                     </p>
 
                     <div class="vnv-location-info">
@@ -1119,9 +1523,10 @@ h1, h2, h3, h4, h5, .luxury-font {
                 <div class="col-lg-7">
                     <span class="vnv-badge">Event Production Consultation</span>
                     <h2 class="display-3 fw-bold text-white mb-4">If the project has many moving parts, it needs more than vendors.</h2>
-                    <p class="fs-5 mb-5">
-                        VNV can help organize the creative, digital, commercial and operational sides of the event into one clear production plan built for real execution.
+                    <p class="fs-5 mb-3">
+                        VNV organizes the creative, digital, commercial and operational sides of your event into one production plan — built for real execution, not a slide deck.
                     </p>
+                    <p class="final-cta-note">Sponsor-driven and multi-vendor events need the most lead time — call early</p>
                 </div>
 
                 <div class="col-lg-5 text-center text-lg-end">
@@ -1151,7 +1556,31 @@ h1, h2, h3, h4, h5, .luxury-font {
 if (typeof gsap !== 'undefined' && typeof ScrollTrigger !== 'undefined') {
     gsap.registerPlugin(ScrollTrigger);
 
-    gsap.from(".intro-image-card, .intro-panel, .service-card, .process-step, .production-image-stack, .production-panel, .scope-card, .blueprint-card, .vnv-location-card, .final-cta-card", {
+    gsap.utils.toArray('.service-card, .ecosystem-card, .compare-card').forEach(card => {
+        gsap.from(card, {
+            scrollTrigger: {
+                trigger: card,
+                start: "top 88%"
+            },
+            y: 40,
+            opacity: 0,
+            duration: 0.9,
+            ease: "power3.out"
+        });
+    });
+
+    gsap.from(".jonnys-banner", {
+        scrollTrigger: {
+            trigger: ".jonnys-banner",
+            start: "top 85%"
+        },
+        scale: 0.96,
+        opacity: 0,
+        duration: 0.8,
+        ease: "power3.out"
+    });
+
+    gsap.from(".intro-image-card, .intro-panel, .process-step, .production-image-stack, .production-panel, .scope-card, .blueprint-card, .faq-item, .vnv-location-card, .final-cta-card", {
         scrollTrigger: {
             trigger: ".intro-image-card",
             start: "top 82%"

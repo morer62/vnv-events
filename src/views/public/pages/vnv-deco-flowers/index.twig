@@ -142,15 +142,31 @@ h1, h2, h3, h4, h5, .luxury-font {
 .hero-deco h1 {
     font-size: clamp(3rem, 6vw, 5.4rem);
     line-height: 1.02;
-    margin: 20px 0 28px;
+    margin: 20px 0 24px;
     max-width: 920px;
 }
 
 .hero-deco p.hero-copy {
-    font-size: 1.08rem;
+    font-size: 1.1rem;
     color: var(--vnv-text-muted);
-    max-width: 760px;
-    margin-bottom: 34px;
+    max-width: 640px;
+    margin-bottom: 28px;
+}
+
+.hero-services-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 30px;
+}
+.hero-services-row span {
+    padding: 8px 16px;
+    border-radius: 999px;
+    border: 1px solid rgba(255,255,255,.18);
+    font-size: .74rem;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: rgba(255,255,255,.8);
 }
 
 .hero-cta-row {
@@ -158,6 +174,30 @@ h1, h2, h3, h4, h5, .luxury-font {
     flex-wrap: wrap;
     gap: 16px;
     margin-top: 20px;
+}
+
+/* Trust stats bar */
+.trust-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 44px;
+    margin-top: 42px;
+}
+.trust-stat .num {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.4rem;
+    font-weight: 900;
+    line-height: 1;
+    background: var(--vnv-gold-gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+.trust-stat .label {
+    font-size: .7rem;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--vnv-text-muted-soft);
+    margin-top: 4px;
 }
 
 .section-white {
@@ -251,6 +291,14 @@ h1, h2, h3, h4, h5, .luxury-font {
     position: absolute;
     left: 0;
     top: 12px;
+}
+
+.deco-info-panel .info-callout {
+    margin-top: 22px;
+    padding-top: 18px;
+    border-top: 1px solid rgba(17,24,26,.08);
+    font-size: .92rem;
+    color: #677174;
 }
 
 .services-bg-video-wrap {
@@ -424,6 +472,62 @@ h1, h2, h3, h4, h5, .luxury-font {
     margin-bottom: 8px;
 }
 
+/* Why choose feature grid */
+.feature-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+}
+.feature-card {
+    background: #fff;
+    border: 1px solid rgba(17,24,26,.08);
+    border-radius: 30px;
+    padding: 36px 32px;
+    height: 100%;
+    box-shadow: 0 20px 60px rgba(0,0,0,.06);
+}
+.feature-card .feature-icon {
+    width: 52px;
+    height: 52px;
+    border-radius: 16px;
+    background: rgba(94,198,196,.1);
+    color: var(--vnv-primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.3rem;
+    margin-bottom: 20px;
+}
+.feature-card h3 {
+    font-size: 1.4rem;
+    color: var(--vnv-text-dark);
+    margin-bottom: 12px;
+}
+.feature-card p {
+    color: #566164;
+    margin: 0;
+}
+
+/* FAQ */
+.faq-wrap {
+    max-width: 880px;
+    margin: 0 auto;
+}
+.faq-item {
+    border-bottom: 1px solid rgba(255,255,255,.08);
+    padding: 26px 0;
+}
+.faq-item:last-child { border-bottom: none; }
+.faq-item h4 {
+    font-size: 1.15rem;
+    color: #fff;
+    margin-bottom: 8px;
+}
+.faq-item p {
+    color: var(--vnv-text-muted);
+    margin: 0;
+}
+
 .instagram-block {
     position: relative;
     overflow: hidden;
@@ -517,6 +621,15 @@ h1, h2, h3, h4, h5, .luxury-font {
     color: var(--vnv-text-muted-soft);
 }
 
+.final-cta-note {
+    font-size: .85rem;
+    color: var(--vnv-primary);
+    margin-top: 18px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: 700;
+}
+
 .vnv-btn-fixed {
     min-width: 240px;
     text-align: center;
@@ -526,12 +639,19 @@ h1, h2, h3, h4, h5, .luxury-font {
 }
 
 @media (max-width: 1199px) {
+    .feature-grid {
+        grid-template-columns: 1fr 1fr;
+    }
     .final-cta-card { padding: 60px 45px; }
 }
 
 @media (max-width: 991px) {
     .deco-intro-wrap,
     .process-wrap {
+        grid-template-columns: 1fr;
+    }
+
+    .feature-grid {
         grid-template-columns: 1fr;
     }
 
@@ -576,6 +696,13 @@ h1, h2, h3, h4, h5, .luxury-font {
         flex-direction: column;
     }
 
+    .trust-bar {
+        gap: 26px;
+    }
+    .trust-stat .num {
+        font-size: 1.9rem;
+    }
+
     .instagram-gallery-grid img {
         height: 150px;
     }
@@ -594,16 +721,35 @@ h1, h2, h3, h4, h5, .luxury-font {
         <h1>Floral Decorations & <span class="text-gold">Event Space Design</span> in South Florida</h1>
 
         <p class="hero-copy">
-            VNV Flowers & Deco transforms event spaces with flowers, balloons, lighting, draping, props and design elements that help the entire environment feel more intentional, immersive and memorable.
+            We transform empty rooms into fully designed environments — florals, lighting, draping and props that work together, not a table with flowers on it.
         </p>
 
-        <p class="hero-copy">
-            From wedding aisles and banquet tables to entrances, photo-op backdrops, salon decoration and expo stands, our goal is to help your space feel fully designed instead of partially decorated.
-        </p>
+        <div class="hero-services-row">
+            <span>Florals</span>
+            <span>Balloon Artistry</span>
+            <span>Lighting & Draping</span>
+            <span>Backdrops</span>
+            <span>Neon Signage</span>
+        </div>
 
         <div class="hero-cta-row">
             <a href="tel:+13052045427" class="vnv-btn btn-gold-vnv">Call Now (305) 204-5427</a>
             <a href="#deco-services" class="vnv-btn btn-outline-vnv">Explore Services</a>
+        </div>
+
+        <div class="trust-bar">
+            <div class="trust-stat">
+                <div class="num">200+</div>
+                <div class="label">Events Produced Yearly</div>
+            </div>
+            <div class="trust-stat">
+                <div class="num">3</div>
+                <div class="label">South Florida Counties Served</div>
+            </div>
+            <div class="trust-stat">
+                <div class="num">20+</div>
+                <div class="label">Years Combined Experience</div>
+            </div>
         </div>
     </div>
 </section>
@@ -619,10 +765,10 @@ h1, h2, h3, h4, h5, .luxury-font {
                 <span class="vnv-badge">About VNV Flowers & Deco</span>
                 <h3>Let us bloom your special moments.</h3>
                 <p>
-                    VNV Flowers & Deco was created to give clients a more complete decorative service, where florals, structures, lighting and styling work together instead of competing with each other.
+                    VNV Flowers & Deco exists so florals, structures, lighting and styling work together instead of competing with each other — one team designing the entire space, not separate vendors patching pieces together.
                 </p>
                 <p>
-                    We design event environments for South Florida clients who want the space itself to become part of the experience — not just a backdrop for it.
+                    We design event environments for South Florida clients who want the space itself to become part of the experience, not just a backdrop for it.
                 </p>
 
                 <ul>
@@ -632,6 +778,10 @@ h1, h2, h3, h4, h5, .luxury-font {
                     <li>Balloon artistry and photo-op structures</li>
                     <li>Tablescapes, props, signage and setup support</li>
                 </ul>
+
+                <div class="info-callout">
+                    Every design is custom-quoted based on your space, guest count and vision — there's no generic package to squeeze your event into.
+                </div>
             </div>
         </div>
     </div>
@@ -649,7 +799,7 @@ h1, h2, h3, h4, h5, .luxury-font {
         <div class="text-center mb-5 pb-5 section-heading">
             <span class="vnv-badge">Design Specialties</span>
             <h2 class="text-white">What We Create in <span class="text-vnv">Decor & Flowers</span></h2>
-            <p>These are the kinds of decorative moments clients usually need when they want the space to actually feel transformed. :contentReference[oaicite:1]{index=1}</p>
+            <p>The decorative moments clients ask for most when they want a space to feel fully transformed.</p>
         </div>
 
         <div class="row g-4">
@@ -658,7 +808,7 @@ h1, h2, h3, h4, h5, .luxury-font {
                     <span class="service-num-floating">01</span>
                     <div class="service-icon-box"><i class="fa-solid fa-ring"></i></div>
                     <h3>Wedding Aisle & Altar</h3>
-                    <p>Crystal floors, arches, gazebos, florals and aisle styling designed to shape the most important visual moments of the ceremony. :contentReference[oaicite:2]{index=2}</p>
+                    <p>Crystal floors, arches, gazebos and aisle styling designed to shape the most important visual moments of the ceremony.</p>
                     <a href="#" class="vnv-link-gold">MORE INFO & CATALOG →</a>
                 </div>
             </div>
@@ -668,7 +818,7 @@ h1, h2, h3, h4, h5, .luxury-font {
                     <span class="service-num-floating">02</span>
                     <div class="service-icon-box"><i class="fa-solid fa-champagne-glasses"></i></div>
                     <h3>Banquet Tables</h3>
-                    <p>Centerpieces, candelabras, hanging florals and lighting details that elevate the dining experience and complete the room design. :contentReference[oaicite:3]{index=3}</p>
+                    <p>Centerpieces, candelabras, hanging florals and lighting details that elevate the dining experience and complete the room.</p>
                     <a href="#" class="vnv-link-gold">MORE INFO & CATALOG →</a>
                 </div>
             </div>
@@ -678,7 +828,7 @@ h1, h2, h3, h4, h5, .luxury-font {
                     <span class="service-num-floating">03</span>
                     <div class="service-icon-box"><i class="fa-solid fa-door-open"></i></div>
                     <h3>Entrances & Pathways</h3>
-                    <p>Decorative entrances, illuminated walkways and welcoming moments that set the tone before guests even reach the main event space. :contentReference[oaicite:4]{index=4}</p>
+                    <p>Decorative entrances and illuminated walkways that set the tone before guests even reach the main event space.</p>
                     <a href="#" class="vnv-link-gold">MORE INFO & CATALOG →</a>
                 </div>
             </div>
@@ -688,7 +838,7 @@ h1, h2, h3, h4, h5, .luxury-font {
                     <span class="service-num-floating">04</span>
                     <div class="service-icon-box"><i class="fa-solid fa-camera"></i></div>
                     <h3>Photo-Ops & Statement Walls</h3>
-                    <p>Balloon décor, grass walls, flower walls and custom-designed backdrops made to create memorable content moments for guests. :contentReference[oaicite:5]{index=5}</p>
+                    <p>Balloon décor, grass walls, flower walls and custom backdrops made to create memorable content moments for guests.</p>
                     <a href="#" class="vnv-link-gold">MORE INFO & CATALOG →</a>
                 </div>
             </div>
@@ -698,7 +848,7 @@ h1, h2, h3, h4, h5, .luxury-font {
                     <span class="service-num-floating">05</span>
                     <div class="service-icon-box"><i class="fa-solid fa-lightbulb"></i></div>
                     <h3>Custom Neon Signs</h3>
-                    <p>LED neon pieces and custom wording that add a stronger visual identity to celebrations, branded events and specialty spaces. :contentReference[oaicite:6]{index=6}</p>
+                    <p>LED neon pieces and custom wording that add a stronger visual identity to celebrations and branded events.</p>
                     <a href="#" class="vnv-link-gold">MORE INFO & CATALOG →</a>
                 </div>
             </div>
@@ -708,7 +858,7 @@ h1, h2, h3, h4, h5, .luxury-font {
                     <span class="service-num-floating">06</span>
                     <div class="service-icon-box"><i class="fa-solid fa-store"></i></div>
                     <h3>Promotional Stands & Expo Design</h3>
-                    <p>Decorative and branded structures for expo shows and public-facing activations where design has to attract attention and support the brand message. :contentReference[oaicite:7]{index=7}</p>
+                    <p>Decorative and branded structures for expo shows and public-facing activations that attract attention and support the brand.</p>
                     <a href="#" class="vnv-link-gold">MORE INFO & CATALOG →</a>
                 </div>
             </div>
@@ -729,21 +879,21 @@ h1, h2, h3, h4, h5, .luxury-font {
                 <h3>From inspiration to installation, the process stays clear.</h3>
 
                 <p>
-                    We keep the design process organized so clients can move from idea to approval with less confusion and more confidence.
+                    A simple three-step process so you move from idea to approval with less back-and-forth and more confidence in the final result.
                 </p>
 
                 <ol class="process-steps">
                     <li>
                         <strong>01 · Discovery Meeting</strong>
-                        We begin by understanding your needs, including space, colors, budget and inspirations. :contentReference[oaicite:8]{index=8}
+                        We start by understanding your space, colors, budget and inspiration — in person at our studio or over a call.
                     </li>
                     <li>
-                        <strong>02 · Customized Design Proposals</strong>
-                        Our team develops tailored options designed to fit the style and budget of the event. :contentReference[oaicite:9]{index=9}
+                        <strong>02 · Customized Design Proposal</strong>
+                        We build a tailored design and quote around your specific event, not a pre-set package.
                     </li>
                     <li>
                         <strong>03 · Setup & Transformation</strong>
-                        Once approved, our team handles the installation so the vision becomes a real, cohesive environment. This reflects the page’s “sit back and watch the magic happen” step and the setup/teardown service they describe. :contentReference[oaicite:10]{index=10}
+                        Once approved, our team handles the full installation and teardown, so you walk into a finished space and simply enjoy it.
                     </li>
                 </ol>
             </div>
@@ -751,18 +901,74 @@ h1, h2, h3, h4, h5, .luxury-font {
     </div>
 </section>
 
-<section class="section-vnv section-dark instagram-block">
+<section class="section-vnv section-dark">
+    <div class="container">
+        <div class="text-center mb-5 pb-3 section-heading" style="margin-left:auto;margin-right:auto;">
+            <span class="vnv-badge">Why Book VNV Flowers & Deco</span>
+            <h2 class="text-white">A Designed Space, <span class="text-vnv">Not A Decorated One</span></h2>
+            <p>What actually backs up the promise of a fully transformed environment.</p>
+        </div>
+
+        <div class="feature-grid">
+            <div class="feature-card">
+                <div class="feature-icon"><i class="fa-solid fa-swatchbook"></i></div>
+                <h3>One Team, One Vision</h3>
+                <p>Florals, lighting, draping, props and signage are designed together from day one, so nothing feels bolted on at the last minute.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon"><i class="fa-solid fa-calendar-check"></i></div>
+                <h3>200+ Events A Year</h3>
+                <p>We produce close to 200 events annually across Broward, Miami-Dade and Palm Beach, so setup, timing and logistics are second nature.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon"><i class="fa-solid fa-people-arrows"></i></div>
+                <h3>Full-Service, Not Rental-Only</h3>
+                <p>We design, install and remove everything ourselves, so you're not coordinating between a florist, a rental company and a lighting vendor.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="section-vnv section-dark">
+    <div class="container">
+        <div class="text-center section-heading" style="margin-left:auto;margin-right:auto;">
+            <span class="vnv-badge">Common Questions</span>
+            <h2 class="text-white">Before You Call, You Might Be <span class="text-vnv">Wondering...</span></h2>
+        </div>
+
+        <div class="faq-wrap">
+            <div class="faq-item">
+                <h4>How much does floral and decor design cost?</h4>
+                <p>It depends entirely on your space, guest count and vision, so every project gets a custom quote after the discovery meeting — no generic package pricing.</p>
+            </div>
+            <div class="faq-item">
+                <h4>How far in advance should we book?</h4>
+                <p>8–12 weeks out is comfortable for most events, especially for custom builds like neon signage or large installations. Peak season (November–May) books out faster.</p>
+            </div>
+            <div class="faq-item">
+                <h4>Do you handle setup and teardown?</h4>
+                <p>Yes. Our team installs everything before your event and removes it afterward, so you never have to manage vendors on the day.</p>
+            </div>
+            <div class="faq-item">
+                <h4>Can you combine decor with our DJ, catering or planning?</h4>
+                <p>Yes — since decor, catering, DJ services and planning all run through the same company, we coordinate the full event as one project instead of separate bookings.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="section-vnv section-white instagram-block">
     <div class="container position-relative" style="z-index:2;">
         <div class="row align-items-center g-5">
             <div class="col-lg-6">
                 <span class="text-vnv fw-bold d-block mb-3 letter-spacing-lg">PORTFOLIO & SOCIAL</span>
 
-                <h2 class="display-3 fw-black text-white mb-3">
+                <h2 class="display-3 fw-black mb-3" style="color:var(--vnv-text-dark);">
                     See our work on <span class="text-vnv">@vnv_events</span>
                 </h2>
 
-                <p class="fs-5 mb-4" style="color:rgba(255,255,255,0.65);">
-                    Explore real installations, event styling moments and behind-the-scenes details from our decor and floral work.
+                <p class="fs-5 mb-4" style="color:#566164;">
+                    Real installations and styling moments from actual VNV events — not stock photos.
                 </p>
 
                 <a href="https://www.instagram.com/vnv_events/" target="_blank" class="vnv-btn btn-outline-vnv">
@@ -781,7 +987,7 @@ h1, h2, h3, h4, h5, .luxury-font {
                 <div class="vnv-studio-card">
                     <span class="vnv-badge">Visit Our Studio</span>
 
-                    <h3 class="text-white mb-3">Let’s review the vision together.</h3>
+                    <h3 class="text-white mb-3">Let's review the vision together.</h3>
 
                     <p>
                         Visit our VNV Studio in Sunrise, FL to discuss colors, decorative direction, florals, materials and the visual feeling you want the event to create.
@@ -814,9 +1020,10 @@ h1, h2, h3, h4, h5, .luxury-font {
                 <div class="col-lg-7">
                     <span class="vnv-badge">Design Planning</span>
                     <h2 class="display-3 fw-bold text-white mb-4">Create a space that feels designed, not just decorated.</h2>
-                    <p class="fs-5 mb-5">
-                        If you want florals and decor that help transform the room, support the theme and make the guest experience feel more immersive, VNV Flowers & Deco can help you bring that vision together.
+                    <p class="fs-5 mb-3">
+                        Florals, lighting, backdrops and full room transformations — built around your event, not a template.
                     </p>
+                    <p class="final-cta-note">Custom builds fill fastest during peak season (Nov–May)</p>
                 </div>
 
                 <div class="col-lg-5 text-center text-lg-end">
@@ -859,7 +1066,7 @@ if (typeof gsap !== 'undefined' && typeof ScrollTrigger !== 'undefined') {
         });
     });
 
-    gsap.from(".deco-image-card, .deco-info-panel, .process-image-stack, .process-panel, .vnv-studio-card, .final-cta-card", {
+    gsap.from(".deco-image-card, .deco-info-panel, .process-image-stack, .process-panel, .feature-card, .faq-item, .vnv-studio-card, .final-cta-card", {
         scrollTrigger: {
             trigger: ".deco-image-card",
             start: "top 82%"

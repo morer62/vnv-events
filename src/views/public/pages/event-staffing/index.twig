@@ -142,22 +142,62 @@ h1, h2, h3, h4, h5, .luxury-font {
 .hero-staffing h1 {
     font-size: clamp(3rem, 6vw, 5.4rem);
     line-height: 1.02;
-    margin: 20px 0 28px;
+    margin: 20px 0 24px;
     max-width: 980px;
 }
 
 .hero-staffing p.hero-copy {
-    font-size: 1.08rem;
+    font-size: 1.1rem;
     color: var(--vnv-text-muted);
-    max-width: 790px;
-    margin-bottom: 24px;
+    max-width: 660px;
+    margin-bottom: 26px;
+}
+
+.hero-services-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 30px;
+}
+.hero-services-row span {
+    padding: 8px 16px;
+    border-radius: 999px;
+    border: 1px solid rgba(255,255,255,.18);
+    font-size: .74rem;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: rgba(255,255,255,.8);
 }
 
 .hero-cta-row {
     display: flex;
     flex-wrap: wrap;
     gap: 16px;
-    margin-top: 22px;
+    margin-top: 20px;
+}
+
+/* Trust stats bar */
+.trust-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 44px;
+    margin-top: 42px;
+}
+.trust-stat .num {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.4rem;
+    font-weight: 900;
+    line-height: 1;
+    background: var(--vnv-gold-gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+.trust-stat .label {
+    font-size: .7rem;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--vnv-text-muted-soft);
+    margin-top: 4px;
 }
 
 .section-white {
@@ -253,6 +293,23 @@ h1, h2, h3, h4, h5, .luxury-font {
     top: 12px;
 }
 
+.trust-strip {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    margin-top: 22px;
+    padding-top: 20px;
+    border-top: 1px solid rgba(255,255,255,.08);
+}
+.trust-strip span {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: .8rem;
+    color: rgba(255,255,255,.7);
+}
+.trust-strip i { color: var(--vnv-primary); }
+
 .services-bg-video-wrap {
     position: absolute;
     inset: 0;
@@ -296,11 +353,16 @@ h1, h2, h3, h4, h5, .luxury-font {
     height: 100%;
     position: relative;
     z-index: 2;
+    transition: all 0.5s cubic-bezier(0.165, 0.84, 0.44, 1);
+}
+.service-card:hover {
+    transform: translateY(-8px);
+    border-color: var(--vnv-gold);
 }
 
 .service-card h3 {
     color: #fff;
-    font-size: 1.7rem;
+    font-size: 1.55rem;
     margin-bottom: 14px;
 }
 .service-card p,
@@ -319,6 +381,46 @@ h1, h2, h3, h4, h5, .luxury-font {
     color: var(--vnv-gold);
     font-size: 1.6rem;
     margin-bottom: 24px;
+}
+
+/* Brand ambassador banner (cross-links to Production page) */
+.activation-banner {
+    margin-top: 30px;
+    background: linear-gradient(120deg, rgba(197,160,89,.10) 0%, rgba(94,198,196,.06) 100%);
+    border: 2px solid var(--vnv-gold);
+    border-radius: 30px;
+    padding: 44px 42px;
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: 30px;
+    align-items: center;
+    position: relative;
+    z-index: 2;
+}
+.activation-banner-icon {
+    width: 68px;
+    height: 68px;
+    border-radius: 20px;
+    background: var(--vnv-gold-gradient);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #000;
+    font-size: 1.8rem;
+    flex-shrink: 0;
+}
+.activation-banner h3 {
+    color: #fff;
+    font-size: 1.5rem;
+    margin-bottom: 10px;
+}
+.activation-banner p {
+    color: var(--vnv-text-muted);
+    margin: 0;
+    max-width: 620px;
+}
+.activation-banner-cta {
+    white-space: nowrap;
 }
 
 .role-grid {
@@ -344,6 +446,45 @@ h1, h2, h3, h4, h5, .luxury-font {
 .role-card p {
     color: #4f5b5f;
     margin: 0;
+}
+
+/* Ratio guide */
+.ratio-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 22px;
+}
+.ratio-card {
+    background: #fff;
+    border: 1px solid rgba(17,24,26,.08);
+    border-radius: 26px;
+    padding: 30px 24px;
+    box-shadow: 0 18px 50px rgba(0,0,0,.06);
+    text-align: center;
+}
+.ratio-card .ratio-number {
+    font-family: 'Playfair Display', serif;
+    font-size: 2rem;
+    font-weight: 900;
+    color: var(--vnv-primary-dark);
+    line-height: 1;
+    margin-bottom: 12px;
+}
+.ratio-card h4 {
+    color: var(--vnv-text-dark);
+    font-size: 1.05rem;
+    margin-bottom: 8px;
+}
+.ratio-card p {
+    color: #677174;
+    font-size: .9rem;
+    margin: 0;
+}
+.ratio-note {
+    text-align: center;
+    margin-top: 28px;
+    color: #677174;
+    font-size: .92rem;
 }
 
 .staffing-wrap {
@@ -413,58 +554,77 @@ h1, h2, h3, h4, h5, .luxury-font {
     top: 12px;
 }
 
-.price-grid {
+/* Rate guide */
+.rate-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 24px;
 }
-
-.price-card {
+.rate-card {
     background: #fff;
     border: 1px solid rgba(17,24,26,.08);
-    border-radius: 30px;
-    padding: 36px 30px;
+    border-radius: 28px;
+    padding: 32px 28px;
     box-shadow: 0 20px 60px rgba(0,0,0,.08);
     height: 100%;
 }
-
-.price-card h3 {
-    color: var(--vnv-text-dark);
-    font-size: 1.6rem;
-    margin-bottom: 12px;
+.rate-card.highlight {
+    border: 2px solid var(--vnv-gold);
+    box-shadow: 0 25px 70px rgba(197,160,89,.16);
 }
-
-.price-card .price-line {
-    font-size: 2rem;
-    font-weight: 800;
+.rate-card h4 {
     color: var(--vnv-text-dark);
+    font-size: 1.25rem;
+    margin-bottom: 6px;
+}
+.rate-range {
+    font-size: 1.7rem;
+    font-weight: 900;
+    color: var(--vnv-primary-dark);
+    margin-bottom: 6px;
+    font-family: 'Playfair Display', serif;
+}
+.rate-unit {
+    font-size: .8rem;
+    color: #8a9295;
+    text-transform: uppercase;
+    letter-spacing: 1px;
     margin-bottom: 14px;
+    display: block;
+}
+.rate-card p {
+    color: #566164;
+    font-size: .92rem;
+    margin: 0;
+}
+.rate-disclaimer {
+    text-align: center;
+    margin-top: 32px;
+    color: var(--vnv-text-muted);
+    font-size: .92rem;
+    max-width: 700px;
+    margin-left: auto;
+    margin-right: auto;
 }
 
-.price-card p,
-.price-card li {
-    color: #4f5b5f;
+/* FAQ */
+.faq-wrap {
+    max-width: 880px;
+    margin: 0 auto;
 }
-
-.price-card ul {
-    list-style: none;
-    padding: 0;
-    margin: 20px 0 0;
+.faq-item {
+    border-bottom: 1px solid rgba(255,255,255,.08);
+    padding: 26px 0;
 }
-.price-card ul li {
-    position: relative;
-    padding-left: 22px;
-    margin-bottom: 10px;
+.faq-item:last-child { border-bottom: none; }
+.faq-item h4 {
+    font-size: 1.15rem;
+    color: #fff;
+    margin-bottom: 8px;
 }
-.price-card ul li::before {
-    content: "";
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: var(--vnv-gold);
-    position: absolute;
-    left: 0;
-    top: 11px;
+.faq-item p {
+    color: var(--vnv-text-muted);
+    margin: 0;
 }
 
 .location-block {
@@ -554,6 +714,15 @@ h1, h2, h3, h4, h5, .luxury-font {
     color: var(--vnv-text-muted-soft);
 }
 
+.final-cta-note {
+    font-size: .85rem;
+    color: var(--vnv-primary);
+    margin-top: 18px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: 700;
+}
+
 .vnv-btn-fixed {
     min-width: 240px;
     text-align: center;
@@ -564,11 +733,18 @@ h1, h2, h3, h4, h5, .luxury-font {
 
 @media (max-width: 1199px) {
     .role-grid,
-    .price-grid {
+    .rate-grid,
+    .ratio-grid {
         grid-template-columns: 1fr 1fr;
     }
     .final-cta-card {
         padding: 60px 45px;
+    }
+    .activation-banner {
+        grid-template-columns: auto 1fr;
+    }
+    .activation-banner-cta {
+        grid-column: 1 / -1;
     }
 }
 
@@ -580,7 +756,8 @@ h1, h2, h3, h4, h5, .luxury-font {
 
     .service-grid,
     .role-grid,
-    .price-grid {
+    .rate-grid,
+    .ratio-grid {
         grid-template-columns: 1fr;
     }
 
@@ -589,6 +766,13 @@ h1, h2, h3, h4, h5, .luxury-font {
     .vnv-location-card {
         padding: 32px 28px;
     }
+
+    .activation-banner {
+        grid-template-columns: 1fr;
+        text-align: center;
+        padding: 36px 28px;
+    }
+    .activation-banner-icon { margin: 0 auto; }
 
     .final-cta-card {
         padding: 50px 30px;
@@ -625,6 +809,13 @@ h1, h2, h3, h4, h5, .luxury-font {
         flex-direction: column;
     }
 
+    .trust-bar {
+        gap: 26px;
+    }
+    .trust-stat .num {
+        font-size: 1.9rem;
+    }
+
     .location-gallery-grid img {
         height: 150px;
     }
@@ -643,16 +834,35 @@ h1, h2, h3, h4, h5, .luxury-font {
         <h1>Event Staffing Services in <span class="text-gold">South Florida</span></h1>
 
         <p class="hero-copy">
-            Great events do not run on rentals and decor alone. They run on people who know how to keep service moving, support guests, protect the timeline and help everything feel smooth from start to finish.
+            Guests remember how smoothly the night moved, not the rental chart. Trained servers, bartenders and captains keep service moving, protect the timeline and take the pressure off you.
         </p>
 
-        <p class="hero-copy">
-            VNV provides event staffing support for weddings, corporate gatherings, private celebrations, social events and branded experiences across Broward, Miami and West Palm Beach.
-        </p>
+        <div class="hero-services-row">
+            <span>Servers</span>
+            <span>Bartenders</span>
+            <span>Captains</span>
+            <span>Registration</span>
+            <span>Brand Ambassadors</span>
+        </div>
 
         <div class="hero-cta-row">
             <a href="tel:+13052045427" class="vnv-btn btn-gold-vnv">Call Now (305) 204-5427</a>
             <a href="#staff-roles" class="vnv-btn btn-outline-vnv">Explore Staff Roles</a>
+        </div>
+
+        <div class="trust-bar">
+            <div class="trust-stat">
+                <div class="num">200+</div>
+                <div class="label">Events Produced Yearly</div>
+            </div>
+            <div class="trust-stat">
+                <div class="num">3</div>
+                <div class="label">South Florida Counties Served</div>
+            </div>
+            <div class="trust-stat">
+                <div class="num">20+</div>
+                <div class="label">Years Combined Experience</div>
+            </div>
         </div>
     </div>
 </section>
@@ -668,10 +878,7 @@ h1, h2, h3, h4, h5, .luxury-font {
                 <span class="vnv-badge">More Than Extra Hands</span>
                 <h3>More than staff. They control the experience.</h3>
                 <p>
-                    Guests may not remember every rental item, but they absolutely remember how the event felt. The right team keeps service moving, supports the host, reduces stress and helps the entire event feel more polished.
-                </p>
-                <p>
-                    For event staffing in South Florida, clients usually look for servers, bartenders, captains, support staff, registration help and other guest-facing roles because those are the positions that most directly affect flow, hospitality and guest perception.
+                    Guests may not remember every rental item, but they remember how the event felt. The right team keeps service moving, supports the host and reduces stress from start to finish.
                 </p>
 
                 <ul>
@@ -682,6 +889,12 @@ h1, h2, h3, h4, h5, .luxury-font {
                     <li>Captains or coordinators to help maintain timing and service flow</li>
                     <li>Flexible staffing based on guest count, service style and event complexity</li>
                 </ul>
+
+                <div class="trust-strip">
+                    <span><i class="fa-solid fa-shield-check"></i> Vetted, uniformed teams</span>
+                    <span><i class="fa-solid fa-certificate"></i> TIPS / ServSafe-certified bartenders</span>
+                    <span><i class="fa-solid fa-clock"></i> On-time guarantee</span>
+                </div>
             </div>
         </div>
     </div>
@@ -698,7 +911,7 @@ h1, h2, h3, h4, h5, .luxury-font {
     <div class="container position-relative" style="z-index:2;">
         <div class="text-center mb-5 pb-5 section-heading">
             <span class="vnv-badge">Staffing Roles</span>
-            <h2 class="text-white">The people who keep the <span class="text-vnv">event moving</span></h2>
+            <h2 class="text-white">The People Who Keep The <span class="text-vnv">Event Moving</span></h2>
             <p>
                 Different events need different levels of service, support and guest-facing presence.
             </p>
@@ -709,7 +922,7 @@ h1, h2, h3, h4, h5, .luxury-font {
                 <div class="service-icon-box"><i class="fa-solid fa-utensils"></i></div>
                 <h3>Servers</h3>
                 <p>
-                    Ideal for buffet assistance, plated service support, passed appetizers, table clearing and overall guest care throughout the event.
+                    Buffet assistance, plated service support, passed appetizers, table clearing and overall guest care throughout the event.
                 </p>
             </div>
 
@@ -717,7 +930,7 @@ h1, h2, h3, h4, h5, .luxury-font {
                 <div class="service-icon-box"><i class="fa-solid fa-martini-glass-citrus"></i></div>
                 <h3>Bartenders</h3>
                 <p>
-                    Professional bar staff to manage cocktails, wine, beer service and guest interaction while keeping the bar area organized and efficient.
+                    Certified bar staff to manage cocktails, wine and beer service while keeping the bar area organized and moving.
                 </p>
             </div>
 
@@ -733,7 +946,15 @@ h1, h2, h3, h4, h5, .luxury-font {
                 <div class="service-icon-box"><i class="fa-solid fa-user-group"></i></div>
                 <h3>Event Assistants</h3>
                 <p>
-                    Extra support for guest direction, check-in, vendor assistance, setup details and other general event logistics.
+                    Extra support for guest direction, vendor assistance, setup details and other general event logistics.
+                </p>
+            </div>
+
+            <div class="service-card">
+                <div class="service-icon-box"><i class="fa-solid fa-clipboard-list"></i></div>
+                <h3>Registration & Greeters</h3>
+                <p>
+                    The first impression of the event — check-in, badge handling, guest direction and a welcoming presence at the door.
                 </p>
             </div>
 
@@ -741,17 +962,28 @@ h1, h2, h3, h4, h5, .luxury-font {
                 <div class="service-icon-box"><i class="fa-solid fa-box-open"></i></div>
                 <h3>Setup & Breakdown</h3>
                 <p>
-                    Teams that help handle physical preparation before guests arrive and cleanup support once the event is over.
+                    Teams that handle physical preparation before guests arrive and cleanup once the event is over.
                 </p>
             </div>
 
             <div class="service-card">
                 <div class="service-icon-box"><i class="fa-solid fa-star"></i></div>
-                <h3>Custom Event Staffing</h3>
+                <h3>Custom / Flexible Staffing</h3>
                 <p>
-                    Flexible staff planning for private parties, social events, corporate functions, launches, celebrations and more.
+                    Flexible staff planning for private parties, social events, corporate functions, launches and celebrations of any size.
                 </p>
             </div>
+        </div>
+
+        <div class="activation-banner">
+            <div class="activation-banner-icon"><i class="fa-solid fa-people-group"></i></div>
+            <div>
+                <h3>Brand Ambassadors & Activation Staff</h3>
+                <p>
+                    Sponsor booths, trade shows and branded activations need a different kind of staff — charismatic, brand-trained and comfortable engaging a crowd. This role is coordinated directly with our VNV Event Production team for sponsor-driven events.
+                </p>
+            </div>
+            <a href="#" class="vnv-btn btn-gold-vnv activation-banner-cta">See Event Production →</a>
         </div>
     </div>
 </section>
@@ -760,7 +992,7 @@ h1, h2, h3, h4, h5, .luxury-font {
     <div class="container">
         <div class="section-heading">
             <span class="vnv-badge">Ideal For</span>
-            <h2>Staffing support for <span class="text-vnv">different event types</span></h2>
+            <h2>Staffing Support For <span class="text-vnv">Different Event Types</span></h2>
             <p>
                 The right staffing mix depends on guest count, event format, service style and how much operational support the host wants on-site.
             </p>
@@ -769,12 +1001,12 @@ h1, h2, h3, h4, h5, .luxury-font {
         <div class="role-grid">
             <div class="role-card">
                 <h4>Weddings</h4>
-                <p>Servers, bartenders and support staff help keep hospitality polished while allowing the family to actually enjoy the event.</p>
+                <p>Servers, bartenders and support staff keep hospitality polished while the family actually enjoys the event.</p>
             </div>
 
             <div class="role-card">
                 <h4>Corporate Events</h4>
-                <p>Useful for guest-facing service, registration support, beverage management and a stronger professional presentation.</p>
+                <p>Guest-facing service, registration support, beverage management and a stronger professional presentation.</p>
             </div>
 
             <div class="role-card">
@@ -784,9 +1016,46 @@ h1, h2, h3, h4, h5, .luxury-font {
 
             <div class="role-card">
                 <h4>Brand Activations</h4>
-                <p>Support for check-in, interaction, hospitality and the overall guest-facing experience at public or branded events.</p>
+                <p>Check-in, interaction, hospitality and the overall guest-facing experience at public or branded events.</p>
             </div>
         </div>
+    </div>
+</section>
+
+<section class="section-vnv section-white">
+    <div class="container">
+        <div class="section-heading">
+            <span class="vnv-badge">Staffing Ratios</span>
+            <h2>How Much Staff Do You <span class="text-vnv">Actually Need?</span></h2>
+            <p>
+                A quick reference so you're not guessing — these are the ratios that keep service moving without over-staffing your budget.
+            </p>
+        </div>
+
+        <div class="ratio-grid">
+            <div class="ratio-card">
+                <div class="ratio-number">1:10</div>
+                <h4>Plated Dinner Service</h4>
+                <p>One server per 10–12 guests for a seated, plated meal.</p>
+            </div>
+            <div class="ratio-card">
+                <div class="ratio-number">1:25</div>
+                <h4>Cocktail & Passed Hors D'oeuvres</h4>
+                <p>One server per 20–25 guests for a standing reception.</p>
+            </div>
+            <div class="ratio-card">
+                <div class="ratio-number">1:60</div>
+                <h4>Full Bar Service</h4>
+                <p>One bartender per 50–75 guests, depending on the drink menu.</p>
+            </div>
+            <div class="ratio-card">
+                <div class="ratio-number">+1</div>
+                <h4>Captain / Supervisor</h4>
+                <p>Add one captain to any team of 6 or more staff to manage the floor.</p>
+            </div>
+        </div>
+
+        <p class="ratio-note">These are starting points — final staffing depends on your venue, menu and service style. We build the exact plan during your quote.</p>
     </div>
 </section>
 
@@ -803,20 +1072,16 @@ h1, h2, h3, h4, h5, .luxury-font {
                 <h3>Even a beautiful event can feel disorganized without the right team.</h3>
 
                 <p>
-                    Staffing is one of the most overlooked parts of event planning until service starts to slow down, guests begin waiting or the host ends up solving operational problems instead of enjoying the event.
+                    Staffing is one of the most overlooked parts of event planning — until service slows down, guests start waiting, or the host ends up solving operational problems instead of enjoying the event.
                 </p>
 
                 <ul>
-                    <li>Faster service usually creates a stronger guest experience</li>
+                    <li>Faster service creates a stronger guest experience</li>
                     <li>Clearer roles reduce confusion during busy moments</li>
                     <li>Better timing supports the entire event flow</li>
                     <li>A polished staff presence elevates the perception of the event</li>
                     <li>More support on-site means less pressure on the host</li>
                 </ul>
-
-                <p class="mt-3">
-                    This is why many event staffing providers in the Miami area emphasize trained service teams, captains, support staff and role-based assignments instead of offering just generic labor.
-                </p>
             </div>
         </div>
     </div>
@@ -825,52 +1090,86 @@ h1, h2, h3, h4, h5, .luxury-font {
 <section class="section-vnv section-dark">
     <div class="container">
         <div class="section-heading">
-            <span class="vnv-badge">How Pricing Works</span>
-            <h2 class="text-white">Custom quotes are usually better than <span class="text-vnv">flat pricing</span></h2>
+            <span class="vnv-badge">Rate Guide</span>
+            <h2 class="text-white">What Event Staffing Typically <span class="text-vnv">Costs In South Florida</span></h2>
             <p>
-                Staffing rates in South Florida often vary depending on the role, shift length, service style, event size and level of responsibility required.
+                Real hourly ranges based on current South Florida and national staffing agency rates, so you can budget before you even call. Final pricing depends on guest count, event type and shift length — every project gets a custom quote.
             </p>
         </div>
 
-        <div class="price-grid">
-            <div class="price-card">
-                <h3>What Affects Pricing</h3>
-                <div class="price-line">Role + Hours</div>
-                <p>
-                    Bartenders, captains and specialty staff are usually priced differently than standard support roles, and longer shifts naturally change the quote.
-                </p>
-                <ul>
-                    <li>Role type</li>
-                    <li>Shift duration</li>
-                    <li>Arrival and breakdown time</li>
-                </ul>
+        <div class="rate-grid">
+            <div class="rate-card">
+                <h4>Servers</h4>
+                <div class="rate-range">$40–$55</div>
+                <span class="rate-unit">Per Hour · 4-Hr Minimum</span>
+                <p>Buffet, plated and passed service. Rate scales with formality and guest count.</p>
             </div>
 
-            <div class="price-card">
-                <h3>Service Complexity</h3>
-                <div class="price-line">Guest Flow</div>
-                <p>
-                    A buffet support team is different from a heavily guest-facing cocktail service, a wedding timeline or a branded event with check-in and activation support.
-                </p>
-                <ul>
-                    <li>Service style</li>
-                    <li>Guest count</li>
-                    <li>Timeline intensity</li>
-                </ul>
+            <div class="rate-card highlight">
+                <h4>Bartenders</h4>
+                <div class="rate-range">$60–$85</div>
+                <span class="rate-unit">Per Hour · 4-Hr Minimum</span>
+                <p>TIPS / ServSafe-certified. Craft cocktail programs run toward the top of the range.</p>
             </div>
 
-            <div class="price-card">
-                <h3>Best Pricing Approach</h3>
-                <div class="price-line">Custom Quote</div>
-                <p>
-                    Instead of locking into a one-size-fits-all chart, the smartest approach is to request a quote based on guest count, event type and the exact roles needed.
-                </p>
-                <ul>
-                    <li>Servers</li>
-                    <li>Bartenders</li>
-                    <li>Captains / coordinators</li>
-                    <li>Support staff</li>
-                </ul>
+            <div class="rate-card">
+                <h4>Captains & Coordinators</h4>
+                <div class="rate-range">$70–$95</div>
+                <span class="rate-unit">Per Hour · 4-Hr Minimum</span>
+                <p>For events needing dedicated floor management and team supervision.</p>
+            </div>
+
+            <div class="rate-card">
+                <h4>Event Assistants & Greeters</h4>
+                <div class="rate-range">$38–$50</div>
+                <span class="rate-unit">Per Hour · 4-Hr Minimum</span>
+                <p>Registration, check-in and general guest-facing support.</p>
+            </div>
+
+            <div class="rate-card">
+                <h4>Setup & Breakdown Crew</h4>
+                <div class="rate-range">$35–$45</div>
+                <span class="rate-unit">Per Hour · 4-Hr Minimum</span>
+                <p>Physical labor and logistics before doors open and after guests leave.</p>
+            </div>
+
+            <div class="rate-card">
+                <h4>Brand Ambassadors</h4>
+                <div class="rate-range">$45–$70</div>
+                <span class="rate-unit">Per Hour · 4-Hr Minimum</span>
+                <p>For sponsor activations and trade show staffing, coordinated with VNV Production.</p>
+            </div>
+        </div>
+
+        <p class="rate-disclaimer">
+            Rates reflect general South Florida market ranges as of 2026 and are a starting point for budgeting, not a fixed quote. Overtime typically applies after 8 hours per staff member.
+        </p>
+    </div>
+</section>
+
+<section class="section-vnv section-white">
+    <div class="container">
+        <div class="text-center section-heading" style="margin-left:auto;margin-right:auto;">
+            <span class="vnv-badge">Common Questions</span>
+            <h2>Before You Call, You Might Be <span class="text-vnv">Wondering...</span></h2>
+        </div>
+
+        <div class="faq-wrap" style="color:var(--vnv-text-dark);">
+            <div class="faq-item" style="border-bottom-color: rgba(17,24,26,.08);">
+                <h4 style="color:var(--vnv-text-dark);">Is there a minimum number of hours per staff member?</h4>
+                <p style="color:#566164;">Yes — most roles have a 4-hour minimum per booking, which is standard across the staffing industry. Overtime typically applies after 8 hours.</p>
+            </div>
+            <div class="faq-item" style="border-bottom-color: rgba(17,24,26,.08);">
+                <h4 style="color:var(--vnv-text-dark);">Are your bartenders certified and insured?</h4>
+                <p style="color:#566164;">Yes. Our bartenders carry TIPS or ServSafe alcohol certification, and all staff are vetted and covered under our event insurance.</p>
+            </div>
+            <div class="faq-item" style="border-bottom-color: rgba(17,24,26,.08);">
+                <h4 style="color:var(--vnv-text-dark);">How far in advance should we book staff?</h4>
+                <p style="color:#566164;">2–4 weeks is comfortable for most events. Peak season (November–May) and large staffing needs (10+ people) benefit from more lead time.</p>
+            </div>
+            <div class="faq-item" style="border-bottom: none;">
+                <h4 style="color:var(--vnv-text-dark);">Can staffing be added to an existing VNV booking?</h4>
+                <p style="color:#566164;">Yes — staffing pairs naturally with our catering, DJ, decor and production services, and can be added to any existing VNV event as one coordinated team.</p>
             </div>
         </div>
     </div>
@@ -883,7 +1182,7 @@ h1, h2, h3, h4, h5, .luxury-font {
                 <span class="text-vnv fw-bold d-block mb-3 letter-spacing-lg">VISIT & PLAN</span>
 
                 <h2 class="display-3 fw-black text-white mb-3">
-                    Plan your event support in <span class="text-vnv">South Florida</span>
+                    Plan Your Event Support In <span class="text-vnv">South Florida</span>
                 </h2>
 
                 <p class="fs-5 mb-4" style="color:rgba(255,255,255,0.65);">
@@ -909,7 +1208,7 @@ h1, h2, h3, h4, h5, .luxury-font {
                     <h3 class="text-white mb-3">A local team that understands event flow.</h3>
 
                     <p>
-                        VNV supports events across Broward, Miami and West Palm Beach, with planning and coordination available from our Sunrise location.
+                        VNV supports events across Broward, Miami-Dade and Palm Beach, with planning and coordination available from our Sunrise location.
                     </p>
 
                     <div class="vnv-location-info">
@@ -949,9 +1248,10 @@ h1, h2, h3, h4, h5, .luxury-font {
                 <div class="col-lg-7">
                     <span class="vnv-badge">Event Staffing Planning</span>
                     <h2 class="display-3 fw-bold text-white mb-4">Focus on your guests. Let the team handle the flow.</h2>
-                    <p class="fs-5 mb-5">
-                        Whether you need a few key staff members or a more complete service team, VNV can help build the right staffing structure for your event.
+                    <p class="fs-5 mb-3">
+                        Whether you need a few key staff members or a full service team, VNV builds the right staffing structure for your event.
                     </p>
+                    <p class="final-cta-note">Large staffing needs book out fastest during peak season (Nov–May)</p>
                 </div>
 
                 <div class="col-lg-5 text-center text-lg-end">
@@ -981,7 +1281,31 @@ h1, h2, h3, h4, h5, .luxury-font {
 if (typeof gsap !== 'undefined' && typeof ScrollTrigger !== 'undefined') {
     gsap.registerPlugin(ScrollTrigger);
 
-    gsap.from(".intro-image-card, .intro-panel, .service-card, .role-card, .staffing-image-stack, .staffing-panel, .price-card, .vnv-location-card, .final-cta-card", {
+    gsap.utils.toArray('.service-card, .ratio-card, .rate-card').forEach(card => {
+        gsap.from(card, {
+            scrollTrigger: {
+                trigger: card,
+                start: "top 88%"
+            },
+            y: 40,
+            opacity: 0,
+            duration: 0.9,
+            ease: "power3.out"
+        });
+    });
+
+    gsap.from(".activation-banner", {
+        scrollTrigger: {
+            trigger: ".activation-banner",
+            start: "top 85%"
+        },
+        scale: 0.96,
+        opacity: 0,
+        duration: 0.8,
+        ease: "power3.out"
+    });
+
+    gsap.from(".intro-image-card, .intro-panel, .role-card, .staffing-image-stack, .staffing-panel, .faq-item, .vnv-location-card, .final-cta-card", {
         scrollTrigger: {
             trigger: ".intro-image-card",
             start: "top 82%"

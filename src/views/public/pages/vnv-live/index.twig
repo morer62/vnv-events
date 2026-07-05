@@ -142,15 +142,31 @@ h1, h2, h3, h4, h5, .luxury-font {
 .hero-live h1 {
     font-size: clamp(3rem, 6vw, 5.4rem);
     line-height: 1.02;
-    margin: 20px 0 28px;
+    margin: 20px 0 24px;
     max-width: 920px;
 }
 
 .hero-live p.hero-copy {
-    font-size: 1.08rem;
+    font-size: 1.1rem;
     color: var(--vnv-text-muted);
-    max-width: 760px;
-    margin-bottom: 34px;
+    max-width: 640px;
+    margin-bottom: 28px;
+}
+
+.hero-services-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 30px;
+}
+.hero-services-row span {
+    padding: 8px 16px;
+    border-radius: 999px;
+    border: 1px solid rgba(255,255,255,.18);
+    font-size: .74rem;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: rgba(255,255,255,.8);
 }
 
 .hero-cta-row {
@@ -158,6 +174,30 @@ h1, h2, h3, h4, h5, .luxury-font {
     flex-wrap: wrap;
     gap: 16px;
     margin-top: 20px;
+}
+
+/* Trust stats bar */
+.trust-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 44px;
+    margin-top: 42px;
+}
+.trust-stat .num {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.4rem;
+    font-weight: 900;
+    line-height: 1;
+    background: var(--vnv-gold-gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+.trust-stat .label {
+    font-size: .7rem;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--vnv-text-muted-soft);
+    margin-top: 4px;
 }
 
 .section-white {
@@ -297,6 +337,24 @@ h1, h2, h3, h4, h5, .luxury-font {
     z-index: 2;
 }
 
+.package-card.popular {
+    border: 2px solid var(--vnv-gold);
+    box-shadow: 0 25px 70px rgba(197,160,89,.20);
+}
+
+.popular-badge {
+    display: inline-block;
+    background: var(--vnv-gold-gradient);
+    color: #000;
+    font-size: .66rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    padding: 6px 14px;
+    border-radius: 999px;
+    margin-bottom: 16px;
+}
+
 .package-card h3 {
     color: #fff;
     font-size: 1.8rem;
@@ -337,6 +395,26 @@ h1, h2, h3, h4, h5, .luxury-font {
     position: absolute;
     left: 0;
     top: 12px;
+}
+
+.new-service-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--vnv-primary);
+    font-size: .78rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin-bottom: 14px;
+}
+.new-service-tag i { font-size: .7rem; }
+
+.min-hours-note {
+    text-align: center;
+    margin-top: 32px;
+    font-size: .92rem;
+    color: var(--vnv-text-muted);
 }
 
 .music-wrap {
@@ -436,6 +514,62 @@ h1, h2, h3, h4, h5, .luxury-font {
     margin-top: 10px;
     color: var(--vnv-primary);
     font-weight: 800;
+}
+
+/* Why choose feature grid */
+.feature-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+}
+.feature-card {
+    background: rgba(28, 34, 35, 0.82);
+    backdrop-filter: blur(6px);
+    border-radius: 28px;
+    padding: 36px 32px;
+    height: 100%;
+    border: 1px solid rgba(197, 160, 89, 0.08);
+}
+.feature-card .feature-icon {
+    width: 52px;
+    height: 52px;
+    border-radius: 16px;
+    background: rgba(94,198,196,.1);
+    color: var(--vnv-primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.3rem;
+    margin-bottom: 20px;
+}
+.feature-card h3 {
+    font-size: 1.4rem;
+    color: #fff;
+    margin-bottom: 12px;
+}
+.feature-card p {
+    color: var(--vnv-text-muted);
+    margin: 0;
+}
+
+/* FAQ */
+.faq-wrap {
+    max-width: 880px;
+    margin: 0 auto;
+}
+.faq-item {
+    border-bottom: 1px solid rgba(17,24,26,.08);
+    padding: 26px 0;
+}
+.faq-item:last-child { border-bottom: none; }
+.faq-item h4 {
+    font-size: 1.15rem;
+    color: var(--vnv-text-dark);
+    margin-bottom: 8px;
+}
+.faq-item p {
+    color: #566164;
+    margin: 0;
 }
 
 .video-placeholder-grid {
@@ -550,6 +684,15 @@ h1, h2, h3, h4, h5, .luxury-font {
     color: var(--vnv-text-muted-soft);
 }
 
+.final-cta-note {
+    font-size: .85rem;
+    color: var(--vnv-primary);
+    margin-top: 18px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: 700;
+}
+
 .vnv-btn-fixed {
     min-width: 240px;
     text-align: center;
@@ -560,7 +703,8 @@ h1, h2, h3, h4, h5, .luxury-font {
 
 @media (max-width: 1199px) {
     .package-grid,
-    .addon-grid {
+    .addon-grid,
+    .feature-grid {
         grid-template-columns: 1fr 1fr;
     }
     .final-cta-card {
@@ -576,6 +720,7 @@ h1, h2, h3, h4, h5, .luxury-font {
 
     .package-grid,
     .addon-grid,
+    .feature-grid,
     .video-placeholder-grid {
         grid-template-columns: 1fr;
     }
@@ -625,6 +770,13 @@ h1, h2, h3, h4, h5, .luxury-font {
         flex-direction: column;
     }
 
+    .trust-bar {
+        gap: 26px;
+    }
+    .trust-stat .num {
+        font-size: 1.9rem;
+    }
+
     .instagram-gallery-grid img {
         height: 150px;
     }
@@ -640,19 +792,37 @@ h1, h2, h3, h4, h5, .luxury-font {
     <div class="container hero-live-inner">
         <span class="vnv-badge">VNV Sound</span>
 
-        <h1>DJ Services & <span class="text-gold">Live Music</span> in South Florida</h1>
+        <h1>DJ, Karaoke & <span class="text-gold">Live Music</span> in South Florida</h1>
 
         <p class="hero-copy">
-            VNV Live is designed for clients who want more than someone pressing play. The goal is to create the right musical atmosphere for the type of gathering, the size of the room and the people in it. :contentReference[oaicite:3]{index=3}
+            We read the room and set the right energy — from an elegant ceremony to a full dance-floor party, or a karaoke night your guests won't stop talking about.
         </p>
 
-        <p class="hero-copy">
-            Whether the event is intimate, elegant, community-driven or high energy, we shape the sound, pacing and crowd experience around the moment. :contentReference[oaicite:4]{index=4}
-        </p>
+        <div class="hero-services-row">
+            <span>DJ</span>
+            <span>MC</span>
+            <span>Karaoke</span>
+            <span>Lighting & FX</span>
+        </div>
 
         <div class="hero-cta-row">
             <a href="tel:+13052045427" class="vnv-btn btn-gold-vnv">Call Now (305) 204-5427</a>
             <a href="#dj-packages" class="vnv-btn btn-outline-vnv">View Packages</a>
+        </div>
+
+        <div class="trust-bar">
+            <div class="trust-stat">
+                <div class="num">200+</div>
+                <div class="label">Events Produced Yearly</div>
+            </div>
+            <div class="trust-stat">
+                <div class="num">3</div>
+                <div class="label">South Florida Counties Served</div>
+            </div>
+            <div class="trust-stat">
+                <div class="num">20+</div>
+                <div class="label">Years Combined Experience</div>
+            </div>
         </div>
     </div>
 </section>
@@ -668,15 +838,12 @@ h1, h2, h3, h4, h5, .luxury-font {
                 <span class="vnv-badge">The Right Atmosphere</span>
                 <h3>Music changes how the entire event feels.</h3>
                 <p>
-                    The current page positions VNV Live as a service that creates the perfect musical atmosphere for all types of gatherings, from beach parties to private galas. :contentReference[oaicite:5]{index=5}
-                </p>
-                <p>
-                    That means the role of the DJ is not just technical. It is about reading the room, supporting key moments, keeping the pace right and making the event feel more connected from start to finish.
+                    VNV Live creates the right musical atmosphere for any type of gathering — from beach parties to private galas. The DJ's role isn't just technical: it's reading the room, supporting key moments and keeping the pace right from start to finish.
                 </p>
 
                 <ul>
-                    <li>Professional DJ service for different event styles</li>
-                    <li>Sound systems scaled to guest count</li>
+                    <li>Professional DJ service for every event style</li>
+                    <li>Sound systems scaled to your guest count</li>
                     <li>Microphones for speeches and presentations</li>
                     <li>Lighting and atmosphere support when needed</li>
                 </ul>
@@ -698,7 +865,7 @@ h1, h2, h3, h4, h5, .luxury-font {
             <span class="vnv-badge">Prices & Packages</span>
             <h2 class="text-white">DJ Packages for <span class="text-vnv">South Florida Events</span></h2>
             <p>
-                These are the current published DJ packages on your live music page. :contentReference[oaicite:6]{index=6}
+                Straightforward packages built around how South Florida events actually run — no hidden fees, no surprise add-ons.
             </p>
         </div>
 
@@ -715,7 +882,8 @@ h1, h2, h3, h4, h5, .luxury-font {
                 </ul>
             </div>
 
-            <div class="package-card">
+            <div class="package-card popular">
+                <span class="popular-badge">Most Requested</span>
                 <h3>Deluxe Ceremony Experience</h3>
                 <div class="package-price">$1,250</div>
                 <div class="package-meta">4 Hours of Service · Additional Hour $250</div>
@@ -742,6 +910,63 @@ h1, h2, h3, h4, h5, .luxury-font {
     </div>
 </section>
 
+<section class="section-vnv section-white" id="karaoke-packages">
+    <div class="container">
+        <div class="section-heading">
+            <span class="new-service-tag"><i class="fa-solid fa-star"></i> Now Available</span>
+            <span class="vnv-badge">DJ + Karaoke Packages</span>
+            <h2>Turn Your Guests Into <span class="text-vnv">The Show</span></h2>
+            <p>
+                A live DJ set combined with a full karaoke experience — lyrics on screen, real microphones, and a song library big enough for every generation in the room. All packages have a 3-hour minimum.
+            </p>
+        </div>
+
+        <div class="package-grid">
+            <div class="package-card">
+                <h3>Karaoke Social Package</h3>
+                <div class="package-price">$900</div>
+                <div class="package-meta">3 Hours of Service · Additional Hour $275</div>
+                <ul>
+                    <li>Full DJ set plus rotating karaoke sing-along</li>
+                    <li>Dual wireless microphones, including a dedicated karaoke mic</li>
+                    <li>Screen or TV monitor with on-screen lyrics</li>
+                    <li>Curated multi-genre karaoke song library</li>
+                    <li>Best for up to 75 guests</li>
+                </ul>
+            </div>
+
+            <div class="package-card popular">
+                <span class="popular-badge">Most Requested</span>
+                <h3>Karaoke Celebration Package</h3>
+                <div class="package-price">$1,400</div>
+                <div class="package-meta">4 Hours of Service · Additional Hour $275</div>
+                <ul>
+                    <li>Everything in the Social Package</li>
+                    <li>Extended karaoke catalog, including bilingual song options</li>
+                    <li>Live song request system so guests can queue their own songs</li>
+                    <li>Sound-activated party lighting</li>
+                    <li>Best for up to 150 guests</li>
+                </ul>
+            </div>
+
+            <div class="package-card">
+                <h3>Karaoke Ultimate Party Package</h3>
+                <div class="package-price">$1,750</div>
+                <div class="package-meta">4 Hours of Service · Additional Hour $275</div>
+                <ul>
+                    <li>Everything in the Celebration Package</li>
+                    <li>Dual screens for lyrics and crowd visuals</li>
+                    <li>Full lighting package plus one laser</li>
+                    <li>Two wireless microphones and two wired microphones</li>
+                    <li>Best for up to 300 guests — ideal for large or outdoor parties</li>
+                </ul>
+            </div>
+        </div>
+
+        <p class="min-hours-note">All DJ and karaoke bookings have a 3-hour minimum, regardless of package.</p>
+    </div>
+</section>
+
 <section class="section-vnv section-white">
     <div class="container">
         <div class="music-wrap">
@@ -755,7 +980,7 @@ h1, h2, h3, h4, h5, .luxury-font {
                 <h3>Different audiences need different energy.</h3>
 
                 <p>
-                    Your current page highlights a broad music range so clients can understand the versatility of the DJs before hiring. It specifically mentions Latin rhythms, Indian melodies, Jewish harmonies, African American beats, rock and pop classics, Top 40 / Miami sound, Afrobeat and Caribbean music. :contentReference[oaicite:7]{index=7}
+                    Our DJs move fluidly across genres and cultures, so the music actually matches the people in the room instead of a one-size-fits-all playlist.
                 </p>
 
                 <ul class="music-list">
@@ -779,7 +1004,7 @@ h1, h2, h3, h4, h5, .luxury-font {
             <span class="vnv-badge">Music Samples</span>
             <h2 class="text-white">Listen Before You <span class="text-vnv">Book</span></h2>
             <p>
-                Your page says you always recommend listening to your DJ before hiring and that a small list of work is shown below. I could not extract the individual YouTube embeds from the page source, so I left this block ready for your video links. :contentReference[oaicite:8]{index=8}
+                We always recommend hearing a DJ before you book. Here's a quick look at the sound, setups and crowd energy from real VNV Live events.
             </p>
         </div>
 
@@ -813,7 +1038,7 @@ h1, h2, h3, h4, h5, .luxury-font {
             <span class="vnv-badge">Event Add-ons</span>
             <h2>Enhance the <span class="text-vnv">Experience</span></h2>
             <p>
-                Your current page offers production add-ons including cold sparks, CO2 cannons, confetti cannons, dancing on the clouds, monogram projection, LED screens, stage lighting, custom dance floors and live band sound systems. :contentReference[oaicite:9]{index=9}
+                Production add-ons that turn a good event into a memorable one — cold sparks, confetti, custom projections and more.
             </p>
         </div>
 
@@ -857,6 +1082,64 @@ h1, h2, h3, h4, h5, .luxury-font {
     </div>
 </section>
 
+<section class="section-vnv section-dark">
+    <div class="container">
+        <div class="text-center mb-5 pb-3 section-heading" style="margin-left:auto;margin-right:auto;">
+            <span class="vnv-badge">Why Book VNV Live</span>
+            <h2 class="text-white">More Than <span class="text-vnv">A DJ Booth</span></h2>
+            <p>
+                What actually backs up the promise of "the right energy for your event."
+            </p>
+        </div>
+
+        <div class="feature-grid">
+            <div class="feature-card">
+                <div class="feature-icon"><i class="fa-solid fa-music"></i></div>
+                <h3>One DJ, Every Genre</h3>
+                <p>Latin, Top 40, Afrobeat, Jewish and Indian celebrations — our DJs read the crowd instead of running one fixed playlist.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon"><i class="fa-solid fa-calendar-check"></i></div>
+                <h3>200+ Events A Year</h3>
+                <p>We produce close to 200 events annually across Broward, Miami-Dade and Palm Beach, so the timeline problems that catch other DJs off guard rarely happen to us.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon"><i class="fa-solid fa-people-arrows"></i></div>
+                <h3>One Team, Start To Finish</h3>
+                <p>Sound, lighting, karaoke and coordination all run through the same company — no separate vendors to coordinate on the day.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="section-vnv section-white">
+    <div class="container">
+        <div class="text-center section-heading" style="margin-left:auto;margin-right:auto;">
+            <span class="vnv-badge">Common Questions</span>
+            <h2>Before You Call, You Might Be <span class="text-vnv">Wondering...</span></h2>
+        </div>
+
+        <div class="faq-wrap">
+            <div class="faq-item">
+                <h4>Is there a minimum booking time?</h4>
+                <p>Yes — every DJ and karaoke booking has a 3-hour minimum. Additional hours can be added to any package.</p>
+            </div>
+            <div class="faq-item">
+                <h4>Do you bring the karaoke equipment, or do we need to rent it?</h4>
+                <p>We bring everything: microphones, screens and the song library. You don't need to rent or set up anything yourself.</p>
+            </div>
+            <div class="faq-item">
+                <h4>Can we mix a regular DJ set with karaoke during the same event?</h4>
+                <p>Yes, that's exactly what the Karaoke packages are built for — a live DJ set with karaoke worked into the flow of the night.</p>
+            </div>
+            <div class="faq-item">
+                <h4>How far in advance should we book?</h4>
+                <p>4–8 weeks is comfortable for most events, but peak season (November–May) fills faster — call and we'll confirm your date's availability.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
 <section class="section-vnv section-dark instagram-block">
     <div class="container position-relative" style="z-index:2;">
         <div class="row align-items-center g-5">
@@ -868,7 +1151,7 @@ h1, h2, h3, h4, h5, .luxury-font {
                 </h2>
 
                 <p class="fs-5 mb-4" style="color:rgba(255,255,255,0.65);">
-                    Explore live moments, dance floor energy, sound setups and event highlights from VNV Events.
+                    Real dance floors, real karaoke nights, real sound setups — not stock photos.
                 </p>
 
                 <a href="https://www.instagram.com/vnv_events/" target="_blank" class="vnv-btn btn-outline-vnv">
@@ -890,7 +1173,7 @@ h1, h2, h3, h4, h5, .luxury-font {
                     <h3 class="text-white mb-3">Plan the sound and atmosphere in person.</h3>
 
                     <p>
-                        Visit our VNV Studio in Sunrise, FL to discuss your event style, the type of crowd, the atmosphere you want to create and the add-ons that best fit the experience.
+                        Visit our VNV Studio in Sunrise, FL to discuss your event style, crowd and the atmosphere you want to create.
                     </p>
 
                     <div class="vnv-studio-info">
@@ -918,11 +1201,12 @@ h1, h2, h3, h4, h5, .luxury-font {
         <div class="final-cta-card">
             <div class="row align-items-center">
                 <div class="col-lg-7">
-                    <span class="vnv-badge">Live Sound</span>
+                    <span class="vnv-badge">Live Sound & Karaoke</span>
                     <h2 class="display-3 fw-bold text-white mb-4">Create the right energy for the people in the room.</h2>
-                    <p class="fs-5 mb-5">
-                        Whether your event needs elegance, celebration or full dance floor momentum, VNV Live can help shape the atmosphere with the right DJ setup, music direction and event enhancements.
+                    <p class="fs-5 mb-3">
+                        DJ sets, karaoke nights, or both in the same event — VNV Live brings the sound, lighting and song library to make it happen.
                     </p>
+                    <p class="final-cta-note">Peak season dates (Nov–May) book out fast</p>
                 </div>
 
                 <div class="col-lg-5 text-center text-lg-end">
@@ -952,7 +1236,7 @@ h1, h2, h3, h4, h5, .luxury-font {
 if (typeof gsap !== 'undefined' && typeof ScrollTrigger !== 'undefined') {
     gsap.registerPlugin(ScrollTrigger);
 
-    gsap.from(".intro-image-card, .intro-panel, .package-card, .music-image-stack, .music-panel, .addon-card, .vnv-studio-card, .final-cta-card", {
+    gsap.from(".intro-image-card, .intro-panel, .package-card, .music-image-stack, .music-panel, .addon-card, .feature-card, .faq-item, .vnv-studio-card, .final-cta-card", {
         scrollTrigger: {
             trigger: ".intro-image-card",
             start: "top 82%"

@@ -142,15 +142,31 @@ h1, h2, h3, h4, h5, .luxury-font {
 .hero-media h1 {
     font-size: clamp(3rem, 6vw, 5.4rem);
     line-height: 1.02;
-    margin: 20px 0 28px;
+    margin: 20px 0 24px;
     max-width: 940px;
 }
 
 .hero-media p.hero-copy {
-    font-size: 1.08rem;
+    font-size: 1.1rem;
     color: var(--vnv-text-muted);
-    max-width: 760px;
-    margin-bottom: 34px;
+    max-width: 640px;
+    margin-bottom: 28px;
+}
+
+.hero-services-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 30px;
+}
+.hero-services-row span {
+    padding: 8px 16px;
+    border-radius: 999px;
+    border: 1px solid rgba(255,255,255,.18);
+    font-size: .74rem;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: rgba(255,255,255,.8);
 }
 
 .hero-cta-row {
@@ -158,6 +174,30 @@ h1, h2, h3, h4, h5, .luxury-font {
     flex-wrap: wrap;
     gap: 16px;
     margin-top: 20px;
+}
+
+/* Trust stats bar */
+.trust-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 44px;
+    margin-top: 42px;
+}
+.trust-stat .num {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.4rem;
+    font-weight: 900;
+    line-height: 1;
+    background: var(--vnv-gold-gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+.trust-stat .label {
+    font-size: .7rem;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--vnv-text-muted-soft);
+    margin-top: 4px;
 }
 
 .section-white {
@@ -252,6 +292,23 @@ h1, h2, h3, h4, h5, .luxury-font {
     top: 12px;
 }
 
+.trust-strip {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    margin-top: 22px;
+    padding-top: 20px;
+    border-top: 1px solid rgba(17,24,26,.08);
+}
+.trust-strip span {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: .8rem;
+    color: #566164;
+}
+.trust-strip i { color: var(--vnv-primary-dark); }
+
 .services-bg-video-wrap {
     position: absolute;
     inset: 0;
@@ -295,11 +352,16 @@ h1, h2, h3, h4, h5, .luxury-font {
     height: 100%;
     position: relative;
     z-index: 2;
+    transition: all 0.5s cubic-bezier(0.165, 0.84, 0.44, 1);
+}
+.service-card:hover {
+    transform: translateY(-8px);
+    border-color: var(--vnv-gold);
 }
 
 .service-card h3 {
     color: #fff;
-    font-size: 1.8rem;
+    font-size: 1.6rem;
     margin-bottom: 14px;
 }
 .service-card p,
@@ -387,6 +449,126 @@ h1, h2, h3, h4, h5, .luxury-font {
     top: 12px;
 }
 
+/* Package pricing cards */
+.package-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+}
+.package-card {
+    background: #fff;
+    border: 1px solid rgba(17,24,26,.08);
+    border-radius: 30px;
+    padding: 34px 30px;
+    height: 100%;
+    box-shadow: 0 20px 60px rgba(0,0,0,.08);
+    position: relative;
+}
+.package-card.popular {
+    border: 2px solid var(--vnv-gold);
+    box-shadow: 0 25px 70px rgba(197,160,89,.18);
+}
+.popular-badge {
+    display: inline-block;
+    background: var(--vnv-gold-gradient);
+    color: #000;
+    font-size: .66rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    padding: 6px 14px;
+    border-radius: 999px;
+    margin-bottom: 16px;
+}
+.package-card h3 {
+    color: var(--vnv-text-dark);
+    font-size: 1.55rem;
+    margin-bottom: 6px;
+}
+.package-price {
+    font-size: 2.1rem;
+    font-weight: 900;
+    line-height: 1;
+    color: var(--vnv-primary-dark);
+    margin-bottom: 6px;
+}
+.package-meta {
+    font-size: .88rem;
+    color: #8a9295;
+    text-transform: uppercase;
+    letter-spacing: .5px;
+    margin-bottom: 18px;
+    display: block;
+}
+.package-card p,
+.package-card li {
+    color: #4f5b5f;
+}
+.package-card ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+.package-card ul li {
+    position: relative;
+    padding-left: 22px;
+    margin-bottom: 10px;
+}
+.package-card ul li::before {
+    content: "";
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--vnv-gold);
+    position: absolute;
+    left: 0;
+    top: 11px;
+}
+
+.rate-disclaimer {
+    text-align: center;
+    margin-top: 32px;
+    color: #677174;
+    font-size: .92rem;
+    max-width: 700px;
+    margin-left: auto;
+    margin-right: auto;
+}
+.rate-disclaimer.on-dark {
+    color: var(--vnv-text-muted);
+}
+
+/* Add-ons strip */
+.addon-strip {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    margin-top: 10px;
+}
+.addon-chip {
+    background: rgba(28, 34, 35, 0.82);
+    border: 1px solid rgba(197, 160, 89, 0.10);
+    border-radius: 22px;
+    padding: 24px 26px;
+}
+.addon-chip h4 {
+    color: #fff;
+    font-size: 1.1rem;
+    margin-bottom: 6px;
+}
+.addon-chip .addon-price {
+    color: var(--vnv-primary);
+    font-weight: 800;
+    font-size: .95rem;
+    display: block;
+    margin-bottom: 8px;
+}
+.addon-chip p {
+    color: var(--vnv-text-muted);
+    font-size: .88rem;
+    margin: 0;
+}
+
 .media-grid {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
@@ -409,6 +591,26 @@ h1, h2, h3, h4, h5, .luxury-font {
 }
 .media-mini-card p {
     color: #4f5b5f;
+    margin: 0;
+}
+
+/* FAQ */
+.faq-wrap {
+    max-width: 880px;
+    margin: 0 auto;
+}
+.faq-item {
+    border-bottom: 1px solid rgba(17,24,26,.08);
+    padding: 26px 0;
+}
+.faq-item:last-child { border-bottom: none; }
+.faq-item h4 {
+    font-size: 1.15rem;
+    color: var(--vnv-text-dark);
+    margin-bottom: 8px;
+}
+.faq-item p {
+    color: #566164;
     margin: 0;
 }
 
@@ -505,6 +707,15 @@ h1, h2, h3, h4, h5, .luxury-font {
     color: var(--vnv-text-muted-soft);
 }
 
+.final-cta-note {
+    font-size: .85rem;
+    color: var(--vnv-primary);
+    margin-top: 18px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: 700;
+}
+
 .vnv-btn-fixed {
     min-width: 240px;
     text-align: center;
@@ -515,7 +726,9 @@ h1, h2, h3, h4, h5, .luxury-font {
 
 @media (max-width: 1199px) {
     .service-grid,
-    .media-grid {
+    .media-grid,
+    .package-grid,
+    .addon-strip {
         grid-template-columns: 1fr 1fr;
     }
     .final-cta-card {
@@ -530,7 +743,9 @@ h1, h2, h3, h4, h5, .luxury-font {
     }
 
     .service-grid,
-    .media-grid {
+    .media-grid,
+    .package-grid,
+    .addon-strip {
         grid-template-columns: 1fr;
     }
 
@@ -575,6 +790,13 @@ h1, h2, h3, h4, h5, .luxury-font {
         flex-direction: column;
     }
 
+    .trust-bar {
+        gap: 26px;
+    }
+    .trust-stat .num {
+        font-size: 1.9rem;
+    }
+
     .instagram-gallery-grid img {
         height: 150px;
     }
@@ -593,16 +815,35 @@ h1, h2, h3, h4, h5, .luxury-font {
         <h1>Photo Booth, <span class="text-gold">Video & Photography</span> Services in South Florida</h1>
 
         <p class="hero-copy">
-            Capture unforgettable moments with a multimedia service designed to be both fun and professional.
+            Interactive guest experiences and polished event coverage, captured by the same team that built the event — not a freelancer hired after the fact.
         </p>
 
-        <p class="hero-copy">
-            Whether the goal is guest interaction, polished event coverage or branded visual content, we help create media moments that continue long after the event ends. That same visual mindset is also why VNV offers a podcast studio in Sunrise as part of the multimedia side of the brand.
-        </p>
+        <div class="hero-services-row">
+            <span>Photobooth</span>
+            <span>Photography</span>
+            <span>Videography</span>
+            <span>Drone</span>
+            <span>Podcast Studio</span>
+        </div>
 
         <div class="hero-cta-row">
             <a href="tel:+13052045427" class="vnv-btn btn-gold-vnv">Call Now (305) 204-5427</a>
             <a href="#media-services" class="vnv-btn btn-outline-vnv">Explore Services</a>
+        </div>
+
+        <div class="trust-bar">
+            <div class="trust-stat">
+                <div class="num">200+</div>
+                <div class="label">Events Produced Yearly</div>
+            </div>
+            <div class="trust-stat">
+                <div class="num">3</div>
+                <div class="label">South Florida Counties Served</div>
+            </div>
+            <div class="trust-stat">
+                <div class="num">20+</div>
+                <div class="label">Years Combined Experience</div>
+            </div>
         </div>
     </div>
 </section>
@@ -621,7 +862,7 @@ h1, h2, h3, h4, h5, .luxury-font {
                     This service brings together three essential pieces: interactive photobooth experiences, professional visual coverage and personalized branding elements that make the event feel more complete.
                 </p>
                 <p>
-                    It works especially well for clients who want something guests can enjoy in real time, while also making sure the event is documented in a clean and professional way.
+                    It works especially well for clients who want something guests can enjoy in real time, while making sure the event is documented in a clean, professional way.
                 </p>
 
                 <ul>
@@ -630,6 +871,12 @@ h1, h2, h3, h4, h5, .luxury-font {
                     <li>Drone and streaming options when needed</li>
                     <li>Branding elements for custom frames, prints and visuals</li>
                 </ul>
+
+                <div class="trust-strip">
+                    <span><i class="fa-solid fa-shield-check"></i> Fully insured equipment & attendants</span>
+                    <span><i class="fa-solid fa-bolt"></i> Same-day preview delivery available</span>
+                    <span><i class="fa-solid fa-people-arrows"></i> One team for photo, video & booth</span>
+                </div>
             </div>
         </div>
     </div>
@@ -657,7 +904,7 @@ h1, h2, h3, h4, h5, .luxury-font {
                 <div class="service-icon-box"><i class="fa-solid fa-camera-retro"></i></div>
                 <h3>Photobooth Rental</h3>
                 <p>
-                    A sleek and modern photobooth experience designed for high-resolution photos, guest interaction and memorable event moments.
+                    Classic print, 360° and premium glam booths designed for high-resolution photos, guest interaction and memorable moments.
                 </p>
             </div>
 
@@ -665,7 +912,7 @@ h1, h2, h3, h4, h5, .luxury-font {
                 <div class="service-icon-box"><i class="fa-solid fa-video"></i></div>
                 <h3>Video & Photography</h3>
                 <p>
-                    Coverage focused on capturing the people, atmosphere and key moments of the event in a polished and usable way.
+                    Coverage focused on capturing the people, atmosphere and key moments of the event in a polished, usable way.
                 </p>
             </div>
 
@@ -673,10 +920,63 @@ h1, h2, h3, h4, h5, .luxury-font {
                 <div class="service-icon-box"><i class="fa-solid fa-star"></i></div>
                 <h3>Branding & Personalization</h3>
                 <p>
-                    Custom backdrops, branded prints, props and visual details that make the media side of the event feel more intentional.
+                    Custom backdrops, branded prints, props and visual details that make the media side of the event feel intentional.
                 </p>
             </div>
         </div>
+    </div>
+</section>
+
+<section class="section-vnv section-white">
+    <div class="container">
+        <div class="section-heading">
+            <span class="vnv-badge">Photobooth Pricing</span>
+            <h2>Pick Your <span class="text-vnv">Photobooth Experience</span></h2>
+            <p>
+                Real South Florida market pricing for 2026, so you can budget before you call. All packages have a 3-hour minimum and include a professional on-site attendant.
+            </p>
+        </div>
+
+        <div class="package-grid">
+            <div class="package-card">
+                <h3>Classic Print Booth</h3>
+                <div class="package-price">$650</div>
+                <span class="package-meta">3 Hrs · Additional Hour $150</span>
+                <ul>
+                    <li>Open-air booth with backdrop & props</li>
+                    <li>Unlimited on-site prints</li>
+                    <li>Custom branded photo template</li>
+                    <li>Professional attendant included</li>
+                </ul>
+            </div>
+
+            <div class="package-card popular">
+                <span class="popular-badge">Most Requested</span>
+                <h3>360° Video Booth</h3>
+                <div class="package-price">$850</div>
+                <span class="package-meta">3 Hrs · Additional Hour $175</span>
+                <ul>
+                    <li>Rotating 360° platform experience</li>
+                    <li>Instant sharing via text or QR code</li>
+                    <li>Custom music & branded overlays</li>
+                    <li>Professional attendant included</li>
+                </ul>
+            </div>
+
+            <div class="package-card">
+                <h3>Premium Glam Booth</h3>
+                <div class="package-price">$950</div>
+                <span class="package-meta">3 Hrs · Additional Hour $200</span>
+                <ul>
+                    <li>Black & white celebrity-style studio lighting</li>
+                    <li>Elevated backdrop and premium props</li>
+                    <li>Custom branded prints</li>
+                    <li>Best for upscale weddings & galas</li>
+                </ul>
+            </div>
+        </div>
+
+        <p class="rate-disclaimer">Rates reflect general South Florida photobooth market pricing as of 2026 and serve as a starting point for budgeting — final pricing depends on booth style, venue and add-ons.</p>
     </div>
 </section>
 
@@ -689,11 +989,11 @@ h1, h2, h3, h4, h5, .luxury-font {
             </div>
 
             <div class="photobooth-panel">
-                <span class="vnv-badge">Why Choose Our Photobooth</span>
+                <span class="vnv-badge">What's Included</span>
                 <h3>A setup designed to feel polished from the start.</h3>
 
                 <p>
-                    Our photobooth package is built to feel premium and easy to enjoy. It combines elegant presentation, professional lighting and guest-friendly interaction in one clean setup.
+                    Every photobooth package is built to feel premium and easy to enjoy — elegant presentation, professional lighting and guest-friendly interaction in one clean setup.
                 </p>
 
                 <ul>
@@ -706,7 +1006,7 @@ h1, h2, h3, h4, h5, .luxury-font {
                 </ul>
 
                 <p class="mt-3">
-                    This makes it a strong fit for weddings, corporate gatherings, birthdays and other celebrations where you want guests to leave with something fun and memorable.
+                    A strong fit for weddings, corporate gatherings, birthdays and other celebrations where you want guests to leave with something fun and memorable.
                 </p>
             </div>
         </div>
@@ -716,8 +1016,111 @@ h1, h2, h3, h4, h5, .luxury-font {
 <section class="section-vnv section-dark">
     <div class="container">
         <div class="section-heading">
+            <span class="vnv-badge">Photography & Video Pricing</span>
+            <h2 class="text-white">Coverage That Matches <span class="text-vnv">The Moment</span></h2>
+            <p>
+                South Florida market rates for 2026. All packages have a 3-hour minimum, and every event gets a custom quote based on scope.
+            </p>
+        </div>
+
+        <div class="package-grid">
+            <div class="package-card" style="background:#fff;">
+                <h3>Event Photography</h3>
+                <div class="package-price">$750</div>
+                <span class="package-meta">3 Hrs · Additional Hour $200</span>
+                <ul>
+                    <li>Candid & posed event coverage</li>
+                    <li>Fully edited high-resolution gallery</li>
+                    <li>Private online gallery delivery</li>
+                    <li>Same-day preview available on request</li>
+                </ul>
+            </div>
+
+            <div class="package-card popular" style="background:#fff;">
+                <span class="popular-badge">Most Requested</span>
+                <h3>Event Videography</h3>
+                <div class="package-price">$900</div>
+                <span class="package-meta">3 Hrs · Additional Hour $250</span>
+                <ul>
+                    <li>Full event video coverage</li>
+                    <li>Professionally edited highlight reel</li>
+                    <li>Raw footage available on request</li>
+                    <li>Great for recap & sponsor content</li>
+                </ul>
+            </div>
+
+            <div class="package-card" style="background:#fff;">
+                <h3>Photo + Video Combo</h3>
+                <div class="package-price">$1,600</div>
+                <span class="package-meta">4 Hrs · Additional Hour $350</span>
+                <ul>
+                    <li>Dedicated photographer + videographer</li>
+                    <li>Edited photo gallery + highlight reel</li>
+                    <li>Best value for weddings & galas</li>
+                    <li>Priority delivery timeline</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="addon-strip">
+            <div class="addon-chip">
+                <h4>Drone Coverage</h4>
+                <span class="addon-price">Starting at $250</span>
+                <p>Aerial perspective for larger events and more cinematic coverage.</p>
+            </div>
+            <div class="addon-chip">
+                <h4>Livestream / Recording Setup</h4>
+                <span class="addon-price">Starting at $350</span>
+                <p>For events that need to be shared beyond the room in real time.</p>
+            </div>
+            <div class="addon-chip">
+                <h4>Roaming Photo Booth</h4>
+                <span class="addon-price">Starting at $150/hr</span>
+                <p>An attendant moves through the crowd with the booth for spontaneous shots.</p>
+            </div>
+        </div>
+
+        <p class="rate-disclaimer on-dark">Rates reflect general South Florida event photography and videography market pricing as of 2026. Final pricing depends on event type, guest count and delivery timeline.</p>
+    </div>
+</section>
+
+<section class="section-vnv section-white">
+    <div class="container">
+        <div class="section-heading">
+            <span class="vnv-badge">Studio Extension</span>
+            <h2>Podcast Studio & <span class="text-vnv">Recorded Content</span></h2>
+            <p>
+                For clients who also need interviews, branded conversations, webinars or podcast-style content, VNV's podcast studio — part of Jonnys.media, our in-house content and media arm — gives the brand an additional way to create media beyond the event day itself.
+            </p>
+        </div>
+
+        <div class="intro-wrap">
+            <div class="intro-image-card">
+                <img src="{{ asset_for('assets/images/media5.jpg') }}" alt="Podcast studio by VNV">
+            </div>
+
+            <div class="intro-panel">
+                <h3>One brand, multiple ways to capture content.</h3>
+                <p>
+                    Some clients begin with event coverage and later realize they also need more controlled, branded content. The studio makes that possible in a setting built specifically for recorded media.
+                </p>
+
+                <ul>
+                    <li>Podcast-style conversations</li>
+                    <li>Webinars and recorded talks</li>
+                    <li>Branded interviews and promo content</li>
+                    <li>Studio-based visual storytelling</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="section-vnv section-white">
+    <div class="container">
+        <div class="section-heading">
             <span class="vnv-badge">Visual Coverage</span>
-            <h2 class="text-white">Photo, Video & <span class="text-vnv">Content Options</span></h2>
+            <h2>Photo, Video & <span class="text-vnv">Content Options</span></h2>
             <p>
                 Flexible media support for events that need more than simple snapshots.
             </p>
@@ -747,33 +1150,29 @@ h1, h2, h3, h4, h5, .luxury-font {
     </div>
 </section>
 
-<section class="section-vnv section-white">
+<section class="section-vnv section-dark">
     <div class="container">
-        <div class="section-heading">
-            <span class="vnv-badge">Studio Extension</span>
-            <h2>Podcast Studio & <span class="text-vnv">Recorded Content</span></h2>
-            <p>
-                For clients who also need interviews, branded conversations, webinars or podcast-style content, VNV’s podcast studio gives the brand an additional way to create media beyond the event day itself.
-            </p>
+        <div class="text-center section-heading" style="margin-left:auto;margin-right:auto;">
+            <span class="vnv-badge">Common Questions</span>
+            <h2 class="text-white">Before You Call, You Might Be <span class="text-vnv">Wondering...</span></h2>
         </div>
 
-        <div class="intro-wrap">
-            <div class="intro-image-card">
-                <img src="{{ asset_for('assets/images/media5.jpg') }}" alt="Podcast studio by VNV">
+        <div class="faq-wrap">
+            <div class="faq-item" style="border-bottom-color: rgba(255,255,255,.08);">
+                <h4 style="color:#fff;">How much space does the photobooth need?</h4>
+                <p style="color:var(--vnv-text-muted);">An 8x8ft area is enough for a classic booth with backdrop and props. The 360° booth needs about 10x10ft for the rotating platform.</p>
             </div>
-
-            <div class="intro-panel">
-                <h3>One brand, multiple ways to capture content.</h3>
-                <p>
-                    Some clients begin with event coverage and later realize they also need more controlled, branded content. The studio makes that possible in a setting designed specifically for recorded media.
-                </p>
-
-                <ul>
-                    <li>Podcast-style conversations</li>
-                    <li>Webinars and recorded talks</li>
-                    <li>Branded interviews and promo content</li>
-                    <li>Studio-based visual storytelling</li>
-                </ul>
+            <div class="faq-item" style="border-bottom-color: rgba(255,255,255,.08);">
+                <h4 style="color:#fff;">Can the booth or coverage be set up outdoors?</h4>
+                <p style="color:var(--vnv-text-muted);">Yes, as long as there's a stable, level surface and access to power. We bring a canopy for outdoor setups when needed.</p>
+            </div>
+            <div class="faq-item" style="border-bottom-color: rgba(255,255,255,.08);">
+                <h4 style="color:#fff;">How fast do we get our photos or video after the event?</h4>
+                <p style="color:var(--vnv-text-muted);">Photobooth prints are instant on-site. For photography and video, a same-day preview (20–30 curated images) is available on request, with the full edited gallery or highlight reel delivered within 1–2 weeks.</p>
+            </div>
+            <div class="faq-item" style="border-bottom: none;">
+                <h4 style="color:#fff;">Is there a minimum booking time?</h4>
+                <p style="color:var(--vnv-text-muted);">Yes — all photobooth, photography and videography packages have a 3-hour minimum.</p>
             </div>
         </div>
     </div>
@@ -790,7 +1189,7 @@ h1, h2, h3, h4, h5, .luxury-font {
                 </h2>
 
                 <p class="fs-5 mb-4" style="color:rgba(255,255,255,0.65);">
-                    Explore multimedia moments, guest interaction, event visuals and behind-the-scenes details from VNV Events.
+                    Real multimedia moments and guest interaction from actual VNV events — not stock photos.
                 </p>
 
                 <a href="https://www.instagram.com/vnv_events/" target="_blank" class="vnv-btn btn-outline-vnv">
@@ -842,9 +1241,10 @@ h1, h2, h3, h4, h5, .luxury-font {
                 <div class="col-lg-7">
                     <span class="vnv-badge">Multimedia Planning</span>
                     <h2 class="display-3 fw-bold text-white mb-4">Create moments people can experience, share and remember.</h2>
-                    <p class="fs-5 mb-5">
-                        Whether you need guest interaction through a photobooth, polished visual coverage or branded media support, VNV can help bring the right multimedia mix to the event.
+                    <p class="fs-5 mb-3">
+                        Photobooth, photography, videography or a combination of all three — VNV brings the right multimedia mix to the event.
                     </p>
+                    <p class="final-cta-note">Weekend dates in peak season (Nov–May) book out fastest</p>
                 </div>
 
                 <div class="col-lg-5 text-center text-lg-end">
@@ -874,7 +1274,20 @@ h1, h2, h3, h4, h5, .luxury-font {
 if (typeof gsap !== 'undefined' && typeof ScrollTrigger !== 'undefined') {
     gsap.registerPlugin(ScrollTrigger);
 
-    gsap.from(".intro-image-card, .intro-panel, .service-card, .photobooth-image-stack, .photobooth-panel, .media-mini-card, .vnv-studio-card, .final-cta-card", {
+    gsap.utils.toArray('.service-card, .package-card, .addon-chip').forEach(card => {
+        gsap.from(card, {
+            scrollTrigger: {
+                trigger: card,
+                start: "top 88%"
+            },
+            y: 40,
+            opacity: 0,
+            duration: 0.9,
+            ease: "power3.out"
+        });
+    });
+
+    gsap.from(".intro-image-card, .intro-panel, .photobooth-image-stack, .photobooth-panel, .media-mini-card, .faq-item, .vnv-studio-card, .final-cta-card", {
         scrollTrigger: {
             trigger: ".intro-image-card",
             start: "top 82%"

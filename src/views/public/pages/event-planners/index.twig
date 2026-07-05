@@ -160,6 +160,30 @@ h1, h2, h3, h4, h5, .luxury-font {
     margin-top: 20px;
 }
 
+/* Trust stats bar */
+.trust-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 44px;
+    margin-top: 42px;
+}
+.trust-stat .num {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.4rem;
+    font-weight: 900;
+    line-height: 1;
+    background: var(--vnv-gold-gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+.trust-stat .label {
+    font-size: .7rem;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--vnv-text-muted-soft);
+    margin-top: 4px;
+}
+
 .section-white {
     background: var(--vnv-marble);
     color: var(--vnv-text-dark);
@@ -252,6 +276,49 @@ h1, h2, h3, h4, h5, .luxury-font {
     top: 12px;
 }
 
+.info-panel .info-callout {
+    margin-top: 22px;
+    padding-top: 18px;
+    border-top: 1px solid rgba(17,24,26,.08);
+    font-size: .92rem;
+    color: #677174;
+}
+
+/* Team / advisor banner */
+.team-banner {
+    margin-top: 30px;
+    background: linear-gradient(120deg, rgba(197,160,89,.08) 0%, rgba(94,198,196,.05) 100%);
+    border: 2px solid var(--vnv-gold);
+    border-radius: 26px;
+    padding: 32px 34px;
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 24px;
+    align-items: center;
+}
+.team-banner-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: 16px;
+    background: var(--vnv-gold-gradient);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #000;
+    font-size: 1.4rem;
+    flex-shrink: 0;
+}
+.team-banner h4 {
+    font-size: 1.15rem;
+    color: var(--vnv-text-dark);
+    margin-bottom: 6px;
+}
+.team-banner p {
+    color: #566164;
+    margin: 0;
+    font-size: .95rem;
+}
+
 .services-bg-video-wrap {
     position: absolute;
     inset: 0;
@@ -329,6 +396,19 @@ h1, h2, h3, h4, h5, .luxury-font {
     top: 12px;
 }
 
+.compare-helper {
+    text-align: center;
+    margin-top: 36px;
+    color: var(--vnv-text-muted);
+    font-size: .98rem;
+}
+.compare-helper a {
+    color: var(--vnv-primary);
+    font-weight: 700;
+    text-decoration: none;
+}
+.compare-helper a:hover { text-decoration: underline; }
+
 .package-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -342,6 +422,25 @@ h1, h2, h3, h4, h5, .luxury-font {
     padding: 34px 30px;
     height: 100%;
     box-shadow: 0 20px 60px rgba(0,0,0,.08);
+    position: relative;
+}
+
+.package-card.popular {
+    border: 2px solid var(--vnv-gold);
+    box-shadow: 0 25px 70px rgba(197,160,89,.20);
+}
+
+.popular-badge {
+    display: inline-block;
+    background: var(--vnv-gold-gradient);
+    color: #000;
+    font-size: .66rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    padding: 6px 14px;
+    border-radius: 999px;
+    margin-bottom: 16px;
 }
 
 .package-card h3 {
@@ -354,7 +453,12 @@ h1, h2, h3, h4, h5, .luxury-font {
     font-weight: 900;
     line-height: 1;
     color: var(--vnv-primary);
-    margin-bottom: 20px;
+    margin-bottom: 12px;
+}
+.package-tagline {
+    font-size: .92rem;
+    color: #677174;
+    margin-bottom: 14px;
 }
 .package-card p,
 .package-card li {
@@ -386,6 +490,13 @@ h1, h2, h3, h4, h5, .luxury-font {
     margin-top: 20px;
     padding-top: 18px;
     border-top: 1px solid rgba(17,24,26,.08);
+}
+
+.capacity-note {
+    text-align: center;
+    margin-top: 32px;
+    font-size: .92rem;
+    color: #677174;
 }
 
 .process-wrap {
@@ -440,6 +551,62 @@ h1, h2, h3, h4, h5, .luxury-font {
 }
 .process-panel li {
     margin-bottom: 14px;
+}
+
+/* Why choose us feature grid */
+.feature-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+}
+.feature-card {
+    background: #fff;
+    border: 1px solid rgba(17,24,26,.08);
+    border-radius: 30px;
+    padding: 36px 32px;
+    height: 100%;
+    box-shadow: 0 20px 60px rgba(0,0,0,.06);
+}
+.feature-card .feature-icon {
+    width: 52px;
+    height: 52px;
+    border-radius: 16px;
+    background: rgba(94,198,196,.1);
+    color: var(--vnv-primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.3rem;
+    margin-bottom: 20px;
+}
+.feature-card h3 {
+    font-size: 1.4rem;
+    color: var(--vnv-text-dark);
+    margin-bottom: 12px;
+}
+.feature-card p {
+    color: #566164;
+    margin: 0;
+}
+
+/* FAQ */
+.faq-wrap {
+    max-width: 880px;
+    margin: 0 auto;
+}
+.faq-item {
+    border-bottom: 1px solid rgba(17,24,26,.08);
+    padding: 26px 0;
+}
+.faq-item:last-child { border-bottom: none; }
+.faq-item h4 {
+    font-size: 1.15rem;
+    color: var(--vnv-text-dark);
+    margin-bottom: 8px;
+}
+.faq-item p {
+    color: #566164;
+    margin: 0;
 }
 
 .instagram-block {
@@ -535,6 +702,15 @@ h1, h2, h3, h4, h5, .luxury-font {
     color: var(--vnv-text-muted-soft);
 }
 
+.final-cta-note {
+    font-size: .85rem;
+    color: var(--vnv-primary);
+    margin-top: 18px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: 700;
+}
+
 .vnv-btn-fixed {
     min-width: 240px;
     text-align: center;
@@ -545,6 +721,9 @@ h1, h2, h3, h4, h5, .luxury-font {
 
 @media (max-width: 1199px) {
     .package-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+    .feature-grid {
         grid-template-columns: 1fr 1fr;
     }
     .final-cta-card {
@@ -559,7 +738,8 @@ h1, h2, h3, h4, h5, .luxury-font {
         grid-template-columns: 1fr;
     }
 
-    .package-grid {
+    .package-grid,
+    .feature-grid {
         grid-template-columns: 1fr;
     }
 
@@ -568,6 +748,12 @@ h1, h2, h3, h4, h5, .luxury-font {
     .vnv-studio-card {
         padding: 32px 28px;
     }
+
+    .team-banner {
+        grid-template-columns: 1fr;
+        text-align: center;
+    }
+    .team-banner-icon { margin: 0 auto; }
 
     .final-cta-card {
         padding: 50px 30px;
@@ -604,6 +790,17 @@ h1, h2, h3, h4, h5, .luxury-font {
         flex-direction: column;
     }
 
+    .trust-bar {
+        gap: 26px;
+    }
+    .trust-stat .num {
+        font-size: 1.9rem;
+    }
+
+    .package-card.popular {
+        transform: none;
+    }
+
     .instagram-gallery-grid img {
         height: 150px;
     }
@@ -617,21 +814,36 @@ h1, h2, h3, h4, h5, .luxury-font {
 
 <section class="hero-planning">
     <div class="container hero-planning-inner">
-        <span class="vnv-badge">Planner & Coordinator</span>
+        <span class="vnv-badge">Wedding & Event Planning — South Florida</span>
 
-        <h1>Planning Support That Feels <span class="text-gold">Structured, Personal & Realistic</span></h1>
+        <h1>Real Planning Support For Events That <span class="text-gold">Actually Go As Planned</span></h1>
 
         <p class="hero-copy">
-            Our planning service is designed for South Florida clients who want guidance before the event, not just help on the day of the event. At VNV, planning and coordination are connected — but they are not automatically the same person.
+            You've got a date, a vision and a hundred moving parts. Our planning service gives you a dedicated expert who keeps every decision, vendor and deadline organized — from your first meeting to the final toast.
         </p>
 
         <p class="hero-copy">
-            Mary Isern, our expert planner, helps guide the project throughout the planning process with structure, design sense and calm decision-making. The coordinator is then focused on event-day execution, and in some cases it may be Mary, but not always.
+            Mary Isern, our expert planner, guides your project from day one with structure, design sense and calm decision-making. Your event-day coordinator then takes over execution — sometimes that's Mary, sometimes it's another lead from our team, but it's always someone who already knows your event inside and out.
         </p>
 
         <div class="hero-cta-row">
             <a href="tel:+13052045427" class="vnv-btn btn-gold-vnv">Call Now (305) 204-5427</a>
             <a href="#planning-packages" class="vnv-btn btn-outline-vnv">View Packages</a>
+        </div>
+
+        <div class="trust-bar">
+            <div class="trust-stat">
+                <div class="num">200+</div>
+                <div class="label">Events Produced Yearly</div>
+            </div>
+            <div class="trust-stat">
+                <div class="num">3</div>
+                <div class="label">South Florida Counties Served</div>
+            </div>
+            <div class="trust-stat">
+                <div class="num">20+</div>
+                <div class="label">Years Combined Experience</div>
+            </div>
         </div>
     </div>
 </section>
@@ -645,23 +857,33 @@ h1, h2, h3, h4, h5, .luxury-font {
 
             <div class="info-panel">
                 <span class="vnv-badge">Meet Your Planner</span>
-                <h3>Guided by Mary Isern throughout the project.</h3>
+                <h3>Led by Mary Isern, Founder & Creative Director of VNV Events</h3>
                 <p>
-                    Mary Isern is presented on her own site as an Event Planner, Creative Director and Founder of VNV Events & Ophyra App, with a role centered on structure, design, hospitality and event innovation. That makes her the right person to lead the planning side of the experience. :contentReference[oaicite:1]{index=1}
+                    Mary brings structure, design sense and calm decision-making to every project she leads. As Founder and Creative Director of VNV Events, she treats your event with the same care and attention she's built into every part of the company — not a checklist handed off to whoever's available that week.
                 </p>
                 <p>
-                    This page is built so clients understand the real difference: planning is the strategic process before the event, while coordination is the operational oversight on the event day itself. That distinction is already stated in your current coordinator page. :contentReference[oaicite:2]{index=2}
+                    This page exists because planning and coordination solve two different problems. Planning is the strategic work that happens in the weeks and months before your event: budget, vendors, timeline, decisions. Coordination is what happens on the actual day, when someone needs to be watching every detail so you don't have to.
                 </p>
 
                 <ul>
-                    <li>Planning guidance led by Mary Isern</li>
-                    <li>Clearer decisions, timelines and vendor direction</li>
-                    <li>A separate coordinator can be assigned for the event day</li>
-                    <li>More realistic support for how South Florida events actually move</li>
+                    <li>Planning guidance led directly by Mary Isern</li>
+                    <li>Clear decisions on budget, vendors and timeline — no guesswork</li>
+                    <li>A dedicated coordinator assigned for your event day</li>
+                    <li>A process built around how events really unfold in South Florida</li>
                 </ul>
 
-                <div class="mt-4">
-                    <a href="https://maryisern.com/" target="_blank" class="vnv-btn btn-gold-vnv">Visit MaryIsern.com</a>
+                <div class="info-callout">
+                    Every planning package already includes 8 hours of event-day coordination, so you're never handed off to a stranger on the day that matters most.
+                </div>
+
+                <div class="team-banner">
+                    <div class="team-banner-icon"><i class="fa-solid fa-diagram-project"></i></div>
+                    <div>
+                        <h4>Backed By Real Project Management, Not Just A Notebook</h4>
+                        <p>
+                            Mary leads every creative and planning decision. Behind the scenes, Jonathan Moreno — VNV's Project Management & Technology Advisor and the builder of Ophyra, the platform that runs the company's operations — keeps your budget, vendors and timeline tracked in one system instead of scattered across emails and spreadsheets.
+                        </p>
+                    </div>
                 </div>
             </div>
         </div>
@@ -679,9 +901,9 @@ h1, h2, h3, h4, h5, .luxury-font {
     <div class="container position-relative" style="z-index:2;">
         <div class="text-center mb-5 pb-5 section-heading">
             <span class="vnv-badge">Understand the Difference</span>
-            <h2 class="text-white">Planner vs <span class="text-vnv">Coordinator</span></h2>
+            <h2 class="text-white">Planner vs <span class="text-vnv">Coordinator</span> — Which One Do You Need?</h2>
             <p>
-                Your current sites already separate these roles: the planner supports the full process and the coordinator focuses on the day-of execution. :contentReference[oaicite:3]{index=3}
+                Most planning disasters don't come from a bad vendor — they come from no one owning the timeline. Here's exactly where each role starts and stops, so you can choose with confidence.
             </p>
         </div>
 
@@ -689,31 +911,35 @@ h1, h2, h3, h4, h5, .luxury-font {
             <div class="compare-card">
                 <h3>Event Planner</h3>
                 <p>
-                    Best for clients who want guidance before the event, not just help when the day arrives.
+                    Right for you if you haven't finalized vendors, don't have a working budget yet, or want someone steering decisions from the start.
                 </p>
                 <ul>
-                    <li>Budget and timeline direction</li>
-                    <li>Vendor recommendations and decision support</li>
-                    <li>Guest and logistics guidance as needed</li>
-                    <li>Consulting hours spread across the project</li>
-                    <li>Includes 8 hours of event-day coordination in the published planner packages</li>
+                    <li>Budget planning and realistic timeline direction</li>
+                    <li>Vendor recommendations and hands-on decision support</li>
+                    <li>Guest list and logistics guidance as needed</li>
+                    <li>Consulting hours spread across your entire planning window</li>
+                    <li>Includes 8 hours of event-day coordination</li>
                 </ul>
             </div>
 
             <div class="compare-card">
                 <h3>Event Day Coordinator</h3>
                 <p>
-                    Best for clients who already made most decisions and need a dedicated person managing the flow on the event day.
+                    Right for you if your vendors are booked, your vision is set, and you need one person making sure it all comes together on the day.
                 </p>
                 <ul>
-                    <li>Vendor arrivals and setup oversight</li>
-                    <li>Timeline execution and issue management</li>
+                    <li>Vendor arrival and setup oversight</li>
+                    <li>Timeline execution and real-time issue management</li>
                     <li>Guest assistance and event flow support</li>
-                    <li>Focused on the event day rather than the full planning journey</li>
-                    <li>Available in 6, 8 or 10 hour published packages</li>
+                    <li>Full focus on the one day that can't be redone</li>
+                    <li>Available in 6, 8 or 10 hour packages</li>
                 </ul>
             </div>
         </div>
+
+        <p class="compare-helper">
+            Still not sure which one fits? <a href="tel:+13052045427">Call (305) 204-5427</a> — we'll ask a few questions and tell you honestly which one your event needs. No upsell.
+        </p>
     </div>
 </section>
 
@@ -723,7 +949,7 @@ h1, h2, h3, h4, h5, .luxury-font {
             <span class="vnv-badge">Planning Packages</span>
             <h2>Event Planner <span class="text-vnv">Packages</span></h2>
             <p>
-                These prices are kept from your current planner page: Basic $1,950, Gold $2,650 and Premium $3,250, each including 8 hours of event-day coordination and additional hours at $220. :contentReference[oaicite:4]{index=4}
+                Every package includes 8 hours of event-day coordination, so planning and execution stay connected instead of being handled by two disconnected companies. Additional consulting hours are available at $220/hr on any package.
             </p>
         </div>
 
@@ -731,6 +957,7 @@ h1, h2, h3, h4, h5, .luxury-font {
             <div class="package-card">
                 <h3>Basic</h3>
                 <div class="package-price">$1,950</div>
+                <div class="package-tagline">For clients who mostly know what they want and need direction, not a full hand-hold.</div>
                 <ul>
                     <li>8 Hours of Event Day Coordinator</li>
                     <li>Up to 12 Hours of Event Consulting</li>
@@ -742,9 +969,11 @@ h1, h2, h3, h4, h5, .luxury-font {
                 <div class="package-note">Additional Hour: $220.00</div>
             </div>
 
-            <div class="package-card">
+            <div class="package-card popular">
+                <span class="popular-badge">Most Requested</span>
                 <h3>Gold</h3>
                 <div class="package-price">$2,650</div>
+                <div class="package-tagline">Enough hours to cover a full wedding or event season without running out mid-way.</div>
                 <ul>
                     <li>8 Hours of Event Day Coordinator</li>
                     <li>Up to 18 Hours of Event Consulting</li>
@@ -759,6 +988,7 @@ h1, h2, h3, h4, h5, .luxury-font {
             <div class="package-card">
                 <h3>Premium</h3>
                 <div class="package-price">$3,250</div>
+                <div class="package-tagline">For complex events, multiple vendors, or clients who want a planner available at every stage.</div>
                 <ul>
                     <li>8 Hours of Event Day Coordinator</li>
                     <li>Up to 24 Hours of Event Consulting</li>
@@ -770,6 +1000,10 @@ h1, h2, h3, h4, h5, .luxury-font {
                 <div class="package-note">Additional Hour: $220.00</div>
             </div>
         </div>
+
+        <p class="capacity-note">
+            We only take on a limited number of active planning clients each month to make sure every event gets full attention — especially during peak season (November–May).
+        </p>
     </div>
 </section>
 
@@ -779,7 +1013,7 @@ h1, h2, h3, h4, h5, .luxury-font {
             <span class="vnv-badge">Coordination Packages</span>
             <h2 class="text-white">Day Coordinator <span class="text-vnv">Packages</span></h2>
             <p>
-                These prices are kept from your current coordinator page: Basic $780 for 6 hours, Gold $990 for 8 hours, and Premium $1,290 for 10 hours, with additional hours at $180. :contentReference[oaicite:5]{index=5}
+                Already have your vendors booked and your vision set? These packages give you a dedicated coordinator for the day itself, so you can actually be a guest at your own event.
             </p>
         </div>
 
@@ -787,6 +1021,7 @@ h1, h2, h3, h4, h5, .luxury-font {
             <div class="package-card">
                 <h3>Basic</h3>
                 <div class="package-price">$780</div>
+                <div class="package-tagline">For smaller or shorter events that still need a professional running the show.</div>
                 <ul>
                     <li>6 Hours of Event Day Coordinator</li>
                     <li>Vendor arrival coordination</li>
@@ -796,9 +1031,11 @@ h1, h2, h3, h4, h5, .luxury-font {
                 <div class="package-note">Additional Hour: $180.00</div>
             </div>
 
-            <div class="package-card">
+            <div class="package-card popular">
+                <span class="popular-badge">Most Requested</span>
                 <h3>Gold</h3>
                 <div class="package-price">$990</div>
+                <div class="package-tagline">Our most-booked coordination package — covers a full ceremony-to-reception day.</div>
                 <ul>
                     <li>8 Hours of Event Day Coordinator</li>
                     <li>Vendor arrival coordination</li>
@@ -811,6 +1048,7 @@ h1, h2, h3, h4, h5, .luxury-font {
             <div class="package-card">
                 <h3>Premium</h3>
                 <div class="package-price">$1,290</div>
+                <div class="package-tagline">For longer events, multiple venues, or timelines with more moving parts.</div>
                 <ul>
                     <li>10 Hours of Event Day Coordinator</li>
                     <li>Vendor arrival coordination</li>
@@ -833,16 +1071,74 @@ h1, h2, h3, h4, h5, .luxury-font {
 
             <div class="process-panel">
                 <span class="vnv-badge">How This Works</span>
-                <h3>A more realistic planning structure for South Florida events.</h3>
+                <h3>A Three-Step Process Built For How South Florida Events Actually Move</h3>
                 <p>
-                    Instead of promising everything, this page is built around what clients actually need most: the right amount of pre-event guidance, a strong planning lead, and a clear handoff into event-day execution.
+                    No 40-page workbook, no generic templates. Just the right amount of guidance at the right time, with a clean handoff into execution.
                 </p>
 
                 <ol>
-                    <li><strong>Start with the planning level that fits your event.</strong> Basic, Gold and Premium give different amounts of consulting time while keeping event-day coordination included in the planner packages.</li>
-                    <li><strong>Work through decisions with Mary as the planning lead.</strong> The goal is to reduce confusion, tighten direction and avoid last-minute stress.</li>
-                    <li><strong>Move into coordination for the event day.</strong> The coordinator may be Mary in some cases, but not always. The priority is assigning the right operational support to the event.</li>
+                    <li><strong>Book your planning level.</strong> Basic, Gold or Premium give you different amounts of consulting time, while event-day coordination stays included in every planner package.</li>
+                    <li><strong>Work directly with Mary on every major decision.</strong> Budget, vendors, timeline — the goal is fewer surprises and less last-minute stress.</li>
+                    <li><strong>Hand off to your event-day coordinator.</strong> They already know your plan, your vendors and your timeline, so nothing gets assembled last minute.</li>
                 </ol>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="section-vnv section-dark">
+    <div class="container">
+        <div class="text-center mb-5 pb-3 section-heading" style="margin-left:auto;margin-right:auto;">
+            <span class="vnv-badge">Why Couples & Companies Choose VNV</span>
+            <h2 class="text-white">What Other Planners Won't Tell You <span class="text-vnv">They're Missing</span></h2>
+            <p>
+                Planning is easy to promise and hard to deliver. Here's what actually backs it up.
+            </p>
+        </div>
+
+        <div class="feature-grid">
+            <div class="feature-card">
+                <div class="feature-icon"><i class="fa-solid fa-diagram-project"></i></div>
+                <h3>Real Project Management</h3>
+                <p>Every event runs on the same project-management discipline and technology that runs the rest of VNV — clear milestones, defined decisions and a real timeline, not a loose to-do list.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon"><i class="fa-solid fa-calendar-check"></i></div>
+                <h3>200+ Events A Year</h3>
+                <p>We produce close to 200 events annually across Broward, Miami-Dade and Palm Beach, so the surprises that trip up smaller planners rarely catch us off guard.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon"><i class="fa-solid fa-people-arrows"></i></div>
+                <h3>One Team, Start To Finish</h3>
+                <p>Planning, catering and coordination all run through the same company, so nothing gets lost in translation between separate vendors.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="section-vnv section-white">
+    <div class="container">
+        <div class="text-center section-heading" style="margin-left:auto;margin-right:auto;">
+            <span class="vnv-badge">Common Questions</span>
+            <h2>Before You Call, You Might Be <span class="text-vnv">Wondering...</span></h2>
+        </div>
+
+        <div class="faq-wrap">
+            <div class="faq-item">
+                <h4>How far in advance should we book a planner?</h4>
+                <p>Ideally 6–12 months out for weddings, especially during peak season (November–May). Corporate and social events can often work with less notice — call us and we'll tell you honestly if your timeline works.</p>
+            </div>
+            <div class="faq-item">
+                <h4>We already booked a few vendors — can we still get a planner?</h4>
+                <p>Yes. Most clients come to us with at least one vendor already booked. Your planner works with what you have and fills in the gaps from there.</p>
+            </div>
+            <div class="faq-item">
+                <h4>Can we upgrade our package later?</h4>
+                <p>Yes. Many clients start with Basic and add hours or move up to Gold or Premium as the event gets closer and more decisions come up.</p>
+            </div>
+            <div class="faq-item">
+                <h4>Is the event-day coordinator always Mary?</h4>
+                <p>Not always. Mary leads the planning process for every client, but your event-day coordinator is whoever on our team is the best fit for your specific event and date.</p>
             </div>
         </div>
     </div>
@@ -859,7 +1155,7 @@ h1, h2, h3, h4, h5, .luxury-font {
                 </h2>
 
                 <p class="fs-5 mb-4" style="color:rgba(255,255,255,0.65);">
-                    Explore real events, planning moments and behind-the-scenes setup details from VNV Events.
+                    Real events, real planning moments and behind-the-scenes setup details — not stock photos.
                 </p>
 
                 <a href="https://www.instagram.com/vnv_events/" target="_blank" class="vnv-btn btn-outline-vnv">
@@ -878,10 +1174,10 @@ h1, h2, h3, h4, h5, .luxury-font {
                 <div class="vnv-studio-card">
                     <span class="vnv-badge">Visit Our Studio</span>
 
-                    <h3 class="text-white mb-3">Let’s plan it in person.</h3>
+                    <h3 class="text-white mb-3">Let's plan it in person.</h3>
 
                     <p>
-                        Visit our VNV Studio in Sunrise, FL to review the event vision, planning structure, priorities and next decisions with our team.
+                        Visit our VNV Studio in Sunrise, FL to review the event vision, planning structure, priorities and next decisions with our team — face to face, not just over the phone.
                     </p>
 
                     <div class="vnv-studio-info">
@@ -910,10 +1206,11 @@ h1, h2, h3, h4, h5, .luxury-font {
             <div class="row align-items-center">
                 <div class="col-lg-7">
                     <span class="vnv-badge">Planning Support</span>
-                    <h2 class="display-3 fw-bold text-white mb-4">Choose the right level of planning before the event day arrives.</h2>
-                    <p class="fs-5 mb-5">
-                        If you want clearer decisions, better structure and stronger execution support, VNV can help you combine planning guidance with event-day coordination in a way that feels more realistic and more organized.
+                    <h2 class="display-3 fw-bold text-white mb-4">Choose The Right Level Of Planning Before The Event Day Arrives.</h2>
+                    <p class="fs-5 mb-3">
+                        A free 15-minute call is enough for us to tell you honestly which package fits your event — no pressure, no scripted pitch.
                     </p>
+                    <p class="final-cta-note">Planning slots fill quickly during peak season (Nov–May)</p>
                 </div>
 
                 <div class="col-lg-5 text-center text-lg-end">
@@ -943,7 +1240,7 @@ h1, h2, h3, h4, h5, .luxury-font {
 if (typeof gsap !== 'undefined' && typeof ScrollTrigger !== 'undefined') {
     gsap.registerPlugin(ScrollTrigger);
 
-    gsap.from(".info-image-card, .info-panel, .compare-card, .package-card, .process-image-stack, .process-panel, .vnv-studio-card, .final-cta-card", {
+    gsap.from(".info-image-card, .info-panel, .compare-card, .package-card, .process-image-stack, .process-panel, .feature-card, .faq-item, .vnv-studio-card, .final-cta-card", {
         scrollTrigger: {
             trigger: ".info-image-card",
             start: "top 82%"
@@ -951,6 +1248,17 @@ if (typeof gsap !== 'undefined' && typeof ScrollTrigger !== 'undefined') {
         y: 35,
         opacity: 0,
         duration: 1,
+        ease: "power3.out"
+    });
+
+    gsap.from(".team-banner", {
+        scrollTrigger: {
+            trigger: ".team-banner",
+            start: "top 88%"
+        },
+        scale: 0.97,
+        opacity: 0,
+        duration: 0.8,
         ease: "power3.out"
     });
 
