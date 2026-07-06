@@ -133,6 +133,61 @@ class OrdersTeamTasksRepository extends BaseRepository
         return $contactsByOrder;
     }
 
+    public function getAssigneesForClientOrders(int $clientId, array $ownerIds): array
+    {
+        $ownerIds = array_values(array_unique(array_filter(array_map('intval', $ownerIds))));
+        if ($clientId <= 0 || empty($ownerIds)) {
+            return [];
+        }
+
+        $placeholders = [];
+        foreach ($ownerIds as $index => $ownerId) {
+            $placeholders[] = ':owner' . $index;
+        }
+        $placeholdersSql = implode(',', $placeholders);
+
+        $this->db->query("
+            SELECT DISTINCT u.id, u.name, u.lastname, u.email, u.level, u.id_owner, u.allow_chat_with_clients
+            FROM {$this->table} t
+            INNER JOIN orders o ON o.id = t.id_order
+            INNER JOIN users u ON u.id = t.id_user
+            WHERE o.id_client = :client
+              AND t.id_owner IN ({$placeholdersSql})
+              AND u.level = 4
+              AND u.is_active = 1
+            ORDER BY u.name ASC, u.lastname ASC, u.email ASC
+        ");
+        $this->db->bind(':client', $clientId);
+        foreach ($ownerIds as $index => $ownerId) {
+            $this->db->bind(':owner' . $index, $ownerId);
+        }
+
+        return $this->db->fetchAll();
+    }
+
+    public function getClientsForAssignee(int $ownerId, int $userId): array
+    {
+        if ($ownerId <= 0 || $userId <= 0) {
+            return [];
+        }
+
+        $this->db->query("
+            SELECT DISTINCT c.id, c.name, c.lastname, c.email, c.phone, c.phone_code, c.level, c.is_active
+            FROM {$this->table} t
+            INNER JOIN orders o ON o.id = t.id_order
+            INNER JOIN users c ON c.id = o.id_client
+            WHERE t.id_owner = :owner
+              AND t.id_user = :user
+              AND c.level = 5
+              AND c.is_active = 1
+            ORDER BY c.name ASC, c.lastname ASC, c.email ASC
+        ");
+        $this->db->bind(':owner', $ownerId);
+        $this->db->bind(':user', $userId);
+
+        return $this->db->fetchAll();
+    }
+
     public function assigneeCanChatWithOrderClient(int $ownerId, int $userId, int $clientId): bool
     {
         if ($ownerId <= 0 || $userId <= 0 || $clientId <= 0) {

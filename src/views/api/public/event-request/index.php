@@ -86,6 +86,16 @@ function eventRequestRecaptchaMinScore(): float
 
 function eventRequestVerifyRecaptcha(string $token, string $remoteIp = ''): array
 {
+    $host = strtolower((string)($_SERVER['HTTP_HOST'] ?? ''));
+    if (str_contains($host, 'localhost') || str_contains($host, '127.0.0.1')) {
+        return [
+            'success' => true,
+            'message' => 'local bypass',
+            'score' => null,
+            'response' => null,
+        ];
+    }
+
     $secret = eventRequestRecaptchaSecret();
     $minScore = eventRequestRecaptchaMinScore();
 

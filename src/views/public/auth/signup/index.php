@@ -109,7 +109,8 @@ $router->post(function () {
         'phone_validation' => 1,
         'membership_due_date' => $dueDate,
         'level' => $level,
-        'id_owner' => $id_owner
+        'id_owner' => $id_owner,
+        'password_updated' => 1
     ];
 
     $userRepository->add($userData);
@@ -184,7 +185,8 @@ function handleGoogleCallback($client, $code, $level)
             'level' => $level,
             'google_id' => $data->id,
             'google_token' => json_encode($token),
-            'id_owner' => $id_owner
+            'id_owner' => $id_owner,
+            'password_updated' => 1
         ];
 
         $userRepository->add($userData);

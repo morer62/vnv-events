@@ -143,20 +143,7 @@
             </div>
             {% include 'public/commerce/order-access/_saved_payment_methods.twig' %}
 
-            {% if active_provider_type == 'stripe' %}
-            <div class="mb-3">
-                <label for="billing_zip" class="form-label">{{ trans('zip_code') }}</label>
-                <input type="text"
-                       name="billing_zip"
-                       id="billing_zip"
-                       class="form-control form-control-lg"
-                       placeholder="{{ trans('zip_code') }}"
-                       maxlength="12"
-                       required>
-            </div>
-            {% else %}
-            <input type="hidden" name="billing_zip" value="">
-            {% endif %}
+            <input type="hidden" name="billing_zip" id="billing_zip" value="">
             
             <div class="mb-3" id="card-section" {% if active_provider_type == 'paypal' %}style="display:none;"{% endif %}>
                 <label for="square-card-container" class="form-label">{{ trans('planner_hub.card_information') }}</label>
@@ -200,7 +187,7 @@
         const submitButton = document.getElementById('submit-button');
         const errorDiv = document.getElementById('payment-card-errors');
         const tokenInput = document.getElementById('payment-customer-token');
-        const zipInput = {% if active_provider_type == 'stripe' %}document.getElementById('billing_zip'){% else %}null{% endif %};
+        const zipInput = document.getElementById('billing_zip');
         const originalButtonText = submitButton ? submitButton.textContent : '';
         const token = '{{ token|e('js') }}';
         const savedMethodSelect = document.getElementById('saved-payment-method-id');
@@ -259,13 +246,9 @@
             form.addEventListener('submit', async function(event) {
                 event.preventDefault();
                 if (usingSavedMethod()) { setProcessingState(true); errorDiv.textContent = ''; tokenInput.value = ''; form.submit(); return; }
-                if (!zipInput || !zipInput.value.trim()) {
-                    if (errorDiv) errorDiv.textContent = 'ZIP code is required for card payments.';
-                    return;
-                }
                 setProcessingState(true);
                 errorDiv.textContent = '';
-                const result = await stripe.createToken(card, { address_zip: zipInput.value.trim() });
+                const result = await stripe.createToken(card);
                 if (result.error) {
                     errorDiv.textContent = result.error.message;
                     setProcessingState(false);

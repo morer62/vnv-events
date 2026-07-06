@@ -20,12 +20,7 @@
             <label class="form-label fw-bold">{{ trans('planner_hub.your_email') }}</label>
             <input type="email" name="customer_email" id="payment-customer-email" class="form-control form-control-lg" required>
         </div>
-        {% if active_provider_type == 'stripe' %}
-        <div class="mb-3">
-            <label class="form-label fw-bold">{{ trans('zip_code') }}</label>
-            <input type="text" name="billing_zip" id="payment-billing-zip" class="form-control form-control-lg" required>
-        </div>
-        {% endif %}
+        <input type="hidden" name="billing_zip" id="payment-billing-zip" value="">
 
         {% include 'public/commerce/order-access/_saved_payment_methods.twig' %}
 
@@ -70,7 +65,7 @@
         const errorDiv = document.getElementById('payment-card-errors');
         const payButton = document.getElementById('pay-button');
         const loading = document.getElementById('loading');
-        const zipInput = {% if active_provider_type == 'stripe' %}document.getElementById('payment-billing-zip'){% else %}null{% endif %};
+        const zipInput = document.getElementById('payment-billing-zip');
         const savedMethodSelect = document.getElementById('saved-payment-method-id');
         const newMethodOptions = document.getElementById('new-payment-method-options');
         const token = '{{ token|e('js') }}';
@@ -121,14 +116,9 @@
             form.addEventListener('submit', async function(e) {
                 e.preventDefault();
                 if (usingSavedMethod()) { setProcessingState(true); errorDiv.textContent = ''; tokenInput.value = ''; form.submit(); return; }
-                if (!zipInput || !zipInput.value.trim()) {
-                    errorDiv.textContent = '{{ trans('zip_code')|e('js') }} is required.';
-                    setProcessingState(false);
-                    return;
-                }
                 setProcessingState(true);
                 errorDiv.textContent = '';
-                var res = await stripe.createToken(cardElement, { address_zip: zipInput.value.trim() });
+                var res = await stripe.createToken(cardElement);
                 if (res.error) { errorDiv.textContent = res.error.message || '{{ trans('planner_hub.payment_failed')|e('js') }}'; setProcessingState(false); return; }
                 tokenInput.value = res.token.id;
                 form.submit();

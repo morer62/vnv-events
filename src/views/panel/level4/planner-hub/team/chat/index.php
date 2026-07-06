@@ -2,6 +2,7 @@
 
 use App\Repositories\ChatThreadRepository;
 use App\Repositories\ChatMessageRepository;
+use App\Repositories\OrdersTeamTasksRepository;
 use App\Repositories\UserRepository;
 use App\Repositories\ClientsUsersRepository;
 use App\Repositories\InstitutionProfileRepository;
@@ -18,6 +19,7 @@ $messageRepo = new ChatMessageRepository();
 $userRepo = new UserRepository();
 $clientsRepo = new ClientsUsersRepository();
 $institutionProfileRepo = new InstitutionProfileRepository();
+$ordersTaskRepo = new OrdersTeamTasksRepository();
 
 function chat_panel_owner_id(object $user): int
 {
@@ -34,7 +36,7 @@ function chat_panel_partner_id(object $thread, int $userId): int
     return (int)$thread->id_user_1 === $userId ? (int)$thread->id_user_2 : (int)$thread->id_user_1;
 }
 
-function chat_panel_can_message_target(object $user, object $target, ClientsUsersRepository $clientsRepo): bool
+function chat_panel_can_message_target(object $user, object $target, ClientsUsersRepository $clientsRepo, OrdersTeamTasksRepository $ordersTaskRepo): bool
 {
     $level = (int)$user->getLevel();
     $targetId = (int)($target->id ?? 0);
@@ -58,15 +60,20 @@ function chat_panel_can_message_target(object $user, object $target, ClientsUser
 
     if ($level === 4) {
         $canChatWithClients = (int)($user->getAllowChatWithClients() ?? 0) === 1;
+        $clientBelongsToOwner = $targetLevel === 5
+            && ($clientsRepo->exists($targetId, $ownerId) || $targetOwnerId === $ownerId);
+        $isAssignedClient = $targetLevel === 5
+            && $clientBelongsToOwner
+            && $ordersTaskRepo->assigneeCanChatWithOrderClient($ownerId, (int)$user->getId(), $targetId);
 
         return ($targetLevel !== 5 && ($targetId === $ownerId || $targetOwnerId === $ownerId))
-            || ($targetLevel === 5 && $canChatWithClients && $clientsRepo->exists($targetId, $ownerId));
+            || ($targetLevel === 5 && $clientBelongsToOwner && ($canChatWithClients || $isAssignedClient));
     }
 
     return false;
 }
 
-function chat_panel_visible_users(object $user, UserRepository $userRepo, ClientsUsersRepository $clientsRepo): array
+function chat_panel_visible_users(object $user, UserRepository $userRepo, ClientsUsersRepository $clientsRepo, OrdersTeamTasksRepository $ordersTaskRepo): array
 {
     $level = (int)$user->getLevel();
     $ownerId = chat_panel_owner_id($user);
@@ -91,7 +98,8 @@ function chat_panel_visible_users(object $user, UserRepository $userRepo, Client
             "level IN" => [1, 2, 3, 4]
         ]);
         $clients = (int)($user->getAllowChatWithClients() ?? 0) === 1 ? $clientsRepo->getClientsByOwner($ownerId) : [];
-        $users = array_merge($team, $clients);
+        $assignedClients = $ordersTaskRepo->getClientsForAssignee($ownerId, (int)$user->getId());
+        $users = array_merge($team, $clients, $assignedClients);
     }
 
     return array_values(array_reduce($users, function (array $carry, object $candidate): array {
@@ -103,14 +111,14 @@ function chat_panel_visible_users(object $user, UserRepository $userRepo, Client
     }, []));
 }
 
-$router->get(function () use ($threadRepo, $messageRepo, $userRepo, $clientsRepo, $institutionProfileRepo): string {
+$router->get(function () use ($threadRepo, $messageRepo, $userRepo, $clientsRepo, $institutionProfileRepo, $ordersTaskRepo): string {
     $user = LoginService::getSession();
     $threadId = (int)($_GET['thread'] ?? 0);
     $toUserId = (int)($_GET['to'] ?? 0);
 
     if ($toUserId > 0 && $threadId <= 0) {
-        $target = $userRepo->getByIdEvenIfAssociated($toUserId);
-        if (!$target || !chat_panel_can_message_target($user, $target, $clientsRepo)) {
+        $target = $userRepo->getOneWithoutOwnership(["id" => $toUserId]);
+        if (!$target || !chat_panel_can_message_target($user, $target, $clientsRepo, $ordersTaskRepo)) {
             MessageUtil::setMessage(TranslationService::trans('messages_hub.not_allowed'));
             header("Location: index.php");
             exit;
@@ -145,7 +153,7 @@ $router->get(function () use ($threadRepo, $messageRepo, $userRepo, $clientsRepo
     $isVendor = $level === 4;
     $isClient = $level === 5;
     $canChatWithClients = (int)($user->getAllowChatWithClients() ?? 0);
-    $users = chat_panel_visible_users($user, $userRepo, $clientsRepo);
+    $users = chat_panel_visible_users($user, $userRepo, $clientsRepo, $ordersTaskRepo);
     $contactCompanies = [];
     $currentOwnerId = chat_panel_owner_id($user);
     foreach ($users as $candidate) {
@@ -178,18 +186,35 @@ $router->get(function () use ($threadRepo, $messageRepo, $userRepo, $clientsRepo
     ]);
 });
 
-$router->post(function () use ($threadRepo, $messageRepo, $userRepo, $clientsRepo): void {
+$router->post(function () use ($threadRepo, $messageRepo, $userRepo, $clientsRepo, $ordersTaskRepo): void {
     $user = LoginService::getSession();
     $to = (int)($_POST["to"] ?? 0);
+    $threadId = (int)($_GET["thread"] ?? 0);
     $message = trim($_POST["message"] ?? "");
+
+    if ($to <= 0 && $threadId > 0) {
+        $existingThread = $threadRepo->getOne(["id" => $threadId]);
+        if ($existingThread && chat_panel_is_participant($existingThread, (int)$user->getId())) {
+            $to = chat_panel_partner_id($existingThread, (int)$user->getId());
+        }
+    }
+
+    if ($threadId > 0 && $message !== "") {
+        $existingThread = $threadRepo->getOne(["id" => $threadId]);
+        if ($existingThread && chat_panel_is_participant($existingThread, (int)$user->getId())) {
+            $messageRepo->insertMessage($threadId, $user->getId(), $message);
+            header("Location: ?thread=" . $threadId);
+            exit;
+        }
+    }
 
     if ($to <= 0 || $message === "") {
         header("Location: index.php");
         exit;
     }
 
-    $target = $userRepo->getByIdEvenIfAssociated($to);
-    if (!$target || !chat_panel_can_message_target($user, $target, $clientsRepo)) {
+    $target = $userRepo->getOneWithoutOwnership(["id" => $to]);
+    if (!$target || !chat_panel_can_message_target($user, $target, $clientsRepo, $ordersTaskRepo)) {
         MessageUtil::setMessage(TranslationService::trans('messages_hub.not_allowed'));
         header("Location: index.php");
         exit;

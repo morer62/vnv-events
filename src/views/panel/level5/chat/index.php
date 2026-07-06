@@ -32,6 +32,10 @@ $router->get(function () use ($threadRepo, $messageRepo, $userRepo, $clientsRepo
     $clientContext = $workspaceContextService->getClientContext($user);
     $selectedOwnerId = (int)($clientContext["selectedOwnerId"] ?? 0);
     $associatedOwnerIds = $clientsRepo->getOwnerIdsForClient($currentUserId);
+    $directOwnerId = (int)($user->getOwner() ?? 0);
+    if ($directOwnerId > 0 && !in_array($directOwnerId, $associatedOwnerIds, true)) {
+        $associatedOwnerIds[] = $directOwnerId;
+    }
     $contactCompanies = [];
     foreach ($clientsRepo->getAssociatedCompaniesForClient($currentUserId) as $company) {
         $contactCompanies[(int)$company->owner_id] = $company->company_name ?? "";
@@ -119,6 +123,12 @@ $router->get(function () use ($threadRepo, $messageRepo, $userRepo, $clientsRepo
             }
         }
 
+        $assignedOwnerIds = $selectedOwnerId > 0 ? [$selectedOwnerId] : $associatedOwnerIds;
+        foreach ($ordersTaskRepo->getAssigneesForClientOrders($currentUserId, $assignedOwnerIds) as $assignedTeamMember) {
+            $assignedTeamMember->company_name = $contactCompanies[(int)($assignedTeamMember->id_owner ?? 0)] ?? null;
+            $users[] = $assignedTeamMember;
+        }
+
         foreach ($threads as $t) {
             $partnerId = $t->id_user_1 == $currentUserId ? $t->id_user_2 : $t->id_user_1;
             $partner = $userRepo->getOneWithoutOwnership(["id" => $partnerId]);
@@ -157,7 +167,30 @@ $router->post(function () use ($threadRepo, $messageRepo, $userRepo, $clientsRep
     $user = LoginService::getSession();
     $currentUserId = (int)$user->getId();
     $to = $_POST["to"] ?? null;
+    $threadId = (int)($_GET["thread"] ?? 0);
     $message = trim($_POST["message"] ?? "");
+
+    if ((!$to || (int)$to <= 0) && $threadId > 0) {
+        $existingThread = $threadRepo->getOne(["id" => $threadId]);
+        if (
+            $existingThread
+            && ((int)$existingThread->id_user_1 === $currentUserId || (int)$existingThread->id_user_2 === $currentUserId)
+        ) {
+            $to = (int)$existingThread->id_user_1 === $currentUserId ? (int)$existingThread->id_user_2 : (int)$existingThread->id_user_1;
+        }
+    }
+
+    if ($threadId > 0 && $message !== "") {
+        $existingThread = $threadRepo->getOne(["id" => $threadId]);
+        if (
+            $existingThread
+            && ((int)$existingThread->id_user_1 === $currentUserId || (int)$existingThread->id_user_2 === $currentUserId)
+        ) {
+            $messageRepo->insertMessage($threadId, $currentUserId, $message);
+            header("Location: ?thread=" . $threadId);
+            exit;
+        }
+    }
 
     if (!$to || $message === "") {
         header("Location: index.php");
@@ -178,6 +211,10 @@ $router->post(function () use ($threadRepo, $messageRepo, $userRepo, $clientsRep
     $clientContext = (new UserWorkspaceContextService())->getClientContext($user);
     $selectedOwnerId = (int)($clientContext["selectedOwnerId"] ?? 0);
     $associatedOwnerIds = $clientsRepo->getOwnerIdsForClient($currentUserId);
+    $directOwnerId = (int)($user->getOwner() ?? 0);
+    if ($directOwnerId > 0 && !in_array($directOwnerId, $associatedOwnerIds, true)) {
+        $associatedOwnerIds[] = $directOwnerId;
+    }
     $contactCompanies = [];
     foreach ($clientsRepo->getAssociatedCompaniesForClient($currentUserId) as $company) {
         $contactCompanies[(int)$company->owner_id] = $company->company_name ?? "";
@@ -224,7 +261,7 @@ function isClientChatTargetAllowed(
     }
 
     $target = $userRepo->getOneWithoutOwnership(["id" => $targetId]);
-    if (!$target || (int)($target->level ?? 0) !== 4 || (int)($target->allow_chat_with_clients ?? 0) !== 1) {
+    if (!$target || (int)($target->level ?? 0) !== 4) {
         return false;
     }
 
@@ -237,12 +274,17 @@ function isClientChatTargetAllowed(
         return false;
     }
 
-    if (!$clientsRepo->exists($clientId, $ownerId)) {
+    $client = $userRepo->getOneWithoutOwnership(["id" => $clientId]);
+    $clientBelongsToOwner = $client && (int)($client->id_owner ?? 0) === $ownerId;
+
+    if (!$clientBelongsToOwner && !$clientsRepo->exists($clientId, $ownerId)) {
         return false;
     }
 
-    return $storeTaskRepo->assigneeCanChatWithClient($ownerId, $targetId, $clientId)
+    $hasAssignedWork = $storeTaskRepo->assigneeCanChatWithClient($ownerId, $targetId, $clientId)
         || $ordersTaskRepo->assigneeCanChatWithOrderClient($ownerId, $targetId, $clientId);
+
+    return $hasAssignedWork || (int)($target->allow_chat_with_clients ?? 0) === 1;
 }
 
 function clientHasExistingThread(ChatThreadRepository $threadRepo, int $clientId, int $targetId): bool
