@@ -78,7 +78,7 @@
     .cms-table{
         width:100%;
         border-collapse:collapse;
-        min-width:1080px;
+        min-width:900px;
     }
 
     .cms-table th{
@@ -163,7 +163,7 @@
     }
 
     .cms-status-form{
-        margin-top:8px;
+        margin:0;
     }
 
     .cms-status-select{
@@ -183,8 +183,71 @@
 
     .cms-actions{
         display:flex;
+        gap:8px;
+        flex-wrap:nowrap;
+        align-items:center;
+    }
+
+    .cms-actions form{
+        margin:0;
+    }
+
+    .cms-row-check{
+        width:36px;
+        text-align:center;
+    }
+
+    .cms-title-cell{
+        min-width:360px;
+        width:48%;
+    }
+
+    .cms-title-line{
+        align-items:center;
+        display:flex;
         gap:10px;
         flex-wrap:wrap;
+    }
+
+    .cms-thumbnail{
+        width:82px;
+        height:58px;
+        border-radius:10px;
+        object-fit:cover;
+        background:#f3f4f6;
+        border:1px solid #e5e7eb;
+        display:block;
+    }
+
+    .cms-thumb-empty{
+        align-items:center;
+        color:#9ca3af;
+        display:flex;
+        font-size:.72rem;
+        justify-content:center;
+        text-align:center;
+    }
+
+    .cms-date-cell{
+        white-space:nowrap;
+    }
+
+    .cms-bulk-actions{
+        align-items:center;
+        display:flex;
+        gap:10px;
+        margin-bottom:16px;
+        flex-wrap:wrap;
+    }
+
+    .cms-btn-danger{
+        background:#fee2e2;
+        color:#b91c1c;
+    }
+
+    .cms-btn-danger:hover{
+        background:#fecaca;
+        color:#991b1b;
     }
 
     .cms-empty{
@@ -277,6 +340,18 @@
         .cms-filters{
             grid-template-columns:1fr;
         }
+
+        .cms-table{
+            min-width:760px;
+        }
+
+        .cms-title-cell{
+            min-width:260px;
+        }
+
+        .cms-btn{
+            padding:9px 12px;
+        }
     }
 </style>
 
@@ -290,7 +365,7 @@
         </div>
 
         <div style="display:flex; gap:10px; flex-wrap:wrap;">
-            <a href="{{ path('panel/cms') }}" class="cms-btn cms-btn-light">← Back to CMS</a>
+            <a href="{{ path('panel/cms') }}" class="cms-btn cms-btn-light">Back to CMS</a>
             <a href="{{ path('panel/cms/pages/create') }}" class="cms-btn cms-btn-primary">+ New Content</a>
         </div>
     </div>
@@ -351,24 +426,46 @@
                     <a href="{{ path('panel/cms/pages/create') }}" class="cms-btn cms-btn-light">Keep generating</a>
                 </form>
             {% endif %}
+            <form method="POST" id="cms-bulk-form">
+                <input type="hidden" name="redirect" value="panel/cms/pages?content_type={{ filters.content_type }}{% if filters.category_id %}&category_id={{ filters.category_id }}{% endif %}{% if filters.status %}&status={{ filters.status }}{% endif %}{% if filters.q %}&q={{ filters.q|url_encode }}{% endif %}">
+            </form>
+            <div class="cms-bulk-actions">
+                <button type="submit" form="cms-bulk-form" name="action" value="bulk_draft" class="cms-btn cms-btn-light">Move selected to Draft</button>
+                <button type="submit" form="cms-bulk-form" name="action" value="bulk_delete" class="cms-btn cms-btn-danger" onclick="return confirm('Delete selected content? This cannot be undone.');">Delete selected</button>
+                <span class="cms-muted">Select rows to run batch actions.</span>
+            </div>
             <div class="cms-table-wrap">
                 <table class="cms-table">
                     <thead>
                         <tr>
+                            <th class="cms-row-check"><input type="checkbox" data-select-all></th>
+                            <th>Title</th>
+                            <th>Thumbnail</th>
                             <th>Published</th>
-                            <th>Content</th>
-                            <th>Template</th>
-                            <th>SEO Target</th>
-                            <th>Status</th>
-                            <th>Public URL</th>
-                            <th>Updated</th>
-                            <th style="width:220px;">Actions</th>
+                            <th style="width:360px;">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for item in pages %}
                             <tr>
+                                <td class="cms-row-check">
+                                    <input type="checkbox" name="ids[]" value="{{ item.id }}" form="cms-bulk-form" data-row-check>
+                                </td>
+                                <td class="cms-title-cell">
+                                    <div class="cms-title-line">
+                                        <strong>{{ item.title }}</strong>
+                                        {% set statusClass = item.status|lower %}
+                                        <span class="cms-badge {{ statusClass }}">{{ item.status }}</span>
+                                    </div>
+                                </td>
                                 <td>
+                                    {% if item.featured_image_url %}
+                                        <img class="cms-thumbnail" src="{{ item.featured_image_url }}" alt="{{ item.title }}">
+                                    {% else %}
+                                        <div class="cms-thumbnail cms-thumb-empty">No image</div>
+                                    {% endif %}
+                                </td>
+                                <td class="cms-date-cell">
                                     {% if item.published_at %}
                                         {{ item.published_at }}
                                     {% else %}
@@ -376,59 +473,27 @@
                                     {% endif %}
                                 </td>
                                 <td>
-                                    <strong>{{ item.title }}</strong>
-                                </td>
-                                <td>
-                                    {% if item.template_name %}
-                                        <strong>{{ item.template_name }}</strong><br>
-                                        <span class="cms-muted">{{ item.template_key }}</span>
-                                    {% else %}
-                                        <span class="cms-muted">—</span>
-                                    {% endif %}
-                                </td>
-                                <td>
-                                    <span class="cms-slug">{{ item.slug }}</span>
-                                    {% if item.meta_title %}
-                                        <div class="cms-muted" style="margin-top:6px;">
-                                            {{ item.meta_title|slice(0, 80) }}{% if item.meta_title|length > 80 %}...{% endif %}
-                                        </div>
-                                    {% endif %}
-                                </td>
-                                <td>
-                                    {% set statusClass = item.status|lower %}
-                                    <span class="cms-badge {{ statusClass }}">{{ item.status }}</span>
-                                    <form method="POST" class="cms-status-form">
-                                        <input type="hidden" name="action" value="update_status">
-                                        <input type="hidden" name="id" value="{{ item.id }}">
-                                        <input type="hidden" name="redirect" value="panel/cms/pages?content_type={{ filters.content_type }}{% if filters.category_id %}&category_id={{ filters.category_id }}{% endif %}{% if filters.status %}&status={{ filters.status }}{% endif %}{% if filters.q %}&q={{ filters.q|url_encode }}{% endif %}">
-                                        <select name="status" class="cms-status-select" onchange="this.form.submit()">
-                                            <option value="DRAFT" {% if item.status == 'DRAFT' %}selected{% endif %}>Draft</option>
-                                            <option value="PUBLISHED" {% if item.status == 'PUBLISHED' %}selected{% endif %}>Published</option>
-                                        </select>
-                                    </form>
-                                </td>
-                                <td>
-                                    {% if item.main_route and item.main_route.route %}
-                                        <span class="cms-path">{{ item.main_route.route }}</span>
-                                    {% else %}
-                                        <span class="cms-muted">—</span>
-                                    {% endif %}
-                                </td>
-                                <td>
-                                    {% if item.updated_at %}
-                                        {{ item.updated_at }}
-                                    {% else %}
-                                        <span class="cms-muted">—</span>
-                                    {% endif %}
-                                </td>
-                                <td>
                                     <div class="cms-actions">
+                                        <form method="POST" class="cms-status-form">
+                                            <input type="hidden" name="action" value="update_status">
+                                            <input type="hidden" name="id" value="{{ item.id }}">
+                                            <input type="hidden" name="redirect" value="panel/cms/pages?content_type={{ filters.content_type }}{% if filters.category_id %}&category_id={{ filters.category_id }}{% endif %}{% if filters.status %}&status={{ filters.status }}{% endif %}{% if filters.q %}&q={{ filters.q|url_encode }}{% endif %}">
+                                            <select name="status" class="cms-status-select" onchange="this.form.submit()">
+                                                {% if item.status not in ['DRAFT', 'PUBLISHED'] %}
+                                                    <option value="{{ item.status }}" selected disabled>{{ item.status }}</option>
+                                                {% endif %}
+                                                <option value="DRAFT" {% if item.status == 'DRAFT' %}selected{% endif %}>Draft</option>
+                                                <option value="PUBLISHED" {% if item.status == 'PUBLISHED' %}selected{% endif %}>Published</option>
+                                            </select>
+                                        </form>
                                         <a href="{{ path('panel/cms/pages/edit') }}?id={{ item.id }}" class="cms-btn cms-btn-light">Edit</a>
-                                        <a href="{{ path('panel/cms/pages/preview') }}?id={{ item.id }}" class="cms-btn cms-btn-light">Preview</a>
-
-                                        {% if item.main_route and item.main_route.route %}
-                                            <a href="{{ path(item.main_route.route|trim('/')) }}" target="_blank" class="cms-btn cms-btn-light">Open</a>
-                                        {% endif %}
+                                        <a href="{{ path('panel/cms/pages/preview') }}?id={{ item.id }}" class="cms-btn cms-btn-light">View</a>
+                                        <form method="POST" onsubmit="return confirm('Delete this content? This cannot be undone.');">
+                                            <input type="hidden" name="action" value="delete_one">
+                                            <input type="hidden" name="id" value="{{ item.id }}">
+                                            <input type="hidden" name="redirect" value="panel/cms/pages?content_type={{ filters.content_type }}{% if filters.category_id %}&category_id={{ filters.category_id }}{% endif %}{% if filters.status %}&status={{ filters.status }}{% endif %}{% if filters.q %}&q={{ filters.q|url_encode }}{% endif %}">
+                                            <button type="submit" class="cms-btn cms-btn-danger">Delete</button>
+                                        </form>
                                     </div>
                                 </td>
                             </tr>
@@ -447,4 +512,20 @@
         {% endif %}
     </div>
 </div>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    var selectAll = document.querySelector('[data-select-all]');
+    var checks = document.querySelectorAll('[data-row-check]');
+
+    if (!selectAll || checks.length === 0) {
+        return;
+    }
+
+    selectAll.addEventListener('change', function () {
+        checks.forEach(function (check) {
+            check.checked = selectAll.checked;
+        });
+    });
+});
+</script>
 {% endblock %}

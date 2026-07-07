@@ -234,6 +234,52 @@ function cmsBuildAiArticleHtml(array $article, int $imageCount, array $generated
     return '<article class="cms-ai-article"><header><h1>' . $title . '</h1></header>' . $body . $mediaBlock . '</article>';
 }
 
+function cmsAiArticleImagePrompts(array $article, array $idea, string $title, int $imageCount): array
+{
+    if ($imageCount <= 0) {
+        return [];
+    }
+
+    $angle = trim((string)($idea['angle'] ?? $idea['excerpt'] ?? $article['excerpt'] ?? ''));
+    $thumbnailPrompt = 'Unique thumbnail hero photograph for the article titled "' . $title . '". '
+        . ($angle !== '' ? 'Editorial angle: ' . $angle . '. ' : '')
+        . 'Create a distinct VNV Events corporate/event service scene that is clearly different from other article thumbnails in the same batch. '
+        . 'Hyperrealistic professional event photography, no text overlay.';
+
+    $prompts = [$thumbnailPrompt];
+    $seen = [strtolower(preg_replace('/\s+/', ' ', $thumbnailPrompt)) => true];
+    $rawPrompts = $article['image_prompts'] ?? [];
+    if (!is_array($rawPrompts)) {
+        $rawPrompts = [];
+    }
+
+    foreach ($rawPrompts as $index => $prompt) {
+        $prompt = trim((string)$prompt);
+        if ($prompt === '') {
+            continue;
+        }
+
+        $prompt = 'Supporting image ' . ($index + 1) . ' for the article titled "' . $title . '": ' . $prompt
+            . ' Make the scene specific to this article and visually different from the thumbnail.';
+        $key = strtolower(preg_replace('/\s+/', ' ', $prompt));
+        if (isset($seen[$key])) {
+            continue;
+        }
+
+        $seen[$key] = true;
+        $prompts[] = $prompt;
+        if (count($prompts) >= $imageCount) {
+            break;
+        }
+    }
+
+    while (count($prompts) < $imageCount) {
+        $prompts[] = 'Supporting event photograph for the article titled "' . $title . '", unique composition number ' . (count($prompts) + 1) . ', realistic VNV Events service context, hyperrealistic professional photography, no text overlay.';
+    }
+
+    return array_slice($prompts, 0, $imageCount);
+}
+
 function cmsExtendAiRuntime(): void
 {
     @ini_set('max_execution_time', '900');
@@ -534,8 +580,9 @@ $router->post(function () {
                     'image_prompts' => $article['image_prompts'] ?? [],
                 ];
                 $generatedImages = [];
-                $imagePrompts = $article['image_prompts'] ?? [];
-                if ($imageCount > 0 && is_array($imagePrompts) && $imagePrompts !== []) {
+                $imagePrompts = cmsAiArticleImagePrompts($article, $idea, $title, $imageCount);
+                $contentJson['image_prompts_normalized'] = $imagePrompts;
+                if ($imagePrompts !== []) {
                     try {
                         $imageService = new CmsImageGenerationService();
                         $generatedImages = $imageService->generateMany($imagePrompts, $imageCount, 'cms/generated-images');

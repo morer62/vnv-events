@@ -15,24 +15,27 @@ $router = new Router();
 
 $router->post(function () {
     $action = trim((string)($_POST['action'] ?? ''));
-    if (!in_array($action, ['publish_generated', 'update_status'], true)) {
+    if (!in_array($action, ['publish_generated', 'update_status', 'delete_one', 'bulk_delete', 'bulk_draft'], true)) {
         LocationUtils::redirectInternal('panel/cms/pages');
     }
 
     $db = new Connection();
     $contentsRepository = new CmsContentsRepository();
     $contentsRepository->db = $db;
+    $routesRepository = new CmsRoutesRepository();
+    $routesRepository->db = $db;
     $sessionUser = LoginService::getSession();
     $authorUserId = $sessionUser ? (int)$sessionUser->getId() : null;
+    $redirect = trim((string)($_POST['redirect'] ?? 'panel/cms/pages'));
+    $redirect = $redirect !== '' ? $redirect : 'panel/cms/pages';
 
     if ($action === 'update_status') {
         $contentId = (int)($_POST['id'] ?? 0);
         $status = strtoupper(trim((string)($_POST['status'] ?? '')));
-        $redirect = trim((string)($_POST['redirect'] ?? 'panel/cms/pages'));
 
         if ($contentId <= 0 || !in_array($status, ['DRAFT', 'PUBLISHED'], true)) {
             MessageUtil::setMessage('Invalid status update request.', 'Status not changed', 'warning');
-            LocationUtils::redirectInternal($redirect !== '' ? $redirect : 'panel/cms/pages');
+            LocationUtils::redirectInternal($redirect);
         }
 
         $updateData = [
@@ -49,7 +52,60 @@ $router->post(function () {
 
         $contentsRepository->update($updateData, ['id' => $contentId]);
         MessageUtil::setMessage('Content status updated.');
-        LocationUtils::redirectInternal($redirect !== '' ? $redirect : 'panel/cms/pages');
+        LocationUtils::redirectInternal($redirect);
+    }
+
+    if ($action === 'delete_one') {
+        $contentId = (int)($_POST['id'] ?? 0);
+        if ($contentId <= 0) {
+            MessageUtil::setMessage('Invalid delete request.', 'Content not deleted', 'warning');
+            LocationUtils::redirectInternal($redirect);
+        }
+
+        foreach ($routesRepository->getAllByContent($contentId) as $route) {
+            $routesRepository->delete(['id' => (int)$route->id]);
+        }
+        $contentsRepository->delete(['id' => $contentId]);
+        MessageUtil::setMessage('Content deleted.');
+        LocationUtils::redirectInternal($redirect);
+    }
+
+    if (in_array($action, ['bulk_delete', 'bulk_draft'], true)) {
+        $ids = $_POST['ids'] ?? [];
+        if (!is_array($ids)) {
+            $ids = [];
+        }
+        $ids = array_values(array_unique(array_filter(array_map('intval', $ids), static fn (int $id): bool => $id > 0)));
+
+        if ($ids === []) {
+            MessageUtil::setMessage('Select at least one content item.', 'No items selected', 'warning');
+            LocationUtils::redirectInternal($redirect);
+        }
+
+        $changed = 0;
+        foreach ($ids as $id) {
+            if ($action === 'bulk_delete') {
+                foreach ($routesRepository->getAllByContent($id) as $route) {
+                    $routesRepository->delete(['id' => (int)$route->id]);
+                }
+                if ($contentsRepository->delete(['id' => $id])) {
+                    $changed++;
+                }
+                continue;
+            }
+
+            if ($contentsRepository->update([
+                'status' => 'DRAFT',
+                'published_at' => null,
+                'updated_by' => $authorUserId,
+                'updated_at' => date('Y-m-d H:i:s'),
+            ], ['id' => $id])) {
+                $changed++;
+            }
+        }
+
+        MessageUtil::setMessage($changed . ' content item(s) updated.');
+        LocationUtils::redirectInternal($redirect);
     }
 
     $items = $contentsRepository->getAllForPanel('en', SiteContext::siteKey());
