@@ -4,6 +4,7 @@ use App\Repositories\CmsContentsRepository;
 use App\Repositories\CmsCategoriesRepository;
 use App\Repositories\CmsRoutesRepository;
 use App\Repositories\Connection;
+use App\Services\CmsImageGenerationService;
 use App\Services\LoginService;
 use App\Utils\LocationUtils;
 use App\Utils\MessageUtil;
@@ -15,7 +16,7 @@ $router = new Router();
 
 $router->post(function () {
     $action = trim((string)($_POST['action'] ?? ''));
-    if (!in_array($action, ['publish_generated', 'update_status', 'delete_one', 'bulk_delete', 'bulk_draft'], true)) {
+    if (!in_array($action, ['publish_generated', 'update_status', 'delete_one', 'bulk_delete', 'bulk_draft', 'bulk_generate_thumbnails'], true)) {
         LocationUtils::redirectInternal('panel/cms/pages');
     }
 
@@ -70,7 +71,7 @@ $router->post(function () {
         LocationUtils::redirectInternal($redirect);
     }
 
-    if (in_array($action, ['bulk_delete', 'bulk_draft'], true)) {
+    if (in_array($action, ['bulk_delete', 'bulk_draft', 'bulk_generate_thumbnails'], true)) {
         $ids = $_POST['ids'] ?? [];
         if (!is_array($ids)) {
             $ids = [];
@@ -90,6 +91,42 @@ $router->post(function () {
                 }
                 if ($contentsRepository->delete(['id' => $id])) {
                     $changed++;
+                }
+                continue;
+            }
+
+            if ($action === 'bulk_generate_thumbnails') {
+                if ($changed >= 3) {
+                    continue;
+                }
+
+                $item = $contentsRepository->getOneWithTemplate($id);
+                if (!$item || trim((string)($item->featured_image_url ?? '')) !== '') {
+                    continue;
+                }
+
+                try {
+                    $imageService = new CmsImageGenerationService();
+                    $title = trim((string)($item->title ?? 'VNV Events article'));
+                    $excerpt = trim(strip_tags((string)($item->excerpt ?? '')));
+                    $prompt = 'Unique thumbnail hero photograph for the VNV Events article titled "' . $title . '". '
+                        . ($excerpt !== '' ? 'Editorial context: ' . substr($excerpt, 0, 220) . '. ' : '')
+                        . 'Hyperrealistic professional event photography, realistic people, premium event space, natural lighting, no text overlay.';
+                    $image = $imageService->generateAndUploadWithRetry($prompt, 'cms/generated-thumbnails', '1024x1024', 2);
+                    $contentJson = json_decode((string)($item->content_json ?? '{}'), true);
+                    $contentJson = is_array($contentJson) ? $contentJson : [];
+                    $contentJson['backfilled_thumbnail'] = $image;
+
+                    if ($contentsRepository->update([
+                        'featured_image_url' => (string)($image['url'] ?? ''),
+                        'content_json' => json_encode($contentJson, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
+                        'updated_by' => $authorUserId,
+                        'updated_at' => date('Y-m-d H:i:s'),
+                    ], ['id' => $id])) {
+                        $changed++;
+                    }
+                } catch (\Throwable $thumbnailError) {
+                    continue;
                 }
                 continue;
             }

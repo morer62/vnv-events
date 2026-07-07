@@ -83,6 +83,25 @@ class CmsImageGenerationService
         ];
     }
 
+    public function generateAndUploadWithRetry(string $prompt, string $folder = 'cms/generated-images', string $size = '1024x1024', int $attempts = 2): array
+    {
+        $attempts = max(1, $attempts);
+        $lastError = null;
+
+        for ($attempt = 1; $attempt <= $attempts; $attempt++) {
+            try {
+                return $this->generateAndUpload($prompt, $folder, $size);
+            } catch (Exception $error) {
+                $lastError = $error;
+                if ($attempt < $attempts) {
+                    sleep(2);
+                }
+            }
+        }
+
+        throw $lastError ?: new Exception('Image generation failed.');
+    }
+
     private function toHyperrealisticPrompt(string $prompt): string
     {
         return trim($prompt) . ' Hyperrealistic professional event photography, natural lighting, realistic people and environments, premium editorial photo quality, true-to-life colors, no illustration, no cartoon, no anime, no 3D render, no text overlay, no logos, no watermark.';

@@ -522,12 +522,12 @@
             <div class="cms-ai-panel" data-ai-panel="3" hidden>
                 <h2 class="cms-section-title">Generate selected articles</h2>
                 <div class="cms-field">
-                    <label class="cms-label">Images per article + thumbnail</label>
+                    <label class="cms-label">Article images + thumbnail</label>
                     <select class="cms-select" data-ai-image-count>
                         <option value="0">No images</option>
-                        <option value="1">1 image</option>
-                        <option value="2" selected>2 images</option>
-                        <option value="4">4 images</option>
+                        <option value="1">1 article image + thumbnail</option>
+                        <option value="2" selected>2 article images + thumbnail</option>
+                        <option value="4">4 article images + thumbnail</option>
                     </select>
                     <div class="cms-help">The first generated image is a title-specific thumbnail / featured image. Additional images are supporting article visuals. You can process up to 3 articles per batch.</div>
                 </div>
@@ -1188,6 +1188,7 @@ document.addEventListener('DOMContentLoaded', function () {
             image_count: ai.querySelector('[data-ai-image-count]').value || '0'
         }).then(function (json) {
             var items = json.created || [];
+            var failed = json.failed || [];
             if (aiResult) {
                 aiResult.innerHTML = '<strong>' + items.length + ' article(s) generated.</strong>'
                     + '<div class="cms-ai-result-list">'
@@ -1197,7 +1198,13 @@ document.addEventListener('DOMContentLoaded', function () {
                             + '<a class="cms-btn cms-btn-primary" href="' + escapeHtml(item.edit_url) + '">Metadata / Publish</a>'
                             + '</span></div>';
                     }).join('')
-                    + '</div><div class="cms-actions"><a class="cms-btn cms-btn-primary" href="{{ path('panel/cms/pages') }}?status=GENERATED">Publish all from list</a><button class="cms-btn cms-btn-light" type="button" data-ai-more>Generate more</button></div>';
+                    + '</div>'
+                    + (failed.length ? '<div class="cms-ai-result-list"><strong>Not saved because thumbnail generation failed:</strong>'
+                        + failed.map(function (item) {
+                            return '<div class="cms-ai-result-item"><span>' + escapeHtml(item.title || 'Untitled article') + '</span><span>' + escapeHtml(item.error || 'Image generation failed.') + '</span></div>';
+                        }).join('')
+                        + '</div>' : '')
+                    + '<div class="cms-actions"><a class="cms-btn cms-btn-primary" href="{{ path('panel/cms/pages') }}?status=GENERATED">Publish all from list</a><button class="cms-btn cms-btn-light" type="button" data-ai-more>Generate more</button></div>';
                 var more = aiResult.querySelector('[data-ai-more]');
                 if (more) {
                     more.addEventListener('click', function () {

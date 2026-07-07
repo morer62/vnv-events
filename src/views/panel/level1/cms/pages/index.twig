@@ -430,6 +430,7 @@
                 <input type="hidden" name="redirect" value="panel/cms/pages?content_type={{ filters.content_type }}{% if filters.category_id %}&category_id={{ filters.category_id }}{% endif %}{% if filters.status %}&status={{ filters.status }}{% endif %}{% if filters.q %}&q={{ filters.q|url_encode }}{% endif %}">
             </form>
             <div class="cms-bulk-actions">
+                <button type="submit" form="cms-bulk-form" name="action" value="bulk_generate_thumbnails" class="cms-btn cms-btn-light" onclick="return confirm('Generate missing thumbnails for up to 3 selected items?');">Generate missing thumbnails</button>
                 <button type="submit" form="cms-bulk-form" name="action" value="bulk_draft" class="cms-btn cms-btn-light">Move selected to Draft</button>
                 <button type="submit" form="cms-bulk-form" name="action" value="bulk_delete" class="cms-btn cms-btn-danger" onclick="return confirm('Delete selected content? This cannot be undone.');">Delete selected</button>
                 <span class="cms-muted">Select rows to run batch actions.</span>

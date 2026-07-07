@@ -234,9 +234,9 @@ function cmsBuildAiArticleHtml(array $article, int $imageCount, array $generated
     return '<article class="cms-ai-article"><header><h1>' . $title . '</h1></header>' . $body . $mediaBlock . '</article>';
 }
 
-function cmsAiArticleImagePrompts(array $article, array $idea, string $title, int $imageCount): array
+function cmsAiArticleImagePrompts(array $article, array $idea, string $title, int $supportingImageCount): array
 {
-    if ($imageCount <= 0) {
+    if ($supportingImageCount <= 0) {
         return [];
     }
 
@@ -268,16 +268,16 @@ function cmsAiArticleImagePrompts(array $article, array $idea, string $title, in
 
         $seen[$key] = true;
         $prompts[] = $prompt;
-        if (count($prompts) >= $imageCount) {
+        if (count($prompts) >= ($supportingImageCount + 1)) {
             break;
         }
     }
 
-    while (count($prompts) < $imageCount) {
+    while (count($prompts) < ($supportingImageCount + 1)) {
         $prompts[] = 'Supporting event photograph for the article titled "' . $title . '", unique composition number ' . (count($prompts) + 1) . ', realistic VNV Events service context, hyperrealistic professional photography, no text overlay.';
     }
 
-    return array_slice($prompts, 0, $imageCount);
+    return array_slice($prompts, 0, $supportingImageCount + 1);
 }
 
 function cmsExtendAiRuntime(): void
@@ -502,7 +502,7 @@ $router->post(function () {
             $idTemplate = cmsTemplateIdForType($templates, $contentType, (int)($_POST['id_template'] ?? 0));
             $keywords = trim((string)($_POST['keywords'] ?? ''));
             $intent = trim((string)($_POST['intent'] ?? 'informational'));
-            $imageCount = max(0, min(8, (int)($_POST['image_count'] ?? 0)));
+            $supportingImageCount = max(0, min(4, (int)($_POST['image_count'] ?? 0)));
             $reference = json_decode((string)($_POST['reference_json'] ?? '{}'), true);
             $reference = is_array($reference) ? $reference : [];
             $internalLinks = json_decode((string)($_POST['internal_links_json'] ?? '[]'), true);
@@ -514,6 +514,7 @@ $router->post(function () {
             $ideas = array_slice(array_values($ideas), 0, 3);
 
             $created = [];
+            $failed = [];
             foreach ($ideas as $idea) {
                 if (!is_array($idea)) {
                     continue;
@@ -530,7 +531,8 @@ $router->post(function () {
                         'intent' => $intent,
                         'remote_reference' => $reference,
                         'internal_links_to_consider' => $internalLinks,
-                        'image_count' => $imageCount,
+                        'supporting_image_count' => $supportingImageCount,
+                        'thumbnail_required' => $supportingImageCount > 0,
                         'rules' => [
                             'Do not invent prices, addresses, awards, reviews, guarantees, licenses or staff names.',
                             'Use the remote reference only as editorial context; do not copy it.',
@@ -576,22 +578,38 @@ $router->post(function () {
                     'remote_reference' => $reference,
                     'internal_links_considered' => $internalLinks,
                     'selected_idea' => $idea,
-                    'image_count_requested' => $imageCount,
+                    'supporting_image_count_requested' => $supportingImageCount,
                     'image_prompts' => $article['image_prompts'] ?? [],
                 ];
                 $generatedImages = [];
-                $imagePrompts = cmsAiArticleImagePrompts($article, $idea, $title, $imageCount);
+                $imagePrompts = cmsAiArticleImagePrompts($article, $idea, $title, $supportingImageCount);
                 $contentJson['image_prompts_normalized'] = $imagePrompts;
                 if ($imagePrompts !== []) {
                     try {
                         $imageService = new CmsImageGenerationService();
-                        $generatedImages = $imageService->generateMany($imagePrompts, $imageCount, 'cms/generated-images');
+                        $thumbnailPrompt = (string)array_shift($imagePrompts);
+                        $thumbnailImage = $imageService->generateAndUploadWithRetry($thumbnailPrompt, 'cms/generated-thumbnails', '1024x1024', 2);
+                        $generatedImages[] = $thumbnailImage;
+
+                        foreach ($imagePrompts as $supportingPrompt) {
+                            try {
+                                $generatedImages[] = $imageService->generateAndUploadWithRetry((string)$supportingPrompt, 'cms/generated-images', '1024x1024', 2);
+                            } catch (Exception $supportingImageError) {
+                                $contentJson['supporting_image_errors'][] = $supportingImageError->getMessage();
+                            }
+                        }
                         $contentJson['generated_images'] = $generatedImages;
                     } catch (Exception $imageError) {
                         $contentJson['image_generation_error'] = $imageError->getMessage();
+                        $failed[] = [
+                            'title' => $title,
+                            'error' => 'Thumbnail image could not be generated: ' . $imageError->getMessage(),
+                        ];
+                        continue;
                     }
                 }
                 $featuredImageUrl = (string)($generatedImages[0]['url'] ?? '');
+                $bodyImages = array_slice($generatedImages, 1);
 
                 $ok = $contentsRepository->add($contentsRepository->withVnvEventsOrigin([
                     'id_owner' => $ownerId,
@@ -605,7 +623,7 @@ $router->post(function () {
                     'content_mode' => 'hybrid',
                     'excerpt' => trim((string)($article['excerpt'] ?? $idea['excerpt'] ?? '')),
                     'content_json' => json_encode($contentJson, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
-                    'body_html' => cmsBuildAiArticleHtml($article, $imageCount, $generatedImages),
+                    'body_html' => cmsBuildAiArticleHtml($article, $supportingImageCount, $bodyImages),
                     'meta_title' => trim((string)($article['meta_title'] ?? $title)),
                     'meta_description' => trim((string)($article['meta_description'] ?? '')),
                     'meta_keywords' => trim((string)($article['meta_keywords'] ?? $keywords)),
@@ -646,7 +664,7 @@ $router->post(function () {
                 ];
             }
 
-            cmsJsonResponse(['ok' => true, 'created' => $created]);
+            cmsJsonResponse(['ok' => true, 'created' => $created, 'failed' => $failed]);
         } catch (Exception $e) {
             cmsJsonResponse(['ok' => false, 'error' => $e->getMessage()], 400);
         }
