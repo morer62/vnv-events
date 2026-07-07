@@ -483,21 +483,21 @@
                         <input class="cms-input" data-ai-manual-title placeholder="Leave empty to generate title ideas from keywords">
                     </div>
                     <div class="cms-field full">
-                        <label class="cms-label">Internal links to consider</label>
+                        <label class="cms-label">Service pages to consider for internal linking</label>
                         <div class="cms-internal-links" data-ai-internal-links>
                             {% for link in internalLinks|default([]) %}
                                 <label class="cms-internal-link">
                                     <input type="checkbox" value="{{ link.id }}" data-title="{{ link.title }}" data-route="{{ link.route }}" data-type="{{ link.type }}" {% if loop.index <= 4 and link.status == 'PUBLISHED' %}checked{% endif %}>
                                     <span>
                                         <strong>{{ link.title }}</strong>
-                                        <small>{{ link.type|title }} · {{ link.route }} · {{ link.status|title }}</small>
+                                        <small>{{ link.route }}</small>
                                     </span>
                                 </label>
                             {% else %}
                                 <div class="cms-help">No internal CMS links are available yet.</div>
                             {% endfor %}
                         </div>
-                        <div class="cms-help">Selected links will be considered for natural internal linking in generated articles.</div>
+                        <div class="cms-help">Only official VNV Events service pages are suggested here. Blog articles and location pages are intentionally excluded.</div>
                     </div>
                 </div>
                 <div class="cms-actions">

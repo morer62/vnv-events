@@ -243,33 +243,19 @@ function cmsExtendAiRuntime(): void
     }
 }
 
-function cmsInternalLinkCandidates(CmsContentsRepository $contentsRepository, CmsRoutesRepository $routesRepository): array
+function cmsServiceInternalLinkCandidates(): array
 {
-    $items = $contentsRepository->getAllForPanel('en', SiteContext::siteKey());
-    $links = [];
-
-    foreach ($items as $item) {
-        $route = $routesRepository->getMainRouteByContent((int)$item->id, (string)($item->language ?? 'en'));
-        if (!$route || empty($route->route)) {
-            continue;
-        }
-
-        $links[] = [
-            'id' => (int)$item->id,
-            'title' => (string)($item->title ?? ''),
-            'type' => cmsNormalizeContentType((string)($item->content_type ?? $item->type ?? 'page')),
-            'route' => (string)$route->route,
-            'status' => (string)($item->status ?? ''),
-        ];
-    }
-
-    usort($links, static function (array $a, array $b): int {
-        $aPublished = strtoupper($a['status']) === 'PUBLISHED' ? 0 : 1;
-        $bPublished = strtoupper($b['status']) === 'PUBLISHED' ? 0 : 1;
-        return [$aPublished, $a['type'], $a['title']] <=> [$bPublished, $b['type'], $b['title']];
-    });
-
-    return array_slice($links, 0, 24);
+    return [
+        ['id' => 'service-event-planners', 'title' => 'Event Planner & Day Coordinator', 'type' => 'service', 'route' => '/event-planners', 'status' => 'PUBLISHED'],
+        ['id' => 'service-catering', 'title' => 'VNV Gourmet Catering', 'type' => 'service', 'route' => '/vnv-gourmet', 'status' => 'PUBLISHED'],
+        ['id' => 'service-floral', 'title' => 'Floral Decorations', 'type' => 'service', 'route' => '/vnv-deco-flowers', 'status' => 'PUBLISHED'],
+        ['id' => 'service-dj-karaoke', 'title' => 'DJ and Karaoke Services', 'type' => 'service', 'route' => '/vnv-live', 'status' => 'PUBLISHED'],
+        ['id' => 'service-photo-video', 'title' => 'Photography & Videography', 'type' => 'service', 'route' => '/photo-booth-rental-video-photography-services-in-south-florida', 'status' => 'PUBLISHED'],
+        ['id' => 'service-rentals', 'title' => 'Party Tents & Event Rentals', 'type' => 'service', 'route' => '/party-tents-and-event-rental-services-in-south-florida', 'status' => 'PUBLISHED'],
+        ['id' => 'service-production', 'title' => 'Event Production', 'type' => 'service', 'route' => '/event-production', 'status' => 'PUBLISHED'],
+        ['id' => 'service-staffing', 'title' => 'Event Staffing', 'type' => 'service', 'route' => '/event-staffing/', 'status' => 'PUBLISHED'],
+        ['id' => 'service-corporate-events', 'title' => 'Corporate Events', 'type' => 'service', 'route' => '/corporate-events', 'status' => 'PUBLISHED'],
+    ];
 }
 
 $router->get(function () {
@@ -281,15 +267,9 @@ $router->get(function () {
     $categoriesRepository = new CmsCategoriesRepository();
     $categoriesRepository->db = $db;
 
-    $contentsRepository = new CmsContentsRepository();
-    $contentsRepository->db = $db;
-
-    $routesRepository = new CmsRoutesRepository();
-    $routesRepository->db = $db;
-
     $templates = $templatesRepository->getActive();
     $categories = $categoriesRepository->getActive();
-    $internalLinks = cmsInternalLinkCandidates($contentsRepository, $routesRepository);
+    $internalLinks = cmsServiceInternalLinkCandidates();
 
     return TemplateResponse::render(__DIR__ . "/index.twig", [
         "title" => "Create CMS Page",
