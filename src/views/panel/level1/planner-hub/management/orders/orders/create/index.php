@@ -117,6 +117,7 @@ $router->get(function () {
 });
 
 $router->post(function () {
+    try {
     $user = LoginService::getSession();
     $orderRepo = new OrdersRepository();
     $assignedRepo = new OrdersServicesAssignedRepository();
@@ -564,6 +565,11 @@ $router->post(function () {
         } else {
             LocationUtils::redirectInternal("panel/planner-hub/management/orders/orders/");
         }
+    }
+    } catch (\Throwable $e) {
+        error_log("Order create flow failed: " . $e->getMessage());
+        MessageUtil::setMessage("The order flow could not finish loading. Please review the order list to confirm the saved record.", "Order flow interrupted", "warning");
+        LocationUtils::redirectInternal("panel/planner-hub/management/orders/orders/?tab=estimates");
     }
 });
 

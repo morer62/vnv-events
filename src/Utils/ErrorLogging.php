@@ -42,8 +42,13 @@ class ErrorLogging
 
     public static function log(Exception $exception): void
     {
-        error_log("\nUncaught Exception: " . $exception->getMessage(), 3, self::$logFile);
+        error_log("\nLogged Exception: " . $exception->getMessage(), 3, self::$logFile);
         error_log("\n".$exception->getTraceAsString(), 3, self::$logFile);
+    }
+
+    public static function warning(string $message): void
+    {
+        error_log("\nWarning: " . $message, 3, self::$logFile);
     }
 
 }

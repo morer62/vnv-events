@@ -22,7 +22,7 @@ $router->post(function (Request $request) {
     $user = LoginService::validateToken($token);
 
     if (!$user instanceof User) {
-        ErrorLogging::log(new Exception('Unauthorized token for expo token'));
+        ErrorLogging::warning('Unauthorized token for expo token');
         return JsonResponse::createResponse([
             'success' => false,
             'message' => 'Unauthorized',
