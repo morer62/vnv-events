@@ -309,6 +309,31 @@
         padding:12px;
     }
 
+    .cms-internal-links{
+        border:1px solid #e5e7eb;
+        border-radius:16px;
+        display:grid;
+        gap:8px;
+        max-height:260px;
+        overflow:auto;
+        padding:12px;
+    }
+
+    .cms-internal-link{
+        align-items:flex-start;
+        display:grid;
+        gap:10px;
+        grid-template-columns:auto 1fr;
+        line-height:1.35;
+    }
+
+    .cms-internal-link small{
+        color:#6b7280;
+        display:block;
+        margin-top:2px;
+        word-break:break-all;
+    }
+
     .cms-editor-tabs{
         display:inline-flex;
         background:#f3f4f6;
@@ -456,6 +481,23 @@
                     <div class="cms-field full">
                         <label class="cms-label">Suggested title</label>
                         <input class="cms-input" data-ai-manual-title placeholder="Leave empty to generate title ideas from keywords">
+                    </div>
+                    <div class="cms-field full">
+                        <label class="cms-label">Internal links to consider</label>
+                        <div class="cms-internal-links" data-ai-internal-links>
+                            {% for link in internalLinks|default([]) %}
+                                <label class="cms-internal-link">
+                                    <input type="checkbox" value="{{ link.id }}" data-title="{{ link.title }}" data-route="{{ link.route }}" data-type="{{ link.type }}" {% if loop.index <= 4 and link.status == 'PUBLISHED' %}checked{% endif %}>
+                                    <span>
+                                        <strong>{{ link.title }}</strong>
+                                        <small>{{ link.type|title }} · {{ link.route }} · {{ link.status|title }}</small>
+                                    </span>
+                                </label>
+                            {% else %}
+                                <div class="cms-help">No internal CMS links are available yet.</div>
+                            {% endfor %}
+                        </div>
+                        <div class="cms-help">Selected links will be considered for natural internal linking in generated articles.</div>
                     </div>
                 </div>
                 <div class="cms-actions">
@@ -941,6 +983,7 @@ document.addEventListener('DOMContentLoaded', function () {
     var aiIdeas = ai.querySelector('[data-ai-ideas]');
     var aiReference = ai.querySelector('[data-ai-reference]');
     var aiResult = ai.querySelector('[data-ai-result]');
+    var aiInternalLinks = ai.querySelector('[data-ai-internal-links]');
     var aiCategoryOptions = aiCategory ? Array.prototype.map.call(aiCategory.options, function (option) {
         return option.cloneNode(true);
     }) : [];
@@ -1059,6 +1102,20 @@ document.addEventListener('DOMContentLoaded', function () {
         return selected.slice(0, 3);
     }
 
+    function selectedInternalLinks() {
+        var selected = [];
+        if (!aiInternalLinks) return selected;
+        aiInternalLinks.querySelectorAll('input[type="checkbox"]:checked').forEach(function (box) {
+            selected.push({
+                id: box.value,
+                title: box.dataset.title || '',
+                route: box.dataset.route || '',
+                type: box.dataset.type || ''
+            });
+        });
+        return selected.slice(0, 8);
+    }
+
     function generateIdeas() {
         if (aiStatus) aiStatus.textContent = 'Generating 5 ideas and looking for one remote reference...';
         postAi('ai_generate_ideas', {})
@@ -1127,6 +1184,7 @@ document.addEventListener('DOMContentLoaded', function () {
         postAi('ai_create_articles', {
             selected_ideas: JSON.stringify(ideas),
             reference_json: JSON.stringify(aiState.reference || {}),
+            internal_links_json: JSON.stringify(selectedInternalLinks()),
             image_count: ai.querySelector('[data-ai-image-count]').value || '0'
         }).then(function (json) {
             var items = json.created || [];

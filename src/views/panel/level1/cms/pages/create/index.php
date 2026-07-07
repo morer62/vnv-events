@@ -243,6 +243,35 @@ function cmsExtendAiRuntime(): void
     }
 }
 
+function cmsInternalLinkCandidates(CmsContentsRepository $contentsRepository, CmsRoutesRepository $routesRepository): array
+{
+    $items = $contentsRepository->getAllForPanel('en', SiteContext::siteKey());
+    $links = [];
+
+    foreach ($items as $item) {
+        $route = $routesRepository->getMainRouteByContent((int)$item->id, (string)($item->language ?? 'en'));
+        if (!$route || empty($route->route)) {
+            continue;
+        }
+
+        $links[] = [
+            'id' => (int)$item->id,
+            'title' => (string)($item->title ?? ''),
+            'type' => cmsNormalizeContentType((string)($item->content_type ?? $item->type ?? 'page')),
+            'route' => (string)$route->route,
+            'status' => (string)($item->status ?? ''),
+        ];
+    }
+
+    usort($links, static function (array $a, array $b): int {
+        $aPublished = strtoupper($a['status']) === 'PUBLISHED' ? 0 : 1;
+        $bPublished = strtoupper($b['status']) === 'PUBLISHED' ? 0 : 1;
+        return [$aPublished, $a['type'], $a['title']] <=> [$bPublished, $b['type'], $b['title']];
+    });
+
+    return array_slice($links, 0, 24);
+}
+
 $router->get(function () {
     $db = new Connection();
 
@@ -252,14 +281,22 @@ $router->get(function () {
     $categoriesRepository = new CmsCategoriesRepository();
     $categoriesRepository->db = $db;
 
+    $contentsRepository = new CmsContentsRepository();
+    $contentsRepository->db = $db;
+
+    $routesRepository = new CmsRoutesRepository();
+    $routesRepository->db = $db;
+
     $templates = $templatesRepository->getActive();
     $categories = $categoriesRepository->getActive();
+    $internalLinks = cmsInternalLinkCandidates($contentsRepository, $routesRepository);
 
     return TemplateResponse::render(__DIR__ . "/index.twig", [
         "title" => "Create CMS Page",
         "errors" => [],
         "templates" => $templates,
         "categories" => $categories,
+        "internalLinks" => $internalLinks,
         "old" => [
             "id_template" => "",
             "id_cms_category" => "",
@@ -442,6 +479,8 @@ $router->post(function () {
             $imageCount = max(0, min(8, (int)($_POST['image_count'] ?? 0)));
             $reference = json_decode((string)($_POST['reference_json'] ?? '{}'), true);
             $reference = is_array($reference) ? $reference : [];
+            $internalLinks = json_decode((string)($_POST['internal_links_json'] ?? '[]'), true);
+            $internalLinks = is_array($internalLinks) ? array_slice(array_values($internalLinks), 0, 8) : [];
             $ideas = json_decode((string)($_POST['selected_ideas'] ?? '[]'), true);
             if (!is_array($ideas) || count($ideas) === 0) {
                 throw new Exception('Select at least one idea.');
@@ -464,11 +503,14 @@ $router->post(function () {
                         'keywords_csv' => $keywords,
                         'intent' => $intent,
                         'remote_reference' => $reference,
+                        'internal_links_to_consider' => $internalLinks,
                         'image_count' => $imageCount,
                         'rules' => [
                             'Do not invent prices, addresses, awards, reviews, guarantees, licenses or staff names.',
                             'Use the remote reference only as editorial context; do not copy it.',
                             'Visible content must be in English.',
+                            'Use selected internal links only when they are contextually relevant. Insert natural anchor text in body_html. Do not force every link.',
+                            'Internal link href values must use the provided route exactly.',
                             'Image prompts must specify realistic people, realistic event spaces, natural lighting, true-to-life colors and no text overlays.',
                         ],
                     ],
@@ -506,6 +548,7 @@ $router->post(function () {
                     'intent' => $intent,
                     'keywords' => $keywords,
                     'remote_reference' => $reference,
+                    'internal_links_considered' => $internalLinks,
                     'selected_idea' => $idea,
                     'image_count_requested' => $imageCount,
                     'image_prompts' => $article['image_prompts'] ?? [],
