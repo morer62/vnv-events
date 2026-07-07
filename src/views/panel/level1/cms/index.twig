@@ -37,6 +37,17 @@
         border-radius:18px;
         padding:20px;
         box-shadow:0 8px 25px rgba(0,0,0,.05);
+        color:inherit;
+        display:block;
+        text-decoration:none;
+        transition:.2s ease;
+    }
+
+    .cms-stat-card:hover{
+        border-color:#14b8a6;
+        box-shadow:0 14px 34px rgba(20,184,166,.12);
+        color:inherit;
+        transform:translateY(-1px);
     }
 
     .cms-stat-label{
@@ -176,113 +187,6 @@
         line-height:1.65;
     }
 
-    .cms-broadcast{
-        margin-top:28px;
-        display:grid;
-        grid-template-columns:minmax(0, 1fr) minmax(320px, .72fr);
-        gap:22px;
-        align-items:start;
-    }
-
-    .cms-broadcast-panel{
-        background:#fff;
-        border:1px solid #dfe7ea;
-        border-radius:22px;
-        padding:24px;
-        box-shadow:0 14px 36px rgba(15,23,42,.07);
-    }
-
-    .cms-broadcast-kicker{
-        display:inline-flex;
-        align-items:center;
-        gap:8px;
-        margin-bottom:12px;
-        padding:7px 11px;
-        border-radius:999px;
-        background:#ecfeff;
-        color:#0f766e;
-        font-size:.75rem;
-        font-weight:900;
-        letter-spacing:.08em;
-        text-transform:uppercase;
-    }
-
-    .cms-broadcast-title{
-        margin:0 0 8px;
-        color:#111827;
-        font-size:1.25rem;
-        font-weight:900;
-    }
-
-    .cms-field{
-        margin-top:14px;
-    }
-
-    .cms-label{
-        display:block;
-        margin-bottom:7px;
-        color:#374151;
-        font-size:.86rem;
-        font-weight:800;
-    }
-
-    .cms-input,
-    .cms-textarea{
-        width:100%;
-        border:1px solid #d1d5db;
-        border-radius:14px;
-        padding:12px 14px;
-        color:#111827;
-        background:#fff;
-        outline:none;
-    }
-
-    .cms-textarea{
-        min-height:132px;
-        resize:vertical;
-    }
-
-    .cms-input:focus,
-    .cms-textarea:focus{
-        border-color:#14b8a6;
-        box-shadow:0 0 0 4px rgba(20,184,166,.12);
-    }
-
-    .cms-help{
-        margin-top:6px;
-        color:#6b7280;
-        font-size:.82rem;
-        line-height:1.5;
-    }
-
-    .cms-broadcast-submit{
-        margin-top:16px;
-    }
-
-    .cms-history{
-        display:grid;
-        gap:10px;
-    }
-
-    .cms-history-item{
-        border:1px solid #edf2f4;
-        border-radius:16px;
-        padding:13px;
-        background:#f9fafb;
-    }
-
-    .cms-history-item strong{
-        display:block;
-        color:#111827;
-        margin-bottom:4px;
-    }
-
-    .cms-history-meta{
-        color:#6b7280;
-        font-size:.82rem;
-        line-height:1.5;
-    }
-
     @media (max-width:768px){
         .cms-wrap{
             padding:16px;
@@ -294,10 +198,6 @@
 
         .cms-card{
             min-height:auto;
-        }
-
-        .cms-broadcast{
-            grid-template-columns:1fr;
         }
     }
 </style>
@@ -311,15 +211,20 @@
     </div>
 
     <div class="cms-stats">
-        <div class="cms-stat-card">
-            <div class="cms-stat-label">Content Pieces</div>
-            <div class="cms-stat-value">{{ totalContent }}</div>
-        </div>
-
-        <div class="cms-stat-card">
-            <div class="cms-stat-label">Pages / Locations / Blog</div>
+        <a class="cms-stat-card" href="{{ path('panel/cms/pages') }}?content_type=page">
+            <div class="cms-stat-label">Pages</div>
             <div class="cms-stat-value">{{ totalPages }}</div>
-        </div>
+        </a>
+
+        <a class="cms-stat-card" href="{{ path('panel/cms/pages') }}?content_type=location">
+            <div class="cms-stat-label">Locations</div>
+            <div class="cms-stat-value">{{ totalLocations }}</div>
+        </a>
+
+        <a class="cms-stat-card" href="{{ path('panel/cms/pages') }}?content_type=blog">
+            <div class="cms-stat-label">Blog Articles</div>
+            <div class="cms-stat-value">{{ totalBlogArticles }}</div>
+        </a>
 
         <div class="cms-stat-card">
             <div class="cms-stat-label">Categories</div>
@@ -332,12 +237,12 @@
         </div>
 
         <div class="cms-stat-card">
-            <div class="cms-stat-label">Published Content</div>
+            <div class="cms-stat-label">Published</div>
             <div class="cms-stat-value">{{ totalPublishedPages }}</div>
         </div>
 
         <div class="cms-stat-card">
-            <div class="cms-stat-label">Draft Content</div>
+            <div class="cms-stat-label">Drafts</div>
             <div class="cms-stat-value">{{ totalDraftPages }}</div>
         </div>
     </div>
@@ -402,61 +307,21 @@
             </div>
         </div>
 
-    </div>
+        <div class="cms-card">
+            <div class="cms-card-top">
+                <div class="cms-card-icon locations">MP</div>
+                <div class="cms-card-title">Mobile Push</div>
+                <p class="cms-card-text">
+                    Send CMS Grow notifications to mobile app users and review broadcast history.
+                </p>
+            </div>
 
-    <section class="cms-broadcast">
-        <div class="cms-broadcast-panel">
-            <span class="cms-broadcast-kicker">Mobile app push</span>
-            <h2 class="cms-broadcast-title">Send a notification to mobile app users</h2>
-            <p class="cms-card-text">
-                Sends an Expo push notification to active users with mobile push tokens and creates an inbox notification record for each recipient.
-            </p>
-
-            <form method="post">
-                <input type="hidden" name="action" value="send_mobile_broadcast">
-                <div class="cms-field">
-                    <label class="cms-label">Title</label>
-                    <input class="cms-input" type="text" name="mobile_title" maxlength="140" placeholder="Example: New VNV Sessions mix is live" required>
-                </div>
-                <div class="cms-field">
-                    <label class="cms-label">Message</label>
-                    <textarea class="cms-textarea" name="mobile_body" maxlength="800" placeholder="Write the notification body users will see." required></textarea>
-                </div>
-                <div class="cms-field">
-                    <label class="cms-label">Optional link</label>
-                    <input class="cms-input" type="url" name="mobile_link" maxlength="500" placeholder="https://vnvevents.com/vnv-sessions/">
-                    <div class="cms-help">If present, the mobile app should open this link from the notification detail screen.</div>
-                </div>
-                <button type="submit" class="cms-btn cms-btn-primary cms-broadcast-submit">
-                    Send to {{ mobilePushRecipientsCount|default(0) }} mobile device{{ mobilePushRecipientsCount|default(0) == 1 ? '' : 's' }}
-                </button>
-            </form>
+            <div class="cms-card-actions">
+                <a href="{{ path('panel/cms/mobile-push') }}" class="cms-btn cms-btn-primary">Open Mobile Push</a>
+            </div>
         </div>
 
-        <aside class="cms-broadcast-panel">
-            <span class="cms-broadcast-kicker">Broadcast log</span>
-            <h2 class="cms-broadcast-title">Recent sends</h2>
-            <div class="cms-history">
-                {% for item in recentMobileBroadcasts|default([]) %}
-                    <div class="cms-history-item">
-                        <strong>{{ item.title }}</strong>
-                        <div class="cms-history-meta">
-                            {{ item.created_at }}<br>
-                            Recipients: {{ item.recipient_count }} |
-                            Push sent: {{ item.push_sent_count }} |
-                            Failed: {{ item.push_failed_count }}<br>
-                            Records: {{ item.notification_count }}
-                        </div>
-                    </div>
-                {% else %}
-                    <div class="cms-history-item">
-                        <strong>No broadcasts yet</strong>
-                        <div class="cms-history-meta">Mobile app notification sends will appear here.</div>
-                    </div>
-                {% endfor %}
-            </div>
-        </aside>
-    </section>
+    </div>
 
     <div class="cms-note">
         <strong>Publishing rule:</strong> Ophyra Growth Hub is the canonical CMS source. Public consumers should read `cms_contents`, `cms_routes`, `cms_categories` and `cms_templates` scoped to <strong>{{ siteKey }}</strong>. Legacy blog, AI and location generators are historical compatibility only.

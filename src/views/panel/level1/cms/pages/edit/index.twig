@@ -212,6 +212,43 @@
         color:#111827;
     }
 
+    .cms-editor-tabs{
+        display:inline-flex;
+        background:#f3f4f6;
+        border-radius:12px;
+        gap:4px;
+        padding:4px;
+    }
+
+    .cms-editor-tabs button{
+        background:transparent;
+        border:0;
+        border-radius:10px;
+        color:#4b5563;
+        font-weight:800;
+        padding:8px 12px;
+    }
+
+    .cms-editor-tabs button.active{
+        background:#111827;
+        color:#fff;
+    }
+
+    .cms-rich-editor,
+    .cms-preview-frame{
+        border:1px solid #d1d5db;
+        border-radius:14px;
+        min-height:420px;
+        padding:18px;
+        width:100%;
+    }
+
+    .cms-rich-editor[hidden],
+    .cms-preview-frame[hidden],
+    .cms-textarea.code[hidden]{
+        display:none;
+    }
+
     @media (max-width:768px){
         .cms-wrap{
             padding:16px;
@@ -381,8 +418,17 @@
             <h2 class="cms-section-title">Content</h2>
 
             <div class="cms-field">
-                <label class="cms-label">Body HTML</label>
-                <textarea name="body_html" class="cms-textarea code">{{ old.body_html }}</textarea>
+                <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; margin-bottom:8px;">
+                    <label class="cms-label" style="margin:0;">Body HTML</label>
+                    <div class="cms-editor-tabs" data-cms-editor-tabs>
+                        <button class="active" type="button" data-editor-mode="code">Code</button>
+                        <button type="button" data-editor-mode="visual">Visual</button>
+                        <button type="button" data-editor-mode="preview">Preview</button>
+                    </div>
+                </div>
+                <textarea name="body_html" class="cms-textarea code" data-editor-source>{{ old.body_html }}</textarea>
+                <div class="cms-rich-editor" contenteditable="true" data-editor-rich hidden></div>
+                <iframe class="cms-preview-frame" data-editor-preview hidden title="Content preview"></iframe>
             </div>
 
             <div class="cms-field">
@@ -458,9 +504,9 @@
 document.addEventListener('DOMContentLoaded', function () {
     var typeSelect = document.querySelector('[data-content-type-select]');
     var categorySelect = document.querySelector('[data-cms-category-select]');
-    if (!typeSelect || !categorySelect) {
-        return;
-    }
+    var categoryOptions = categorySelect ? Array.prototype.map.call(categorySelect.options, function (option) {
+        return option.cloneNode(true);
+    }) : [];
 
     function optionApplies(option, type) {
         if (!option.value) {
@@ -472,20 +518,73 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function filterCategories() {
+        if (!typeSelect || !categorySelect) {
+            return;
+        }
         var type = typeSelect.value || 'page';
-        var selectedOption = categorySelect.options[categorySelect.selectedIndex];
-
-        Array.prototype.forEach.call(categorySelect.options, function (option) {
-            option.hidden = !optionApplies(option, type);
+        var previousValue = categorySelect.value;
+        var nextOptions = categoryOptions.filter(function (option) {
+            return optionApplies(option, type);
         });
 
-        if (selectedOption && !optionApplies(selectedOption, type)) {
-            categorySelect.value = '';
+        categorySelect.innerHTML = '';
+        nextOptions.forEach(function (option) {
+            categorySelect.appendChild(option.cloneNode(true));
+        });
+
+        if (nextOptions.some(function (option) { return option.value === previousValue; })) {
+            categorySelect.value = previousValue;
         }
     }
 
-    typeSelect.addEventListener('change', filterCategories);
+    if (typeSelect) typeSelect.addEventListener('change', filterCategories);
     filterCategories();
+
+    document.querySelectorAll('[data-cms-editor-tabs]').forEach(function (tabs) {
+        var field = tabs.closest('.cms-field');
+        var source = field ? field.querySelector('[data-editor-source]') : null;
+        var rich = field ? field.querySelector('[data-editor-rich]') : null;
+        var preview = field ? field.querySelector('[data-editor-preview]') : null;
+        if (!source || !rich || !preview) return;
+
+        function setMode(mode) {
+            tabs.querySelectorAll('[data-editor-mode]').forEach(function (button) {
+                button.classList.toggle('active', button.dataset.editorMode === mode);
+            });
+            if (mode === 'visual') {
+                rich.innerHTML = source.value;
+            }
+            if (mode === 'preview') {
+                var doc = preview.contentDocument || preview.contentWindow.document;
+                doc.open();
+                doc.write('<!doctype html><html><head><meta charset="utf-8"><style>body{font-family:Arial,sans-serif;line-height:1.6;padding:24px;color:#111827} img{max-width:100%;height:auto}</style></head><body>' + source.value + '</body></html>');
+                doc.close();
+            }
+            source.hidden = mode !== 'code';
+            rich.hidden = mode !== 'visual';
+            preview.hidden = mode !== 'preview';
+        }
+
+        rich.addEventListener('input', function () {
+            source.value = rich.innerHTML;
+        });
+        tabs.querySelectorAll('[data-editor-mode]').forEach(function (button) {
+            button.addEventListener('click', function () {
+                if (!rich.hidden) {
+                    source.value = rich.innerHTML;
+                }
+                setMode(button.dataset.editorMode);
+            });
+        });
+        var form = source.closest('form');
+        if (form) {
+            form.addEventListener('submit', function () {
+                if (!rich.hidden) {
+                    source.value = rich.innerHTML;
+                }
+            });
+        }
+    });
 });
 </script>
 {% endblock %}

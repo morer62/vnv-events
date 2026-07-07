@@ -78,7 +78,7 @@
     .cms-table{
         width:100%;
         border-collapse:collapse;
-        min-width:1180px;
+        min-width:1080px;
     }
 
     .cms-table th{
@@ -92,9 +92,9 @@
     }
 
     .cms-table td{
-        padding:16px 12px;
+        padding:12px;
         border-bottom:1px solid #f1f5f9;
-        vertical-align:top;
+        vertical-align:middle;
         color:#111827;
         font-size:.95rem;
     }
@@ -187,9 +187,47 @@
 
     .cms-filters{
         display:grid;
-        grid-template-columns:repeat(4, minmax(160px, 1fr));
+        grid-template-columns:180px minmax(220px, 1fr) auto;
         gap:12px;
         margin-bottom:18px;
+    }
+
+    .cms-tabs{
+        display:flex;
+        flex-wrap:wrap;
+        gap:10px;
+        margin-bottom:18px;
+    }
+
+    .cms-tab{
+        align-items:center;
+        background:#f3f4f6;
+        border-radius:999px;
+        color:#374151;
+        display:inline-flex;
+        gap:8px;
+        padding:10px 14px;
+        text-decoration:none;
+        font-weight:800;
+    }
+
+    .cms-tab:hover{
+        color:#111827;
+        background:#e5e7eb;
+    }
+
+    .cms-tab.active{
+        background:#111827;
+        color:#fff;
+    }
+
+    .cms-tab-count{
+        background:rgba(255,255,255,.85);
+        border-radius:999px;
+        color:#111827;
+        min-width:24px;
+        padding:2px 8px;
+        text-align:center;
     }
 
     .cms-filter-field label{
@@ -243,23 +281,23 @@
     </div>
 
     <div class="cms-card">
+        <div class="cms-tabs">
+            {% for type in contentTypes %}
+                <a class="cms-tab {% if filters.content_type == type %}active{% endif %}" href="{{ path('panel/cms/pages') }}?content_type={{ type }}{% if filters.status %}&status={{ filters.status }}{% endif %}{% if filters.q %}&q={{ filters.q|url_encode }}{% endif %}">
+                    {{ type == 'blog' ? 'Blog Articles' : (type == 'location' ? 'Locations' : 'Pages') }}
+                    <span class="cms-tab-count">{{ typeCounts[type]|default(0) }}</span>
+                </a>
+            {% endfor %}
+        </div>
+
         <form method="GET" class="cms-filters">
+            <input type="hidden" name="content_type" value="{{ filters.content_type }}">
             <div class="cms-filter-field">
                 <label>Status</label>
                 <select name="status">
                     <option value="">All</option>
                     {% for status in ['DRAFT', 'PREVIEW', 'GENERATED', 'READY', 'PUBLISHED', 'ARCHIVED'] %}
                         <option value="{{ status }}" {% if filters.status == status %}selected{% endif %}>{{ status }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-
-            <div class="cms-filter-field">
-                <label>Type</label>
-                <select name="content_type">
-                    <option value="">All</option>
-                    {% for type in contentTypes %}
-                        <option value="{{ type }}" {% if filters.content_type == type %}selected{% endif %}>{{ type|replace({'_':' '})|title }}</option>
                     {% endfor %}
                 </select>
             </div>
@@ -276,17 +314,24 @@
         </form>
 
         {% if pages|length > 0 %}
+            {% if generatedCount > 0 %}
+                <form method="POST" class="cms-actions" style="margin-bottom:16px;">
+                    <input type="hidden" name="action" value="publish_generated">
+                    <button type="submit" class="cms-btn cms-btn-primary">Publish all generated ({{ generatedCount }})</button>
+                    <a href="{{ path('panel/cms/pages/create') }}" class="cms-btn cms-btn-light">Keep generating</a>
+                </form>
+            {% endif %}
             <div class="cms-table-wrap">
                 <table class="cms-table">
                     <thead>
                         <tr>
+                            <th>Published</th>
                             <th>Content</th>
-                            <th>Type</th>
                             <th>Template</th>
                             <th>SEO Target</th>
                             <th>Status</th>
                             <th>Public URL</th>
-                            <th>Activity</th>
+                            <th>Updated</th>
                             <th style="width:220px;">Actions</th>
                         </tr>
                     </thead>
@@ -294,16 +339,14 @@
                         {% for item in pages %}
                             <tr>
                                 <td>
-                                    <strong>{{ item.title }}</strong>
-                                    {% if item.excerpt %}
-                                        <div class="cms-muted" style="margin-top:6px;">
-                                            {{ item.excerpt|slice(0, 90) }}{% if item.excerpt|length > 90 %}...{% endif %}
-                                        </div>
+                                    {% if item.published_at %}
+                                        {{ item.published_at }}
+                                    {% else %}
+                                        <span class="cms-muted">Not published</span>
                                     {% endif %}
                                 </td>
                                 <td>
-                                    <strong>{{ (item.content_type ?: item.type)|replace({'_':' '})|title }}</strong><br>
-                                    <span class="cms-muted">{{ item.language ?: 'en' }}</span>
+                                    <strong>{{ item.title }}</strong>
                                 </td>
                                 <td>
                                     {% if item.template_name %}
@@ -333,8 +376,8 @@
                                     {% endif %}
                                 </td>
                                 <td>
-                                    {% if item.published_at %}
-                                        {{ item.published_at }}
+                                    {% if item.updated_at %}
+                                        {{ item.updated_at }}
                                     {% else %}
                                         <span class="cms-muted">—</span>
                                     {% endif %}

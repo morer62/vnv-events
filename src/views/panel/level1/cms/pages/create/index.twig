@@ -180,12 +180,179 @@
         padding-left:18px;
     }
 
+    .cms-mode-switch{
+        display:grid;
+        grid-template-columns:1fr 1fr;
+        gap:14px;
+        margin-bottom:22px;
+    }
+
+    .cms-mode-card{
+        background:#fff;
+        border:1px solid #e5e7eb;
+        border-radius:18px;
+        cursor:pointer;
+        padding:18px;
+        text-align:left;
+        transition:.2s ease;
+    }
+
+    .cms-mode-card.active{
+        border-color:#111827;
+        box-shadow:0 14px 36px rgba(17,24,39,.12);
+    }
+
+    .cms-mode-card strong,
+    .cms-mode-card span{
+        display:block;
+    }
+
+    .cms-mode-card strong{
+        color:#111827;
+        font-size:1.05rem;
+        margin-bottom:5px;
+    }
+
+    .cms-mode-card span{
+        color:#6b7280;
+        font-size:.9rem;
+        line-height:1.45;
+    }
+
+    .cms-create-panel[hidden]{
+        display:none;
+    }
+
+    .cms-ai-shell{
+        background:#fff;
+        border:1px solid #e5e7eb;
+        border-radius:20px;
+        box-shadow:0 10px 30px rgba(0,0,0,.05);
+        padding:24px;
+    }
+
+    .cms-ai-steps{
+        display:flex;
+        flex-wrap:wrap;
+        gap:10px;
+        margin-bottom:20px;
+    }
+
+    .cms-ai-step-pill{
+        align-items:center;
+        background:#f3f4f6;
+        border:0;
+        border-radius:999px;
+        color:#4b5563;
+        display:inline-flex;
+        font-weight:800;
+        gap:8px;
+        padding:9px 13px;
+    }
+
+    .cms-ai-step-pill.active{
+        background:#111827;
+        color:#fff;
+    }
+
+    .cms-ai-panel[hidden]{
+        display:none;
+    }
+
+    .cms-ai-ideas{
+        display:grid;
+        gap:14px;
+    }
+
+    .cms-ai-idea{
+        border:1px solid #e5e7eb;
+        border-radius:16px;
+        display:grid;
+        gap:10px;
+        grid-template-columns:auto 1fr;
+        padding:14px;
+    }
+
+    .cms-ai-idea strong,
+    .cms-ai-idea small{
+        display:block;
+    }
+
+    .cms-ai-idea small{
+        color:#6b7280;
+        line-height:1.5;
+    }
+
+    .cms-ai-reference,
+    .cms-ai-result{
+        background:#f8fafc;
+        border:1px solid #e5e7eb;
+        border-radius:16px;
+        margin-top:16px;
+        padding:14px;
+    }
+
+    .cms-ai-result-list{
+        display:grid;
+        gap:10px;
+        margin-top:12px;
+    }
+
+    .cms-ai-result-item{
+        align-items:center;
+        border:1px solid #e5e7eb;
+        border-radius:14px;
+        display:flex;
+        flex-wrap:wrap;
+        gap:10px;
+        justify-content:space-between;
+        padding:12px;
+    }
+
+    .cms-editor-tabs{
+        display:inline-flex;
+        background:#f3f4f6;
+        border-radius:12px;
+        gap:4px;
+        padding:4px;
+    }
+
+    .cms-editor-tabs button{
+        background:transparent;
+        border:0;
+        border-radius:10px;
+        color:#4b5563;
+        font-weight:800;
+        padding:8px 12px;
+    }
+
+    .cms-editor-tabs button.active{
+        background:#111827;
+        color:#fff;
+    }
+
+    .cms-rich-editor,
+    .cms-preview-frame{
+        border:1px solid #d1d5db;
+        border-radius:14px;
+        min-height:420px;
+        padding:18px;
+        width:100%;
+    }
+
+    .cms-rich-editor[hidden],
+    .cms-preview-frame[hidden],
+    .cms-textarea.code[hidden]{
+        display:none;
+    }
+
     @media (max-width:768px){
         .cms-wrap{
             padding:16px;
         }
 
-        .cms-grid{
+        .cms-grid,
+        .cms-mode-switch{
             grid-template-columns:1fr;
         }
 
@@ -223,8 +390,122 @@
         </div>
     {% endif %}
 
-    <form method="POST" enctype="multipart/form-data">
-        <div class="cms-card">
+    <div class="cms-mode-switch" data-create-mode-switch>
+        <button class="cms-mode-card active" type="button" data-create-mode="manual">
+            <strong>Manual</strong>
+            <span>Use the current form and control every CMS field yourself.</span>
+        </button>
+        <button class="cms-mode-card" type="button" data-create-mode="ai">
+            <strong>AI assisted</strong>
+            <span>Generate ideas, pick up to 3 articles, then review and publish.</span>
+        </button>
+    </div>
+
+    <section class="cms-create-panel" data-create-panel="ai" hidden>
+        <div class="cms-ai-shell" data-ai-wizard data-endpoint="{{ path('panel/cms/pages/create') }}">
+            <div class="cms-ai-steps">
+                <button class="cms-ai-step-pill active" type="button" data-ai-step-jump="1">1. Setup</button>
+                <button class="cms-ai-step-pill" type="button" data-ai-step-jump="2">2. Ideas</button>
+                <button class="cms-ai-step-pill" type="button" data-ai-step-jump="3">3. Generate</button>
+            </div>
+
+            <div class="cms-ai-panel" data-ai-panel="1">
+                <h2 class="cms-section-title">AI setup</h2>
+                <div class="cms-grid">
+                    <div class="cms-field">
+                        <label class="cms-label">Content Type</label>
+                        <select class="cms-select" data-ai-content-type>
+                            {% for type in ['page', 'location', 'blog'] %}
+                                <option value="{{ type }}" {% if type == 'blog' %}selected{% endif %}>{{ type|title }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="cms-field">
+                        <label class="cms-label">Category</label>
+                        <select class="cms-select" data-ai-category>
+                            <option value="">No category</option>
+                            {% for category in categories %}
+                                <option value="{{ category.id }}" data-applies-pages="{{ category.applies_to_pages ? '1' : '0' }}" data-applies-blog="{{ category.applies_to_blog ? '1' : '0' }}" data-applies-locations="{{ category.applies_to_locations ? '1' : '0' }}">{{ category.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="cms-field">
+                        <label class="cms-label">Template</label>
+                        <select class="cms-select" data-ai-template>
+                            <option value="">Automatic</option>
+                            {% for item in templates %}
+                                <option value="{{ item.id }}" data-template-type="{{ item.type|default('') }}" data-template-key="{{ item.template_key|default('') }}">{{ item.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="cms-field">
+                        <label class="cms-label">Intent</label>
+                        <select class="cms-select" data-ai-intent>
+                            <option value="informational">Informational</option>
+                            <option value="provocative">Provocative</option>
+                            <option value="comparison">Comparison</option>
+                            <option value="local_guide">Local guide</option>
+                            <option value="sales">Sales / conversion</option>
+                        </select>
+                    </div>
+                    <div class="cms-field full">
+                        <label class="cms-label">Keywords to highlight</label>
+                        <input class="cms-input" data-ai-keywords placeholder="wedding planning, corporate events, Miami">
+                        <div class="cms-help">Optional. Separate keywords with commas.</div>
+                    </div>
+                    <div class="cms-field full">
+                        <label class="cms-label">Suggested title</label>
+                        <input class="cms-input" data-ai-manual-title placeholder="Leave empty to generate title ideas from keywords">
+                    </div>
+                </div>
+                <div class="cms-actions">
+                    <button class="cms-btn cms-btn-primary" type="button" data-ai-generate-ideas>Generate 5 ideas</button>
+                    <button class="cms-btn cms-btn-light" type="button" data-ai-use-title>Use my title</button>
+                    <span class="cms-help" data-ai-status></span>
+                </div>
+            </div>
+
+            <div class="cms-ai-panel" data-ai-panel="2" hidden>
+                <h2 class="cms-section-title">Choose up to 3 articles to generate</h2>
+                <div class="cms-ai-reference" data-ai-reference hidden></div>
+                <div class="cms-ai-ideas" data-ai-ideas></div>
+                <div class="cms-actions">
+                    <button class="cms-btn cms-btn-light" type="button" data-ai-back="1">Back</button>
+                    <button class="cms-btn cms-btn-light" type="button" data-ai-regenerate>Regenerate 5 new ideas</button>
+                    <button class="cms-btn cms-btn-light" type="button" data-ai-cancel-title>Cancel and use my title</button>
+                    <button class="cms-btn cms-btn-primary" type="button" data-ai-next-generate>Continue</button>
+                </div>
+            </div>
+
+            <div class="cms-ai-panel" data-ai-panel="3" hidden>
+                <h2 class="cms-section-title">Generate selected articles</h2>
+                <div class="cms-field">
+                    <label class="cms-label">Images per article + thumbnail</label>
+                    <select class="cms-select" data-ai-image-count>
+                        <option value="0">No images</option>
+                        <option value="1">1 image</option>
+                        <option value="2" selected>2 images</option>
+                        <option value="4">4 images</option>
+                    </select>
+                    <div class="cms-help">Images are generated, uploaded to Cloudinary, inserted into each article, and the first image is saved as the thumbnail / featured image. You can process up to 3 articles per batch.</div>
+                </div>
+                <div class="cms-actions">
+                    <button class="cms-btn cms-btn-light" type="button" data-ai-back="2">Back</button>
+                    <button class="cms-btn cms-btn-primary" type="button" data-ai-create>Process selected articles</button>
+                </div>
+                <div class="cms-ai-result" data-ai-result hidden></div>
+            </div>
+        </div>
+    </section>
+
+    <form method="POST" enctype="multipart/form-data" class="cms-create-panel" data-create-panel="manual">
+        <div class="cms-ai-steps cms-manual-steps">
+            <button class="cms-ai-step-pill active" type="button" data-manual-step-jump="1">1. Setup</button>
+            <button class="cms-ai-step-pill" type="button" data-manual-step-jump="2">2. Body</button>
+            <button class="cms-ai-step-pill" type="button" data-manual-step-jump="3">3. Metadata</button>
+        </div>
+
+        <div class="cms-card" data-manual-panel="1">
             <h2 class="cms-section-title">General</h2>
 
             <div class="cms-grid">
@@ -330,12 +611,25 @@
             </div>
         </div>
 
-        <div class="cms-card">
+        <div class="cms-actions" data-manual-nav="1">
+            <button type="button" class="cms-btn cms-btn-primary" data-manual-next="2">Next: Body</button>
+        </div>
+
+        <div class="cms-card" data-manual-panel="2" hidden>
             <h2 class="cms-section-title">Content</h2>
 
             <div class="cms-field">
-                <label class="cms-label">Body HTML</label>
-                <textarea name="body_html" class="cms-textarea code">{{ old.body_html }}</textarea>
+                <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; margin-bottom:8px;">
+                    <label class="cms-label" style="margin:0;">Body HTML</label>
+                    <div class="cms-editor-tabs" data-cms-editor-tabs>
+                        <button class="active" type="button" data-editor-mode="code">Code</button>
+                        <button type="button" data-editor-mode="visual">Visual</button>
+                        <button type="button" data-editor-mode="preview">Preview</button>
+                    </div>
+                </div>
+                <textarea name="body_html" class="cms-textarea code" data-editor-source>{{ old.body_html }}</textarea>
+                <div class="cms-rich-editor" contenteditable="true" data-editor-rich hidden></div>
+                <iframe class="cms-preview-frame" data-editor-preview hidden title="Content preview"></iframe>
             </div>
 
             <div class="cms-field">
@@ -345,8 +639,22 @@
             </div>
         </div>
 
-        <div class="cms-card">
+        <div class="cms-actions" data-manual-nav="2" hidden>
+            <button type="button" class="cms-btn cms-btn-light" data-manual-prev="1">Back</button>
+            <button type="button" class="cms-btn cms-btn-primary" data-manual-next="3">Next: Metadata</button>
+        </div>
+
+        <div class="cms-card" data-manual-panel="3" hidden>
             <h2 class="cms-section-title">SEO / Metadata</h2>
+
+            <div class="cms-ai-reference">
+                <strong>Metadata assistant</strong>
+                <div class="cms-help">Generate SEO fields and a thumbnail from the title and body. You can still edit every field before saving.</div>
+                <div class="cms-actions">
+                    <button type="button" class="cms-btn cms-btn-light" data-manual-ai-metadata>Generate metadata + thumbnail</button>
+                    <span class="cms-help" data-manual-ai-metadata-status></span>
+                </div>
+            </div>
 
             <div class="cms-grid">
                 <div class="cms-field">
@@ -397,7 +705,8 @@
             </div>
         </div>
 
-        <div class="cms-actions">
+        <div class="cms-actions" data-manual-nav="3" hidden>
+            <button type="button" class="cms-btn cms-btn-light" data-manual-prev="2">Back</button>
             <button type="submit" class="cms-btn cms-btn-primary">Save Content</button>
             <a href="{{ path('panel/cms/pages') }}" class="cms-btn cms-btn-light">Cancel</a>
         </div>
@@ -407,9 +716,9 @@
 document.addEventListener('DOMContentLoaded', function () {
     var typeSelect = document.querySelector('[data-content-type-select]');
     var categorySelect = document.querySelector('[data-cms-category-select]');
-    if (!typeSelect || !categorySelect) {
-        return;
-    }
+    var manualCategoryOptions = categorySelect ? Array.prototype.map.call(categorySelect.options, function (option) {
+        return option.cloneNode(true);
+    }) : [];
 
     function optionApplies(option, type) {
         if (!option.value) {
@@ -421,20 +730,430 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function filterCategories() {
+        if (!typeSelect || !categorySelect) {
+            return;
+        }
         var type = typeSelect.value || 'page';
-        var selectedOption = categorySelect.options[categorySelect.selectedIndex];
-
-        Array.prototype.forEach.call(categorySelect.options, function (option) {
-            option.hidden = !optionApplies(option, type);
+        var previousValue = categorySelect.value;
+        var nextOptions = manualCategoryOptions.filter(function (option) {
+            return optionApplies(option, type);
         });
 
-        if (selectedOption && !optionApplies(selectedOption, type)) {
-            categorySelect.value = '';
+        categorySelect.innerHTML = '';
+        nextOptions.forEach(function (option) {
+            categorySelect.appendChild(option.cloneNode(true));
+        });
+
+        if (nextOptions.some(function (option) { return option.value === previousValue; })) {
+            categorySelect.value = previousValue;
         }
     }
 
-    typeSelect.addEventListener('change', filterCategories);
+    if (typeSelect) typeSelect.addEventListener('change', filterCategories);
     filterCategories();
+
+    var modeButtons = document.querySelectorAll('[data-create-mode]');
+    var modePanels = document.querySelectorAll('[data-create-panel]');
+    modeButtons.forEach(function (button) {
+        button.addEventListener('click', function () {
+            var mode = button.dataset.createMode;
+            modeButtons.forEach(function (item) {
+                item.classList.toggle('active', item === button);
+            });
+            modePanels.forEach(function (panel) {
+                panel.hidden = panel.dataset.createPanel !== mode;
+            });
+        });
+    });
+
+    document.querySelectorAll('[data-cms-editor-tabs]').forEach(function (tabs) {
+        var field = tabs.closest('.cms-field');
+        var source = field ? field.querySelector('[data-editor-source]') : null;
+        var rich = field ? field.querySelector('[data-editor-rich]') : null;
+        var preview = field ? field.querySelector('[data-editor-preview]') : null;
+        if (!source || !rich || !preview) return;
+
+        function setMode(mode) {
+            tabs.querySelectorAll('[data-editor-mode]').forEach(function (button) {
+                button.classList.toggle('active', button.dataset.editorMode === mode);
+            });
+            if (mode === 'visual') {
+                rich.innerHTML = source.value;
+            }
+            if (mode === 'preview') {
+                var doc = preview.contentDocument || preview.contentWindow.document;
+                doc.open();
+                doc.write('<!doctype html><html><head><meta charset="utf-8"><style>body{font-family:Arial,sans-serif;line-height:1.6;padding:24px;color:#111827} img{max-width:100%;height:auto}</style></head><body>' + source.value + '</body></html>');
+                doc.close();
+            }
+            source.hidden = mode !== 'code';
+            rich.hidden = mode !== 'visual';
+            preview.hidden = mode !== 'preview';
+        }
+
+        rich.addEventListener('input', function () {
+            source.value = rich.innerHTML;
+        });
+        tabs.querySelectorAll('[data-editor-mode]').forEach(function (button) {
+            button.addEventListener('click', function () {
+                if (!rich.hidden) {
+                    source.value = rich.innerHTML;
+                }
+                setMode(button.dataset.editorMode);
+            });
+        });
+        var form = source.closest('form');
+        if (form) {
+            form.addEventListener('submit', function () {
+                if (!rich.hidden) {
+                    source.value = rich.innerHTML;
+                }
+            });
+        }
+    });
+
+    var manualForm = document.querySelector('[data-create-panel="manual"]');
+    function showManualStep(step) {
+        if (!manualForm) return;
+        manualForm.querySelectorAll('[data-manual-panel]').forEach(function (panel) {
+            panel.hidden = panel.dataset.manualPanel !== String(step);
+        });
+        manualForm.querySelectorAll('[data-manual-nav]').forEach(function (nav) {
+            nav.hidden = nav.dataset.manualNav !== String(step);
+        });
+        manualForm.querySelectorAll('[data-manual-step-jump]').forEach(function (button) {
+            button.classList.toggle('active', button.dataset.manualStepJump === String(step));
+        });
+    }
+
+    if (manualForm) {
+        manualForm.querySelectorAll('[data-manual-step-jump]').forEach(function (button) {
+            button.addEventListener('click', function () {
+                showManualStep(button.dataset.manualStepJump);
+            });
+        });
+        manualForm.querySelectorAll('[data-manual-next]').forEach(function (button) {
+            button.addEventListener('click', function () {
+                showManualStep(button.dataset.manualNext);
+            });
+        });
+        manualForm.querySelectorAll('[data-manual-prev]').forEach(function (button) {
+            button.addEventListener('click', function () {
+                showManualStep(button.dataset.manualPrev);
+            });
+        });
+        showManualStep(1);
+    }
+
+    function manualField(name) {
+        return manualForm ? manualForm.querySelector('[name="' + name + '"]') : null;
+    }
+
+    function setManualField(name, value) {
+        var field = manualField(name);
+        if (!field || value === undefined || value === null) return;
+        field.value = typeof value === 'object' ? JSON.stringify(value, null, 2) : String(value);
+    }
+
+    var manualMetadataButton = manualForm ? manualForm.querySelector('[data-manual-ai-metadata]') : null;
+    var manualMetadataStatus = manualForm ? manualForm.querySelector('[data-manual-ai-metadata-status]') : null;
+    if (manualMetadataButton) {
+        manualMetadataButton.addEventListener('click', function () {
+            var source = manualField('body_html');
+            var rich = manualForm.querySelector('[data-editor-rich]');
+            if (source && rich && !rich.hidden) {
+                source.value = rich.innerHTML;
+            }
+
+            var data = new FormData();
+            data.set('action', 'ai_generate_metadata');
+            data.set('content_type', manualField('content_type') ? manualField('content_type').value : 'page');
+            data.set('title', manualField('title') ? manualField('title').value : '');
+            data.set('excerpt', manualField('excerpt') ? manualField('excerpt').value : '');
+            data.set('body_html', source ? source.value : '');
+            data.set('meta_keywords', manualField('meta_keywords') ? manualField('meta_keywords').value : '');
+
+            manualMetadataButton.disabled = true;
+            manualMetadataButton.textContent = 'Generating...';
+            if (manualMetadataStatus) manualMetadataStatus.textContent = 'Preparing SEO fields and thumbnail...';
+
+            fetch(window.location.href, {
+                method: 'POST',
+                body: data,
+                credentials: 'same-origin',
+                headers: {
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'fetch'
+                }
+            }).then(function (response) {
+                return response.text().then(function (text) {
+                    var json;
+                    try {
+                        json = text ? JSON.parse(text) : {};
+                    } catch (error) {
+                        throw new Error(text ? text.slice(0, 240) : 'The server returned an empty response. The AI job may have timed out while generating images.');
+                    }
+                    if (!response.ok || json.ok === false) {
+                        throw new Error(json.error || 'Metadata generation failed.');
+                    }
+                    return json;
+                });
+            }).then(function (json) {
+                var metadata = json.metadata || {};
+                setManualField('meta_title', metadata.meta_title);
+                setManualField('meta_description', metadata.meta_description);
+                setManualField('meta_keywords', metadata.meta_keywords);
+                setManualField('og_title', metadata.og_title);
+                setManualField('og_description', metadata.og_description);
+                setManualField('schema_json', metadata.schema_json);
+                if (json.thumbnail && json.thumbnail.url) {
+                    setManualField('featured_image_url', json.thumbnail.url);
+                }
+                if (manualMetadataStatus) {
+                    manualMetadataStatus.textContent = json.thumbnail_error
+                        ? 'Metadata ready. Thumbnail was not generated: ' + json.thumbnail_error
+                        : 'Metadata and thumbnail ready.';
+                }
+            }).catch(function (error) {
+                if (manualMetadataStatus) manualMetadataStatus.textContent = error.message;
+            }).finally(function () {
+                manualMetadataButton.disabled = false;
+                manualMetadataButton.textContent = 'Generate metadata + thumbnail';
+            });
+        });
+    }
+
+    var ai = document.querySelector('[data-ai-wizard]');
+    if (!ai) return;
+
+    var aiState = {
+        ideas: [],
+        reference: null
+    };
+    var aiType = ai.querySelector('[data-ai-content-type]');
+    var aiCategory = ai.querySelector('[data-ai-category]');
+    var aiTemplate = ai.querySelector('[data-ai-template]');
+    var aiKeywords = ai.querySelector('[data-ai-keywords]');
+    var aiManualTitle = ai.querySelector('[data-ai-manual-title]');
+    var aiIntent = ai.querySelector('[data-ai-intent]');
+    var aiStatus = ai.querySelector('[data-ai-status]');
+    var aiIdeas = ai.querySelector('[data-ai-ideas]');
+    var aiReference = ai.querySelector('[data-ai-reference]');
+    var aiResult = ai.querySelector('[data-ai-result]');
+    var aiCategoryOptions = aiCategory ? Array.prototype.map.call(aiCategory.options, function (option) {
+        return option.cloneNode(true);
+    }) : [];
+
+    function showAiStep(step) {
+        ai.querySelectorAll('[data-ai-panel]').forEach(function (panel) {
+            panel.hidden = panel.dataset.aiPanel !== String(step);
+        });
+        ai.querySelectorAll('[data-ai-step-jump]').forEach(function (button) {
+            button.classList.toggle('active', button.dataset.aiStepJump === String(step));
+        });
+    }
+
+    function filterAiCategories() {
+        if (!aiType || !aiCategory) return;
+        var type = aiType.value || 'blog';
+        var previousValue = aiCategory.value;
+        var nextOptions = aiCategoryOptions.filter(function (option) {
+            return optionApplies(option, type);
+        });
+
+        aiCategory.innerHTML = '';
+        nextOptions.forEach(function (option) {
+            aiCategory.appendChild(option.cloneNode(true));
+        });
+
+        if (nextOptions.some(function (option) { return option.value === previousValue; })) {
+            aiCategory.value = previousValue;
+        } else {
+            var firstReal = nextOptions.find(function (option) { return option.value; });
+            aiCategory.value = firstReal ? firstReal.value : '';
+        }
+    }
+
+    function postAi(action, extra) {
+        var data = new FormData();
+        data.set('action', action);
+        data.set('content_type', aiType ? aiType.value : 'blog');
+        data.set('id_cms_category', aiCategory ? aiCategory.value : '');
+        data.set('id_template', aiTemplate ? aiTemplate.value : '');
+        data.set('keywords', aiKeywords ? aiKeywords.value : '');
+        data.set('manual_title', aiManualTitle ? aiManualTitle.value : '');
+        data.set('intent', aiIntent ? aiIntent.value : 'informational');
+        Object.keys(extra || {}).forEach(function (key) {
+            data.set(key, extra[key]);
+        });
+        return fetch(ai.dataset.endpoint, {
+            method: 'POST',
+            body: data,
+            credentials: 'same-origin',
+            headers: {
+                'Accept': 'application/json',
+                'X-Requested-With': 'fetch'
+            }
+        }).then(function (response) {
+            return response.text().then(function (text) {
+                var json;
+                try {
+                    json = text ? JSON.parse(text) : {};
+                } catch (error) {
+                    throw new Error(text ? text.slice(0, 240) : 'The server returned an empty response. The AI job may have timed out while generating images.');
+                }
+                if (!response.ok || json.ok === false) {
+                    throw new Error(json.error || 'AI request failed.');
+                }
+                return json;
+            });
+        });
+    }
+
+    function escapeHtml(value) {
+        return String(value || '')
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+    }
+
+    function renderIdeas() {
+        if (!aiIdeas) return;
+        if (aiReference) {
+            if (aiState.reference && aiState.reference.url) {
+                aiReference.hidden = false;
+                aiReference.innerHTML = '<strong>Remote reference</strong><br><a href="' + escapeHtml(aiState.reference.url) + '" target="_blank" rel="noopener">' + escapeHtml(aiState.reference.title || aiState.reference.url) + '</a>';
+            } else {
+                aiReference.hidden = false;
+                aiReference.innerHTML = '<strong>Remote reference</strong><br>No readable remote reference was found. The draft will use your brief and keywords.';
+            }
+        }
+        aiIdeas.innerHTML = aiState.ideas.map(function (idea, index) {
+            return '<label class="cms-ai-idea">'
+                + '<input type="checkbox" data-ai-idea-index="' + index + '">'
+                + '<span><strong>' + escapeHtml(idea.title) + '</strong>'
+                + '<small>' + escapeHtml(idea.excerpt || idea.angle || '') + '</small>'
+                + (idea.suggested_keywords ? '<small>Keywords: ' + escapeHtml(Array.isArray(idea.suggested_keywords) ? idea.suggested_keywords.join(', ') : idea.suggested_keywords) + '</small>' : '')
+                + '</span></label>';
+        }).join('');
+        aiIdeas.querySelectorAll('[data-ai-idea-index]').forEach(function (box) {
+            box.addEventListener('change', function () {
+                var checked = aiIdeas.querySelectorAll('[data-ai-idea-index]:checked');
+                if (checked.length > 3) {
+                    box.checked = false;
+                    alert('You can generate up to 3 articles per batch.');
+                }
+            });
+        });
+    }
+
+    function selectedIdeas() {
+        var selected = [];
+        ai.querySelectorAll('[data-ai-idea-index]:checked').forEach(function (box) {
+            var idea = aiState.ideas[Number(box.dataset.aiIdeaIndex)];
+            if (idea) selected.push(idea);
+        });
+        return selected.slice(0, 3);
+    }
+
+    function generateIdeas() {
+        if (aiStatus) aiStatus.textContent = 'Generating 5 ideas and looking for one remote reference...';
+        postAi('ai_generate_ideas', {})
+            .then(function (json) {
+                aiState.ideas = json.ideas || [];
+                aiState.reference = json.reference || null;
+                renderIdeas();
+                showAiStep(2);
+                if (aiStatus) aiStatus.textContent = '';
+            })
+            .catch(function (error) {
+                if (aiStatus) aiStatus.textContent = error.message;
+            });
+    }
+
+    if (aiType) aiType.addEventListener('change', filterAiCategories);
+    filterAiCategories();
+    ai.querySelectorAll('[data-ai-step-jump]').forEach(function (button) {
+        button.addEventListener('click', function () {
+            showAiStep(button.dataset.aiStepJump);
+        });
+    });
+    ai.querySelector('[data-ai-generate-ideas]').addEventListener('click', generateIdeas);
+    ai.querySelector('[data-ai-regenerate]').addEventListener('click', generateIdeas);
+    ai.querySelector('[data-ai-use-title]').addEventListener('click', function () {
+        var title = aiManualTitle ? aiManualTitle.value.trim() : '';
+        if (!title) {
+            if (aiStatus) aiStatus.textContent = 'Add your title first.';
+            return;
+        }
+        aiState.ideas = [{ title: title, excerpt: 'Use this manually entered title as the article direction.' }];
+        aiState.reference = null;
+        renderIdeas();
+        showAiStep(2);
+    });
+    ai.querySelector('[data-ai-cancel-title]').addEventListener('click', function () {
+        aiState.ideas = [];
+        showAiStep(1);
+        if (aiManualTitle) aiManualTitle.focus();
+    });
+    ai.querySelectorAll('[data-ai-back]').forEach(function (button) {
+        button.addEventListener('click', function () {
+            showAiStep(button.dataset.aiBack);
+        });
+    });
+    ai.querySelector('[data-ai-next-generate]').addEventListener('click', function () {
+        if (selectedIdeas().length === 0) {
+            alert('Select at least one article idea.');
+            return;
+        }
+        showAiStep(3);
+    });
+    ai.querySelector('[data-ai-create]').addEventListener('click', function () {
+        var button = this;
+        var ideas = selectedIdeas();
+        if (ideas.length === 0) {
+            alert('Select at least one article idea.');
+            return;
+        }
+        button.disabled = true;
+        button.textContent = 'Processing...';
+        if (aiResult) {
+            aiResult.hidden = false;
+            aiResult.textContent = 'Generating ' + ideas.length + ' article(s). If images are enabled, this can take several minutes...';
+        }
+        postAi('ai_create_articles', {
+            selected_ideas: JSON.stringify(ideas),
+            reference_json: JSON.stringify(aiState.reference || {}),
+            image_count: ai.querySelector('[data-ai-image-count]').value || '0'
+        }).then(function (json) {
+            var items = json.created || [];
+            if (aiResult) {
+                aiResult.innerHTML = '<strong>' + items.length + ' article(s) generated.</strong>'
+                    + '<div class="cms-ai-result-list">'
+                    + items.map(function (item) {
+                        return '<div class="cms-ai-result-item"><span>' + escapeHtml(item.title) + '</span><span>'
+                            + '<a class="cms-btn cms-btn-light" href="' + escapeHtml(item.preview_url) + '">Preview</a> '
+                            + '<a class="cms-btn cms-btn-primary" href="' + escapeHtml(item.edit_url) + '">Metadata / Publish</a>'
+                            + '</span></div>';
+                    }).join('')
+                    + '</div><div class="cms-actions"><a class="cms-btn cms-btn-primary" href="{{ path('panel/cms/pages') }}?status=GENERATED">Publish all from list</a><button class="cms-btn cms-btn-light" type="button" data-ai-more>Generate more</button></div>';
+                var more = aiResult.querySelector('[data-ai-more]');
+                if (more) {
+                    more.addEventListener('click', function () {
+                        aiResult.hidden = true;
+                        showAiStep(1);
+                    });
+                }
+            }
+        }).catch(function (error) {
+            if (aiResult) aiResult.textContent = error.message;
+        }).finally(function () {
+            button.disabled = false;
+            button.textContent = 'Process selected articles';
+        });
+    });
 });
 </script>
 {% endblock %}

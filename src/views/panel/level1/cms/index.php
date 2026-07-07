@@ -4,102 +4,11 @@ use App\Repositories\CmsCategoriesRepository;
 use App\Repositories\CmsContentsRepository;
 use App\Repositories\CmsTemplatesRepository;
 use App\Repositories\Connection;
-use App\Repositories\MobileAppBroadcastsRepository;
-use App\Repositories\NotificationsRepository;
-use App\Repositories\UserRepository;
-use App\Services\LoginService;
-use App\Services\NotificationService;
-use App\Utils\LocationUtils;
-use App\Utils\MessageUtil;
 use App\Utils\SiteContext;
 use App\Utils\Router;
 use App\Utils\TemplateResponse;
 
 $router = new Router();
-
-$router->post(function () {
-    $action = (string)($_POST['action'] ?? '');
-    if ($action !== 'send_mobile_broadcast') {
-        LocationUtils::redirectInternal('panel/cms');
-    }
-
-    $title = trim((string)($_POST['mobile_title'] ?? ''));
-    $body = trim((string)($_POST['mobile_body'] ?? ''));
-    $link = trim((string)($_POST['mobile_link'] ?? ''));
-    $link = $link !== '' ? $link : null;
-
-    if ($title === '' || $body === '') {
-        MessageUtil::setMessage('Title and message are required for mobile app notifications.', 'Missing fields', 'warning');
-        LocationUtils::redirectInternal('panel/cms');
-    }
-
-    if (strlen($title) > 140) {
-        $title = substr($title, 0, 140);
-    }
-
-    if (strlen($body) > 800) {
-        $body = substr($body, 0, 800);
-    }
-
-    $usersRepo = new UserRepository();
-    $notificationsRepo = new NotificationsRepository();
-    $broadcastsRepo = new MobileAppBroadcastsRepository();
-    $sender = LoginService::getSession();
-
-    $recipients = $usersRepo->getMobileAppNotificationRecipients();
-    if (count($recipients) === 0) {
-        MessageUtil::setMessage('No active mobile app users with push tokens were found.', 'No recipients', 'warning');
-        LocationUtils::redirectInternal('panel/cms');
-    }
-
-    $broadcastId = $broadcastsRepo->createBroadcast($sender ? (int)$sender->getId() : null, $title, $body, $link);
-    $notificationCount = 0;
-    $pushSent = 0;
-    $pushFailed = 0;
-
-    foreach ($recipients as $recipient) {
-        $message = $title . "\n" . $body;
-        $notificationLink = 'mobile-app-broadcast://' . $broadcastId . ($link ? ('?link=' . rawurlencode($link)) : '');
-        $notificationsRepo->add([
-            'id_user' => (int)$recipient->id,
-            'mensaje' => $message,
-            'link' => $notificationLink,
-            'leido' => 0,
-        ]);
-
-        $notificationId = (int)$notificationsRepo->db->lastId();
-        if ($notificationId > 0) {
-            $notificationCount++;
-        }
-
-        $result = NotificationService::sendExpoNotificationWithResult(
-            (string)$recipient->expo_token,
-            $title,
-            $body,
-            [
-                'type' => 'mobile_app_broadcast',
-                'broadcast_id' => $broadcastId,
-                'notification_id' => $notificationId,
-                'link' => $link,
-                'screen' => 'NotificationDetail',
-            ]
-        );
-
-        if ($result['ok'] ?? false) {
-            $pushSent++;
-        } else {
-            $pushFailed++;
-            if (($result['expo_error'] ?? null) === 'DeviceNotRegistered') {
-                $usersRepo->clearExpoToken((int)$recipient->id);
-            }
-        }
-    }
-
-    $broadcastsRepo->updateStats($broadcastId, count($recipients), $pushSent, $pushFailed, $notificationCount);
-
-    MessageUtil::setMessage("Mobile app broadcast sent to {$pushSent} device(s). {$notificationCount} notification record(s) created.");
-    LocationUtils::redirectInternal('panel/cms');
-});
 
 $router->get(function () {
     $db = new Connection();
@@ -113,26 +22,43 @@ $router->get(function () {
     $cmsCategoriesRepository = new CmsCategoriesRepository();
     $cmsCategoriesRepository->db = $db;
 
-    $broadcastsRepository = new MobileAppBroadcastsRepository();
-    $usersRepository = new UserRepository();
+    $contentItems = $contentsRepository->getAllForPanel('en', SiteContext::siteKey());
+    $typeCounts = [
+        'page' => 0,
+        'location' => 0,
+        'blog' => 0,
+    ];
+    $publishedCount = 0;
+    $draftCount = 0;
 
-    $totalPages = $contentsRepository->countByType('page');
+    foreach ($contentItems as $item) {
+        $contentType = normalizeCmsDashboardContentType((string)($item->content_type ?? $item->type ?? 'page'));
+        $typeCounts[$contentType]++;
+
+        $status = strtoupper((string)($item->status ?? ''));
+        if ($status === 'PUBLISHED') {
+            $publishedCount++;
+        }
+        if ($status === 'DRAFT') {
+            $draftCount++;
+        }
+    }
+
     $totalCmsCategories = count($cmsCategoriesRepository->getAllForPanel());
-    $mobileRecipients = $usersRepository->getMobileAppNotificationRecipients();
 
     return TemplateResponse::render(__DIR__ . "/index.twig", [
         "title"               => "CMS",
         "siteKey"             => SiteContext::siteKey(),
         "originLabel"         => "ophyra_growth_hub",
-        "totalPages"          => $totalPages,
-        "totalContent"        => $totalPages,
+        "totalPages"          => $typeCounts['page'],
+        "totalLocations"      => $typeCounts['location'],
+        "totalBlogArticles"   => $typeCounts['blog'],
+        "totalContent"        => count($contentItems),
         "totalCmsCategories"  => $totalCmsCategories,
         "totalCategories"     => $totalCmsCategories,
         "totalTemplates"      => count($templatesRepository->getAllForPanel()),
-        "totalPublishedPages" => $contentsRepository->countByTypeAndStatus('page', 'PUBLISHED'),
-        "totalDraftPages"     => $contentsRepository->countByTypeAndStatus('page', 'DRAFT'),
-        "mobilePushRecipientsCount" => count($mobileRecipients),
-        "recentMobileBroadcasts" => $broadcastsRepository->getRecent(8),
+        "totalPublishedPages" => $publishedCount,
+        "totalDraftPages"     => $draftCount,
     ]);
 });
 
@@ -140,4 +66,19 @@ try {
     $router->run();
 } catch (Exception $e) {
     echo $e->getMessage();
+}
+
+function normalizeCmsDashboardContentType(string $contentType): string
+{
+    $contentType = strtolower(trim($contentType));
+
+    if ($contentType === 'location') {
+        return 'location';
+    }
+
+    if (in_array($contentType, ['blog', 'post', 'guide', 'faq_page', 'comparison', 'case_study'], true)) {
+        return 'blog';
+    }
+
+    return 'page';
 }
