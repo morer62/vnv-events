@@ -393,7 +393,7 @@
                     <label class="cms-label">Content Mode</label>
                     <select name="content_mode" class="cms-select">
                         <option value="structured" {% if old.content_mode == 'structured' %}selected{% endif %}>Structured</option>
-                        <option value="html" {% if old.content_mode == 'html' %}selected{% endif %}>HTML</option>
+                        <option value="html" {% if old.content_mode == 'html' %}selected{% endif %}>HTML / Twig code</option>
                         <option value="hybrid" {% if old.content_mode == 'hybrid' %}selected{% endif %}>Hybrid</option>
                     </select>
                 </div>
@@ -419,14 +419,15 @@
 
             <div class="cms-field">
                 <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; margin-bottom:8px;">
-                    <label class="cms-label" style="margin:0;">Body HTML</label>
+                    <label class="cms-label" style="margin:0;">Body HTML / Twig code</label>
                     <div class="cms-editor-tabs" data-cms-editor-tabs>
                         <button class="active" type="button" data-editor-mode="code">Code</button>
                         <button type="button" data-editor-mode="visual">Visual</button>
                         <button type="button" data-editor-mode="preview">Preview</button>
                     </div>
                 </div>
-                <textarea name="body_html" class="cms-textarea code" data-editor-source>{{ old.body_html }}</textarea>
+                <textarea name="body_html" class="cms-textarea code" data-editor-source placeholder="Paste full HTML or Twig-ready markup here.">{{ old.body_html }}</textarea>
+                <div class="cms-help">Use Code for full developer markup. Visual mode is for simple rich text edits; Twig tags should be edited in Code.</div>
                 <div class="cms-rich-editor" contenteditable="true" data-editor-rich hidden></div>
                 <iframe class="cms-preview-frame" data-editor-preview hidden title="Content preview"></iframe>
             </div>

@@ -162,6 +162,21 @@
         color:#4b5563;
     }
 
+    .cms-status-form{
+        margin-top:8px;
+    }
+
+    .cms-status-select{
+        width:100%;
+        min-width:120px;
+        border:1px solid #d1d5db;
+        border-radius:10px;
+        padding:7px 9px;
+        color:#111827;
+        background:#fff;
+        font-size:.84rem;
+    }
+
     .cms-muted{
         color:#6b7280;
     }
@@ -187,7 +202,7 @@
 
     .cms-filters{
         display:grid;
-        grid-template-columns:180px minmax(220px, 1fr) auto;
+        grid-template-columns:180px 220px minmax(220px, 1fr) auto;
         gap:12px;
         margin-bottom:18px;
     }
@@ -303,13 +318,28 @@
             </div>
 
             <div class="cms-filter-field">
+                <label>Category</label>
+                <select name="category_id">
+                    <option value="0">All {{ filters.content_type == 'blog' ? 'blog categories' : (filters.content_type == 'location' ? 'location categories' : 'page categories') }}</option>
+                    {% for category in activeCategories %}
+                        <option value="{{ category.id }}" {% if filters.category_id == category.id %}selected{% endif %}>
+                            {{ category.name }}{% if categoryCounts[category.id]|default(0) > 0 %} ({{ categoryCounts[category.id] }}){% endif %}
+                        </option>
+                    {% endfor %}
+                    {% if categoryCounts[0]|default(0) > 0 %}
+                        <option value="-1" disabled>No category ({{ categoryCounts[0] }})</option>
+                    {% endif %}
+                </select>
+            </div>
+
+            <div class="cms-filter-field">
                 <label>Search</label>
                 <input type="search" name="q" value="{{ filters.q }}" placeholder="Title, slug or SEO">
             </div>
 
             <div class="cms-filter-field" style="align-self:end; display:flex; gap:10px;">
                 <button type="submit" class="cms-btn cms-btn-primary">Filter</button>
-                <a href="{{ path('panel/cms/pages') }}" class="cms-btn cms-btn-light">Reset</a>
+                <a href="{{ path('panel/cms/pages') }}?content_type={{ filters.content_type }}" class="cms-btn cms-btn-light">Reset</a>
             </div>
         </form>
 
@@ -367,6 +397,15 @@
                                 <td>
                                     {% set statusClass = item.status|lower %}
                                     <span class="cms-badge {{ statusClass }}">{{ item.status }}</span>
+                                    <form method="POST" class="cms-status-form">
+                                        <input type="hidden" name="action" value="update_status">
+                                        <input type="hidden" name="id" value="{{ item.id }}">
+                                        <input type="hidden" name="redirect" value="panel/cms/pages?content_type={{ filters.content_type }}{% if filters.category_id %}&category_id={{ filters.category_id }}{% endif %}{% if filters.status %}&status={{ filters.status }}{% endif %}{% if filters.q %}&q={{ filters.q|url_encode }}{% endif %}">
+                                        <select name="status" class="cms-status-select" onchange="this.form.submit()">
+                                            <option value="DRAFT" {% if item.status == 'DRAFT' %}selected{% endif %}>Draft</option>
+                                            <option value="PUBLISHED" {% if item.status == 'PUBLISHED' %}selected{% endif %}>Published</option>
+                                        </select>
+                                    </form>
                                 </td>
                                 <td>
                                     {% if item.main_route and item.main_route.route %}

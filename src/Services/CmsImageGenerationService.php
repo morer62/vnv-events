@@ -20,6 +20,8 @@ class CmsImageGenerationService
             throw new Exception('Image prompt is required.');
         }
 
+        $prompt = $this->toHyperrealisticPrompt($prompt);
+
         $apiKey = trim((string)($_ENV['OPENAI_TOKEN'] ?? $_ENV['OPENAI_API_KEY'] ?? ''));
         if ($apiKey === '') {
             throw new Exception('OPENAI_TOKEN is not configured.');
@@ -79,6 +81,11 @@ class CmsImageGenerationService
             'model' => $model,
             'size' => $size,
         ];
+    }
+
+    private function toHyperrealisticPrompt(string $prompt): string
+    {
+        return trim($prompt) . ' Hyperrealistic professional event photography, natural lighting, realistic people and environments, premium editorial photo quality, true-to-life colors, no illustration, no cartoon, no anime, no 3D render, no text overlay, no logos, no watermark.';
     }
 
     public function generateMany(array $prompts, int $limit, string $folder = 'cms/generated-images', string $size = '1024x1024'): array

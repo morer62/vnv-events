@@ -337,7 +337,7 @@ $router->post(function () {
                         'meta_title should be concise and click-worthy.',
                         'meta_description should be useful, natural and no longer than 160 characters.',
                         'schema_json should be a valid JSON-LD object appropriate for the content type.',
-                        'thumbnail_prompt should describe a polished realistic event image for VNV Events without text overlays.',
+                        'thumbnail_prompt must describe hyperrealistic professional event photography for VNV Events, not illustration, cartoon, anime or render, and without text overlays.',
                     ],
                 ],
                 90
@@ -457,7 +457,7 @@ $router->post(function () {
                 $article = cmsCallOpenAiJson(
                     'You are a careful SEO content writer for VNV Events. Return valid JSON only.',
                     [
-                        'task' => 'Generate one CMS-ready draft. Required keys: title, slug, excerpt, body_html, meta_title, meta_description, meta_keywords, schema_json, og_title, og_description, image_prompts. body_html must be clean rich HTML with h2 sections, useful paragraphs, lists and FAQ when helpful. No markdown.',
+                        'task' => 'Generate one CMS-ready draft. Required keys: title, slug, excerpt, body_html, meta_title, meta_description, meta_keywords, schema_json, og_title, og_description, image_prompts. body_html must be clean rich HTML with h2 sections, useful paragraphs, lists and FAQ when helpful. image_prompts must be hyperrealistic professional event photography prompts, not illustration, cartoon, anime or 3D render. No markdown.',
                         'brand' => 'VNV Events LLC',
                         'content_type' => $contentType,
                         'idea' => $idea,
@@ -469,6 +469,7 @@ $router->post(function () {
                             'Do not invent prices, addresses, awards, reviews, guarantees, licenses or staff names.',
                             'Use the remote reference only as editorial context; do not copy it.',
                             'Visible content must be in English.',
+                            'Image prompts must specify realistic people, realistic event spaces, natural lighting, true-to-life colors and no text overlays.',
                         ],
                     ],
                     120

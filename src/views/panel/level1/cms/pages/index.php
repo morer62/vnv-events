@@ -1,6 +1,7 @@
 <?php
 
 use App\Repositories\CmsContentsRepository;
+use App\Repositories\CmsCategoriesRepository;
 use App\Repositories\CmsRoutesRepository;
 use App\Repositories\Connection;
 use App\Services\LoginService;
@@ -14,7 +15,7 @@ $router = new Router();
 
 $router->post(function () {
     $action = trim((string)($_POST['action'] ?? ''));
-    if ($action !== 'publish_generated') {
+    if (!in_array($action, ['publish_generated', 'update_status'], true)) {
         LocationUtils::redirectInternal('panel/cms/pages');
     }
 
@@ -23,6 +24,33 @@ $router->post(function () {
     $contentsRepository->db = $db;
     $sessionUser = LoginService::getSession();
     $authorUserId = $sessionUser ? (int)$sessionUser->getId() : null;
+
+    if ($action === 'update_status') {
+        $contentId = (int)($_POST['id'] ?? 0);
+        $status = strtoupper(trim((string)($_POST['status'] ?? '')));
+        $redirect = trim((string)($_POST['redirect'] ?? 'panel/cms/pages'));
+
+        if ($contentId <= 0 || !in_array($status, ['DRAFT', 'PUBLISHED'], true)) {
+            MessageUtil::setMessage('Invalid status update request.', 'Status not changed', 'warning');
+            LocationUtils::redirectInternal($redirect !== '' ? $redirect : 'panel/cms/pages');
+        }
+
+        $updateData = [
+            'status' => $status,
+            'updated_by' => $authorUserId,
+            'updated_at' => date('Y-m-d H:i:s'),
+        ];
+
+        if ($status === 'PUBLISHED') {
+            $updateData['published_at'] = date('Y-m-d H:i:s');
+        } elseif ($status === 'DRAFT') {
+            $updateData['published_at'] = null;
+        }
+
+        $contentsRepository->update($updateData, ['id' => $contentId]);
+        MessageUtil::setMessage('Content status updated.');
+        LocationUtils::redirectInternal($redirect !== '' ? $redirect : 'panel/cms/pages');
+    }
 
     $items = $contentsRepository->getAllForPanel('en', SiteContext::siteKey());
     $published = 0;
@@ -56,11 +84,15 @@ $router->get(function () {
     $routesRepository = new CmsRoutesRepository();
     $routesRepository->db = $db;
 
+    $categoriesRepository = new CmsCategoriesRepository();
+    $categoriesRepository->db = $db;
+
     $contentTypes = ['blog', 'location', 'page'];
 
     $filters = [
         'status' => strtoupper(trim((string)($_GET['status'] ?? ''))),
         'content_type' => strtolower(trim((string)($_GET['content_type'] ?? ''))),
+        'category_id' => (int)($_GET['category_id'] ?? 0),
         'q' => trim((string)($_GET['q'] ?? '')),
     ];
 
@@ -68,10 +100,30 @@ $router->get(function () {
         $filters['content_type'] = 'blog';
     }
 
+    $activeCategories = $categoriesRepository->getActiveForContentType($filters['content_type']);
+    if ($filters['category_id'] > 0) {
+        $categoryAllowed = false;
+        foreach ($activeCategories as $category) {
+            if ((int)$category->id === $filters['category_id']) {
+                $categoryAllowed = true;
+                break;
+            }
+        }
+        if (!$categoryAllowed) {
+            $filters['category_id'] = 0;
+        }
+    }
+
     $allPages = $contentsRepository->getAllForPanel('en', SiteContext::siteKey());
     $typeCounts = array_fill_keys($contentTypes, 0);
+    $categoryCounts = [];
     foreach ($allPages as $page) {
-        $typeCounts[normalizeCmsContentType((string)($page->content_type ?? $page->type ?? 'page'))]++;
+        $normalizedType = normalizeCmsContentType((string)($page->content_type ?? $page->type ?? 'page'));
+        $typeCounts[$normalizedType]++;
+        if ($normalizedType === $filters['content_type']) {
+            $categoryId = (int)($page->id_cms_category ?? 0);
+            $categoryCounts[$categoryId] = ($categoryCounts[$categoryId] ?? 0) + 1;
+        }
     }
 
     $pages = array_values(array_filter($allPages, static function ($page) use ($filters): bool {
@@ -82,6 +134,10 @@ $router->get(function () {
         $contentType = normalizeCmsContentType((string)($page->content_type ?? $page->type ?? 'page'));
 
         if ($contentType !== $filters['content_type']) {
+            return false;
+        }
+
+        if ($filters['category_id'] > 0 && (int)($page->id_cms_category ?? 0) !== $filters['category_id']) {
             return false;
         }
 
@@ -112,6 +168,8 @@ $router->get(function () {
         "pages" => $pages,
         "contentTypes" => $contentTypes,
         "typeCounts" => $typeCounts,
+        "activeCategories" => $activeCategories,
+        "categoryCounts" => $categoryCounts,
         "filters" => $filters,
         "generatedCount" => $generatedCount,
     ]);
