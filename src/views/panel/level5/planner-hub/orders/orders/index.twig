@@ -8,6 +8,7 @@
             <thead>
             <tr>
                 <th>Next Step</th>
+                <th>Event Area</th>
                 <th>ID</th>
                 <th>Event Date</th>
                 <th>Start - End</th>
@@ -30,6 +31,7 @@
                             <span class="text-muted">No action available</span>
                         {% endif %}
                     </td>
+                    <td style="min-width: 170px;"><a href="{{ path('panel/event-execution') }}?order_id={{ order.id }}" class="btn btn-sm btn-success w-100">Enter Event Area</a></td>
                     <td style="min-width: 120px;"><strong>vnv-341{{ order.id }}</strong></td>
                     <td style="min-width: 160px;">{{ order.event_date|date("l, M j") }}</td>
                     <td style="min-width: 160px;">{{ order.start_time|date("g:i A") }} - {{ order.end_time|date("g:i A") }}</td>
@@ -57,7 +59,7 @@
                 </tr>
             {% else %}
                 <tr>
-                    <td colspan="8">
+                    <td colspan="9">
                         <div class="vnv-empty-state">{{ empty_message }}</div>
                     </td>
                 </tr>

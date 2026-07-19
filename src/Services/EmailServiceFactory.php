@@ -142,7 +142,7 @@ class EmailServiceFactory
             ];
 
             $fromEmail = (string)($smtp->from_email ?? '');
-            $fromName = (string)($smtp->from_name ?? 'Avomeal');
+            $fromName = (string)($smtp->from_name ?? 'VNV Events');
             if ($fromEmail === '') {
                 return ['success' => false, 'message' => 'From email is missing in SMTP config.'];
             }

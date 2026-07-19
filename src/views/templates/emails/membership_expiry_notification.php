@@ -158,7 +158,7 @@
         <div class="footer">
             <p>&copy; <?php echo date("Y"); ?> VNV-Events. All rights reserved.</p>
             <p>This is an automated email, please do not reply.</p>
-            <p>If you have any questions, please contact our support team at <a href="https://ophyra.com/">ophyra.com</a></p>
+            <p>If you have any questions, please contact VNV Events at <a href="mailto:info@vnvevents.com">info@vnvevents.com</a>.</p>
         </div>
     </div>
 </body>

@@ -44,4 +44,13 @@ class PayrollTimeLogsRepository extends BaseRepository
         $this->db->bind(":id_owner", $ownerId);
         return $this->db->fetchAll();
     }
+
+    public function getRecentLogsByUserAndOwner(int $userId, int $ownerId, int $limit = 30): array
+    {
+        $limit = max(1, min(100, $limit));
+        $this->db->query("SELECT *, CASE WHEN end_time IS NULL THEN TIMESTAMPDIFF(SECOND,start_time,NOW()) ELSE TIMESTAMPDIFF(SECOND,start_time,end_time) END AS duration_seconds FROM {$this->table} WHERE id_user=:id_user AND id_owner=:id_owner ORDER BY start_time DESC LIMIT {$limit}");
+        $this->db->bind(':id_user', $userId);
+        $this->db->bind(':id_owner', $ownerId);
+        return $this->db->fetchAll();
+    }
 }

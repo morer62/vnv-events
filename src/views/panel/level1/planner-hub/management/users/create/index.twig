@@ -622,7 +622,8 @@ function validateEmail() {
                     loadRolesForLinking();
                 }
             } else {
-                resultDiv.innerHTML = `<div class="alert alert-danger">❌ ${data.message}</div>`;
+                const manageTab = data.existing_level === 5 ? 'clients' : 'team';
+                resultDiv.innerHTML = `<div class="alert alert-warning"><strong>${data.message}</strong><div class="mt-3"><a class="btn btn-outline-primary" href="{{ base_url }}/panel/planner-hub/management/users?active_tab=${manageTab}">Manage existing user</a></div></div>`;
             }
         }
     })

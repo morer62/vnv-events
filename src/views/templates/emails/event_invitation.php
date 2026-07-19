@@ -183,7 +183,7 @@
             <p>
                 This invitation was sent to you by <?= htmlspecialchars($event->event_name) ?>
                 <br>
-                Powered by <strong>Ophyra</strong>
+                <strong>VNV Events</strong>
             </p>
             <p>
                 <a href="<?= htmlspecialchars($invitationUrl) ?>">View Invitation Online</a>

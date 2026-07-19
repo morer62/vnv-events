@@ -1,0 +1,106 @@
+{% extends 'templates/base.admin.twig' %}
+{% block body %}
+<main class="container py-4" style="max-width:1200px">
+<style>
+.ee-hero{background:linear-gradient(135deg,#091315,#13282a);color:#fff;border-radius:24px;padding:28px}.ee-code{font-size:2rem;font-weight:900;letter-spacing:.18em;color:#45e3cf}.ee-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;margin-top:20px}.ee-card{background:#fff;border:1px solid #dfe7e7;border-radius:20px;padding:20px;box-shadow:0 14px 40px #10202012}.ee-list{display:grid;gap:10px}.ee-row{padding:12px;border-radius:14px;background:#f5f8f8}.ee-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:9px}.ee-gallery{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.ee-photo img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:14px}.ee-card input,.ee-card select,.ee-card textarea{width:100%;margin:5px 0 10px;padding:10px;border:1px solid #ccd7d7;border-radius:10px}.ee-btn{border:0;border-radius:999px;background:#087267;color:#fff;padding:10px 16px;font-weight:800}.ee-danger{background:#9b2929;font-size:12px;padding:7px 10px}.ee-muted{color:#607174;font-size:.88rem}.ee-manager{margin-top:10px;padding-top:10px;border-top:1px dashed #ccd7d7}.ee-manager summary{cursor:pointer;font-weight:800}.ee-live{position:sticky;top:10px;z-index:20;display:flex;justify-content:space-between;align-items:center;gap:12px;margin:0 0 14px;padding:12px 16px;border-radius:14px;background:#fff5cc;border:1px solid #e6c95f;box-shadow:0 8px 24px #0002}.ee-live[hidden]{display:none}@media(max-width:760px){.ee-grid,.ee-gallery{grid-template-columns:1fr}}
+</style>
+<style>
+.ee-photo{padding:10px;border:1px solid #e0e8e8;border-radius:16px;background:#fff}.ee-photo img{border-radius:12px}.ee-photo-meta{margin:9px 0 4px;color:#087267;font-size:.82rem;font-weight:800}.ee-photo-comment{margin:4px 0 8px;color:#344548;line-height:1.45}
+</style>
+{% if not space %}
+  <section class="ee-hero"><h1>Event Execution Area</h1><p>Enter the private five-digit event code.</p><form method="post"><input type="hidden" name="action" value="join"><input name="code" inputmode="numeric" pattern="[0-9]{5}" maxlength="5" required style="padding:12px;border-radius:10px;border:0"><button class="ee-btn">Enter event</button></form></section>
+{% else %}
+  <div id="ee-live-update" class="ee-live" hidden><strong>New karaoke or song-request activity is available.</strong><button type="button" class="ee-btn" id="ee-apply-update">Show updates</button></div>
+  <section class="ee-hero"><small>PRIVATE EVENT AREA</small><h1>Event #{{ space.id_order }}</h1><div class="ee-code">{{ space.access_code }}</div><p>{{ space.event_date|date('M j, Y') }}{% if space.address %} · {{ space.address }}{% endif %}</p></section>
+  <div class="ee-grid">
+    <section class="ee-card"><h2>Karaoke queue</h2>
+      <form method="post"><input type="hidden" name="action" value="add_music"><input type="hidden" name="code" value="{{ space.access_code }}"><input type="hidden" name="request_type" value="KARAOKE"><label>Your name</label><input name="participant_name"><label>Song</label><input name="song_title" required maxlength="180"><label>Artist (optional)</label><input name="artist_name" maxlength="180"><button class="ee-btn">Join karaoke</button></form><hr>
+      <div class="ee-list">{% for item in karaoke %}<article class="ee-row"><strong>#{{ loop.index }} · {{ item.participant_name }}</strong><br>{{ item.song_title }}{% if item.artist_name %} · {{ item.artist_name }}{% endif %}<div class="ee-muted">{{ item.status|replace({'_':' '})|title }}</div>
+        <div class="ee-actions">{% if item.id_user == currentUserId or isMusicManager %}<form method="post"><input type="hidden" name="action" value="delete_music"><input type="hidden" name="code" value="{{ space.access_code }}"><input type="hidden" name="request_id" value="{{ item.id }}"><button class="ee-btn ee-danger">Remove</button></form>{% endif %}</div>
+        {% if isMusicManager %}<details class="ee-manager"><summary>DJ controls</summary><form method="post"><input type="hidden" name="action" value="update_music"><input type="hidden" name="code" value="{{ space.access_code }}"><input type="hidden" name="request_id" value="{{ item.id }}"><input name="participant_name" value="{{ item.participant_name }}" required><input name="song_title" value="{{ item.song_title }}" required><input name="artist_name" value="{{ item.artist_name }}"><select name="status"><option value="QUEUED"{{ item.status == 'QUEUED'?' selected':'' }}>Queued</option><option value="PLAYING"{{ item.status == 'PLAYING'?' selected':'' }}>Playing</option><option value="COMPLETED"{{ item.status == 'COMPLETED'?' selected':'' }}>Completed</option></select><input type="number" name="sort_order" value="{{ item.sort_order }}" aria-label="Queue order"><button class="ee-btn">Save</button></form></details>{% endif %}
+      </article>{% else %}<p>No singers yet.</p>{% endfor %}</div>
+    </section>
+    <section class="ee-card"><h2>Song requests & DJ tips</h2>
+      <form method="post"><input type="hidden" name="action" value="add_music"><input type="hidden" name="code" value="{{ space.access_code }}"><input type="hidden" name="request_type" value="SONG_REQUEST"><label>Song</label><input name="song_title" required maxlength="180"><label>Artist</label><input name="artist_name" maxlength="180"><label>Dedication (optional)</label><textarea name="dedication" maxlength="300"></textarea><label>Optional DJ tip</label><input name="tip_amount" type="number" min="0" step="0.01" placeholder="$0.00"><button class="ee-btn">Send request</button></form><hr>
+      <div class="ee-list">{% for item in songRequests %}<article class="ee-row"><strong>#{{ loop.index }} · {{ item.song_title }}</strong>{% if item.artist_name %}<br>{{ item.artist_name }}{% endif %}{% if item.dedication %}<p>{{ item.dedication }}</p>{% endif %}<div class="ee-muted">{{ item.status|title }}{% if item.tip_amount > 0 %} · Tip ${{ item.tip_amount|number_format(2) }} · {{ item.tip_status }}{% endif %}</div>
+        {% if item.id_user == currentUserId and item.tip_amount >= 1 and item.tip_status == 'PENDING' %}{% if tipPaymentMethods|length %}<form method="post" class="ee-manager"><input type="hidden" name="action" value="pay_tip"><input type="hidden" name="code" value="{{ space.access_code }}"><input type="hidden" name="request_id" value="{{ item.id }}"><label>Pay tip with</label><select name="saved_payment_method_id" required>{% for method in tipPaymentMethods %}<option value="{{ method.id }}">{{ method.brand|default(method.method_type)|title }} •••• {{ method.last4 }}</option>{% endfor %}</select><button class="ee-btn">Pay ${{ item.tip_amount|number_format(2) }}</button></form>{% else %}<p class="ee-muted">Add/save a {{ tipProvider.provider_type|default('supported') }} payment method for this business to pay this tip.</p>{% endif %}{% endif %}
+        <div class="ee-actions">{% if item.id_user == currentUserId or isMusicManager %}<form method="post"><input type="hidden" name="action" value="delete_music"><input type="hidden" name="code" value="{{ space.access_code }}"><input type="hidden" name="request_id" value="{{ item.id }}"><button class="ee-btn ee-danger">Remove</button></form>{% endif %}</div>
+        {% if isMusicManager %}<details class="ee-manager"><summary>DJ controls</summary><form method="post"><input type="hidden" name="action" value="update_music"><input type="hidden" name="code" value="{{ space.access_code }}"><input type="hidden" name="request_id" value="{{ item.id }}"><input name="participant_name" value="{{ item.participant_name }}" required><input name="song_title" value="{{ item.song_title }}" required><input name="artist_name" value="{{ item.artist_name }}"><textarea name="dedication">{{ item.dedication }}</textarea><select name="status"><option value="QUEUED"{{ item.status=='QUEUED'?' selected':'' }}>Queued</option><option value="PLAYING"{{ item.status=='PLAYING'?' selected':'' }}>Playing</option><option value="COMPLETED"{{ item.status=='COMPLETED'?' selected':'' }}>Completed</option><option value="CANCELLED"{{ item.status=='CANCELLED'?' selected':'' }}>Cancelled</option></select><input type="number" name="sort_order" value="{{ item.sort_order }}"><button class="ee-btn">Save</button></form></details>{% endif %}
+      </article>{% else %}<p>No song requests yet.</p>{% endfor %}</div>
+    </section>
+  </div>
+  <section class="ee-card" style="margin-top:18px"><div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap"><div><h2>Event photo folders</h2><p>Up to 10 active photos per person. Photos expire after 60 days.</p></div>{% if isClientOwner or userLevel == 1 %}<form method="post" onsubmit="return confirm('Delete every photo in this event gallery?')"><input type="hidden" name="action" value="delete_all_photos"><input type="hidden" name="code" value="{{ space.access_code }}"><button class="ee-btn ee-danger">Clear gallery</button></form>{% endif %}</div>
+    <form method="post" enctype="multipart/form-data"><input type="hidden" name="action" value="add_photo"><input type="hidden" name="code" value="{{ space.access_code }}"><input type="file" name="photo" accept="image/jpeg,image/png,image/webp" required><input name="caption" maxlength="240" placeholder="Caption (optional)"><button class="ee-btn">Upload photo</button></form><hr>{% for folder in photoFolders %}<details class="ee-manager" open><summary>{{ folder.name }} · {{ folder.photos|length }} photo{{ folder.photos|length==1?'':'s' }}</summary><div class="ee-gallery" style="margin-top:12px">{% for photo in folder.photos %}<article class="ee-photo"><img src="{{ photo.photo_url }}" alt="Event photo" loading="lazy">{% if photo.caption %}<p>{{ photo.caption }}</p>{% endif %}{% if photo.id_user == currentUserId or isClientOwner or userLevel == 1 %}<form method="post"><input type="hidden" name="action" value="delete_photo"><input type="hidden" name="code" value="{{ space.access_code }}"><input type="hidden" name="photo_id" value="{{ photo.id }}"><button class="ee-btn ee-danger">Delete</button></form>{% endif %}</article>{% endfor %}</div></details>{% else %}<p>No photos yet.</p>{% endfor %}
+  </section>
+  {% if userLevel == 1 %}<section class="ee-card" style="margin-top:18px"><h2>People & roles</h2><div class="ee-list">{% for member in members %}<div class="ee-row"><strong>{{ member.member_name|trim|default('User #' ~ member.id_user) }}</strong><form method="post"><input type="hidden" name="action" value="set_member_role"><input type="hidden" name="code" value="{{ space.access_code }}"><input type="hidden" name="member_id" value="{{ member.id }}"><select name="role"><option value="PARTICIPANT"{{ member.role=='PARTICIPANT'?' selected':'' }}>Participant</option><option value="CLIENT"{{ member.role=='CLIENT'?' selected':'' }}>Client</option><option value="TEAM"{{ member.role=='TEAM'?' selected':'' }}>Team</option><option value="DJ"{{ member.role=='DJ'?' selected':'' }}>DJ</option><option value="ADMIN"{{ member.role=='ADMIN'?' selected':'' }}>Admin</option></select><button class="ee-btn">Update role</button></form></div>{% endfor %}</div></section>{% endif %}
+{% endif %}
+</main>
+{% if space %}<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const uploadForm = document.querySelector('form[enctype="multipart/form-data"]');
+  const comment = uploadForm?.querySelector('input[name="caption"]');
+  if (comment) {
+    comment.placeholder = 'Add a short comment about this photo (optional)';
+    const label = document.createElement('label');
+    label.textContent = 'Comment (optional)';
+    comment.before(label);
+  }
+  document.querySelectorAll('.ee-manager').forEach((folder) => {
+    const gallery = folder.querySelector('.ee-gallery');
+    if (!gallery) return;
+    const uploader = (folder.querySelector('summary')?.textContent || 'Participant').split('·')[0].trim();
+    gallery.querySelectorAll('.ee-photo').forEach((card) => {
+      const meta = document.createElement('div');
+      meta.className = 'ee-photo-meta';
+      meta.textContent = `Uploaded by ${uploader || 'Participant'}`;
+      const image = card.querySelector('img');
+      image?.after(meta);
+      const caption = Array.from(card.children).find((node) => node.tagName === 'P');
+      if (caption) caption.classList.add('ee-photo-comment');
+      else {
+        const empty = document.createElement('p');
+        empty.className = 'ee-muted';
+        empty.textContent = 'No comment.';
+        meta.after(empty);
+      }
+    });
+  });
+});
+</script>{% endif %}
+{% if space %}<script>
+(() => {
+  const code = {{ space.access_code|json_encode|raw }};
+  let version = {{ stateVersion|json_encode|raw }};
+  let dirty = false;
+  let busy = false;
+  const banner = document.getElementById('ee-live-update');
+  const apply = document.getElementById('ee-apply-update');
+  document.querySelectorAll('main form input:not([type="hidden"]), main form textarea, main form select').forEach((field) => {
+    field.addEventListener('input', () => { dirty = true; });
+    field.addEventListener('change', () => { dirty = true; });
+  });
+  document.querySelectorAll('main form').forEach((form) => form.addEventListener('submit', () => { busy = true; }));
+  if (apply) apply.addEventListener('click', () => window.location.reload());
+  const check = async () => {
+    if (busy || document.hidden) return;
+    try {
+      const url = new URL(window.location.href);
+      url.searchParams.set('code', code);
+      url.searchParams.set('format', 'state');
+      url.searchParams.set('_', Date.now().toString());
+      const response = await fetch(url.toString(), {headers:{'Accept':'application/json'}, credentials:'same-origin', cache:'no-store'});
+      if (!response.ok) return;
+      const data = await response.json();
+      if (!data.success || !data.version || data.version === version) return;
+      version = data.version;
+      if (dirty || document.activeElement?.matches('input,textarea,select')) {
+        if (banner) banner.hidden = false;
+      } else {
+        window.location.reload();
+      }
+    } catch (error) { /* transient connectivity: retry on the next interval */ }
+  };
+  window.setInterval(check, 2500);
+})();
+</script>{% endif %}
+{% endblock %}

@@ -851,7 +851,7 @@ $router->post(function () {
                     $loginUrl = rtrim($_ENV['APP_URL'] ?? '', '/') . '/login';
                     $temporaryPassword = (string)($user->temporary_password_plain ?? '');
                     $clientName = trim((string)($user->name ?? '') . ' ' . (string)($user->lastname ?? ''));
-                    $subject = 'Your Avomeal access credentials';
+                    $subject = 'Your VNV Events access credentials';
                     $message = '
                         <div style="font-family: Arial, sans-serif; line-height: 1.6; color:#333;">
                             <h2 style="margin: 0 0 10px;">Welcome</h2>

@@ -123,7 +123,7 @@
         <div class="footer">
             <p>&copy; <?php echo date("Y"); ?> VNV-Events. All rights reserved.</p>
             <p>This is an automated email, please do not reply.</p>
-            <p>Visit us at <a href="https://ophyra.com/">ophyra.com</a></p>
+            <p>Visit us at <a href="https://vnvevents.com/">VNV Events</a></p>
         </div>
     </div>
 </body>

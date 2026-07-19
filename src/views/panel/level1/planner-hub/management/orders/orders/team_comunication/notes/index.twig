@@ -25,6 +25,16 @@
 <form method="post">
   <input type="hidden" name="order_id" value="{{ order_id }}">
 
+  <div class="card mb-4 border-primary">
+    <div class="card-header bg-primary text-white"><strong>Apply the same schedule to every service</strong></div>
+    <div class="card-body"><div class="row g-3 align-items-end">
+      <div class="col-md-3"><label class="form-label">Install Time</label><input type="time" id="bulkInstallTime" class="form-control"></div>
+      <div class="col-md-3"><label class="form-label">Execution Time</label><input type="time" id="bulkExecutionTime" class="form-control"></div>
+      <div class="col-md-3"><label class="form-label">Breakdown Time</label><input type="time" id="bulkBreakdownTime" class="form-control"></div>
+      <div class="col-md-3"><button type="button" class="btn btn-primary w-100" id="applyBulkTimes">Apply to all services</button></div>
+    </div><small class="text-muted d-block mt-2">You can still adjust any individual service afterward.</small></div>
+  </div>
+
   <div class="card mb-4">
     <div class="card-header bg-primary text-white">
       <h4 class="mb-0">📋 Main Order #{{ order_id }} - Service Notes</h4>
@@ -133,6 +143,10 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {
+  document.getElementById('applyBulkTimes')?.addEventListener('click', function () {
+    const groups = {install_time: document.getElementById('bulkInstallTime').value, execution_time: document.getElementById('bulkExecutionTime').value, breakdown_time: document.getElementById('bulkBreakdownTime').value};
+    Object.entries(groups).forEach(([name, value]) => { if (value) document.querySelectorAll(`input[name^="${name}["]`).forEach(input => { input.value = value; input.dispatchEvent(new Event('change', {bubbles:true})); }); });
+  });
   document.querySelectorAll('textarea[name^="notes["]').forEach(textarea => {
     if (textarea.hasAttribute('data-payroll-notes')) {
       return;

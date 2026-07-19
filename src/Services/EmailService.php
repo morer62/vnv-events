@@ -14,8 +14,8 @@ class EmailService
     public function __construct()
     {
         $this->mailer = new PHPMailer(true);
-        $this->fromEmail = (string)($_ENV['MAIL_FROM_EMAIL'] ?? 'no-reply@ophyra.com');
-        $this->fromName  = (string)($_ENV['MAIL_FROM_NAME'] ?? 'Ophyra');
+        $this->fromEmail = (string)($_ENV['MAIL_FROM_EMAIL'] ?? 'info@vnvevents.com');
+        $this->fromName  = (string)($_ENV['MAIL_FROM_NAME'] ?? 'VNV Events');
 
         $this->configureSMTP();
     }

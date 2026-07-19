@@ -1,3 +1,38 @@
+{#
+  VNV LIVE — DJ, Karaoke & Live Music
+  ------------------------------------------------------------------
+  CHANGES FROM PREVIOUS VERSION (see chat for full rationale):
+
+  1. PRICING MODEL FIXED — the old page used flat per-event prices
+     ($750 / $1,250 / $1,500 for DJ, $900 / $1,400 / $1,750 for karaoke)
+     that no longer match the live store. The store now sells these as
+     a single variable product, priced PER HOUR with a minimum:
+        - Social & Corporate DJ Package        $220/hr, 3-hr min
+        - Interactive Karaoke Party Experience  $250/hr, 3-hr min
+        - Deluxe Ceremony & Reception            $300/hr, 4-hr min
+        - Community & Neighborhood Party         $400/hr, 4-hr min
+     Karaoke is no longer a separate duplicate package family — it's
+     one of the four core packages, tagged NEW. This removes the
+     redundant second pricing grid entirely.
+
+  2. ADD-ONS CATALOG CORRECTED — matched to the actual 7 products live
+     under the "dj-services-live-music" store category, with current
+     prices and direct product links (previously had a vague "LED
+     Screens & Lighting / Ask for pricing" card that isn't a real SKU,
+     and was missing Moving Head Club Lights + Uplighting Rental).
+
+  3. NEW "Complete Your Event" section — cross-links to the other 5
+     store categories (Planning, Catering, Rentals, Photo/Video,
+     Decor) using their real category photos, per your request to
+     surface the rest of the catalog from this page.
+
+  4. Every pricing CTA now has two paths: "Request a Custom Quote"
+     (opens the existing request modal for bespoke events) and
+     "See Exact Pricing & Book" (links straight to the live store
+     product page, where the real-time variation picker and price
+     range live) — so the page never has to keep its own prices in
+     sync by hand again; the store is the single source of truth.
+#}
 {% extends "templates/base.twig" %}
 
 {% set show_whatsapp = true %}
@@ -91,6 +126,10 @@ h1, h2, h3, h4, h5, .luxury-font {
 .btn-ghost-white:hover {
     background: #fff;
     color: #000 !important;
+}
+.btn-sm-link {
+    padding: 12px 20px;
+    font-size: .7rem;
 }
 
 .section-vnv {
@@ -322,19 +361,21 @@ h1, h2, h3, h4, h5, .luxury-font {
 
 .package-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 24px;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 22px;
 }
 
 .package-card {
     background: rgba(28, 34, 35, 0.82);
     backdrop-filter: blur(6px);
     border-radius: 28px;
-    padding: 42px 34px;
+    padding: 38px 30px;
     border: 1px solid rgba(197, 160, 89, 0.08);
     height: 100%;
     position: relative;
     z-index: 2;
+    display: flex;
+    flex-direction: column;
 }
 
 .package-card.popular {
@@ -342,11 +383,10 @@ h1, h2, h3, h4, h5, .luxury-font {
     box-shadow: 0 25px 70px rgba(197,160,89,.20);
 }
 
-.popular-badge {
+.popular-badge,
+.new-badge {
     display: inline-block;
-    background: var(--vnv-gold-gradient);
-    color: #000;
-    font-size: .66rem;
+    font-size: .64rem;
     font-weight: 800;
     text-transform: uppercase;
     letter-spacing: 1.5px;
@@ -354,37 +394,54 @@ h1, h2, h3, h4, h5, .luxury-font {
     border-radius: 999px;
     margin-bottom: 16px;
 }
+.popular-badge {
+    background: var(--vnv-gold-gradient);
+    color: #000;
+}
+.new-badge {
+    background: rgba(94,198,196,.16);
+    color: var(--vnv-primary);
+    border: 1px solid rgba(94,198,196,.35);
+}
 
 .package-card h3 {
     color: #fff;
-    font-size: 1.8rem;
+    font-size: 1.5rem;
     margin-bottom: 10px;
+    line-height: 1.15;
 }
 .package-card p,
 .package-card li {
     color: var(--vnv-text-muted);
 }
 .package-price {
-    font-size: 2.5rem;
+    font-size: 2.1rem;
     font-weight: 900;
     color: var(--vnv-primary);
     line-height: 1;
-    margin-bottom: 18px;
+    margin-bottom: 4px;
+}
+.package-price small {
+    font-size: .95rem;
+    font-weight: 700;
+    color: var(--vnv-text-muted-soft);
 }
 .package-meta {
     color: rgba(255,255,255,.6);
-    font-size: .95rem;
-    margin-bottom: 22px;
+    font-size: .88rem;
+    margin-bottom: 20px;
 }
 .package-card ul {
     list-style: none;
     padding: 0;
-    margin: 0;
+    margin: 0 0 24px;
+    flex: 1;
 }
 .package-card ul li {
     position: relative;
     padding-left: 22px;
     margin-bottom: 10px;
+    font-size: .93rem;
 }
 .package-card ul li::before {
     content: "";
@@ -394,21 +451,12 @@ h1, h2, h3, h4, h5, .luxury-font {
     background: var(--vnv-gold);
     position: absolute;
     left: 0;
-    top: 12px;
+    top: 8px;
 }
-
-.new-service-tag {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    color: var(--vnv-primary);
-    font-size: .78rem;
-    font-weight: 800;
-    text-transform: uppercase;
-    letter-spacing: 1.5px;
-    margin-bottom: 14px;
+.package-card .vnv-btn {
+    margin-top: auto;
+    width: 100%;
 }
-.new-service-tag i { font-size: .7rem; }
 
 .min-hours-note {
     text-align: center;
@@ -416,6 +464,7 @@ h1, h2, h3, h4, h5, .luxury-font {
     font-size: .92rem;
     color: var(--vnv-text-muted);
 }
+.min-hours-note a { color: var(--vnv-primary); text-decoration: underline; }
 
 .music-wrap {
     display: grid;
@@ -488,32 +537,53 @@ h1, h2, h3, h4, h5, .luxury-font {
 
 .addon-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 24px;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 22px;
 }
 
 .addon-card {
     background: #fff;
     border: 1px solid rgba(17,24,26,.08);
-    border-radius: 30px;
-    padding: 34px 30px;
+    border-radius: 26px;
+    padding: 30px 26px;
     box-shadow: 0 20px 60px rgba(0,0,0,.08);
     height: 100%;
+    display: flex;
+    flex-direction: column;
+    text-decoration: none;
+    transition: transform .3s ease, box-shadow .3s ease;
+}
+.addon-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 30px 70px rgba(0,0,0,.12);
 }
 
 .addon-card h3 {
     color: var(--vnv-text-dark);
-    font-size: 1.6rem;
-    margin-bottom: 10px;
+    font-size: 1.3rem;
+    margin-bottom: 8px;
 }
 .addon-card p {
     color: #4f5b5f;
+    font-size: .92rem;
+    flex: 1;
 }
 .addon-price {
     display: inline-block;
     margin-top: 10px;
     color: var(--vnv-primary);
     font-weight: 800;
+}
+.addon-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 14px;
+    color: var(--vnv-gold);
+    font-weight: 800;
+    font-size: .8rem;
+    letter-spacing: 1px;
+    text-transform: uppercase;
 }
 
 /* Why choose feature grid */
@@ -571,6 +641,7 @@ h1, h2, h3, h4, h5, .luxury-font {
     color: #566164;
     margin: 0;
 }
+.faq-item p a { color: var(--vnv-primary); text-decoration: underline; }
 
 .video-placeholder-grid {
     display: grid;
@@ -589,6 +660,61 @@ h1, h2, h3, h4, h5, .luxury-font {
     text-align: center;
     padding: 24px;
     color: rgba(255,255,255,.62);
+}
+
+/* Explore more services */
+.explore-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+}
+.explore-card {
+    border-radius: 26px;
+    overflow: hidden;
+    background: #fff;
+    border: 1px solid rgba(17,24,26,.08);
+    box-shadow: 0 20px 60px rgba(0,0,0,.08);
+    text-decoration: none;
+    display: flex;
+    flex-direction: column;
+    transition: transform .3s ease, box-shadow .3s ease;
+}
+.explore-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 30px 70px rgba(0,0,0,.12);
+}
+.explore-card img {
+    width: 100%;
+    height: 170px;
+    object-fit: cover;
+    display: block;
+}
+.explore-card-body {
+    padding: 24px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+.explore-card h3 {
+    font-size: 1.3rem;
+    color: var(--vnv-text-dark);
+    margin-bottom: 8px;
+}
+.explore-card p {
+    color: #4f5b5f;
+    font-size: .92rem;
+    flex: 1;
+    margin-bottom: 14px;
+}
+.explore-card-link {
+    color: var(--vnv-gold);
+    font-weight: 800;
+    font-size: .78rem;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
 }
 
 .instagram-block {
@@ -702,9 +828,10 @@ h1, h2, h3, h4, h5, .luxury-font {
 }
 
 @media (max-width: 1199px) {
-    .package-grid,
+    .package-grid { grid-template-columns: 1fr 1fr; }
     .addon-grid,
-    .feature-grid {
+    .feature-grid,
+    .explore-grid {
         grid-template-columns: 1fr 1fr;
     }
     .final-cta-card {
@@ -721,6 +848,7 @@ h1, h2, h3, h4, h5, .luxury-font {
     .package-grid,
     .addon-grid,
     .feature-grid,
+    .explore-grid,
     .video-placeholder-grid {
         grid-template-columns: 1fr;
     }
@@ -790,12 +918,12 @@ h1, h2, h3, h4, h5, .luxury-font {
 
 <section class="hero-live">
     <div class="container hero-live-inner">
-        <span class="vnv-badge">VNV Sound</span>
+        <span class="vnv-badge">VNV Live</span>
 
         <h1>DJ, Karaoke & <span class="text-gold">Live Music</span> in South Florida</h1>
 
         <p class="hero-copy">
-            We read the room and set the right energy — from an elegant ceremony to a full dance-floor party, or a karaoke night your guests won't stop talking about.
+            We read the room and set the right energy — from an elegant ceremony to a full dance-floor party, or a karaoke night your guests won't stop talking about. Now with dedicated karaoke packages built into every tier.
         </p>
 
         <div class="hero-services-row">
@@ -845,6 +973,7 @@ h1, h2, h3, h4, h5, .luxury-font {
                     <li>Professional DJ service for every event style</li>
                     <li>Sound systems scaled to your guest count</li>
                     <li>Microphones for speeches and presentations</li>
+                    <li>Interactive karaoke built into every package tier</li>
                     <li>Lighting and atmosphere support when needed</li>
                 </ul>
             </div>
@@ -863,107 +992,73 @@ h1, h2, h3, h4, h5, .luxury-font {
     <div class="container position-relative" style="z-index:2;">
         <div class="text-center mb-5 pb-5 section-heading">
             <span class="vnv-badge">Prices & Packages</span>
-            <h2 class="text-white">DJ Packages for <span class="text-vnv">South Florida Events</span></h2>
+            <h2 class="text-white">DJ & Karaoke Packages for <span class="text-vnv">South Florida Events</span></h2>
             <p>
-                Straightforward packages built around how South Florida events actually run — no hidden fees, no surprise add-ons.
+                Straightforward hourly packages built around how South Florida events actually run — pick the hours you need, no hidden fees. Every package includes a professional DJ or DJ/MC.
             </p>
         </div>
 
         <div class="package-grid">
             <div class="package-card">
-                <h3>Social and Corporate Gathering</h3>
-                <div class="package-price">$750</div>
-                <div class="package-meta">3 Hours of Service · Additional Hour $250</div>
+                <h3>Social & Corporate</h3>
+                <div class="package-price">$220<small>/hr</small></div>
+                <div class="package-meta">3-Hour Minimum</div>
                 <ul>
-                    <li>High-quality sound system for up to 75 people</li>
-                    <li>Optional sound-activated LED lighting</li>
-                    <li>2 wireless microphones for speeches and presentations</li>
-                    <li>Professional DJ for social and corporate events</li>
+                    <li>Sound system for up to 75 guests</li>
+                    <li>LED lighting for the dance floor</li>
+                    <li>2 wireless microphones for speeches</li>
+                    <li>Music coordination for cocktail hour, dining and dancing</li>
                 </ul>
+                <a href="https://vnvevents.com/product/dj-sound-services-for-events" target="_blank" class="vnv-btn btn-outline-vnv">See Pricing & Book</a>
+            </div>
+
+            <div class="package-card">
+                <span class="new-badge">New</span>
+                <h3>Interactive Karaoke Party</h3>
+                <div class="package-price">$250<small>/hr</small></div>
+                <div class="package-meta">3-Hour Minimum</div>
+                <ul>
+                    <li>Sound system for up to 75 guests</li>
+                    <li>50-inch display with on-screen lyrics</li>
+                    <li>2 wireless mics for solos, duets and groups</li>
+                    <li>Song catalog in English, Spanish and more</li>
+                </ul>
+                <a href="https://vnvevents.com/product/dj-sound-services-for-events" target="_blank" class="vnv-btn btn-outline-vnv">See Pricing & Book</a>
             </div>
 
             <div class="package-card popular">
                 <span class="popular-badge">Most Requested</span>
-                <h3>Deluxe Ceremony Experience</h3>
-                <div class="package-price">$1,250</div>
-                <div class="package-meta">4 Hours of Service · Additional Hour $250</div>
+                <h3>Deluxe Ceremony & Reception</h3>
+                <div class="package-price">$300<small>/hr</small></div>
+                <div class="package-meta">4-Hour Minimum</div>
                 <ul>
-                    <li>High-quality sound system for up to 150 guests</li>
-                    <li>Additional ceremony sound system available upon request</li>
-                    <li>Ideal for weddings, quinceañeras, Bar/Bat Mitzvahs and ceremonies</li>
-                    <li>Experienced MC and tailored musical ambiance</li>
+                    <li>Sound system for up to 150 guests</li>
+                    <li>Optional separate ceremony sound system</li>
+                    <li>DJ/MC for weddings, ceremonies and receptions</li>
+                    <li>Full music coordination from ceremony to open dancing</li>
                 </ul>
+                <a href="https://vnvevents.com/product/dj-sound-services-for-events" target="_blank" class="vnv-btn btn-gold-vnv">See Pricing & Book</a>
             </div>
 
             <div class="package-card">
-                <h3>Community and Neighborhood Party</h3>
-                <div class="package-price">$1,500</div>
-                <div class="package-meta">4 Hours of Service · Additional Hour $250</div>
+                <h3>Community & Neighborhood</h3>
+                <div class="package-price">$400<small>/hr</small></div>
+                <div class="package-meta">4-Hour Minimum</div>
                 <ul>
-                    <li>Sound system for up to 300 attendees</li>
-                    <li>Full lighting package with four sound-activated lights and one laser</li>
-                    <li>Two wireless microphones and two wired microphones</li>
-                    <li>Professional DJ / MC for large and outdoor events</li>
+                    <li>Powerful sound system for up to 300 guests</li>
+                    <li>Full lighting package plus one laser effect</li>
+                    <li>2 wireless + 2 wired microphones</li>
+                    <li>Built for festivals and large outdoor gatherings</li>
                 </ul>
-            </div>
-        </div>
-    </div>
-</section>
-
-<section class="section-vnv section-white" id="karaoke-packages">
-    <div class="container">
-        <div class="section-heading">
-            <span class="new-service-tag"><i class="fa-solid fa-star"></i> Now Available</span>
-            <span class="vnv-badge">DJ + Karaoke Packages</span>
-            <h2>Turn Your Guests Into <span class="text-vnv">The Show</span></h2>
-            <p>
-                A live DJ set combined with a full karaoke experience — lyrics on screen, real microphones, and a song library big enough for every generation in the room. All packages have a 3-hour minimum.
-            </p>
-        </div>
-
-        <div class="package-grid">
-            <div class="package-card">
-                <h3>Karaoke Social Package</h3>
-                <div class="package-price">$900</div>
-                <div class="package-meta">3 Hours of Service · Additional Hour $275</div>
-                <ul>
-                    <li>Full DJ set plus rotating karaoke sing-along</li>
-                    <li>Dual wireless microphones, including a dedicated karaoke mic</li>
-                    <li>Screen or TV monitor with on-screen lyrics</li>
-                    <li>Curated multi-genre karaoke song library</li>
-                    <li>Best for up to 75 guests</li>
-                </ul>
-            </div>
-
-            <div class="package-card popular">
-                <span class="popular-badge">Most Requested</span>
-                <h3>Karaoke Celebration Package</h3>
-                <div class="package-price">$1,400</div>
-                <div class="package-meta">4 Hours of Service · Additional Hour $275</div>
-                <ul>
-                    <li>Everything in the Social Package</li>
-                    <li>Extended karaoke catalog, including bilingual song options</li>
-                    <li>Live song request system so guests can queue their own songs</li>
-                    <li>Sound-activated party lighting</li>
-                    <li>Best for up to 150 guests</li>
-                </ul>
-            </div>
-
-            <div class="package-card">
-                <h3>Karaoke Ultimate Party Package</h3>
-                <div class="package-price">$1,750</div>
-                <div class="package-meta">4 Hours of Service · Additional Hour $275</div>
-                <ul>
-                    <li>Everything in the Celebration Package</li>
-                    <li>Dual screens for lyrics and crowd visuals</li>
-                    <li>Full lighting package plus one laser</li>
-                    <li>Two wireless microphones and two wired microphones</li>
-                    <li>Best for up to 300 guests — ideal for large or outdoor parties</li>
-                </ul>
+                <a href="https://vnvevents.com/product/dj-sound-services-for-events" target="_blank" class="vnv-btn btn-outline-vnv">See Pricing & Book</a>
             </div>
         </div>
 
-        <p class="min-hours-note">All DJ and karaoke bookings have a 3-hour minimum, regardless of package.</p>
+        <p class="min-hours-note">
+            All DJ and karaoke bookings run in the minimum blocks shown above. Final equipment can vary by venue and guest count —
+            <a href="https://vnvevents.com/product/dj-sound-services-for-events" target="_blank">see full package details and book online</a>,
+            or request a custom quote for something more specific.
+        </p>
     </div>
 </section>
 
@@ -1038,46 +1133,65 @@ h1, h2, h3, h4, h5, .luxury-font {
             <span class="vnv-badge">Event Add-ons</span>
             <h2>Enhance the <span class="text-vnv">Experience</span></h2>
             <p>
-                Production add-ons that turn a good event into a memorable one — cold sparks, confetti, custom projections and more.
+                Production add-ons that turn a good event into a memorable one — cold sparks, confetti, monograms, lighting and more. Every card links straight to the live product page.
             </p>
         </div>
 
         <div class="addon-grid">
-            <div class="addon-card">
-                <h3>Cold Sparks</h3>
+            <a href="https://vnvevents.com/product/event-add-ons-cold-spark-machines" target="_blank" class="addon-card">
+                <h3>Cold Spark Machines</h3>
                 <p>Dazzling spark effect for entrances, first dances or big event moments.</p>
-                <span class="addon-price">Starting at $250</span>
-            </div>
+                <span class="addon-price">From $300.00</span>
+                <span class="addon-link">View Product <i class="fa-solid fa-arrow-right"></i></span>
+            </a>
 
-            <div class="addon-card">
+            <a href="https://vnvevents.com/product/event-add-ons-co2-cannons" target="_blank" class="addon-card">
                 <h3>CO2 Cannons</h3>
                 <p>Quick high-impact bursts for dancing, entrances and energetic moments.</p>
-                <span class="addon-price">Starting at $150</span>
-            </div>
+                <span class="addon-price">From $250.00</span>
+                <span class="addon-link">View Product <i class="fa-solid fa-arrow-right"></i></span>
+            </a>
 
-            <div class="addon-card">
-                <h3>Confetti Cannons</h3>
+            <a href="https://vnvevents.com/product/event-add-ons-confetti-cannons" target="_blank" class="addon-card">
+                <h3>Confetti Cannon Machine</h3>
                 <p>A strong visual effect that fills the space in seconds.</p>
-                <span class="addon-price">Starting at $300</span>
-            </div>
+                <span class="addon-price">From $250.00</span>
+                <span class="addon-link">View Product <i class="fa-solid fa-arrow-right"></i></span>
+            </a>
 
-            <div class="addon-card">
+            <a href="https://vnvevents.com/product/event-add-ons-dancing-on-the-clouds" target="_blank" class="addon-card">
                 <h3>Dancing On The Clouds</h3>
                 <p>Low-lying fog effect for a dramatic and elegant atmosphere.</p>
-                <span class="addon-price">Starting at $450</span>
-            </div>
+                <span class="addon-price">From $450.00</span>
+                <span class="addon-link">View Product <i class="fa-solid fa-arrow-right"></i></span>
+            </a>
 
-            <div class="addon-card">
+            <a href="https://vnvevents.com/product/event-add-ons-monogram-projection" target="_blank" class="addon-card">
                 <h3>Monogram Projection</h3>
                 <p>Custom projection on floors, walls or backdrops for personalization.</p>
-                <span class="addon-price">Starting at $125</span>
-            </div>
+                <span class="addon-price">From $180.00</span>
+                <span class="addon-link">View Product <i class="fa-solid fa-arrow-right"></i></span>
+            </a>
 
-            <div class="addon-card">
-                <h3>LED Screens & Lighting</h3>
-                <p>Visual support for stages, presentations and large-scale event ambiance.</p>
-                <span class="addon-price">Ask for pricing</span>
-            </div>
+            <a href="https://vnvevents.com/product/moving-head-wash-light-led" target="_blank" class="addon-card">
+                <h3>Moving Head Club Lights</h3>
+                <p>Professional-grade beam & wash moving head lights, indoor or outdoor.</p>
+                <span class="addon-price">From $115.00</span>
+                <span class="addon-link">View Product <i class="fa-solid fa-arrow-right"></i></span>
+            </a>
+
+            <a href="https://vnvevents.com/product/uplighting-rental-min-6" target="_blank" class="addon-card">
+                <h3>Uplighting Rental (Pack of 4)</h3>
+                <p>Add depth and color to any venue for weddings, corporate events and celebrations.</p>
+                <span class="addon-price">From $120.00</span>
+                <span class="addon-link">View Product <i class="fa-solid fa-arrow-right"></i></span>
+            </a>
+
+            <a href="https://vnvevents.com/product-category/dj-services-live-music/" target="_blank" class="addon-card" style="background: var(--vnv-dark-card); border-color: rgba(197,160,89,.25);">
+                <h3 style="color:#fff;">See All Add-ons</h3>
+                <p style="color: var(--vnv-text-muted);">Browse the full DJ, karaoke and lighting catalog in one place.</p>
+                <span class="addon-link" style="margin-top:auto;">Explore Category <i class="fa-solid fa-arrow-right"></i></span>
+            </a>
         </div>
     </div>
 </section>
@@ -1121,21 +1235,88 @@ h1, h2, h3, h4, h5, .luxury-font {
 
         <div class="faq-wrap">
             <div class="faq-item">
-                <h4>Is there a minimum booking time?</h4>
-                <p>Yes — every DJ and karaoke booking has a 3-hour minimum. Additional hours can be added to any package.</p>
+                <h4>How does the hourly pricing work?</h4>
+                <p>Each package is priced per hour with a minimum block: 3 hours for Social & Corporate or Interactive Karaoke, and 4 hours for Deluxe Ceremony & Reception or Community & Neighborhood. You can add hours to any package — <a href="https://vnvevents.com/product/dj-sound-services-for-events" target="_blank">see live pricing here</a>.</p>
             </div>
             <div class="faq-item">
                 <h4>Do you bring the karaoke equipment, or do we need to rent it?</h4>
-                <p>We bring everything: microphones, screens and the song library. You don't need to rent or set up anything yourself.</p>
+                <p>We bring everything: microphones, the 50-inch display and the song library. You don't need to rent or set up anything yourself.</p>
             </div>
             <div class="faq-item">
                 <h4>Can we mix a regular DJ set with karaoke during the same event?</h4>
-                <p>Yes, that's exactly what the Karaoke packages are built for — a live DJ set with karaoke worked into the flow of the night.</p>
+                <p>Yes — the Interactive Karaoke Party package is built exactly for that: a live DJ set with karaoke worked into the flow of the night.</p>
             </div>
             <div class="faq-item">
                 <h4>How far in advance should we book?</h4>
                 <p>4–8 weeks is comfortable for most events, but peak season (November–May) fills faster — call and we'll confirm your date's availability.</p>
             </div>
+        </div>
+    </div>
+</section>
+
+<section class="section-vnv section-white" id="explore-more">
+    <div class="container">
+        <div class="section-heading">
+            <span class="vnv-badge">Complete Your Event</span>
+            <h2>DJ Sound Is Rarely The <span class="text-vnv">Only Piece</span></h2>
+            <p>
+                Most clients pair entertainment with at least one other category. Browse the rest of the VNV catalog and build a fuller event request.
+            </p>
+        </div>
+
+        <div class="explore-grid">
+            <a href="https://vnvevents.com/product-category/event-planners-and-coordinator/" target="_blank" class="explore-card">
+                <img src="{{ asset_for('assets/images/store-category-planning.jpg') }}" alt="Event planning and coordination services">
+                <div class="explore-card-body">
+                    <h3>Planning & Coordination</h3>
+                    <p>Timeline structure, decision support and day-of coordination for the whole event.</p>
+                    <span class="explore-card-link">View Category <i class="fa-solid fa-arrow-right"></i></span>
+                </div>
+            </a>
+
+            <a href="https://vnvevents.com/product-category/catering-services/" target="_blank" class="explore-card">
+                <img src="{{ asset_for('assets/images/store-category-catering.jpg') }}" alt="Catering and food service by VNV Events">
+                <div class="explore-card-body">
+                    <h3>Catering & Food Service</h3>
+                    <p>Stations, buffet service and specialty food concepts for any event style.</p>
+                    <span class="explore-card-link">View Category <i class="fa-solid fa-arrow-right"></i></span>
+                </div>
+            </a>
+
+            <a href="https://vnvevents.com/product-category/rental-services/" target="_blank" class="explore-card">
+                <img src="{{ asset_for('assets/images/store-category-rentals.jpg') }}" alt="Event rentals and setup pieces">
+                <div class="explore-card-body">
+                    <h3>Rentals & Event Setup</h3>
+                    <p>Tables, chairs, linens, tents and the physical foundation of the event.</p>
+                    <span class="explore-card-link">View Category <i class="fa-solid fa-arrow-right"></i></span>
+                </div>
+            </a>
+
+            <a href="https://vnvevents.com/product-category/photo-video-booths/" target="_blank" class="explore-card">
+                <img src="{{ asset_for('assets/images/store-category-photo-video.jpg') }}" alt="Photography videography and booth experiences">
+                <div class="explore-card-body">
+                    <h3>Photo, Video & Booths</h3>
+                    <p>Photography, videography, drone coverage and photo booth experiences.</p>
+                    <span class="explore-card-link">View Category <i class="fa-solid fa-arrow-right"></i></span>
+                </div>
+            </a>
+
+            <a href="https://vnvevents.com/product-category/balloons-and-flower/" target="_blank" class="explore-card">
+                <img src="{{ asset_for('assets/images/store-category-decor.jpg') }}" alt="Decor floral and visual styling">
+                <div class="explore-card-body">
+                    <h3>Décor, Floral & Visual Styling</h3>
+                    <p>Backdrops, florals and balloon décor that make the space feel intentional.</p>
+                    <span class="explore-card-link">View Category <i class="fa-solid fa-arrow-right"></i></span>
+                </div>
+            </a>
+
+            <a href="https://vnvevents.com/store-categories/" target="_blank" class="explore-card" style="background: var(--vnv-dark-card);">
+                <div class="explore-card-body" style="justify-content:center; align-items:flex-start;">
+                    <h3 style="color:#fff;">See Every Category</h3>
+                    <p style="color: var(--vnv-text-muted);">Start with one category and let the team help you build out the rest.</p>
+                    <span class="explore-card-link">Browse Store <i class="fa-solid fa-arrow-right"></i></span>
+                </div>
+            </a>
         </div>
     </div>
 </section>
@@ -1212,7 +1393,7 @@ h1, h2, h3, h4, h5, .luxury-font {
                 <div class="col-lg-5 text-center text-lg-end">
                     <div class="d-flex flex-column flex-lg-row gap-3 justify-content-end">
                         <a href="tel:+13052045427" class="vnv-btn btn-gold-vnv vnv-btn-fixed">Call Now</a>
-                        <a href="#" class="vnv-btn btn-ghost-white vnv-btn-fixed">Request Proposal</a>
+                        <a href="https://vnvevents.com/product/dj-sound-services-for-events" target="_blank" class="vnv-btn btn-ghost-white vnv-btn-fixed">See Pricing & Book</a>
                     </div>
                 </div>
             </div>
@@ -1236,7 +1417,7 @@ h1, h2, h3, h4, h5, .luxury-font {
 if (typeof gsap !== 'undefined' && typeof ScrollTrigger !== 'undefined') {
     gsap.registerPlugin(ScrollTrigger);
 
-    gsap.from(".intro-image-card, .intro-panel, .package-card, .music-image-stack, .music-panel, .addon-card, .feature-card, .faq-item, .vnv-studio-card, .final-cta-card", {
+    gsap.from(".intro-image-card, .intro-panel, .package-card, .music-image-stack, .music-panel, .addon-card, .feature-card, .faq-item, .explore-card, .vnv-studio-card, .final-cta-card", {
         scrollTrigger: {
             trigger: ".intro-image-card",
             start: "top 82%"

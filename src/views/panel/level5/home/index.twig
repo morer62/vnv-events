@@ -107,6 +107,35 @@
       margin-top: 28px;
     }
 
+    .vnv-event-access {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 22px;
+      align-items: center;
+      margin-top: 20px;
+      padding: 22px;
+      border: 1px solid rgba(69, 227, 207, .38);
+      border-radius: 22px;
+      background: linear-gradient(135deg, #effdfa, #fff9e9);
+      box-shadow: 0 18px 50px rgba(14, 31, 34, .08);
+    }
+
+    .vnv-event-access h2 { margin: 0 0 6px; font-size: 22px; font-weight: 900; }
+    .vnv-event-access p { margin: 0; color: var(--vnv-muted); }
+    .vnv-code-form { display: flex; gap: 10px; align-items: center; }
+    .vnv-code-input {
+      width: 150px;
+      min-height: 50px;
+      border: 2px solid #087267;
+      border-radius: 14px;
+      background: #fff;
+      color: #101718;
+      font-size: 22px;
+      font-weight: 900;
+      letter-spacing: .18em;
+      text-align: center;
+    }
+
     .vnv-section-head {
       display: flex;
       align-items: end;
@@ -432,6 +461,10 @@
       .vnv-list-row {
         grid-template-columns: 1fr;
       }
+
+      .vnv-event-access { grid-template-columns: 1fr; }
+      .vnv-code-form { align-items: stretch; flex-direction: column; }
+      .vnv-code-input { width: 100%; }
     }
   </style>
 
@@ -469,6 +502,19 @@
           <span>Active tickets</span>
         </a>
       </div>
+    </section>
+
+    <section class="vnv-event-access" aria-labelledby="event-code-title">
+      <div>
+        <h2 id="event-code-title"><i class="fa-solid fa-microphone-lines"></i> Enter your private event</h2>
+        <p>Enter the 5-digit code shared by VNV Events to request songs, join karaoke and upload photos.</p>
+      </div>
+      <form class="vnv-code-form" method="post" action="{{ path('panel/event-execution') }}">
+        <input type="hidden" name="action" value="join">
+        <label class="visually-hidden" for="home-event-code">5-digit event code</label>
+        <input id="home-event-code" class="vnv-code-input" name="code" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{5}" minlength="5" maxlength="5" placeholder="00000" aria-describedby="event-code-title" required>
+        <button class="vnv-btn vnv-btn-primary" type="submit"><i class="fa-solid fa-arrow-right-to-bracket"></i> Enter Event</button>
+      </form>
     </section>
 
     <section class="vnv-section" id="vnv-actions">
@@ -511,6 +557,10 @@
       </div>
 
       <div class="vnv-nav-grid">
+        <a class="vnv-nav-card" href="{{ path('panel/event-execution') }}">
+          <i class="fa-solid fa-microphone-lines"></i>
+          <h3>Event Area</h3>
+        </a>
         <a class="vnv-nav-card" href="{{ path('panel/planner-hub/orders/orders') }}">
           <i class="fa-solid fa-file-lines"></i>
           <h3>Orders</h3>
@@ -545,7 +595,7 @@
                 {% if order.address %} · {{ order.address }}{% endif %}
               </span>
             </div>
-            <a class="vnv-inline-link" href="{{ path('panel/planner-hub/orders/orders/suborders') }}?id={{ order.id }}">Details</a>
+            <div class="d-flex flex-wrap gap-2"><a class="vnv-inline-link" href="{{ path('panel/event-execution') }}?order_id={{ order.id }}">Event Area</a><a class="vnv-inline-link" href="{{ path('panel/planner-hub/orders/orders/suborders') }}?id={{ order.id }}">Details</a></div>
           </div>
         {% else %}
           <div class="vnv-empty">No upcoming event orders are visible yet.</div>

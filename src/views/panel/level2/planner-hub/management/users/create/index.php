@@ -25,12 +25,12 @@ function sendTemporaryPasswordEmail(string $email, string $name, string $tempora
 {
     try {
         $emailService = new EmailService();
-        $baseUrl = ($_ENV["APP_URL"] ?? "https://ophyra.com/");
+        $baseUrl = ($_ENV["APP_URL"] ?? "https://vnvevents.com/");
         $loginUrl = $baseUrl . "/login";
         
         $userTypeText = ($userType === "4") ? "Team Member" : "Client";
         
-        $subject = "Welcome to avomeal - Your Temporary Password";
+        $subject = "Welcome to VNV Events - Your Temporary Password";
         
         $message = "
         <html>
@@ -49,7 +49,7 @@ function sendTemporaryPasswordEmail(string $email, string $name, string $tempora
         <body>
             <div class='container'>
                 <div class='header'>
-                    <h1>🎉 Welcome to avomeal!</h1>
+                    <h1>🎉 Welcome to VNV Events!</h1>
                 </div>
                 <div class='content'>
                     <h2>Hello {$name},</h2>
@@ -68,11 +68,11 @@ function sendTemporaryPasswordEmail(string $email, string $name, string $tempora
                     <a href='{$loginUrl}' class='button'>🔐 Login Now</a>
                     
                     <p style='margin-top: 30px;'>If you have any questions, please don't hesitate to contact us.</p>
-                    <p>Best regards,<br><strong>The avomeal Team</strong></p>
+                    <p>Best regards,<br><strong>The VNV Events Team</strong></p>
                 </div>
                 <div class='footer'>
                     <p>This is an automated message. Please do not reply to this email.</p>
-                    <p>&copy; " . date('Y') . " Ophyra. All rights reserved.</p>
+                    <p>&copy; " . date('Y') . " VNV Events. All rights reserved.</p>
                 </div>
             </div>
         </body>

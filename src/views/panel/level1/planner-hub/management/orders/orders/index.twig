@@ -152,6 +152,7 @@
 							<thead>
 								<tr>
 									<th>ID</th>
+									<th>Event Area</th>
 									<th>Contract Link</th>
 									<th>Client</th>
 									<th>Event Date</th>
@@ -177,6 +178,9 @@
 												<small class="d-block text-primary mt-1" style="font-size: 0.75rem; cursor: pointer;" onclick="openOrderDetailsModalByOrderId({{ order.id }}, 'orders')">
 													Click to view details
 												</small>
+											</td>
+											<td style="min-width: 220px;">
+												<a href="{{ path('panel/event-execution') }}?order_id={{ order.id }}" class="btn btn-success btn-sm">Enter / Create Code</a>
 											</td>
 											<td style="min-width: 220px;">
 												{% set token = order.contract_token ?? '' %}

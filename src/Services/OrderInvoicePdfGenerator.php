@@ -118,7 +118,7 @@ class OrderInvoicePdfGenerator
         // Usar hora local del servidor sin conversiones de timezone
         $issuedAt = date('F j, Y');
 
-        $orgName = $institution['name'] ?? 'ophyra.com';
+        $orgName = $institution['name'] ?? 'VNV Events';
         $orgEmail = $institution['email'] ?? '';
         $orgPhone = $institution['phone'] ?? '';
 

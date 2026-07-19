@@ -42,7 +42,7 @@ class StripeProvider extends AbstractPaymentProvider
                 return false;
             }
 
-            $description = $metadata['description'] ?? 'Payment via Ophyra';
+            $description = $metadata['description'] ?? 'Payment to VNV Events';
             $metadata = array_filter($metadata, fn($key) => $key !== 'description', ARRAY_FILTER_USE_KEY);
 
             $savedCustomerId = null;
@@ -150,7 +150,7 @@ class StripeProvider extends AbstractPaymentProvider
                     return false;
                 }
 
-                $description = $metadata['description'] ?? 'Payment via Ophyra';
+                $description = $metadata['description'] ?? 'Payment to VNV Events';
                 $metadata = array_filter($metadata, fn($key) => $key !== 'description', ARRAY_FILTER_USE_KEY);
                 $charge = $this->stripe->charges->create([
                     'amount' => $this->toCents($amount),
@@ -189,7 +189,7 @@ class StripeProvider extends AbstractPaymentProvider
                 return false;
             }
 
-            $description = $metadata['description'] ?? 'Payment via Ophyra';
+            $description = $metadata['description'] ?? 'Payment to VNV Events';
             $metadata = array_filter($metadata, fn($key) => $key !== 'description', ARRAY_FILTER_USE_KEY);
 
             $intentParams = [
@@ -387,7 +387,7 @@ class StripeProvider extends AbstractPaymentProvider
                 'automatic_payment_methods' => [
                     'enabled' => true,
                 ],
-                'description' => $metadata['description'] ?? 'Payment via Ophyra',
+                'description' => $metadata['description'] ?? 'Payment to VNV Events',
             ];
 
             if (isset($metadata['customer_id'])) {

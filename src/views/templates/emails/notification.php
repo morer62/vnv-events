@@ -153,7 +153,7 @@
             <p>Para gestionar tus notificaciones, accede a tu panel de usuario</p>
             <p style="font-size: 12px; color: #adb5bd;">
                 Este correo fue enviado automáticamente. Por favor no responder a este mensaje.<br>
-                Visítanos en <a href="https://ophyra.com/">ophyra.com</a>
+                Visítanos en <a href="https://vnvevents.com/">VNV Events</a>
             </p>
         </div>
     </div>

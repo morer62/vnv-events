@@ -118,8 +118,8 @@
         <div class="footer">
             <p>
                 This email was sent from VNV-Events regarding your event order.<br>
-                <a href="https://ophyra.com/">Visit our website</a> | 
-                <a href="mailto:support@ophyra.com">Contact Support</a>
+                <a href="https://vnvevents.com/">Visit our website</a> |
+                <a href="mailto:info@vnvevents.com">Contact VNV Events</a>
             </p>
             <p style="margin-top: 15px; font-size: 12px; opacity: 0.8;">
                 © <?php echo date('Y'); ?> VNV-Events. All rights reserved.

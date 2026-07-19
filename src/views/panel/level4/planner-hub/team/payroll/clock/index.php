@@ -140,6 +140,7 @@ $router->get(function () use ($repo, $user): string {
     $logs = $repo->getActiveLogsByUserAndOwner($user->getId(), $currentInstitutionOwner);
 
     $activeLog = count($logs) > 0 ? $logs[0] : null;
+    $recentLogs = $repo->getRecentLogsByUserAndOwner((int)$user->getId(), (int)$currentInstitutionOwner, 30);
     $contractService = new TeamMemberContractService();
     $clockContractStatus = $contractService->getClockContractStatus($user->getId(), (int)$currentInstitutionOwner);
 
@@ -200,6 +201,7 @@ $router->get(function () use ($repo, $user): string {
 
     return TemplateResponse::render(__DIR__ . "/index.twig", [
         "activeLog" => $activeLog,
+        'recentLogs' => $recentLogs,
         'userInstitutions' => $userInstitutions,
         'currentInstitution' => $currentInstitution,
         'currentInstitutionRole' => $currentInstitutionRole,

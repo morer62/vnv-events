@@ -259,7 +259,7 @@ class StripeService
                 'amount' => intval($amount * 100), // en centavos
                 'currency' => 'usd',
                 'customer' => $customerId,
-                'description' => 'Order payment via ophyra.com',
+                'description' => 'VNV Events order payment',
                 'transfer_data' => [
                     'destination' => $connectedAccountId,
                 ],

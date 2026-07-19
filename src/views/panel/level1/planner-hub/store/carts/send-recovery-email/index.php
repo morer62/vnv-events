@@ -74,7 +74,7 @@ $router->post(function () {
             'recoveryUrl' => $recoveryUrl,
             'mealsCount' => (int)($cart->meals_count ?? 0),
             'total' => number_format((float)($cart->total ?? 0), 2, '.', ''),
-            'companyName' => 'Avomeal'
+            'companyName' => 'VNV Events'
         ];
 
         $templatePath = \App\Utils\LocationUtils::getTemplatePath("emails/abandoned_cart.php");

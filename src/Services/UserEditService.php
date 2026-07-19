@@ -183,7 +183,7 @@ class UserEditService
                 
                 <p>This notification was sent automatically to keep you informed about your account security.</p>
                 
-                <p>Best regards,<br>Ophyra Team</p>
+                <p>Best regards,<br>VNV Events Team</p>
             ";
 
             $emailService = new EmailService();

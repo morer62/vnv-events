@@ -185,7 +185,7 @@
             <p>Thank you for choosing our services</p>
             <p style="font-size: 12px; color: #adb5bd;">
                 This email was sent automatically. Please do not reply to this message.<br>
-                Visit us at <a href="https://ophyra.com/">ophyra.com</a>
+                Visit us at <a href="https://vnvevents.com/">VNV Events</a>
             </p>
         </div>
     </div>

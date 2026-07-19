@@ -30,7 +30,7 @@ class ForgotPasswordService
             }
 
             $token = bin2hex(random_bytes(32));
-            $resetLink = ($_ENV["APP_URL"] ?? "https://ophyra.com/") . "/reset-password?token=" . $token;
+            $resetLink = ($_ENV["APP_URL"] ?? "https://vnvevents.com/") . "/reset-password?token=" . $token;
 
             $passwordResetRepository->add([
                 "email" => $email,
@@ -38,7 +38,7 @@ class ForgotPasswordService
                 "expires_at" => date("Y-m-d H:i:s", strtotime("+30 minutes"))
             ]);
 
-            $subject = "Reset Your Password - E-Planner Hub";
+            $subject = "Reset Your Password - VNV Events";
             
             $body = '
                 <html>
@@ -99,12 +99,12 @@ class ForgotPasswordService
                             <p>We received a request to reset your password. To proceed, click the button below:</p>
                             <p><a href="' . $resetLink . '" class="btn">Reset My Password</a></p>
                             <p>If you didn\'t request this, you can safely ignore this message.</p>
-                            <p>— E-Planner Hub Team</p>
+                            <p>— VNV Events Team</p>
                         </div>
                     </div>
                     
                     <div class="footer">
-                        © ' . date("Y") . ' E-Planner Hub | <a href="' . ($_ENV["APP_URL"] ?? "https://ophyra.com/") . '">' . ($_ENV["APP_URL"] ?? "https://ophyra.com/") . '</a><br>
+                        © ' . date("Y") . ' VNV Events | <a href="' . ($_ENV["APP_URL"] ?? "https://vnvevents.com/") . '">' . ($_ENV["APP_URL"] ?? "https://vnvevents.com/") . '</a><br>
                         Planning made easier ✨
                     </div>
                 </body>

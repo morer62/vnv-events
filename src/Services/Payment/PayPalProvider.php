@@ -223,13 +223,13 @@ class PayPalProvider extends AbstractPaymentProvider
                             'currency_code' => strtoupper($this->currency),
                             'value' => number_format($amount, 2, '.', '')
                         ],
-                        'description' => $metadata['description'] ?? 'Payment via Ophyra'
+                        'description' => $metadata['description'] ?? 'Payment to VNV Events'
                     ]
                 ],
                 'application_context' => [
                     'return_url' => $metadata['return_url'] ?? '',
                     'cancel_url' => $metadata['cancel_url'] ?? '',
-                    'brand_name' => $metadata['brand_name'] ?? 'Ophyra',
+                    'brand_name' => $metadata['brand_name'] ?? 'VNV Events',
                     'user_action' => 'PAY_NOW'
                 ]
             ];

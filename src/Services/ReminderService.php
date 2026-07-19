@@ -193,7 +193,7 @@ class ReminderService
 
     private function getContractReminderEmailBody($order, string $token): string
     {
-        $baseUrl = "https://ophyra.com/";
+        $baseUrl = rtrim($_ENV['APP_URL'] ?? 'https://vnvevents.com', '/') . '/';
         $contractUrl = $baseUrl . "/order-access?token=" . $token;
         
         return "
@@ -233,7 +233,7 @@ class ReminderService
 
     private function getPaymentReminderEmailBody($order, string $token, string $reminderType): string
     {
-        $baseUrl = "https://ophyra.com/";
+        $baseUrl = rtrim($_ENV['APP_URL'] ?? 'https://vnvevents.com', '/') . '/';
         $paymentUrl = $baseUrl . "/order-access?token=" . $token;
         
         $paymentText = $reminderType === 'first_payment' ? 'first payment' : 'second payment';

@@ -18,7 +18,7 @@ $router->post(function () {
     }
 
     $to = "info@vnvevents.com";
-    $subject = "Support Request from Avomeal";
+    $subject = "Support Request from VNV Events";
     $headers = "From: $email\r\nReply-To: $email\r\nContent-Type: text/plain; charset=utf-8";
     $body = "Name: $name\nEmail: $email\n\nMessage:\n$message\n";
 
