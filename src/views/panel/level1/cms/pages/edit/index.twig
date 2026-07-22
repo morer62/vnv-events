@@ -109,6 +109,25 @@
         color:#6b7280;
     }
 
+    .cms-cut-button{
+        align-items:center;
+        background:#eef2ff;
+        border:1px solid #c7d2fe;
+        border-radius:9px;
+        color:#4338ca;
+        cursor:pointer;
+        display:inline-flex;
+        float:right;
+        font-size:.78rem;
+        font-weight:800;
+        gap:6px;
+        margin:-34px 0 7px 8px;
+        padding:6px 10px;
+    }
+
+    .cms-cut-button:hover{ background:#e0e7ff; }
+    .cms-cut-button.is-done{ background:#ecfdf5; border-color:#a7f3d0; color:#047857; }
+
     .cms-check-group{
         display:flex;
         flex-wrap:wrap;
@@ -540,6 +559,67 @@ document.addEventListener('DOMContentLoaded', function () {
 
     if (typeSelect) typeSelect.addEventListener('change', filterCategories);
     filterCategories();
+
+    var cuttableFields = [
+        'title', 'slug', 'route', 'excerpt', 'body_html', 'content_json',
+        'meta_title', 'canonical_url', 'meta_description', 'meta_keywords',
+        'featured_image_url', 'og_title', 'og_description', 'schema_json'
+    ];
+
+    function copyText(value) {
+        if (navigator.clipboard && window.isSecureContext) {
+            return navigator.clipboard.writeText(value);
+        }
+        return new Promise(function (resolve, reject) {
+            var helper = document.createElement('textarea');
+            helper.value = value;
+            helper.style.position = 'fixed';
+            helper.style.opacity = '0';
+            document.body.appendChild(helper);
+            helper.select();
+            try {
+                document.execCommand('copy') ? resolve() : reject(new Error('Copy was blocked by the browser.'));
+            } catch (error) {
+                reject(error);
+            } finally {
+                helper.remove();
+            }
+        });
+    }
+
+    cuttableFields.forEach(function (name) {
+        var field = document.querySelector('[name="' + name + '"]');
+        if (!field || field.type === 'file') return;
+        var container = field.closest('.cms-field');
+        if (!container) return;
+        var button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'cms-cut-button';
+        button.setAttribute('aria-label', 'Cut ' + name.replace(/_/g, ' ') + ' to clipboard');
+        button.innerHTML = '<span aria-hidden="true">✂</span> Cut';
+        var label = container.querySelector('.cms-label');
+        if (label) label.insertAdjacentElement('afterend', button);
+        else container.insertBefore(button, field);
+        button.addEventListener('click', function () {
+            field.focus();
+            if (typeof field.select === 'function') field.select();
+            var value = field.value || '';
+            if (!value) return;
+            copyText(value).then(function () {
+                field.value = '';
+                field.dispatchEvent(new Event('input', { bubbles: true }));
+                field.dispatchEvent(new Event('change', { bubbles: true }));
+                button.classList.add('is-done');
+                button.innerHTML = '<span aria-hidden="true">✓</span> Cut';
+                setTimeout(function () {
+                    button.classList.remove('is-done');
+                    button.innerHTML = '<span aria-hidden="true">✂</span> Cut';
+                }, 1800);
+            }).catch(function (error) {
+                alert(error.message || 'The browser could not access the clipboard.');
+            });
+        });
+    });
 
     document.querySelectorAll('[data-cms-editor-tabs]').forEach(function (tabs) {
         var field = tabs.closest('.cms-field');

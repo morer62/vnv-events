@@ -334,6 +334,70 @@
         word-break:break-all;
     }
 
+    .cms-generation-overlay{
+        align-items:center;
+        backdrop-filter:blur(10px);
+        background:rgba(15,23,42,.68);
+        display:flex;
+        inset:0;
+        justify-content:center;
+        padding:24px;
+        position:fixed;
+        z-index:20000;
+    }
+
+    .cms-generation-overlay[hidden]{ display:none; }
+
+    .cms-generation-dialog{
+        align-items:center;
+        background:linear-gradient(145deg,#fff,#f5f7fb);
+        border:1px solid rgba(255,255,255,.75);
+        border-radius:28px;
+        box-shadow:0 30px 90px rgba(2,6,23,.32);
+        display:flex;
+        flex-direction:column;
+        max-width:430px;
+        padding:38px 34px;
+        text-align:center;
+        width:100%;
+    }
+
+    .cms-generation-spinner{
+        height:74px;
+        margin-bottom:22px;
+        position:relative;
+        width:74px;
+    }
+
+    .cms-generation-spinner::before,
+    .cms-generation-spinner::after{
+        border-radius:50%;
+        content:"";
+        inset:0;
+        position:absolute;
+    }
+
+    .cms-generation-spinner::before{
+        border:6px solid #e2e8f0;
+        border-top-color:#7c3aed;
+        animation:cms-spin .85s linear infinite;
+    }
+
+    .cms-generation-spinner::after{
+        background:radial-gradient(circle,#7c3aed 0 18%,#c4b5fd 20% 34%,transparent 36%);
+        inset:19px;
+        animation:cms-pulse 1.15s ease-in-out infinite;
+    }
+
+    .cms-generation-title{ color:#0f172a; font-size:1.35rem; font-weight:900; margin-bottom:8px; }
+    .cms-generation-message{ color:#64748b; line-height:1.55; margin:0; }
+    body.cms-generation-busy{ overflow:hidden; }
+    .cms-ai-shell[aria-busy="true"]{ pointer-events:none; }
+    .cms-ai-shell[aria-busy="true"] button{ opacity:.6; }
+
+    @keyframes cms-spin{ to{ transform:rotate(360deg); } }
+    @keyframes cms-pulse{ 0%,100%{ transform:scale(.75); opacity:.55; } 50%{ transform:scale(1.15); opacity:1; } }
+
     .cms-editor-tabs{
         display:inline-flex;
         background:#f3f4f6;
@@ -392,6 +456,13 @@
 </style>
 
 <div class="cms-wrap">
+    <div class="cms-generation-overlay" data-generation-overlay hidden role="dialog" aria-modal="true" aria-live="polite" aria-labelledby="cms-generation-title">
+        <div class="cms-generation-dialog">
+            <div class="cms-generation-spinner" aria-hidden="true"></div>
+            <div class="cms-generation-title" id="cms-generation-title" data-generation-title>Generating...</div>
+            <p class="cms-generation-message" data-generation-message>Please keep this page open while VNV Events prepares your content.</p>
+        </div>
+    </div>
     <div class="cms-header">
         <div>
             <h1 class="cms-title">Create Content</h1>
@@ -529,7 +600,7 @@
                         <option value="2" selected>2 article images + thumbnail</option>
                         <option value="4">4 article images + thumbnail</option>
                     </select>
-                    <div class="cms-help">The first generated image is a title-specific thumbnail / featured image. Additional images are supporting article visuals. You can process up to 3 articles per batch.</div>
+                    <div class="cms-help">The first generated image is a title-specific thumbnail / featured image. Additional images are supporting article visuals. You can select up to 3 articles; they run one at a time for reliable, non-repeating image generation.</div>
                 </div>
                 <div class="cms-actions">
                     <button class="cms-btn cms-btn-light" type="button" data-ai-back="2">Back</button>
@@ -757,6 +828,20 @@
 </div>
 <script>
 document.addEventListener('DOMContentLoaded', function () {
+    var generationOverlay = document.querySelector('[data-generation-overlay]');
+    var generationTitle = generationOverlay ? generationOverlay.querySelector('[data-generation-title]') : null;
+    var generationMessage = generationOverlay ? generationOverlay.querySelector('[data-generation-message]') : null;
+    var generationBusy = false;
+
+    function setGenerationBusy(busy, title, message) {
+        generationBusy = busy;
+        document.body.classList.toggle('cms-generation-busy', busy);
+        if (!generationOverlay) return;
+        if (generationTitle && title) generationTitle.textContent = title;
+        if (generationMessage && message) generationMessage.textContent = message;
+        generationOverlay.hidden = !busy;
+    }
+
     var typeSelect = document.querySelector('[data-content-type-select]');
     var categorySelect = document.querySelector('[data-cms-category-select]');
     var manualCategoryOptions = categorySelect ? Array.prototype.map.call(categorySelect.options, function (option) {
@@ -902,6 +987,7 @@ document.addEventListener('DOMContentLoaded', function () {
     var manualMetadataStatus = manualForm ? manualForm.querySelector('[data-manual-ai-metadata-status]') : null;
     if (manualMetadataButton) {
         manualMetadataButton.addEventListener('click', function () {
+            if (generationBusy) return;
             var source = manualField('body_html');
             var rich = manualForm.querySelector('[data-editor-rich]');
             if (source && rich && !rich.hidden) {
@@ -919,6 +1005,7 @@ document.addEventListener('DOMContentLoaded', function () {
             manualMetadataButton.disabled = true;
             manualMetadataButton.textContent = 'Generating...';
             if (manualMetadataStatus) manualMetadataStatus.textContent = 'Preparing SEO fields and thumbnail...';
+            setGenerationBusy(true, 'Generating...', 'Preparing SEO metadata and a unique thumbnail. This may take a moment.');
 
             fetch(window.location.href, {
                 method: 'POST',
@@ -962,6 +1049,7 @@ document.addEventListener('DOMContentLoaded', function () {
             }).finally(function () {
                 manualMetadataButton.disabled = false;
                 manualMetadataButton.textContent = 'Generate metadata + thumbnail';
+                setGenerationBusy(false);
             });
         });
     }
@@ -1117,6 +1205,10 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function generateIdeas() {
+        if (generationBusy) return;
+        setGenerationBusy(true, 'Generating ideas...', 'Creating five distinct editorial directions and checking the selected reference.');
+        ai.setAttribute('aria-busy', 'true');
+        ai.querySelectorAll('button').forEach(function (button) { button.disabled = true; });
         if (aiStatus) aiStatus.textContent = 'Generating 5 ideas and looking for one remote reference...';
         postAi('ai_generate_ideas', {})
             .then(function (json) {
@@ -1128,6 +1220,11 @@ document.addEventListener('DOMContentLoaded', function () {
             })
             .catch(function (error) {
                 if (aiStatus) aiStatus.textContent = error.message;
+            })
+            .finally(function () {
+                setGenerationBusy(false);
+                ai.removeAttribute('aria-busy');
+                ai.querySelectorAll('button').forEach(function (button) { button.disabled = false; });
             });
     }
 
@@ -1170,6 +1267,7 @@ document.addEventListener('DOMContentLoaded', function () {
     });
     ai.querySelector('[data-ai-create]').addEventListener('click', function () {
         var button = this;
+        if (generationBusy) return;
         var ideas = selectedIdeas();
         if (ideas.length === 0) {
             alert('Select at least one article idea.');
@@ -1177,18 +1275,38 @@ document.addEventListener('DOMContentLoaded', function () {
         }
         button.disabled = true;
         button.textContent = 'Processing...';
+        ai.setAttribute('aria-busy', 'true');
+        ai.querySelectorAll('button').forEach(function (item) { item.disabled = true; });
+        var batchToken = Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 9);
+        setGenerationBusy(true, 'Generating...', 'Preparing article 1 of ' + ideas.length + '. Articles are processed one at a time to protect the image service.');
         if (aiResult) {
             aiResult.hidden = false;
             aiResult.textContent = 'Generating ' + ideas.length + ' article(s). If images are enabled, this can take several minutes...';
         }
-        postAi('ai_create_articles', {
-            selected_ideas: JSON.stringify(ideas),
-            reference_json: JSON.stringify(aiState.reference || {}),
-            internal_links_json: JSON.stringify(selectedInternalLinks()),
-            image_count: ai.querySelector('[data-ai-image-count]').value || '0'
-        }).then(function (json) {
-            var items = json.created || [];
-            var failed = json.failed || [];
+        var items = [];
+        var failed = [];
+        var chain = Promise.resolve();
+        ideas.forEach(function (idea, index) {
+            chain = chain.then(function () {
+                setGenerationBusy(true, 'Generating...', 'Preparing article ' + (index + 1) + ' of ' + ideas.length + '. Text and unique images are generated sequentially.');
+                if (aiResult) aiResult.textContent = 'Generating article ' + (index + 1) + ' of ' + ideas.length + ': ' + (idea.title || 'Untitled') + '...';
+                return postAi('ai_create_articles', {
+                    selected_ideas: JSON.stringify([idea]),
+                    reference_json: JSON.stringify(aiState.reference || {}),
+                    internal_links_json: JSON.stringify(selectedInternalLinks()),
+                    image_count: ai.querySelector('[data-ai-image-count]').value || '0',
+                    batch_index: String(index),
+                    batch_total: String(ideas.length),
+                    batch_token: batchToken
+                }).then(function (json) {
+                    items = items.concat(json.created || []);
+                    failed = failed.concat(json.failed || []);
+                }).catch(function (error) {
+                    failed.push({ title: idea.title || 'Untitled article', error: error.message });
+                });
+            });
+        });
+        chain.then(function () {
             if (aiResult) {
                 aiResult.innerHTML = '<strong>' + items.length + ' article(s) generated.</strong>'
                     + '<div class="cms-ai-result-list">'
@@ -1213,9 +1331,10 @@ document.addEventListener('DOMContentLoaded', function () {
                     });
                 }
             }
-        }).catch(function (error) {
-            if (aiResult) aiResult.textContent = error.message;
         }).finally(function () {
+            setGenerationBusy(false);
+            ai.removeAttribute('aria-busy');
+            ai.querySelectorAll('button').forEach(function (item) { item.disabled = false; });
             button.disabled = false;
             button.textContent = 'Process selected articles';
         });

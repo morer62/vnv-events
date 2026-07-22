@@ -234,16 +234,29 @@ function cmsBuildAiArticleHtml(array $article, int $imageCount, array $generated
     return '<article class="cms-ai-article"><header><h1>' . $title . '</h1></header>' . $body . $mediaBlock . '</article>';
 }
 
-function cmsAiArticleImagePrompts(array $article, array $idea, string $title, int $supportingImageCount): array
+function cmsAiArticleImagePrompts(array $article, array $idea, string $title, int $supportingImageCount, int $batchIndex = 0, string $batchToken = ''): array
 {
     if ($supportingImageCount <= 0) {
         return [];
     }
 
+    $visualDirections = [
+        'wide establishing composition with layered foreground and background activity',
+        'intimate documentary composition focused on candid human interaction',
+        'editorial detail composition featuring hands, materials and event craftsmanship',
+        'architectural composition emphasizing venue scale, lighting and spatial design',
+        'dynamic side-angle composition capturing service professionals in action',
+        'elevated composition showing a carefully arranged event environment',
+    ];
+    $directionIndex = abs(crc32(strtolower($title) . '|' . $batchToken . '|' . $batchIndex)) % count($visualDirections);
+    $visualDirection = $visualDirections[$directionIndex];
+    $uniqueIdentity = substr(hash('sha256', strtolower($title) . '|' . $batchToken . '|' . $batchIndex), 0, 12);
     $angle = trim((string)($idea['angle'] ?? $idea['excerpt'] ?? $article['excerpt'] ?? ''));
     $thumbnailPrompt = 'Unique thumbnail hero photograph for the article titled "' . $title . '". '
         . ($angle !== '' ? 'Editorial angle: ' . $angle . '. ' : '')
-        . 'Create a distinct VNV Events corporate/event service scene that is clearly different from other article thumbnails in the same batch. '
+        . 'Visual direction: ' . $visualDirection . '. '
+        . 'Create a distinct VNV Events corporate/event service scene that is clearly different in subject, camera angle, venue, color palette and composition from every other article image in this batch. '
+        . 'Creative identity ' . $uniqueIdentity . ' (use only to enforce variation; never render it as text). '
         . 'Hyperrealistic professional event photography, no text overlay.';
 
     $prompts = [$thumbnailPrompt];
@@ -259,8 +272,9 @@ function cmsAiArticleImagePrompts(array $article, array $idea, string $title, in
             continue;
         }
 
+        $supportDirection = $visualDirections[($directionIndex + $index + 1) % count($visualDirections)];
         $prompt = 'Supporting image ' . ($index + 1) . ' for the article titled "' . $title . '": ' . $prompt
-            . ' Make the scene specific to this article and visually different from the thumbnail.';
+            . ' Use this separate visual direction: ' . $supportDirection . '. Make the subject, venue, camera angle and color palette specific to this article and visibly different from the thumbnail and other supporting images. Creative identity ' . $uniqueIdentity . '-' . ($index + 1) . ' must not appear as text.';
         $key = strtolower(preg_replace('/\s+/', ' ', $prompt));
         if (isset($seen[$key])) {
             continue;
@@ -274,7 +288,9 @@ function cmsAiArticleImagePrompts(array $article, array $idea, string $title, in
     }
 
     while (count($prompts) < ($supportingImageCount + 1)) {
-        $prompts[] = 'Supporting event photograph for the article titled "' . $title . '", unique composition number ' . (count($prompts) + 1) . ', realistic VNV Events service context, hyperrealistic professional photography, no text overlay.';
+        $fallbackIndex = count($prompts);
+        $supportDirection = $visualDirections[($directionIndex + $fallbackIndex) % count($visualDirections)];
+        $prompts[] = 'Supporting event photograph for the article titled "' . $title . '", ' . $supportDirection . ', creative identity ' . $uniqueIdentity . '-' . $fallbackIndex . ' must not appear as text, realistic VNV Events service context, hyperrealistic professional photography, no text overlay.';
     }
 
     return array_slice($prompts, 0, $supportingImageCount + 1);
@@ -503,6 +519,9 @@ $router->post(function () {
             $keywords = trim((string)($_POST['keywords'] ?? ''));
             $intent = trim((string)($_POST['intent'] ?? 'informational'));
             $supportingImageCount = max(0, min(4, (int)($_POST['image_count'] ?? 0)));
+            $batchIndex = max(0, (int)($_POST['batch_index'] ?? 0));
+            $batchTotal = max(1, min(3, (int)($_POST['batch_total'] ?? 1)));
+            $batchToken = preg_replace('/[^a-zA-Z0-9_-]/', '', (string)($_POST['batch_token'] ?? ''));
             $reference = json_decode((string)($_POST['reference_json'] ?? '{}'), true);
             $reference = is_array($reference) ? $reference : [];
             $internalLinks = json_decode((string)($_POST['internal_links_json'] ?? '[]'), true);
@@ -582,8 +601,13 @@ $router->post(function () {
                     'image_prompts' => $article['image_prompts'] ?? [],
                 ];
                 $generatedImages = [];
-                $imagePrompts = cmsAiArticleImagePrompts($article, $idea, $title, $supportingImageCount);
+                $imagePrompts = cmsAiArticleImagePrompts($article, $idea, $title, $supportingImageCount, $batchIndex, $batchToken);
                 $contentJson['image_prompts_normalized'] = $imagePrompts;
+                $contentJson['generation_batch'] = [
+                    'token' => $batchToken,
+                    'index' => $batchIndex,
+                    'total' => $batchTotal,
+                ];
                 if ($imagePrompts !== []) {
                     try {
                         $imageService = new CmsImageGenerationService();

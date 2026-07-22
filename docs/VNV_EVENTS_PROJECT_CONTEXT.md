@@ -201,6 +201,19 @@ panel/planner-hub/management/users
 panel/planner-hub/management/payroll
 ```
 
+### Order And Team Clock Reliability Update (2026-07-22)
+
+Level 1 order creation, order editing, suborder creation/editing, status updates and order-file uploads now use a shared asynchronous form layer. The UI blocks repeated submissions, shows progress, validates the final server response and performs an explicit redirect after success.
+
+The Level 4 team clock uses the same protected asynchronous flow for clock-in and clock-out. Successful actions have an unambiguous server redirect so validation failures cannot be mistaken for successful saves.
+
+Two blank-screen causes were corrected during the same pass:
+
+- Dotenv values containing spaces must be quoted, for example `MAIL_FROM_NAME='VNV Events and Gourmet'`.
+- JavaScript must read a form destination with `form.getAttribute('action')`; `form.action` can be shadowed by an input named `action`.
+
+The complete local Chromium verification covered creating and editing an order, creating a suborder with services, changing status, uploading a file, and starting/stopping a signed team member's clock. Stripe test-card verification was intentionally skipped because the active VNV Events Stripe credential was production rather than sandbox.
+
 The visible label should be VNV Events Operations or Business Operations, not generic Planner Hub.
 
 ## Related Documentation
