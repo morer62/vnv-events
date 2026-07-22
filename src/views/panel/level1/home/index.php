@@ -21,7 +21,7 @@ function level1HomeOrderSummary(int $ownerId): array
     ];
 
     try {
-        $db->query("SELECT COUNT(*) AS total FROM orders WHERE id_owner = :owner AND is_archived = 0 AND (status IS NULL OR status = '' OR status NOT IN ('INVOICE_PAID', 'ORDER_COMPLETED', 'CANCELLED'))");
+        $db->query("SELECT COUNT(*) AS total FROM orders WHERE id_owner = :owner AND is_archived = 0 AND (status_workflow IS NULL OR status_workflow <> 'INVOICE_PAID')");
         $db->bind(':owner', $ownerId);
         $summary['pending_orders'] = (int)($db->fetchOne()->total ?? 0);
 

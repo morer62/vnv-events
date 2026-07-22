@@ -28,7 +28,7 @@
         </div>
         {% endif %}
 
-        <form method="POST" {% if not canModify %}style="pointer-events: none; opacity: 0.6;"{% endif %}>
+        <form method="POST" data-vnv-async data-async-success-url="{{ path('panel/planner-hub/management/orders/orders/suborders') }}?id={{ parentOrder.id }}" data-async-success-message="Sub-order updated successfully." data-async-waiting="Updating sub-order..." {% if not canModify %}style="pointer-events: none; opacity: 0.6;"{% endif %}>
             <input type="hidden" name="suborder_id" value="{{ suborder.id }}">
 
             <div class="row mb-3">

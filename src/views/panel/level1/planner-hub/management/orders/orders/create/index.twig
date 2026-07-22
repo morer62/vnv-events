@@ -38,7 +38,7 @@
 
 <section class="card">
     <div class="card-body">
-        <form method="POST" id="orderForm">
+        <form method="POST" id="orderForm" data-async-success-url="{{ parentOrder ? path('panel/planner-hub/management/orders/orders/suborders') ~ '?id=' ~ parentOrder.id : path('panel/planner-hub/management/orders/orders') }}" data-async-success-message="Order saved successfully." data-async-waiting="Saving order...">
             <input type="hidden" name="user_local_timestamp" id="userLocalTimestamp">
             
             {% if isSubOrder %}
@@ -888,7 +888,11 @@ let subtotalServicios = 0;
                 return;
             }
 
-            form.submit();
+            if (window.vnvAsyncSubmit) {
+                window.vnvAsyncSubmit(form);
+            } else {
+                HTMLFormElement.prototype.submit.call(form);
+            }
         });
     }
 

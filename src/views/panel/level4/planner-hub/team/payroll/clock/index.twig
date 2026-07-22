@@ -779,7 +779,7 @@
             </div>
           </div>
 
-          <form method="post" class="clock-form" id="clockEndForm">
+          <form method="post" class="clock-form" id="clockEndForm" data-vnv-async data-async-success-url="{{ path('panel/planner-hub/team/payroll/clock') }}" data-async-success-message="Clock stopped successfully." data-async-waiting="Stopping clock...">
             <input type="hidden" name="action" value="end">
             <input type="hidden" name="location_lat">
             <input type="hidden" name="location_long">
@@ -802,7 +802,7 @@
             </div>
           </div>
 
-          <form method="post" class="clock-form" id="clockStartForm">
+          <form method="post" class="clock-form" id="clockStartForm" data-vnv-async data-async-success-url="{{ path('panel/planner-hub/team/payroll/clock') }}" data-async-success-message="Clock started successfully." data-async-waiting="Starting clock...">
             <input type="hidden" name="action" value="start">
             <input type="hidden" name="location_lat">
             <input type="hidden" name="location_long">
@@ -958,7 +958,8 @@ document.addEventListener('DOMContentLoaded', () => {
       const locationMessage = 'Starting without GPS location.';
       updateLocationState(locationMessage, false);
       alert(locationMessage);
-      startForm.submit();
+      if (window.vnvAsyncSubmit) window.vnvAsyncSubmit(startForm);
+      else HTMLFormElement.prototype.submit.call(startForm);
     });
   }
 });
@@ -1100,7 +1101,8 @@ function submitWithNotes() {
     updateLocationState('Clocking out without refreshing location.', false);
   }
 
-  form.submit();
+  if (window.vnvAsyncSubmit) window.vnvAsyncSubmit(form);
+  else HTMLFormElement.prototype.submit.call(form);
 }
 
 </script>

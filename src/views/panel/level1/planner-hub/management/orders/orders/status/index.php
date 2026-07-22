@@ -458,7 +458,7 @@ $router->post(function () {
     }
 
     MessageUtil::setMessage("Status updated successfully.");
-    LocationUtils::reload();
+    LocationUtils::redirectInternal("panel/planner-hub/management/orders/orders/?status_updated=1&order_id=" . urlencode((string)$orderId));
 });
 
 function determinePreviousStatus($currentStatus, $allStatus) {

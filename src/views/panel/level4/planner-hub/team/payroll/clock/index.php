@@ -22,10 +22,11 @@ $router = new Router();
 $repo = new PayrollTimeLogsRepository();
 $user = LoginService::getSession();
 
-function level4ClockRedirect(): never
+function level4ClockRedirect(bool $success = false): never
 {
+    $clockPath = 'panel/planner-hub/team/payroll/clock' . ($success ? '?clock_updated=1' : '');
     if (($_SESSION['IS_MOBILE_APP'] ?? false) === true) {
-        $target = LocationUtils::pathFor('panel/planner-hub/team/payroll/clock');
+        $target = LocationUtils::pathFor($clockPath);
         $safeTarget = htmlspecialchars($target, ENT_QUOTES, 'UTF-8');
 
         header('Content-Type: text/html; charset=UTF-8');
@@ -52,6 +53,10 @@ function level4ClockRedirect(): never
 </html>
 HTML;
         exit();
+    }
+
+    if ($success) {
+        LocationUtils::redirectInternal($clockPath);
     }
 
     LocationUtils::reload();
@@ -312,7 +317,7 @@ $router->post(callback: function () use ($repo, $user): void {
             error_log('[Level4 Clock] Clock-in notification failed: ' . $e->getMessage());
         }
         MessageUtil::setMessage("Work session started.");
-        level4ClockRedirect();
+        level4ClockRedirect(true);
     }
 
     if ($action === "end") {
@@ -347,7 +352,7 @@ $router->post(callback: function () use ($repo, $user): void {
             error_log('[Level4 Clock] Clock-out notification failed: ' . $e->getMessage());
         }
         MessageUtil::setMessage("Work session ended.");
-        level4ClockRedirect();
+        level4ClockRedirect(true);
     }
 
     MessageUtil::setMessage("Invalid action.");

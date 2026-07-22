@@ -192,7 +192,8 @@ $router->get(function () {
 
     return TemplateResponse::render(__DIR__ . "/index.twig", [
         ...$context,
-        "files" => $allFiles
+        "files" => $allFiles,
+        "order_id" => $orderId
     ]);
 });
 
@@ -247,7 +248,9 @@ function uploadFile(): never {
 
 
     MessageUtil::setMessage("File uploaded successfully");
-    LocationUtils::reload();
+    LocationUtils::redirectInternal(
+        "panel/planner-hub/management/orders/orders/files/?id=" . urlencode((string)$orderId) . "&uploaded=1"
+    );
 }
 
 function deleteFile(): never {
