@@ -51,7 +51,7 @@
  {% if job.mime_type starts with 'video/' and job.status not in ['QUEUED','RENDERING'] %}<form method="post" class="mt-3"><input type="hidden" name="action" value="queue_render"><input type="hidden" name="id" value="{{ job.id }}"><button class="vs-btn alt" {% if not renderReady %}disabled{% endif %}>Render final MP4</button></form>{% endif %}
  {% if job.status in ['QUEUED','RENDERING'] %}<p class="mt-3"><strong>{{ job.status == 'QUEUED' ? 'Waiting for render worker…' : 'Rendering final MP4…' }}</strong> Refresh this page shortly.</p>{% endif %}
  {% if job.output_url %}<div class="mt-3"><h3 class="h6">Final render</h3><video class="vs-video" controls preload="metadata" src="{{ job.output_url }}"></video><div class="vs-actions mt-2"><a class="vs-btn" href="{{ job.output_url }}" target="_blank" rel="noopener">Open / Download MP4</a></div></div>{% endif %}
- {% elseif job.status != 'FAILED' %}<form method="post"><input type="hidden" name="action" value="transcribe"><input type="hidden" name="id" value="{{ job.id }}"><button class="vs-btn">Generate transcript + subtitles</button></form>{% endif %}
+  {% else %}<form method="post"><input type="hidden" name="action" value="transcribe"><input type="hidden" name="id" value="{{ job.id }}"><button class="vs-btn">{{ job.status == 'FAILED' ? 'Retry transcript + subtitles' : 'Generate transcript + subtitles' }}</button></form>{% endif %}
  {% if job.error_message %}<p class="text-danger">{{ job.error_message }}</p>{% endif %}</article>{% else %}<p>No media jobs yet.</p>{% endfor %}
  </section>
 </div>
