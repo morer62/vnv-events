@@ -11,7 +11,7 @@
  <section class="vs-hero"><h1>AI Video Projects</h1><p>Each upload stays as a reusable project: transcript, captions, cuts, creative inserts, brand assets, render history and social distribution.</p></section>
  <section class="vs-card vs-ingest">
   <span class="vs-step">RECOMMENDED FOR 500 MB–10 GB</span><h2 class="mt-2">Private SFTP video inbox</h2>
-  {% if ingestError %}<div class="alert alert-danger"><strong>SFTP inbox needs configuration.</strong><br>{{ ingestError }}<br><small>Use VIDEO_INGEST_PATH=storage/video-ingest/incoming and make the repository storage directory writable by PHP.</small></div>{% endif %}
+  {% if ingestError %}<div class="alert alert-danger"><strong>SFTP inbox needs configuration.</strong><br>{{ ingestError }}<br><small>Absolute hosting paths are ignored; the inbox always stays relative to this project.</small></div>{% endif %}
   <p>Connect to the production server with SFTP, open the private directory below, create one folder per project, and upload the original videos inside it. This bypasses browser and PHP upload limits.</p>
   <code class="vs-path">{{ ingestRoot }}</code>
   <ol><li>Create a project folder and add <code>source/</code>, <code>intros/</code>, <code>transitions/</code>, <code>b-roll/</code>, <code>images/</code>, <code>music/</code>, <code>sound-effects/</code>, <code>voice-over/</code> and <code>outros/</code> as needed.</li><li>Put the principal video in <code>source/</code>. Upload with a temporary <code>.uploading</code> suffix and rename files only after SFTP finishes.</li><li>Wait {{ ingestStableSeconds }} seconds, refresh, and press <strong>Import project</strong>. Every supported file remains attached to the folder.</li></ol>
