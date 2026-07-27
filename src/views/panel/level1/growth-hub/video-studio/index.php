@@ -85,6 +85,10 @@ $router->post(function(){
         }elseif($action==='generate_editing_proxy'){
             $id=(int)($_POST['id']??0);$job=$repo->find($owner,$id);if(!$job)throw new RuntimeException('Media job not found.');
             (new AiVideoProxyService())->generate($owner,$job);MessageUtil::setMessage('The lightweight editing proxy is ready. Final exports will continue using the original master.');
+        }elseif($action==='improve_timing'){
+            $id=(int)($_POST['id']??0);$job=$repo->find($owner,$id);if(!$job)throw new RuntimeException('Media job not found.');
+            $repo->updateTranscript($owner,$id,(new AiVideoTranscriptionService())->improveTiming((string)$job->source_url,(string)$job->transcript_json,(string)$job->transcript_text));
+            MessageUtil::setMessage('Silences were analyzed locally and transcript timing was corrected without calling OpenAI again.');
         }elseif($action==='transcribe'){
             $id=(int)($_POST['id']??0); $job=$repo->find($owner,$id);
             if(!$job) throw new RuntimeException('Media job not found.');

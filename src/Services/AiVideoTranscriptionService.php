@@ -17,6 +17,7 @@ final class AiVideoTranscriptionService
         if(!mkdir($work,0700,true)&&!is_dir($work))throw new RuntimeException('Could not create the transcription workspace.');
         try{
             $source=(new AiVideoIngestService())->materialize($url,$work.DIRECTORY_SEPARATOR.'source-media');
+            $silences=$this->detectSilences($source);
             $pattern=$work.DIRECTORY_SEPARATOR.'audio-%05d.mp3';
             $this->execute([$this->binary(),'-y','-i',$source,'-vn','-ac','1','-ar','16000','-c:a','libmp3lame','-b:a','48k','-f','segment','-segment_time',(string)self::CHUNK_SECONDS,'-reset_timestamps','1',$pattern]);
             $chunks=glob($work.DIRECTORY_SEPARATOR.'audio-*.mp3')?:[];
@@ -41,11 +42,50 @@ final class AiVideoTranscriptionService
                 }
                 $rawChunks[]=['index'=>$index,'offset_seconds'=>$offset,'result'=>$result];
             }
-            return ['text'=>implode("\n\n",$text),'raw'=>['chunk_seconds'=>self::CHUNK_SECONDS,'chunks'=>$rawChunks,'segments'=>$segments,'words'=>$words],'srt'=>$this->srt($segments)];
+            [$segments,$words]=$this->applySilences($segments,$words,$silences);
+            return ['text'=>implode("\n\n",$text),'raw'=>['chunk_seconds'=>self::CHUNK_SECONDS,'chunks'=>$rawChunks,'segments'=>$segments,'words'=>$words,'silences'=>$silences],'srt'=>$this->srt($segments)];
         }finally{
             foreach(glob($work.DIRECTORY_SEPARATOR.'*')?:[] as $file)if(is_file($file))@unlink($file);
             @rmdir($work);
         }
+    }
+
+    public function improveTiming(string $url,string $transcriptJson,string $fallbackText=''): array
+    {
+        $raw=json_decode($transcriptJson,true);if(!is_array($raw))$raw=[];
+        $source=(new AiVideoIngestService())->localPath($url);
+        if(!$source)throw new RuntimeException('Silence analysis requires a private SFTP source.');
+        $silences=$this->detectSilences($source);
+        [$segments,$words]=$this->applySilences((array)($raw['segments']??[]),(array)($raw['words']??[]),$silences);
+        $raw['segments']=$segments;$raw['words']=$words;$raw['silences']=$silences;$raw['timing_analysis']='ffmpeg_silencedetect';
+        $text=trim($fallbackText);if($text==='')$text=implode("\n\n",array_values(array_filter(array_map(fn($segment)=>trim((string)($segment['text']??'')),$segments))));
+        return ['text'=>$text,'raw'=>$raw,'srt'=>$this->srt($segments)];
+    }
+
+    private function detectSilences(string $source): array
+    {
+        $command=[$this->binary(),'-hide_banner','-nostats','-i',$source,'-vn','-af','silencedetect=noise=-38dB:d=0.55','-f','null',PHP_OS_FAMILY==='Windows'?'NUL':'/dev/null'];
+        $process=proc_open($command,[1=>['file',PHP_OS_FAMILY==='Windows'?'NUL':'/dev/null','a'],2=>['pipe','w']],$pipes);
+        if(!is_resource($process))throw new RuntimeException('Unable to analyze the audio timing.');
+        $log=stream_get_contents($pipes[2]);fclose($pipes[2]);$code=proc_close($process);
+        if($code!==0)throw new RuntimeException('Silence analysis failed: '.mb_substr(trim($log),-900));
+        preg_match_all('/silence_start:\s*([0-9.]+)/',$log,$starts);preg_match_all('/silence_end:\s*([0-9.]+)/',$log,$ends);
+        $silences=[];foreach($starts[1]??[] as $index=>$start){if(!isset($ends[1][$index]))continue;$a=(float)$start;$b=(float)$ends[1][$index];if($b-$a>=.55)$silences[]=['start'=>$a,'end'=>$b,'duration'=>$b-$a];}
+        return $silences;
+    }
+
+    private function applySilences(array $segments,array $words,array $silences): array
+    {
+        $adjust=function(array $item)use($silences):array{
+            $start=(float)($item['start']??0);$end=max($start,(float)($item['end']??$start));
+            foreach($silences as $silence){
+                $a=(float)$silence['start'];$b=(float)$silence['end'];
+                if($start>=$a-.08&&$start<$b&&$b<$end-.05)$start=$b;
+                if($end>$a&&$end<=$b+.08&&$a>$start+.05)$end=$a;
+            }
+            $item['start']=$start;$item['end']=max($start+.01,$end);return $item;
+        };
+        return [array_map($adjust,array_values(array_filter($segments,'is_array'))),array_map($adjust,array_values(array_filter($words,'is_array')))];
     }
 
     private function request(string $file,string $apiKey): array

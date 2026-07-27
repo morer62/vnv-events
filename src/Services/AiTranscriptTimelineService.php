@@ -9,6 +9,7 @@ final class AiTranscriptTimelineService
         $raw=json_decode((string)($job->transcript_json??''),true);
         $segments=is_array($raw)?(array)($raw['segments']??[]):[];
         $sourceWords=is_array($raw)?(array)($raw['words']??[]):[];
+        $sourceSilences=is_array($raw)?(array)($raw['silences']??[]):[];
         if(!$segments)$segments=$this->segmentsFromSrt((string)($job->subtitles_srt??''));
         $plan=json_decode((string)($job->edit_plan_json??''),true);$storedCommands=is_array($plan)?(array)($plan['_request']['timeline_commands']??[]):[];$storedPauseEdits=is_array($plan)?(array)($plan['_request']['pause_edits']??[]):[];$blocks=[];$allWords=[];
         foreach($segments as $index=>$segment){
@@ -33,8 +34,14 @@ final class AiTranscriptTimelineService
             foreach($storedPauseEdits as $edit)if(abs((float)($edit['start']??-1)-$pause['start'])<.05&&abs((float)($edit['end']??-1)-$pause['end'])<.05){$pause['keep']=max(0,min($gap,(float)($edit['keep']??$gap)));break;}
             $pauses[]=$pause;
         }
+        foreach($sourceSilences as $silence){
+            if(!is_array($silence))continue;$start=max(0,(float)($silence['start']??0));$end=max($start,(float)($silence['end']??$start));if($end-$start<.55)continue;
+            $duplicate=false;foreach($pauses as $pause)if(abs((float)$pause['start']-$start)<.15&&abs((float)$pause['end']-$end)<.15){$duplicate=true;break;}
+            if(!$duplicate)$pauses[]=['start'=>$start,'end'=>$end,'duration'=>$end-$start,'keep'=>$end-$start];
+        }
+        usort($pauses,fn($a,$b)=>(float)$a['start']<=>(float)$b['start']);
         foreach($blocks as &$block){
-            $block['pauses']=array_values(array_filter($pauses,fn($pause)=>(float)$pause['start']>=(float)$block['start']-.05&&(float)$pause['start']<=(float)$block['end']+.2));
+            $block['pauses']=array_values(array_filter($pauses,fn($pause)=>(float)$pause['end']>=(float)$block['start']-.2&&(float)$pause['start']<=(float)$block['end']+.2));
         }
         unset($block);
         return ['blocks'=>$blocks,'pauses'=>$pauses,'has_word_timestamps'=>!empty($sourceWords)];
