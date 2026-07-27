@@ -44,7 +44,7 @@ final class AiVideoRenderService
             $filter=$selection."scale={$width}:{$height}:force_original_aspect_ratio=increase,crop={$width}:{$height}{$colorFilter}";
             $subtitleFilter='';$captionStyle=(string)($request['caption_style']??'clean');
             if (trim((string)$job->subtitles_srt) !== '' && $captionStyle !== 'none') {
-                $this->createKineticAss((string)$job->subtitles_srt,$ass,$width,$height,(array)($plan['caption_animation']['emphasis_words']??[]),(string)($request['caption_preset']??'classic-bold'),(array)($plan['caption_style_events']??[]),$captionStyle,max(70,min(140,(int)($request['caption_size_percent']??100))));
+                $this->createKineticAss((string)$job->subtitles_srt,$ass,$width,$height,(array)($plan['caption_animation']['emphasis_words']??[]),(string)($request['caption_preset']??'classic-bold'),(array)($plan['caption_style_events']??[]),$captionStyle,max(35,min(140,(int)($request['caption_size_percent']??75))));
                 $captionPath=$ass;$forceStyle='';
                 $subtitlePath=str_replace(['\\',':',"'"],['/','\\:',"\\'"],$captionPath);
                 $subtitleFilter=",subtitles=filename='{$subtitlePath}'{$forceStyle}";
@@ -56,15 +56,17 @@ final class AiVideoRenderService
             $insertIndexes=[];foreach($insertFiles as $insertFile){$command=array_merge($command,$insertFile['video']?['-i',$insertFile['path']]:['-loop','1','-i',$insertFile['path']]);$insertFile['index']=$index++;$insertIndexes[]=$insertFile;}
             $complex="[0:v]{$filter}[base]";$current='base';
             foreach(array_slice((array)($plan['camera_moves']??[]),0,16) as $i=>$move){
-                $start=$this->seconds((string)($move['start']??''));$end=$this->seconds((string)($move['end']??''));if($end<=$start)continue;
+                $start=$this->outputTime($this->seconds((string)($move['start']??'')),$removed);$end=$this->outputTime($this->seconds((string)($move['end']??'')),$removed);if($end<=$start)continue;
                 $zoom=max(1.02,min(1.22,(float)($move['zoom']??1.08)));$scaledW=(int)ceil($width*$zoom/2)*2;$scaledH=(int)ceil($height*$zoom/2)*2;
                 $focusX=max(0,min(1,(float)($move['focus_x']??.5)));$focusY=max(0,min(1,(float)($move['focus_y']??.45)));
-                $left=(int)round(($scaledW-$width)*$focusX);$top=(int)round(($scaledH-$height)*$focusY);$next='camera'.$i;
-                $complex.=";[{$current}]split=2[keep{$i}][zoomsrc{$i}];[zoomsrc{$i}]scale={$scaledW}:{$scaledH},crop={$width}:{$height}:{$left}:{$top}[zoom{$i}];[keep{$i}][zoom{$i}]overlay=0:0:enable='between(t,{$start},{$end})'[{$next}]";$current=$next;
+                $left=(int)round(($scaledW-$width)*$focusX);$top=(int)round(($scaledH-$height)*$focusY);$next='camera'.$i;$fadeOut=max($start+.12,$end-.18);
+                $complex.=";[{$current}]split=2[keep{$i}][zoomsrc{$i}];[zoomsrc{$i}]scale={$scaledW}:{$scaledH},crop={$width}:{$height}:{$left}:{$top},format=rgba,fade=t=in:st={$start}:d=0.18:alpha=1,fade=t=out:st={$fadeOut}:d=0.18:alpha=1[zoom{$i}];[keep{$i}][zoom{$i}]overlay=0:0:enable='between(t,{$start},{$end})'[{$next}]";$current=$next;
             }
             foreach(array_slice((array)($plan['transitions']??[]),0,16) as $i=>$transition){
-                $at=$this->seconds((string)($transition['timestamp']??''));if($at<=0)continue;$duration=max(.08,min(.5,(float)($transition['duration']??.16)));$type=(string)($transition['type']??'flash');$color=$type==='dip_to_black'?'black@0.82':'white@0.72';$next='transition'.$i;
-                $complex.=";[{$current}]drawbox=x=0:y=0:w=iw:h=ih:color={$color}:t=fill:enable='between(t,{$at},".($at+$duration).")'[{$next}]";$current=$next;
+                $at=$this->outputTime($this->seconds((string)($transition['timestamp']??'')),$removed);if($at<=0)continue;$duration=max(.12,min(.65,(float)($transition['duration']??.22)));$type=(string)($transition['type']??'flash');$next='transition'.$i;
+                if($type==='whip'){$complex.=";[{$current}]crop=iw:ih:x='if(between(t,{$at},".($at+$duration)."),18*sin((t-{$at})/{$duration}*PI),0)':y=0,pad=iw+36:ih:18:0:color=black,crop={$width}:{$height}:18:0[{$next}]";}
+                else{$color=$type==='dip_to_black'?'black':'white';$half=$duration/2;$complex.=";[{$current}]fade=t=out:st={$at}:d={$half}:color={$color},fade=t=in:st=".($at+$half).":d={$half}:color={$color}[{$next}]";}
+                $current=$next;
             }
             foreach(array_slice((array)($request['overlay_layout']??[]),0,30) as $i=>$overlayText){
                 $text=$this->ffmpegText((string)($overlayText['text']??''));if($text==='')continue;$x=max(0,min(.95,(float)($overlayText['x']??.1)));$y=max(0,min(.95,(float)($overlayText['y']??.18)));
@@ -113,6 +115,12 @@ final class AiVideoRenderService
         $drop=[];foreach(array_slice($removed,0,50) as $c){$a=$this->seconds((string)($c['start']??''));$b=$this->seconds((string)($c['end']??''));if($b>$a)$drop[]="between(t,{$a},{$b})";}
         $expression=$keep?'('.implode('+',$keep).')':'1';if($drop)$expression.='*not('.implode('+',$drop).')';return ($keep||$drop)?$expression:'';
     }
+    private function outputTime(float $sourceTime,array $removed): float
+    {
+        $removedBefore=0.0;
+        foreach($removed as $segment){$start=(float)($segment['start']??0);$end=(float)($segment['end']??$start);if($start>=$sourceTime)continue;$removedBefore+=max(0,min($sourceTime,$end)-$start);}
+        return max(0,$sourceTime-$removedBefore);
+    }
     private function seconds(string $time): float{if(is_numeric($time))return max(0,(float)$time);$p=array_map('floatval',explode(':',$time));return count($p)===3?$p[0]*3600+$p[1]*60+$p[2]:(count($p)===2?$p[0]*60+$p[1]:0);}
     private function ffmpegText(string $text): string{return str_replace(["\\","'",':','%'],['\\\\',"\\'",'\\:','\\%'],mb_substr(trim(preg_replace('/\s+/u',' ',$text)),0,100));}
 
@@ -129,22 +137,33 @@ final class AiVideoRenderService
             foreach($lines as $line){if(str_contains($line,'-->'))$time=$line;elseif(!preg_match('/^\d+$/',trim($line)))$text[]=$line;}
             if(!preg_match('/(\d\d:\d\d:\d\d[,.]\d+)\s+-->\s+(\d\d:\d\d:\d\d[,.]\d+)/',$time,$m))continue;
             $words=preg_split('/\s+/u',trim(implode(' ',$text)))?:[];if(!$words)continue;$startSeconds=$this->seconds($m[1]);$preset=AiCaptionStyleRegistry::find($defaultPreset)['id'];$sizePercent=$defaultSize;$blockCaptionMode=$captionMode;
-            foreach($styleEvents as $styleEvent){$eventStart=(float)($styleEvent['start']??0);$eventEnd=isset($styleEvent['end'])&&$styleEvent['end']!==null?(float)$styleEvent['end']:PHP_FLOAT_MAX;if($startSeconds>=$eventStart&&$startSeconds<=$eventEnd){$preset=AiCaptionStyleRegistry::find((string)($styleEvent['preset']??''))['id'];$sizePercent=max(70,min(140,(int)($styleEvent['size_percent']??100)));$blockCaptionMode=match((string)($styleEvent['animation']??'word')){'static'=>'clean','phrase'=>'dynamic',default=>'kinetic'};}}
+            foreach($styleEvents as $styleEvent){$eventStart=(float)($styleEvent['start']??0);$eventEnd=isset($styleEvent['end'])&&$styleEvent['end']!==null?(float)$styleEvent['end']:PHP_FLOAT_MAX;if($startSeconds>=$eventStart&&$startSeconds<=$eventEnd){$preset=AiCaptionStyleRegistry::find((string)($styleEvent['preset']??''))['id'];$sizePercent=max(35,min(140,(int)($styleEvent['size_percent']??75)));$blockCaptionMode=match((string)($styleEvent['animation']??'word')){'static'=>'clean','phrase'=>'dynamic',default=>'kinetic'};}}
             $style=AiCaptionStyleRegistry::find($preset);if($style['uppercase'])$words=array_map(fn($word)=>mb_strtoupper($word),$words);
-            $duration=max(.1,$this->seconds($m[2])-$this->seconds($m[1]));$centiseconds=max(1,(int)round($duration*100/count($words)));$karaoke='';
-            foreach($words as $word){
-                $safe=str_replace(['{','}','\\'],['(',')','\\\\'],$word);
-                $isEmphasis=false;foreach($emphasisWords as $emphasis)if(mb_strtolower(trim((string)$emphasis))===mb_strtolower(trim($word,".,!?;:"))){$isEmphasis=true;break;}
-                if(in_array($blockCaptionMode,['kinetic','dynamic'],true))$karaoke.='{\\kf'.$centiseconds.($isEmphasis?'\\fscx112\\fscy112':'').'}'.$safe.($isEmphasis?'{\\r'.$preset.'}':'').' ';else$karaoke.=$safe.' ';
+            $duration=max(.1,$this->seconds($m[2])-$this->seconds($m[1]));
+            $wordsPerCaption=$blockCaptionMode==='kinetic'?4:($blockCaptionMode==='dynamic'?6:8);
+            $chunks=array_chunk($words,$wordsPerCaption);$wordOffset=0;
+            foreach($chunks as $chunk){
+                $chunkStart=$startSeconds+$duration*$wordOffset/count($words);$chunkEnd=$startSeconds+$duration*($wordOffset+count($chunk))/count($words);
+                $centiseconds=max(1,(int)round(($chunkEnd-$chunkStart)*100/count($chunk)));$karaoke='';
+                foreach($chunk as $word){
+                    $safe=str_replace(['{','}','\\'],['(',')','\\\\'],$word);
+                    $isEmphasis=false;foreach($emphasisWords as $emphasis)if(mb_strtolower(trim((string)$emphasis))===mb_strtolower(trim($word,".,!?;:"))){$isEmphasis=true;break;}
+                    if(in_array($blockCaptionMode,['kinetic','dynamic'],true))$karaoke.='{\\kf'.$centiseconds.($isEmphasis?'\\fscx112\\fscy112':'').'}'.$safe.($isEmphasis?'{\\r'.$preset.'}':'').' ';else$karaoke.=$safe.' ';
+                }
+                $events[]='Dialogue: 0,'.$this->assTimestamp($chunkStart).','.$this->assTimestamp($chunkEnd).','.$preset.',,0,0,0,,{\\fad(60,80)\\blur0.3\\fscx'.$sizePercent.'\\fscy'.$sizePercent.'}'.trim($karaoke);
+                $wordOffset+=count($chunk);
             }
-            $events[]='Dialogue: 0,'.$this->assTime($m[1]).','.$this->assTime($m[2]).','.$preset.',,0,0,0,,{\\fad(60,80)\\blur0.3\\fscx'.$sizePercent.'\\fscy'.$sizePercent.'}'.trim($karaoke);
         }
         file_put_contents($target,$header.implode("\n",$events)."\n");
     }
     private function assColor(string $color): string{$named=['white'=>'#ffffff','yellow'=>'#ffff00','black'=>'#000000'];$hex=$named[strtolower($color)]??$color;if(!preg_match('/^#([0-9a-f]{6})$/i',$hex,$m))$hex='#ffffff';$value=$m[1];return '&H00'.substr($value,4,2).substr($value,2,2).substr($value,0,2);}
     private function assTime(string $time): string
     {
-        $seconds=$this->seconds(str_replace(',', '.', $time));$hours=(int)floor($seconds/3600);$minutes=(int)floor(($seconds%3600)/60);$whole=(int)floor($seconds%60);$centis=(int)round(($seconds-floor($seconds))*100);
+        return $this->assTimestamp($this->seconds(str_replace(',', '.', $time)));
+    }
+    private function assTimestamp(float $seconds): string
+    {
+        $hours=(int)floor($seconds/3600);$minutes=(int)floor(($seconds%3600)/60);$whole=(int)floor($seconds%60);$centis=(int)round(($seconds-floor($seconds))*100);
         return sprintf('%d:%02d:%02d.%02d',$hours,$minutes,$whole,min(99,$centis));
     }
 

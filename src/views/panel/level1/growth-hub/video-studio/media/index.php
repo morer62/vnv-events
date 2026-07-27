@@ -2,6 +2,7 @@
 
 use App\Repositories\AiAgentMediaRepository;
 use App\Services\AiVideoIngestService;
+use App\Services\AiVideoProxyService;
 use App\Services\LoginService;
 use App\Utils\Router;
 
@@ -15,7 +16,9 @@ $router->get(function (): never {
         exit('Media project not found.');
     }
 
-    $path = (new AiVideoIngestService())->localPath((string)$job->source_url);
+    $proxyRequested=!empty($_GET['proxy']);
+    $proxyPath=(new AiVideoProxyService())->path($owner,(int)$job->id);
+    $path=$proxyRequested&&is_file($proxyPath)?$proxyPath:(new AiVideoIngestService())->localPath((string)$job->source_url);
     if (!$path || !is_file($path) || !is_readable($path)) {
         http_response_code(404);
         exit('Private media is unavailable.');
@@ -42,7 +45,7 @@ $router->get(function (): never {
     }
 
     http_response_code($status);
-    header('Content-Type: '.((string)$job->mime_type ?: 'application/octet-stream'));
+    header('Content-Type: '.($proxyRequested&&$path===$proxyPath?'video/mp4':((string)$job->mime_type ?: 'application/octet-stream')));
     header('Content-Disposition: inline; filename="'.str_replace('"', '', basename($path)).'"');
     header('Accept-Ranges: bytes');
     header('Content-Length: '.($end - $start + 1));

@@ -7,6 +7,7 @@ use App\Services\AiVideoRenderService;
 use App\Services\AiVideoIngestService;
 use App\Services\AiTranscriptTimelineService;
 use App\Services\AiCaptionStyleRegistry;
+use App\Services\AiVideoProxyService;
 use App\Services\AiCaptionEditorService;
 use App\Services\AiProviderImageService;
 use App\Services\LoginService;
@@ -35,7 +36,8 @@ $router->get(function(){
         $selectedPlan=json_decode((string)$selected->edit_plan_json,true);
         $selectedRequest=is_array($selectedPlan)?(array)($selectedPlan['_request']??[]):[];
         $selected->caption_preset=AiCaptionStyleRegistry::find((string)($selectedRequest['caption_preset']??'classic-bold'))['id'];
-        $selected->caption_size_percent=max(70,min(140,(int)($selectedRequest['caption_size_percent']??100)));
+        $selected->caption_size_percent=max(35,min(140,(int)($selectedRequest['caption_size_percent']??75)));
+        $selected->proxy_ready=(new AiVideoProxyService())->exists($owner,(int)$selected->id);
     }
     return TemplateResponse::render(__DIR__.($selected?'/editor.twig':'/library.twig'),[
         'jobs'=>$jobs,'assets'=>$repo->assets($owner),'renderReady'=>(new AiVideoRenderService())->available(),
@@ -76,9 +78,13 @@ $router->post(function(){
             $id=(int)($_POST['id']??0);$job=$repo->find($owner,$id);if(!$job)throw new RuntimeException('Project not found.');
             $edits=json_decode((string)($_POST['timeline_edits_json']??''),true);if(!is_array($edits))throw new RuntimeException('The transcript edit could not be read.');
             $repo->revision($owner,(int)$session->getId(),$job,'TIMELINE_TEXT_EDIT','Before transcript-based video cuts');
-            $result=(new AiTranscriptTimelineService())->apply($job,$edits,!empty($_POST['remove_long_pauses']),max(.6,min(10,(float)($_POST['pause_threshold']??1.25))));
+            $pauseEdits=json_decode((string)($_POST['pause_edits_json']??'[]'),true);
+            $result=(new AiTranscriptTimelineService())->apply($job,$edits,!empty($_POST['remove_long_pauses']),max(.6,min(10,(float)($_POST['pause_threshold']??1.25))),is_array($pauseEdits)?$pauseEdits:[]);
             $repo->updateEditor($owner,$id,$result['transcript'],$result['srt'],$result['plan']);
             MessageUtil::setMessage(count($result['removed_segments']).' transcript edit(s) synchronized with the video'.($result['commands']?' and '.count($result['commands']).' inline command(s) added.':'.'));
+        }elseif($action==='generate_editing_proxy'){
+            $id=(int)($_POST['id']??0);$job=$repo->find($owner,$id);if(!$job)throw new RuntimeException('Media job not found.');
+            (new AiVideoProxyService())->generate($owner,$job);MessageUtil::setMessage('The lightweight editing proxy is ready. Final exports will continue using the original master.');
         }elseif($action==='transcribe'){
             $id=(int)($_POST['id']??0); $job=$repo->find($owner,$id);
             if(!$job) throw new RuntimeException('Media job not found.');
@@ -112,7 +118,7 @@ $router->post(function(){
                 'overlay_url'=>$projectAsset('overlay_url'),'audio_url'=>$projectAsset('audio_url'),
             ]) : null;
             if($plan){
-                $plan['_request']['caption_preset']=AiCaptionStyleRegistry::find((string)($_POST['caption_preset']??'classic-bold'))['id'];$plan['_request']['caption_size_percent']=max(70,min(140,(int)($_POST['caption_size_percent']??100)));
+                $plan['_request']['caption_preset']=AiCaptionStyleRegistry::find((string)($_POST['caption_preset']??'classic-bold'))['id'];$plan['_request']['caption_size_percent']=max(35,min(140,(int)($_POST['caption_size_percent']??75)));
                 $byName=[];foreach($projectFiles as $file)$byName[strtolower((string)$file['relative_path'])]=$file;
                 foreach((array)($plan['generated_inserts']??[]) as $index=>$insert){
                     $assetName=strtolower(trim((string)($insert['asset_name']??'')));$assetUrl=trim((string)($insert['asset_url']??''));

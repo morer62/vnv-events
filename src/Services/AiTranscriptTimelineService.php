@@ -10,7 +10,7 @@ final class AiTranscriptTimelineService
         $segments=is_array($raw)?(array)($raw['segments']??[]):[];
         $sourceWords=is_array($raw)?(array)($raw['words']??[]):[];
         if(!$segments)$segments=$this->segmentsFromSrt((string)($job->subtitles_srt??''));
-        $plan=json_decode((string)($job->edit_plan_json??''),true);$storedCommands=is_array($plan)?(array)($plan['_request']['timeline_commands']??[]):[];$blocks=[];$allWords=[];
+        $plan=json_decode((string)($job->edit_plan_json??''),true);$storedCommands=is_array($plan)?(array)($plan['_request']['timeline_commands']??[]):[];$storedPauseEdits=is_array($plan)?(array)($plan['_request']['pause_edits']??[]):[];$blocks=[];$allWords=[];
         foreach($segments as $index=>$segment){
             if(!is_array($segment))continue;
             $start=max(0,(float)($segment['start']??0));$end=max($start+.01,(float)($segment['end']??$start));
@@ -27,11 +27,20 @@ final class AiTranscriptTimelineService
             $blocks[]=['id'=>$index+1,'start'=>$start,'end'=>$end,'time'=>$this->clock($start),'text'=>$text,'words'=>$words,'commands'=>$blockCommands];
         }
         usort($allWords,fn($a,$b)=>$a['start']<=>$b['start']);$pauses=[];
-        for($i=1;$i<count($allWords);$i++){$gap=$allWords[$i]['start']-$allWords[$i-1]['end'];if($gap>=.55)$pauses[]=['start'=>$allWords[$i-1]['end'],'end'=>$allWords[$i]['start'],'duration'=>$gap];}
+        for($i=1;$i<count($allWords);$i++){
+            $gap=$allWords[$i]['start']-$allWords[$i-1]['end'];if($gap<.55)continue;
+            $pause=['start'=>$allWords[$i-1]['end'],'end'=>$allWords[$i]['start'],'duration'=>$gap,'keep'=>$gap];
+            foreach($storedPauseEdits as $edit)if(abs((float)($edit['start']??-1)-$pause['start'])<.05&&abs((float)($edit['end']??-1)-$pause['end'])<.05){$pause['keep']=max(0,min($gap,(float)($edit['keep']??$gap)));break;}
+            $pauses[]=$pause;
+        }
+        foreach($blocks as &$block){
+            $block['pauses']=array_values(array_filter($pauses,fn($pause)=>(float)$pause['start']>=(float)$block['start']-.05&&(float)$pause['start']<=(float)$block['end']+.2));
+        }
+        unset($block);
         return ['blocks'=>$blocks,'pauses'=>$pauses,'has_word_timestamps'=>!empty($sourceWords)];
     }
 
-    public function apply(object $job,array $edits,bool $removePauses=false,float $pauseThreshold=1.25): array
+    public function apply(object $job,array $edits,bool $removePauses=false,float $pauseThreshold=1.25,array $pauseEdits=[]): array
     {
         $timeline=$this->timeline($job);$byId=[];foreach($timeline['blocks'] as $block)$byId[(int)$block['id']]=$block;
         $removed=[];$lines=[];$srt=[];$commands=[];$number=1;
@@ -45,10 +54,17 @@ final class AiTranscriptTimelineService
             $start=$keptWords?(float)$keptWords[0]['start']:(float)$block['start'];$end=$keptWords?(float)end($keptWords)['end']:(float)$block['end'];
             $lines[]=$text;$srt[]=$number++."\n".$this->srtTime($start).' --> '.$this->srtTime($end)."\n".$text;
         }
-        if($removePauses)foreach($timeline['pauses'] as $pause)if($pause['duration']>=$pauseThreshold)$removed[]=['start'=>$pause['start'],'end'=>$pause['end'],'reason'=>'Long pause '.number_format($pause['duration'],2).'s'];
+        $editedPauses=[];
+        foreach($pauseEdits as $pauseEdit){
+            if(!is_array($pauseEdit))continue;
+            $start=max(0,(float)($pauseEdit['start']??0));$end=max($start,(float)($pauseEdit['end']??$start));
+            $keep=max(0,min($end-$start,(float)($pauseEdit['keep']??($end-$start))));
+            if($end-$start>$keep+.02){$removed[]=['start'=>$start+$keep,'end'=>$end,'reason'=>'Pause shortened from '.number_format($end-$start,2).'s to '.number_format($keep,2).'s'];$editedPauses[]=['start'=>$start,'end'=>$end,'keep'=>$keep];}
+        }
+        if($removePauses)foreach($timeline['pauses'] as $pause)if($pause['duration']>=$pauseThreshold&&!$this->pauseWasEdited($pause,$editedPauses))$removed[]=['start'=>$pause['start'],'end'=>$pause['end'],'reason'=>'Long pause '.number_format($pause['duration'],2).'s'];
         $removed=$this->mergeSegments($removed);
         $plan=json_decode((string)($job->edit_plan_json??''),true);if(!is_array($plan))$plan=[];
-        $request=(array)($plan['_request']??[]);$previousTimeline=(array)($request['timeline_removed_segments']??[]);$baseRemoved=array_values(array_filter((array)($request['removed_segments']??[]),fn($segment)=>!$this->sameAsAny($segment,$previousTimeline)));$request['timeline_removed_segments']=$removed;$request['removed_segments']=$this->mergeSegments(array_merge($baseRemoved,$removed));$request['timeline_commands']=$commands;$request['pause_threshold_seconds']=$pauseThreshold;$plan['_request']=$request;
+        $request=(array)($plan['_request']??[]);$previousTimeline=(array)($request['timeline_removed_segments']??[]);$baseRemoved=array_values(array_filter((array)($request['removed_segments']??[]),fn($segment)=>!$this->sameAsAny($segment,$previousTimeline)));$request['timeline_removed_segments']=$removed;$request['removed_segments']=$this->mergeSegments(array_merge($baseRemoved,$removed));$request['timeline_commands']=$commands;$request['pause_edits']=$editedPauses;$request['pause_threshold_seconds']=$pauseThreshold;$plan['_request']=$request;
         foreach(['transitions','camera_moves','generated_inserts','caption_style_events'] as $field)$plan[$field]=array_values(array_filter((array)($plan[$field]??[]),fn($item)=>($item['source']??'')!=='timeline_command'));
         foreach($commands as $command)$this->applyCommandToPlan($plan,$command);
         return ['transcript'=>implode("\n\n",$lines),'srt'=>implode("\n\n",$srt),'plan'=>$plan,'removed_segments'=>$removed,'commands'=>$commands];
@@ -66,16 +82,18 @@ final class AiTranscriptTimelineService
     private function extractCommands(string $text,array $block,array &$commands): string
     {
         return trim(preg_replace_callback('/\[(transition|zoom|background|image|video|caption)\s*:\s*([^\]]+)\]/iu',function($match)use($block,&$commands){
-            $parts=array_map('trim',explode('|',$match[2]));$commands[]=['type'=>mb_strtolower($match[1]),'instruction'=>array_shift($parts),'options'=>$parts,'timestamp'=>(float)$block['start'],'block_id'=>(int)$block['id'],'token'=>$match[0]];return '';
+            $parts=array_map('trim',explode('|',$match[2]));$instruction=array_shift($parts);$timestamp=(float)$block['start'];
+            foreach($parts as $part)if(preg_match('/^at\s*:\s*(\d+(?:\.\d+)?)s?$/i',$part,$atMatch)){$timestamp=max((float)$block['start'],min((float)$block['end'],(float)$atMatch[1]));break;}
+            $commands[]=['type'=>mb_strtolower($match[1]),'instruction'=>$instruction,'options'=>$parts,'timestamp'=>$timestamp,'block_id'=>(int)$block['id'],'token'=>$match[0]];return '';
         },$text));
     }
 
     private function applyCommandToPlan(array &$plan,array $command): void
     {
         $type=$command['type'];$instruction=mb_strtolower((string)$command['instruction']);$at=(float)$command['timestamp'];$options=implode(' | ',(array)$command['options']);
-        if($type==='caption'){$duration=null;$size=100;$animation='word';if(preg_match('/duration\s*:\s*(\d+(?:\.\d+)?)\s*s/i',$options,$m))$duration=max(.5,min(3600,(float)$m[1]));if(preg_match('/size\s*:\s*(\d{2,3})\s*%/i',$options,$m))$size=max(70,min(140,(int)$m[1]));if(preg_match('/animation\s*:\s*(word|phrase|static)/i',$options,$m))$animation=strtolower($m[1]);$plan['caption_style_events'][]=['start'=>$at,'end'=>$duration===null?null:$at+$duration,'preset'=>AiCaptionStyleRegistry::find((string)$command['instruction'])['id'],'size_percent'=>$size,'animation'=>$animation,'source'=>'timeline_command'];}
+        if($type==='caption'){$duration=null;$size=75;$animation='word';if(preg_match('/duration\s*:\s*(\d+(?:\.\d+)?)\s*s/i',$options,$m))$duration=max(.5,min(3600,(float)$m[1]));if(preg_match('/size\s*:\s*(\d{2,3})\s*%/i',$options,$m))$size=max(35,min(140,(int)$m[1]));if(preg_match('/animation\s*:\s*(word|phrase|static)/i',$options,$m))$animation=strtolower($m[1]);$plan['caption_style_events'][]=['start'=>$at,'end'=>$duration===null?null:$at+$duration,'preset'=>AiCaptionStyleRegistry::find((string)$command['instruction'])['id'],'size_percent'=>$size,'animation'=>$animation,'source'=>'timeline_command'];}
         elseif($type==='transition'){$effect=str_contains($instruction,'black')?'dip_to_black':(str_contains($instruction,'whip')?'whip':(str_contains($instruction,'zoom')?'zoom':'flash'));$plan['transitions'][]=['timestamp'=>$at,'type'=>$effect,'duration'=>.22,'reason'=>$command['instruction'].' '.$options,'source'=>'timeline_command'];}
-        elseif($type==='zoom'){$focus=str_contains($instruction.' '.$options,'left')?.28:(str_contains($instruction.' '.$options,'right')?.72:.5);$plan['camera_moves'][]=['start'=>$at,'end'=>$at+3,'type'=>str_contains($instruction,'out')?'punch_out':'punch_in','zoom'=>str_contains($instruction,'out')?1.03:1.13,'focus_x'=>$focus,'focus_y'=>.42,'reason'=>$command['instruction'].' '.$options,'source'=>'timeline_command'];}
+        elseif($type==='zoom'){$focus=str_contains($instruction.' '.$options,'left')?.28:(str_contains($instruction.' '.$options,'right')?.72:.5);$duration=3;if(preg_match('/duration\s*:\s*(\d+(?:\.\d+)?)\s*s/i',$options,$m))$duration=max(.5,min(20,(float)$m[1]));$plan['camera_moves'][]=['start'=>$at,'end'=>$at+$duration,'type'=>str_contains($instruction,'out')?'punch_out':'punch_in','zoom'=>1.16,'focus_x'=>$focus,'focus_y'=>.42,'reason'=>$command['instruction'].' '.$options,'source'=>'timeline_command'];}
         else{$duration=3;if(preg_match('/(\d+(?:\.\d+)?)\s*s/i',$options,$m))$duration=max(.5,min(30,(float)$m[1]));$plan['generated_inserts'][]=['start'=>$at,'duration_seconds'=>$duration,'prompt'=>$command['instruction'],'asset_name'=>$type==='image'||$type==='video'?$command['instruction']:'','asset_url'=>'','mime_type'=>$type==='video'?'video/mp4':'image/png','media_type'=>$type==='video'?'generated_video':'generated_image','placement'=>$type==='background'?'background':'full_frame','status'=>'PROPOSED','source'=>'timeline_command'];}
     }
 
@@ -92,6 +110,7 @@ final class AiTranscriptTimelineService
     }
     private function mergeSegments(array $segments): array{usort($segments,fn($a,$b)=>(float)$a['start']<=>(float)$b['start']);$out=[];foreach($segments as $segment){$segment['start']=(float)$segment['start'];$segment['end']=(float)$segment['end'];$last=count($out)-1;if($last>=0&&$segment['start']<=$out[$last]['end']+.08){$out[$last]['end']=max($out[$last]['end'],$segment['end']);$out[$last]['reason'].='; '.$segment['reason'];}else$out[]=$segment;}return $out;}
     private function sameAsAny(array $segment,array $others): bool{foreach($others as $other)if(abs((float)($segment['start']??0)-(float)($other['start']??0))<.02&&abs((float)($segment['end']??0)-(float)($other['end']??0))<.02)return true;return false;}
+    private function pauseWasEdited(array $pause,array $edits): bool{foreach($edits as $edit)if(abs((float)$pause['start']-(float)$edit['start'])<.05&&abs((float)$pause['end']-(float)$edit['end'])<.05)return true;return false;}
     private function normalizeToken(string $value): string{return mb_strtolower(trim(preg_replace('/[^\pL\pN\']+/u','',$value)));}
     private function seconds(string $time): float{$time=str_replace(',','.',$time);$parts=array_map('floatval',explode(':',$time));return count($parts)===3?$parts[0]*3600+$parts[1]*60+$parts[2]:(count($parts)===2?$parts[0]*60+$parts[1]:(float)$time);}
     private function clock(float $seconds): string{return sprintf('%02d:%02d',(int)floor($seconds/60),(int)floor($seconds)%60);}
