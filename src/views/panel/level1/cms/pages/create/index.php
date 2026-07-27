@@ -5,6 +5,8 @@ use App\Repositories\CmsCategoriesRepository;
 use App\Repositories\CmsRoutesRepository;
 use App\Repositories\CmsTemplatesRepository;
 use App\Repositories\Connection;
+use App\Repositories\AiAgentsRepository;
+use App\Services\AiAgentRegistry;
 use App\Services\CmsImageGenerationService;
 use App\Services\LoginService;
 use App\Utils\FileUtils;
@@ -332,6 +334,8 @@ $router->get(function () {
     $templates = $templatesRepository->getActive();
     $categories = $categoriesRepository->getActive();
     $internalLinks = cmsServiceInternalLinkCandidates();
+    $session=LoginService::getSession();$ownerId=(int)$session->getOwner();
+    $db->query("SELECT id,title,content_type,status,route FROM cms_contents WHERE id_owner=:owner AND status IN ('GENERATED','PUBLISHED') ORDER BY updated_at DESC LIMIT 300");$db->bind(':owner',$ownerId);$baseContents=$db->fetchAll();
 
     return TemplateResponse::render(__DIR__ . "/index.twig", [
         "title" => "Create CMS Page",
@@ -339,6 +343,7 @@ $router->get(function () {
         "templates" => $templates,
         "categories" => $categories,
         "internalLinks" => $internalLinks,
+        "baseContents" => $baseContents,
         "old" => [
             "id_template" => "",
             "id_cms_category" => "",
@@ -524,6 +529,8 @@ $router->post(function () {
             $batchToken = preg_replace('/[^a-zA-Z0-9_-]/', '', (string)($_POST['batch_token'] ?? ''));
             $reference = json_decode((string)($_POST['reference_json'] ?? '{}'), true);
             $reference = is_array($reference) ? $reference : [];
+            $baseContentId=(int)($_POST['base_content_id']??0);$baseContent=null;
+            if($baseContentId>0){$db->query("SELECT id,title,content_type,excerpt,body_html,meta_title,meta_description,schema_json FROM cms_contents WHERE id=:id AND id_owner=:owner LIMIT 1");$db->bind(':id',$baseContentId);$db->bind(':owner',$ownerId);$baseContent=$db->fetchOne()?:null;}
             $internalLinks = json_decode((string)($_POST['internal_links_json'] ?? '[]'), true);
             $internalLinks = is_array($internalLinks) ? array_slice(array_values($internalLinks), 0, 8) : [];
             $ideas = json_decode((string)($_POST['selected_ideas'] ?? '[]'), true);
@@ -549,12 +556,13 @@ $router->post(function () {
                         'keywords_csv' => $keywords,
                         'intent' => $intent,
                         'remote_reference' => $reference,
+                        'selected_vnv_base_content' => $baseContent,
                         'internal_links_to_consider' => $internalLinks,
                         'supporting_image_count' => $supportingImageCount,
                         'thumbnail_required' => $supportingImageCount > 0,
                         'rules' => [
                             'Do not invent prices, addresses, awards, reviews, guarantees, licenses or staff names.',
-                            'Use the remote reference only as editorial context; do not copy it.',
+                            'Use remote and selected VNV base content as structural/context references only; create a distinct page unless the instruction explicitly requests adaptation.',
                             'Visible content must be in English.',
                             'Use selected internal links only when they are contextually relevant. Insert natural anchor text in body_html. Do not force every link.',
                             'Internal link href values must use the provided route exactly.',
@@ -678,6 +686,25 @@ $router->post(function () {
                     'status' => 'ACTIVE',
                     'redirect_to' => null,
                 ], $authorUserId, $ownerId));
+
+                try {
+                    $agentRepo=new AiAgentsRepository();
+                    if($agentRepo->storageReady()){
+                        $agentRepo->seed($ownerId,AiAgentRegistry::definitions());
+                        $blogAgent=$agentRepo->find($ownerId,'blog_writer');
+                        if($blogAgent){
+                            $runId=$agentRepo->createRun((int)$blogAgent->id,$ownerId,'SYSTEM',$authorUserId,['content_id'=>$contentId]);
+                            $approvalId=$agentRepo->createApproval($runId,(int)$blogAgent->id,$ownerId,'PUBLISH_ARTICLE','Review article: '.$title,[
+                                'content_id'=>$contentId,'title'=>$title,'excerpt'=>trim((string)($article['excerpt']??$idea['excerpt']??'')),
+                                'body'=>cmsBuildAiArticleHtml($article,$supportingImageCount,$bodyImages),'meta_title'=>trim((string)($article['meta_title']??$title)),
+                                'meta_description'=>trim((string)($article['meta_description']??'')),'edit_url'=>LocationUtils::pathFor('panel/cms/pages/edit?id='.$contentId),
+                            ],$authorUserId);
+                            $agentRepo->finishRun($runId,'AWAITING_APPROVAL',['content_id'=>$contentId,'approval_id'=>$approvalId]);
+                        }
+                    }
+                } catch (\Throwable $approvalError) {
+                    error_log('[CMS AI] Approval creation failed: '.$approvalError->getMessage());
+                }
 
                 $created[] = [
                     'id' => $contentId,

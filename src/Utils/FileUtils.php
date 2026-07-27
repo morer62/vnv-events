@@ -66,6 +66,20 @@ class FileUtils
         }
     }
 
+    public static function saveFileFromPath(string $path, string $folder, string $publicId = ''): string
+    {
+        if (!is_file($path)) {
+            throw new Exception('The generated file does not exist.');
+        }
+        $client = CloudinaryClient::client();
+        $options = ['folder' => $folder, 'resource_type' => 'auto'];
+        if ($publicId !== '') {
+            $options['public_id'] = $publicId;
+        }
+        $upload = $client->uploadApi()->upload($path, $options);
+        return $upload['secure_url'] ?? '';
+    }
+
     public static function hasFile(array $files, string $file): bool
     {
         return !empty($files[$file]['name'] ?? '');

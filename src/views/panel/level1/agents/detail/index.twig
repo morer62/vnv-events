@@ -1,0 +1,128 @@
+{% extends "templates/base.admin.twig" %}
+{% block body %}
+<style>
+.ad-wrap{padding:26px;max-width:1300px}.ad-back{color:#475569;text-decoration:none;font-weight:800}.ad-hero{background:linear-gradient(135deg,#111827,#24323b);border-radius:26px;color:#fff;padding:30px;margin:18px 0 22px}.ad-hero h1{font-weight:950;margin:0 0 8px}.ad-hero p{color:rgba(255,255,255,.72);max-width:760px}.ad-badge{display:inline-flex;border-radius:999px;background:rgba(73,242,194,.15);color:#49f2c2;padding:7px 10px;font-weight:900;font-size:.75rem}.ad-grid{display:grid;grid-template-columns:1.1fr .9fr;gap:18px}.ad-card{background:#fff;border:1px solid #e5e7eb;border-radius:20px;padding:20px;margin-bottom:18px;box-shadow:0 10px 28px rgba(15,23,42,.05)}.ad-card h2{font-size:1.05rem;font-weight:900}.ad-btn{border:0;border-radius:11px;background:#111827;color:#fff;padding:10px 15px;font-weight:850}.ad-light{background:#f1f5f9;color:#111827}.ad-select,.ad-input{border:1px solid #d1d5db;border-radius:12px;padding:10px 12px;width:100%;margin:8px 0}.ad-code{background:#0f172a;border-radius:12px;color:#cbd5e1;padding:12px;word-break:break-all;font-size:.8rem}.ad-run,.ad-approval{border-top:1px solid #e5e7eb;padding:13px 0}.ad-status{font-size:.72rem;font-weight:900;color:#475569}.ad-output{background:#f8fafc;border-radius:10px;max-height:220px;overflow:auto;padding:10px;white-space:pre-wrap;font-size:.77rem}.ad-actions,.ad-networks{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.ad-network{border:1px solid #cbd5e1;border-radius:12px;padding:10px 12px;background:#f8fafc}.ad-connection{border-top:1px solid #e5e7eb;padding:13px 0}.ad-connected{color:#047857;font-weight:900}@media(max-width:850px){.ad-grid{grid-template-columns:1fr}.ad-wrap{padding:14px}}
+</style>
+<div class="ad-wrap">
+  <a class="ad-back" href="{{ path('panel/agents') }}">← All agents</a>
+  <section class="ad-hero">
+    <span class="ad-badge">{{ agent.status|replace({'_':' '}) }}</span>
+    <h1>{{ agent.name }}</h1>
+    <p>{{ agent.description }}</p>
+  </section>
+  <div class="ad-grid">
+    <main>
+      <section class="ad-card">
+        <h2>Run agent</h2>
+        {% if agent.agent_key == 'video_studio' %}
+          <p>This agent runs inside its dedicated workspace so the source, draft and output stay visible throughout the process.</p>
+        {% elseif agent.status == 'SETUP_REQUIRED' %}
+          <p>This agent is installed but needs its external connector credentials before execution.</p>
+        {% else %}
+          <form method="post" {% if agent.agent_key == 'social_publisher' %}data-social-run{% endif %}>
+            <input type="hidden" name="agent_key" value="{{ agent.agent_key }}">
+            <input type="hidden" name="action" value="run">
+            {% if agent.agent_key in ['event_brief','post_event','client_concierge'] %}
+              <label>Order</label>
+              <select class="ad-select" name="order_id" required>
+                <option value="">Select order</option>
+                {% for order in orders %}<option value="{{ order.id }}">#{{ order.id }} — {{ order.event_date }} — {{ order.address }}</option>{% endfor %}
+              </select>
+            {% endif %}
+            {% if agent.agent_key in ['social_publisher','instagram_carousel','blog_writer'] %}
+              <label>Approved CMS content</label><select class="ad-select" name="content_id" required><option value="">Select content</option>{% for content in contents %}<option value="{{ content.id }}" {% if selectedContentId==content.id %}selected{% endif %}>#{{ content.id }} — {{ content.title }} ({{ content.status }})</option>{% endfor %}</select>
+            {% endif %}
+            {% if agent.agent_key == 'blog_writer' %}
+              <label>Optimization provider</label><select class="ad-select" name="provider"><option value="openai">OpenAI</option><option value="anthropic">Claude</option><option value="gemini">Gemini</option></select>
+              <label>Optimization instructions</label><textarea class="ad-input" name="instructions" rows="4" placeholder="Improve SEO, clarity, structure and image prompts while preserving verified facts."></textarea>
+              <label><input type="checkbox" name="regenerate_image" value="1"> Generate an improved thumbnail</label><select class="ad-select" name="image_provider"><option value="gemini">Gemini image</option><option value="openai">OpenAI image</option></select>
+            {% endif %}
+            {% if agent.agent_key == 'social_publisher' %}
+              <label>Where do you want to publish?</label><div class="ad-networks">{% for network in ['facebook','instagram','linkedin','youtube'] %}<label class="ad-network"><input type="checkbox" name="networks[]" value="{{ network }}"> {{ network|capitalize }}</label>{% endfor %}</div>
+            {% endif %}
+            {% if agent.agent_key == 'meta_lead_estimator' %}
+              <label>CRM lead</label><select class="ad-select" name="lead_id" required><option value="">Select lead</option>{% for lead in leads %}<option value="{{ lead.id }}">#{{ lead.id }} — {{ lead.name }} — {{ lead.email }}</option>{% endfor %}</select>
+            {% endif %}
+            {% if agent.agent_key == 'client_concierge' %}<label>Client question</label><textarea class="ad-input" name="question" rows="4" required placeholder="Enter the question that needs a grounded response."></textarea>{% endif %}
+            <button class="ad-btn" type="submit">Run now</button>
+          </form>
+        {% endif %}
+        {% if agent.agent_key == 'blog_writer' %}<div class="ad-actions"><a class="ad-btn" href="{{ path('panel/cms/pages/create') }}?mode=ai">Open AI Content Creator</a></div>{% endif %}
+        {% if agent.agent_key == 'video_studio' %}<div class="ad-actions"><a class="ad-btn" href="{{ path('panel/growth-hub/video-studio') }}">Open Video Studio</a></div>{% endif %}
+      </section>
+      <section class="ad-card">
+        <h2>Execution history</h2>
+        {% for run in runs %}
+          <div class="ad-run"><strong>Run #{{ run.id }}</strong> <span class="ad-status">{{ run.status }} · {{ run.trigger_type }} · {{ run.created_at }}</span>
+          {% if run.error_message %}<p class="text-danger">{{ run.error_message }}</p>{% endif %}
+          {% if run.output_json %}<div class="ad-output">{{ run.output_json }}</div>{% endif %}</div>
+        {% else %}<p>No executions yet.</p>{% endfor %}
+      </section>
+    </main>
+    <aside>
+      {% if agent.agent_key in ['blog_writer','video_studio'] %}
+      <section class="ad-card"><h2>AI providers</h2><p>Configure OpenAI, Claude or Gemini per account. Keys are encrypted and never displayed again.</p>
+      {% for provider in ['openai','anthropic','gemini'] %}
+        {% set configured = providerConnections[provider]|default(null) %}
+        <div class="ad-connection"><strong>{{ provider == 'anthropic' ? 'Claude (Anthropic)' : provider|capitalize }}</strong>{% if configured %}<span class="ad-connected"> · Configured</span><small class="d-block">Key ending {{ configured.key_hint }}</small>{% endif %}
+        <form method="post"><input type="hidden" name="agent_key" value="{{ agent.agent_key }}"><input type="hidden" name="action" value="save_ai_provider"><input type="hidden" name="provider" value="{{ provider }}">
+          <input class="ad-input" type="password" name="api_key" autocomplete="new-password" placeholder="{{ configured ? 'Leave blank to keep current key' : 'API key' }}">
+          <input class="ad-input" name="text_model" value="{{ configured.text_model|default(provider == 'anthropic' ? 'claude-sonnet-4-6' : (provider == 'gemini' ? 'gemini-2.5-flash' : 'gpt-4o-mini')) }}" placeholder="Text model">
+          <input class="ad-input" name="image_model" value="{{ configured.image_model|default(provider == 'gemini' ? 'gemini-3.1-flash-image' : (provider == 'openai' ? 'gpt-image-1' : '')) }}" placeholder="Image model (if supported)">
+          <label><input type="checkbox" name="is_default_text" value="1" {% if configured.is_default_text|default(false) %}checked{% endif %}> Default for text</label> <label><input type="checkbox" name="is_default_image" value="1" {% if configured.is_default_image|default(false) %}checked{% endif %}> Default for images</label><br><button class="ad-btn mt-2">Save provider</button>
+        </form></div>
+      {% endfor %}</section>
+      {% endif %}
+      {% if agent.agent_key in ['social_publisher','instagram_carousel'] %}
+      <section class="ad-card"><h2>Social connections</h2><p>Credentials are encrypted per network. Saving a blank token keeps the existing one.</p>
+        {% for platform in ['facebook','instagram','linkedin','youtube','whatsapp'] %}
+          {% set connection = connections[platform]|default(null) %}
+          <div class="ad-connection"><strong>{{ platform|capitalize }}</strong>{% if connection and connection.status != 'DISCONNECTED' %}<span class="ad-connected"> · {{ connection.status }}</span><small class="d-block">{{ connection.account_label }} · token ending {{ connection.credential_hint }}</small>{% endif %}
+          <form method="post"><input type="hidden" name="agent_key" value="{{ agent.agent_key }}"><input type="hidden" name="action" value="save_connection"><input type="hidden" name="platform" value="{{ platform }}"><input class="ad-input" name="account_label" value="{{ connection.account_label|default('') }}" placeholder="Account or page name"><input class="ad-input" name="account_identifier" value="{{ connection.account_identifier|default('') }}" placeholder="{{ platform == 'linkedin' ? 'Author URN' : 'Page / account ID' }}"><input class="ad-input" type="password" name="access_token" autocomplete="new-password" placeholder="{{ connection ? 'Leave blank to keep current token' : 'Access token' }}">{% if platform=='facebook' %}<input class="ad-input" type="password" name="app_secret" placeholder="App secret (optional)"><input class="ad-input" type="password" name="verify_token" placeholder="Webhook verify token (optional)">{% endif %}<button class="ad-btn">Save {{ platform|capitalize }}</button></form>
+          {% if connection and connection.status != 'DISCONNECTED' %}<form method="post" class="mt-2"><input type="hidden" name="agent_key" value="{{ agent.agent_key }}"><input type="hidden" name="action" value="verify_connection"><input type="hidden" name="platform" value="{{ platform }}"><button class="ad-btn">Verify now</button></form>{% endif %}
+          {% if connection and connection.status != 'DISCONNECTED' %}<form method="post" class="mt-2"><input type="hidden" name="agent_key" value="{{ agent.agent_key }}"><input type="hidden" name="action" value="disconnect_connection"><input type="hidden" name="platform" value="{{ platform }}"><button class="ad-btn ad-light">Disconnect</button></form>{% endif %}</div>
+        {% endfor %}
+      </section>
+      {% endif %}
+      <section class="ad-card">
+        <h2>Configuration</h2>
+        <form method="post">
+          <input type="hidden" name="agent_key" value="{{ agent.agent_key }}"><input type="hidden" name="action" value="save_configuration">
+          <label>Status</label><select class="ad-select" name="status">{% for status in ['DRAFT','ACTIVE','PAUSED','SETUP_REQUIRED'] %}<option value="{{ status }}" {% if agent.status == status %}selected{% endif %}>{{ status|replace({'_':' '}) }}</option>{% endfor %}</select>
+          <label>Approval mode</label><select class="ad-select" name="approval_mode">{% for mode in ['ALWAYS','IMPORTANT','NEVER'] %}<option value="{{ mode }}" {% if agent.approval_mode == mode %}selected{% endif %}>{{ mode }}</option>{% endfor %}</select>
+          {% if agent.agent_key in ['estimate_follow_up','order_auditor','content_refresh','operations_risk','lead_qualification','reputation','short_video'] %}
+          <label><input type="checkbox" name="schedule_enabled" value="1" {% if agent.schedule_enabled %}checked{% endif %}> Run daily</label>
+          <input class="ad-input" name="schedule_expression" value="{{ agent.schedule_expression }}" placeholder="DAILY 09:00 America/New_York">
+          {% else %}<p><small>Manual input required: scheduling is available after choosing a specific order, lead or content item.</small></p>{% endif %}
+          <button class="ad-btn mt-2">Save configuration</button>
+        </form>
+      </section>
+      <section class="ad-card">
+        <h2>Webhook</h2>
+        <p>Signed automation endpoint. Rotate its secret if it may have been exposed.</p>
+        <div class="ad-code" data-copy-value>{{ webhookBase }}</div>
+        <button type="button" class="ad-btn ad-light mt-2" data-copy-button>Copy URL</button>
+        <form method="post" class="mt-2">
+          <input type="hidden" name="agent_key" value="{{ agent.agent_key }}">
+          <input type="hidden" name="action" value="rotate_webhook">
+          <button class="ad-btn ad-light" type="submit">Rotate secret</button>
+        </form>
+        {% if oneTimeWebhookToken %}
+          <p class="mt-3"><strong>Copy this secret now:</strong></p><div class="ad-code">{{ oneTimeWebhookToken }}</div>
+        {% endif %}
+      </section>
+      <section class="ad-card">
+        <h2>Approvals</h2>
+        {% for approval in approvals %}
+          <div class="ad-approval"><strong>{{ approval.title }}</strong><div class="ad-status">{{ approval.status }} · {{ approval.created_at }}</div>
+          {% if approval.status == 'PENDING' %}<div class="ad-actions"><a class="ad-btn" href="{{ path('panel/agents/approval') }}?id={{ approval.id }}">Review, edit or correct</a></div>{% endif %}</div>
+        {% else %}<p>No approvals.</p>{% endfor %}
+      </section>
+    </aside>
+  </div>
+</div>
+<script>
+document.querySelector('[data-copy-button]')?.addEventListener('click', async function(){var value=document.querySelector('[data-copy-value]')?.textContent.trim()||'';await navigator.clipboard.writeText(value);this.textContent='Copied';});
+document.querySelector('[data-social-run]')?.addEventListener('submit',function(event){if(!this.querySelector('[name="networks[]"]:checked')){event.preventDefault();alert('Select at least one social network.');}});
+</script>
+{% endblock %}

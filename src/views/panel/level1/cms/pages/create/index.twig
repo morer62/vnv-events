@@ -526,13 +526,12 @@
                         </select>
                     </div>
                     <div class="cms-field">
-                        <label class="cms-label">Template</label>
-                        <select class="cms-select" data-ai-template>
-                            <option value="">Automatic</option>
-                            {% for item in templates %}
-                                <option value="{{ item.id }}" data-template-type="{{ item.type|default('') }}" data-template-key="{{ item.template_key|default('') }}">{{ item.name }}</option>
-                            {% endfor %}
-                        </select>
+                        <label class="cms-label">Creation basis</label>
+                        <select class="cms-select" data-ai-base-mode><option value="blank">Start from zero</option><option value="page">Use a page as reference</option><option value="location">Use a location page as reference</option><option value="blog">Use an article as reference</option></select>
+                        <input class="cms-input" list="cms-base-content-options" data-ai-base-search placeholder="Search page or article by title">
+                        <datalist id="cms-base-content-options">{% for item in baseContents|default([]) %}<option value="{{ item.title }}" data-id="{{ item.id }}">{{ item.content_type }} · {{ item.status }}</option>{% endfor %}</datalist>
+                        <input type="hidden" data-ai-base-id>
+                        <select class="cms-select" data-ai-template hidden><option value="">Automatic compatible renderer</option>{% for item in templates %}<option value="{{ item.id }}" data-template-type="{{ item.type|default('') }}" data-template-key="{{ item.template_key|default('') }}">{{ item.name }}</option>{% endfor %}</select>
                     </div>
                     <div class="cms-field">
                         <label class="cms-label">Intent</label>
@@ -893,6 +892,9 @@ document.addEventListener('DOMContentLoaded', function () {
             });
         });
     });
+    if (new URLSearchParams(window.location.search).get('mode') === 'ai') {
+        document.querySelector('[data-create-mode="ai"]')?.click();
+    }
 
     document.querySelectorAll('[data-cms-editor-tabs]').forEach(function (tabs) {
         var field = tabs.closest('.cms-field');
@@ -1064,6 +1066,8 @@ document.addEventListener('DOMContentLoaded', function () {
     var aiType = ai.querySelector('[data-ai-content-type]');
     var aiCategory = ai.querySelector('[data-ai-category]');
     var aiTemplate = ai.querySelector('[data-ai-template]');
+    var aiBaseSearch = ai.querySelector('[data-ai-base-search]');
+    var aiBaseId = ai.querySelector('[data-ai-base-id]');
     var aiKeywords = ai.querySelector('[data-ai-keywords]');
     var aiManualTitle = ai.querySelector('[data-ai-manual-title]');
     var aiIntent = ai.querySelector('[data-ai-intent]');
@@ -1112,6 +1116,7 @@ document.addEventListener('DOMContentLoaded', function () {
         data.set('content_type', aiType ? aiType.value : 'blog');
         data.set('id_cms_category', aiCategory ? aiCategory.value : '');
         data.set('id_template', aiTemplate ? aiTemplate.value : '');
+        data.set('base_content_id', aiBaseId ? aiBaseId.value : '');
         data.set('keywords', aiKeywords ? aiKeywords.value : '');
         data.set('manual_title', aiManualTitle ? aiManualTitle.value : '');
         data.set('intent', aiIntent ? aiIntent.value : 'informational');
@@ -1227,6 +1232,11 @@ document.addEventListener('DOMContentLoaded', function () {
                 ai.querySelectorAll('button').forEach(function (button) { button.disabled = false; });
             });
     }
+
+    if (aiBaseSearch) aiBaseSearch.addEventListener('input', function () {
+        var option = Array.from(document.querySelectorAll('#cms-base-content-options option')).find(function (item) { return item.value === aiBaseSearch.value; });
+        aiBaseId.value = option ? option.dataset.id : '';
+    });
 
     if (aiType) aiType.addEventListener('change', filterAiCategories);
     filterAiCategories();

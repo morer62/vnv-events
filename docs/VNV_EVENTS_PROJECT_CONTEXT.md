@@ -224,4 +224,21 @@ docs/ORDER_ACCESS_PAYMENT_FLOWS.md
 docs/USER_COMPANY_ACCESS_MODEL.md
 docs/TEAM_CHAT_DELIVERY_OPERATIONS.md
 docs/ADMIN_USER_MODULE_REPORTS_CONTROL.md
+docs/VNV_EVENTS_AI_AGENTS_ROADMAP.md
 ```
+## AI Agent Approval Workflow (2026-07-26)
+
+Agent outputs use a dashboard approval inbox with manual editing, AI correction cycles, version history and a final handoff to the corresponding module. Approval alone never sends or publishes.
+
+## Private Large-Video Ingest (2026-07-27)
+
+AI Video Studio accepts 500 MB–10 GB production originals through a private
+SFTP inbox configured with `VIDEO_INGEST_PATH`. Level 1 displays the exact
+owner directory and detects completed files inside project folders after a
+stability window. Imports are idempotent and store non-public `vnv-local://`
+references; no additional SQL is required.
+
+Transcription now extracts compressed audio in 20-minute chunks so the original
+is never loaded into PHP memory or submitted whole to the AI provider. Final
+rendering reads private originals directly from disk. Operational setup and
+capacity guidance are documented in `docs/VNV_VIDEO_RENDER_PRODUCTION.md`.

@@ -2,6 +2,7 @@
 
 use App\Repositories\EventRequestRepository;
 use App\Repositories\Connection;
+use App\Repositories\AiAgentsRepository;
 use App\Services\LoginService;
 use App\Services\OphyraGrowthHubClient;
 use App\Utils\LocationUtils;
@@ -72,6 +73,11 @@ $router->get(function () {
             $growthHubClient->contentList('custom', 1000)
         ));
     }
+    $agentApprovals=[];
+    try{
+        $agentRepo=new AiAgentsRepository();
+        if($agentRepo->storageReady())$agentApprovals=array_values(array_filter($agentRepo->pendingApprovals((int)$user->getOwner()),fn($item)=>$item->status==='PENDING'));
+    }catch(Throwable $e){error_log('[Level1 Home] Agent approvals failed: '.$e->getMessage());}
 
     return TemplateResponse::render(__DIR__ . "/index.twig", [
         'user' => $user,
@@ -80,6 +86,8 @@ $router->get(function () {
         'eventRequestsCount' => $requestRepo->countForOwner((int)$user->getOwner(), false),
         'eventRequestsArchivedCount' => $requestRepo->countForOwner((int)$user->getOwner(), true),
         'growthHubSummary' => $growthHubSummary,
+        'agentApprovals' => $agentApprovals,
+        'agentApprovalsCount' => count($agentApprovals),
     ]);
 });
 

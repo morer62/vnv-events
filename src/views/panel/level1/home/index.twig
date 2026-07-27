@@ -625,7 +625,26 @@
       </div>
       <i class="fa-solid fa-calendar-days"></i>
     </a>
+    <a class="vnv-status-card" href="{{ path('panel/agents') }}">
+      <div><strong>{{ agentApprovalsCount|default(0) }}</strong><span>Agent approvals</span></div>
+      <i class="fa-solid fa-robot"></i>
+    </a>
   </section>
+
+  {% if agentApprovals|default([]) %}
+  <section class="vnv-request-board">
+    <div class="vnv-request-board__head"><div><h2>Pending agent approvals</h2><p>Review, edit or return each draft with corrections before anything is sent or published.</p></div><div class="vnv-request-count">{{ agentApprovalsCount }} pending</div></div>
+    <div class="vnv-request-list">
+      {% for approval in agentApprovals|slice(0,6) %}
+      <article class="vnv-request-card">
+        <div class="vnv-request-card__top"><div><strong>{{ approval.agent_name }}</strong><small>{{ approval.action_type|replace({'_':' '}) }}</small></div><span class="vnv-request-card__date">#{{ approval.id }}</span></div>
+        <div>{{ approval.title }}</div>
+        <a class="vnv-request-archive" href="{{ path('panel/agents/approval') }}?id={{ approval.id }}">Review draft</a>
+      </article>
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
 
   <section>
     <div class="vnv-section-head">
@@ -715,9 +734,9 @@
         <span>Planner Tools</span>
       </a>
 
-      <a href="{{ path('panel/cms') }}" class="vnv-mini-card">
-        <i class="fa-solid fa-file-pen"></i>
-        <span>CMS</span>
+      <a href="{{ path('panel/growth-hub') }}" class="vnv-mini-card">
+        <i class="fa-solid fa-wand-magic-sparkles"></i>
+        <span>Growth Hub</span>
       </a>
 
       <a href="{{ path('panel/seo-center') }}" class="vnv-mini-card">

@@ -1,0 +1,52 @@
+{% extends "templates/base.admin.twig" %}
+
+{% block body %}
+<style>
+.ah-wrap{padding:26px;max-width:1500px}.ah-hero{background:radial-gradient(circle at 88% 10%,rgba(73,242,194,.22),transparent 32%),linear-gradient(135deg,#111827,#202b33);border-radius:28px;color:#fff;padding:34px;margin-bottom:24px;box-shadow:0 24px 60px rgba(15,23,42,.2)}.ah-eyebrow{color:#49f2c2;font-size:.76rem;font-weight:900;letter-spacing:.17em;text-transform:uppercase}.ah-hero h1{font-size:2.35rem;font-weight:950;margin:8px 0}.ah-hero p{color:rgba(255,255,255,.72);max-width:760px;margin:0;line-height:1.65}.ah-alert{border:1px solid #f59e0b;background:#fffbeb;color:#92400e;border-radius:18px;padding:16px 18px;margin-bottom:20px}.ah-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:22px}.ah-stat{background:#fff;border:1px solid #e5e7eb;border-radius:18px;padding:18px}.ah-stat strong{display:block;font-size:1.8rem;color:#111827}.ah-stat span{color:#64748b;font-size:.84rem;font-weight:700}.ah-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}.ah-card{background:#fff;border:1px solid #e5e7eb;border-radius:22px;padding:20px;box-shadow:0 12px 34px rgba(15,23,42,.06);display:flex;flex-direction:column;min-height:290px;transition:.2s}.ah-card:hover{transform:translateY(-3px);box-shadow:0 20px 44px rgba(15,23,42,.11)}.ah-card-top{display:flex;justify-content:space-between;gap:12px}.ah-icon{align-items:center;background:#ecfdf5;border-radius:16px;color:#047857;display:flex;height:48px;justify-content:center;width:48px}.ah-status{border-radius:999px;font-size:.7rem;font-weight:900;padding:7px 10px;height:max-content}.ah-status.ACTIVE{background:#dcfce7;color:#166534}.ah-status.SETUP_REQUIRED{background:#fff7ed;color:#9a3412}.ah-status.DRAFT{background:#f1f5f9;color:#475569}.ah-status.PAUSED{background:#fef3c7;color:#92400e}.ah-status.ERROR{background:#fee2e2;color:#991b1b}.ah-card h2{font-size:1.08rem;font-weight:900;margin:16px 0 7px;color:#111827}.ah-card p{color:#64748b;line-height:1.55;font-size:.9rem;flex:1}.ah-tags{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0}.ah-tag{background:#f1f5f9;border-radius:999px;color:#475569;font-size:.68rem;font-weight:800;padding:5px 8px}.ah-meta{display:flex;gap:14px;color:#64748b;font-size:.76rem;margin-bottom:14px}.ah-actions{display:flex;gap:8px}.ah-btn{border:0;border-radius:11px;padding:9px 13px;font-size:.82rem;font-weight:850;text-decoration:none;display:inline-flex;align-items:center;justify-content:center}.ah-primary{background:#111827;color:#fff}.ah-light{background:#f1f5f9;color:#111827}@media(max-width:1100px){.ah-grid{grid-template-columns:repeat(2,1fr)}}@media(max-width:700px){.ah-wrap{padding:14px}.ah-grid,.ah-stats{grid-template-columns:1fr}.ah-hero h1{font-size:1.75rem}}
+</style>
+<div class="ah-wrap">
+  <section class="ah-hero">
+    <div class="ah-eyebrow">VNV Events Intelligence</div>
+    <h1>Automations</h1>
+    <p>Schedules, webhooks and autonomous agents that operate VNV modules in the background. Creative production lives in Growth Hub; consequential actions stay behind human approval.</p>
+  </section>
+  {% if not storageReady %}
+    <div class="ah-alert"><strong>Database setup required.</strong> Run <code>{{ sqlFile }}</code>. The catalog is visible, but execution, history, approvals and webhooks remain locked.</div>
+  {% endif %}
+  {% set activeCount = 0 %}{% set setupCount = 0 %}{% set approvals = 0 %}
+  {% for agent in agents %}
+    {% if agent.status == 'ACTIVE' %}{% set activeCount = activeCount + 1 %}{% endif %}
+    {% if agent.external_ready is defined and not agent.external_ready %}{% set setupCount = setupCount + 1 %}{% endif %}
+    {% set approvals = approvals + agent.pending_approvals %}
+  {% endfor %}
+  <div class="ah-stats">
+    <div class="ah-stat"><strong>{{ agents|length }}</strong><span>Total agents</span></div>
+    <div class="ah-stat"><strong>{{ activeCount }}</strong><span>Ready locally</span></div>
+    <div class="ah-stat"><strong>{{ setupCount }}</strong><span>External setup required</span></div>
+    <div class="ah-stat"><strong>{{ approvals }}</strong><span>Pending approvals</span></div>
+  </div>
+  <div class="ah-grid">
+    {% for agent in agents %}
+      <article class="ah-card">
+        <div class="ah-card-top">
+          <div class="ah-icon"><i data-feather="{{ agent.icon }}"></i></div>
+          <span class="ah-status {{ agent.external_ready is defined and not agent.external_ready?'SETUP_REQUIRED':agent.status }}">{{ agent.availability_label|default(agent.status|replace({'_':' '})) }}</span>
+        </div>
+        <h2>{{ agent.name }}</h2>
+        <p>{{ agent.description }}</p>
+        <div class="ah-tags">{% for requirement in agent.requires %}<span class="ah-tag">{{ requirement }}</span>{% endfor %}</div>
+        <div class="ah-meta"><span>{{ agent.run_count }} runs</span><span>{{ agent.pending_approvals }} approvals</span><span>{{ agent.last_run_at ?: 'Never run' }}</span></div>
+        <div class="ah-actions">
+          {% if storageReady %}
+            <a class="ah-btn ah-primary" href="{{ path('panel/agents/detail') }}?key={{ agent.agent_key }}">Open agent</a>
+          {% else %}
+            <span class="ah-btn ah-light">Locked</span>
+          {% endif %}
+          {% if agent.agent_key == 'blog_writer' %}<a class="ah-btn ah-light" href="{{ path('panel/cms/pages/create') }}?mode=ai">Growth Hub</a>{% endif %}
+          {% if agent.agent_key == 'video_studio' %}<a class="ah-btn ah-light" href="{{ path('panel/growth-hub/video-studio') }}">Studio</a>{% endif %}
+        </div>
+      </article>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}
