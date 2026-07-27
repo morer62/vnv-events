@@ -5,6 +5,8 @@ use App\Services\AiVideoTranscriptionService;
 use App\Services\AiVideoPlanningService;
 use App\Services\AiVideoRenderService;
 use App\Services\AiVideoIngestService;
+use App\Services\AiTranscriptTimelineService;
+use App\Services\AiCaptionStyleRegistry;
 use App\Services\AiCaptionEditorService;
 use App\Services\AiProviderImageService;
 use App\Services\LoginService;
@@ -27,10 +29,18 @@ $router->get(function(){
         foreach($jobs as $job)$job->project_files=[];
     }
     foreach($jobs as $job)$job->revisions=$repo->revisions($owner,(int)$job->id);
-    if($projectId){foreach($jobs as $job)if((int)$job->id===$projectId){$selected=$job;break;}if(!$selected)throw new RuntimeException('Video project not found.');}
+    if($projectId){
+        foreach($jobs as $job)if((int)$job->id===$projectId){$selected=$job;break;}
+        if(!$selected)throw new RuntimeException('Video project not found.');
+        $selectedPlan=json_decode((string)$selected->edit_plan_json,true);
+        $selectedRequest=is_array($selectedPlan)?(array)($selectedPlan['_request']??[]):[];
+        $selected->caption_preset=AiCaptionStyleRegistry::find((string)($selectedRequest['caption_preset']??'classic-bold'))['id'];
+        $selected->caption_size_percent=max(70,min(140,(int)($selectedRequest['caption_size_percent']??100)));
+    }
     return TemplateResponse::render(__DIR__.($selected?'/editor.twig':'/library.twig'),[
         'jobs'=>$jobs,'assets'=>$repo->assets($owner),'renderReady'=>(new AiVideoRenderService())->available(),
-        'selected'=>$selected,
+        'selected'=>$selected,'timeline'=>$selected?(new AiTranscriptTimelineService())->timeline($selected):['blocks'=>[],'pauses'=>[],'has_word_timestamps'=>false],
+        'captionStyles'=>AiCaptionStyleRegistry::all(),
         'ingestRoot'=>$ingestRoot,'ingestFolders'=>$ingestFolders,'ingestStableSeconds'=>$ingest->stableSeconds(),'ingestError'=>$ingestError,
     ]);
 });
@@ -62,6 +72,13 @@ $router->post(function(){
             $repo->revision($owner,(int)$session->getId(),$job,'CAPTION_CLEANUP','Before removing phrases');
             $result=(new AiCaptionEditorService())->remove((string)$job->transcript_text,(string)$job->subtitles_srt,$phrases,json_decode((string)$job->edit_plan_json,true)?:[]);
             $repo->updateEditor($owner,$id,$result['transcript'],$result['srt'],$result['plan']);MessageUtil::setMessage(count($result['removed_segments']).' caption/video segment(s) marked for removal.');
+        }elseif($action==='save_timeline_script'){
+            $id=(int)($_POST['id']??0);$job=$repo->find($owner,$id);if(!$job)throw new RuntimeException('Project not found.');
+            $edits=json_decode((string)($_POST['timeline_edits_json']??''),true);if(!is_array($edits))throw new RuntimeException('The transcript edit could not be read.');
+            $repo->revision($owner,(int)$session->getId(),$job,'TIMELINE_TEXT_EDIT','Before transcript-based video cuts');
+            $result=(new AiTranscriptTimelineService())->apply($job,$edits,!empty($_POST['remove_long_pauses']),max(.6,min(10,(float)($_POST['pause_threshold']??1.25))));
+            $repo->updateEditor($owner,$id,$result['transcript'],$result['srt'],$result['plan']);
+            MessageUtil::setMessage(count($result['removed_segments']).' transcript edit(s) synchronized with the video'.($result['commands']?' and '.count($result['commands']).' inline command(s) added.':'.'));
         }elseif($action==='transcribe'){
             $id=(int)($_POST['id']??0); $job=$repo->find($owner,$id);
             if(!$job) throw new RuntimeException('Media job not found.');
@@ -72,6 +89,7 @@ $router->post(function(){
             $id=(int)($_POST['id']??0); $job=$repo->find($owner,$id);
             if(!$job) throw new RuntimeException('Media job not found.');
             if(!(new AiVideoRenderService())->available()) throw new RuntimeException('FFmpeg is not configured on this server.');
+            $repo->setRenderCaptionMode($owner,$id,(string)($_POST['caption_mode']??'with_captions'));
             $repo->queueRender($owner,$id);
             MessageUtil::setMessage('Final render queued. The downloadable MP4 will appear when the worker finishes.');
         }elseif($action==='save_editor' || $action==='generate_plan'){
@@ -94,6 +112,7 @@ $router->post(function(){
                 'overlay_url'=>$projectAsset('overlay_url'),'audio_url'=>$projectAsset('audio_url'),
             ]) : null;
             if($plan){
+                $plan['_request']['caption_preset']=AiCaptionStyleRegistry::find((string)($_POST['caption_preset']??'classic-bold'))['id'];$plan['_request']['caption_size_percent']=max(70,min(140,(int)($_POST['caption_size_percent']??100)));
                 $byName=[];foreach($projectFiles as $file)$byName[strtolower((string)$file['relative_path'])]=$file;
                 foreach((array)($plan['generated_inserts']??[]) as $index=>$insert){
                     $assetName=strtolower(trim((string)($insert['asset_name']??'')));$assetUrl=trim((string)($insert['asset_url']??''));

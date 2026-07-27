@@ -22,7 +22,7 @@ final class AiVideoTranscriptionService
             $chunks=glob($work.DIRECTORY_SEPARATOR.'audio-*.mp3')?:[];
             sort($chunks,SORT_NATURAL);
             if(!$chunks)throw new RuntimeException('FFmpeg could not extract an audio track from this media.');
-            $text=[];$segments=[];$rawChunks=[];
+            $text=[];$segments=[];$words=[];$rawChunks=[];
             foreach($chunks as $index=>$chunk){
                 if(filesize($chunk)>self::MAX_CHUNK_BYTES)throw new RuntimeException('A transcription audio segment exceeds the provider limit.');
                 $result=$this->request($chunk,$apiKey);$offset=$index*self::CHUNK_SECONDS;
@@ -33,9 +33,15 @@ final class AiVideoTranscriptionService
                     $segment['end']=(float)($segment['end']??0)+$offset;
                     $segments[]=$segment;
                 }
+                foreach((array)($result['words']??[]) as $word){
+                    if(!is_array($word))continue;
+                    $word['start']=(float)($word['start']??0)+$offset;
+                    $word['end']=(float)($word['end']??0)+$offset;
+                    $words[]=$word;
+                }
                 $rawChunks[]=['index'=>$index,'offset_seconds'=>$offset,'result'=>$result];
             }
-            return ['text'=>implode("\n\n",$text),'raw'=>['chunk_seconds'=>self::CHUNK_SECONDS,'chunks'=>$rawChunks,'segments'=>$segments],'srt'=>$this->srt($segments)];
+            return ['text'=>implode("\n\n",$text),'raw'=>['chunk_seconds'=>self::CHUNK_SECONDS,'chunks'=>$rawChunks,'segments'=>$segments,'words'=>$words],'srt'=>$this->srt($segments)];
         }finally{
             foreach(glob($work.DIRECTORY_SEPARATOR.'*')?:[] as $file)if(is_file($file))@unlink($file);
             @rmdir($work);
@@ -51,7 +57,7 @@ final class AiVideoTranscriptionService
             CURLOPT_POSTFIELDS=>[
                 'file'=>new \CURLFile($file,'audio/mpeg',basename($file)),
                 'model'=>(string)($_ENV['OPENAI_TRANSCRIPTION_MODEL']??'whisper-1'),
-                'response_format'=>'verbose_json','timestamp_granularities[]'=>'segment',
+                'response_format'=>'verbose_json','timestamp_granularities[0]'=>'segment','timestamp_granularities[1]'=>'word',
             ],
         ]);
         $response=curl_exec($ch);$status=(int)curl_getinfo($ch,CURLINFO_HTTP_CODE);$error=curl_error($ch);curl_close($ch);

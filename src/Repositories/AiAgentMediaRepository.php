@@ -93,6 +93,13 @@ class AiAgentMediaRepository
         $this->db->bind(':id',$id); $this->db->bind(':owner',$ownerId); $this->db->execute();
     }
 
+    public function setRenderCaptionMode(int $ownerId,int $id,string $mode): void
+    {
+        $job=$this->find($ownerId,$id);if(!$job)return;$plan=json_decode((string)$job->edit_plan_json,true);if(!is_array($plan))$plan=[];
+        $request=(array)($plan['_request']??[]);$request['caption_style']=$mode==='without_captions'?'none':(in_array($request['caption_style']??'', ['clean','dynamic','kinetic'],true)?$request['caption_style']:'dynamic');$request['render_caption_mode']=$mode;$plan['_request']=$request;
+        $this->db->query("UPDATE ai_agent_media_jobs SET edit_plan_json=:plan WHERE id=:id AND id_owner=:owner");$this->db->bind(':plan',json_encode($plan,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES));$this->db->bind(':id',$id);$this->db->bind(':owner',$ownerId);$this->db->execute();
+    }
+
     public function nextQueuedRender(): ?object
     {
         $this->db->query("SELECT * FROM ai_agent_media_jobs WHERE status='QUEUED' ORDER BY updated_at,id LIMIT 1");

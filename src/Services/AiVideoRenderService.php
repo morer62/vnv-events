@@ -44,11 +44,8 @@ final class AiVideoRenderService
             $filter=$selection."scale={$width}:{$height}:force_original_aspect_ratio=increase,crop={$width}:{$height}{$colorFilter}";
             $subtitleFilter='';$captionStyle=(string)($request['caption_style']??'clean');
             if (trim((string)$job->subtitles_srt) !== '' && $captionStyle !== 'none') {
-                $captionPath=$srt;$forceStyle=":force_style='FontName=Arial,FontSize=".max(18,(int)round($height/60)).",PrimaryColour=&H00FFFFFF,OutlineColour=&H00000000,BorderStyle=1,Outline=2,Shadow=1,Alignment=2,MarginV=".max(60,(int)round($height*.055))."'";
-                if(in_array($captionStyle,['kinetic','dynamic'],true)){
-                    $this->createKineticAss((string)$job->subtitles_srt,$ass,$width,$height,(array)($plan['caption_animation']['emphasis_words']??[]));
-                    $captionPath=$ass;$forceStyle='';
-                }
+                $this->createKineticAss((string)$job->subtitles_srt,$ass,$width,$height,(array)($plan['caption_animation']['emphasis_words']??[]),(string)($request['caption_preset']??'classic-bold'),(array)($plan['caption_style_events']??[]),$captionStyle,max(70,min(140,(int)($request['caption_size_percent']??100))));
+                $captionPath=$ass;$forceStyle='';
                 $subtitlePath=str_replace(['\\',':',"'"],['/','\\:',"\\'"],$captionPath);
                 $subtitleFilter=",subtitles=filename='{$subtitlePath}'{$forceStyle}";
             }
@@ -119,29 +116,32 @@ final class AiVideoRenderService
     private function seconds(string $time): float{if(is_numeric($time))return max(0,(float)$time);$p=array_map('floatval',explode(':',$time));return count($p)===3?$p[0]*3600+$p[1]*60+$p[2]:(count($p)===2?$p[0]*60+$p[1]:0);}
     private function ffmpegText(string $text): string{return str_replace(["\\","'",':','%'],['\\\\',"\\'",'\\:','\\%'],mb_substr(trim(preg_replace('/\s+/u',' ',$text)),0,100));}
 
-    private function createKineticAss(string $srt,string $target,int $width,int $height,array $emphasisWords=[]): void
+    private function createKineticAss(string $srt,string $target,int $width,int $height,array $emphasisWords=[],string $defaultPreset='classic-bold',array $styleEvents=[],string $captionMode='dynamic',int $defaultSize=100): void
     {
-        $fontSize=(int)round($height*($height>$width?.048:.052));$margin=(int)round($height*.09);
         $header="[Script Info]\nScriptType: v4.00+\nPlayResX: {$width}\nPlayResY: {$height}\nScaledBorderAndShadow: yes\n\n[V4+ Styles]\n";
         $header.="Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding\n";
-        $header.="Style: Kinetic,Arial,{$fontSize},&H0000E8FF,&H00FFFFFF,&H00101010,&H70000000,-1,0,0,0,100,100,0,0,1,5,1,2,55,55,{$margin},1\n\n[Events]\n";
+        foreach(AiCaptionStyleRegistry::all() as $style){$fontSize=(int)round($height*($height>$width?.048:.052)*(float)$style['scale']);$margin=(int)round($height*.09);$alignment=$style['align']==='left'?1:2;$border=$style['box']?3:1;$back=$style['box']?'&H96000000':'&H70000000';$secondary=$style['active']==='none'?$style['color']:$style['active'];$header.='Style: '.$style['id'].','.$style['font'].','.$fontSize.','.$this->assColor($style['color']).','.$this->assColor($secondary).','.$this->assColor($style['outline']).','.$back.',-1,0,0,0,100,100,0,0,'.$border.','.max(1,(int)round($style['outlineWidth']*$height/1080)).',1,'.$alignment.',55,55,'.$margin.",1\n";}
+        $header.="\n[Events]\n";
         $header.="Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text\n";
         $events=[];$blocks=preg_split('/\R{2,}/',trim($srt))?:[];
         foreach($blocks as $block){
             $lines=preg_split('/\R/',$block)?:[];$time='';$text=[];
             foreach($lines as $line){if(str_contains($line,'-->'))$time=$line;elseif(!preg_match('/^\d+$/',trim($line)))$text[]=$line;}
             if(!preg_match('/(\d\d:\d\d:\d\d[,.]\d+)\s+-->\s+(\d\d:\d\d:\d\d[,.]\d+)/',$time,$m))continue;
-            $words=preg_split('/\s+/u',trim(implode(' ',$text)))?:[];if(!$words)continue;
+            $words=preg_split('/\s+/u',trim(implode(' ',$text)))?:[];if(!$words)continue;$startSeconds=$this->seconds($m[1]);$preset=AiCaptionStyleRegistry::find($defaultPreset)['id'];$sizePercent=$defaultSize;$blockCaptionMode=$captionMode;
+            foreach($styleEvents as $styleEvent){$eventStart=(float)($styleEvent['start']??0);$eventEnd=isset($styleEvent['end'])&&$styleEvent['end']!==null?(float)$styleEvent['end']:PHP_FLOAT_MAX;if($startSeconds>=$eventStart&&$startSeconds<=$eventEnd){$preset=AiCaptionStyleRegistry::find((string)($styleEvent['preset']??''))['id'];$sizePercent=max(70,min(140,(int)($styleEvent['size_percent']??100)));$blockCaptionMode=match((string)($styleEvent['animation']??'word')){'static'=>'clean','phrase'=>'dynamic',default=>'kinetic'};}}
+            $style=AiCaptionStyleRegistry::find($preset);if($style['uppercase'])$words=array_map(fn($word)=>mb_strtoupper($word),$words);
             $duration=max(.1,$this->seconds($m[2])-$this->seconds($m[1]));$centiseconds=max(1,(int)round($duration*100/count($words)));$karaoke='';
             foreach($words as $word){
                 $safe=str_replace(['{','}','\\'],['(',')','\\\\'],$word);
                 $isEmphasis=false;foreach($emphasisWords as $emphasis)if(mb_strtolower(trim((string)$emphasis))===mb_strtolower(trim($word,".,!?;:"))){$isEmphasis=true;break;}
-                $karaoke.='{\\k'.$centiseconds.($isEmphasis?'\\c&H00FF9A49&\\fscx112\\fscy112':'').'}'.$safe.($isEmphasis?'{\\rKinetic}':'').' ';
+                if(in_array($blockCaptionMode,['kinetic','dynamic'],true))$karaoke.='{\\kf'.$centiseconds.($isEmphasis?'\\fscx112\\fscy112':'').'}'.$safe.($isEmphasis?'{\\r'.$preset.'}':'').' ';else$karaoke.=$safe.' ';
             }
-            $events[]='Dialogue: 0,'.$this->assTime($m[1]).','.$this->assTime($m[2]).',Kinetic,,0,0,0,,{\\fad(60,80)\\blur0.3}'.trim($karaoke);
+            $events[]='Dialogue: 0,'.$this->assTime($m[1]).','.$this->assTime($m[2]).','.$preset.',,0,0,0,,{\\fad(60,80)\\blur0.3\\fscx'.$sizePercent.'\\fscy'.$sizePercent.'}'.trim($karaoke);
         }
         file_put_contents($target,$header.implode("\n",$events)."\n");
     }
+    private function assColor(string $color): string{$named=['white'=>'#ffffff','yellow'=>'#ffff00','black'=>'#000000'];$hex=$named[strtolower($color)]??$color;if(!preg_match('/^#([0-9a-f]{6})$/i',$hex,$m))$hex='#ffffff';$value=$m[1];return '&H00'.substr($value,4,2).substr($value,2,2).substr($value,0,2);}
     private function assTime(string $time): string
     {
         $seconds=$this->seconds(str_replace(',', '.', $time));$hours=(int)floor($seconds/3600);$minutes=(int)floor(($seconds%3600)/60);$whole=(int)floor($seconds%60);$centis=(int)round(($seconds-floor($seconds))*100);
