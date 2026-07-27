@@ -85,6 +85,32 @@ uploads each file with an `.uploading` suffix, and renames it to its final
 video extension only when transfer completes. After the configured stability
 window (60 seconds by default), the folder can be imported from the panel.
 
+Each project folder is also its live production asset catalog:
+
+```text
+project-name/
+├── source/          principal video(s), imported as editable projects
+├── intros/
+├── transitions/
+├── b-roll/
+├── images/
+├── music/
+├── sound-effects/
+├── voice-over/
+├── logos/
+├── overlays/
+├── outros/
+└── exports/
+```
+
+Level 1 lists every supported file, its inferred role, type, size and readiness
+without copying it into the database. Adding a file over SFTP makes it appear
+in the project after refresh. Clicking an asset inserts its exact relative path
+into the AI direction field; intro, outro, overlay, logo and audio selectors
+also include compatible folder assets. OpenAI receives the safe project
+catalog when preparing an edit plan, while the renderer resolves approved
+private references directly from disk.
+
 Imported database records contain a private `vnv-local://` reference, not a
 public URL. Transcription extracts mono 16 kHz audio in 20-minute compressed
 segments, and rendering reads the original directly from disk. Neither flow

@@ -17,8 +17,8 @@ use App\Utils\TemplateResponse;
 $router=new Router();
 $router->get(function(){
     $session=LoginService::getSession(); $repo=new AiAgentMediaRepository();
-    $owner=(int)$session->getOwner();$jobs=$repo->all($owner);foreach($jobs as $job)$job->revisions=$repo->revisions($owner,(int)$job->id);
     $ingest=new AiVideoIngestService();
+    $owner=(int)$session->getOwner();$jobs=$repo->all($owner);foreach($jobs as $job){$job->revisions=$repo->revisions($owner,(int)$job->id);$job->project_files=$ingest->inventoryForSource($owner,(string)$job->source_url);}
     return TemplateResponse::render(__DIR__.'/index.twig',[
         'jobs'=>$jobs,'assets'=>$repo->assets($owner),'renderReady'=>(new AiVideoRenderService())->available(),
         'ingestRoot'=>$ingest->ownerRoot($owner),'ingestFolders'=>$ingest->folders($owner),'ingestStableSeconds'=>$ingest->stableSeconds(),
@@ -66,20 +66,34 @@ $router->post(function(){
         }elseif($action==='save_editor' || $action==='generate_plan'){
             $id=(int)($_POST['id']??0); $job=$repo->find($owner,$id);
             if(!$job) throw new RuntimeException('Media job not found.');
+            $projectFiles=(new AiVideoIngestService())->inventoryForSource($owner,(string)$job->source_url);
+            $allowedProjectUrls=array_column($projectFiles,'url');
             $transcript=trim((string)($_POST['transcript_text']??''));
             $subtitles=trim((string)($_POST['subtitles_srt']??''));
             $repo->revision($owner,(int)$session->getId(),$job,$action==='generate_plan'?'AI_PLAN':'MANUAL_EDIT','Automatic version before editor save');
             $instructions=trim((string)($_POST['instructions']??''));$props=trim((string)($_POST['visual_insert_instructions']??''));if($props!=='')$instructions.="\nTimed visual inserts requested:\n".$props;
+            if($projectFiles){$instructions.="\n\nAvailable files in this project's private folder (use the exact asset_url when selecting one):";
+                foreach(array_slice($projectFiles,0,120) as $file)$instructions.="\n- {$file['relative_path']} | role={$file['role']} | kind={$file['kind']} | asset_url={$file['url']}";
+            }
             $aspect=(string)($_POST['aspect_ratio']??'9:16');if(!in_array($aspect,['9:16','16:9','16:9_4k','1:1','4:5'],true))$aspect='9:16';
             $instructions.="\nMotion direction: ".trim((string)($_POST['motion_direction']??'AI decides purposeful moments only')).". Motion intensity: ".trim((string)($_POST['motion_intensity']??'medium')).".";
-            $plan=$action==='generate_plan' ? (new AiVideoPlanningService())->createPlan($owner,(string)($_POST['provider']??'openai'),$transcript,$instructions,$aspect,(string)($_POST['caption_style']??'clean'),trim((string)($_POST['logo_url']??'')),(string)($_POST['style_preset']??'vnv_premium'),[
-                'intro_url'=>trim((string)($_POST['intro_url']??'')),'outro_url'=>trim((string)($_POST['outro_url']??'')),
-                'overlay_url'=>trim((string)($_POST['overlay_url']??'')),'audio_url'=>trim((string)($_POST['audio_url']??'')),
+            $projectAsset=function(string $field)use($allowedProjectUrls):string{$value=trim((string)($_POST[$field]??''));return str_starts_with($value,'vnv-local://')&&!in_array($value,$allowedProjectUrls,true)?'':$value;};
+            $plan=$action==='generate_plan' ? (new AiVideoPlanningService())->createPlan($owner,'openai',$transcript,$instructions,$aspect,(string)($_POST['caption_style']??'clean'),$projectAsset('logo_url'),(string)($_POST['style_preset']??'vnv_premium'),[
+                'intro_url'=>$projectAsset('intro_url'),'outro_url'=>$projectAsset('outro_url'),
+                'overlay_url'=>$projectAsset('overlay_url'),'audio_url'=>$projectAsset('audio_url'),
             ]) : null;
-            if($plan){$layout=json_decode((string)($_POST['overlay_layout_json']??''),true);$plan['_request']['overlay_layout']=is_array($layout)?array_slice($layout,0,30):[];}
+            if($plan){
+                $byName=[];foreach($projectFiles as $file)$byName[strtolower((string)$file['relative_path'])]=$file;
+                foreach((array)($plan['generated_inserts']??[]) as $index=>$insert){
+                    $assetName=strtolower(trim((string)($insert['asset_name']??'')));$assetUrl=trim((string)($insert['asset_url']??''));
+                    if(isset($byName[$assetName])){$file=$byName[$assetName];$plan['generated_inserts'][$index]['asset_url']=$file['url'];$plan['generated_inserts'][$index]['mime_type']=$file['mime_type'];$plan['generated_inserts'][$index]['media_type']='uploaded_asset';$plan['generated_inserts'][$index]['status']='READY';}
+                    elseif(str_starts_with($assetUrl,'vnv-local://')&&!in_array($assetUrl,$allowedProjectUrls,true)){$plan['generated_inserts'][$index]['asset_url']='';}
+                }
+                $layout=json_decode((string)($_POST['overlay_layout_json']??''),true);$plan['_request']['overlay_layout']=is_array($layout)?array_slice($layout,0,30):[];
+            }
             if($plan&&!empty($_POST['generate_visual_inserts'])){
                 $imageProvider=in_array($_POST['insert_provider']??'', ['openai','gemini'],true)?$_POST['insert_provider']:'openai';
-                foreach(array_slice((array)($plan['generated_inserts']??[]),0,3,true) as $index=>$insert){if(trim((string)($insert['prompt']??''))==='')continue;
+                foreach(array_slice((array)($plan['generated_inserts']??[]),0,3,true) as $index=>$insert){if(trim((string)($insert['prompt']??''))===''||trim((string)($insert['asset_url']??''))!=='')continue;
                     $generated=(new AiProviderImageService())->generate($owner,$imageProvider,(string)$insert['prompt'],(string)($_POST['aspect_ratio']??'9:16'));
                     $plan['generated_inserts'][$index]['asset_url']=$generated['url'];$plan['generated_inserts'][$index]['media_type']='generated_image';$plan['generated_inserts'][$index]['status']='READY';
                 }

@@ -34,12 +34,13 @@ final class AiVideoRenderService
         try {
             $input=(new AiVideoIngestService())->materialize((string)$job->source_url, $input);
             file_put_contents($srt, (string)$job->subtitles_srt);
+            $ingest=new AiVideoIngestService();
             $urls=['logo'=>$request['logo_url']??'','overlay'=>$request['overlay_url']??'','music'=>$request['audio_url']??'','intro'=>$request['intro_url']??'','outro'=>$request['outro_url']??''];
-            foreach($urls as $name=>$url)if(trim((string)$url)!=='')$this->download((string)$url,${$name});
+            foreach($urls as $name=>$url)if(trim((string)$url)!=='')${$name}=$ingest->materialize((string)$url,${$name});
             $stylePreset=(string)($request['style_preset']??'vnv_premium');
             $colorFilter=$stylePreset==='marketing_educator'?',eq=contrast=1.08:saturation=1.12:brightness=0.01,unsharp=5:5:0.55:5:5:0.0':',eq=contrast=1.04:saturation=1.06:brightness=0.005';
             $plan=is_array($plan??null)?$plan:[];$removed=(array)($request['removed_segments']??[]);$selection=$this->selectionFilter((array)($plan['cuts']??[]),$removed);
-            $insertFiles=[];foreach(array_slice((array)($plan['generated_inserts']??[]),0,5,true) as $key=>$insert){$url=trim((string)($insert['asset_url']??''));if($url==='')continue;$path=$work.DIRECTORY_SEPARATOR.'insert-'.$key;$this->download($url,$path);$insertFiles[]=['path'=>$path,'start'=>$this->seconds((string)($insert['start']??0)),'duration'=>max(.5,min(20,(float)($insert['duration_seconds']??3)))];}
+            $insertFiles=[];foreach(array_slice((array)($plan['generated_inserts']??[]),0,8,true) as $key=>$insert){$url=trim((string)($insert['asset_url']??''));if($url==='')continue;$target=$work.DIRECTORY_SEPARATOR.'insert-'.$key;$path=$ingest->materialize($url,$target);$mime=(string)($insert['mime_type']??'');$isVideo=str_starts_with($mime,'video/')||in_array(strtolower(pathinfo($path,PATHINFO_EXTENSION)),['mp4','mov','m4v','mkv','webm','avi','mts','m2ts','mpg','mpeg'],true);$insertFiles[]=['path'=>$path,'video'=>$isVideo,'start'=>$this->seconds((string)($insert['start']??0)),'duration'=>max(.5,min(30,(float)($insert['duration_seconds']??3)))];}
             $filter=$selection."scale={$width}:{$height}:force_original_aspect_ratio=increase,crop={$width}:{$height}{$colorFilter}";
             $subtitleFilter='';$captionStyle=(string)($request['caption_style']??'clean');
             if (trim((string)$job->subtitles_srt) !== '') {
@@ -55,7 +56,7 @@ final class AiVideoRenderService
             if(is_file($logo)){$command=array_merge($command,['-loop','1','-i',$logo]);$logoIndex=$index++;}
             if(is_file($overlay)){$command=array_merge($command,['-loop','1','-i',$overlay]);$overlayIndex=$index++;}
             if(is_file($music)){$command=array_merge($command,['-stream_loop','-1','-i',$music]);$musicIndex=$index++;}
-            $insertIndexes=[];foreach($insertFiles as $insertFile){$command=array_merge($command,['-loop','1','-i',$insertFile['path']]);$insertFile['index']=$index++;$insertIndexes[]=$insertFile;}
+            $insertIndexes=[];foreach($insertFiles as $insertFile){$command=array_merge($command,$insertFile['video']?['-i',$insertFile['path']]:['-loop','1','-i',$insertFile['path']]);$insertFile['index']=$index++;$insertIndexes[]=$insertFile;}
             $complex="[0:v]{$filter}[base]";$current='base';
             foreach(array_slice((array)($plan['camera_moves']??[]),0,16) as $i=>$move){
                 $start=$this->seconds((string)($move['start']??''));$end=$this->seconds((string)($move['end']??''));if($end<=$start)continue;
@@ -75,7 +76,11 @@ final class AiVideoRenderService
             }
             if($logoIndex!==null){$complex.=";[{$logoIndex}:v]scale=".max(180,(int)($width*.28)).":-1,format=rgba,fade=t=in:st=0:d=.45:alpha=1,fade=t=out:st=2.5:d=.5:alpha=1[logo];[{$current}][logo]overlay=(W-w)/2:(H-h)/2:enable='between(t,0,3)'[branded]";$current='branded';}
             if($overlayIndex!==null){$complex.=";[{$overlayIndex}:v]scale={$width}:{$height},format=rgba,colorchannelmixer=aa=.38[overlay];[{$current}][overlay]overlay=0:0[overlaid]";$current='overlaid';}
-            foreach($insertIndexes as $i=>$insertFile){$next='inserted'.$i;$end=$insertFile['start']+$insertFile['duration'];$frames=max(15,(int)round($insertFile['duration']*30));$complex.=";[{$insertFile['index']}:v]scale={$width}:{$height}:force_original_aspect_ratio=increase,crop={$width}:{$height},zoompan=z='min(zoom+0.0015,1.12)':d={$frames}:s={$width}x{$height}:fps=30,format=rgba[insert{$i}];[{$current}][insert{$i}]overlay=0:0:enable='between(t,{$insertFile['start']},{$end})'[{$next}]";$current=$next;}
+            foreach($insertIndexes as $i=>$insertFile){$next='inserted'.$i;$end=$insertFile['start']+$insertFile['duration'];$frames=max(15,(int)round($insertFile['duration']*30));
+                if($insertFile['video'])$complex.=";[{$insertFile['index']}:v]trim=duration={$insertFile['duration']},setpts=PTS-STARTPTS+{$insertFile['start']}/TB,scale={$width}:{$height}:force_original_aspect_ratio=increase,crop={$width}:{$height},format=rgba[insert{$i}]";
+                else $complex.=";[{$insertFile['index']}:v]scale={$width}:{$height}:force_original_aspect_ratio=increase,crop={$width}:{$height},zoompan=z='min(zoom+0.0015,1.12)':d={$frames}:s={$width}x{$height}:fps=30,setpts=PTS-STARTPTS+{$insertFile['start']}/TB,format=rgba[insert{$i}]";
+                $complex.=";[{$current}][insert{$i}]overlay=0:0:enable='between(t,{$insertFile['start']},{$end})'[{$next}]";$current=$next;
+            }
             foreach(array_slice((array)($plan['motion_graphics']??[]),0,12) as $i=>$graphic){
                 $at=$this->seconds((string)($graphic['timestamp']??''));$text=$this->ffmpegText((string)($graphic['content']??''));if($text==='')continue;
                 $next='motion'.$i;$complex.=";[{$current}]drawbox=x=40:y=h*0.16:w=w-80:h=120:color=black@.55:t=fill:enable='between(t,{$at},".($at+3.5).")',drawtext=text='{$text}':fontcolor=white:fontsize=".max(32,(int)($width/24)).":x=(w-text_w)/2:y=h*.19:enable='between(t,{$at},".($at+3.5).")'[{$next}]";$current=$next;
