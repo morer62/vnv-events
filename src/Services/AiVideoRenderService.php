@@ -43,7 +43,7 @@ final class AiVideoRenderService
             $insertFiles=[];foreach(array_slice((array)($plan['generated_inserts']??[]),0,8,true) as $key=>$insert){$url=trim((string)($insert['asset_url']??''));if($url==='')continue;$target=$work.DIRECTORY_SEPARATOR.'insert-'.$key;$path=$ingest->materialize($url,$target);$mime=(string)($insert['mime_type']??'');$isVideo=str_starts_with($mime,'video/')||in_array(strtolower(pathinfo($path,PATHINFO_EXTENSION)),['mp4','mov','m4v','mkv','webm','avi','mts','m2ts','mpg','mpeg'],true);$insertFiles[]=['path'=>$path,'video'=>$isVideo,'start'=>$this->seconds((string)($insert['start']??0)),'duration'=>max(.5,min(30,(float)($insert['duration_seconds']??3)))];}
             $filter=$selection."scale={$width}:{$height}:force_original_aspect_ratio=increase,crop={$width}:{$height}{$colorFilter}";
             $subtitleFilter='';$captionStyle=(string)($request['caption_style']??'clean');
-            if (trim((string)$job->subtitles_srt) !== '') {
+            if (trim((string)$job->subtitles_srt) !== '' && $captionStyle !== 'none') {
                 $captionPath=$srt;$forceStyle=":force_style='FontName=Arial,FontSize=".max(18,(int)round($height/60)).",PrimaryColour=&H00FFFFFF,OutlineColour=&H00000000,BorderStyle=1,Outline=2,Shadow=1,Alignment=2,MarginV=".max(60,(int)round($height*.055))."'";
                 if(in_array($captionStyle,['kinetic','dynamic'],true)){
                     $this->createKineticAss((string)$job->subtitles_srt,$ass,$width,$height,(array)($plan['caption_animation']['emphasis_words']??[]));

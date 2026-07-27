@@ -117,8 +117,17 @@ final class AiAgentExecutionService
     }
     private function shortVideo(int $ownerId,array $input=[]): array
     {
-        $selected=(int)($input['media_job_id']??0);$sql="SELECT id,title,status,source_url,output_url,edit_plan_json,created_at FROM ai_agent_media_jobs WHERE id_owner=:owner AND status IN ('READY','COMPLETED')";$bindings=[];if($selected>0){$sql.=" AND id=:id";$bindings['id']=$selected;}$sql.=" ORDER BY id DESC LIMIT 25";$items=$this->rows($sql,$ownerId,$bindings);if($selected>0&&!$items)throw new RuntimeException('Selected video project is not ready.');
-        $actions=[];foreach($items as $i)$actions[]=['type'=>'REVIEW_SHORT_VIDEO','title'=>'Review short video: '.$i->title,'media_job_id'=>(int)$i->id,'output_url'=>(string)$i->output_url,'video_studio_url'=>'/panel/growth-hub/video-studio'];return ['summary'=>count($items).' video projects ready.','items'=>$items,'proposed_actions'=>$actions];
+        $selected=(int)($input['media_job_id']??0);if($selected<=0)throw new RuntimeException('Select a completed video project.');
+        $item=$this->one("SELECT id,title,status,output_url,transcript_text,subtitles_srt,edit_plan_json,created_at FROM ai_agent_media_jobs WHERE id=:id AND id_owner=:owner AND status='COMPLETED' AND output_url IS NOT NULL",$ownerId,['id'=>$selected]);
+        if(!$item)throw new RuntimeException('Select a completed video project with a final master.');
+        $duration=max(15,min(60,(int)($input['target_duration']??30)));$captionStyle=in_array($input['caption_style']??'', ['kinetic','dynamic','clean'],true)?$input['caption_style']:'kinetic';
+        $plan=(new AiJsonGenerator())->generate(
+            'Create one high-retention vertical short-video plan from the completed VNV master. Select a coherent excerpt no longer than the target duration. Do not reuse burned-in/native subtitle styling. Create a new social caption script from the spoken transcript, with concise timed phrases and emphasis words. Return planning data only; publication still requires approval.',
+            ['title'=>$item->title,'transcript'=>$item->transcript_text,'existing_edit_plan'=>$item->edit_plan_json,'instructions'=>trim((string)($input['reel_instructions']??'')),'target_duration_seconds'=>$duration,'caption_style'=>$captionStyle],
+            ['hook'=>'','start_seconds'=>0,'end_seconds'=>$duration,'caption_style'=>$captionStyle,'caption_blocks'=>[['start_seconds'=>0,'end_seconds'=>0,'text'=>'','emphasis_words'=>[]]],'cuts'=>[],'camera_moves'=>[],'transitions'=>[],'post_copy'=>'','hashtags'=>[]]
+        );
+        $action=['type'=>'REVIEW_SHORT_VIDEO','title'=>'Review short reel: '.$item->title,'media_job_id'=>(int)$item->id,'output_url'=>(string)$item->output_url,'video_studio_url'=>'/panel/growth-hub/video-studio?project='.(int)$item->id,'remove_native_subtitles'=>true,'target_duration'=>$duration,'caption_style'=>$captionStyle,'reel_plan'=>$plan];
+        return ['summary'=>'Short reel plan prepared from completed project #'.$item->id.'.','items'=>[$plan],'proposed_actions'=>[$action]];
     }
     private function metaLeadEstimator(int $ownerId,array $input): array
     {

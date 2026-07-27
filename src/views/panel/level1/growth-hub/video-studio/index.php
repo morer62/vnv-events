@@ -18,22 +18,25 @@ $router=new Router();
 $router->get(function(){
     $session=LoginService::getSession(); $repo=new AiAgentMediaRepository();
     $ingest=new AiVideoIngestService();
-    $owner=(int)$session->getOwner();$jobs=$repo->all($owner);$ingestRoot='';$ingestFolders=[];$ingestError='';
+    $owner=(int)$session->getOwner();$jobs=$repo->all($owner);$projectId=max(0,(int)($_GET['project']??0));$selected=null;$ingestRoot='';$ingestFolders=[];$ingestError='';
     try{
-        $ingestRoot=$ingest->ownerRoot($owner);$ingestFolders=$ingest->folders($owner);
+        if(!$projectId){$ingestRoot=$ingest->ownerRoot($owner);$ingestFolders=$ingest->folders($owner);}
         foreach($jobs as $job)$job->project_files=$ingest->inventoryForSource($owner,(string)$job->source_url);
     }catch(\Throwable $e){
         $ingestError=$e->getMessage();
         foreach($jobs as $job)$job->project_files=[];
     }
     foreach($jobs as $job)$job->revisions=$repo->revisions($owner,(int)$job->id);
-    return TemplateResponse::render(__DIR__.'/index.twig',[
+    if($projectId){foreach($jobs as $job)if((int)$job->id===$projectId){$selected=$job;break;}if(!$selected)throw new RuntimeException('Video project not found.');}
+    return TemplateResponse::render(__DIR__.($selected?'/editor.twig':'/library.twig'),[
         'jobs'=>$jobs,'assets'=>$repo->assets($owner),'renderReady'=>(new AiVideoRenderService())->available(),
+        'selected'=>$selected,
         'ingestRoot'=>$ingestRoot,'ingestFolders'=>$ingestFolders,'ingestStableSeconds'=>$ingest->stableSeconds(),'ingestError'=>$ingestError,
     ]);
 });
 $router->post(function(){
     $session=LoginService::getSession(); $owner=(int)$session->getOwner(); $repo=new AiAgentMediaRepository();
+    $redirectProject=max(0,(int)($_POST['id']??0));
     try{
         $action=(string)($_POST['action']??'upload');
         if($action==='import_server_folder'){
@@ -118,6 +121,6 @@ $router->post(function(){
             MessageUtil::setMessage('Media uploaded. You can now generate its transcription and subtitles.');
         }
     }catch(\Throwable $e){MessageUtil::setMessage($e->getMessage(),'Video Studio','danger');}
-    LocationUtils::redirectInternal('panel/growth-hub/video-studio');
+    LocationUtils::redirectInternal('panel/growth-hub/video-studio'.($redirectProject?'?project='.$redirectProject:''));
 });
 $router->run();
