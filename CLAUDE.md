@@ -350,13 +350,14 @@ Video Studio administra proyectos reutilizables con:
 No deben atravesar la subida del navegador/PHP. Usar la bandeja SFTP privada:
 
 ```env
-VIDEO_INGEST_PATH=/srv/vnv-video-ingest/incoming
+VIDEO_INGEST_PATH=storage/video-ingest/incoming
 VIDEO_INGEST_STABLE_SECONDS=60
 FFMPEG_PATH=/usr/bin/ffmpeg
 ```
 
-El sistema agrega `owner-{id}` y lista las carpetas visibles dentro de ese
-scope. Flujo:
+The path is resolved from the repository root, not from `APP_URL` and not from
+hardcoded hosting account paths. El sistema agrega `owner-{id}` y lista las
+carpetas visibles dentro de ese scope. Flujo:
 
 1. crear una carpeta por proyecto vía SFTP;
 2. subir como `archivo.mp4.uploading`;

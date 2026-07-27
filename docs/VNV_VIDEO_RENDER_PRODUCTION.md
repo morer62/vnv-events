@@ -74,10 +74,19 @@ The browser workspace uses locally hosted production assets rather than runtime 
 Dependencies are declared in `package.json`, locked in `package-lock.json` and copied to `public/assets/lib` so production does not require Node.js at request time. The editor stores overlay positions as normalized coordinates, allowing the same layout to scale across preview and final export resolution.
 # Large originals through the private SFTP inbox
 
-Do not send production originals of 500 MB–10 GB through the browser. Set
-`VIDEO_INGEST_PATH` to a private directory outside the public web root, for
-example `/srv/vnv-video-ingest/incoming`, and grant the SFTP account and the
-PHP/render-worker account read/write access.
+Do not send production originals of 500 MB–10 GB through the browser. Use the
+portable project-relative configuration:
+
+```env
+VIDEO_INGEST_PATH=storage/video-ingest/incoming
+```
+
+The application resolves this value from the repository root using its real
+filesystem location, independently of `APP_URL` and independently of the
+server account path. The project already routes public requests through
+`public/`, so repository-level `storage/` remains outside the public document
+directory. Grant the SFTP account and PHP/render-worker account read/write
+access to this directory.
 
 Inside Level 1 > Growth Hub > AI Video Projects, the panel displays the exact
 owner-specific directory to use. The operator creates one project folder,

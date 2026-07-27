@@ -18,10 +18,18 @@ $router=new Router();
 $router->get(function(){
     $session=LoginService::getSession(); $repo=new AiAgentMediaRepository();
     $ingest=new AiVideoIngestService();
-    $owner=(int)$session->getOwner();$jobs=$repo->all($owner);foreach($jobs as $job){$job->revisions=$repo->revisions($owner,(int)$job->id);$job->project_files=$ingest->inventoryForSource($owner,(string)$job->source_url);}
+    $owner=(int)$session->getOwner();$jobs=$repo->all($owner);$ingestRoot='';$ingestFolders=[];$ingestError='';
+    try{
+        $ingestRoot=$ingest->ownerRoot($owner);$ingestFolders=$ingest->folders($owner);
+        foreach($jobs as $job)$job->project_files=$ingest->inventoryForSource($owner,(string)$job->source_url);
+    }catch(\Throwable $e){
+        $ingestError=$e->getMessage();
+        foreach($jobs as $job)$job->project_files=[];
+    }
+    foreach($jobs as $job)$job->revisions=$repo->revisions($owner,(int)$job->id);
     return TemplateResponse::render(__DIR__.'/index.twig',[
         'jobs'=>$jobs,'assets'=>$repo->assets($owner),'renderReady'=>(new AiVideoRenderService())->available(),
-        'ingestRoot'=>$ingest->ownerRoot($owner),'ingestFolders'=>$ingest->folders($owner),'ingestStableSeconds'=>$ingest->stableSeconds(),
+        'ingestRoot'=>$ingestRoot,'ingestFolders'=>$ingestFolders,'ingestStableSeconds'=>$ingest->stableSeconds(),'ingestError'=>$ingestError,
     ]);
 });
 $router->post(function(){

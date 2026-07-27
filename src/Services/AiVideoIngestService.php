@@ -15,11 +15,19 @@ final class AiVideoIngestService
     public function ownerRoot(int $ownerId): string
     {
         $configured=trim((string)($_ENV['VIDEO_INGEST_PATH']??''));
-        $base=$configured!==''?$configured:dirname(__DIR__,2).DIRECTORY_SEPARATOR.'storage'.DIRECTORY_SEPARATOR.'video-ingest'.DIRECTORY_SEPARATOR.'incoming';
+        $configured=$configured!==''?$configured:'storage/video-ingest/incoming';
+        $base=$this->absolutePath($configured);
         if(!is_dir($base)&&!mkdir($base,0770,true)&&!is_dir($base))throw new RuntimeException('Unable to create the private video ingest directory.');
         $root=rtrim($base,'/\\').DIRECTORY_SEPARATOR.'owner-'.$ownerId;
         if(!is_dir($root)&&!mkdir($root,0770,true)&&!is_dir($root))throw new RuntimeException('Unable to create the owner video ingest directory.');
         return $root;
+    }
+
+    private function absolutePath(string $path): string
+    {
+        $path=str_replace(['/', '\\'],DIRECTORY_SEPARATOR,trim($path));
+        $isAbsolute=str_starts_with($path,DIRECTORY_SEPARATOR)||(bool)preg_match('/^[A-Za-z]:'.preg_quote(DIRECTORY_SEPARATOR,'/').'/', $path);
+        return $isAbsolute?$path:dirname(__DIR__,2).DIRECTORY_SEPARATOR.ltrim($path,DIRECTORY_SEPARATOR);
     }
 
     public function stableSeconds(): int{return max(30,min(600,(int)($_ENV['VIDEO_INGEST_STABLE_SECONDS']??60)));}
