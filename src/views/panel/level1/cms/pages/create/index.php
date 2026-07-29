@@ -335,7 +335,12 @@ $router->get(function () {
     $categories = $categoriesRepository->getActive();
     $internalLinks = cmsServiceInternalLinkCandidates();
     $session=LoginService::getSession();$ownerId=(int)$session->getOwner();
-    $db->query("SELECT id,title,content_type,status,route FROM cms_contents WHERE id_owner=:owner AND status IN ('GENERATED','PUBLISHED') ORDER BY updated_at DESC LIMIT 300");$db->bind(':owner',$ownerId);$baseContents=$db->fetchAll();
+    $db->query("SELECT c.id,c.title,c.content_type,c.status,r.route
+        FROM cms_contents c
+        LEFT JOIN cms_routes r ON r.id_content=c.id AND r.is_main=1
+        WHERE c.id_owner=:owner AND c.status IN ('GENERATED','PUBLISHED')
+        ORDER BY c.updated_at DESC LIMIT 300");
+    $db->bind(':owner',$ownerId);$baseContents=$db->fetchAll();
 
     return TemplateResponse::render(__DIR__ . "/index.twig", [
         "title" => "Create CMS Page",

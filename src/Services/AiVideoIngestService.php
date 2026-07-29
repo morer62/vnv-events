@@ -98,6 +98,20 @@ final class AiVideoIngestService
         return $target;
     }
 
+    public function uploadProjectAsset(int $ownerId,string $sourceUrl,array $file,string $role): string
+    {
+        $parts=$this->referenceParts($sourceUrl);if(!$parts||(int)$parts['owner']!==$ownerId)throw new RuntimeException('This project does not use the private project inbox.');
+        if((int)($file['error']??UPLOAD_ERR_NO_FILE)!==UPLOAD_ERR_OK||!is_uploaded_file((string)($file['tmp_name']??'')))throw new RuntimeException('Select a valid project asset.');
+        if((int)($file['size']??0)<=0||(int)$file['size']>250*1024*1024)throw new RuntimeException('Browser project assets must be below 250 MB. Use SFTP for larger files.');
+        $extension=strtolower(pathinfo((string)($file['name']??''),PATHINFO_EXTENSION));if(!in_array($extension,array_merge(self::VIDEO_EXTENSIONS,self::AUDIO_EXTENSIONS,self::IMAGE_EXTENSIONS),true))throw new RuntimeException('Unsupported project asset format.');
+        $folder=match($role){'intro'=>'intros','outro'=>'outros','logo'=>'logos','b-roll'=>'b-roll','music'=>'music','transition'=>'transitions',default=>'images'};
+        $projectRoot=$this->ownerRoot($ownerId).DIRECTORY_SEPARATOR.$parts['segments'][0];$destinationFolder=$projectRoot.DIRECTORY_SEPARATOR.$folder;
+        if(!is_dir($destinationFolder)&&!mkdir($destinationFolder,0770,true)&&!is_dir($destinationFolder))throw new RuntimeException('Unable to create the project asset folder.');
+        $base=preg_replace('/[^A-Za-z0-9._-]+/','-',pathinfo((string)$file['name'],PATHINFO_FILENAME));$base=trim((string)$base,'-.')?:'asset';$name=$base.'-'.date('Ymd-His').'.'.$extension;$destination=$destinationFolder.DIRECTORY_SEPARATOR.$name;
+        if(!move_uploaded_file((string)$file['tmp_name'],$destination))throw new RuntimeException('Unable to save the project asset.');
+        return $folder.'/'.$name;
+    }
+
     private function scan(int $ownerId,string $folder,string $path): array
     {
         $base=(string)realpath($path);if($base==='')return [];

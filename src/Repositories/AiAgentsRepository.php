@@ -198,7 +198,11 @@ class AiAgentsRepository
         $this->db->query("SELECT id FROM ai_agent_approvals WHERE id_agent=:agent AND id_owner=:owner
             AND action_type=:action AND title=:title AND status IN ('PENDING','APPROVED','PROCESSING') ORDER BY id DESC LIMIT 1");
         $this->db->bind(':agent',$agentId);$this->db->bind(':owner',$ownerId);$this->db->bind(':action',$action);$this->db->bind(':title',$title);
-        $existing=$this->db->fetchOne();if($existing)return (int)$existing->id;
+        $existing=$this->db->fetchOne();if($existing){
+            $this->db->query("UPDATE ai_agent_approvals SET id_run=:run,payload_json=:payload,requested_by=:user,created_at=NOW(),review_note=NULL WHERE id=:id AND id_owner=:owner");
+            $this->db->bind(':run',$runId);$this->db->bind(':payload',json_encode($payload,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES));$this->db->bind(':user',$userId);$this->db->bind(':id',(int)$existing->id);$this->db->bind(':owner',$ownerId);$this->db->execute();
+            return (int)$existing->id;
+        }
         $this->db->query("INSERT INTO ai_agent_approvals
             (id_run, id_agent, id_owner, action_type, title, payload_json, requested_by)
             VALUES (:run, :agent, :owner, :action, :title, :payload, :user)");

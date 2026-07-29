@@ -16,9 +16,15 @@ $router->get(function (): never {
         exit('Media project not found.');
     }
 
-    $proxyRequested=!empty($_GET['proxy']);
+    $proxyRequested=!empty($_GET['proxy']);$assetRelative=trim((string)($_GET['asset']??''));
     $proxyPath=(new AiVideoProxyService())->path($owner,(int)$job->id);
-    $path=$proxyRequested&&is_file($proxyPath)?$proxyPath:(new AiVideoIngestService())->localPath((string)$job->source_url);
+    $assetMime='';
+    if($assetRelative!==''){
+        $inventory=(new AiVideoIngestService())->inventoryForSource($owner,(string)$job->source_url);$match=null;
+        foreach($inventory as $file)if(hash_equals((string)$file['relative_path'],$assetRelative)){$match=$file;break;}
+        if(!$match){http_response_code(404);exit('Project asset not found.');}
+        $path=(new AiVideoIngestService())->localPath((string)$match['url']);$assetMime=(string)$match['mime_type'];
+    }else $path=$proxyRequested&&is_file($proxyPath)?$proxyPath:(new AiVideoIngestService())->localPath((string)$job->source_url);
     if (!$path || !is_file($path) || !is_readable($path)) {
         http_response_code(404);
         exit('Private media is unavailable.');
@@ -45,12 +51,15 @@ $router->get(function (): never {
     }
 
     http_response_code($status);
-    header('Content-Type: '.($proxyRequested&&$path===$proxyPath?'video/mp4':((string)$job->mime_type ?: 'application/octet-stream')));
+    header('Content-Type: '.($assetMime!==''?$assetMime:($proxyRequested&&$path===$proxyPath?'video/mp4':((string)$job->mime_type ?: 'application/octet-stream'))));
     header('Content-Disposition: inline; filename="'.str_replace('"', '', basename($path)).'"');
     header('Accept-Ranges: bytes');
     header('Content-Length: '.($end - $start + 1));
     if ($status === 206) header("Content-Range: bytes {$start}-{$end}/{$size}");
-    header('Cache-Control: private, no-store, max-age=0');
+    if($proxyRequested&&$path===$proxyPath){
+        header('Cache-Control: private, max-age=86400, immutable');
+        header('ETag: "proxy-'.(int)filemtime($path).'-'.$size.'"');
+    }else header('Cache-Control: private, no-store, max-age=0');
 
     $handle = fopen($path, 'rb');
     if (!$handle) {

@@ -11,7 +11,12 @@ $db->query("SELECT c.*,MAX(m.id) newest FROM ai_agent_conversations c JOIN ai_ag
  WHERE c.status='OPEN' AND (c.last_processed_message_id IS NULL OR m.id>c.last_processed_message_id) GROUP BY c.id ORDER BY c.last_message_at LIMIT {$limit}");
 foreach($db->fetchAll() as $conversation)try{
     $db->query("SELECT direction,message_text,created_at FROM ai_agent_conversation_messages WHERE id_conversation=:id ORDER BY id DESC LIMIT 30");$db->bind(':id',(int)$conversation->id);$messages=array_reverse($db->fetchAll());
-    $db->query("SELECT id,title,content_type,excerpt,body_html,route FROM cms_contents WHERE id_owner=:owner AND status='PUBLISHED' ORDER BY updated_at DESC LIMIT 80");$db->bind(':owner',(int)$conversation->id_owner);$knowledge=$db->fetchAll();
+    $db->query("SELECT c.id,c.title,c.content_type,c.excerpt,c.body_html,r.route
+        FROM cms_contents c
+        LEFT JOIN cms_routes r ON r.id_content=c.id AND r.is_main=1
+        WHERE c.id_owner=:owner AND c.status='PUBLISHED'
+        ORDER BY c.updated_at DESC LIMIT 80");
+    $db->bind(':owner',(int)$conversation->id_owner);$knowledge=$db->fetchAll();
     $result=(new AiModelGateway())->json((int)$conversation->id_owner,'openai','You are the VNV Events customer concierge. Answer only from supplied VNV content. Never invent availability, pricing, policy, or contract terms. Identify when an estimate is requested and collect email, event date, location, guest count and services. Return JSON only.',['channel'=>$conversation->channel,'conversation'=>$messages,'vnv_knowledge'=>$knowledge],['reply'=>'','needs_human'=>false,'estimate_requested'=>false,'email'=>null,'estimate'=>['event_date'=>null,'location'=>null,'guest_count'=>null,'requested_services'=>[],'missing_information'=>[]]]);
     $repo=new AiAgentsRepository();$repo->seed((int)$conversation->id_owner,AiAgentRegistry::definitions());$agent=$repo->find((int)$conversation->id_owner,'client_concierge');$run=$repo->createRun((int)$agent->id,(int)$conversation->id_owner,'SYSTEM',null,['conversation_id'=>(int)$conversation->id]);
     $action=['type'=>'SEND_META_RESPONSE','title'=>'Reply to '.ucfirst((string)$conversation->channel).' conversation #'.$conversation->id,'channel'=>$conversation->channel,'external_user_id'=>$conversation->external_user_id,'conversation_id'=>(int)$conversation->id,'draft_message'=>(string)$result['reply'],'needs_human'=>(bool)$result['needs_human'],'estimate'=>$result['estimate']??[],'email'=>$result['email']??null];

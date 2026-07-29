@@ -81,6 +81,21 @@ class AiAgentMediaRepository
         foreach(['owner'=>$ownerId,'user'=>$userId,'title'=>$job->title.' — remix','url'=>$job->source_url,'name'=>$job->source_name,'mime'=>$job->mime_type,'text'=>$job->transcript_text,'json'=>$job->transcript_json,'srt'=>$job->subtitles_srt,'plan'=>$job->edit_plan_json] as $k=>$v)$this->db->bind(':'.$k,$v);$this->db->execute();return (int)$this->db->lastId();
     }
 
+    public function createDerivedProject(int $ownerId,int $userId,object $source,string $title,array $plan): int
+    {
+        $this->db->query("INSERT INTO ai_agent_media_jobs(id_owner,id_user,title,source_url,source_name,mime_type,status,transcript_text,transcript_json,subtitles_srt,edit_plan_json)
+          VALUES(:owner,:user,:title,:url,:name,:mime,'READY',:text,:json,:srt,:plan)");
+        foreach(['owner'=>$ownerId,'user'=>$userId,'title'=>$title,'url'=>$source->source_url,'name'=>$source->source_name,'mime'=>$source->mime_type,'text'=>$source->transcript_text,'json'=>$source->transcript_json,'srt'=>$source->subtitles_srt,'plan'=>json_encode($plan,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES)] as $key=>$value)$this->db->bind(':'.$key,$value);
+        $this->db->execute();return (int)$this->db->lastId();
+    }
+
+    public function updateRenderProgress(int $ownerId,int $id,int $percent,string $stage): void
+    {
+        $message='Rendering '.max(0,min(100,$percent)).'% — '.$stage;
+        $this->db->query("UPDATE ai_agent_media_jobs SET error_message=:message WHERE id=:id AND id_owner=:owner AND status='RENDERING'");
+        $this->db->bind(':message',$message);$this->db->bind(':id',$id);$this->db->bind(':owner',$ownerId);$this->db->execute();
+    }
+
     public function fail(int $ownerId,int $id,string $error): void
     {
         $this->db->query("UPDATE ai_agent_media_jobs SET status='FAILED',error_message=:error WHERE id=:id AND id_owner=:owner");
@@ -120,7 +135,7 @@ class AiAgentMediaRepository
 
     public function addAsset(int $ownerId,int $userId,string $type,string $name,string $url,string $mime): void
     {
-        if(!in_array($type,['LOGO','INTRO','OUTRO','OVERLAY','AUDIO'],true))$type='OVERLAY';
+        if(!in_array($type,['LOGO','INTRO','OUTRO','OVERLAY','AUDIO','IMAGE','TRANSPARENT_PNG','SHORT_VIDEO'],true))$type='OVERLAY';
         $this->db->query("INSERT INTO ai_agent_media_assets(id_owner,id_user,asset_type,name,asset_url,mime_type) VALUES(:owner,:user,:type,:name,:url,:mime)");
         foreach(['owner'=>$ownerId,'user'=>$userId,'type'=>$type,'name'=>$name,'url'=>$url,'mime'=>$mime] as $key=>$value)$this->db->bind(':'.$key,$value);$this->db->execute();
     }

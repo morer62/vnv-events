@@ -8,6 +8,7 @@ use App\Services\AiVideoIngestService;
 use App\Services\AiTranscriptTimelineService;
 use App\Services\AiCaptionStyleRegistry;
 use App\Services\AiVideoProxyService;
+use App\Services\AiReusableMediaService;
 use App\Services\AiCaptionEditorService;
 use App\Services\AiProviderImageService;
 use App\Services\LoginService;
@@ -29,7 +30,7 @@ $router->get(function(){
         $ingestError=$e->getMessage();
         foreach($jobs as $job)$job->project_files=[];
     }
-    foreach($jobs as $job)$job->revisions=$repo->revisions($owner,(int)$job->id);
+    foreach($jobs as $job){$job->revisions=$repo->revisions($owner,(int)$job->id);$jobPlan=json_decode((string)$job->edit_plan_json,true);$jobRequest=is_array($jobPlan)?(array)($jobPlan['_request']??[]):[];$job->project_kind=(string)($jobRequest['project_kind']??'long');$job->parent_project_id=(int)($jobRequest['parent_project_id']??0);}
     if($projectId){
         foreach($jobs as $job)if((int)$job->id===$projectId){$selected=$job;break;}
         if(!$selected)throw new RuntimeException('Video project not found.');
@@ -37,7 +38,13 @@ $router->get(function(){
         $selectedRequest=is_array($selectedPlan)?(array)($selectedPlan['_request']??[]):[];
         $selected->caption_preset=AiCaptionStyleRegistry::find((string)($selectedRequest['caption_preset']??'classic-bold'))['id'];
         $selected->caption_size_percent=max(35,min(140,(int)($selectedRequest['caption_size_percent']??75)));
-        $selected->proxy_ready=(new AiVideoProxyService())->exists($owner,(int)$selected->id);
+        $selected->project_kind=(string)($selectedRequest['project_kind']??'long');
+        $selected->parent_project_id=(int)($selectedRequest['parent_project_id']??0);
+        $selected->reel_range=(array)($selectedRequest['reel_range']??[]);
+        $selected->preview_removed_segments=array_values(array_filter((array)($selectedRequest['removed_segments']??[]),static fn($segment)=>is_array($segment)&&isset($segment['start'],$segment['end'])));
+        $proxyService=new AiVideoProxyService();
+        $selected->proxy_ready=$proxyService->exists($owner,(int)$selected->id);
+        $selected->proxy_version=$proxyService->version($owner,(int)$selected->id);
     }
     return TemplateResponse::render(__DIR__.($selected?'/editor.twig':'/library.twig'),[
         'jobs'=>$jobs,'assets'=>$repo->assets($owner),'renderReady'=>(new AiVideoRenderService())->available(),
@@ -59,13 +66,17 @@ $router->post(function(){
             }
             if(!$imported)throw new RuntimeException($skipped.' file(s) were already imported from this folder.');
             MessageUtil::setMessage($imported.' server video(s) imported as private projects'.($skipped?' ('.$skipped.' already existed).':'.'));
+        }elseif($action==='upload_project_asset'){
+            $id=(int)($_POST['id']??0);$job=$repo->find($owner,$id);if(!$job)throw new RuntimeException('Project not found.');
+            if(!FileUtils::hasFile($_FILES,'project_asset'))throw new RuntimeException('Select a project asset.');
+            $relative=(new AiVideoIngestService())->uploadProjectAsset($owner,(string)$job->source_url,$_FILES['project_asset'],(string)($_POST['project_asset_role']??'image'));
+            MessageUtil::setMessage($relative.' was attached to this project and is ready for insertion chips.');
         }elseif($action==='upload_asset'){
             if(!FileUtils::hasFile($_FILES,'asset'))throw new RuntimeException('Select a production asset.');
-            $file=$_FILES['asset'];$allowed=['image/png','image/jpeg','image/webp','video/mp4','video/quicktime','audio/mpeg','audio/wav'];
-            if(!in_array((string)$file['type'],$allowed,true))throw new RuntimeException('Unsupported production asset format.');
-            $type=(string)($_POST['asset_type']??'LOGO');$url=FileUtils::saveFile($file,'agents/video-studio/assets');
-            $repo->addAsset($owner,(int)$session->getId(),$type,trim((string)($_POST['asset_name']??''))?:pathinfo((string)$file['name'],PATHINFO_FILENAME),$url,(string)$file['type']);
-            MessageUtil::setMessage('Reusable production asset uploaded.');
+            $file=$_FILES['asset'];$media=(new AiReusableMediaService())->validate($file,(string)($_POST['asset_type']??'IMAGE'));
+            $file['type']=$media['mime'];$url=FileUtils::saveFile($file,'agents/video-studio/assets');
+            $repo->addAsset($owner,(int)$session->getId(),$media['type'],trim((string)($_POST['asset_name']??''))?:pathinfo((string)$file['name'],PATHINFO_FILENAME),$url,$media['mime']);
+            MessageUtil::setMessage('Reusable '.$media['type'].' was added to the media bank.');
         }elseif($action==='duplicate_project'){
             $newId=$repo->duplicate($owner,(int)$session->getId(),(int)($_POST['id']??0));if(!$newId)throw new RuntimeException('Project not found.');MessageUtil::setMessage('Reusable remix project #'.$newId.' created.');
         }elseif($action==='clean_captions'){
@@ -85,6 +96,16 @@ $router->post(function(){
         }elseif($action==='generate_editing_proxy'){
             $id=(int)($_POST['id']??0);$job=$repo->find($owner,$id);if(!$job)throw new RuntimeException('Media job not found.');
             (new AiVideoProxyService())->generate($owner,$job);MessageUtil::setMessage('The lightweight editing proxy is ready. Final exports will continue using the original master.');
+        }elseif($action==='create_selected_reel'){
+            $id=(int)($_POST['id']??0);$job=$repo->find($owner,$id);if(!$job)throw new RuntimeException('Source project not found.');
+            $ids=array_values(array_unique(array_map('intval',(array)($_POST['selected_blocks']??[]))));if(!$ids)throw new RuntimeException('Select at least one transcript block.');
+            $timeline=(new AiTranscriptTimelineService())->timeline($job);$selected=array_values(array_filter($timeline['blocks'],fn($block)=>in_array((int)$block['id'],$ids,true)));if(!$selected)throw new RuntimeException('The selected transcript could not be mapped.');
+            usort($selected,fn($a,$b)=>(float)$a['start']<=>(float)$b['start']);$start=(float)$selected[0]['start'];$end=(float)$selected[array_key_last($selected)]['end'];
+            $range=['start'=>$start,'end'=>$end,'reason'=>'Human-selected transcript blocks: '.implode(',',$ids)];
+            $plan=(new App\Services\AiVideoReelService())->plan($job,$range,(string)($_POST['caption_style']??'kinetic'),trim((string)($_POST['reel_instructions']??'')));
+            $newId=$repo->createDerivedProject($owner,(int)$session->getId(),$job,$job->title.' — selected reel',$plan);
+            MessageUtil::setMessage('Editable reel #'.$newId.' created from your transcript selection.');
+            LocationUtils::redirectInternal('panel/growth-hub/video-studio?project='.$newId);return;
         }elseif($action==='improve_timing'){
             $id=(int)($_POST['id']??0);$job=$repo->find($owner,$id);if(!$job)throw new RuntimeException('Media job not found.');
             $repo->updateTranscript($owner,$id,(new AiVideoTranscriptionService())->improveTiming((string)$job->source_url,(string)$job->transcript_json,(string)$job->transcript_text));

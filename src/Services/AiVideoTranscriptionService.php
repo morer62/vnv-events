@@ -42,6 +42,7 @@ final class AiVideoTranscriptionService
                 }
                 $rawChunks[]=['index'=>$index,'offset_seconds'=>$offset,'result'=>$result];
             }
+            if(!$segments&&$words)$segments=$this->segmentsFromWords($words);
             [$segments,$words]=$this->applySilences($segments,$words,$silences);
             return ['text'=>implode("\n\n",$text),'raw'=>['chunk_seconds'=>self::CHUNK_SECONDS,'chunks'=>$rawChunks,'segments'=>$segments,'words'=>$words,'silences'=>$silences],'srt'=>$this->srt($segments)];
         }finally{
@@ -56,7 +57,9 @@ final class AiVideoTranscriptionService
         $source=(new AiVideoIngestService())->localPath($url);
         if(!$source)throw new RuntimeException('Silence analysis requires a private SFTP source.');
         $silences=$this->detectSilences($source);
-        [$segments,$words]=$this->applySilences((array)($raw['segments']??[]),(array)($raw['words']??[]),$silences);
+        $segments=(array)($raw['segments']??[]);$words=(array)($raw['words']??[]);
+        if(!$segments&&$words)$segments=$this->segmentsFromWords($words);
+        [$segments,$words]=$this->applySilences($segments,$words,$silences);
         $raw['segments']=$segments;$raw['words']=$words;$raw['silences']=$silences;$raw['timing_analysis']='ffmpeg_silencedetect';
         $text=trim($fallbackText);if($text==='')$text=implode("\n\n",array_values(array_filter(array_map(fn($segment)=>trim((string)($segment['text']??'')),$segments))));
         return ['text'=>$text,'raw'=>$raw,'srt'=>$this->srt($segments)];
@@ -83,6 +86,17 @@ final class AiVideoTranscriptionService
                 if($start>=$a-.08&&$start<$b&&$b<$end-.05)$start=$b;
                 if($end>$a&&$end<=$b+.08&&$a>$start+.05)$end=$a;
             }
+            $text=trim((string)($item['text']??$item['word']??''));
+            if($text!==''){
+                $wordCount=max(1,count(preg_split('/\s+/u',$text)?:[]));$minimumVoice=$wordCount/4.2;$candidate=$start;
+                foreach($silences as $silence){
+                    $a=(float)$silence['start'];$b=(float)$silence['end'];if($b-$a<1.5||$a<=$start||$b>=$end)continue;
+                    $voiced=max(0,$end-$b);
+                    foreach($silences as $later){$laterStart=max($b,(float)$later['start']);$laterEnd=min($end,(float)$later['end']);if($laterEnd>$laterStart)$voiced-=$laterEnd-$laterStart;}
+                    if($voiced>=$minimumVoice)$candidate=max($candidate,$b);
+                }
+                $start=$candidate;
+            }
             $item['start']=$start;$item['end']=max($start+.01,$end);return $item;
         };
         return [array_map($adjust,array_values(array_filter($segments,'is_array'))),array_map($adjust,array_values(array_filter($words,'is_array')))];
@@ -97,7 +111,10 @@ final class AiVideoTranscriptionService
             CURLOPT_POSTFIELDS=>[
                 'file'=>new \CURLFile($file,'audio/mpeg',basename($file)),
                 'model'=>(string)($_ENV['OPENAI_TRANSCRIPTION_MODEL']??'whisper-1'),
-                'response_format'=>'verbose_json','timestamp_granularities[0]'=>'segment','timestamp_granularities[1]'=>'word',
+                // Requesting the word granularity also returns segments in verbose_json.
+                // Sending indexed multipart keys was silently ignored by the API and left
+                // captions estimated across entire phrases.
+                'response_format'=>'verbose_json','timestamp_granularities[]'=>'word',
             ],
         ]);
         $response=curl_exec($ch);$status=(int)curl_getinfo($ch,CURLINFO_HTTP_CODE);$error=curl_error($ch);curl_close($ch);
@@ -105,6 +122,27 @@ final class AiVideoTranscriptionService
         $json=json_decode($response,true);
         if(!is_array($json))throw new RuntimeException('Transcription returned invalid JSON.');
         return $json;
+    }
+
+    private function segmentsFromWords(array $words): array
+    {
+        $segments=[];$current=[];$start=0.0;$lastEnd=0.0;
+        $flush=function()use(&$segments,&$current,&$start,&$lastEnd):void{
+            if(!$current)return;
+            $text='';foreach($current as $word){$value=trim((string)($word['word']??$word['text']??''));if($value==='')continue;$text.=($text!==''&&!preg_match('/^[,.;:!?]/u',$value)?' ':'').$value;}
+            if($text!=='')$segments[]=['start'=>$start,'end'=>$lastEnd,'text'=>$text];
+            $current=[];
+        };
+        foreach($words as $word){
+            if(!is_array($word))continue;
+            $wordStart=max(0,(float)($word['start']??0));$wordEnd=max($wordStart+.01,(float)($word['end']??$wordStart));
+            if($current&&($wordStart-$lastEnd>.55||$wordEnd-$start>4.2||count($current)>=10))$flush();
+            if(!$current)$start=$wordStart;
+            $current[]=$word;$lastEnd=$wordEnd;
+            if(preg_match('/[.!?]["\']?$/u',trim((string)($word['word']??$word['text']??''))))$flush();
+        }
+        $flush();
+        return $segments;
     }
 
     private function binary(): string

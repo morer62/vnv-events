@@ -13,6 +13,6 @@ $limit=max(1,min(10,(int)($argv[1]??1)));
 for($i=0;$i<$limit;$i++){
     $job=$repo->nextQueuedRender(); if(!$job) break;
     if(!$repo->markRendering((int)$job->id)){continue;}
-    try{$repo->completeRender((int)$job->id_owner,(int)$job->id,$renderer->render($job)); echo "Completed media job #{$job->id}\n";}
+    try{$repo->completeRender((int)$job->id_owner,(int)$job->id,$renderer->render($job,fn(int $percent,string $stage)=>$repo->updateRenderProgress((int)$job->id_owner,(int)$job->id,$percent,$stage))); echo "Completed media job #{$job->id}\n";}
     catch(\Throwable $e){$repo->fail((int)$job->id_owner,(int)$job->id,$e->getMessage()); fwrite(STDERR,"Failed media job #{$job->id}: {$e->getMessage()}\n");}
 }

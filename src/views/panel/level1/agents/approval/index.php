@@ -27,7 +27,7 @@ $router->get(function(){
         'approval'=>$approval,'payload'=>$payload,'payloadPretty'=>json_encode($payload,JSON_PRETTY_PRINT|JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES),
         'draftField'=>$draftField,'draftValue'=>$draftField?$payload[$draftField]:'','history'=>$repo->approvalHistory($owner,(int)$approval->id_run,(string)$approval->action_type),
         'executions'=>(new AiApprovalExecutionService())->history($id,$owner),
-        'canExecute'=>in_array((string)$approval->action_type,['PUBLISH_SOCIAL','PUBLISH_CAROUSEL','PUBLISH_ARTICLE','REVIEW_SHORT_VIDEO','CREATE_ESTIMATE_DRAFT','SEND_FOLLOW_UP','SEND_REVIEW_REQUEST','SEND_CONCIERGE_RESPONSE','SEND_META_RESPONSE'],true),
+        'canExecute'=>in_array((string)$approval->action_type,['PUBLISH_SOCIAL','PUBLISH_CAROUSEL','PUBLISH_SOCIAL_CREATIVE','PUBLISH_ARTICLE','REVIEW_SHORT_VIDEO','CREATE_ESTIMATE_DRAFT','SEND_FOLLOW_UP','SEND_REVIEW_REQUEST','SEND_CONCIERGE_RESPONSE','SEND_META_RESPONSE'],true),
         'moduleUrl'=>$moduleUrl,
     ]);
 });

@@ -11,10 +11,11 @@ final class AiTranscriptTimelineService
         $sourceWords=is_array($raw)?(array)($raw['words']??[]):[];
         $sourceSilences=is_array($raw)?(array)($raw['silences']??[]):[];
         if(!$segments)$segments=$this->segmentsFromSrt((string)($job->subtitles_srt??''));
-        $plan=json_decode((string)($job->edit_plan_json??''),true);$storedCommands=is_array($plan)?(array)($plan['_request']['timeline_commands']??[]):[];$storedPauseEdits=is_array($plan)?(array)($plan['_request']['pause_edits']??[]):[];$blocks=[];$allWords=[];
+        $plan=json_decode((string)($job->edit_plan_json??''),true);$request=is_array($plan)?(array)($plan['_request']??[]):[];$storedCommands=(array)($request['timeline_commands']??[]);$storedPauseEdits=(array)($request['pause_edits']??[]);$reelRange=($request['project_kind']??'')==='reel'?(array)($request['reel_range']??[]):[];$rangeStart=(float)($reelRange['start']??0);$rangeEnd=(float)($reelRange['end']??PHP_FLOAT_MAX);$blocks=[];$allWords=[];
         foreach($segments as $index=>$segment){
             if(!is_array($segment))continue;
             $start=max(0,(float)($segment['start']??0));$end=max($start+.01,(float)($segment['end']??$start));
+            if($reelRange&&($end<$rangeStart||$start>$rangeEnd))continue;
             $text=trim((string)($segment['text']??''));if($text==='')continue;
             $words=[];
             foreach($sourceWords as $word){
@@ -28,22 +29,33 @@ final class AiTranscriptTimelineService
             $blocks[]=['id'=>$index+1,'start'=>$start,'end'=>$end,'time'=>$this->clock($start),'text'=>$text,'words'=>$words,'commands'=>$blockCommands];
         }
         usort($allWords,fn($a,$b)=>$a['start']<=>$b['start']);$pauses=[];
-        for($i=1;$i<count($allWords);$i++){
-            $gap=$allWords[$i]['start']-$allWords[$i-1]['end'];if($gap<.55)continue;
+        // FFmpeg audio analysis is authoritative. Estimated word timestamps can place
+        // large gaps inside a spoken sentence and must never become destructive pauses.
+        if(!$sourceSilences&&$sourceWords)for($i=1;$i<count($allWords);$i++){
+            $gap=$allWords[$i]['start']-$allWords[$i-1]['end'];if($gap<.8)continue;
             $pause=['start'=>$allWords[$i-1]['end'],'end'=>$allWords[$i]['start'],'duration'=>$gap,'keep'=>$gap];
             foreach($storedPauseEdits as $edit)if(abs((float)($edit['start']??-1)-$pause['start'])<.05&&abs((float)($edit['end']??-1)-$pause['end'])<.05){$pause['keep']=max(0,min($gap,(float)($edit['keep']??$gap)));break;}
             $pauses[]=$pause;
         }
         foreach($sourceSilences as $silence){
             if(!is_array($silence))continue;$start=max(0,(float)($silence['start']??0));$end=max($start,(float)($silence['end']??$start));if($end-$start<.55)continue;
+            if($reelRange&&($end<$rangeStart||$start>$rangeEnd))continue;
             $duplicate=false;foreach($pauses as $pause)if(abs((float)$pause['start']-$start)<.15&&abs((float)$pause['end']-$end)<.15){$duplicate=true;break;}
-            if(!$duplicate)$pauses[]=['start'=>$start,'end'=>$end,'duration'=>$end-$start,'keep'=>$end-$start];
+            if(!$duplicate){
+                $keep=$end-$start;foreach($storedPauseEdits as $edit)if(abs((float)($edit['start']??-1)-$start)<.05&&abs((float)($edit['end']??-1)-$end)<.05){$keep=max(0,min($end-$start,(float)($edit['keep']??$keep)));break;}
+                $pauses[]=['start'=>$start,'end'=>$end,'duration'=>$end-$start,'keep'=>$keep];
+            }
         }
         usort($pauses,fn($a,$b)=>(float)$a['start']<=>(float)$b['start']);
-        foreach($blocks as &$block){
-            $block['pauses']=array_values(array_filter($pauses,fn($pause)=>(float)$pause['end']>=(float)$block['start']-.2&&(float)$pause['start']<=(float)$block['end']+.2));
-        }
+        foreach($blocks as &$block)$block['pauses']=[];
         unset($block);
+        foreach($pauses as $pause){
+            $target=null;$mid=((float)$pause['start']+(float)$pause['end'])/2;
+            foreach($blocks as $index=>$block)if($mid>=(float)$block['start']&&$mid<=(float)$block['end']){$target=$index;break;}
+            if($target===null)foreach($blocks as $index=>$block)if((float)$block['start']>=(float)$pause['end']-.2){$target=$index;break;}
+            if($target===null&&$blocks)$target=count($blocks)-1;
+            if($target!==null)$blocks[$target]['pauses'][]=$pause;
+        }
         return ['blocks'=>$blocks,'pauses'=>$pauses,'has_word_timestamps'=>!empty($sourceWords)];
     }
 
@@ -72,7 +84,7 @@ final class AiTranscriptTimelineService
         $removed=$this->mergeSegments($removed);
         $plan=json_decode((string)($job->edit_plan_json??''),true);if(!is_array($plan))$plan=[];
         $request=(array)($plan['_request']??[]);$previousTimeline=(array)($request['timeline_removed_segments']??[]);$baseRemoved=array_values(array_filter((array)($request['removed_segments']??[]),fn($segment)=>!$this->sameAsAny($segment,$previousTimeline)));$request['timeline_removed_segments']=$removed;$request['removed_segments']=$this->mergeSegments(array_merge($baseRemoved,$removed));$request['timeline_commands']=$commands;$request['pause_edits']=$editedPauses;$request['pause_threshold_seconds']=$pauseThreshold;$plan['_request']=$request;
-        foreach(['transitions','camera_moves','generated_inserts','caption_style_events'] as $field)$plan[$field]=array_values(array_filter((array)($plan[$field]??[]),fn($item)=>($item['source']??'')!=='timeline_command'));
+        foreach(['transitions','camera_moves','generated_inserts','caption_style_events','text_overlays'] as $field)$plan[$field]=array_values(array_filter((array)($plan[$field]??[]),fn($item)=>($item['source']??'')!=='timeline_command'));
         foreach($commands as $command)$this->applyCommandToPlan($plan,$command);
         return ['transcript'=>implode("\n\n",$lines),'srt'=>implode("\n\n",$srt),'plan'=>$plan,'removed_segments'=>$removed,'commands'=>$commands];
     }
@@ -88,7 +100,7 @@ final class AiTranscriptTimelineService
 
     private function extractCommands(string $text,array $block,array &$commands): string
     {
-        return trim(preg_replace_callback('/\[(transition|zoom|background|image|video|caption)\s*:\s*([^\]]+)\]/iu',function($match)use($block,&$commands){
+        return trim(preg_replace_callback('/\[(transition|zoom|background|image|video|caption|text|out)\s*:\s*([^\]]+)\]/iu',function($match)use($block,&$commands){
             $parts=array_map('trim',explode('|',$match[2]));$instruction=array_shift($parts);$timestamp=(float)$block['start'];
             foreach($parts as $part)if(preg_match('/^at\s*:\s*(\d+(?:\.\d+)?)s?$/i',$part,$atMatch)){$timestamp=max((float)$block['start'],min((float)$block['end'],(float)$atMatch[1]));break;}
             $commands[]=['type'=>mb_strtolower($match[1]),'instruction'=>$instruction,'options'=>$parts,'timestamp'=>$timestamp,'block_id'=>(int)$block['id'],'token'=>$match[0]];return '';
@@ -98,10 +110,13 @@ final class AiTranscriptTimelineService
     private function applyCommandToPlan(array &$plan,array $command): void
     {
         $type=$command['type'];$instruction=mb_strtolower((string)$command['instruction']);$at=(float)$command['timestamp'];$options=implode(' | ',(array)$command['options']);
+        $value=function(string $key,string $default='')use($options):string{return preg_match('/(?:^|\|)\s*'.preg_quote($key,'/').'\s*:\s*([^|]+)/i',$options,$match)?trim($match[1]):$default;};
         if($type==='caption'){$duration=null;$size=75;$animation='word';if(preg_match('/duration\s*:\s*(\d+(?:\.\d+)?)\s*s/i',$options,$m))$duration=max(.5,min(3600,(float)$m[1]));if(preg_match('/size\s*:\s*(\d{2,3})\s*%/i',$options,$m))$size=max(35,min(140,(int)$m[1]));if(preg_match('/animation\s*:\s*(word|phrase|static)/i',$options,$m))$animation=strtolower($m[1]);$plan['caption_style_events'][]=['start'=>$at,'end'=>$duration===null?null:$at+$duration,'preset'=>AiCaptionStyleRegistry::find((string)$command['instruction'])['id'],'size_percent'=>$size,'animation'=>$animation,'source'=>'timeline_command'];}
+        elseif($type==='out'){for($index=count((array)($plan['generated_inserts']??[]))-1;$index>=0;$index--){$insert=$plan['generated_inserts'][$index];if(($insert['source']??'')!=='timeline_command'||(!str_contains(mb_strtolower((string)($insert['asset_name']??'')),mb_strtolower((string)$command['instruction']))&&mb_strtolower((string)$command['instruction'])!=='active'))continue;$plan['generated_inserts'][$index]['duration_seconds']=max(.1,$at-(float)$insert['start']);break;}for($index=count((array)($plan['text_overlays']??[]))-1;$index>=0;$index--){$text=$plan['text_overlays'][$index];if(($text['source']??'')!=='timeline_command'||(!str_contains(mb_strtolower((string)($text['name']??'')),mb_strtolower((string)$command['instruction']))&&mb_strtolower((string)$command['instruction'])!=='active'))continue;$plan['text_overlays'][$index]['duration_seconds']=max(.1,$at-(float)$text['start']);break;}}
+        elseif($type==='text'){$duration=preg_match('/duration\s*:\s*(\d+(?:\.\d+)?)\s*s/i',$options,$m)?max(.5,min(3600,(float)$m[1])):(str_contains($options,'persistent')?3600:3);$plan['text_overlays'][]=['start'=>$at,'duration_seconds'=>$duration,'name'=>$command['instruction'],'content'=>$command['instruction'],'x'=>max(0,min(100,(float)$value('x','50'))),'y'=>max(0,min(100,(float)$value('y','20'))),'scale'=>max(10,min(300,(float)$value('scale','100'))),'opacity'=>max(0,min(100,(float)$value('opacity','100'))),'rotation'=>max(-360,min(360,(float)$value('rotation','0'))),'layer'=>(int)$value('layer','90'),'font'=>$value('font','Arial'),'color'=>$value('color','#ffffff'),'align'=>$value('align','center'),'background'=>$value('background','#000000'),'background_enabled'=>$value('background_enabled','0')==='1','shadow'=>$value('shadow','1')!=='0','enter'=>$value('enter','fade'),'exit'=>$value('exit','fade'),'notes'=>$value('notes'),'source'=>'timeline_command'];}
         elseif($type==='transition'){$effect=str_contains($instruction,'black')?'dip_to_black':(str_contains($instruction,'whip')?'whip':(str_contains($instruction,'zoom')?'zoom':'flash'));$plan['transitions'][]=['timestamp'=>$at,'type'=>$effect,'duration'=>.22,'reason'=>$command['instruction'].' '.$options,'source'=>'timeline_command'];}
         elseif($type==='zoom'){$focus=str_contains($instruction.' '.$options,'left')?.28:(str_contains($instruction.' '.$options,'right')?.72:.5);$duration=3;if(preg_match('/duration\s*:\s*(\d+(?:\.\d+)?)\s*s/i',$options,$m))$duration=max(.5,min(20,(float)$m[1]));$plan['camera_moves'][]=['start'=>$at,'end'=>$at+$duration,'type'=>str_contains($instruction,'out')?'punch_out':'punch_in','zoom'=>1.16,'focus_x'=>$focus,'focus_y'=>.42,'reason'=>$command['instruction'].' '.$options,'source'=>'timeline_command'];}
-        else{$duration=3;if(preg_match('/(\d+(?:\.\d+)?)\s*s/i',$options,$m))$duration=max(.5,min(30,(float)$m[1]));$plan['generated_inserts'][]=['start'=>$at,'duration_seconds'=>$duration,'prompt'=>$command['instruction'],'asset_name'=>$type==='image'||$type==='video'?$command['instruction']:'','asset_url'=>'','mime_type'=>$type==='video'?'video/mp4':'image/png','media_type'=>$type==='video'?'generated_video':'generated_image','placement'=>$type==='background'?'background':'full_frame','status'=>'PROPOSED','source'=>'timeline_command'];}
+        else{$duration=str_contains($options,'persistent')?3600:3;if(preg_match('/duration\s*:\s*(\d+(?:\.\d+)?)\s*s/i',$options,$m))$duration=max(.5,min(3600,(float)$m[1]));$assetUrl=$value('asset_url');$placement=$value('target',$type==='background'?'background':'replace');$mime=$value('mime_type',$type==='video'?'video/mp4':'image/png');$plan['generated_inserts'][]=['start'=>$at,'duration_seconds'=>$duration,'prompt'=>$command['instruction'],'asset_name'=>$command['instruction'],'asset_url'=>$assetUrl,'mime_type'=>$mime,'media_type'=>str_starts_with($mime,'video/')?'uploaded_video':'uploaded_image','placement'=>$placement,'x'=>max(0,min(100,(float)$value('x','50'))),'y'=>max(0,min(100,(float)$value('y','50'))),'scale'=>max(10,min(300,(float)$value('scale','100'))),'rotation'=>max(-360,min(360,(float)$value('rotation','0'))),'opacity'=>max(0,min(100,(float)$value('opacity','100'))),'layer'=>(int)$value('layer','60'),'transition_in'=>$value('enter','fade'),'transition_out'=>$value('exit','fade'),'notes'=>$value('notes'),'status'=>$assetUrl!==''?'READY':'PROPOSED','source'=>'timeline_command'];}
     }
 
     private function estimatedWords(string $text,float $start,float $end): array

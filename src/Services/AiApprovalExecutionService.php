@@ -25,7 +25,8 @@ final class AiApprovalExecutionService
         try{
             $result=match((string)$approval->action_type){
                 'PUBLISH_SOCIAL'=>(new SocialPublishingService())->publish($ownerId,(string)($payload['platform']??''),$payload),
-                'PUBLISH_CAROUSEL'=>(new SocialPublishingService())->publish($ownerId,'instagram',$payload),
+                'PUBLISH_CAROUSEL'=>(new SocialPublishingService())->publish($ownerId,(string)($payload['platform']??($payload['platforms'][0]??'instagram')),$payload),
+                'PUBLISH_SOCIAL_CREATIVE'=>(new SocialPublishingService())->publish($ownerId,(string)($payload['platform']??($payload['platforms'][0]??'instagram')),$payload),
                 'PUBLISH_ARTICLE'=>$this->publishArticle($ownerId,$payload),
                 'REVIEW_SHORT_VIDEO'=>$this->queueShortVideo($ownerId,$payload),
                 'CREATE_ESTIMATE_DRAFT'=>$this->createEstimateDraft($ownerId,$payload),

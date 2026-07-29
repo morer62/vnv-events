@@ -105,15 +105,14 @@ final class AiAgentExecutionService
     }
     private function instagramCarousel(int $ownerId,array $input): array
     {
-        $c=$this->content($ownerId,(int)($input['content_id']??0));$d=(new AiJsonGenerator())->generate('Create a concise Instagram carousel from the supplied VNV Events content.',['content'=>$c],['cover_title'=>'','slides'=>[['headline'=>'','body'=>'','visual_prompt'=>'']],'caption'=>'','hashtags'=>[]]);
-        if(!empty($input['generate_images'])){
-            $provider=in_array($input['image_provider']??'', ['openai','gemini'],true)?$input['image_provider']:'gemini';
-            foreach(array_slice((array)($d['slides']??[]),0,10,true) as $index=>$slide){
-                $image=(new AiProviderImageService())->generate($ownerId,$provider,'Premium VNV Events Instagram carousel slide, 4:5 portrait, editorial brand design, readable composition. '.($slide['visual_prompt']??'').' Headline context: '.($slide['headline']??''),'4:5');
-                $d['slides'][$index]['image_url']=$image['url']??'';
-            }
-        }
-        return ['summary'=>'Carousel prepared.','items'=>[$d],'proposed_actions'=>[['type'=>'PUBLISH_CAROUSEL','title'=>'Review Instagram carousel: '.$c->title,'content_id'=>(int)$c->id,'caption'=>(string)($d['caption']??''),'slides'=>$d['slides']??[],'hashtags'=>$d['hashtags']??[]]]];
+        $c=$this->content($ownerId,(int)($input['content_id']??0));$selected=array_values(array_filter((array)($input['selected_slides']??[]),fn($slide)=>is_array($slide)&&trim((string)($slide['text']??''))!==''));
+        if(!$selected)throw new RuntimeException('Select at least one article passage. The AI will not choose the creative content for you.');
+        usort($selected,fn($a,$b)=>(int)($a['page']??0)<=>(int)($b['page']??0));$format=(string)($input['creative_format']??'carousel-square');$single=str_starts_with($format,'single-');
+        $d=(new AiJsonGenerator())->generate('Create publication-ready VNV social creative copy from the human-selected excerpts. Preserve their meaning and order. Do not choose different source passages. Return one slide for a single creative, otherwise one slide per selected page.',['content_title'=>$c->title,'human_selected_pages'=>$selected,'format'=>$format,'concept'=>$input['concept']??'','reference_images_or_models'=>$input['reference_urls']??''],['cover_title'=>'','slides'=>[['headline'=>'','body'=>'','visual_prompt'=>'']],'caption'=>'','hashtags'=>[]]);
+        if($single){$d['slides']=array_slice((array)($d['slides']??[]),0,1);$d['slides'][0]['source_text']=implode("\n\n",array_column($selected,'text'));$d['slides'][0]['page']=1;}
+        else{foreach($selected as $index=>$slide){$d['slides'][$index]['source_text']=$slide['text'];$d['slides'][$index]['page']=$slide['page'];}$d['slides']=array_slice((array)$d['slides'],0,count($selected));}
+        if(!empty($input['include_link'])&&trim((string)($input['caption_link']??''))!=='')$d['caption']=trim((string)($d['caption']??''))."\n\n".trim((string)$input['caption_link']);
+        $type=$single?'PUBLISH_SOCIAL_CREATIVE':'PUBLISH_CAROUSEL';return ['summary'=>($single?'Single creative':'Carousel').' prepared from human selections.','items'=>[$d],'proposed_actions'=>[['type'=>$type,'title'=>'Review '.($single?'social creative':'carousel').': '.$c->title,'content_id'=>(int)$c->id,'format'=>$format,'platforms'=>(array)($input['networks']??['instagram']),'caption'=>(string)($d['caption']??''),'slides'=>$d['slides']??[],'image_url'=>'','hashtags'=>$d['hashtags']??[],'image_generation'=>['requested'=>!empty($input['generate_images']),'status'=>!empty($input['generate_images'])?'QUEUED':'NOT_REQUESTED','provider'=>'openai','reference_direction'=>(string)($input['reference_urls']??'')]]]];
     }
     private function shortVideo(int $ownerId,array $input=[]): array
     {
