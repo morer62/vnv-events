@@ -42,16 +42,15 @@ final class AiTranscriptTimelineService
             foreach($storedPauseEdits as $edit)if(abs((float)($edit['start']??-1)-$pause['start'])<.05&&abs((float)($edit['end']??-1)-$pause['end'])<.05){$pause['keep']=max(0,min($gap,(float)($edit['keep']??$gap)));break;}
             $pauses[]=$pause;
         }
-        if(!$sourceWords)foreach($sourceSilences as $silence){
+        // Acoustic FFmpeg silence detection complements Whisper. Whisper sometimes
+        // stretches the last word of a sentence across a real silent gap.
+        foreach($sourceSilences as $silence){
             if(!is_array($silence))continue;$start=max(0,(float)($silence['start']??0));$end=max($start,(float)($silence['end']??$start));if($end-$start<.55)continue;
             if($reelRange&&($end<$rangeStart||$start>$rangeEnd))continue;
-            $duplicate=false;foreach($pauses as $pause)if(abs((float)$pause['start']-$start)<.15&&abs((float)$pause['end']-$end)<.15){$duplicate=true;break;}
-            if(!$duplicate){
-                $keep=$end-$start;foreach($storedPauseEdits as $edit)if(abs((float)($edit['start']??-1)-$start)<.05&&abs((float)($edit['end']??-1)-$end)<.05){$keep=max(0,min($end-$start,(float)($edit['keep']??$keep)));break;}
-                $pauses[]=['start'=>$start,'end'=>$end,'duration'=>$end-$start,'keep'=>$keep];
-            }
+            $pauses[]=['start'=>$start,'end'=>$end,'duration'=>$end-$start,'keep'=>$end-$start];
         }
-        usort($pauses,fn($a,$b)=>(float)$a['start']<=>(float)$b['start']);
+        $pauseSegments=[];foreach($pauses as $pause)$pauseSegments[]=['start'=>$pause['start'],'end'=>$pause['end'],'reason'=>'Detected no-speech'];
+        $pauses=[];foreach($this->mergeSegments($pauseSegments) as $segment){$duration=(float)$segment['end']-(float)$segment['start'];$keep=$duration;foreach($storedPauseEdits as $edit)if(abs((float)($edit['start']??-1)-(float)$segment['start'])<.12&&abs((float)($edit['end']??-1)-(float)$segment['end'])<.12){$keep=max(0,min($duration,(float)($edit['keep']??$duration)));break;}$pauses[]=['start'=>(float)$segment['start'],'end'=>(float)$segment['end'],'duration'=>$duration,'keep'=>$keep];}
         foreach($blocks as &$block){$block['pauses']=[];$block['pauses_before']=[];$block['pauses_after']=[];}
         unset($block);
         foreach($pauses as $pause){
@@ -91,7 +90,7 @@ final class AiTranscriptTimelineService
             $keep=max(0,min($end-$start,(float)($pauseEdit['keep']??($end-$start))));
             if($end-$start>$keep+.02){$removed[]=['start'=>$start+$keep,'end'=>$end,'reason'=>'Pause shortened from '.number_format($end-$start,2).'s to '.number_format($keep,2).'s'];$editedPauses[]=['start'=>$start,'end'=>$end,'keep'=>$keep];}
         }
-        if($removePauses)foreach($timeline['pauses'] as $pause)if($pause['duration']>=$pauseThreshold&&!$this->pauseWasEdited($pause,$editedPauses))$removed[]=['start'=>$pause['start'],'end'=>$pause['end'],'reason'=>'Long pause '.number_format($pause['duration'],2).'s'];
+        if($removePauses)foreach($timeline['pauses'] as $pause)if($pause['duration']>=$pauseThreshold&&!$this->pauseWasEdited($pause,$editedPauses)){$keep=min(.35,(float)$pause['duration']);$removed[]=['start'=>$pause['start']+$keep,'end'=>$pause['end'],'reason'=>'Long pause automatically reduced to '.number_format($keep,2).'s'];$editedPauses[]=['start'=>$pause['start'],'end'=>$pause['end'],'keep'=>$keep];}
         $removed=$this->mergeSegments($removed);
         $plan=json_decode((string)($job->edit_plan_json??''),true);if(!is_array($plan))$plan=[];
         $request=(array)($plan['_request']??[]);$previousTimeline=(array)($request['timeline_removed_segments']??[]);$baseRemoved=array_values(array_filter((array)($request['removed_segments']??[]),fn($segment)=>!$this->sameAsAny($segment,$previousTimeline)));$request['timeline_removed_segments']=$removed;$request['removed_segments']=$this->mergeSegments(array_merge($baseRemoved,$removed));$request['timeline_commands']=$commands;$request['pause_edits']=$editedPauses;$request['pause_threshold_seconds']=$pauseThreshold;$plan['_request']=$request;

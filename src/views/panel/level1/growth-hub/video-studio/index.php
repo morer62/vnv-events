@@ -110,7 +110,11 @@ $router->post(function(){
         }elseif($action==='improve_timing'){
             $id=(int)($_POST['id']??0);$job=$repo->find($owner,$id);if(!$job)throw new RuntimeException('Media job not found.');
             $repo->updateTranscript($owner,$id,(new AiVideoTranscriptionService())->improveTiming((string)$job->source_url,(string)$job->transcript_json,(string)$job->transcript_text));
-            MessageUtil::setMessage('Silences were analyzed locally and transcript timing was corrected without calling OpenAI again.');
+            $job=$repo->find($owner,$id);$timeline=(new AiTranscriptTimelineService())->timeline($job);$edits=[];
+            foreach($timeline['blocks'] as $block){$text=(string)$block['text'];foreach((array)$block['commands'] as $command){$options=(array)($command['options']??[]);$text.=' ['.(string)($command['type']??'text').': '.(string)($command['instruction']??'').($options?' | '.implode(' | ',$options):'').']';}$edits[]=['id'=>$block['id'],'text'=>$text];}
+            $result=(new AiTranscriptTimelineService())->apply($job,$edits,true,1.25,[]);
+            $repo->updateEditor($owner,$id,$result['transcript'],$result['srt'],$result['plan']);
+            MessageUtil::setMessage('Audio analyzed and '.count($result['removed_segments']).' long silence region(s) automatically reduced. Speech timing remains synchronized.');
         }elseif($action==='transcribe'){
             $id=(int)($_POST['id']??0); $job=$repo->find($owner,$id);
             if(!$job) throw new RuntimeException('Media job not found.');
