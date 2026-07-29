@@ -72,7 +72,7 @@ final class AiVideoRenderService
             // Six purposeful moves keep long-form renders inside typical server RAM limits.
             foreach(array_slice((array)($plan['camera_moves']??[]),0,6) as $i=>$move){
                 $start=$this->timelineOutputTime($this->seconds((string)($move['start']??'')),(array)($plan['cuts']??[]),$removed);$end=$this->timelineOutputTime($this->seconds((string)($move['end']??'')),(array)($plan['cuts']??[]),$removed);if($start===null||$end===null||$end<=$start)continue;
-                $zoom=max(1.02,min(1.16,(float)($move['zoom']??1.08)));$scaledW=(int)ceil($width*$zoom/2)*2;$scaledH=(int)ceil($height*$zoom/2)*2;
+                $zoom=max(1.02,min(1.40,(float)($move['zoom']??1.08)));$scaledW=(int)ceil($width*$zoom/2)*2;$scaledH=(int)ceil($height*$zoom/2)*2;
                 $focusX=max(0,min(1,(float)($move['focus_x']??.5)));$focusY=max(0,min(1,(float)($move['focus_y']??.45)));
                 $left=(int)round(($scaledW-$width)*$focusX);$top=(int)round(($scaledH-$height)*$focusY);$next='camera'.$i;$fadeOut=max($start+.22,$end-.36);
                 $complex.=";[{$current}]split=2[keep{$i}][zoomsrc{$i}];[zoomsrc{$i}]scale={$scaledW}:{$scaledH},crop={$width}:{$height}:{$left}:{$top},format=rgba,fade=t=in:st={$start}:d=0.36:alpha=1,fade=t=out:st={$fadeOut}:d=0.36:alpha=1[zoom{$i}];[keep{$i}][zoom{$i}]overlay=0:0:enable='between(t,{$start},{$end})'[{$next}]";$current=$next;
@@ -185,8 +185,8 @@ final class AiVideoRenderService
             $lines=preg_split('/\R/',$block)?:[];$time='';$text=[];
             foreach($lines as $line){if(str_contains($line,'-->'))$time=$line;elseif(!preg_match('/^\d+$/',trim($line)))$text[]=$line;}
             if(!preg_match('/(\d\d:\d\d:\d\d[,.]\d+)\s+-->\s+(\d\d:\d\d:\d\d[,.]\d+)/',$time,$m))continue;
-            $words=preg_split('/\s+/u',trim(implode(' ',$text)))?:[];if(!$words)continue;$sourceStart=$this->seconds($m[1]);$sourceEnd=$this->seconds($m[2]);[$sourceStart,$sourceEnd]=$this->captionIntersection($sourceStart,$sourceEnd,$cuts);if($sourceEnd<=$sourceStart)continue;$startSeconds=$this->timelineOutputTime($sourceStart,$cuts,$removed);$endSeconds=$this->timelineOutputTime($sourceEnd,$cuts,$removed);if($startSeconds===null||$endSeconds===null||$endSeconds<=$startSeconds)continue;$preset=AiCaptionStyleRegistry::find($defaultPreset)['id'];$sizePercent=$defaultSize;$blockCaptionMode=$captionMode;
-            foreach($styleEvents as $styleEvent){$eventStart=(float)($styleEvent['start']??0);$eventEnd=isset($styleEvent['end'])&&$styleEvent['end']!==null?(float)$styleEvent['end']:PHP_FLOAT_MAX;if($sourceStart>=$eventStart&&$sourceStart<=$eventEnd){$preset=AiCaptionStyleRegistry::find((string)($styleEvent['preset']??''))['id'];$sizePercent=max(35,min(140,(int)($styleEvent['size_percent']??75)));$blockCaptionMode=match((string)($styleEvent['animation']??'word')){'static'=>'clean','phrase'=>'dynamic',default=>'kinetic'};}}
+            $words=preg_split('/\s+/u',trim(implode(' ',$text)))?:[];if(!$words)continue;$sourceStart=$this->seconds($m[1]);$sourceEnd=$this->seconds($m[2]);[$sourceStart,$sourceEnd]=$this->captionIntersection($sourceStart,$sourceEnd,$cuts);if($sourceEnd<=$sourceStart)continue;$startSeconds=$this->timelineOutputTime($sourceStart,$cuts,$removed);$endSeconds=$this->timelineOutputTime($sourceEnd,$cuts,$removed);if($startSeconds===null||$endSeconds===null||$endSeconds<=$startSeconds)continue;$preset=AiCaptionStyleRegistry::find($defaultPreset)['id'];$sizePercent=$defaultSize;$letterSpacing=2.0;$blockCaptionMode=$captionMode;
+            foreach($styleEvents as $styleEvent){$eventStart=(float)($styleEvent['start']??0);$eventEnd=isset($styleEvent['end'])&&$styleEvent['end']!==null?(float)$styleEvent['end']:PHP_FLOAT_MAX;if($sourceStart>=$eventStart&&$sourceStart<=$eventEnd){$preset=AiCaptionStyleRegistry::find((string)($styleEvent['preset']??''))['id'];$sizePercent=max(35,min(140,(int)($styleEvent['size_percent']??75)));$letterSpacing=max(-2,min(12,(float)($styleEvent['letter_spacing']??2)));$blockCaptionMode=match((string)($styleEvent['animation']??'word')){'static'=>'clean','phrase'=>'dynamic',default=>'kinetic'};}}
             $style=AiCaptionStyleRegistry::find($preset);if($style['uppercase'])$words=array_map(fn($word)=>mb_strtoupper($word),$words);
             $duration=max(.1,$endSeconds-$startSeconds);
             $wordsPerCaption=$blockCaptionMode==='kinetic'?4:($blockCaptionMode==='dynamic'?6:8);
@@ -196,7 +196,7 @@ final class AiVideoRenderService
                     $chunkSourceStart=max($sourceStart,(float)($chunk[0]['start']??$sourceStart));$chunkSourceEnd=min($sourceEnd,(float)($chunk[array_key_last($chunk)]['end']??$sourceEnd));
                     $chunkStart=$this->timelineOutputTime($chunkSourceStart,$cuts,$removed);$chunkEnd=$this->timelineOutputTime($chunkSourceEnd,$cuts,$removed);if($chunkStart===null||$chunkEnd===null||$chunkEnd<=$chunkStart)continue;
                     $karaoke='';foreach($chunk as $word){$value=trim((string)($word['word']??$word['text']??''));if($value==='')continue;if($style['uppercase'])$value=mb_strtoupper($value);$safe=str_replace(['{','}','\\'],['(',')','\\\\'],$value);$wordDuration=max(1,(int)round(((float)($word['end']??0)-(float)($word['start']??0))*100));$isEmphasis=false;foreach($emphasisWords as $emphasis)if(mb_strtolower(trim((string)$emphasis))===mb_strtolower(trim($value,".,!?;:"))){$isEmphasis=true;break;}$karaoke.=in_array($blockCaptionMode,['kinetic','dynamic'],true)?'{\\kf'.$wordDuration.($isEmphasis?'\\fscx112\\fscy112':'').'}'.$safe.($isEmphasis?'{\\r'.$preset.'}':'').' ':$safe.' ';}
-                    $events[]='Dialogue: 0,'.$this->assTimestamp($chunkStart).','.$this->assTimestamp($chunkEnd).','.$preset.',,0,0,0,,{\\fad(60,80)\\blur0.3\\fscx'.$sizePercent.'\\fscy'.$sizePercent.'}'.trim($karaoke);
+                    $events[]='Dialogue: 0,'.$this->assTimestamp($chunkStart).','.$this->assTimestamp($chunkEnd).','.$preset.',,0,0,0,,{\\fad(60,80)\\blur0.3\\fsp'.$letterSpacing.'\\fscx'.$sizePercent.'\\fscy'.$sizePercent.'}'.trim($karaoke);
                 }
                 continue;
             }
@@ -209,7 +209,7 @@ final class AiVideoRenderService
                     $isEmphasis=false;foreach($emphasisWords as $emphasis)if(mb_strtolower(trim((string)$emphasis))===mb_strtolower(trim($word,".,!?;:"))){$isEmphasis=true;break;}
                     if(in_array($blockCaptionMode,['kinetic','dynamic'],true))$karaoke.='{\\kf'.$centiseconds.($isEmphasis?'\\fscx112\\fscy112':'').'}'.$safe.($isEmphasis?'{\\r'.$preset.'}':'').' ';else$karaoke.=$safe.' ';
                 }
-                $events[]='Dialogue: 0,'.$this->assTimestamp($chunkStart).','.$this->assTimestamp($chunkEnd).','.$preset.',,0,0,0,,{\\fad(60,80)\\blur0.3\\fscx'.$sizePercent.'\\fscy'.$sizePercent.'}'.trim($karaoke);
+                $events[]='Dialogue: 0,'.$this->assTimestamp($chunkStart).','.$this->assTimestamp($chunkEnd).','.$preset.',,0,0,0,,{\\fad(60,80)\\blur0.3\\fsp'.$letterSpacing.'\\fscx'.$sizePercent.'\\fscy'.$sizePercent.'}'.trim($karaoke);
                 $wordOffset+=count($chunk);
             }
         }
