@@ -95,6 +95,7 @@ $router->post(function(){
             MessageUtil::setMessage(count($result['removed_segments']).' transcript edit(s) synchronized with the video'.($result['commands']?' and '.count($result['commands']).' inline command(s) added.':'.'));
         }elseif($action==='generate_editing_proxy'){
             $id=(int)($_POST['id']??0);$job=$repo->find($owner,$id);if(!$job)throw new RuntimeException('Media job not found.');
+            if(session_status()===PHP_SESSION_ACTIVE)session_write_close();
             (new AiVideoProxyService())->generate($owner,$job);MessageUtil::setMessage('The lightweight editing proxy is ready. Final exports will continue using the original master.');
         }elseif($action==='create_selected_reel'){
             $id=(int)($_POST['id']??0);$job=$repo->find($owner,$id);if(!$job)throw new RuntimeException('Source project not found.');
