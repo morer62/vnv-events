@@ -58,7 +58,10 @@ $router->post(function(){
     $redirectProject=max(0,(int)($_POST['id']??0));
     try{
         $action=(string)($_POST['action']??'upload');
-        if($action==='import_server_folder'){
+        if($action==='create_server_folder'){
+            $name=(new AiVideoIngestService())->createProjectFolder($owner,(string)($_POST['folder_name']??''));
+            MessageUtil::setMessage($name.' was created with source and supporting-media folders. Upload the master by SFTP or use the browser for a file below 250 MB.');
+        }elseif($action==='import_server_folder'){
             $ingest=new AiVideoIngestService();$files=$ingest->importable($owner,trim((string)($_POST['folder_name']??'')));$imported=0;$skipped=0;
             foreach($files as $file){
                 if($repo->sourceExists($owner,(string)$file['source_url'])){$skipped++;continue;}

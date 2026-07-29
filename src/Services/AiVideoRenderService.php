@@ -191,13 +191,13 @@ final class AiVideoRenderService
             foreach($styleEvents as $styleEvent){$eventStart=(float)($styleEvent['start']??0);$eventEnd=isset($styleEvent['end'])&&$styleEvent['end']!==null?(float)$styleEvent['end']:PHP_FLOAT_MAX;if($sourceStart>=$eventStart&&$sourceStart<=$eventEnd){$preset=AiCaptionStyleRegistry::find((string)($styleEvent['preset']??''))['id'];$sizePercent=max(35,min(140,(int)($styleEvent['size_percent']??75)));$letterSpacing=max(-2,min(12,(float)($styleEvent['letter_spacing']??2)));$blockCaptionMode=match((string)($styleEvent['animation']??'word')){'static'=>'clean','phrase'=>'dynamic',default=>'kinetic'};}}
             $style=AiCaptionStyleRegistry::find($preset);if($style['uppercase'])$words=array_map(fn($word)=>mb_strtoupper($word),$words);
             $duration=max(.1,$endSeconds-$startSeconds);
-            $wordsPerCaption=$blockCaptionMode==='kinetic'?4:($blockCaptionMode==='dynamic'?6:8);
+            $wordsPerCaption=$blockCaptionMode==='kinetic'?6:($blockCaptionMode==='dynamic'?6:8);
             $exactWords=array_values(array_filter($timedWords,static fn($word)=>is_array($word)&&(float)($word['end']??0)>=$sourceStart-.03&&(float)($word['start']??0)<=$sourceEnd+.03));
             if($exactWords){
                 foreach(array_chunk($exactWords,$wordsPerCaption) as $chunk){
                     $chunkSourceStart=max($sourceStart,(float)($chunk[0]['start']??$sourceStart));$chunkSourceEnd=min($sourceEnd,(float)($chunk[array_key_last($chunk)]['end']??$sourceEnd));
                     $chunkStart=$this->timelineOutputTime($chunkSourceStart,$cuts,$removed);$chunkEnd=$this->timelineOutputTime($chunkSourceEnd,$cuts,$removed);if($chunkStart===null||$chunkEnd===null||$chunkEnd<=$chunkStart)continue;
-                    $karaoke='';foreach($chunk as $word){$value=trim((string)($word['word']??$word['text']??''));if($value==='')continue;if($style['uppercase'])$value=mb_strtoupper($value);$safe=str_replace(['{','}','\\'],['(',')','\\\\'],$value);$wordDuration=max(1,(int)round(((float)($word['end']??0)-(float)($word['start']??0))*100));$isEmphasis=false;foreach($emphasisWords as $emphasis)if(mb_strtolower(trim((string)$emphasis))===mb_strtolower(trim($value,".,!?;:"))){$isEmphasis=true;break;}$karaoke.=in_array($blockCaptionMode,['kinetic','dynamic'],true)?'{\\kf'.$wordDuration.($isEmphasis?'\\fscx112\\fscy112':'').'}'.$safe.($isEmphasis?'{\\r'.$preset.'}':'').' ':$safe.' ';}
+                    $karaoke='';foreach($chunk as $wordIndex=>$word){$value=trim((string)($word['word']??$word['text']??''));if($value==='')continue;if($blockCaptionMode==='kinetic'&&$wordIndex===3)$karaoke.='\\N';if($style['uppercase'])$value=mb_strtoupper($value);$safe=str_replace(['{','}','\\'],['(',')','\\\\'],$value);$wordDuration=max(1,(int)round(((float)($word['end']??0)-(float)($word['start']??0))*100));$isEmphasis=false;foreach($emphasisWords as $emphasis)if(mb_strtolower(trim((string)$emphasis))===mb_strtolower(trim($value,".,!?;:"))){$isEmphasis=true;break;}$karaoke.=in_array($blockCaptionMode,['kinetic','dynamic'],true)?'{\\kf'.$wordDuration.($isEmphasis?'\\fscx112\\fscy112':'').'}'.$safe.($isEmphasis?'{\\r'.$preset.'}':'').' ':$safe.' ';}
                     $events[]='Dialogue: 0,'.$this->assTimestamp($chunkStart).','.$this->assTimestamp($chunkEnd).','.$preset.',,0,0,0,,{\\fad(60,80)\\blur0.3\\fsp'.$letterSpacing.'\\fscx'.$sizePercent.'\\fscy'.$sizePercent.'}'.trim($karaoke);
                 }
                 continue;
@@ -206,7 +206,8 @@ final class AiVideoRenderService
             foreach($chunks as $chunk){
                 $chunkStart=$startSeconds+$duration*$wordOffset/count($words);$chunkEnd=$startSeconds+$duration*($wordOffset+count($chunk))/count($words);
                 $centiseconds=max(1,(int)round(($chunkEnd-$chunkStart)*100/count($chunk)));$karaoke='';
-                foreach($chunk as $word){
+                foreach($chunk as $wordIndex=>$word){
+                    if($blockCaptionMode==='kinetic'&&$wordIndex===3)$karaoke.='\\N';
                     $safe=str_replace(['{','}','\\'],['(',')','\\\\'],$word);
                     $isEmphasis=false;foreach($emphasisWords as $emphasis)if(mb_strtolower(trim((string)$emphasis))===mb_strtolower(trim($word,".,!?;:"))){$isEmphasis=true;break;}
                     if(in_array($blockCaptionMode,['kinetic','dynamic'],true))$karaoke.='{\\kf'.$centiseconds.($isEmphasis?'\\fscx112\\fscy112':'').'}'.$safe.($isEmphasis?'{\\r'.$preset.'}':'').' ';else$karaoke.=$safe.' ';

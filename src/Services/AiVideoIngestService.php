@@ -37,6 +37,21 @@ final class AiVideoIngestService
 
     public function stableSeconds(): int{return max(30,min(600,(int)($_ENV['VIDEO_INGEST_STABLE_SECONDS']??60)));}
 
+    public function createProjectFolder(int $ownerId,string $name): string
+    {
+        $name=trim((string)preg_replace('/[^A-Za-z0-9._ ()-]+/','-',trim($name)));
+        $name=trim($name,' .-');
+        if($name===''||!$this->validSegment($name))throw new RuntimeException('Enter a valid project folder name.');
+        $path=$this->ownerRoot($ownerId).DIRECTORY_SEPARATOR.$name;
+        if(is_dir($path))throw new RuntimeException('That project folder already exists.');
+        if(!mkdir($path,0770,true)&&!is_dir($path))throw new RuntimeException('Unable to create the project folder.');
+        foreach(['source','intros','transitions','b-roll','images','logos','music','sound-effects','voice-over','outros'] as $folder){
+            $child=$path.DIRECTORY_SEPARATOR.$folder;
+            if(!mkdir($child,0770,true)&&!is_dir($child))throw new RuntimeException('Unable to create the '.$folder.' folder.');
+        }
+        return $name;
+    }
+
     public function folders(int $ownerId): array
     {
         $root=$this->ownerRoot($ownerId);$items=[];

@@ -76,9 +76,9 @@ final class AiTranscriptTimelineService
         foreach($edits as $edit){
             if(!is_array($edit)||!isset($byId[(int)($edit['id']??0)]))continue;$block=$byId[(int)$edit['id']];
             $text=trim((string)($edit['text']??''));$text=$this->extractCommands($text,$block,$commands);
+            if($text===''){$removed[]=['start'=>(float)$block['start'],'end'=>(float)$block['end'],'reason'=>'Entire transcript block deleted'];continue;}
             $kept=$this->matchedWordIndexes($block['words'],$text);
             foreach($block['words'] as $index=>$word)if(!isset($kept[$index]))$removed[]=['start'=>$word['start'],'end'=>$word['end'],'reason'=>'Deleted from transcript: '.$word['text']];
-            if($text==='')continue;
             $keptWords=[];foreach($block['words'] as $index=>$word)if(isset($kept[$index]))$keptWords[]=$word;
             $start=$keptWords?(float)$keptWords[0]['start']:(float)$block['start'];$end=$keptWords?(float)end($keptWords)['end']:(float)$block['end'];
             $lines[]=$text;$srt[]=$number++."\n".$this->srtTime($start).' --> '.$this->srtTime($end)."\n".$text;
