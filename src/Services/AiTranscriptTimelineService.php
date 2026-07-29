@@ -29,15 +29,20 @@ final class AiTranscriptTimelineService
             $blocks[]=['id'=>$index+1,'start'=>$start,'end'=>$end,'time'=>$this->clock($start),'text'=>$text,'words'=>$words,'commands'=>$blockCommands];
         }
         usort($allWords,fn($a,$b)=>$a['start']<=>$b['start']);$pauses=[];
-        // FFmpeg audio analysis is authoritative. Estimated word timestamps can place
-        // large gaps inside a spoken sentence and must never become destructive pauses.
-        if(!$sourceSilences&&$sourceWords)for($i=1;$i<count($allWords);$i++){
+        // Exact Whisper word timestamps define "no speech" regions. This intentionally
+        // includes music/room tone before speech so the editor can shorten an intro
+        // without captions appearing early.
+        if($sourceWords&&$allWords){
+            $speechStart=$reelRange?$rangeStart:0.0;$initialGap=(float)$allWords[0]['start']-$speechStart;
+            if($initialGap>=.8){$pause=['start'=>$speechStart,'end'=>(float)$allWords[0]['start'],'duration'=>$initialGap,'keep'=>$initialGap];foreach($storedPauseEdits as $edit)if(abs((float)($edit['start']??-1)-$pause['start'])<.05&&abs((float)($edit['end']??-1)-$pause['end'])<.05){$pause['keep']=max(0,min($initialGap,(float)($edit['keep']??$initialGap)));break;}$pauses[]=$pause;}
+        }
+        if($sourceWords)for($i=1;$i<count($allWords);$i++){
             $gap=$allWords[$i]['start']-$allWords[$i-1]['end'];if($gap<.8)continue;
             $pause=['start'=>$allWords[$i-1]['end'],'end'=>$allWords[$i]['start'],'duration'=>$gap,'keep'=>$gap];
             foreach($storedPauseEdits as $edit)if(abs((float)($edit['start']??-1)-$pause['start'])<.05&&abs((float)($edit['end']??-1)-$pause['end'])<.05){$pause['keep']=max(0,min($gap,(float)($edit['keep']??$gap)));break;}
             $pauses[]=$pause;
         }
-        foreach($sourceSilences as $silence){
+        if(!$sourceWords)foreach($sourceSilences as $silence){
             if(!is_array($silence))continue;$start=max(0,(float)($silence['start']??0));$end=max($start,(float)($silence['end']??$start));if($end-$start<.55)continue;
             if($reelRange&&($end<$rangeStart||$start>$rangeEnd))continue;
             $duplicate=false;foreach($pauses as $pause)if(abs((float)$pause['start']-$start)<.15&&abs((float)$pause['end']-$end)<.15){$duplicate=true;break;}
@@ -47,14 +52,20 @@ final class AiTranscriptTimelineService
             }
         }
         usort($pauses,fn($a,$b)=>(float)$a['start']<=>(float)$b['start']);
-        foreach($blocks as &$block)$block['pauses']=[];
+        foreach($blocks as &$block){$block['pauses']=[];$block['pauses_before']=[];$block['pauses_after']=[];}
         unset($block);
         foreach($pauses as $pause){
             $target=null;$mid=((float)$pause['start']+(float)$pause['end'])/2;
             foreach($blocks as $index=>$block)if($mid>=(float)$block['start']&&$mid<=(float)$block['end']){$target=$index;break;}
             if($target===null)foreach($blocks as $index=>$block)if((float)$block['start']>=(float)$pause['end']-.2){$target=$index;break;}
             if($target===null&&$blocks)$target=count($blocks)-1;
-            if($target!==null)$blocks[$target]['pauses'][]=$pause;
+            if($target!==null){
+                $blocks[$target]['pauses'][]=$pause;
+                $firstWord=(array)($blocks[$target]['words'][0]??[]);
+                $speechStart=(float)($firstWord['start']??$blocks[$target]['start']);
+                $position=(float)$pause['end']<=$speechStart+.2?'pauses_before':'pauses_after';
+                $blocks[$target][$position][]=$pause;
+            }
         }
         return ['blocks'=>$blocks,'pauses'=>$pauses,'has_word_timestamps'=>!empty($sourceWords)];
     }
