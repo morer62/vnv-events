@@ -41,7 +41,7 @@ final class AiVideoRenderService
             $stylePreset=(string)($request['style_preset']??'vnv_premium');
             $colorFilter=$stylePreset==='marketing_educator'?',eq=contrast=1.08:saturation=1.12:brightness=0.01,unsharp=5:5:0.55:5:5:0.0':',eq=contrast=1.04:saturation=1.06:brightness=0.005';
             $plan=is_array($plan??null)?$plan:[];$removed=(array)($request['removed_segments']??[]);$selection=$this->selectionFilter((array)($plan['cuts']??[]),$removed);
-            $insertFiles=[];foreach(array_slice((array)($plan['generated_inserts']??[]),0,20,true) as $key=>$insert){$url=trim((string)($insert['asset_url']??''));if($url==='')continue;$mappedStart=$this->timelineOutputTime($this->seconds((string)($insert['start']??0)),(array)($plan['cuts']??[]),$removed);if($mappedStart===null)continue;$target=$work.DIRECTORY_SEPARATOR.'insert-'.$key;$path=$ingest->materialize($url,$target);$mime=(string)($insert['mime_type']??'');$isVideo=str_starts_with($mime,'video/')||in_array(strtolower(pathinfo($path,PATHINFO_EXTENSION)),['mp4','mov','m4v','mkv','webm','avi','mts','m2ts','mpg','mpeg'],true);$insertFiles[]=['path'=>$path,'video'=>$isVideo,'start'=>$mappedStart,'duration'=>max(.5,min(3600,(float)($insert['duration_seconds']??3))),'placement'=>(string)($insert['placement']??'replace'),'x'=>max(0,min(100,(float)($insert['x']??50))),'y'=>max(0,min(100,(float)($insert['y']??50))),'scale'=>max(10,min(300,(float)($insert['scale']??100))),'rotation'=>max(-360,min(360,(float)($insert['rotation']??0))),'opacity'=>max(0,min(100,(float)($insert['opacity']??100))),'layer'=>(int)($insert['layer']??60),'enter'=>(string)($insert['transition_in']??'fade'),'exit'=>(string)($insert['transition_out']??'fade')];}
+            $insertFiles=[];foreach(array_slice((array)($plan['generated_inserts']??[]),0,20,true) as $key=>$insert){$url=trim((string)($insert['asset_url']??''));if($url==='')continue;$mappedStart=$this->timelineOutputTime($this->seconds((string)($insert['start']??0)),(array)($plan['cuts']??[]),$removed);if($mappedStart===null)continue;$target=$work.DIRECTORY_SEPARATOR.'insert-'.$key;$path=$ingest->materialize($url,$target);$mime=(string)($insert['mime_type']??'');$isVideo=str_starts_with($mime,'video/')||in_array(strtolower(pathinfo($path,PATHINFO_EXTENSION)),['mp4','mov','m4v','mkv','webm','avi','mts','m2ts','mpg','mpeg'],true);$placement=(string)($insert['placement']??'replace');$insertFiles[]=['path'=>$path,'video'=>$isVideo,'has_audio'=>$isVideo&&$placement==='insert-block'&&$this->hasAudio($path),'start'=>$mappedStart,'duration'=>max(.5,min(3600,(float)($insert['duration_seconds']??3))),'placement'=>$placement,'x'=>max(0,min(100,(float)($insert['x']??50))),'y'=>max(0,min(100,(float)($insert['y']??50))),'scale'=>max(10,min(300,(float)($insert['scale']??100))),'rotation'=>max(-360,min(360,(float)($insert['rotation']??0))),'opacity'=>max(0,min(100,(float)($insert['opacity']??100))),'layer'=>(int)($insert['layer']??60),'enter'=>(string)($insert['transition_in']??'fade'),'exit'=>(string)($insert['transition_out']??'fade')];}
             usort($insertFiles,fn($a,$b)=>$a['layer']<=>$b['layer']);
             $verticalFocus=max(0,min(1,(float)($request['vertical_focus_x']??.5)));
             $cropPosition=$ratio==='9:16'?":x='(iw-ow)*{$verticalFocus}':y='(ih-oh)/2'":'';
@@ -79,8 +79,9 @@ final class AiVideoRenderService
             }
             foreach(array_slice((array)($plan['transitions']??[]),0,16) as $i=>$transition){
                 $at=$this->timelineOutputTime($this->seconds((string)($transition['timestamp']??'')),(array)($plan['cuts']??[]),$removed);if($at===null||$at<=0)continue;$duration=max(.12,min(.65,(float)($transition['duration']??.22)));$type=(string)($transition['type']??'flash');$next='transition'.$i;
-                if($type==='whip'){$complex.=";[{$current}]crop=iw:ih:x='if(between(t,{$at},".($at+$duration)."),18*sin((t-{$at})/{$duration}*PI),0)':y=0,pad=iw+36:ih:18:0:color=black,crop={$width}:{$height}:18:0[{$next}]";}
-                else{$color=$type==='dip_to_black'?'black@0.48':'white@0.28';$complex.=";[{$current}]drawbox=x=0:y=0:w=iw:h=ih:color={$color}:t=fill:enable='between(t,{$at},".($at+$duration).")'[{$next}]";}
+                if(in_array($type,['whip_left','whip_right','whip'],true)){$direction=$type==='whip_right'?-1:1;$complex.=";[{$current}]crop=iw:ih:x='if(between(t,{$at},".($at+$duration)."),{$direction}*18*sin((t-{$at})/{$duration}*PI),0)':y=0,pad=iw+36:ih:18:0:color=black,crop={$width}:{$height}:18:0[{$next}]";}
+                elseif($type==='blur'){$complex.=";[{$current}]gblur=sigma=12:steps=2:enable='between(t,{$at},".($at+$duration).")'[{$next}]";}
+                else{$color=in_array($type,['dip_to_black','soft_fade'],true)?'black@0.48':'white@0.28';$complex.=";[{$current}]drawbox=x=0:y=0:w=iw:h=ih:color={$color}:t=fill:enable='between(t,{$at},".($at+$duration).")'[{$next}]";}
                 $current=$next;
             }
             foreach(array_slice((array)($request['overlay_layout']??[]),0,30) as $i=>$overlayText){
@@ -113,15 +114,16 @@ final class AiVideoRenderService
                 $next='motion'.$i;$complex.=";[{$current}]drawbox=x=40:y=ih*0.16:w=iw-80:h=120:color=black@0.55:t=fill:enable='between(t,{$at},".($at+3.5).")',drawtext={$fontFile}text='{$text}':fontcolor=white:fontsize=".max(32,(int)($width/24)).":x=(w-text_w)/2:y=h*0.19:enable='between(t,{$at},".($at+3.5).")'[{$next}]";$current=$next;
             }
             $complex.=";[{$current}]".ltrim($subtitleFilter,',').($subtitleFilter!==''?'[v]':'null[v]');
-            $audio="[0:a]".$this->audioSelectionFilter((array)($plan['cuts']??[]),$removed)."loudnorm=I=-14:TP=-1.5:LRA=11[voice]";
-            if($musicIndex!==null)$audio.=";[{$musicIndex}:a]volume=.13[music];[voice][music]amix=inputs=2:duration=first:dropout_transition=2[a]";
+            $audio="[0:a]".$this->audioSelectionFilter((array)($plan['cuts']??[]),$removed)."loudnorm=I=-14:TP=-1.5:LRA=11[voice0]";$audioLabel='voice0';$blockNumber=0;
+            foreach($insertIndexes as $insertFile)if($insertFile['placement']==='insert-block'&&!empty($insertFile['has_audio'])){$start=$insertFile['start'];$end=$start+$insertFile['duration'];$delay=(int)round($start*1000);$muted='muted'.$blockNumber;$clipAudio='clipaudio'.$blockNumber;$nextAudio='voice'.($blockNumber+1);$audio.=";[{$audioLabel}]volume=0:enable='between(t,{$start},{$end})'[{$muted}];[{$insertFile['index']}:a]atrim=duration={$insertFile['duration']},asetpts=PTS-STARTPTS,adelay={$delay}|{$delay}[{$clipAudio}];[{$muted}][{$clipAudio}]amix=inputs=2:duration=first:dropout_transition=.15[{$nextAudio}]";$audioLabel=$nextAudio;$blockNumber++;}
+            if($musicIndex!==null){$audio.=";[{$musicIndex}:a]volume=.13[music];[{$audioLabel}][music]amix=inputs=2:duration=first:dropout_transition=2[a]";$audioLabel='a';}
             $complex.=';'.$audio;
             $filterScript=$work.DIRECTORY_SEPARATOR.'filter-complex.txt';file_put_contents($filterScript,$complex);
             $filterOption=$this->supportsFileFilterOption()?'-/filter_complex':'-filter_complex_script';
             $renderPreset=in_array((string)($request['render_preset']??''),['veryfast','fast','medium'],true)?(string)$request['render_preset']:'medium';
             $renderCrf=max(18,min(30,(int)($request['render_crf']??($renderPreset==='veryfast'?23:21))));
             $audioBitrate=in_array((string)($request['audio_bitrate']??''),['96k','128k','160k','192k'],true)?(string)$request['audio_bitrate']:'192k';
-            $command=array_merge($command,[$filterOption,$filterScript,'-map','[v]','-map',$musicIndex!==null?'[a]':'[voice]','-c:v','libx264','-preset',$renderPreset,'-crf',(string)$renderCrf,'-c:a','aac','-ar','48000','-b:a',$audioBitrate,'-shortest','-movflags','+faststart',$main]);
+            $command=array_merge($command,[$filterOption,$filterScript,'-map','[v]','-map','['.$audioLabel.']','-c:v','libx264','-preset',$renderPreset,'-crf',(string)$renderCrf,'-c:a','aac','-ar','48000','-b:a',$audioBitrate,'-shortest','-movflags','+faststart',$main]);
             if($progress)$progress(12,'Encoding edited video');
             $this->execute($command);
             if($progress)$progress(90,'Joining intro and outro');
@@ -260,6 +262,15 @@ final class AiVideoRenderService
         $ch=curl_init($url); curl_setopt_array($ch,[CURLOPT_FILE=>$handle,CURLOPT_FOLLOWLOCATION=>true,CURLOPT_TIMEOUT=>600,CURLOPT_CONNECTTIMEOUT=>20]);
         $ok=curl_exec($ch); $status=(int)curl_getinfo($ch,CURLINFO_HTTP_CODE); $error=curl_error($ch); curl_close($ch); fclose($handle);
         if(!$ok||$status<200||$status>=300) throw new RuntimeException('Unable to download source media'.($error?': '.$error:'.'));
+    }
+
+    private function hasAudio(string $path): bool
+    {
+        $probe=dirname($this->binary()).DIRECTORY_SEPARATOR.(PHP_OS_FAMILY==='Windows'?'ffprobe.exe':'ffprobe');
+        if(!is_file($probe))$probe=PHP_OS_FAMILY==='Windows'?'ffprobe.exe':'ffprobe';
+        $process=proc_open([$probe,'-v','error','-select_streams','a:0','-show_entries','stream=index','-of','csv=p=0',$path],[1=>['pipe','w'],2=>['pipe','w']],$pipes);
+        if(!is_resource($process))return false;
+        $output=trim((string)stream_get_contents($pipes[1]));fclose($pipes[1]);fclose($pipes[2]);return proc_close($process)===0&&$output!=='';
     }
 
     private function execute(array $command): void
