@@ -1,0 +1,41 @@
+{% extends "templates/base.twig" %}
+
+{% set show_whatsapp = true %}
+{% set defer_public_third_party = true %}
+{% set skip_public_gtm_initial = true %}
+
+{% block title %}{{ page.meta_title|replace({'&':'and'}) }}{% endblock %}
+{% block meta_description %}{{ page.meta_description }}{% endblock %}
+{% block meta_keywords %}{{ page.meta_keywords }}{% endblock %}
+{% block canonical %}https://vnvevents.com/{{ page.slug }}/{% endblock %}
+
+{% block head %}
+<link rel="preload" as="image" href="{{ asset_for(page.hero_image) }}" fetchpriority="high">
+<script type="application/ld+json">{{ page.schema|json_encode|raw }}</script>
+{% endblock %}
+
+{% block styles %}
+<style>
+:root{--cl-ink:#090c0d;--cl-card:#151b1c;--cl-mint:#5ec6c4;--cl-gold:#c5a059;--cl-paper:#f4f7f8;--cl-muted:#536164}*{box-sizing:border-box}html,body{width:100%;max-width:100%;overflow-x:hidden}body{margin:0;background:var(--cl-ink);color:#fff;font-family:"Trebuchet MS","Segoe UI",sans-serif;line-height:1.7}.cl-wrap{width:min(1140px,calc(100% - 32px));margin:auto}.cl-hero{min-height:80vh;display:grid;align-items:center;padding:130px 0 90px;background:linear-gradient(90deg,rgba(6,9,9,.95),rgba(6,9,9,.58)),url('{{ asset_for(page.hero_image) }}') center/cover}.cl-eyebrow{color:var(--cl-mint);font-size:.76rem;font-weight:900;letter-spacing:.15em;text-transform:uppercase}.cl-hero h1,.cl-title,.cl-card h2,.cl-cta h2{font-family:Georgia,"Times New Roman",serif;overflow-wrap:anywhere}.cl-hero h1{font-size:clamp(2.8rem,6.5vw,5.6rem);line-height:1.01;max-width:920px;margin:16px 0 22px}.cl-lead{max-width:760px;font-size:1.15rem;color:rgba(255,255,255,.8)}.cl-actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:28px}.cl-btn{display:inline-flex;align-items:center;justify-content:center;padding:14px 22px;border-radius:999px;background:var(--cl-gold);color:#101313;text-decoration:none;font-weight:900}.cl-btn.alt{background:transparent;color:var(--cl-mint);border:2px solid var(--cl-mint)}.cl-trust{display:flex;flex-wrap:wrap;gap:12px 30px;margin-top:32px;color:rgba(255,255,255,.7);font-size:.9rem}.cl-section{padding:100px 0}.cl-light{background:var(--cl-paper);color:#111718}.cl-heading{max-width:820px;margin-bottom:42px}.cl-title{font-size:clamp(2.2rem,5vw,4rem);line-height:1.06;margin:12px 0}.cl-heading p,.cl-card p,.cl-card li,.cl-faq p{color:var(--cl-muted)}.cl-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:28px;align-items:stretch}.cl-card{padding:clamp(26px,5vw,48px);border-radius:28px;background:#fff;border:1px solid #dde4e5;box-shadow:0 18px 55px rgba(0,0,0,.08)}.cl-card.dark{background:linear-gradient(145deg,#1b2223,#111516);border-color:rgba(94,198,196,.16)}.cl-card.dark p,.cl-card.dark li{color:rgba(255,255,255,.72)}.cl-card h2{font-size:2.25rem;line-height:1.1;margin:8px 0 16px}.cl-card ul{padding-left:20px}.cl-card li{margin:8px 0}.cl-price{font-size:clamp(2rem,5vw,3.6rem);font-weight:900;color:var(--cl-mint);line-height:1}.cl-price small{display:block;font-size:.85rem;color:rgba(255,255,255,.65);margin-top:10px;font-weight:500}.cl-media{border-radius:28px;overflow:hidden;min-height:440px}.cl-media img{width:100%;height:100%;object-fit:cover;display:block}.cl-choice-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}.cl-choice{padding:25px;border-radius:20px;background:#fff;border:1px solid #dce4e5}.cl-choice strong{display:block;color:#087a76;font-size:1.12rem;margin-bottom:7px}.cl-choice p{color:var(--cl-muted);margin:0}.cl-faq details{background:#fff;border:1px solid #dce3e4;border-radius:16px;padding:18px 22px;margin:12px 0}.cl-faq summary{font-weight:900;cursor:pointer}.cl-cta{text-align:center;padding:95px 16px;background:radial-gradient(circle at top,#263738,#090c0d)}.cl-cta h2{font-size:clamp(2.3rem,5vw,4.2rem);max-width:820px;margin:0 auto 16px}.cl-cta p{color:rgba(255,255,255,.72)}.cl-related{display:flex;flex-wrap:wrap;gap:10px;margin-top:24px}.cl-related a{color:#087a76;border:1px solid #9fcfcd;border-radius:999px;padding:9px 14px;text-decoration:none;font-weight:800}
+@media(max-width:800px){.cl-grid,.cl-choice-grid{grid-template-columns:1fr}.cl-media{min-height:300px}.cl-section{padding:75px 0}.cl-btn{width:100%}.cl-hero{min-height:auto;padding:120px 0 75px}.cl-trust{display:grid}.cl-hero h1{font-size:clamp(2.45rem,12vw,4rem)}}
+</style>
+{% endblock %}
+
+{% block body %}
+{% include "templates/layout/publicHeaderVnv.html.twig" %}
+<main>
+<section class="cl-hero"><div class="cl-wrap"><span class="cl-eyebrow">VNV Gourmet · {{ page.eyebrow }}</span><h1>{{ page.h1 }}</h1><p class="cl-lead">{{ page.hero_copy }}</p><div class="cl-actions"><a class="cl-btn" href="{{ page.product_url }}">View price &amp; menu</a><a class="cl-btn alt" href="#request" data-vnv-open-request>Request availability</a></div><div class="cl-trust"><span>South Florida service</span><span>Transparent starting price</span><span>Event-ready presentation</span></div></div></section>
+
+<section class="cl-section cl-light"><div class="cl-wrap"><div class="cl-heading"><span class="cl-eyebrow">The experience</span><h2 class="cl-title">{{ page.section_title }}</h2><p>{{ page.section_copy }}</p></div><div class="cl-grid"><div class="cl-media"><img src="{{ asset_for(page.secondary_image) }}" alt="{{ page.image_alt }}" loading="lazy" decoding="async"></div><article class="cl-card"><h2>What is included</h2><ul>{% for item in page.included %}<li>{{ item }}</li>{% endfor %}</ul><p>{{ page.inclusion_note }}</p><div class="cl-actions"><a class="cl-btn" href="{{ page.product_url }}">Check current options</a></div></article></div></div></section>
+
+<section class="cl-section"><div class="cl-wrap"><div class="cl-grid"><article class="cl-card dark"><span class="cl-eyebrow">Current store price</span><div class="cl-price">{{ page.store_price_label }}<small>{{ page.minimum }}</small></div><p>{{ page.price_note }}</p><p><strong>{{ page.store_price_updated ? 'Price loaded live from the VNV store.' : 'Displayed fallback price; confirm the current total in the store.' }}</strong></p><a class="cl-btn" href="{{ page.product_url }}">Open product and current price</a></article><article class="cl-card dark"><h2>Best for</h2><ul>{% for item in page.best_for %}<li>{{ item }}</li>{% endfor %}</ul></article></div></div></section>
+
+<section class="cl-section cl-light"><div class="cl-wrap"><div class="cl-heading"><span class="cl-eyebrow">Plan it your way</span><h2 class="cl-title">Choices that make the service feel personal</h2></div><div class="cl-choice-grid">{% for choice in page.choices %}<div class="cl-choice"><strong>{{ choice.title }}</strong><p>{{ choice.copy }}</p></div>{% endfor %}</div><div class="cl-related"><a href="{{ path('/catering-stations-south-florida/') }}">Compare all top stations</a><a href="{{ path('/vnv-gourmet') }}">Explore VNV Gourmet</a><a href="{{ path('/store-categories/') }}">Full VNV catalog</a></div></div></section>
+
+<section class="cl-section cl-light" style="padding-top:0"><div class="cl-wrap cl-faq"><div class="cl-heading"><span class="cl-eyebrow">Questions</span><h2 class="cl-title">Before you reserve</h2></div>{% for faq in page.faqs %}<details><summary>{{ faq.question }}</summary><p>{{ faq.answer }}</p></details>{% endfor %}</div></section>
+
+<section class="cl-cta" id="request"><h2>{{ page.cta_title }}</h2><p>{{ page.cta_copy }}</p><div class="cl-actions" style="justify-content:center"><a class="cl-btn" href="#" data-vnv-open-request>Start a request</a><a class="cl-btn alt" href="tel:+13052045427">Call (305) 204-5427</a></div></section>
+</main>
+{% include "templates/components/publicEventRequestModal.html.twig" with {request_form_action:'/api/public/event-request'} %}
+{% include "templates/layout/publicFooterVnv.html.twig" %}
+{% endblock %}

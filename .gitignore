@@ -34,6 +34,12 @@ localhost+*.pem
 # Runtime video projects uploaded through SFTP/FTP must never enter Git.
 storage/video-ingest/incoming/
 
-# Locally rendered QA videos are reproducible artifacts, not source code.
-test-results/**/*.mp4
-test-results/*.mp4
+# Video Studio runtime output is reproducible/user data, never source code.
+public/uploads/video-studio/
+storage/video-proxies/
+storage/video-cache/
+
+# Local QA output and every temporary video-processing artifact.
+test-results/
+.logs/*
+!.logs/.gitkeep

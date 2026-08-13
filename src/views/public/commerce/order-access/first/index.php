@@ -17,6 +17,7 @@ use App\Utils\Router;
 use App\Repositories\DocumentsLogsRepository;
 use App\Services\PaymentReceiptPdfGenerator;
 use App\Services\TranslationService;
+use App\Services\ManagerAvailabilityService;
 use App\Utils\ProcessingModal;
 
 ini_set('display_errors', 1);
@@ -168,6 +169,40 @@ $router->post(function () {
     if (!$order) {
         return TemplateResponse::render(__DIR__ . "/error.twig", [
             "error" => TranslationService::trans('planner_hub.no_orders_found')
+        ]);
+    }
+
+    // Critical final capacity check before any provider receives a charge.
+    // A previous estimate check is intentionally not trusted here because the
+    // manager calendar may have changed after contract signature.
+    try {
+        $capacityLockDb=new \App\Repositories\Connection();
+        $capacityLockName='vnv-capacity-'.(int)$order->id_owner.'-'.(string)$order->event_date;
+        $capacityLockDb->query("SELECT GET_LOCK(:lock_name,10) acquired");$capacityLockDb->bind(':lock_name',$capacityLockName);$lockRow=$capacityLockDb->fetchOne();
+        if((int)($lockRow->acquired??0)!==1)throw new \RuntimeException('The scheduling calendar is busy. Please retry in a moment.');
+        $availabilityEngine = new ManagerAvailabilityService();
+        $availability = $availabilityEngine->evaluateOrder($order);
+        $availabilityEngine->record((int)$order->id_owner, 'FIRST_PAYMENT', (int)$order->id, $availability, $order->main_manager_id ? (int)$order->main_manager_id : null, null);
+        if (($availability['status'] ?? '') !== ManagerAvailabilityService::AVAILABLE) {
+            $availabilityEngine->notifyLevelOne((int)$order->id_owner, 'First payment paused: manager scheduling review required for order #'.$order->id.'.', 'panel/planner-hub/management/orders/orders/edit?id='.$order->id);
+            return TemplateResponse::render(__DIR__ . "/error.twig", [
+                "error" => "Your payment has not been charged. VNV Events is completing a final manager scheduling review for this event. Our team has been notified."
+            ]);
+        }
+        if (empty($order->main_manager_id) && !empty($availability['suggested_manager_id'])) {
+            $assignedManager=(int)$availability['suggested_manager_id'];
+            $assignmentDb=new \App\Repositories\Connection();
+            $assignmentDb->query("UPDATE orders SET main_manager_id=:manager,manager_assignment_status='ASSIGNED',availability_status='AVAILABLE',availability_checked_at=NOW() WHERE id=:id AND id_owner=:owner AND main_manager_id IS NULL");
+            $assignmentDb->bind(':manager',$assignedManager);$assignmentDb->bind(':id',(int)$order->id);$assignmentDb->bind(':owner',(int)$order->id_owner);$assignmentDb->execute();
+            $assignmentDb->query("INSERT INTO manager_assignment_history(id_owner,order_id,previous_manager_id,new_manager_id,action,note,changed_by) VALUES(:owner,:order,NULL,:manager,'AUTO_ASSIGNED_FIRST_PAYMENT','Final availability recheck before first payment',0)");
+            $assignmentDb->bind(':owner',(int)$order->id_owner);$assignmentDb->bind(':order',(int)$order->id);$assignmentDb->bind(':manager',$assignedManager);$assignmentDb->execute();
+            $order->main_manager_id=$assignedManager;
+        }
+        $capacityLockDb->query("SELECT RELEASE_LOCK(:lock_name)");$capacityLockDb->bind(':lock_name',$capacityLockName);$capacityLockDb->fetchOne();
+    } catch (\Throwable $e) {
+        error_log('[ManagerAvailability] First-payment check failed for order '.$orderId.': '.$e->getMessage());
+        return TemplateResponse::render(__DIR__ . "/error.twig", [
+            "error" => "Your payment has not been charged because the final event availability check could not be completed. VNV Events has been notified."
         ]);
     }
 

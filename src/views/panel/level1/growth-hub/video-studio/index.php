@@ -42,6 +42,9 @@ $router->get(function(){
         $selected->parent_project_id=(int)($selectedRequest['parent_project_id']??0);
         $selected->reel_range=(array)($selectedRequest['reel_range']??[]);
         $selected->preview_removed_segments=array_values(array_filter((array)($selectedRequest['removed_segments']??[]),static fn($segment)=>is_array($segment)&&isset($segment['start'],$segment['end'])));
+        $selected->precision_edits=array_values(array_filter((array)($selectedRequest['precision_edits']??[]),static fn($segment)=>is_array($segment)&&isset($segment['start'],$segment['end'])));
+        $selected->speaker_profiles=array_values(array_filter((array)($selectedRequest['speaker_profiles']??[]),static fn($speaker)=>is_array($speaker)&&trim((string)($speaker['name']??''))!==''));
+        $selected->reference_script=(string)($selectedRequest['reference_script']??'');
         $proxyService=new AiVideoProxyService();
         $selected->proxy_ready=$proxyService->exists($owner,(int)$selected->id);
         $selected->proxy_version=$proxyService->version($owner,(int)$selected->id);
@@ -93,13 +96,30 @@ $router->post(function(){
             $edits=json_decode((string)($_POST['timeline_edits_json']??''),true);if(!is_array($edits))throw new RuntimeException('The transcript edit could not be read.');
             $repo->revision($owner,(int)$session->getId(),$job,'TIMELINE_TEXT_EDIT','Before transcript-based video cuts');
             $pauseEdits=json_decode((string)($_POST['pause_edits_json']??'[]'),true);
-            $result=(new AiTranscriptTimelineService())->apply($job,$edits,!empty($_POST['remove_long_pauses']),max(.6,min(10,(float)($_POST['pause_threshold']??1.25))),is_array($pauseEdits)?$pauseEdits:[]);
+            $precisionEdits=json_decode((string)($_POST['precision_edits_json']??'[]'),true);
+            $result=(new AiTranscriptTimelineService())->apply($job,$edits,!empty($_POST['remove_long_pauses']),max(.6,min(10,(float)($_POST['pause_threshold']??1.25))),is_array($pauseEdits)?$pauseEdits:[],is_array($precisionEdits)?$precisionEdits:[]);
             $repo->updateEditor($owner,$id,$result['transcript'],$result['srt'],$result['plan']);
             MessageUtil::setMessage(count($result['removed_segments']).' transcript edit(s) synchronized with the video'.($result['commands']?' and '.count($result['commands']).' inline command(s) added.':'.'));
         }elseif($action==='generate_editing_proxy'){
             $id=(int)($_POST['id']??0);$job=$repo->find($owner,$id);if(!$job)throw new RuntimeException('Media job not found.');
             if(session_status()===PHP_SESSION_ACTIVE)session_write_close();
             (new AiVideoProxyService())->generate($owner,$job);MessageUtil::setMessage('The lightweight editing proxy is ready. Final exports will continue using the original master.');
+        }elseif($action==='save_speaker_profiles'){
+            $id=(int)($_POST['id']??0);$job=$repo->find($owner,$id);if(!$job)throw new RuntimeException('Project not found.');
+            $plan=json_decode((string)$job->edit_plan_json,true);if(!is_array($plan))$plan=[];$request=(array)($plan['_request']??[]);$profiles=[];
+            foreach(array_slice((array)($_POST['speaker']??[]),0,8) as $speaker){
+                if(!is_array($speaker))continue;$name=trim((string)($speaker['name']??''));if($name==='')continue;
+                $position=(string)($speaker['position']??'center');if(!in_array($position,['left','center','right'],true))$position='center';
+                $profiles[]=['name'=>mb_substr($name,0,80),'position'=>$position,'focus_x'=>['left'=>.24,'center'=>.5,'right'=>.76][$position],
+                    'caption_preset'=>AiCaptionStyleRegistry::find((string)($speaker['caption_preset']??'classic-bold'))['id'],
+                    'caption_color'=>preg_match('/^#[0-9a-f]{6}$/i',(string)($speaker['caption_color']??''))?(string)$speaker['caption_color']:'#ffffff',
+                    'voice_reference_start'=>max(0,(float)($speaker['voice_reference_start']??0)),'voice_reference_end'=>max(0,(float)($speaker['voice_reference_end']??0)),
+                    'voice_consent'=>!empty($speaker['voice_consent'])];
+            }
+            $referenceScript=trim((string)($_POST['reference_script_text']??''));
+            if(FileUtils::hasFile($_FILES,'reference_script_file')){$file=$_FILES['reference_script_file'];if((int)$file['size']>1024*1024)throw new RuntimeException('The reference script must be below 1 MB.');$extension=strtolower(pathinfo((string)$file['name'],PATHINFO_EXTENSION));if(!in_array($extension,['txt','md','srt','vtt'],true))throw new RuntimeException('Reference scripts must be TXT, MD, SRT or VTT.');$referenceScript=trim((string)file_get_contents((string)$file['tmp_name']));}
+            $repo->revision($owner,(int)$session->getId(),$job,'SPEAKER_PROFILES','Before participant setup change');$request['speaker_profiles']=$profiles;$request['reference_script']=mb_substr($referenceScript,0,250000);$plan['_request']=$request;
+            $repo->updateEditor($owner,$id,(string)$job->transcript_text,(string)$job->subtitles_srt,$plan);MessageUtil::setMessage(count($profiles).' participant profile(s) saved for long edits and derived reels.');
         }elseif($action==='create_selected_reel'){
             $id=(int)($_POST['id']??0);$job=$repo->find($owner,$id);if(!$job)throw new RuntimeException('Source project not found.');
             $ids=array_values(array_unique(array_map('intval',(array)($_POST['selected_blocks']??[]))));if(!$ids)throw new RuntimeException('Select at least one transcript block.');
@@ -140,6 +160,9 @@ $router->post(function(){
             $subtitles=trim((string)($_POST['subtitles_srt']??''));
             $repo->revision($owner,(int)$session->getId(),$job,$action==='generate_plan'?'AI_PLAN':'MANUAL_EDIT','Automatic version before editor save');
             $instructions=trim((string)($_POST['instructions']??''));$props=trim((string)($_POST['visual_insert_instructions']??''));if($props!=='')$instructions.="\nTimed visual inserts requested:\n".$props;
+            $existingPlan=json_decode((string)$job->edit_plan_json,true);$existingRequest=is_array($existingPlan)?(array)($existingPlan['_request']??[]):[];$speakerProfiles=(array)($existingRequest['speaker_profiles']??[]);
+            if($speakerProfiles){$instructions.="\n\nVerified on-screen participants (do not guess or alternate speakers):";foreach($speakerProfiles as $speaker)$instructions.="\n- ".($speaker['name']??'Speaker')." is at ".($speaker['position']??'center')." (focus_x ".($speaker['focus_x']??.5)."). Use caption preset ".($speaker['caption_preset']??'classic-bold')." and color ".($speaker['caption_color']??'#ffffff').".";}
+            if(trim((string)($existingRequest['reference_script']??''))!=='')$instructions.="\n\nHuman reference script for names, terminology and correction context (audio timestamps remain authoritative):\n".mb_substr((string)$existingRequest['reference_script'],0,30000);
             if($projectFiles){$instructions.="\n\nAvailable files in this project's private folder (use the exact asset_url when selecting one):";
                 foreach(array_slice($projectFiles,0,120) as $file)$instructions.="\n- {$file['relative_path']} | role={$file['role']} | kind={$file['kind']} | asset_url={$file['url']}";
             }
@@ -152,6 +175,7 @@ $router->post(function(){
             ]) : null;
             if($plan){
                 $plan['_request']['caption_preset']=AiCaptionStyleRegistry::find((string)($_POST['caption_preset']??'classic-bold'))['id'];$plan['_request']['caption_size_percent']=max(35,min(140,(int)($_POST['caption_size_percent']??75)));
+                $plan['_request']['speaker_profiles']=$speakerProfiles;
                 $byName=[];foreach($projectFiles as $file)$byName[strtolower((string)$file['relative_path'])]=$file;
                 foreach((array)($plan['generated_inserts']??[]) as $index=>$insert){
                     $assetName=strtolower(trim((string)($insert['asset_name']??'')));$assetUrl=trim((string)($insert['asset_url']??''));

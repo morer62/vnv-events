@@ -774,6 +774,46 @@ h1, h2, h3, h4, h5, .luxury-font {
     contain-intrinsic-size: 900px;
 }
 
+.top-catering-grid {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    gap: 22px;
+}
+.top-catering-card {
+    grid-column: span 4;
+    display: flex;
+    flex-direction: column;
+    min-height: 470px;
+    padding: 0;
+    border-radius: 30px;
+    background: linear-gradient(145deg, rgba(28,34,35,.98), rgba(14,17,18,.98));
+    border: 1px solid rgba(94,198,196,.15);
+    color: #fff;
+    overflow: hidden;
+    position: relative;
+    isolation: isolate;
+    box-shadow: 0 26px 70px rgba(0,0,0,.28);
+    transition: transform .35s ease, border-color .35s ease, box-shadow .35s ease;
+}
+.top-catering-card:first-child { grid-column: span 8; }
+.top-catering-card:hover { transform: translateY(-8px); border-color: rgba(94,198,196,.48); box-shadow: 0 34px 90px rgba(0,0,0,.38); }
+.top-catering-media { position:absolute; inset:0; z-index:-2; }
+.top-catering-media img { width:100%; height:100%; object-fit:cover; display:block; transition:transform .7s ease; }
+.top-catering-card:hover .top-catering-media img { transform:scale(1.055); }
+.top-catering-card::after { content:""; position:absolute; inset:0; z-index:-1; background:linear-gradient(180deg,rgba(5,8,8,.04) 10%,rgba(5,8,8,.34) 42%,rgba(5,8,8,.97) 100%); }
+.top-catering-content { margin-top:auto; padding:30px; }
+.top-catering-card .top-rank { display:inline-flex; padding:6px 12px; border-radius:999px; background:rgba(8,13,13,.72); border:1px solid rgba(94,198,196,.42); color:#8ffff1; font-weight:900; letter-spacing:2px; font-size:.68rem; text-transform:uppercase; backdrop-filter:blur(8px); }
+.top-catering-card h3 { font-size:clamp(1.8rem,3vw,2.55rem); line-height:1; margin:15px 0 10px; color:#fff; }
+.top-catering-card p { color:rgba(255,255,255,.78); margin:0 0 18px; max-width:620px; }
+.top-catering-bottom { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:14px; border-top:1px solid rgba(255,255,255,.13); padding-top:17px; }
+.top-catering-card strong { color:#fcf6ba; }
+.top-catering-card a { color:#8ffff1; font-weight:900; text-decoration:none; }
+.top-catering-intro { display:grid; grid-template-columns:1fr auto; gap:30px; align-items:end; margin-bottom:48px; }
+.top-catering-intro .section-heading { margin-bottom:0; }
+.top-catering-count { font-family:Georgia,"Times New Roman",serif; font-size:clamp(5rem,11vw,10rem); color:rgba(94,198,196,.13); line-height:.72; font-weight:900; }
+@media (max-width: 991px) { .top-catering-card,.top-catering-card:first-child { grid-column:span 6; }.top-catering-intro{grid-template-columns:1fr}.top-catering-count{display:none} }
+@media (max-width: 640px) { .top-catering-card,.top-catering-card:first-child { grid-column:1/-1; min-height:430px; }.top-catering-content{padding:24px}.top-catering-bottom{align-items:flex-start;flex-direction:column} }
+
 @media (prefers-reduced-motion: reduce) {
     html { scroll-behavior: auto; }
 }
@@ -801,6 +841,7 @@ h1, h2, h3, h4, h5, .luxury-font {
         <div class="hero-cta-row">
             <a href="tel:+13052045427" class="vnv-btn btn-gold-vnv">Call Now (305) 204 5427</a>
             <a href="#menu-services" class="vnv-btn btn-outline-vnv">View Event Services</a>
+            <a href="#best-sellers" class="vnv-btn btn-outline-vnv">Best Sellers</a>
             <a href="#" data-vnv-open-request class="vnv-btn btn-outline-vnv">New Request</a>
         </div>
 
@@ -1114,6 +1155,44 @@ h1, h2, h3, h4, h5, .luxury-font {
                     </div>
                 </div>
             </div>
+        </div>
+    </div>
+</section>
+
+<section class="section-vnv section-dark" id="best-sellers" aria-labelledby="top-catering-heading">
+    <div class="container">
+        <div class="top-catering-intro">
+            <div class="section-heading">
+                <span class="vnv-badge">VNV Gourmet Best Sellers</span>
+                <h2 id="top-catering-heading">The stations South Florida keeps <span class="text-gold">asking for</span></h2>
+                <p>Our company ranking of the six catering experiences clients request most. Explore each service, see what is included and open its current menu before requesting availability.</p>
+            </div>
+            <div class="top-catering-count" aria-hidden="true">06</div>
+        </div>
+        <div class="top-catering-grid">
+            {% set top_services = [
+                {n:'No. 1 Best Seller', name:'Crepes Station', price:'From $19 p/p · min. 25', copy:'Sweet and savory crepes prepared live in a guest-facing station that feels personal, elegant and highly visual.', image:'assets/images/service_photos/crepes_station_1_lite.webp', url:path('/crepes-catering-south-florida/')},
+                {n:'No. 2 Favorite', name:'Pasta Station', price:'From $19 p/p · min. 25', copy:'Three pastas, three sauces and two proteins create a flexible live station with broad guest appeal.', image:'assets/images/service_photos/pasta_station_1.webp', url:path('/pasta-station-catering-south-florida/')},
+                {n:'No. 3 Favorite', name:'Pizza Station', price:'From $19 p/p · min. 25', copy:'Fresh pizza prepared on-site with customizable crust, sauces and toppings.', image:'assets/images/service_photos/pizza_station_lite.webp', url:path('/pizza-station-catering-south-florida/')},
+                {n:'No. 4 Favorite', name:'Paella Station', price:'From $19 p/p · min. 25', copy:'A Spanish-inspired centerpiece cooked live with seafood, chicken or vegetarian menu directions.', image:'assets/images/service_photos/paella_station_lite.webp', url:path('/paella-catering-south-florida/')},
+                {n:'No. 5 Favorite', name:'Taco Station', price:'From $19 p/p · min. 25', copy:'A fast, colorful taco and burrito bar with two proteins and customizable accompaniments.', image:'assets/images/service_photos/tacos.webp', url:path('/taco-station-catering-south-florida/')},
+                {n:'No. 6 Business Favorite', name:'Corporate Catering', price:'Stations from $17 · meal boxes from $12.50', copy:'Staffed food stations or customizable breakfast and lunch boxes made for efficient company service.', image:'assets/images/service_photos/brunch_tation_lite.webp', url:path('/corporate-catering-south-florida/')}
+            ] %}
+            {% for service in top_services %}
+                <article class="top-catering-card">
+                    <div class="top-catering-media"><img src="{{ asset_for(service.image) }}" alt="{{ service.name }} by VNV Gourmet" loading="lazy" decoding="async"></div>
+                    <div class="top-catering-content">
+                        <span class="top-rank">{{ service.n }}</span>
+                        <h3>{{ service.name }}</h3>
+                        <p>{{ service.copy }}</p>
+                        <div class="top-catering-bottom"><strong>{{ service.price }}</strong><a href="{{ service.url }}">Explore service →</a></div>
+                    </div>
+                </article>
+            {% endfor %}
+        </div>
+        <div class="hero-cta-row" style="justify-content:center;margin-top:38px;">
+            <a href="{{ path('/catering-stations-south-florida/') }}" class="vnv-btn btn-gold-vnv">Compare all top services</a>
+            <a href="{{ path('/store-categories/') }}" class="vnv-btn btn-outline-vnv">Browse the complete catalog</a>
         </div>
     </div>
 </section>

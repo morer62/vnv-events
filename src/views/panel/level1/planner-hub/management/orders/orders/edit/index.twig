@@ -68,6 +68,8 @@
                     <label class="form-label">End Time</label>
                     <input type="time" name="end_time" value="{{ order.end_time }}" class="form-control">
                 </div>
+                <div class="col-md-3"><label class="form-label">Setup time</label><select class="form-select" name="setup_minutes">{% for minutes,label in {60:'1 hour',90:'1.5 hours',120:'2 hours',180:'3 hours'} %}<option value="{{ minutes }}" {% if (order.setup_minutes ?: 60) == minutes %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></div>
+                <div class="col-md-3"><label class="form-label">Main Manager</label><select class="form-select" name="main_manager_id"><option value="">Needs assignment</option>{% for manager in managers %}<option value="{{ manager.id }}" {% if order.main_manager_id == manager.id %}selected{% endif %}>{{ manager.name }} {{ manager.lastname }}</option>{% endfor %}</select><small class="text-muted">Checks overlap, setup and 3-hour Transition Time.</small></div>
                 <div class="col-md-3">
                     <label class="form-label">Contract</label>
                     <select name="id_contract" class="form-select" {% if limitedEdit or not contractEditable %}disabled{% endif %}>
@@ -83,6 +85,7 @@
                 </div>
                  
             </div>
+            <details class="alert alert-warning"><summary>Level 1 availability override</summary><p class="small mt-2">Only use after reviewing the original warning. The reason and conflict snapshot remain in history.</p><textarea class="form-control" name="availability_override_reason" rows="2" placeholder="Reason for approving despite scheduling warning"></textarea></details>
 
             <h4 class="mb-3 mt-4">🛠 Services</h4>
             <div class="alert alert-info mb-3">

@@ -127,6 +127,21 @@ final class AiVideoIngestService
         return $folder.'/'.$name;
     }
 
+    public function saveRemoteProjectAsset(int $ownerId,string $sourceUrl,string $remoteUrl,string $name='generated-asset'): array
+    {
+        $parts=$this->referenceParts($sourceUrl);if(!$parts||(int)$parts['owner']!==$ownerId)throw new RuntimeException('Generated assets require a private SFTP project folder.');
+        $ch=curl_init($remoteUrl);curl_setopt_array($ch,[CURLOPT_RETURNTRANSFER=>true,CURLOPT_FOLLOWLOCATION=>true,CURLOPT_TIMEOUT=>180,CURLOPT_FAILONERROR=>true]);$binary=curl_exec($ch);$mime=(string)curl_getinfo($ch,CURLINFO_CONTENT_TYPE);$error=curl_error($ch);curl_close($ch);
+        if(!is_string($binary)||$binary==='')throw new RuntimeException('Unable to download the generated asset'.($error?': '.$error:'.'));
+        $extension=str_contains($mime,'jpeg')?'jpg':(str_contains($mime,'webp')?'webp':'png');
+        $base=trim((string)preg_replace('/[^A-Za-z0-9._-]+/','-',mb_substr($name,0,80)),'-.')?:'generated-asset';
+        $folder='images';$project=$parts['segments'][0];$destinationFolder=$this->ownerRoot($ownerId).DIRECTORY_SEPARATOR.$project.DIRECTORY_SEPARATOR.$folder;
+        if(!is_dir($destinationFolder)&&!mkdir($destinationFolder,0770,true)&&!is_dir($destinationFolder))throw new RuntimeException('Unable to create the generated asset folder.');
+        $filename=$base.'-'.date('Ymd-His').'.'.$extension;$destination=$destinationFolder.DIRECTORY_SEPARATOR.$filename;
+        if(file_put_contents($destination,$binary)===false)throw new RuntimeException('Unable to save the generated asset in the project folder.');
+        $relative=$folder.'/'.$filename;$url='vnv-local://owner-'.$ownerId.'/'.rawurlencode($project).'/'.rawurlencode($folder).'/'.rawurlencode($filename);
+        return ['name'=>$filename,'relative_path'=>$relative,'url'=>$url,'mime_type'=>$mime?:'image/png','kind'=>'image','role'=>'IMAGE'];
+    }
+
     private function scan(int $ownerId,string $folder,string $path): array
     {
         $base=(string)realpath($path);if($base==='')return [];

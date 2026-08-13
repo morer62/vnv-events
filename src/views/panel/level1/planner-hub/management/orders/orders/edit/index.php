@@ -14,6 +14,8 @@ use App\Repositories\OrdersServicesAssignedRepository;
 use App\Repositories\OrdersPaymentSplitRepository;
 use App\Services\NotificationService;
 use App\Repositories\TipsRepository;
+use App\Services\ManagerAvailabilityService;
+use App\Repositories\Connection;
 
 
 
@@ -115,6 +117,11 @@ $router->get(callback: function () {
     }
 
     $tips = $tipsRepo->getActiveTips();
+    $managerDb = new Connection();
+    $managerDb->query("SELECT u.id,u.name,u.lastname,u.email FROM users u LEFT JOIN event_manager_profiles p ON p.manager_id=u.id AND p.id_owner=:owner WHERE (u.id_owner=:owner OR u.id=:owner) AND u.is_active=1 AND (p.is_event_manager=1 OR LOWER(u.email)=LOWER(:fallback)) ORDER BY u.level DESC,u.name,u.lastname");
+    $managerDb->bind(':owner', (int)$order->id_owner);
+    $managerDb->bind(':fallback', $_ENV['VNV_DEFAULT_MANAGER_EMAIL'] ?? 'info@vnvevents.com');
+    $managers = $managerDb->fetchAll();
     
     return TemplateResponse::render(__DIR__ . "/index.twig", [
             ...$context,
@@ -132,6 +139,7 @@ $router->get(callback: function () {
             "contractEditable" => $contractEditable,
             "contractSigned" => $contractSigned,
             "modificationMessage" => $modificationMessage
+            ,"managers" => $managers
         ]);
 
 });
@@ -220,6 +228,20 @@ $router->post(function () {
     }
 
     $id_tip = !empty($_POST["id_tip"]) ? $_POST["id_tip"] : null;
+    $setupMinutes = max(0, (int)($_POST['setup_minutes'] ?? ($order->setup_minutes ?? 60)));
+    $managerId = !empty($_POST['main_manager_id']) ? (int)$_POST['main_manager_id'] : null;
+    $availabilityEngine = new ManagerAvailabilityService();
+    $availability = $availabilityEngine->evaluate((int)$order->id_owner, (string)$_POST['event_date'], (string)$_POST['start_time'], (string)$_POST['end_time'], $setupMinutes, $managerId, (int)$order->id);
+    $checkId = $availabilityEngine->record((int)$order->id_owner, 'ORDER', (int)$order->id, $availability, $managerId, $user->getId());
+    $overrideReason = trim((string)($_POST['availability_override_reason'] ?? ''));
+    if (($availability['status'] ?? '') !== ManagerAvailabilityService::AVAILABLE && $overrideReason === '') {
+        $availabilityEngine->notifyLevelOne((int)$order->id_owner, 'Manager scheduling conflict on order #'.$order->id.'. Update was stopped pending review.', 'panel/planner-hub/management/orders/orders/edit?id='.$order->id);
+        MessageUtil::setMessage($availability['message'].' Add an administrative override reason only after reviewing the conflict.', 'Manager Availability Conflict', 'warning');
+        LocationUtils::redirectInternal('panel/planner-hub/management/orders/orders/edit?id='.$order->id);
+    }
+    if (($availability['status'] ?? '') !== ManagerAvailabilityService::AVAILABLE && $overrideReason !== '') {
+        $overrideDb=new Connection();$overrideDb->query("INSERT INTO manager_availability_overrides(id_owner,context_type,context_id,check_id,authorized_by,reason,conflict_snapshot_json) VALUES(:owner,'ORDER',:context,:check,:user,:reason,:snapshot)");$overrideDb->bind(':owner',(int)$order->id_owner);$overrideDb->bind(':context',(int)$order->id);$overrideDb->bind(':check',$checkId);$overrideDb->bind(':user',$user->getId());$overrideDb->bind(':reason',$overrideReason);$overrideDb->bind(':snapshot',json_encode($availability,JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE));$overrideDb->execute();
+    }
     
     if ($isLimited) {
         $data = [
@@ -229,6 +251,11 @@ $router->post(function () {
             "address" => $_POST["address"],
             "notes" => $_POST["notes"] ?? "",
             "id_tip" => $id_tip,
+            "setup_minutes" => $setupMinutes,
+            "main_manager_id" => $managerId,
+            "manager_assignment_status" => $managerId ? 'ASSIGNED' : 'PENDING',
+            "availability_status" => ($availability['status']===ManagerAvailabilityService::AVAILABLE?'AVAILABLE':'OVERRIDDEN'),
+            "availability_checked_at" => date('Y-m-d H:i:s'),
         ];
     } else {
         // Normalizar método de pago (split)
@@ -256,6 +283,11 @@ $router->post(function () {
             "id_tip" => $id_tip,
             "notes" => $_POST["notes"] ?? "",
             "total_team_needed" => $totalTeamNeeded,
+            "setup_minutes" => $setupMinutes,
+            "main_manager_id" => $managerId,
+            "manager_assignment_status" => $managerId ? 'ASSIGNED' : 'PENDING',
+            "availability_status" => ($availability['status']===ManagerAvailabilityService::AVAILABLE?'AVAILABLE':'OVERRIDDEN'),
+            "availability_checked_at" => date('Y-m-d H:i:s'),
             "payment_split_type" => $paymentSplitType,
             "payment_split_percent_1" => $paymentSplit1,
             "payment_split_percent_2" => $paymentSplit2,

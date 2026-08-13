@@ -51,6 +51,7 @@
                 <input type="hidden" name="id_contract" value="{{ parentOrder.id_contract }}">
                 <input type="hidden" name="total_team_needed" value="{{ parentOrder.total_team_needed }}">
             {% else %}
+                {% if leadIntake %}<input type="hidden" name="lead_intake_id" value="{{ leadIntake.id }}"><div class="alert alert-info">Creating an estimate from Lead Intake #{{ leadIntake.id }}. Availability was checked at {{ leadIntake.availability_checked_at }} and will be checked again on save.</div>{% endif %}
                 <div class="row mb-3">
                     <div class="col-md-6">
                         <label class="form-label">Client Email <span class="text-danger">*</span></label>
@@ -64,7 +65,7 @@
                     </div>
                     <div class="col-md-3">
                         <label class="form-label">Event Date <span class="text-danger">*</span></label> 
-                        <input type="date" name="event_date" class="form-control" required min="{{ "now"|date("Y-m-d") }}">
+                        <input type="date" name="event_date" class="form-control" value="{{ leadIntake ? leadIntake.event_date : '' }}" required min="{{ "now"|date("Y-m-d") }}">
                     </div>
 
                     <input type="hidden" name="total_team_needed" value="2">
@@ -89,18 +90,20 @@
 
                 <div class="mb-3">
                     <label class="form-label">Address <span class="text-danger">*</span></label>
-                    <input type="text" name="address" class="form-control" data-places required>
+                    <input type="text" name="address" class="form-control" value="{{ leadIntake ? leadIntake.venue : '' }}" data-places required>
                 </div>
 
                 <div class="row mb-4">
-                    <div class="col-md-6">
+                    <div class="col-md-3">
                         <label class="form-label">Start Time <span class="text-danger">*</span></label>
-                        <input type="time" name="hour_start" class="form-control" required>
+                        <input type="time" name="hour_start" value="{{ leadIntake ? leadIntake.start_time : '' }}" class="form-control" required>
                     </div>
-                    <div class="col-md-6">
+                    <div class="col-md-3">
                         <label class="form-label">End Time <span class="text-danger">*</span></label>
-                        <input type="time" name="hour_end" class="form-control" required>
+                        <input type="time" name="hour_end" value="{{ leadIntake ? leadIntake.end_time : '' }}" class="form-control" required>
                     </div>
+                    <div class="col-md-3"><label class="form-label">Setup time</label><select class="form-select" name="setup_minutes"><option value="60" {% if not leadIntake or leadIntake.setup_minutes == 60 %}selected{% endif %}>1 hour</option><option value="90" {% if leadIntake and leadIntake.setup_minutes == 90 %}selected{% endif %}>1.5 hours</option><option value="120" {% if leadIntake and leadIntake.setup_minutes == 120 %}selected{% endif %}>2 hours</option><option value="180" {% if leadIntake and leadIntake.setup_minutes == 180 %}selected{% endif %}>3 hours</option></select></div>
+                    <div class="col-md-3"><label class="form-label">Main Manager</label><select class="form-select" name="main_manager_id"><option value="">Suggest available manager</option>{% for manager in managers %}<option value="{{ manager.id }}">{{ manager.name }} {{ manager.lastname }}</option>{% endfor %}</select><small class="text-muted">Validated with setup + 3-hour Transition Time.</small></div>
                 </div>
             {% endif %}
 

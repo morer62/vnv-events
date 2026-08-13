@@ -20,6 +20,15 @@ class UserDeactivationService
     public function deactivateUserFromInstitution(int $userId, int $institutionId, ?string $reason = null): bool
     {
         try {
+            // Keep historical assignments, but never orphan future events.
+            $db = new \App\Repositories\Connection();
+            $db->query("SELECT COUNT(*) total FROM orders WHERE main_manager_id=:manager AND event_date>=CURDATE() AND is_archived=0");
+            $db->bind(':manager', $userId);
+            $pending = $db->fetchOne();
+            if ((int)($pending->total ?? 0) > 0) {
+                error_log('[ManagerDeactivation] Blocked user '.$userId.' with '.(int)$pending->total.' future Main Manager assignments. Reassign in Manager Scheduling first.');
+                return false;
+            }
             // Deactivate the user-institution relationship
             $deactivated = $this->userInstitutionsRepo->removeUserFromInstitution($userId, $institutionId);
             

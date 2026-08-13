@@ -45,7 +45,7 @@ final class AiVideoReelService
         $overlaps=fn(array $item,string $startField,string $endField):bool=>(float)($item[$endField]??$item[$startField]??0)>=$start&&(float)($item[$startField]??0)<=$end;
         $plan=$parent;
         $plan['cuts']=[['start'=>$start,'end'=>$end,'reason'=>$range['reason']]];
-        foreach(['camera_moves'=>['start','end'],'generated_inserts'=>['start','end'],'caption_style_events'=>['start','end']] as $field=>$fields)$plan[$field]=array_values(array_filter((array)($plan[$field]??[]),fn($item)=>is_array($item)&&$overlaps($item,$fields[0],$fields[1])));
+        foreach(['camera_moves'=>['start','end'],'generated_inserts'=>['start','end'],'caption_style_events'=>['start','end'],'text_overlays'=>['start','end']] as $field=>$fields)$plan[$field]=array_values(array_filter((array)($plan[$field]??[]),fn($item)=>is_array($item)&&$overlaps($item,$fields[0],$fields[1])));
         $plan['transitions']=array_values(array_filter((array)($plan['transitions']??[]),fn($item)=>(float)($item['timestamp']??0)>=$start&&(float)($item['timestamp']??0)<=$end));
         $plan['motion_graphics']=array_values(array_filter((array)($plan['motion_graphics']??[]),fn($item)=>(float)($item['timestamp']??0)>=$start&&(float)($item['timestamp']??0)<=$end));
         // Never pretend to know the active speaker by alternating left/right.
@@ -57,12 +57,22 @@ final class AiVideoReelService
         $parentPreset=(string)($request['caption_preset']??'classic-bold');
         $parentSize=max(70,min(120,(int)($request['caption_size_percent']??85)));
         $request['timeline_commands']=array_values(array_filter((array)($request['timeline_commands']??[]),static fn($command)=>is_array($command)&&($command['type']??'')!=='caption'&&(float)($command['timestamp']??-1)>=$start&&(float)($command['timestamp']??-1)<=$end));
-        $request['pause_edits']=[];$request['timeline_removed_segments']=[];$request['removed_segments']=[];
+        // A reel is another editable view over the same source timeline. Keep the
+        // parent's deterministic transcript cuts, precision waveform edits,
+        // participant identities and approved effects instead of starting with a
+        // weaker short-form editor.
+        foreach(['removed_segments','timeline_removed_segments','precision_edits'] as $field){
+            $request[$field]=array_values(array_filter((array)($request[$field]??[]),static function($segment)use($start,$end):bool{
+                return is_array($segment)&&(float)($segment['end']??0)>=$start&&(float)($segment['start']??0)<=$end;
+            }));
+        }
+        $request['pause_edits']=array_values(array_filter((array)($request['pause_edits']??[]),static fn($pause)=>is_array($pause)&&(float)($pause['end']??0)>=$start&&(float)($pause['start']??0)<=$end));
         $request=array_merge($request,[
             'project_kind'=>'reel','parent_project_id'=>(int)$source->id,'aspect_ratio'=>'9:16',
             'caption_style'=>in_array($captionStyle,['kinetic','dynamic','clean'],true)?$captionStyle:'kinetic',
             'caption_preset'=>$parentPreset,'caption_size_percent'=>$parentSize,'render_preset'=>'veryfast','render_crf'=>26,
-            'audio_bitrate'=>'128k','intro_url'=>'','outro_url'=>'','vertical_focus_x'=>.5,'reel_range'=>$range,'reel_instructions'=>$instructions,
+            'audio_bitrate'=>'160k','intro_url'=>'','outro_url'=>'','vertical_focus_x'=>.5,'reel_range'=>$range,'reel_instructions'=>$instructions,
+            'editor_capabilities'=>['transcript_cuts','precision_waveform','silence_cleanup','timed_chips','camera_moves','transitions','media_layers','caption_styles','speaker_profiles'],
         ]);
         $plan['caption_style_events']=[];
         $plan['_request']=$request;

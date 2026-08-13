@@ -301,6 +301,13 @@ class SeoFilesGeneratorService
             '- Blog: ' . $this->absoluteUrl('/blog/'),
             '- FAQ: ' . $this->absoluteUrl('/faq/'),
             '- VNV Gourmet: ' . $this->absoluteUrl('/vnv-gourmet/'),
+            '- Live Catering Stations: ' . $this->absoluteUrl('/catering-stations-south-florida/'),
+            '- Crepe Station Catering: ' . $this->absoluteUrl('/crepes-catering-south-florida/'),
+            '- Pasta Station Catering: ' . $this->absoluteUrl('/pasta-station-catering-south-florida/'),
+            '- Pizza Station Catering: ' . $this->absoluteUrl('/pizza-station-catering-south-florida/'),
+            '- Paella Catering: ' . $this->absoluteUrl('/paella-catering-south-florida/'),
+            '- Taco Station Catering: ' . $this->absoluteUrl('/taco-station-catering-south-florida/'),
+            '- Corporate Catering: ' . $this->absoluteUrl('/corporate-catering-south-florida/'),
             '- Store Categories: ' . $this->absoluteUrl('/store-categories/'),
             '',
             '## Main Service Areas',
@@ -917,7 +924,7 @@ class SeoFilesGeneratorService
 
     private function priorityForPhysicalPath(string $path): float
     {
-        foreach (['/vnv-gourmet/', '/event-planners/', '/corporate-events/', '/event-production/', '/event-staffing/', '/locations/', '/blog/'] as $important) {
+        foreach (['/vnv-gourmet/', '/catering-stations-south-florida/', '/crepes-catering-south-florida/', '/pasta-station-catering-south-florida/', '/pizza-station-catering-south-florida/', '/paella-catering-south-florida/', '/taco-station-catering-south-florida/', '/corporate-catering-south-florida/', '/event-planners/', '/corporate-events/', '/event-production/', '/event-staffing/', '/locations/', '/blog/'] as $important) {
             if ($path === $important) {
                 return 0.8;
             }

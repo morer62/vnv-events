@@ -7,6 +7,17 @@ de `docs/`.
 
 Actualizado: 2026-07-27.
 
+### Manager availability and pre-CRM Lead Intake (2026-08-13)
+
+VNV Events now has a shared Main Manager availability engine. Lead Intake is a
+separate pre-CRM queue for ManyChat; it does not insert contacts into CRM
+silently. Orders reuse their existing event date/start/end and add Main Manager
+and setup metadata. The engine enforces setup time, overlap, declared Level 4
+availability and a default 180-minute Transition Time in both directions. First
+payment is rechecked before any provider charge. See
+`docs/VNV_MANAGER_AVAILABILITY_AND_LEAD_INTAKE.md` and run
+`db/20260813_vnv_manager_availability_lead_intake.sql`.
+
 ## 1. Identidad y contexto vigente
 
 Este repositorio debe tratarse primero como **VNV Events**:

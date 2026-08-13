@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 
 use App\Services\LoginService;
 use App\Repositories\OrdersServiceRepository;
@@ -17,6 +17,9 @@ use App\Services\NotificationService;
 use App\Services\EmailService;
 use App\Repositories\NotificationsRepository;
 use App\Repositories\TipsRepository;
+use App\Services\ManagerAvailabilityService;
+use App\Repositories\Connection;
+use App\Repositories\LeadIntakeRepository;
 
 $router = new Router();
 
@@ -63,6 +66,11 @@ $router->get(function () {
     }
 
     $tips = $tipsRepo->getActiveTips();
+    $managerDb = new Connection();
+    $managerDb->query("SELECT u.id,u.name,u.lastname,u.email FROM users u LEFT JOIN event_manager_profiles p ON p.manager_id=u.id AND p.id_owner=:owner WHERE (u.id_owner=:owner OR u.id=:owner) AND u.is_active=1 AND (p.is_event_manager=1 OR LOWER(u.email)=LOWER(:fallback)) ORDER BY u.level DESC,u.name,u.lastname");
+    $managerDb->bind(':owner', $user->getOwner());
+    $managerDb->bind(':fallback', $_ENV['VNV_DEFAULT_MANAGER_EMAIL'] ?? 'info@vnvevents.com');
+    $managers = $managerDb->fetchAll();
 
     $parentOrderId = $_GET["parent_order"] ?? null;
     $parentOrder = null;
@@ -92,6 +100,9 @@ $router->get(function () {
     }
 
     $prefillEmail = $_GET['client_email'] ?? null;
+    $leadIntake = null;
+    $leadIntakeId = isset($_GET['lead_intake_id']) ? (int)$_GET['lead_intake_id'] : 0;
+    if($leadIntakeId>0){$leadIntake=(new LeadIntakeRepository())->find($user->getOwner(),$leadIntakeId);if($leadIntake)$prefillEmail=$leadIntake->email?:$prefillEmail;}
     $prefillClientId = isset($_GET['client_id']) ? (int)$_GET['client_id'] : 0;
     $prefillClient = null;
     if ($prefillClientId > 0) {
@@ -101,6 +112,7 @@ $router->get(function () {
             $prefillEmail = $candidateClient->email;
         }
     }
+    if(!$prefillClient&&$prefillEmail){$candidateClient=$userRepo->getOneWithoutOwnership(['email'=>$prefillEmail,'level'=>5,'id_owner'=>$user->getOwner()]);if($candidateClient)$prefillClient=$candidateClient;}
 
     return TemplateResponse::render(__DIR__ . "/index.twig", [
         "services" => $services,
@@ -113,6 +125,8 @@ $router->get(function () {
         "prefillEmail" => $prefillEmail,
         "prefillClient" => $prefillClient,
         "tips" => $tips
+        ,"managers" => $managers
+        ,"leadIntake" => $leadIntake
     ]);
 });
 
@@ -292,6 +306,8 @@ $router->post(function () {
             "address" => $address,
             "start_time" => $hourStart,
             "end_time" => $hourEnd,
+            "setup_minutes" => max(0, (int)($_POST['setup_minutes'] ?? 60)),
+            "main_manager_id" => !empty($_POST['main_manager_id']) ? (int)$_POST['main_manager_id'] : null,
             "id_contract" => $id_contract,
             "payment_status" => "paid_full",
             "discount_type" => $discount_type,
@@ -309,6 +325,14 @@ $router->post(function () {
             $orderData["created_at"] = $userLocalTimestamp;
         }
 
+        $serviceOwnerId = $ownerData['id_owner'] ?? $user->getOwner();
+        $availabilityEngine = new ManagerAvailabilityService();
+        $availability = $availabilityEngine->evaluate((int)$serviceOwnerId, (string)$date, (string)$hourStart, (string)$hourEnd, (int)$orderData['setup_minutes'], $orderData['main_manager_id']);
+        if ($orderData['main_manager_id'] && $availability['status'] !== ManagerAvailabilityService::AVAILABLE) {
+            MessageUtil::setMessage($availability['message'].' Select another manager or create the estimate without a manager for manual scheduling review.', 'Manager Availability Conflict', 'warning');
+            LocationUtils::redirectInternal('panel/planner-hub/management/orders/orders/create');
+        }
+
         try {
             if ($user->getLevel() === 4 && isset($ownerData['id_owner']) && $ownerData['id_owner'] != $user->getOwner()) {
                 $orderId = $orderRepo->addWithExplicitOwner($orderData);
@@ -316,8 +340,12 @@ $router->post(function () {
                 $orderRepo->add($orderData);
                 $orderId = $orderRepo->getLastId();
             }
+            if(!empty($_POST['lead_intake_id'])){(new LeadIntakeRepository())->update((int)($ownerData['id_owner']??$user->getOwner()),(int)$_POST['lead_intake_id'],['converted_order_id'=>$orderId,'status'=>'CONVERTED']);}
 
-            $serviceOwnerId = $ownerData['id_owner'] ?? $user->getOwner();
+            $availabilityEngine->record((int)$serviceOwnerId, 'ORDER', (int)$orderId, $availability, $orderData['main_manager_id'], $user->getId());
+            $selectedManager = $orderData['main_manager_id'] ?: ($availability['suggested_manager_id'] ?? null);
+            $orderRepo->update(['main_manager_id'=>$selectedManager,'manager_assignment_status'=>$selectedManager?'ASSIGNED':'PENDING','availability_status'=>$availability['status'],'availability_checked_at'=>date('Y-m-d H:i:s')], ['id'=>$orderId]);
+            if($availability['status'] !== ManagerAvailabilityService::AVAILABLE){$availabilityEngine->notifyLevelOne((int)$serviceOwnerId, 'Manager scheduling review required for order #'.$orderId.'.', 'panel/planner-hub/management/orders/orders/edit?id='.$orderId);}
             
             foreach ($services as $item) {
                 // Store the service price and description as a historical snapshot.
@@ -574,6 +602,4 @@ $router->post(function () {
 });
 
 $router->run();
-
-
 

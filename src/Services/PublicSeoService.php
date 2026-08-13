@@ -928,6 +928,7 @@ class PublicSeoService
             'blog' => 'Blog',
             'locations' => 'Locations',
             'vnv-gourmet' => 'VNV Gourmet',
+            'catering-stations-south-florida' => 'Live Catering Stations',
             'product' => 'Products',
             'product-category' => 'Product Categories',
             'services' => 'Services',
