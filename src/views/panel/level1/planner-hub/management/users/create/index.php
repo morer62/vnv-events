@@ -449,6 +449,10 @@ $router->post(function () {
             }
 
             $storeUserRolesRepo->saveValidatedRole((int)$currentOwnerId, (int)$inactiveUser->id, $storeTeamRole);
+            $managerDb = new \App\Repositories\Connection();
+            $managerDb->query("INSERT INTO event_manager_profiles(id_owner,manager_id,is_event_manager,updated_by) VALUES(:owner,:manager,:enabled,:user) ON DUPLICATE KEY UPDATE is_event_manager=VALUES(is_event_manager),updated_by=VALUES(updated_by)");
+            foreach (['owner'=>(int)$currentOwnerId,'manager'=>(int)$inactiveUser->id,'enabled'=>!empty($_POST['is_event_manager'])?1:0,'user'=>(int)$sessionUser->getId()] as $key=>$value) $managerDb->bind(':'.$key,$value);
+            $managerDb->execute();
             sendAccountPasswordEmail((int)$currentOwnerId, $_POST["email"], $_POST["name"], $password, $_POST["level"]);
             MessageUtil::setMessage("Team member reactivated and assigned to you.");
         } elseif ((int)$inactiveUser->level === 5) {
@@ -518,6 +522,10 @@ $router->post(function () {
         
         $userInstitutionService->addUserToInstitution($userId, $currentInstitutionId, $roleId, $institutionHourlyRate, $contractDetail);
         $storeUserRolesRepo->saveValidatedRole((int)$currentOwnerId, (int)$userId, $storeTeamRole);
+        $managerDb = new \App\Repositories\Connection();
+        $managerDb->query("INSERT INTO event_manager_profiles(id_owner,manager_id,is_event_manager,updated_by) VALUES(:owner,:manager,:enabled,:user) ON DUPLICATE KEY UPDATE is_event_manager=VALUES(is_event_manager),updated_by=VALUES(updated_by)");
+        foreach (['owner'=>(int)$currentOwnerId,'manager'=>(int)$userId,'enabled'=>!empty($_POST['is_event_manager'])?1:0,'user'=>(int)$sessionUser->getId()] as $key=>$value) $managerDb->bind(':'.$key,$value);
+        $managerDb->execute();
     }
 
     if ($_POST["level"] == 5) {

@@ -78,9 +78,25 @@ $router->get(function () {
     $storeRoleIcon = 'fa-layer-group';
     $storeRoleDescription = 'Support store operations, assigned jobs, and order coordination.';
     $teamContract = null;
+    $isEventManager = false;
+    $futureAvailabilityBlocks = 0;
 
     if ($currentOwnerId > 0) {
         $teamContract = (new TeamMemberContractsRepository())->getLatestForMember((int)$user->getId(), (int)$currentOwnerId);
+        try {
+            $managerDb = new \App\Repositories\Connection();
+            $managerDb->query("SELECT is_event_manager FROM event_manager_profiles WHERE id_owner=:owner AND manager_id=:manager");
+            $managerDb->bind(':owner',$currentOwnerId);$managerDb->bind(':manager',(int)$user->getId());
+            $managerProfile=$managerDb->fetchOne();
+            $isEventManager=$managerProfile && (int)$managerProfile->is_event_manager===1;
+            if($isEventManager){
+                $managerDb->query("SELECT COUNT(*) total FROM manager_availability WHERE id_owner=:owner AND manager_id=:manager AND availability='UNAVAILABLE' AND ends_at>=NOW()");
+                $managerDb->bind(':owner',$currentOwnerId);$managerDb->bind(':manager',(int)$user->getId());
+                $futureAvailabilityBlocks=(int)($managerDb->fetchOne()->total??0);
+            }
+        } catch (\Throwable $e) {
+            $isEventManager=false;
+        }
     }
 
     if ($storeTeamRole === 'kitchen') {
@@ -108,6 +124,8 @@ $router->get(function () {
         'storeRoleIcon' => $storeRoleIcon,
         'storeRoleDescription' => $storeRoleDescription,
         'teamContract' => $teamContract
+        ,'isEventManager' => $isEventManager
+        ,'futureAvailabilityBlocks' => $futureAvailabilityBlocks
     ]);
 });
 

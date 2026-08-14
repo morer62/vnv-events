@@ -78,7 +78,8 @@ class UserInstitutionsRepository
             $this->db->bind(":user_id", $userId);
             $this->db->bind(":institution_id", $institutionId);
             
-            return (bool)$this->db->execute();
+            $this->db->execute();
+            return $this->db->rowCount() > 0;
         } catch (\Exception $e) {
             return false;
         }
@@ -96,7 +97,8 @@ class UserInstitutionsRepository
             $this->db->bind(":user_id", $userId);
             $this->db->bind(":institution_id", $institutionId);
             
-            return (bool)$this->db->execute();
+            $this->db->execute();
+            return $this->db->rowCount() > 0;
         } catch (\Exception $e) {
             return false;
         }

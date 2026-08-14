@@ -1,6 +1,28 @@
 # VNV Events — Lead Intake and Main Manager availability
 
-Updated: 2026-08-13.
+Updated: 2026-08-14.
+
+## Launch decision — 2026-08-14
+
+The production launch is limited to Event Manager availability and order
+conflict visibility. ManyChat/native Meta conversational automation is deferred
+until the channel decision is final; it is not shown in Level 1 navigation and
+requires no production environment variables for this release.
+
+Run `db/20260814_manager_scheduling_launch.sql`. Level 1 explicitly marks a
+Level 4 user as an Event Manager while creating or editing that user. Event
+Managers see a dashboard reminder to record days they cannot work. Estimate and
+order creation never stops because of a manager conflict: the record is saved,
+Level 1 is notified, and the first order-table column displays the review alert.
+
+Transition time is configured in hours with
+`VNV_MANAGER_TRANSITION_HOURS` (for example `3`, `2`, `1`, or `1.5`).
+
+Level 1 can change an individual Main Manager from the order editor or Manager
+Scheduling. When an Event Manager is deactivated, the Team list requires one
+bulk replacement for all future events. The replacement may be another active
+Event Manager or the configured Level 1 account. Past assignments are retained,
+and every transferred order receives a new availability check and history row.
 
 ## Purpose
 
@@ -13,12 +35,18 @@ ManyChat -> Lead Intake -> Availability Engine -> Estimate/order
          -> contract signature -> final check -> first payment -> confirmed event
 ```
 
+The shared public multistep request form also writes a `public_multistep` entry
+to Lead Intake after its canonical `event_requests` record is saved. Because the
+public form currently asks for a start time but not an end time, that entry is
+marked `NEEDS_MANUAL_REVIEW` until Level 1 completes the schedule. The original
+request and email workflow remain unchanged.
+
 ## Non-negotiable scheduling rules
 
 - Every confirmed event needs one `main_manager_id`.
 - Setup defaults to 60 minutes before the public start.
-- The same manager needs 180 minutes of Transition Time between the prior event
-  end and the next setup start.
+- The same manager needs the configured `VNV_MANAGER_TRANSITION_HOURS` between
+  the prior event end and the next setup start.
 - Checks work in both chronological directions.
 - A declared `UNAVAILABLE` period excludes that manager.
 - A conflict means manual review, not that the sale is impossible.
@@ -26,8 +54,8 @@ ManyChat -> Lead Intake -> Availability Engine -> Estimate/order
 - Historical order assignments are retained. Deactivation is blocked while the
   manager has future assigned orders.
 
-Orders without a stored manager are not silently rewritten. The engine includes
-`info@vnvevents.com` as the temporary Level 1 fallback candidate.
+Only active Level 4 users explicitly marked as Event Manager are candidates.
+`VNV_DEFAULT_MANAGER_EMAIL` is used only to route administrative alerts.
 
 ## Routes
 
@@ -77,6 +105,11 @@ db/20260813_vnv_manager_availability_lead_intake.sql
 
 Add the environment variables documented in `.env.example`. No Composer update
 is required.
+
+`MANYCHAT_LEAD_INTAKE_SECRET` protects inbound External Requests from ManyChat
+and is sent in `X-VNV-Webhook-Secret`. `MANYCHAT_API_TOKEN` is a different
+credential: the Account Public API bearer token generated in ManyChat Settings
+> API. Never reuse the bearer token as the inbound webhook secret.
 
 ## Tables reused
 

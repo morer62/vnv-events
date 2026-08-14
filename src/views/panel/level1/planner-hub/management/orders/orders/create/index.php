@@ -67,7 +67,7 @@ $router->get(function () {
 
     $tips = $tipsRepo->getActiveTips();
     $managerDb = new Connection();
-    $managerDb->query("SELECT u.id,u.name,u.lastname,u.email FROM users u LEFT JOIN event_manager_profiles p ON p.manager_id=u.id AND p.id_owner=:owner WHERE (u.id_owner=:owner OR u.id=:owner) AND u.is_active=1 AND (p.is_event_manager=1 OR LOWER(u.email)=LOWER(:fallback)) ORDER BY u.level DESC,u.name,u.lastname");
+    $managerDb->query("SELECT DISTINCT u.id,u.name,u.lastname,u.email,u.level FROM users u LEFT JOIN event_manager_profiles p ON p.manager_id=u.id AND p.id_owner=:owner WHERE u.is_active=1 AND ((u.id_owner=:owner AND u.level=4 AND p.is_event_manager=1) OR (u.level=1 AND (u.id=:owner OR LOWER(u.email)=LOWER(:fallback)))) ORDER BY u.level,u.name,u.lastname");
     $managerDb->bind(':owner', $user->getOwner());
     $managerDb->bind(':fallback', $_ENV['VNV_DEFAULT_MANAGER_EMAIL'] ?? 'info@vnvevents.com');
     $managers = $managerDb->fetchAll();
@@ -328,11 +328,9 @@ $router->post(function () {
         $serviceOwnerId = $ownerData['id_owner'] ?? $user->getOwner();
         $availabilityEngine = new ManagerAvailabilityService();
         $availability = $availabilityEngine->evaluate((int)$serviceOwnerId, (string)$date, (string)$hourStart, (string)$hourEnd, (int)$orderData['setup_minutes'], $orderData['main_manager_id']);
-        if ($orderData['main_manager_id'] && $availability['status'] !== ManagerAvailabilityService::AVAILABLE) {
-            MessageUtil::setMessage($availability['message'].' Select another manager or create the estimate without a manager for manual scheduling review.', 'Manager Availability Conflict', 'warning');
-            LocationUtils::redirectInternal('panel/planner-hub/management/orders/orders/create');
-        }
-
+        $managerConflictMessage = $availability['status'] !== ManagerAvailabilityService::AVAILABLE
+            ? 'Order created, but the Main Manager assignment needs review. '.$availability['message']
+            : null;
         try {
             if ($user->getLevel() === 4 && isset($ownerData['id_owner']) && $ownerData['id_owner'] != $user->getOwner()) {
                 $orderId = $orderRepo->addWithExplicitOwner($orderData);
@@ -345,7 +343,10 @@ $router->post(function () {
             $availabilityEngine->record((int)$serviceOwnerId, 'ORDER', (int)$orderId, $availability, $orderData['main_manager_id'], $user->getId());
             $selectedManager = $orderData['main_manager_id'] ?: ($availability['suggested_manager_id'] ?? null);
             $orderRepo->update(['main_manager_id'=>$selectedManager,'manager_assignment_status'=>$selectedManager?'ASSIGNED':'PENDING','availability_status'=>$availability['status'],'availability_checked_at'=>date('Y-m-d H:i:s')], ['id'=>$orderId]);
-            if($availability['status'] !== ManagerAvailabilityService::AVAILABLE){$availabilityEngine->notifyLevelOne((int)$serviceOwnerId, 'Manager scheduling review required for order #'.$orderId.'.', 'panel/planner-hub/management/orders/orders/edit?id='.$orderId);}
+            if($availability['status'] !== ManagerAvailabilityService::AVAILABLE){
+                $availabilityEngine->notifyLevelOne((int)$serviceOwnerId, 'Manager scheduling conflict on order #'.$orderId.'. The order was created and needs review.', 'panel/planner-hub/management/orders/orders/edit?id='.$orderId);
+                MessageUtil::setMessage('Order created. '.$availability['message'].' Review the Main Manager assignment from the orders table.', 'Manager conflict: review required', 'warning');
+            }
             
             foreach ($services as $item) {
                 // Store the service price and description as a historical snapshot.
@@ -385,13 +386,13 @@ $router->post(function () {
                 "status_workflow" => $statusWorkflow
             ], ["id" => $orderId]);
 
-            $message = "Order created successfully!";
+            $message = $managerConflictMessage ?: "Order created successfully!";
             $notificationMessage = "New order VNV 341{$orderId} has been created. Please log in to your account to view the details.";
             $creationSuccess = true;
 
             $shouldAddCalendar = isset($_POST['add_to_calendar']) && $_POST['add_to_calendar'] == '1';
             if ($shouldAddCalendar) {
-                MessageUtil::setMessage($message);
+                MessageUtil::setMessage($message, $managerConflictMessage ? 'Manager conflict: review required' : null, $managerConflictMessage ? 'warning' : 'success');
                 $clientId = $client;
                 LocationUtils::redirectInternal("panel/planner-hub/management/orders/orders/?add_calendar=1&order_id=" . urlencode((string)$orderId) . "&client_id=" . urlencode((string)$clientId));
             }
@@ -584,7 +585,7 @@ $router->post(function () {
     }
 
     if ($creationSuccess) {
-        MessageUtil::setMessage($message);
+        MessageUtil::setMessage($message, $managerConflictMessage ? 'Manager conflict: review required' : null, $managerConflictMessage ? 'warning' : 'success');
         
         if ($isSubOrder) {
             LocationUtils::redirectInternal("panel/planner-hub/management/orders/orders/suborders/?id={$parentOrderId}");

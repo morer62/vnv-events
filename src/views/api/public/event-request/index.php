@@ -1,6 +1,7 @@
 <?php
 
 use App\Repositories\EventRequestRepository;
+use App\Repositories\LeadIntakeRepository;
 use App\Services\EmailService;
 use App\Services\LoginService;
 use App\Utils\LocationUtils;
@@ -276,6 +277,46 @@ $router->post(function () {
         error_log('Public event request save error: ' . $e->getMessage());
         MessageUtil::setMessage('Could not save your request. Please try again.', 'Request', 'error');
         eventRequestRedirectBack();
+    }
+
+    // Feed the same pre-CRM queue used by ManyChat. This is intentionally
+    // best-effort so a temporary scheduling/Lead Intake issue never loses the
+    // already-persisted public request.
+    try {
+        $leadPayload = [
+            'event_request_id' => $requestId,
+            'source' => $formSource,
+            'selected_services' => $services,
+            'details' => $details,
+            'event_address' => $eventAddress,
+            'event_date' => $eventDate,
+            'event_time' => $eventTime,
+            'guest_count' => $guestCount > 0 ? $guestCount : null,
+            'recaptcha_score' => $recaptchaCheck['score'] ?? null,
+        ];
+
+        (new LeadIntakeRepository())->upsert($ownerId, [
+            'source' => 'public_multistep',
+            'external_id' => 'event-request-' . $requestId,
+            'channel' => 'website',
+            'contact_name' => $fullName,
+            'email' => $email,
+            'phone' => $phone,
+            'service_requested' => $services !== [] ? implode(', ', $services) : null,
+            'guest_count' => $guestCount > 0 ? $guestCount : null,
+            'venue' => $eventAddress,
+            'event_date' => $eventDate,
+            'start_time' => $eventTime,
+            'end_time' => null,
+            'setup_minutes' => 60,
+            'availability_status' => 'NEEDS_MANUAL_REVIEW',
+            'suggested_manager_id' => null,
+            'availability_checked_at' => null,
+            'status' => 'NEW',
+            'payload_json' => json_encode($leadPayload, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE),
+        ]);
+    } catch (\Throwable $e) {
+        error_log('Public event request Lead Intake sync error for request #' . $requestId . ': ' . $e->getMessage());
     }
 
     $subject = 'New VNV Event Request #' . $requestId . ' - ' . $fullName;

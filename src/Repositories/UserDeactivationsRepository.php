@@ -26,7 +26,8 @@ class UserDeactivationsRepository
             $this->db->bind(":deactivated_by", $deactivatedBy);
             $this->db->bind(":reason", $reason);
             
-            return (bool)$this->db->execute();
+            $this->db->execute();
+            return $this->db->rowCount() > 0;
         } catch (\Exception $e) {
             return false;
         }

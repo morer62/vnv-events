@@ -133,12 +133,12 @@
 
 			<ul class="nav nav-tabs mb-3" id="ordersTabs" role="tablist">
 				<li class="nav-item" role="presentation">
-					<button class="nav-link active" id="orders-tab" data-bs-toggle="tab" data-bs-target="#orders-content" type="button" role="tab" aria-controls="orders-content" aria-selected="true">
+					<button class="nav-link {{ activeTab != 'estimates' ? 'active' : '' }}" id="orders-tab" data-bs-toggle="tab" data-bs-target="#orders-content" type="button" role="tab" aria-controls="orders-content" aria-selected="{{ activeTab != 'estimates' ? 'true' : 'false' }}">
 						📋 Orders ({{ orders|length }})
 					</button>
 				</li>
 				<li class="nav-item" role="presentation">
-					<button class="nav-link" id="estimates-tab" data-bs-toggle="tab" data-bs-target="#estimates-content" type="button" role="tab" aria-controls="estimates-content" aria-selected="false">
+					<button class="nav-link {{ activeTab == 'estimates' ? 'active' : '' }}" id="estimates-tab" data-bs-toggle="tab" data-bs-target="#estimates-content" type="button" role="tab" aria-controls="estimates-content" aria-selected="{{ activeTab == 'estimates' ? 'true' : 'false' }}">
 						📝 Estimates ({{ estimates|length }})
 					</button>
 				</li>
@@ -146,7 +146,7 @@
 
 			<div class="tab-content" id="ordersTabsContent">
 				
-				<div class="tab-pane fade show active" id="orders-content" role="tabpanel" aria-labelledby="orders-tab">
+				<div class="tab-pane fade {{ activeTab != 'estimates' ? 'show active' : '' }}" id="orders-content" role="tabpanel" aria-labelledby="orders-tab">
 					<div class="table-responsive">
 						<table id="ordersTable" class="table table-striped table-bordered align-middle text-center vnv-table" style="min-width: 768px;">
 							<thead>
@@ -172,8 +172,16 @@
 								{% if orders|length > 0 %}
 									{% for order in orders %}
 										<tr>
-											<td style="min-width: 200px;">
+										<td style="min-width: 200px;">
 											vnv-341{{ order.id }}<br>
+											{% if order.availability_status and order.availability_status != 'AVAILABLE' %}
+												<a href="{{ path(current_location ~ '/edit') }}?id={{ order.id }}" class="badge bg-warning text-dark text-decoration-none d-inline-block my-1">⚠ Manager conflict: {{ order.availability_status|replace({'_':' '}) }}</a><br>
+											{% elseif order.main_manager_id %}
+												<span class="badge bg-success d-inline-block my-1">Manager available</span><br>
+											{% else %}
+												<a href="{{ path(current_location ~ '/edit') }}?id={{ order.id }}" class="badge bg-warning text-dark text-decoration-none d-inline-block my-1">⚠ Manager assignment pending</a><br>
+											{% endif %}
+											{% if order._main_manager_name %}<small class="d-block"><strong>Main Manager:</strong> {{ order._main_manager_name }}</small>{% endif %}
 												<small>Created: {{ order.created_at|date("Y-m-d H:i") }}</small>
 												<small class="d-block text-primary mt-1" style="font-size: 0.75rem; cursor: pointer;" onclick="openOrderDetailsModalByOrderId({{ order.id }}, 'orders')">
 													Click to view details
@@ -319,7 +327,7 @@
 					</div>
 				</div>
 
-				<div class="tab-pane fade" id="estimates-content" role="tabpanel" aria-labelledby="estimates-tab">
+				<div class="tab-pane fade {{ activeTab == 'estimates' ? 'show active' : '' }}" id="estimates-content" role="tabpanel" aria-labelledby="estimates-tab">
 					<div class="table-responsive">
 						<table id="estimatesTable" class="table table-striped table-bordered align-middle text-center" style="min-width: 768px;">
 							<thead>
@@ -344,6 +352,14 @@
 										<tr>
 											<td style="min-width: 200px;">
 												vnv-341{{ estimate.id }}<br>
+												{% if estimate.availability_status and estimate.availability_status != 'AVAILABLE' %}
+													<a href="{{ path(current_location ~ '/edit') }}?id={{ estimate.id }}" class="badge bg-warning text-dark text-decoration-none d-inline-block my-1">⚠ Manager conflict: {{ estimate.availability_status|replace({'_':' '}) }}</a><br>
+												{% elseif estimate.main_manager_id %}
+													<span class="badge bg-success d-inline-block my-1">Manager available</span><br>
+												{% else %}
+													<a href="{{ path(current_location ~ '/edit') }}?id={{ estimate.id }}" class="badge bg-warning text-dark text-decoration-none d-inline-block my-1">⚠ Manager assignment pending</a><br>
+												{% endif %}
+												{% if estimate._main_manager_name %}<small class="d-block"><strong>Main Manager:</strong> {{ estimate._main_manager_name }}</small>{% endif %}
 												<small>Created: {{ estimate.created_at|date("Y-m-d H:i") }}</small>
 												<small class="d-block text-primary mt-1" style="font-size: 0.75rem; cursor: pointer;" onclick="openOrderDetailsModalByOrderId({{ estimate.id }}, 'estimates')">
 													Click to view details

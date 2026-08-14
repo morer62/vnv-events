@@ -384,6 +384,17 @@
     </div>
   </section>
 
+  {% if isEventManager %}
+    <div class="alert {{ futureAvailabilityBlocks > 0 ? 'alert-info' : 'alert-warning' }} d-flex flex-wrap justify-content-between align-items-center gap-3 shadow-sm">
+      <div>
+        <strong><i class="fa-solid fa-calendar-xmark me-1"></i> Event Manager availability</strong>
+        <span class="d-block">Tell us which days you cannot work. Existing orders will remain active and Level 1 will receive a conflict alert when review is needed.</span>
+        {% if futureAvailabilityBlocks > 0 %}<small>{{ futureAvailabilityBlocks }} upcoming unavailable period(s) recorded.</small>{% endif %}
+      </div>
+      <a href="{{ path('panel/manager-availability') }}" class="btn btn-dark fw-bold">Update unavailable days</a>
+    </div>
+  {% endif %}
+
   {% if teamContract %}
     {% if teamContract.status in ['PENDING','SENT'] %}
       <div class="alert alert-warning d-flex flex-wrap justify-content-between align-items-center gap-2">

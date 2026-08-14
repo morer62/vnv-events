@@ -111,6 +111,18 @@ $router->get(function () {
         }
         $teamMembers = array_values($teamMembersById);
 
+        $managerDb = new \App\Repositories\Connection();
+        foreach ($teamMembers as $member) {
+            $managerDb->query("SELECT COALESCE(p.is_event_manager,0) is_event_manager,(SELECT COUNT(*) FROM orders o WHERE o.id_owner=:owner AND o.main_manager_id=:manager AND o.event_date>=CURDATE() AND o.is_archived=0) future_manager_orders FROM users u LEFT JOIN event_manager_profiles p ON p.id_owner=:owner AND p.manager_id=u.id WHERE u.id=:manager");
+            $managerDb->bind(':owner',(int)$currentOwnerId);$managerDb->bind(':manager',(int)$member->id);
+            $managerMeta=$managerDb->fetchOne();
+            $member->is_event_manager=(int)($managerMeta->is_event_manager??0);
+            $member->future_manager_orders=(int)($managerMeta->future_manager_orders??0);
+        }
+        $managerDb->query("SELECT DISTINCT u.id,u.name,u.lastname,u.email,u.level FROM users u LEFT JOIN event_manager_profiles p ON p.id_owner=:owner AND p.manager_id=u.id WHERE u.is_active=1 AND ((u.id_owner=:owner AND u.level=4 AND p.is_event_manager=1) OR (u.level=1 AND (u.id=:owner OR LOWER(u.email)=LOWER(:email)))) ORDER BY u.level,u.name,u.lastname");
+        $managerDb->bind(':owner',(int)$currentOwnerId);$managerDb->bind(':email',$_ENV['VNV_DEFAULT_MANAGER_EMAIL']??'info@vnvevents.com');
+        $managerReplacements=$managerDb->fetchAll();
+
         $memberLatestContracts = [];
         if ($teamMembers) {
             $contractRepo = new \App\Repositories\TeamMemberContractsRepository();
@@ -145,7 +157,8 @@ $router->get(function () {
         "filter_client_email" => $clientEmail,
         "current_institution" => $currentInstitution,
         "available_institutions" => $availableInstitutions,
-        "member_latest_contracts" => $memberLatestContracts
+        "member_latest_contracts" => $memberLatestContracts,
+        "manager_replacements" => $managerReplacements ?? []
     ]);
 });
 
@@ -156,6 +169,14 @@ $router->post(function () {
     $userDeactivationService = new UserDeactivationService();
     $user = LoginService::getSession();
     $currentInstitutionId = $_SESSION['current_institution_id'] ?? null;
+    // Level 1 normally works in its own institution without switching context.
+    // Resolve that institution here as well, otherwise manager deactivation is
+    // silently rejected with "No institution context selected".
+    if ($user->getLevel() === 1) {
+        $institutionRepo = new \App\Repositories\InstitutionProfileRepository();
+        $ownedInstitution = $institutionRepo->getByOwner($user->getId());
+        $currentInstitutionId = $ownedInstitution ? (int)$ownedInstitution->id : null;
+    }
 
     if (isset($_POST["switch_institution"])) {
         $institutionId = (int) $_POST["switch_institution"];
@@ -198,9 +219,10 @@ $router->post(function () {
     if (isset($_POST["deactivate_user"])) {
         $userId = (int) $_POST["deactivate_user"];
         $reason = $_POST["deactivation_reason"] ?? null;
+        $replacementManagerId = !empty($_POST['replacement_manager_id']) ? (int)$_POST['replacement_manager_id'] : null;
         
         if ($currentInstitutionId) {
-            $result = $userDeactivationService->deactivateUserFromInstitution($userId, $currentInstitutionId, $user->getId(), $reason);
+            $result = $userDeactivationService->deactivateUserFromInstitution($userId, $currentInstitutionId, $user->getId(), $reason, $replacementManagerId);
             
             if ($result['success']) {
                 MessageUtil::setMessage("User deactivated from institution successfully.");

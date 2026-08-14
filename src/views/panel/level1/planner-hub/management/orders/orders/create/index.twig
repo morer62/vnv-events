@@ -103,7 +103,7 @@
                         <input type="time" name="hour_end" value="{{ leadIntake ? leadIntake.end_time : '' }}" class="form-control" required>
                     </div>
                     <div class="col-md-3"><label class="form-label">Setup time</label><select class="form-select" name="setup_minutes"><option value="60" {% if not leadIntake or leadIntake.setup_minutes == 60 %}selected{% endif %}>1 hour</option><option value="90" {% if leadIntake and leadIntake.setup_minutes == 90 %}selected{% endif %}>1.5 hours</option><option value="120" {% if leadIntake and leadIntake.setup_minutes == 120 %}selected{% endif %}>2 hours</option><option value="180" {% if leadIntake and leadIntake.setup_minutes == 180 %}selected{% endif %}>3 hours</option></select></div>
-                    <div class="col-md-3"><label class="form-label">Main Manager</label><select class="form-select" name="main_manager_id"><option value="">Suggest available manager</option>{% for manager in managers %}<option value="{{ manager.id }}">{{ manager.name }} {{ manager.lastname }}</option>{% endfor %}</select><small class="text-muted">Validated with setup + 3-hour Transition Time.</small></div>
+                    <div class="col-md-3"><label class="form-label">Main Manager</label><select class="form-select" name="main_manager_id"><option value="">Suggest available manager</option>{% for manager in managers %}<option value="{{ manager.id }}">{{ manager.name }} {{ manager.lastname }}{% if manager.level == 1 %} — Level 1 fallback{% endif %}</option>{% endfor %}</select><small class="text-muted">Validated with setup plus the Transition Time configured for the company. Conflicts warn Level 1 but do not block creation.</small></div>
                 </div>
             {% endif %}
 

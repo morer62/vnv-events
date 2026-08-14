@@ -52,6 +52,30 @@ final class AiVideoIngestService
         return $name;
     }
 
+    public function prepareBrowserUpload(int $ownerId,string $title,string $originalName): array
+    {
+        $extension=strtolower(pathinfo($originalName,PATHINFO_EXTENSION));
+        if(!in_array($extension,self::VIDEO_EXTENSIONS,true))throw new RuntimeException('Supported project videos: MP4, MOV, M4V, MKV, WebM, AVI, MTS/M2TS, MPG and MPEG.');
+        $base=trim((string)preg_replace('/[^A-Za-z0-9._ ()-]+/','-',trim($title)),' .-');
+        if($base==='')$base=trim((string)preg_replace('/[^A-Za-z0-9._ ()-]+/','-',pathinfo($originalName,PATHINFO_FILENAME)),' .-');
+        $base=mb_substr($base?:'video-project',0,120);$folder=$base;$suffix=2;$root=$this->ownerRoot($ownerId);
+        while(is_dir($root.DIRECTORY_SEPARATOR.$folder))$folder=$base.'-'.$suffix++;
+        $this->createProjectFolder($ownerId,$folder);
+        $safeBase=trim((string)preg_replace('/[^A-Za-z0-9._-]+/','-',pathinfo($originalName,PATHINFO_FILENAME)),'-.')?:'master';
+        $filename=mb_substr($safeBase,0,130).'.'.$extension;
+        $path=$root.DIRECTORY_SEPARATOR.$folder.DIRECTORY_SEPARATOR.'source'.DIRECTORY_SEPARATOR.$filename;
+        $url='vnv-local://owner-'.$ownerId.'/'.rawurlencode($folder).'/source/'.rawurlencode($filename);
+        return ['folder'=>$folder,'filename'=>$filename,'path'=>$path,'url'=>$url,'mime_type'=>$this->mime($path)];
+    }
+
+    public function uploadWorkspace(int $ownerId,string $uploadId): string
+    {
+        if(!preg_match('/^[a-f0-9]{24,64}$/',$uploadId))throw new RuntimeException('Invalid upload session.');
+        $directory=$this->ownerRoot($ownerId).DIRECTORY_SEPARATOR.'.browser-uploads';
+        if(!is_dir($directory)&&!mkdir($directory,0770,true)&&!is_dir($directory))throw new RuntimeException('Unable to create the browser upload workspace.');
+        return $directory.DIRECTORY_SEPARATOR.$uploadId;
+    }
+
     public function folders(int $ownerId): array
     {
         $root=$this->ownerRoot($ownerId);$items=[];

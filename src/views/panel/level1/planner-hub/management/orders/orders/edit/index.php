@@ -118,7 +118,7 @@ $router->get(callback: function () {
 
     $tips = $tipsRepo->getActiveTips();
     $managerDb = new Connection();
-    $managerDb->query("SELECT u.id,u.name,u.lastname,u.email FROM users u LEFT JOIN event_manager_profiles p ON p.manager_id=u.id AND p.id_owner=:owner WHERE (u.id_owner=:owner OR u.id=:owner) AND u.is_active=1 AND (p.is_event_manager=1 OR LOWER(u.email)=LOWER(:fallback)) ORDER BY u.level DESC,u.name,u.lastname");
+    $managerDb->query("SELECT DISTINCT u.id,u.name,u.lastname,u.email,u.level FROM users u LEFT JOIN event_manager_profiles p ON p.manager_id=u.id AND p.id_owner=:owner WHERE u.is_active=1 AND ((u.id_owner=:owner AND u.level=4 AND p.is_event_manager=1) OR (u.level=1 AND (u.id=:owner OR LOWER(u.email)=LOWER(:fallback)))) ORDER BY u.level,u.name,u.lastname");
     $managerDb->bind(':owner', (int)$order->id_owner);
     $managerDb->bind(':fallback', $_ENV['VNV_DEFAULT_MANAGER_EMAIL'] ?? 'info@vnvevents.com');
     $managers = $managerDb->fetchAll();
@@ -234,11 +234,6 @@ $router->post(function () {
     $availability = $availabilityEngine->evaluate((int)$order->id_owner, (string)$_POST['event_date'], (string)$_POST['start_time'], (string)$_POST['end_time'], $setupMinutes, $managerId, (int)$order->id);
     $checkId = $availabilityEngine->record((int)$order->id_owner, 'ORDER', (int)$order->id, $availability, $managerId, $user->getId());
     $overrideReason = trim((string)($_POST['availability_override_reason'] ?? ''));
-    if (($availability['status'] ?? '') !== ManagerAvailabilityService::AVAILABLE && $overrideReason === '') {
-        $availabilityEngine->notifyLevelOne((int)$order->id_owner, 'Manager scheduling conflict on order #'.$order->id.'. Update was stopped pending review.', 'panel/planner-hub/management/orders/orders/edit?id='.$order->id);
-        MessageUtil::setMessage($availability['message'].' Add an administrative override reason only after reviewing the conflict.', 'Manager Availability Conflict', 'warning');
-        LocationUtils::redirectInternal('panel/planner-hub/management/orders/orders/edit?id='.$order->id);
-    }
     if (($availability['status'] ?? '') !== ManagerAvailabilityService::AVAILABLE && $overrideReason !== '') {
         $overrideDb=new Connection();$overrideDb->query("INSERT INTO manager_availability_overrides(id_owner,context_type,context_id,check_id,authorized_by,reason,conflict_snapshot_json) VALUES(:owner,'ORDER',:context,:check,:user,:reason,:snapshot)");$overrideDb->bind(':owner',(int)$order->id_owner);$overrideDb->bind(':context',(int)$order->id);$overrideDb->bind(':check',$checkId);$overrideDb->bind(':user',$user->getId());$overrideDb->bind(':reason',$overrideReason);$overrideDb->bind(':snapshot',json_encode($availability,JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE));$overrideDb->execute();
     }
@@ -254,7 +249,7 @@ $router->post(function () {
             "setup_minutes" => $setupMinutes,
             "main_manager_id" => $managerId,
             "manager_assignment_status" => $managerId ? 'ASSIGNED' : 'PENDING',
-            "availability_status" => ($availability['status']===ManagerAvailabilityService::AVAILABLE?'AVAILABLE':'OVERRIDDEN'),
+            "availability_status" => ($availability['status']===ManagerAvailabilityService::AVAILABLE?'AVAILABLE':($overrideReason!==''?'OVERRIDDEN':$availability['status'])),
             "availability_checked_at" => date('Y-m-d H:i:s'),
         ];
     } else {
@@ -286,7 +281,7 @@ $router->post(function () {
             "setup_minutes" => $setupMinutes,
             "main_manager_id" => $managerId,
             "manager_assignment_status" => $managerId ? 'ASSIGNED' : 'PENDING',
-            "availability_status" => ($availability['status']===ManagerAvailabilityService::AVAILABLE?'AVAILABLE':'OVERRIDDEN'),
+            "availability_status" => ($availability['status']===ManagerAvailabilityService::AVAILABLE?'AVAILABLE':($overrideReason!==''?'OVERRIDDEN':$availability['status'])),
             "availability_checked_at" => date('Y-m-d H:i:s'),
             "payment_split_type" => $paymentSplitType,
             "payment_split_percent_1" => $paymentSplit1,
@@ -300,6 +295,11 @@ $router->post(function () {
     }
 
     $repo->update($data, ["id" => $id]);
+
+    if (($availability['status'] ?? '') !== ManagerAvailabilityService::AVAILABLE && $overrideReason === '') {
+        $availabilityEngine->notifyLevelOne((int)$order->id_owner, 'Manager scheduling conflict on order #'.$order->id.'. Changes were saved and the assignment needs review.', 'panel/planner-hub/management/orders/orders/edit?id='.$order->id);
+        MessageUtil::setMessage('Order updated. '.$availability['message'].' The conflict remains visible for Level 1 review.', 'Manager conflict: review required', 'warning');
+    }
 
     // Actualizar servicios sólo si no es edición limitada
     if (!$isLimited) {
@@ -371,7 +371,9 @@ $router->post(function () {
         error_log("Order notification failed after edit: " . $e->getMessage());
     }
 
-    MessageUtil::setMessage("✅ Order updated successfully!");
+    if (($availability['status'] ?? '') === ManagerAvailabilityService::AVAILABLE || $overrideReason !== '') {
+        MessageUtil::setMessage("✅ Order updated successfully!");
+    }
     LocationUtils::redirectInternal("panel/planner-hub/management/orders/orders");
 });
 

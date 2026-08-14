@@ -147,6 +147,8 @@ $router->get(callback: function () {
 
     $secret = $_ENV["VNV_SECRET_KEY"] ?? "mySuperSecretKey";
 
+    $managerNames = [];
+
     foreach ($allOrders as &$order) {
         $payload = [
             "order_id" => (int)$order->id,
@@ -155,6 +157,16 @@ $router->get(callback: function () {
         ];
         $payload["hash"] = hash_hmac("sha256", json_encode($payload), $secret);
         $order->contract_token = base64_encode(json_encode($payload));
+        $managerId = (int)($order->main_manager_id ?? 0);
+        if ($managerId > 0) {
+            if (!array_key_exists($managerId, $managerNames)) {
+                $managerUser = $clientRepo->getOneWithoutOwnership(["id" => $managerId]);
+                $managerNames[$managerId] = $managerUser ? trim(($managerUser->name ?? '') . ' ' . ($managerUser->lastname ?? '')) : '';
+            }
+            $order->_main_manager_name = $managerNames[$managerId];
+        } else {
+            $order->_main_manager_name = '';
+        }
     }
 
     $suborderRepo = new OrdersSuborderRepository();

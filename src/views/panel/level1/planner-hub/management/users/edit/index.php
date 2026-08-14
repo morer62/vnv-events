@@ -102,6 +102,15 @@ $router->get(function () {
         $store_team_role = $storeUserRolesRepo->getRoleValueByOwnerAndUser((int)$currentOwnerId, (int)$user->id) ?: 'general';
     }
 
+    $isEventManager = false;
+    if ($currentOwnerId && (int)$user->level === 4) {
+        $managerDb = new \App\Repositories\Connection();
+        $managerDb->query("SELECT is_event_manager FROM event_manager_profiles WHERE id_owner=:owner AND manager_id=:manager");
+        $managerDb->bind(':owner',(int)$currentOwnerId);$managerDb->bind(':manager',(int)$user->id);
+        $managerProfile = $managerDb->fetchOne();
+        $isEventManager = $managerProfile && (int)$managerProfile->is_event_manager === 1;
+    }
+
     $categories = [];
     if ($currentOwnerId) {
         $categories = $categoryRepo->getAllByInstitutionOwner((int) $currentOwnerId);
@@ -114,6 +123,7 @@ $router->get(function () {
         "institution_hourly_rate" => $institution_hourly_rate,
         "contract_detail" => $contract_detail,
         "store_team_role" => $store_team_role,
+        "is_event_manager" => $isEventManager,
         "is_primary_company" => $isPrimaryCompany,
         "crm_categories" => $categories
     ]);
@@ -455,6 +465,13 @@ $router->post(function () {
 
     if ($user->level == 4 && isset($_POST["store_team_role"]) && $currentOwnerId) {
         $storeUserRolesRepo->saveValidatedRole((int)$currentOwnerId, (int)$id, trim((string)$_POST["store_team_role"]));
+    }
+
+    if ($user->level == 4 && $currentOwnerId) {
+        $managerDb = new \App\Repositories\Connection();
+        $managerDb->query("INSERT INTO event_manager_profiles(id_owner,manager_id,is_event_manager,updated_by) VALUES(:owner,:manager,:enabled,:user) ON DUPLICATE KEY UPDATE is_event_manager=VALUES(is_event_manager),updated_by=VALUES(updated_by)");
+        foreach (['owner'=>(int)$currentOwnerId,'manager'=>(int)$id,'enabled'=>!empty($_POST['is_event_manager'])?1:0,'user'=>(int)$session->getId()] as $key=>$value) $managerDb->bind(':'.$key,$value);
+        $managerDb->execute();
     }
 
     if (!empty($newData)) {

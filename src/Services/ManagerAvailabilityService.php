@@ -16,7 +16,15 @@ final class ManagerAvailabilityService
     public function __construct(?Connection $db=null)
     {
         $this->db=$db??new Connection();
-        $this->transitionMinutes=max(0,(int)($_ENV['VNV_MANAGER_TRANSITION_MINUTES']??180));
+        $configuredHours=$_ENV['VNV_MANAGER_TRANSITION_HOURS']??null;
+        $this->transitionMinutes=$configuredHours!==null&&$configuredHours!==''
+            ? max(0,(int)round((float)$configuredHours*60))
+            : max(0,(int)($_ENV['VNV_MANAGER_TRANSITION_MINUTES']??180));
+    }
+
+    public function transitionMinutes(): int
+    {
+        return $this->transitionMinutes;
     }
 
     public function evaluate(int $ownerId,string $date,string $start,string $end,int $setupMinutes=60,?int $managerId=null,?int $excludeOrderId=null): array
@@ -62,15 +70,14 @@ final class ManagerAvailabilityService
 
     private function eligibleManagers(int $ownerId): array
     {
-        $this->db->query("SELECT u.id,u.name,u.lastname,u.email,u.level FROM users u INNER JOIN event_manager_profiles p ON p.manager_id=u.id AND p.id_owner=:owner AND p.is_event_manager=1 WHERE u.id_owner=:owner AND u.level=4 AND u.is_active=1 ORDER BY u.name,u.lastname");$this->db->bind(':owner',$ownerId);$rows=$this->db->fetchAll();
-        $fallback=$this->managerRows($ownerId,null,true);if($fallback&&!array_filter($rows,fn($r)=>(int)$r->id===(int)$fallback[0]->id))$rows[]=$fallback[0];return $rows;
+        $this->db->query("SELECT u.id,u.name,u.lastname,u.email,u.level FROM users u INNER JOIN event_manager_profiles p ON p.manager_id=u.id AND p.id_owner=:owner AND p.is_event_manager=1 WHERE u.id_owner=:owner AND u.level=4 AND u.is_active=1 ORDER BY u.name,u.lastname");$this->db->bind(':owner',$ownerId);return $this->db->fetchAll();
     }
 
     private function managerRows(int $ownerId,?int $id=null,bool $fallback=false): array
     {
-        $email=$_ENV['VNV_DEFAULT_MANAGER_EMAIL']??'info@vnvevents.com';
-        $sql="SELECT u.id,u.name,u.lastname,u.email,u.level FROM users u LEFT JOIN event_manager_profiles p ON p.manager_id=u.id AND p.id_owner=:owner WHERE (u.id_owner=:owner OR u.id=:owner) AND u.is_active=1";
-        if($id!==null)$sql.=" AND u.id=:id AND (p.is_event_manager=1 OR LOWER(u.email)=LOWER(:email))";elseif($fallback)$sql.=" AND LOWER(u.email)=LOWER(:email)";$sql.=" LIMIT 1";$this->db->query($sql);$this->db->bind(':owner',$ownerId);if($id!==null)$this->db->bind(':id',$id);if($id!==null||$fallback)$this->db->bind(':email',$email);$row=$this->db->fetchOne();return $row?[$row]:[];
+        if($id===null)return [];
+        $sql="SELECT u.id,u.name,u.lastname,u.email,u.level FROM users u LEFT JOIN event_manager_profiles p ON p.manager_id=u.id AND p.id_owner=:owner WHERE u.id=:id AND u.is_active=1 AND ((u.id_owner=:owner AND u.level=4 AND p.is_event_manager=1) OR (u.level=1 AND (u.id=:owner OR LOWER(u.email)=LOWER(:email)))) LIMIT 1";
+        $this->db->query($sql);$this->db->bind(':owner',$ownerId);$this->db->bind(':id',$id);$this->db->bind(':email',$_ENV['VNV_DEFAULT_MANAGER_EMAIL']??'info@vnvevents.com');$row=$this->db->fetchOne();return $row?[$row]:[];
     }
 
     private function window(string $date,string $start,string $end,int $setupMinutes): array

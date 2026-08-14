@@ -53,6 +53,7 @@ $router->get(function(){
         'jobs'=>$jobs,'assets'=>$repo->assets($owner),'renderReady'=>(new AiVideoRenderService())->available(),
         'selected'=>$selected,'timeline'=>$selected?(new AiTranscriptTimelineService())->timeline($selected):['blocks'=>[],'pauses'=>[],'has_word_timestamps'=>false],
         'captionStyles'=>AiCaptionStyleRegistry::all(),
+        'browserUploadMaxGb'=>max(1,min(50,(int)($_ENV['VIDEO_BROWSER_UPLOAD_MAX_GB']??12))),
         'ingestRoot'=>$ingestRoot,'ingestFolders'=>$ingestFolders,'ingestStableSeconds'=>$ingest->stableSeconds(),'ingestError'=>$ingestError,
     ]);
 });
@@ -84,7 +85,9 @@ $router->post(function(){
             $repo->addAsset($owner,(int)$session->getId(),$media['type'],trim((string)($_POST['asset_name']??''))?:pathinfo((string)$file['name'],PATHINFO_FILENAME),$url,$media['mime']);
             MessageUtil::setMessage('Reusable '.$media['type'].' was added to the media bank.');
         }elseif($action==='duplicate_project'){
-            $newId=$repo->duplicate($owner,(int)$session->getId(),(int)($_POST['id']??0));if(!$newId)throw new RuntimeException('Project not found.');MessageUtil::setMessage('Reusable remix project #'.$newId.' created.');
+            $newId=$repo->duplicate($owner,(int)$session->getId(),(int)($_POST['id']??0));if(!$newId)throw new RuntimeException('Project not found.');$copyTitle=trim((string)($_POST['duplicate_title']??''));if($copyTitle!=='')$repo->rename($owner,$newId,$copyTitle);MessageUtil::setMessage('Project duplicated successfully.');$redirectProject=$newId;
+        }elseif($action==='rename_project'){
+            $id=(int)($_POST['id']??0);if(!$repo->rename($owner,$id,(string)($_POST['project_title']??'')))throw new RuntimeException('Enter a different project name.');MessageUtil::setMessage('Project name updated.');$redirectProject=$id;
         }elseif($action==='clean_captions'){
             $id=(int)($_POST['id']??0);$job=$repo->find($owner,$id);if(!$job)throw new RuntimeException('Project not found.');
             $phrases=preg_split('/[\r\n,;]+/',(string)($_POST['remove_phrases']??''));$selected=trim((string)($_POST['selected_text']??''));if($selected!=='')$phrases[]=$selected;

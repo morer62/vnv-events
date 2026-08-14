@@ -74,10 +74,20 @@ class AiAgentMediaRepository
         foreach(['job'=>(int)$job->id,'owner'=>$ownerId,'user'=>$userId,'type'=>$type,'text'=>$job->transcript_text,'srt'=>$job->subtitles_srt,'plan'=>$job->edit_plan_json,'notes'=>$notes] as $k=>$v)$this->db->bind(':'.$k,$v);$this->db->execute();
     }
     public function revisions(int $ownerId,int $id): array{$this->db->query("SELECT id,revision_type,notes,created_at FROM ai_agent_video_revisions WHERE id_owner=:owner AND id_media_job=:id ORDER BY id DESC LIMIT 25");$this->db->bind(':owner',$ownerId);$this->db->bind(':id',$id);return $this->db->fetchAll();}
+    public function rename(int $ownerId,int $id,string $title): bool
+    {
+        $title=trim($title);if($title==='')return false;
+        $this->db->query("UPDATE ai_agent_media_jobs SET title=:title WHERE id=:id AND id_owner=:owner");
+        $this->db->bind(':title',mb_substr($title,0,180));$this->db->bind(':id',$id);$this->db->bind(':owner',$ownerId);$this->db->execute();
+        return $this->db->rowCount()>0;
+    }
+
     public function duplicate(int $ownerId,int $userId,int $id): int
     {
         $job=$this->find($ownerId,$id);if(!$job)return 0;$this->db->query("INSERT INTO ai_agent_media_jobs(id_owner,id_user,title,source_url,source_name,mime_type,status,transcript_text,transcript_json,subtitles_srt,edit_plan_json)
-          VALUES(:owner,:user,:title,:url,:name,:mime,'READY',:text,:json,:srt,:plan)");
+          VALUES(:owner,:user,:title,:url,:name,:mime,:status,:text,:json,:srt,:plan)");
+        $status=trim((string)$job->transcript_text)!==''?'READY':'UPLOADED';
+        $this->db->bind(':status',$status);
         foreach(['owner'=>$ownerId,'user'=>$userId,'title'=>$job->title.' — remix','url'=>$job->source_url,'name'=>$job->source_name,'mime'=>$job->mime_type,'text'=>$job->transcript_text,'json'=>$job->transcript_json,'srt'=>$job->subtitles_srt,'plan'=>$job->edit_plan_json] as $k=>$v)$this->db->bind(':'.$k,$v);$this->db->execute();return (int)$this->db->lastId();
     }
 

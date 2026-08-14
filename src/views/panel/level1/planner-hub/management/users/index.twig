@@ -124,13 +124,19 @@
                                     <td>
                                         <a href="{{ path('panel/planner-hub/management/users/edit?id=' ~ member.id) }}" class="btn btn-sm btn-outline-warning">✏️ Edit</a>
                                         <a href="{{ path('panel/planner-hub/management/users/contracts?id=' ~ member.id) }}" class="btn btn-sm btn-outline-primary">Upload / Contracts</a>
-                                        <form method="post" class="d-inline">
-                                            <input type="hidden" name="id" value="{{ member.id }}">
-                                            {% if member.password_updated == 0 %}
-                                                <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Are you sure you want to completely delete this unvalidated user? This action cannot be undone.')">🗑️ Delete User</button>
-                                            {% else %}
-                                                <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Are you sure you want to delete this team member?')">🗑️ Delete</button>
+                                        <form method="post" class="mt-2 border rounded p-2 text-start" onsubmit="return confirm('Deactivate this team member and transfer all future Main Manager assignments?')">
+                                            <input type="hidden" name="deactivate_user" value="{{ member.id }}">
+                                            {% if member.future_manager_orders > 0 %}
+                                                <small class="d-block text-warning fw-bold mb-1">{{ member.future_manager_orders }} future manager event(s)</small>
+                                                <select name="replacement_manager_id" class="form-select form-select-sm mb-1" required>
+                                                    <option value="">Transfer events to…</option>
+                                                    {% for replacement in manager_replacements %}{% if replacement.id != member.id %}
+                                                        <option value="{{ replacement.id }}">{{ replacement.name }} {{ replacement.lastname }}{% if replacement.level == 1 %} — Level 1{% endif %}</option>
+                                                    {% endif %}{% endfor %}
+                                                </select>
                                             {% endif %}
+                                            <input type="text" name="deactivation_reason" class="form-control form-control-sm mb-1" placeholder="Reason (optional)">
+                                            <button type="submit" class="btn btn-sm btn-outline-danger">Deactivate{% if member.future_manager_orders > 0 %} & transfer{% endif %}</button>
                                         </form>
                                     </td>
                                 </tr>
