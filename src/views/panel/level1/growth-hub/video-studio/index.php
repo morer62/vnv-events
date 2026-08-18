@@ -151,6 +151,12 @@ $router->post(function(){
             $id=(int)($_POST['id']??0); $job=$repo->find($owner,$id);
             if(!$job) throw new RuntimeException('Media job not found.');
             if(!(new AiVideoRenderService())->available()) throw new RuntimeException('FFmpeg is not configured on this server.');
+            if(!empty($_POST['cut_only_mode'])){
+                $plan=json_decode((string)($job->edit_plan_json??''),true);if(!is_array($plan))$plan=[];
+                foreach(['transitions','camera_moves','generated_inserts','caption_style_events','text_overlays'] as $field)$plan[$field]=[];
+                $request=(array)($plan['_request']??[]);$request['cut_only_mode']=true;$request['timeline_commands']=[];$request['removed_segments']=(array)($request['timeline_removed_segments']??[]);$plan['_request']=$request;
+                $repo->updateEditor($owner,$id,(string)($job->transcript_text??''),(string)($job->subtitles_srt??''),$plan);
+            }
             $repo->setRenderCaptionMode($owner,$id,(string)($_POST['caption_mode']??'with_captions'));
             $repo->queueRender($owner,$id);
             MessageUtil::setMessage('Final render queued. The downloadable MP4 will appear when the worker finishes.');

@@ -69,7 +69,7 @@ final class AiTranscriptTimelineService
         return ['blocks'=>$blocks,'pauses'=>$pauses,'has_word_timestamps'=>!empty($sourceWords)];
     }
 
-    public function apply(object $job,array $edits,bool $removePauses=false,float $pauseThreshold=1.25,array $pauseEdits=[],array $precisionEdits=[]): array
+    public function apply(object $job,array $edits,bool $removePauses=false,float $pauseThreshold=1.25,array $pauseEdits=[],array $precisionEdits=[],bool $cutOnlyMode=false): array
     {
         $timeline=$this->timeline($job);$byId=[];foreach($timeline['blocks'] as $block)$byId[(int)$block['id']]=$block;
         $removed=[];$lines=[];$srt=[];$commands=[];$number=1;
@@ -103,7 +103,13 @@ final class AiTranscriptTimelineService
         if($removePauses)foreach($timeline['pauses'] as $pause)if($pause['duration']>=$pauseThreshold&&!$this->pauseWasEdited($pause,$editedPauses)){$keep=min(.35,(float)$pause['duration']);$removed[]=['start'=>$pause['start']+$keep,'end'=>$pause['end'],'reason'=>'Long pause automatically reduced to '.number_format($keep,2).'s'];$editedPauses[]=['start'=>$pause['start'],'end'=>$pause['end'],'keep'=>$keep];}
         $removed=$this->mergeSegments($removed);
         $plan=json_decode((string)($job->edit_plan_json??''),true);if(!is_array($plan))$plan=[];
-        $request=(array)($plan['_request']??[]);$previousTimeline=(array)($request['timeline_removed_segments']??[]);$baseRemoved=array_values(array_filter((array)($request['removed_segments']??[]),fn($segment)=>!$this->sameAsAny($segment,$previousTimeline)));$request['timeline_removed_segments']=$removed;$request['removed_segments']=$this->mergeSegments(array_merge($baseRemoved,$removed));$request['timeline_commands']=$commands;$request['pause_edits']=$editedPauses;$request['precision_edits']=$validatedPrecisionEdits;$request['pause_threshold_seconds']=$pauseThreshold;$plan['_request']=$request;
+        $request=(array)($plan['_request']??[]);$previousTimeline=(array)($request['timeline_removed_segments']??[]);$baseRemoved=$cutOnlyMode?[]:array_values(array_filter((array)($request['removed_segments']??[]),fn($segment)=>!$this->sameAsAny($segment,$previousTimeline)));$request['timeline_removed_segments']=$removed;$request['removed_segments']=$this->mergeSegments(array_merge($baseRemoved,$removed));$request['timeline_commands']=$cutOnlyMode?[]:$commands;$request['pause_edits']=$editedPauses;$request['precision_edits']=$validatedPrecisionEdits;$request['pause_threshold_seconds']=$pauseThreshold;$request['cut_only_mode']=$cutOnlyMode;$plan['_request']=$request;
+        if($cutOnlyMode){
+            // Cut Studio creates a neutral master for finishing in CapCut. The
+            // creative engine remains available in code but is disabled here.
+            $commands=[];
+            foreach(['transitions','camera_moves','generated_inserts','caption_style_events','text_overlays'] as $field)$plan[$field]=[];
+        }
         foreach(['transitions','camera_moves','generated_inserts','caption_style_events','text_overlays'] as $field)$plan[$field]=array_values(array_filter((array)($plan[$field]??[]),fn($item)=>($item['source']??'')!=='timeline_command'));
         foreach($commands as $command)$this->applyCommandToPlan($plan,$command);
         return ['transcript'=>implode("\n\n",$lines),'srt'=>implode("\n\n",$srt),'plan'=>$plan,'removed_segments'=>$removed,'commands'=>$commands];
