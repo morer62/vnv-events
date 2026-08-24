@@ -17,6 +17,12 @@ use App\Utils\MessageUtil;
 $router = new Router();
 
 $router->get(callback: function () {
+    // Weekly Execution is the operational default. Explicit tab links still
+    // open the complete Orders or Estimates tables when requested.
+    if (!isset($_GET['tab']) || !in_array((string)$_GET['tab'], ['orders', 'estimates'], true)) {
+        LocationUtils::redirectInternal('panel/planner-hub/management/orders/orders/execution');
+    }
+
     $user = LoginService::getSession();
     $repo = new OrdersRepository();
     $clientRepo = new UserRepository();
