@@ -53,7 +53,7 @@
           <td><div class="d-grid gap-1"><a class="btn btn-sm btn-outline-dark" href="{{ path('panel/planner-hub/management/orders/orders/team_comunication') }}?id={{ event.id }}">Operational details</a><a class="btn btn-sm btn-outline-secondary" href="{{ path('panel/planner-hub/management/orders/orders/print') }}?id={{ event.id }}" target="_blank">Order details</a></div></td>
           <td class="execution-files">
             {% for file in event.execution_files %}<div class="execution-file"><i data-feather="paperclip"></i><a href="{{ file.file_path }}" target="_blank" rel="noopener">{{ file.title|default('Order file') }}</a><form method="post" onsubmit="return confirm('Are you sure you want to permanently delete this internal execution file?');"><input type="hidden" name="action" value="delete_file"><input type="hidden" name="order_id" value="{{ event.id }}"><input type="hidden" name="file_id" value="{{ file.id }}"><button class="execution-file-delete" type="submit" title="Delete file" aria-label="Delete {{ file.title|default('file') }}"><i data-feather="trash-2"></i></button></form></div>{% else %}<small class="text-muted d-block mb-2">No internal files.</small>{% endfor %}
-            <button class="btn btn-sm btn-success" type="button" data-bs-toggle="modal" data-bs-target="#uploadExecutionFile" data-order-id="{{ event.id }}" data-order-label="VNV-341{{ event.id }}">Add file</button>
+            <button class="btn btn-sm btn-success" type="button" data-bs-toggle="modal" data-bs-target="#uploadExecutionFile" data-toggle="modal" data-target="#uploadExecutionFile" onclick="prepareExecutionUpload({{ event.id }}, 'VNV-341{{ event.id }}')">Add file</button>
           </td>
         </tr>
       {% else %}
@@ -75,10 +75,9 @@
 
 {% block script %}
 <script>
-document.getElementById('uploadExecutionFile')?.addEventListener('show.bs.modal', function (event) {
-  const button = event.relatedTarget;
-  document.getElementById('executionOrderId').value = button?.dataset.orderId || '';
-  document.getElementById('executionOrderLabel').textContent = button?.dataset.orderLabel || '';
-});
+function prepareExecutionUpload(orderId, orderLabel) {
+  document.getElementById('executionOrderId').value = String(orderId || '');
+  document.getElementById('executionOrderLabel').textContent = orderLabel || '';
+}
 </script>
 {% endblock %}

@@ -66,10 +66,11 @@ $router->post(function () use ($range) {
         : '?week=' . urlencode($preset);
 
     $orderId = (int)($_POST['order_id'] ?? 0);
-    $order = (new OrdersRepository())->getOne([
-        'id' => $orderId,
-        'id_owner' => (int)$user->getOwner(),
-    ]);
+    if ($orderId <= 0) {
+        MessageUtil::setMessage('The event could not be identified. Refresh the page and try again.', 'Event Execution', 'error');
+        LocationUtils::redirectInternal('panel/planner-hub/management/orders/orders/execution' . $returnQuery);
+    }
+    $order = (new OrdersRepository())->getOneByIdAndOwner($orderId, (int)$user->getOwner());
     if (!$order) {
         MessageUtil::setMessage('This order is not available for the current business account.', 'Event Execution', 'error');
         LocationUtils::redirectInternal('panel/planner-hub/management/orders/orders/execution' . $returnQuery);
