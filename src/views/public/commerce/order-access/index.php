@@ -525,6 +525,10 @@ $router->get(function () {
     }
 
     $baseUrl = $_ENV["APP_URL"] ?? 'http://localhost/vnv-venue';
+    $showEventDaySignatureReminder = $hasSigned
+        && $paymentStatus === 'complete'
+        && !$hasSignedAcceptance
+        && (string)($order->event_date ?? '') === date('Y-m-d');
 
     return TemplateResponse::render(__DIR__ . "/index.twig", [
         "order" => $order,
@@ -537,6 +541,7 @@ $router->get(function () {
         "hasSigned" => $hasSigned,
         "hasSignedAcceptance" => $hasSignedAcceptance,
         "paymentStatus" => $paymentStatus,
+        "show_event_day_signature_reminder" => $showEventDaySignatureReminder,
         "payment_type" => $order->payment_split_type == 2 ? 'split' : 'one',
 
         "contract_summary" => $contract ? $contract->content : TranslationService::trans('planner_hub.no_contract_assigned'),

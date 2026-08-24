@@ -152,7 +152,7 @@ class OrdersRepository extends BaseRepository
             $params[":search"] = "%" . $search . "%";
         }
 
-        $sql .= " ORDER BY event_date ASC";
+        $sql .= " ORDER BY event_date ASC, COALESCE(start_time, '00:00:00') ASC, id ASC";
 
         $this->db->query($sql);
         foreach ($params as $key => $value) {
@@ -402,13 +402,37 @@ class OrdersRepository extends BaseRepository
             $params[":search"] = "%" . $search . "%";
         }
 
-        $sql .= " ORDER BY event_date ASC";
+        $sql .= " ORDER BY event_date ASC, COALESCE(start_time, '00:00:00') ASC, id ASC";
 
         $this->db->query($sql);
         foreach ($params as $key => $value) {
             $this->db->bind($key, $value);
         }
 
+        return $this->db->fetchAll();
+    }
+
+    /**
+     * Orders that may be candidates for the weekly execution board.
+     * Payment readiness is intentionally calculated by the service layer so
+     * refunds, advances and sub-orders use the same accounting rules as the
+     * public Order Access page.
+     */
+    public function getExecutionCandidates(int $ownerId, string $startDate, string $endDate): array
+    {
+        $sql = "
+            SELECT o.*
+            FROM orders o
+            WHERE o.id_owner = :owner_id
+              AND o.is_archived = 0
+              AND o.status_workflow <> 'INVOICE_DRAFT'
+              AND o.event_date BETWEEN :start_date AND :end_date
+            ORDER BY o.event_date ASC, COALESCE(o.start_time, '00:00:00') ASC, o.id ASC
+        ";
+        $this->db->query($sql);
+        $this->db->bind(':owner_id', $ownerId);
+        $this->db->bind(':start_date', $startDate);
+        $this->db->bind(':end_date', $endDate);
         return $this->db->fetchAll();
     }
 

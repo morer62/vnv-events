@@ -70,13 +70,13 @@ $router->get(callback: function () {
     usort($orders, function($a, $b) use ($orderBy) {
         if ($orderBy === "event_date_asc") {
             // Ordenar por fecha de evento (más cercanos primero)
-            $dateA = strtotime($a->event_date);
-            $dateB = strtotime($b->event_date);
+            $dateA = strtotime($a->event_date . ' ' . ($a->start_time ?? '00:00:00'));
+            $dateB = strtotime($b->event_date . ' ' . ($b->start_time ?? '00:00:00'));
             return $dateA - $dateB;
         } elseif ($orderBy === "event_date_desc") {
             // Ordenar por fecha de evento (más lejanos primero)
-            $dateA = strtotime($a->event_date);
-            $dateB = strtotime($b->event_date);
+            $dateA = strtotime($a->event_date . ' ' . ($a->start_time ?? '00:00:00'));
+            $dateB = strtotime($b->event_date . ' ' . ($b->start_time ?? '00:00:00'));
             return $dateB - $dateA;
         } else {
             // Ordenar por fecha de creación
@@ -89,13 +89,13 @@ $router->get(callback: function () {
     usort($estimates, function($a, $b) use ($orderBy) {
         if ($orderBy === "event_date_asc") {
             // Ordenar por fecha de evento (más cercanos primero)
-            $dateA = strtotime($a->event_date);
-            $dateB = strtotime($b->event_date);
+            $dateA = strtotime($a->event_date . ' ' . ($a->start_time ?? '00:00:00'));
+            $dateB = strtotime($b->event_date . ' ' . ($b->start_time ?? '00:00:00'));
             return $dateA - $dateB;
         } elseif ($orderBy === "event_date_desc") {
             // Ordenar por fecha de evento (más lejanos primero)
-            $dateA = strtotime($a->event_date);
-            $dateB = strtotime($b->event_date);
+            $dateA = strtotime($a->event_date . ' ' . ($a->start_time ?? '00:00:00'));
+            $dateB = strtotime($b->event_date . ' ' . ($b->start_time ?? '00:00:00'));
             return $dateB - $dateA;
         } else {
             // Ordenar por fecha de creación

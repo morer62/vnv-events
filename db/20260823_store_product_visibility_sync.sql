@@ -19,7 +19,7 @@ WHERE sp.site_key IS NOT NULL
   AND NOT EXISTS (
       SELECT 1
       FROM site_visibility sv
-      WHERE sv.site_key = sp.site_key
+      WHERE sv.site_key COLLATE utf8mb4_unicode_ci = sp.site_key COLLATE utf8mb4_unicode_ci
         AND sv.entity_type = 'store_product'
         AND sv.entity_id = sp.id
   );
@@ -27,7 +27,7 @@ WHERE sp.site_key IS NOT NULL
 UPDATE site_visibility sv
 INNER JOIN store_products sp
     ON sp.id = sv.entity_id
-   AND sp.site_key = sv.site_key
+   AND sp.site_key COLLATE utf8mb4_unicode_ci = sv.site_key COLLATE utf8mb4_unicode_ci
 SET sv.id_user_business = sp.id_owner,
     sv.is_visible = CASE WHEN sp.is_public = 1 AND sp.status = 'ACTIVE' THEN 1 ELSE 0 END,
     sv.visibility_status = CASE WHEN sp.is_public = 1 AND sp.status = 'ACTIVE' THEN 'VISIBLE' ELSE 'HIDDEN' END,
@@ -46,7 +46,7 @@ SELECT
     sv.visibility_status
 FROM store_products sp
 LEFT JOIN site_visibility sv
-    ON sv.site_key = sp.site_key
+    ON sv.site_key COLLATE utf8mb4_unicode_ci = sp.site_key COLLATE utf8mb4_unicode_ci
    AND sv.entity_type = 'store_product'
    AND sv.entity_id = sp.id
 WHERE sp.id = 84;
