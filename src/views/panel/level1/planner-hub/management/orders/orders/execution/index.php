@@ -70,8 +70,8 @@ $router->post(function () use ($range) {
         'id' => $orderId,
         'id_owner' => (int)$user->getOwner(),
     ]);
-    if (!$order || !(new WeeklyExecutionService())->paymentReadiness($order)['is_paid']) {
-        MessageUtil::setMessage('This event is not available on the execution board.', 'Event Execution', 'error');
+    if (!$order) {
+        MessageUtil::setMessage('This order is not available for the current business account.', 'Event Execution', 'error');
         LocationUtils::redirectInternal('panel/planner-hub/management/orders/orders/execution' . $returnQuery);
     }
     $action = (string)($_POST['action'] ?? '');

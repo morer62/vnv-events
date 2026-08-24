@@ -2,15 +2,15 @@
 
 {% block style %}
 <style>
-  .execution-hero{background:linear-gradient(135deg,#101827,#153b3a);color:#fff;border:0;border-radius:22px;overflow:hidden}.execution-kicker{color:#55dfc8;font-size:.75rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase}.execution-range{color:#d8eeea}.execution-tabs .nav-link{font-weight:700;color:#53606d}.execution-tabs .nav-link.active{color:#087267;border-bottom-color:#087267}.execution-card{border:1px solid #e2e8ec;border-radius:18px;box-shadow:0 10px 34px rgba(16,24,39,.06);overflow:hidden}.execution-table th{white-space:nowrap;font-size:.78rem;text-transform:uppercase;letter-spacing:.04em;color:#65727e;background:#f7f9fa}.execution-table td{vertical-align:middle}.execution-event{min-width:285px;padding-top:14px!important;padding-bottom:14px!important}.execution-event-date{font-size:1.05rem;font-weight:900;color:#17232c;letter-spacing:.01em}.execution-event-time{display:flex;align-items:center;gap:7px;margin-top:5px;color:#087267;font-size:1rem;font-weight:900}.execution-event-time svg{width:16px;height:16px}.execution-client-name{display:block;margin-top:10px;font-weight:750;color:#26343d}.manager-pill{display:inline-flex;align-items:center;gap:5px;margin-top:7px;border:1px solid #9cdec7;border-radius:999px;background:#e6f7f1;color:#086a58;padding:4px 9px;font-size:.72rem;font-weight:850}.manager-pill svg{width:13px;height:13px}.manager-pill.pending{border-color:#e5d79a;background:#fff8dc;color:#765d00}.execution-address{min-width:240px}.execution-files{min-width:230px}.execution-file{display:flex;align-items:center;gap:7px;margin-bottom:7px;padding:6px 8px;border-radius:9px;background:#f5f8f8}.execution-file>a{flex:1;min-width:0;overflow-wrap:anywhere}.execution-file form{margin:0}.execution-file-delete{border:0;background:transparent;color:#a52b2b;padding:2px;line-height:1}.execution-file-delete svg{width:15px;height:15px}.execution-empty{padding:56px 20px;text-align:center;color:#65727e}.paid-pill{display:inline-flex;align-items:center;gap:5px;border-radius:999px;background:#e6f7f1;color:#08745f;padding:5px 9px;font-size:.75rem;font-weight:800}@media(max-width:767px){.execution-filter .btn{width:100%}.execution-hero{border-radius:16px}}
+  .execution-hero{background:linear-gradient(135deg,#101827,#153b3a);color:#fff;border:0;border-radius:22px;overflow:hidden}.execution-kicker{color:#55dfc8;font-size:.75rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase}.execution-range{color:#d8eeea}.execution-tabs .nav-link{font-weight:700;color:#53606d}.execution-tabs .nav-link.active{color:#087267;border-bottom-color:#087267}.execution-card{border:1px solid #e2e8ec;border-radius:18px;box-shadow:0 10px 34px rgba(16,24,39,.06);overflow:hidden}.execution-table th{white-space:nowrap;font-size:.78rem;text-transform:uppercase;letter-spacing:.04em;color:#65727e;background:#f7f9fa}.execution-table td{vertical-align:middle}.execution-event{min-width:285px;padding-top:14px!important;padding-bottom:14px!important}.execution-event-date{font-size:1.05rem;font-weight:900;color:#17232c;letter-spacing:.01em}.execution-event-time{display:flex;align-items:center;gap:7px;margin-top:5px;color:#087267;font-size:1rem;font-weight:900}.execution-event-time svg{width:16px;height:16px}.execution-client-name{display:block;margin-top:10px;font-weight:750;color:#26343d}.manager-pill{display:inline-flex;align-items:center;gap:5px;margin-top:7px;border:1px solid #9cdec7;border-radius:999px;background:#e6f7f1;color:#086a58;padding:4px 9px;font-size:.72rem;font-weight:850}.manager-pill svg{width:13px;height:13px}.manager-pill.pending{border-color:#e5d79a;background:#fff8dc;color:#765d00}.execution-address{min-width:240px}.execution-files{min-width:230px}.execution-file{display:flex;align-items:center;gap:7px;margin-bottom:7px;padding:6px 8px;border-radius:9px;background:#f5f8f8}.execution-file>a{flex:1;min-width:0;overflow-wrap:anywhere}.execution-file form{margin:0}.execution-file-delete{border:0;background:transparent;color:#a52b2b;padding:2px;line-height:1}.execution-file-delete svg{width:15px;height:15px}.execution-empty{padding:56px 20px;text-align:center;color:#65727e}.paid-pill{display:inline-flex;align-items:center;gap:5px;border-radius:999px;background:#e6f7f1;color:#08745f;padding:5px 9px;font-size:.75rem;font-weight:800}.paid-pill.pending{background:#fff3d6;color:#875d00}.balance-due{display:block;margin-top:3px;color:#a15b00;font-size:.74rem;font-weight:750}@media(max-width:767px){.execution-filter .btn{width:100%}.execution-hero{border-radius:16px}}
 </style>
 {% endblock %}
 
 {% block body %}
 <section class="card execution-hero mb-4">
   <div class="card-body p-4 p-lg-5 d-flex flex-column flex-lg-row justify-content-between gap-3 align-items-lg-center">
-    <div><div class="execution-kicker">VNV event operations</div><h1 class="h2 mb-2">Weekly Execution</h1><p class="execution-range mb-0">Fully paid events from {{ startDate|date('M j, Y') }} through {{ endDate|date('M j, Y') }}, ordered by exact start time.</p></div>
-    <span class="badge rounded-pill bg-light text-dark fs-6 px-3 py-2">{{ events|length }} ready event{{ events|length == 1 ? '' : 's' }}</span>
+    <div><div class="execution-kicker">VNV event operations</div><h1 class="h2 mb-2">Weekly Execution</h1><p class="execution-range mb-0">Events with at least one payment from {{ startDate|date('M j, Y') }} through {{ endDate|date('M j, Y') }}, ordered by exact start time.</p></div>
+    <span class="badge rounded-pill bg-light text-dark fs-6 px-3 py-2">{{ events|length }} execution event{{ events|length == 1 ? '' : 's' }}</span>
   </div>
 </section>
 
@@ -36,7 +36,7 @@
 <section class="card execution-card">
   <div class="table-responsive">
     <table class="table execution-table mb-0">
-      <thead><tr><th>Event</th><th>Address / directions</th><th>Ready</th><th>Order access</th><th>Operations</th><th>Execution files</th></tr></thead>
+      <thead><tr><th>Event</th><th>Address / directions</th><th>Payment</th><th>Order access</th><th>Operations</th><th>Execution files</th></tr></thead>
       <tbody>
       {% for event in events %}
         <tr>
@@ -48,7 +48,7 @@
             {% if event.manager_name %}<span class="manager-pill"><i data-feather="user-check"></i>Manager: {{ event.manager_name }}</span>{% else %}<span class="manager-pill pending"><i data-feather="alert-circle"></i>Manager pending</span>{% endif %}
           </td>
           <td class="execution-address">{% if event.address %}<a href="https://www.google.com/maps/search/?api=1&query={{ event.address|url_encode }}" target="_blank" rel="noopener"><i data-feather="map-pin"></i> {{ event.address }}</a>{% else %}<span class="text-muted">Address pending</span>{% endif %}</td>
-          <td><span class="paid-pill"><i data-feather="check-circle"></i> 100% paid</span><small class="d-block text-muted mt-1">${{ event.paid_total|number_format(2) }} / ${{ event.order_total|number_format(2) }}</small></td>
+          <td>{% if event.is_fully_paid %}<span class="paid-pill"><i data-feather="check-circle"></i>100% paid</span>{% else %}<span class="paid-pill pending"><i data-feather="clock"></i>Balance pending</span>{% endif %}<small class="d-block text-muted mt-1">Paid ${{ event.paid_total|number_format(2) }} / ${{ event.order_total|number_format(2) }}</small>{% if not event.is_fully_paid %}<span class="balance-due">Due ${{ event.balance_due|number_format(2) }}</span>{% endif %}</td>
           <td><a class="btn btn-sm btn-outline-primary" href="{{ path('order-access') }}?token={{ event.contract_token|url_encode }}" target="_blank" rel="noopener">Payment & signature</a></td>
           <td><div class="d-grid gap-1"><a class="btn btn-sm btn-outline-dark" href="{{ path('panel/planner-hub/management/orders/orders/team_comunication') }}?id={{ event.id }}">Operational details</a><a class="btn btn-sm btn-outline-secondary" href="{{ path('panel/planner-hub/management/orders/orders/print') }}?id={{ event.id }}" target="_blank">Order details</a></div></td>
           <td class="execution-files">
@@ -57,7 +57,7 @@
           </td>
         </tr>
       {% else %}
-        <tr><td colspan="6" class="execution-empty"><i data-feather="calendar" style="width:38px;height:38px"></i><h3 class="h5 mt-3">No fully paid events in this range</h3><p class="mb-0">Events appear automatically once the complete order and its sub-orders are paid.</p></td></tr>
+        <tr><td colspan="6" class="execution-empty"><i data-feather="calendar" style="width:38px;height:38px"></i><h3 class="h5 mt-3">No events with payments in this range</h3><p class="mb-0">An event appears automatically after its first payment or registered advance.</p></td></tr>
       {% endfor %}
       </tbody>
     </table>

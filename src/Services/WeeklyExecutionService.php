@@ -21,7 +21,7 @@ final class WeeklyExecutionService
 
         foreach ($orders as $order) {
             $readiness = $this->paymentReadiness($order);
-            if (!$readiness['is_paid']) {
+            if (!$readiness['has_payment']) {
                 continue;
             }
 
@@ -39,6 +39,8 @@ final class WeeklyExecutionService
             $order->execution_files = $files->getAllBy(['id_order' => (int)$order->id]);
             $order->paid_total = $readiness['paid'];
             $order->order_total = $readiness['total'];
+            $order->balance_due = $readiness['balance'];
+            $order->is_fully_paid = $readiness['is_paid'];
             $order->contract_token = $this->orderAccessToken($order);
             $result[] = $order;
         }
@@ -61,7 +63,9 @@ final class WeeklyExecutionService
             : (string)($order->status_workflow ?? '') === 'INVOICE_PAID';
 
         $total = $mainTotal;
-        $paid = min($mainPaid, $mainTotal);
+        // Keep the actual net amount received. Capping it at the calculated
+        // total could hide a valid deposit on a zero-total/incomplete order.
+        $paid = $mainPaid;
         $allSubordersReady = true;
         $suborders = (new OrdersSuborderRepository())->getAllBy([
             'id_order' => (int)$order->id,
@@ -83,13 +87,15 @@ final class WeeklyExecutionService
                 : (string)($suborder->status_workflow ?? '') === 'INVOICE_PAID';
             $allSubordersReady = $allSubordersReady && $subReady;
             $total += $subTotal;
-            $paid += min($subPaid, $subTotal);
+            $paid += $subPaid;
         }
 
         return [
             'is_paid' => $mainReady && $allSubordersReady,
+            'has_payment' => $paid > 0.009,
             'total' => round($total, 2),
             'paid' => round($paid, 2),
+            'balance' => round(max(0, $total - $paid), 2),
         ];
     }
 

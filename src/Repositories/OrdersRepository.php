@@ -425,7 +425,6 @@ class OrdersRepository extends BaseRepository
             FROM orders o
             WHERE o.id_owner = :owner_id
               AND o.is_archived = 0
-              AND o.status_workflow <> 'INVOICE_DRAFT'
               AND o.event_date BETWEEN :start_date AND :end_date
             ORDER BY o.event_date ASC, COALESCE(o.start_time, '00:00:00') ASC, o.id ASC
         ";
