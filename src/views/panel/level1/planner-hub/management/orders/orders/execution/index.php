@@ -1,6 +1,6 @@
 <?php
 
-use App\Repositories\OrdersFilesRepository;
+use App\Repositories\OrderExecutionFilesRepository;
 use App\Repositories\OrdersRepository;
 use App\Services\LoginService;
 use App\Services\NotificationService;
@@ -74,7 +74,29 @@ $router->post(function () use ($range) {
         MessageUtil::setMessage('This event is not available on the execution board.', 'Event Execution', 'error');
         LocationUtils::redirectInternal('panel/planner-hub/management/orders/orders/execution' . $returnQuery);
     }
-    if (($_POST['action'] ?? '') !== 'upload_file') {
+    $action = (string)($_POST['action'] ?? '');
+    if ($action === 'delete_file') {
+        $fileId = (int)($_POST['file_id'] ?? 0);
+        $files = new OrderExecutionFilesRepository();
+        $file = $files->getOne([
+            'id' => $fileId,
+            'id_order' => $orderId,
+            'id_owner' => (int)$user->getOwner(),
+        ]);
+        if (!$file) {
+            MessageUtil::setMessage('Execution file not found.', 'Event Execution', 'error');
+            LocationUtils::redirectInternal('panel/planner-hub/management/orders/orders/execution' . $returnQuery);
+        }
+        if (!$files->delete(['id' => $fileId])) {
+            MessageUtil::setMessage('The execution file could not be deleted.', 'Event Execution', 'error');
+            LocationUtils::redirectInternal('panel/planner-hub/management/orders/orders/execution' . $returnQuery);
+        }
+        FileUtils::removeFile((string)$file->file_path);
+        MessageUtil::setMessage('Execution file deleted successfully.');
+        LocationUtils::redirectInternal('panel/planner-hub/management/orders/orders/execution' . $returnQuery);
+    }
+
+    if ($action !== 'upload_file') {
         MessageUtil::setMessage('Unsupported action.', 'Event Execution', 'error');
         LocationUtils::redirectInternal('panel/planner-hub/management/orders/orders/execution' . $returnQuery);
     }
@@ -97,13 +119,17 @@ $router->post(function () use ($range) {
     try {
         $upload['type'] = $mime;
         $location = FileUtils::saveFile($upload, 'order-files');
-        (new OrdersFilesRepository())->add([
+        $saved = (new OrderExecutionFilesRepository())->add([
             'id_order' => $orderId,
             'title' => $title,
-            'description' => 'Execution document',
             'file_path' => $location,
             'id_owner' => (int)$user->getOwner(),
+            'id_uploaded_by' => (int)$user->getId(),
         ]);
+        if (!$saved) {
+            FileUtils::removeFile($location);
+            throw new RuntimeException('The execution-file database record could not be saved.');
+        }
         NotificationService::sendToUsers(
             array_values(array_unique([(int)$order->id_client, (int)$order->id_owner])),
             'New execution file',

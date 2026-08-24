@@ -3,7 +3,7 @@
 namespace App\Services;
 
 use App\Repositories\Connection;
-use App\Repositories\OrdersFilesRepository;
+use App\Repositories\OrderExecutionFilesRepository;
 use App\Repositories\OrdersPaymentsRepository;
 use App\Repositories\OrdersRepository;
 use App\Repositories\OrdersSuborderRepository;
@@ -16,7 +16,7 @@ final class WeeklyExecutionService
     {
         $orders = (new OrdersRepository())->getExecutionCandidates($ownerId, $startDate, $endDate);
         $users = new UserRepository();
-        $files = new OrdersFilesRepository();
+        $files = new OrderExecutionFilesRepository();
         $result = [];
 
         foreach ($orders as $order) {
@@ -30,6 +30,12 @@ final class WeeklyExecutionService
                 ? trim((string)($client->name ?? '') . ' ' . (string)($client->lastname ?? ''))
                 : 'Client #' . (int)$order->id_client;
             $order->client_email = (string)($client->email ?? '');
+            $manager = !empty($order->main_manager_id)
+                ? $users->getOneWithoutOwnership(['id' => (int)$order->main_manager_id])
+                : null;
+            $order->manager_name = $manager
+                ? trim((string)($manager->name ?? '') . ' ' . (string)($manager->lastname ?? ''))
+                : '';
             $order->execution_files = $files->getAllBy(['id_order' => (int)$order->id]);
             $order->paid_total = $readiness['paid'];
             $order->order_total = $readiness['total'];
