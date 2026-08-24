@@ -22,6 +22,7 @@ final class AiVideoRenderService
             $plan = json_decode((string)$job->edit_plan_json, true);
             $request = is_array($plan) ? ($plan['_request'] ?? []) : [];
         }
+        $cutOnlyMode = !empty($request['cut_only_mode']);
         $ratio = in_array($request['aspect_ratio'] ?? '', ['9:16','16:9','16:9_4k','1:1','4:5'], true) ? $request['aspect_ratio'] : '16:9';
         [$width,$height] = match($ratio) {
             '9:16' => [1080,1920], '16:9_4k' => [3840,2160], '1:1' => [1080,1080], '4:5' => [1080,1350], default => [1920,1080],
@@ -39,7 +40,9 @@ final class AiVideoRenderService
             $urls=['logo'=>$request['logo_url']??'','overlay'=>$request['overlay_url']??'','music'=>$request['audio_url']??'','intro'=>$request['intro_url']??'','outro'=>$request['outro_url']??''];
             foreach($urls as $name=>$url)if(trim((string)$url)!=='')${$name}=$ingest->materialize((string)$url,${$name});
             $stylePreset=(string)($request['style_preset']??'vnv_premium');
-            $colorFilter=$stylePreset==='marketing_educator'?',eq=contrast=1.08:saturation=1.12:brightness=0.01,unsharp=5:5:0.55:5:5:0.0':',eq=contrast=1.04:saturation=1.06:brightness=0.005';
+            // Cut Studio must produce a neutral hand-off for CapCut. In cut-only
+            // mode do not apply the creative color treatment implicitly.
+            $colorFilter=$cutOnlyMode?'':($stylePreset==='marketing_educator'?',eq=contrast=1.08:saturation=1.12:brightness=0.01,unsharp=5:5:0.55:5:5:0.0':',eq=contrast=1.04:saturation=1.06:brightness=0.005');
             $plan=is_array($plan??null)?$plan:[];$removed=(array)($request['removed_segments']??[]);$selection=$this->selectionFilter((array)($plan['cuts']??[]),$removed);
             $expectedDuration=$this->editedDuration($input,(array)($plan['cuts']??[]),$removed);
             $renderInput=$input;$sourceSelection=$selection;$sourceAudioSelection=$this->audioSelectionFilter((array)($plan['cuts']??[]),$removed);

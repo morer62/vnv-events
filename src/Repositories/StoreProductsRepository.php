@@ -803,6 +803,10 @@ class StoreProductsRepository extends BaseRepository
             return false;
         }
 
+        if (!$this->syncSiteVisibility($productId)) {
+            return false;
+        }
+
         return $productId;
     }
 
@@ -818,7 +822,78 @@ class StoreProductsRepository extends BaseRepository
             return false;
         }
 
-        return $this->syncRelations($productId, $categoryIds, $attributeValues, $variations);
+        if (!$this->syncRelations($productId, $categoryIds, $attributeValues, $variations)) {
+            return false;
+        }
+
+        return $this->syncSiteVisibility($productId);
+    }
+
+    private function syncSiteVisibility(int $productId): bool
+    {
+        if (!$this->hasSiteVisibilityTable()) {
+            return true;
+        }
+
+        $product = $this->getOne(['id' => $productId]);
+        if (!$product) {
+            return false;
+        }
+
+        $siteKey = $this->normalizeSiteKey($product->site_key ?? null);
+        $ownerId = (int)($product->id_owner ?? 0);
+        $isVisible = (int)($product->is_public ?? 0) === 1
+            && strtoupper((string)($product->status ?? '')) === self::STATUS_ACTIVE;
+        $visibilityStatus = $isVisible ? 'VISIBLE' : 'HIDDEN';
+        $notes = 'Synchronized automatically from the store product create/edit workflow.';
+
+        try {
+            $this->db->query("
+                UPDATE site_visibility
+                SET id_user_business = :owner_id,
+                    is_visible = :is_visible,
+                    visibility_status = :visibility_status,
+                    notes = :notes,
+                    updated_at = NOW()
+                WHERE site_key = :site_key
+                  AND entity_type = 'store_product'
+                  AND entity_id = :entity_id
+            ");
+            $this->db->bind(':owner_id', $ownerId, \PDO::PARAM_INT);
+            $this->db->bind(':is_visible', $isVisible ? 1 : 0, \PDO::PARAM_INT);
+            $this->db->bind(':visibility_status', $visibilityStatus);
+            $this->db->bind(':notes', $notes);
+            $this->db->bind(':site_key', $siteKey);
+            $this->db->bind(':entity_id', $productId, \PDO::PARAM_INT);
+            $this->db->execute();
+
+            $this->db->query("
+                INSERT INTO site_visibility
+                    (site_key, entity_type, entity_id, id_user_business, is_visible, visibility_status, notes, created_at, updated_at)
+                SELECT
+                    :site_key, 'store_product', :entity_id, :owner_id, :is_visible, :visibility_status, :notes, NOW(), NOW()
+                WHERE NOT EXISTS (
+                    SELECT 1
+                    FROM site_visibility
+                    WHERE site_key = :existing_site_key
+                      AND entity_type = 'store_product'
+                      AND entity_id = :existing_entity_id
+                )
+            ");
+            $this->db->bind(':site_key', $siteKey);
+            $this->db->bind(':entity_id', $productId, \PDO::PARAM_INT);
+            $this->db->bind(':owner_id', $ownerId, \PDO::PARAM_INT);
+            $this->db->bind(':is_visible', $isVisible ? 1 : 0, \PDO::PARAM_INT);
+            $this->db->bind(':visibility_status', $visibilityStatus);
+            $this->db->bind(':notes', $notes);
+            $this->db->bind(':existing_site_key', $siteKey);
+            $this->db->bind(':existing_entity_id', $productId, \PDO::PARAM_INT);
+
+            return $this->db->execute();
+        } catch (\Throwable $e) {
+            error_log('Unable to synchronize store product visibility for product ' . $productId . ': ' . $e->getMessage());
+            return false;
+        }
     }
 
     public function syncRelations(int $productId, array $categoryIds = [], array $attributeValues = [], array $variations = []): bool
