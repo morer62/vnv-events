@@ -21,9 +21,6 @@ final class WeeklyExecutionService
 
         foreach ($orders as $order) {
             $readiness = $this->paymentReadiness($order);
-            if (!$readiness['has_payment']) {
-                continue;
-            }
 
             $client = $users->getOneWithoutOwnership(['id' => (int)$order->id_client]);
             $order->client_name = $client

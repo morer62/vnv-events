@@ -413,10 +413,9 @@ class OrdersRepository extends BaseRepository
     }
 
     /**
-     * Orders that may be candidates for the weekly execution board.
-     * Payment readiness is intentionally calculated by the service layer so
-     * refunds, advances and sub-orders use the same accounting rules as the
-     * public Order Access page.
+     * Active orders for the weekly execution board. Draft estimates are kept
+     * out, but payment status must not hide an event that still needs to be
+     * executed. Payment readiness is calculated by the service layer.
      */
     public function getExecutionCandidates(int $ownerId, string $startDate, string $endDate): array
     {
@@ -425,6 +424,7 @@ class OrdersRepository extends BaseRepository
             FROM orders o
             WHERE o.id_owner = :owner_id
               AND o.is_archived = 0
+              AND COALESCE(o.status_workflow, '') <> 'INVOICE_DRAFT'
               AND o.event_date BETWEEN :start_date AND :end_date
             ORDER BY o.event_date ASC, COALESCE(o.start_time, '00:00:00') ASC, o.id ASC
         ";
