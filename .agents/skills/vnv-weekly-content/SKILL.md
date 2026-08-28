@@ -129,14 +129,16 @@ No:
 
 Antes de comenzar:
 
-1. Confirmar que Chrome/Computer Use está disponible.
-2. Confirmar que VNV Events tiene sesión iniciada.
-3. Confirmar que Claude tiene sesión iniciada.
-4. Confirmar que se trabajará en producción.
-5. Confirmar que la ejecución estándar creará exactamente seis artículos.
-6. Crear un registro temporal del lote actual para no confundirlo con artículos anteriores.
-7. Registrar la fecha y hora de inicio.
-8. No almacenar credenciales en ese registro.
+1. El agente, no Jonathan, debe inspeccionar las capacidades de la sesión actual y las pestañas ya abiertas. No pedir una lista previa de sesiones.
+2. Confirmar mediante una prueba real que Codex puede controlar Chrome/Computer Use. Si no puede, detenerse inmediatamente y pedir únicamente que se habilite `Full access / computer control`.
+3. Validar la sesión existente de VNV Events y la sesión/cuota de Claude. Pedir a Jonathan que inicie sesión manualmente solamente en el servicio concreto que falte; nunca pedir credenciales ni solicitar que reabra una sesión que ya funciona.
+4. Validar ChatGPT únicamente si Claude no está disponible y el fallback se vuelve necesario.
+5. Después de que Jonathan confirme `listo`, comprobar la sesión faltante y continuar sin pedirle que repita la tarea.
+6. Confirmar que se trabajará en producción.
+7. Confirmar que la ejecución estándar creará exactamente seis artículos.
+8. Crear un registro temporal del lote actual para no confundirlo con artículos anteriores.
+9. Registrar la fecha y hora de inicio.
+10. No almacenar credenciales en ese registro.
 
 # Fase 2 — Comprender VNV Events
 
@@ -589,6 +591,8 @@ Cuando el body optimizado pase todas las validaciones:
 12. No cambiar páginas relacionadas.
 13. Cambiar el estado a `Published`.
 14. Guardar.
+
+La publicación es automática para todo artículo que supere las validaciones: no dejarlo en borrador esperando una aprobación editorial adicional. Jonathan puede retirarlo después si no desea conservarlo. Esta autorización no permite publicar un artículo que falle HTML/Twig, schema, imágenes, enlaces, identidad editorial o verificación pública.
 
 # Fase 11 — Verificar la publicación
 

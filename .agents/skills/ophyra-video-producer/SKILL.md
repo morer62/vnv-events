@@ -9,6 +9,10 @@ Usa `C:\Users\jonat\OneDrive\Desktop\Ophyra_space` como fuente de verdad. Cada e
 
 Antes de operar, lee [references/episode-contract.md](references/episode-contract.md). Ejecuta `scripts/scan_episodes.ps1` para obtener el inventario y procesa únicamente episodios cuyo `estado.txt` contenga exactamente `ESTADO: PENDIENTE`.
 
+## Preflight de sesión
+
+Jonathan no tiene que indicar qué sesión abrir. Antes de procesar episodios, el agente debe inspeccionar las capacidades disponibles, las pestañas existentes y el acceso a CapCut Web. Debe probar primero el control real del navegador y validar la sesión ya abierta de CapCut. Si falta algo, pedir únicamente que se habilite `Full access / computer control` o que Jonathan inicie sesión manualmente en CapCut, según corresponda. Nunca pedir credenciales, abrir pestañas duplicadas ni solicitar una sesión que ya funciona. Cuando Jonathan confirme `listo`, validar el acceso y continuar sin pedirle que repita la tarea.
+
 ## Flujo obligatorio
 
 1. Lee completamente `estado.txt`, `descripcion.txt` y `guion.txt` antes de abrir CapCut.
