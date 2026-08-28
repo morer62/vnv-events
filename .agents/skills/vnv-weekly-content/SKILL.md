@@ -1,9 +1,39 @@
 ---
 name: vnv-weekly-content
-description: Run the complete VNV Events weekly article workflow in production. Use when Jonathan asks Codex to create the weekly VNV Events articles, generate six articles, use Claude or ChatGPT for topic ideas and editorial optimization, publish VNV content, regenerate VNV SEO files, or verify VNV sitemaps. Operate signed-in VNV Events and editorial-provider Chrome sessions from research and idea generation through final publication and sitemap verification.
+description: Run the isolated weekly article workflow for VNV Events, Miami Tech Lab, or The Pasta Station. Use when Jonathan asks for six weekly articles, editorial optimization, publication, or sitemap verification for one of these brands. Resolve the active project and site key before research so content, services and links never cross brands.
 ---
 
 # VNV Weekly Content
+
+## Mandatory multisite routing — takes precedence
+
+Despite the historical skill name, this workflow serves three isolated brands. These rules supersede every later VNV-specific hostname, brand or wording in this file whenever the active project is not VNV Events.
+
+| Project root | Site key | Brand | Public origin |
+|---|---|---|---|
+| `C:\xampp\htdocs\vnv-events` | `vnvevents` | VNV Events | `https://vnvevents.com` |
+| `C:\xampp\htdocs\miami-tech-lab` | `miamitechlab` | Miami Tech Lab | `https://miamitechlab.com` |
+| `C:\xampp\htdocs\vnv-gourmet` | `avomeal` | The Pasta Station | `https://thepastastation.net` |
+
+Before proposing a topic or opening an editorial provider:
+
+1. Resolve the active project from the working directory, its `.env`/`SiteContext`, and the matching active row in `growth_sites`. All three must agree. Stop on disagreement.
+2. Build a brand evidence packet using only that project's public origin and rows where `id_owner=2 AND site_key=<active site key>`.
+3. Visit the active brand's homepage, primary navigation, sitemap, service/landing pages, public blog and public locations index. Include physical public pages from the active repository even when they are not CMS rows.
+4. Inventory only same-site published `cms_contents`/active `cms_routes`, active public `store_products` and `site_visibility`, plus the active `growth_sites.main_services`, `main_products`, brand voice, CTA and target locations.
+5. Record exact verified URLs, page titles, offers and themes. Do not use another brand as an internal-link source, factual source, style source or topic source.
+6. Send Claude or ChatGPT the resolved brand name, domain, voice and closed inventory. State explicitly that sister-brand material is prohibited.
+7. Create, edit, approve and publish records only under the active site key. Query duplicate topics, recent articles, routes, approvals and sitemaps within that site key.
+8. Before saving each article, reject it if it names, links to, sells or structurally assumes a sister brand unless the article explicitly discusses that relationship and Jonathan requested it.
+9. Before completion, assert that every internal URL belongs to the active public origin and every persisted row carries the active site key.
+
+Brand boundary examples:
+
+- A Pasta Station article may use its pasta services, menu/store, events, Journal and location pages; it may not infer DJ, decor or VNV catering offers.
+- A Miami Tech Lab article may use its AI consulting, automation, software, Insights and location pages; it may not infer event or food services.
+- A VNV Events article may use VNV's verified event, entertainment, catering, store and location content; it may not import Pasta Station or Miami Tech Lab offers merely because they share a database.
+
+If a brand has little existing CMS content, use its homepage, physical public pages and verified `growth_sites` services. Do not fill the gap with content from a sister site.
 
 Ejecutar el workflow semanal completo para crear, optimizar, publicar y registrar seis artículos nuevos en el ambiente de producción de VNV Events.
 

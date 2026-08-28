@@ -5,9 +5,7 @@ namespace App\Services;
 use App\Repositories\AiContentDraftsRepository;
 use App\Repositories\AiContentSettingsRepository;
 use App\Repositories\BlogCategoriesRepository;
-use App\Repositories\CmsContentsRepository;
 use App\Repositories\Connection;
-use App\Repositories\LocationPagesRepository;
 use Exception;
 use Throwable;
 
@@ -45,10 +43,29 @@ class AiContentAssistantService
             'max_pending_drafts' => (string)(int)($_ENV['AI_CONTENT_MAX_PENDING_DRAFTS'] ?? 50),
             'priority_services' => $profile['priority_services'],
             'priority_cities' => $profile['priority_cities'],
+            'public_base_url' => $profile['public_base_url'],
+            'brand_voice' => $profile['brand_voice'],
+            'approved_public_pages' => $profile['approved_public_pages'],
+            'approved_public_products' => $profile['approved_public_products'],
             'location_state' => 'FL',
         ];
 
-        foreach ($defaults as $key => $value) {
+        // Brand identity and the public evidence inventory are authoritative in
+        // growth_sites/current same-site content. Historical settings must not
+        // turn one Ophyra brand into another or revive an obsolete business.
+        $storedOverrideKeys = [
+            'enabled',
+            'daily_blog_count',
+            'daily_location_count',
+            'auto_publish',
+            'require_approval',
+            'default_language',
+            'cloudinary_enabled',
+            'reddit_sources_enabled',
+            'max_pending_drafts',
+            'location_state',
+        ];
+        foreach ($storedOverrideKeys as $key) {
             $stored = $this->settings->getValue($key, $siteKey);
             if ($stored !== null) {
                 $defaults[$key] = $stored;
@@ -73,8 +90,6 @@ class AiContentAssistantService
             'cloudinary_enabled',
             'reddit_sources_enabled',
             'max_pending_drafts',
-            'priority_services',
-            'priority_cities',
             'location_state',
         ];
 
@@ -236,6 +251,10 @@ class AiContentAssistantService
         $language = $settings['default_language'] ?? 'en';
         $state = $settings['location_state'] ?? 'FL';
         $siteKey = $settings['site_key'] ?? '';
+        $publicBaseUrl = $settings['public_base_url'] ?? '';
+        $brandVoice = $settings['brand_voice'] ?? '';
+        $approvedPages = $settings['approved_public_pages'] ?? '[]';
+        $approvedProducts = $settings['approved_public_products'] ?? '[]';
         $contentKind = $type === 'location_page' ? 'location landing page' : 'blog post';
 
         return <<<PROMPT
@@ -247,9 +266,18 @@ title, slug, topic, service_name, city, state, excerpt, body_html, meta_title, m
 Rules:
 - Language: {$language}.
 - Site key: {$siteKey}.
+- Canonical public site: {$publicBaseUrl}.
+- Brand voice: {$brandVoice}.
 - Priority services: {$services}.
 - Priority cities: {$cities}.
+- Approved public pages and landing pages for this brand only: {$approvedPages}.
+- Approved public products for this brand only: {$approvedProducts}.
 - Default state: {$state}.
+- Treat the site key, canonical public site, approved pages, products, services and brand voice above as a closed brand boundary.
+- Never use facts, services, products, URLs, prices, internal links, examples or editorial identity from another Ophyra brand.
+- In particular, do not borrow VNV Events material for Miami Tech Lab or The Pasta Station, and do not borrow either sister brand for VNV Events.
+- Every internal link must come from the approved inventory above or from an explicitly supplied verified URL on the same canonical domain.
+- If the approved inventory does not support a claim or topic, omit it instead of importing context from another brand.
 - Status is human review only; never claim this is published.
 - Avoid generic AI phrases and filler.
 - Do not invent offices, addresses, reviews, ratings, guarantees, licenses, certifications, awards, pricing, or staff names.
@@ -322,14 +350,11 @@ PROMPT;
             return true;
         }
 
-        if ($contentType === 'blog_post') {
-            $contents = new CmsContentsRepository();
-            $contents->db = $this->db;
-            return $contents->slugExists($slug, (int)$settings['id_owner'], (string)$settings['default_language']);
-        }
-
-        $locations = new LocationPagesRepository();
-        if ($locations->slugExists($slug)) {
+        $this->db->query("SELECT COUNT(*) total FROM cms_contents WHERE id_owner=:owner AND site_key=:site AND slug=:slug");
+        $this->db->bind(':owner', (int)$settings['id_owner']);
+        $this->db->bind(':site', $siteKey);
+        $this->db->bind(':slug', $slug);
+        if ((int)($this->db->fetchOne()->total ?? 0) > 0) {
             return true;
         }
 
@@ -354,12 +379,43 @@ PROMPT;
     {
         $siteKey = $this->normalizeSiteKey($siteKey);
         $ownerId = (int)($_ENV['AI_CONTENT_OWNER_ID'] ?? 2);
-        $this->db->query("SELECT site_name,main_services,target_locations FROM growth_sites WHERE id_owner=:owner AND site_key=:site AND status='active' LIMIT 1");
+        $this->db->query("SELECT site_name,public_base_url,brand_voice,main_services,main_products,target_locations FROM growth_sites WHERE id_owner=:owner AND site_key=:site AND status='active' LIMIT 1");
         $this->db->bind(':owner',$ownerId);$this->db->bind(':site',$siteKey);
         $site=$this->db->fetchOne();
         $services=$site?json_decode((string)$site->main_services,true):[];
+        $products=$site?json_decode((string)$site->main_products,true):[];
         $locations=$site?json_decode((string)$site->target_locations,true):[];
         $serviceLabels=[];foreach((array)$services as $service)$serviceLabels[]=is_array($service)?(string)($service['label']??''):(string)$service;
+
+        $this->db->query("SELECT c.title,c.slug,c.content_type,c.canonical_url,r.route
+            FROM cms_contents c
+            LEFT JOIN cms_routes r ON r.id_content=c.id AND r.id_owner=c.id_owner AND r.site_key=c.site_key AND r.status='ACTIVE' AND r.is_main=1
+            WHERE c.id_owner=:owner AND c.site_key=:site AND c.status='PUBLISHED'
+            ORDER BY c.is_homepage DESC,c.updated_at DESC LIMIT 250");
+        $this->db->bind(':owner',$ownerId);$this->db->bind(':site',$siteKey);
+        $pageRows=$this->db->fetchAll();
+        $approvedPages=[];
+        foreach((array)$services as $service){
+            if(!is_array($service))continue;
+            $label=trim((string)($service['label']??''));$url=trim((string)($service['url']??''));
+            if($label!==''&&$url!=='')$approvedPages[]=['title'=>$label,'type'=>'service','url'=>$url];
+        }
+        foreach((array)$pageRows as $row){
+            $url=trim((string)($row->route??$row->canonical_url??''));
+            if($url==='')continue;
+            $approvedPages[]=['title'=>(string)$row->title,'type'=>(string)$row->content_type,'url'=>$url];
+        }
+
+        $this->db->query("SELECT name,slug,short_description FROM store_products WHERE id_owner=:owner AND site_key=:site AND status='ACTIVE' AND is_public=1 ORDER BY is_featured DESC,updated_at DESC LIMIT 150");
+        $this->db->bind(':owner',$ownerId);$this->db->bind(':site',$siteKey);
+        $productRows=$this->db->fetchAll();
+        $approvedProducts=[];
+        foreach((array)$products as $product){
+            if(is_array($product))$approvedProducts[]=$product;
+        }
+        foreach((array)$productRows as $row){
+            $approvedProducts[]=['label'=>(string)$row->name,'url'=>'/product/'.(string)$row->slug,'description'=>(string)($row->short_description??'')];
+        }
         return [
             'site_key' => $siteKey,
             'brand_name' => trim((string)($site->site_name ?? '')) ?: \App\Utils\SiteContext::siteName(),
@@ -367,6 +423,10 @@ PROMPT;
             'id_user_business' => (int)($_ENV['AI_CONTENT_ID_USER_BUSINESS'] ?? 2),
             'priority_services' => implode(', ',array_filter($serviceLabels)),
             'priority_cities' => implode(', ',array_filter(array_map('strval',(array)$locations))),
+            'public_base_url' => trim((string)($site->public_base_url ?? '')),
+            'brand_voice' => trim((string)($site->brand_voice ?? '')),
+            'approved_public_pages' => json_encode($approvedPages, JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES),
+            'approved_public_products' => json_encode($approvedProducts, JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES),
         ];
     }
 
@@ -387,7 +447,7 @@ PROMPT;
     private function normalizeSiteKey(?string $siteKey): string
     {
         $siteKey = trim((string)($siteKey ?? ''));
-        return $siteKey !== '' ? strtolower($siteKey) : strtolower((string)($_ENV['AI_CONTENT_SITE_KEY'] ?? 'vnv_events'));
+        return $siteKey !== '' ? strtolower($siteKey) : \App\Utils\SiteContext::siteKey();
     }
 
     private function slugify(string $text): string

@@ -51,10 +51,8 @@
               <div class="row g-3">
                 <div class="col-12">
                   <label class="form-label">Site</label>
-                  <select class="form-select" name="site_key">
-                    <option value="avomeal" {{ siteKey == 'avomeal' ? 'selected' : '' }}>Avomeal</option>
-                    <option value="vnv_events" {{ siteKey == 'vnv_events' ? 'selected' : '' }}>VNV Events</option>
-                  </select>
+                  <input class="form-control" value="{{ settings.brand_name }} ({{ siteKey }})" readonly>
+                  <div class="form-text">Locked to the current website to prevent cross-brand content.</div>
                 </div>
                 <div class="col-6">
                   <label class="form-label">Blog drafts/day</label>
@@ -74,11 +72,12 @@
                 </div>
                 <div class="col-12">
                   <label class="form-label">Priority services</label>
-                  <textarea name="priority_services" class="form-control" rows="3">{{ settings.priority_services }}</textarea>
+                  <textarea class="form-control" rows="3" readonly>{{ settings.priority_services }}</textarea>
+                  <div class="form-text">Loaded from this brand's active Growth Site profile and verified public pages.</div>
                 </div>
                 <div class="col-12">
                   <label class="form-label">Priority cities</label>
-                  <textarea name="priority_cities" class="form-control" rows="3">{{ settings.priority_cities }}</textarea>
+                  <textarea class="form-control" rows="3" readonly>{{ settings.priority_cities }}</textarea>
                 </div>
                 <div class="col-4">
                   <label class="form-label">State</label>

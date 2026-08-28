@@ -13,6 +13,7 @@ use App\Utils\LocationUtils;
 use App\Utils\MessageUtil;
 use App\Utils\Router;
 use App\Utils\TemplateResponse;
+use App\Utils\SiteContext;
 
 $router = new Router();
 
@@ -23,7 +24,7 @@ function aiContentRedirect(): never
 
 function aiContentSiteKey(): string
 {
-    return strtolower(trim((string)($_POST['site_key'] ?? $_GET['site_key'] ?? $_ENV['AI_CONTENT_SITE_KEY'] ?? 'vnv_events')));
+    return SiteContext::siteKey();
 }
 
 $router->get(function () {
@@ -38,7 +39,8 @@ $router->get(function () {
     $reviews = [];
     $draftId = (int)($_GET['draft_id'] ?? 0);
     if ($draftId > 0 && $draftsRepository->tableExists()) {
-        $selectedDraft = $draftsRepository->find($draftId);
+        $candidateDraft = $draftsRepository->find($draftId);
+        $selectedDraft = $candidateDraft && (string)$candidateDraft->site_key === $siteKey ? $candidateDraft : null;
         $reviewsRepo = new AiContentReviewsRepository($db);
         $reviews = $reviewsRepo->forDraft($draftId);
     }
@@ -126,6 +128,10 @@ $router->post(function () {
         $draftId = (int)($_POST['draft_id'] ?? 0);
         if ($draftId <= 0) {
             throw new RuntimeException('Draft id is required.');
+        }
+        $targetDraft = $drafts->find($draftId);
+        if (!$targetDraft || (string)$targetDraft->site_key !== $siteKey) {
+            throw new RuntimeException('Draft is not available for the active site.');
         }
 
         $feedback = trim((string)($_POST['feedback'] ?? ''));

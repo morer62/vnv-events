@@ -1,9 +1,33 @@
 ---
 name: vnv-location-pages
-description: Create and operate approved VNV Events service-location page cycles in production. Use when Jonathan asks for an Agente de locaciones, supplies or requests a VNV service to expand across the approved 62 South Florida cities, asks for location-page SQL batches, or wants VNV location pages reviewed and published. Do not use for blog posts, store products, or general pages without a city-location cycle.
+description: Create isolated service-location page cycles for VNV Events, Miami Tech Lab, or The Pasta Station across the approved South Florida cities. Resolve the active project and site key before service discovery, seed creation, SQL generation or publication. Do not use for blog posts, store products, or non-location pages.
 ---
 
 # VNV Location Pages
+
+## Mandatory multisite routing — takes precedence
+
+This workflow now serves three brands. Any later VNV-specific wording applies only when the resolved active site is `vnvevents`.
+
+| Project root | Site key | Brand | Public origin | Cloudinary folder |
+|---|---|---|---|---|
+| `C:\xampp\htdocs\vnv-events` | `vnvevents` | VNV Events | `https://vnvevents.com` | `ophyra-growth-hub/vnvevents` |
+| `C:\xampp\htdocs\miami-tech-lab` | `miamitechlab` | Miami Tech Lab | `https://miamitechlab.com` | `ophyra-growth-hub/miamitechlab` |
+| `C:\xampp\htdocs\vnv-gourmet` | `avomeal` | The Pasta Station | `https://thepastastation.net` | `ophyra-growth-hub/avomeal` |
+
+Before selecting or accepting a service:
+
+1. Resolve and cross-check the working directory, `SiteContext`/environment and active `growth_sites` row. Stop if they disagree.
+2. Inspect only the active brand's homepage, navigation, sitemap, physical public pages, public services/landing pages, store, blog and existing locations.
+3. Query only rows with `id_owner=2 AND site_key=<active site key>` for CMS content/routes, products, visibility and prior location cycles.
+4. Build the service facts, internal-link inventory, brand voice, CTA and image inventory exclusively from that evidence.
+5. Reject a seed or cycle that imports a sister brand's services, products, URLs, pricing, copy, schema identity or Cloudinary folder.
+6. Persist every seed, derived content row, route and visibility row under the resolved site key; generate canonical URLs from the resolved public origin.
+7. Run duplicate and collision checks per site key. The same slug may legitimately exist on another brand.
+8. Give the editorial provider a closed same-brand evidence packet and explicitly prohibit sister-brand context.
+9. Validate every internal link against the active origin and every image against the active brand's canonical Cloudinary folder before SQL assembly.
+
+An explicit URL approves the service only when its origin matches the resolved brand. A VNV URL cannot seed Miami Tech Lab or The Pasta Station, and vice versa.
 
 Operate the VNV Events location-page workflow from service selection through publication and SEO verification. Public content is English unless Jonathan explicitly requests otherwise. Build and validate the complete cycle against the local `ophyra` database by default. Valid pages are published immediately; Jonathan will unpublish them later if desired. Do not write directly to production; deliver one reviewed production SQL artifact after local verification unless Jonathan explicitly authorizes a different deployment method.
 
