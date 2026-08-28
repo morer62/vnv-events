@@ -3,6 +3,7 @@ namespace App\Services;
 
 use App\Repositories\AiAgentsRepository;
 use App\Repositories\Connection;
+use App\Utils\SiteContext;
 use RuntimeException;
 
 final class AiAgentExecutionService
@@ -50,7 +51,7 @@ final class AiAgentExecutionService
     private function content(int $ownerId,int $id): object
     {
         if($id<=0)throw new RuntimeException('Select CMS content first.');
-        $item=$this->one("SELECT id,title,excerpt,body_html,meta_title,meta_description,schema_json,featured_image_url,status FROM cms_contents WHERE id=:id AND id_owner=:owner LIMIT 1",$ownerId,['id'=>$id]);
+        $item=$this->one("SELECT id,title,excerpt,body_html,meta_title,meta_description,schema_json,featured_image_url,status FROM cms_contents WHERE id=:id AND id_owner=:owner AND site_key=:site LIMIT 1",$ownerId,['id'=>$id,'site'=>SiteContext::siteKey()]);
         if(!$item)throw new RuntimeException('CMS content not found.');return $item;
     }
 
@@ -68,7 +69,7 @@ final class AiAgentExecutionService
     }
     private function contentRefresh(int $ownerId): array
     {
-        $rows=$this->rows("SELECT id,title,content_type,status,updated_at,(meta_description IS NULL OR TRIM(meta_description)='') AS missing_meta,(schema_json IS NULL OR TRIM(schema_json)='') AS missing_schema,(featured_image_url IS NULL OR TRIM(featured_image_url)='') AS missing_image FROM cms_contents WHERE id_owner=:owner AND status IN ('PUBLISHED','GENERATED') AND ((meta_description IS NULL OR TRIM(meta_description)='') OR (schema_json IS NULL OR TRIM(schema_json)='') OR (featured_image_url IS NULL OR TRIM(featured_image_url)='')) ORDER BY updated_at LIMIT 100",$ownerId);$actions=[];
+        $rows=$this->rows("SELECT id,title,content_type,status,updated_at,(meta_description IS NULL OR TRIM(meta_description)='') AS missing_meta,(schema_json IS NULL OR TRIM(schema_json)='') AS missing_schema,(featured_image_url IS NULL OR TRIM(featured_image_url)='') AS missing_image FROM cms_contents WHERE id_owner=:owner AND site_key=:site AND status IN ('PUBLISHED','GENERATED') AND ((meta_description IS NULL OR TRIM(meta_description)='') OR (schema_json IS NULL OR TRIM(schema_json)='') OR (featured_image_url IS NULL OR TRIM(featured_image_url)='')) ORDER BY updated_at LIMIT 100",$ownerId,['site'=>SiteContext::siteKey()]);$actions=[];
         foreach($rows as $r)$actions[]=['type'=>'REVIEW_CONTENT_REFRESH','title'=>'Refresh content: '.$r->title,'content_id'=>(int)$r->id,'missing_meta'=>(bool)$r->missing_meta,'missing_schema'=>(bool)$r->missing_schema,'missing_image'=>(bool)$r->missing_image];
         return ['summary'=>count($rows).' content items need refresh.','items'=>$rows,'proposed_actions'=>$actions];
     }
@@ -88,7 +89,7 @@ final class AiAgentExecutionService
     {
         $networks=array_values(array_intersect(['facebook','instagram','linkedin','youtube'],(array)($input['networks']??[])));if(!$networks)throw new RuntimeException('Select at least one social network.');
         $sourceKind=(string)($input['source_kind']??'content');$source=null;$sourceTitle='';
-        if($sourceKind==='video'){$id=(int)($input['media_job_id']??0);$source=$this->one("SELECT id,title,transcript_text,output_url,edit_plan_json FROM ai_agent_media_jobs WHERE id=:id AND id_owner=:owner AND status='COMPLETED'",$ownerId,['id'=>$id]);if(!$source)throw new RuntimeException('Select a completed video project.');$sourceTitle=(string)$source->title;}
+        if($sourceKind==='video'){$id=(int)($input['media_job_id']??0);$source=$this->one("SELECT id,title,transcript_text,output_url,edit_plan_json FROM ai_agent_media_jobs WHERE id=:id AND id_owner=:owner AND site_key=:site AND status='COMPLETED'",$ownerId,['id'=>$id,'site'=>SiteContext::siteKey()]);if(!$source)throw new RuntimeException('Select a completed video project.');$sourceTitle=(string)$source->title;}
         elseif($sourceKind==='trend'){$source=(new AiTrendService())->currentVideoSignals();$sourceTitle='current video signals';}
         else{$source=$this->content($ownerId,(int)($input['content_id']??0));$sourceTitle=(string)$source->title;}
         $shape=[];foreach($networks as $network)$shape[$network]=['copy'=>'','hashtags'=>[],'youtube_title'=>''];
@@ -117,7 +118,7 @@ final class AiAgentExecutionService
     private function shortVideo(int $ownerId,array $input=[]): array
     {
         $selected=(int)($input['media_job_id']??0);if($selected<=0)throw new RuntimeException('Select a completed video project.');
-        $item=$this->one("SELECT id,title,status,output_url,transcript_text,subtitles_srt,edit_plan_json,created_at FROM ai_agent_media_jobs WHERE id=:id AND id_owner=:owner AND status='COMPLETED' AND output_url IS NOT NULL",$ownerId,['id'=>$selected]);
+        $item=$this->one("SELECT id,title,status,output_url,transcript_text,subtitles_srt,edit_plan_json,created_at FROM ai_agent_media_jobs WHERE id=:id AND id_owner=:owner AND site_key=:site AND status='COMPLETED' AND output_url IS NOT NULL",$ownerId,['id'=>$selected,'site'=>SiteContext::siteKey()]);
         if(!$item)throw new RuntimeException('Select a completed video project with a final master.');
         $duration=max(15,min(60,(int)($input['target_duration']??30)));$captionStyle=in_array($input['caption_style']??'', ['kinetic','dynamic','clean'],true)?$input['caption_style']:'kinetic';
         $plan=(new AiJsonGenerator())->generate(

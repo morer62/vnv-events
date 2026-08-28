@@ -2,6 +2,7 @@
 
 namespace App\Repositories;
 
+use App\Utils\SiteContext;
 use RuntimeException;
 
 final class AiAgentConnectionsRepository
@@ -11,8 +12,8 @@ final class AiAgentConnectionsRepository
 
     public function all(int $ownerId,int $agentId): array
     {
-        $this->db->query("SELECT id,platform,account_label,account_identifier,credential_hint,status,last_error,verified_at,updated_at FROM ai_agent_connections WHERE id_owner=:owner AND id_agent=:agent ORDER BY platform");
-        $this->db->bind(':owner',$ownerId);$this->db->bind(':agent',$agentId);return $this->db->fetchAll();
+        $this->db->query("SELECT id,platform,account_label,account_identifier,credential_hint,status,last_error,verified_at,updated_at FROM ai_agent_connections WHERE id_owner=:owner AND site_key=:site AND id_agent=:agent ORDER BY platform");
+        $this->db->bind(':owner',$ownerId);$this->db->bind(':site',SiteContext::siteKey());$this->db->bind(':agent',$agentId);return $this->db->fetchAll();
     }
 
     public function save(int $ownerId,int $agentId,string $platform,string $label,string $identifier,string $token,array $extra=[]): void
@@ -25,11 +26,11 @@ final class AiAgentConnectionsRepository
             $encrypted=$this->encrypt(array_merge($current,$extra,$token!==''?['access_token'=>$token]:[]));
         }else $encrypted=(string)$existing->credentials_encrypted;
         $hint=$token!==''?substr($token,-6):(string)$existing->credential_hint;
-        $this->db->query("INSERT INTO ai_agent_connections(id_agent,id_owner,platform,account_label,account_identifier,credentials_encrypted,credential_hint,status)
-            VALUES(:agent,:owner,:platform,:label,:identifier,:credentials,:hint,'CONFIGURED')
+        $this->db->query("INSERT INTO ai_agent_connections(id_agent,id_owner,site_key,platform,account_label,account_identifier,credentials_encrypted,credential_hint,status)
+            VALUES(:agent,:owner,:site,:platform,:label,:identifier,:credentials,:hint,'CONFIGURED')
             ON DUPLICATE KEY UPDATE account_label=VALUES(account_label),account_identifier=VALUES(account_identifier),
             credentials_encrypted=VALUES(credentials_encrypted),credential_hint=VALUES(credential_hint),status='CONFIGURED',last_error=NULL,verified_at=NULL");
-        foreach(['agent'=>$agentId,'owner'=>$ownerId,'platform'=>$platform,'label'=>$label?:null,'identifier'=>$identifier?:null,'credentials'=>$encrypted,'hint'=>$hint] as $key=>$value)$this->db->bind(':'.$key,$value);
+        foreach(['agent'=>$agentId,'owner'=>$ownerId,'site'=>SiteContext::siteKey(),'platform'=>$platform,'label'=>$label?:null,'identifier'=>$identifier?:null,'credentials'=>$encrypted,'hint'=>$hint] as $key=>$value)$this->db->bind(':'.$key,$value);
         $this->db->execute();
     }
 
@@ -51,14 +52,14 @@ final class AiAgentConnectionsRepository
 
     public function disconnect(int $ownerId,int $agentId,string $platform): void
     {
-        $this->db->query("UPDATE ai_agent_connections SET status='DISCONNECTED',credentials_encrypted='',credential_hint=NULL WHERE id_owner=:owner AND id_agent=:agent AND platform=:platform");
-        $this->db->bind(':owner',$ownerId);$this->db->bind(':agent',$agentId);$this->db->bind(':platform',$platform);$this->db->execute();
+        $this->db->query("UPDATE ai_agent_connections SET status='DISCONNECTED',credentials_encrypted='',credential_hint=NULL WHERE id_owner=:owner AND site_key=:site AND id_agent=:agent AND platform=:platform");
+        $this->db->bind(':owner',$ownerId);$this->db->bind(':site',SiteContext::siteKey());$this->db->bind(':agent',$agentId);$this->db->bind(':platform',$platform);$this->db->execute();
     }
 
     private function findEncrypted(int $ownerId,int $agentId,string $platform): ?object
     {
-        $this->db->query("SELECT * FROM ai_agent_connections WHERE id_owner=:owner AND id_agent=:agent AND platform=:platform LIMIT 1");
-        $this->db->bind(':owner',$ownerId);$this->db->bind(':agent',$agentId);$this->db->bind(':platform',$platform);return $this->db->fetchOne()?:null;
+        $this->db->query("SELECT * FROM ai_agent_connections WHERE id_owner=:owner AND site_key=:site AND id_agent=:agent AND platform=:platform LIMIT 1");
+        $this->db->bind(':owner',$ownerId);$this->db->bind(':site',SiteContext::siteKey());$this->db->bind(':agent',$agentId);$this->db->bind(':platform',$platform);return $this->db->fetchOne()?:null;
     }
 
     private function encrypt(array $value): string

@@ -353,25 +353,20 @@ PROMPT;
     private function siteProfile(string $siteKey): array
     {
         $siteKey = $this->normalizeSiteKey($siteKey);
-
-        if ($siteKey === 'avomeal') {
-            return [
-                'site_key' => 'avomeal',
-                'brand_name' => 'Avomeal',
-                'id_owner' => 2,
-                'id_user_business' => 2,
-                'priority_services' => 'meal preps, holiday menus, party boxes, prepared meals, appetizers, desserts',
-                'priority_cities' => 'Miami, Doral, Fort Lauderdale, Hollywood, Weston, Pembroke Pines, Coral Gables',
-            ];
-        }
-
+        $ownerId = (int)($_ENV['AI_CONTENT_OWNER_ID'] ?? 2);
+        $this->db->query("SELECT site_name,main_services,target_locations FROM growth_sites WHERE id_owner=:owner AND site_key=:site AND status='active' LIMIT 1");
+        $this->db->bind(':owner',$ownerId);$this->db->bind(':site',$siteKey);
+        $site=$this->db->fetchOne();
+        $services=$site?json_decode((string)$site->main_services,true):[];
+        $locations=$site?json_decode((string)$site->target_locations,true):[];
+        $serviceLabels=[];foreach((array)$services as $service)$serviceLabels[]=is_array($service)?(string)($service['label']??''):(string)$service;
         return [
             'site_key' => $siteKey,
-            'brand_name' => 'VNV Events',
-            'id_owner' => (int)($_ENV['AI_CONTENT_OWNER_ID'] ?? 2),
+            'brand_name' => trim((string)($site->site_name ?? '')) ?: \App\Utils\SiteContext::siteName(),
+            'id_owner' => $ownerId,
             'id_user_business' => (int)($_ENV['AI_CONTENT_ID_USER_BUSINESS'] ?? 2),
-            'priority_services' => 'wedding planning, corporate events, social events, event rentals, catering coordination',
-            'priority_cities' => 'Miami, Doral, Fort Lauderdale, Hollywood, Weston, Pembroke Pines, Coral Gables',
+            'priority_services' => implode(', ',array_filter($serviceLabels)),
+            'priority_cities' => implode(', ',array_filter(array_map('strval',(array)$locations))),
         ];
     }
 
