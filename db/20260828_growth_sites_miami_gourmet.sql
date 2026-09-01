@@ -5,7 +5,7 @@ SET NAMES utf8mb4;
 INSERT INTO growth_sites
   (id_owner,site_key,site_name,domain,public_base_url,default_language,brand_voice,target_locations,main_services,main_products,default_cta_label,default_cta_url,cloudinary_folder,auto_publish_allowed,sitemap_settings,route_rules,status)
 VALUES
-  (2,'miamitechlab','Miami Tech Lab','miamitechlab.com','https://miamitechlab.com','en',
+  (2,'miamitechlab','Tech Lab Miami','miamitechlab.com','https://miamitechlab.com','en',
    'Clear, practical, technically rigorous, locally grounded and useful to South Florida founders and operators.',
    JSON_ARRAY('Miami-Dade County','Broward County','Palm Beach County','Miami, Florida','Fort Lauderdale, Florida','West Palm Beach, Florida'),
    JSON_ARRAY(JSON_OBJECT('label','AI consulting','url','/services/ai-consulting/'),JSON_OBJECT('label','business automation','url','/services/business-automation/'),JSON_OBJECT('label','software and digital systems','url','/services/')),
