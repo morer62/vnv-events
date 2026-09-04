@@ -34,7 +34,7 @@
 
 <section class="cl-section cl-light" style="padding-top:0"><div class="cl-wrap cl-faq"><div class="cl-heading"><span class="cl-eyebrow">Questions</span><h2 class="cl-title">Before you reserve</h2></div>{% for faq in page.faqs %}<details><summary>{{ faq.question }}</summary><p>{{ faq.answer }}</p></details>{% endfor %}</div></section>
 
-<section class="cl-cta" id="request"><h2>{{ page.cta_title }}</h2><p>{{ page.cta_copy }}</p><div class="cl-actions" style="justify-content:center"><a class="cl-btn" href="#" data-vnv-open-request>Start a request</a><a class="cl-btn alt" href="tel:+13052045427">Call (305) 204-5427</a></div></section>
+<section class="cl-cta" id="request"><h2>{{ page.cta_title }}</h2><p>{{ page.cta_copy }}</p>{% if page.home_tray_url %}<p>{{ page.home_tray_copy }} <a href="{{ page.home_tray_url }}">See the home tray menu</a>.</p>{% endif %}<div class="cl-actions" style="justify-content:center"><a class="cl-btn" href="#" data-vnv-open-request>Start a request</a><a class="cl-btn alt" href="tel:+13052045427">Call (305) 204-5427</a></div></section>
 </main>
 {% include "templates/components/publicEventRequestModal.html.twig" with {request_form_action:'/api/public/event-request'} %}
 {% include "templates/layout/publicFooterVnv.html.twig" %}
