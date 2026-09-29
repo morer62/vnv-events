@@ -54,7 +54,7 @@ final class LoyaltyRewardsService
 
     public function earnForEventOrder(int $orderId,?int $paymentId=null): ?int
     {
-        $this->db->query("SELECT o.*,COALESCE(SUM(op.amount-COALESCE(op.refunded_amount,0)),0) paid FROM orders o LEFT JOIN orders_payments op ON op.id_order=o.id AND COALESCE(op.is_refunded,0)=0 WHERE o.id=:id GROUP BY o.id");$this->db->bind(':id',$orderId);$order=$this->db->fetchOne();if(!$order)return null;
+        $this->db->query("SELECT o.*,COALESCE(SUM(op.amount-COALESCE(op.refunded_amount,0)),0) paid FROM orders o LEFT JOIN orders_payments op ON op.id_order=o.id AND (op.id_suborder IS NULL OR op.id_suborder=0) AND COALESCE(op.is_suborder,0)=0 AND COALESCE(op.is_refunded,0)=0 WHERE o.id=:id GROUP BY o.id");$this->db->bind(':id',$orderId);$order=$this->db->fetchOne();if(!$order)return null;
         $eligible=max(0,(float)$order->paid);if($eligible<=0 || !in_array((string)$order->status_workflow,['INVOICE_PAID'],true))return null;
         $settings=$this->settings((int)$order->id_owner,'vnvevents');$points=round($eligible*((float)$settings->reward_percent/100)/(float)$settings->point_value,4);if($points<=0)return null;
         $eventDate=new \DateTimeImmutable((string)$order->event_date.' 23:59:59',new \DateTimeZone('America/New_York'));$availableAt=$eventDate->modify('+'.(int)$settings->release_days.' days');$status=$availableAt<=new \DateTimeImmutable('now',new \DateTimeZone('America/New_York'))?'AVAILABLE':'PENDING';
@@ -97,7 +97,7 @@ final class LoyaltyRewardsService
     public function reverseForEventPayment(string $providerPaymentId, float $refundedAmount): ?int
     {
         if ($providerPaymentId === '' || $refundedAmount <= 0) return null;
-        $this->db->query("SELECT op.id payment_id,op.id_order,op.amount,o.id_owner,o.id_client FROM orders_payments op JOIN orders o ON o.id=op.id_order WHERE op.stripe_charge_id=:charge LIMIT 1");
+        $this->db->query("SELECT op.id payment_id,op.id_order,op.amount,o.id_owner,o.id_client FROM orders_payments op JOIN orders o ON o.id=op.id_order WHERE op.stripe_charge_id=:charge AND (op.id_suborder IS NULL OR op.id_suborder=0) AND COALESCE(op.is_suborder,0)=0 LIMIT 1");
         $this->db->bind(':charge', $providerPaymentId);
         $payment = $this->db->fetchOne();
         if (!$payment) return null;

@@ -13,13 +13,13 @@ class OrderAccessSavedPaymentMethodService
         $this->methods = new ClientPaymentMethodService();
     }
 
-    public function viewDataForOrder(object $order, int $businessId, string $providerType): array
+    public function viewDataForOrder(object $order, int $businessId, string $providerType, bool $allowRewards = true): array
     {
         $session = LoginService::getSession();
         $clientId = (int)($order->id_client ?? 0);
         $supportsFuture = in_array($providerType, ['stripe', 'square'], true);
         $canUseSaved = $session && (int)$session->getLevel() === 5 && (int)$session->getId() === $clientId && $supportsFuture;
-        $canUseRewards = $session && (int)$session->getLevel() === 5 && (int)$session->getId() === $clientId;
+        $canUseRewards = $allowRewards && $session && (int)$session->getLevel() === 5 && (int)$session->getId() === $clientId;
         $rewards = $canUseRewards ? (new LoyaltyRewardsService())->balance($businessId, $clientId, 'vnvevents') : null;
 
         return [
@@ -66,17 +66,26 @@ class OrderAccessSavedPaymentMethodService
 
     public function chargeFromPost(AbstractPaymentProvider $provider, object $activeProvider, object $order, int $businessId, float $amount, array $metadata): array
     {
-        try {
-            $rewards = $this->reserveRewardsForPost($order, $businessId, $amount, strtoupper((string)($metadata['payment_type'] ?? 'PAYMENT')) . '_EVENT_ORDER');
-        } catch (\Throwable $e) {
-            return ['charge' => false, 'error' => $e->getMessage()];
+        $paymentType = strtolower((string)($metadata['payment_type'] ?? 'payment'));
+        $source = strtolower((string)($metadata['source'] ?? ''));
+        $allowRewards = empty($metadata['suborder_id'])
+            && !str_starts_with($paymentType, 'suborder_')
+            && $paymentType !== 'tip'
+            && !str_contains($source, 'tip');
+        $rewards = ['token' => null, 'points' => 0.0, 'discount' => 0.0, 'amount_due' => round($amount, 2)];
+        if ($allowRewards) {
+            try {
+                $rewards = $this->reserveRewardsForPost($order, $businessId, $amount, strtoupper($paymentType) . '_EVENT_ORDER');
+            } catch (\Throwable $e) {
+                return ['charge' => false, 'error' => $e->getMessage()];
+            }
         }
         $amountToCharge = (float)$rewards['amount_due'];
         $minimumProviderCharge = max(0, $provider->getMinimumAmount());
         if ($amountToCharge > 0.009 && $amountToCharge < $minimumProviderCharge) {
             $this->releaseRewards($rewards['token']);
             $maximumDiscount = max(0, round($amount - $minimumProviderCharge, 2));
-            if ($maximumDiscount > 0 && (float)($_POST['loyalty_points'] ?? 0) > 0) {
+            if ($allowRewards && $maximumDiscount > 0 && (float)($_POST['loyalty_points'] ?? 0) > 0) {
                 try {
                     $rewards = $this->reserveRewardsForPost($order, $businessId, $maximumDiscount, strtoupper((string)($metadata['payment_type'] ?? 'PAYMENT')) . '_EVENT_ORDER');
                     $amountToCharge = max($minimumProviderCharge, round($amount - (float)$rewards['discount'], 2));

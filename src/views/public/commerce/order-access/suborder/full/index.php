@@ -116,7 +116,7 @@ $router->get(function () {
     $currencyCode = strtoupper($parentOrder->currency ?? ($activeProvider ? $activeProvider->currency : null) ?? 'USD');
     $baseUrl = $_ENV["APP_URL"] ?? 'http://localhost/vnv-venue';
     $savedPaymentService = new OrderAccessSavedPaymentMethodService();
-    $savedPaymentViewData = $savedPaymentService->viewDataForOrder($parentOrder, (int)$paymentOwnerId, (string)$activeProvider->provider_type);
+    $savedPaymentViewData = $savedPaymentService->viewDataForOrder($parentOrder, (int)$paymentOwnerId, (string)$activeProvider->provider_type, false);
 
     return TemplateResponse::render(__DIR__ . "/index.twig", [
         "token" => $token,

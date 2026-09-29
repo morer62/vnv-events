@@ -124,11 +124,11 @@
 							{% elseif current_status == 'INVOICE_EXPIRED' %}bg-danger
 							{% else %}bg-secondary{% endif %}">
 							{% if current_status == 'INVOICE_DRAFT' %}
-								ðŸ“ {{ trans('planner_hub.signature_pending') }}
+								{{ trans('planner_hub.signature_pending') }}
 							{% elseif current_status == 'INVOICE_READY' %}
 								<i class="bi bi-pen me-1"></i>{{ trans('planner_hub.signed_payment_pending') }}
 							{% elseif current_status == 'INVOICE_PARTIAL' %}
-								ðŸ’³ {{ trans('planner_hub.first_payment_completed') }}
+								{{ trans('planner_hub.first_payment_completed') }}
 							{% elseif current_status == 'INVOICE_PAID' %}
 								<i class="bi bi-check-circle me-1"></i>{{ trans('planner_hub.fully_paid') }}
 							{% elseif current_status == 'INVOICE_EXPIRED' %}
@@ -291,15 +291,15 @@
 			{% else %}
 				{% if payment_type == "split" and paymentStatus == "pending_first" %}
 					<a href="{{ path('order-access/suborder/first/', { token: token }) }}" class="btn btn-primary w-100 payment-button">
-						ðŸ’³ {{ trans('planner_hub.pay_first_installment_suborder') }} ({{ currency_code|default('USD') }} {{ first_payment_amount | number_format(2) }})
+						{{ trans('planner_hub.pay_first_installment_suborder') }} ({{ currency_code|default('USD') }} {{ first_payment_amount | number_format(2) }})
 					</a>
 				{% elseif payment_type == "split" and paymentStatus == "pending_second" %}
 					<a href="{{ path('order-access/suborder/second/', { token: token }) }}" class="btn btn-primary w-100 payment-button">
-						ðŸ’³ {{ trans('planner_hub.pay_remaining_balance_suborder') }} ({{ currency_code|default('USD') }} {{ second_payment_amount | number_format(2) }})
+						{{ trans('planner_hub.pay_remaining_balance_suborder') }} ({{ currency_code|default('USD') }} {{ second_payment_amount | number_format(2) }})
 					</a>
 				{% elseif payment_type == "one" and paymentStatus == "pending_first" %}
 					<a href="{{ path('order-access/suborder/full/', { token: token }) }}" class="btn btn-primary w-100 payment-button">
-						ðŸ’³ {{ trans('planner_hub.pay_full_amount_suborder') }} ({{ currency_code|default('USD') }} {{ total | number_format(2) }})
+						{{ trans('planner_hub.pay_full_amount_suborder') }} ({{ currency_code|default('USD') }} {{ total | number_format(2) }})
 					</a>
 				{% else %}
 					<div class="alert alert-info mt-3">âœ… {{ trans('planner_hub.all_payments_completed') }}</div>
@@ -482,7 +482,7 @@
 			}
 		});
 
-		// Prevenir clics mÃºltiples en botones
+		// Prevent duplicate button submissions.
 		document.addEventListener('DOMContentLoaded', function() {
 			// Para el formulario de firma
 			document.getElementById('eSignConsentSub')?.addEventListener('change', toggleSuborderSign);
@@ -530,7 +530,7 @@
 			});
 		});
 
-		// Capturar hora local del usuario al cargar la pÃ¡gina
+		// Capture the user's local time when the page loads.
 		document.addEventListener('DOMContentLoaded', function() {
 			const now = new Date();
 			const timestamp = now.getFullYear() + '-' + 
