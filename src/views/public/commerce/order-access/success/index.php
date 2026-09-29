@@ -10,6 +10,7 @@ use App\Services\OrderAccessSavedPaymentMethodService;
 
 $token = $_GET["token"] ?? null;
 $next = $_GET["next"] ?? null;
+$tipOnly = ($_GET['tip_only'] ?? '') === '1';
 
 if (!$token) {
     LocationUtils::redirectInternal("/404");
@@ -57,7 +58,7 @@ if (empty($order->id_tip) && empty($next) && !empty($order->id_owner)) {
     
     $orderTotal = $orderRepo->calculateTotal($orderId);
     
-    if ($totalPaid >= $orderTotal) {
+    if ($tipOnly || $totalPaid >= $orderTotal) {
         $paymentProvidersRepo = new PaymentProvidersRepository();
         $paymentOwnerId = $paymentProvidersRepo->getPaymentOwnerIdForOrder($order);
         $activeProvider = $paymentProvidersRepo->getActiveProviderForOwner($paymentOwnerId);
@@ -122,6 +123,7 @@ echo TemplateResponse::render(__DIR__ . "/index.twig", [
     "token" => $token,
     "next_url" => $nextUrl,
     "show_tip_option" => $showTipOption,
+    "tip_only" => $tipOnly,
     "order" => $order,
     "order_total" => $orderTotal,
     "suggested_tips" => $suggestedTips,

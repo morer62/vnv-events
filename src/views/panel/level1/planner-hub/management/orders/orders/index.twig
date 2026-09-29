@@ -158,13 +158,13 @@
 								<tr>
 									<th>ID</th>
 									<th>Event Area</th>
-									<th>Contract Link</th>
+									<th>Client Links</th>
 									<th>Client</th>
 									<th>Event Date</th>
 									<th>Status</th>
 									<th>Start - End</th>
 									<th>Address</th>
-									<th>Payments Received</th> 
+									<th>Payment Center</th>
 									<th>Sub-Order</th>
 									<th>Basic Actions</th>
 									<th>Team Communication</th> 
@@ -200,7 +200,8 @@
 												{% if token %}
 													<button type="button" class="btn btn-outline-primary btn-sm mb-1" onclick="copyPaymentLink('{{ path('/order-access?token=' ~ token) }}')">📋 Copy Link</button><br>
 													<a href="{{ path('/order-access?token=' ~ token) }}" target="_blank" class="btn btn-outline-secondary btn-sm">🌐 View Details</a><br>
-													<small class="text-muted">Copy or open payment link</small>
+												<button type="button" class="btn btn-outline-success btn-sm mt-1" onclick="copyPaymentLink('{{ path('/order-access/tip-only?token=' ~ token) }}')">Copy Tip-Only Link</button><br>
+												<small class="text-muted">Payment/order link and optional gratuity link</small>
 												{% else %}
 													<span class="text-muted">No token</span>
 												{% endif %}
