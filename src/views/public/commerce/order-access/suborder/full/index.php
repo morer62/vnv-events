@@ -48,6 +48,9 @@ $router->get(function () {
     $suborder = $suborderRepo->getByIdWithoutOwnershipCheck($decoded["suborder_id"]);
     if (!$suborder)
         LocationUtils::redirectInternal("/404");
+    if ((int)$suborder->payment_split_type !== 1 || (string)$suborder->status_workflow === 'INVOICE_PAID') {
+        LocationUtils::redirectInternal("/order-access/suborder?token=" . urlencode($token));
+    }
 
     $parentOrder = $orderRepo->getByIdWithoutOwnershipCheck($suborder->id_order);
     if ($parentOrder) {
@@ -96,7 +99,15 @@ $router->get(function () {
         $sumAdvances = 0;
         error_log("[SUBORDER_FULL][GET] Error getting advances: " . $e->getMessage());
     }
-    $totalAmount = max($totalAmount - $sumAdvances, 0);
+    $db->query("SELECT COALESCE(SUM(amount - COALESCE(refunded_amount, 0)),0) AS total_paid FROM orders_payments WHERE id_suborder = :id AND is_suborder = 1 AND COALESCE(is_refunded,0)=0");
+    $db->bind(":id", $suborder->id);
+    $db->execute();
+    $paidRow = $db->fetchOne();
+    $sumPayments = (float)($paidRow->total_paid ?? 0);
+    $totalAmount = max($totalAmount - $sumAdvances - $sumPayments, 0);
+    if ($totalAmount <= 0.005) {
+        LocationUtils::redirectInternal("/order-access/suborder?token=" . urlencode($token));
+    }
     error_log("[SUBORDER_FULL][GET] Final calculation - Original: " . round($subtotalCalculated + $tax, 2) . ", Advances: " . $sumAdvances . ", Final: " . $totalAmount);
 
     $paymentRequestLabel = TranslationService::trans('planner_hub.suborder_full_payment', ['suborder_id' => $suborder->id]);
@@ -166,6 +177,9 @@ $router->post(function () {
             "error" => TranslationService::trans('planner_hub.suborder_not_found')
         ]);
     }
+    if ((int)$suborder->payment_split_type !== 1 || (string)$suborder->status_workflow === 'INVOICE_PAID') {
+        LocationUtils::redirectInternal("/order-access/suborder?token=" . urlencode($token));
+    }
     error_log("Suborder found: " . $suborder->id);
 
     $parentOrder = $orderRepo->getByIdWithoutOwnershipCheck($suborder->id_order);
@@ -220,7 +234,15 @@ $router->post(function () {
     } catch (\Throwable $e) {
         $sumAdvances = 0;
     }
-    $totalAmount = max($totalAmount - $sumAdvances, 0);
+    $db->query("SELECT COALESCE(SUM(amount - COALESCE(refunded_amount, 0)),0) AS total_paid FROM orders_payments WHERE id_suborder = :id AND is_suborder = 1 AND COALESCE(is_refunded,0)=0");
+    $db->bind(":id", $suborderId);
+    $db->execute();
+    $paidRow = $db->fetchOne();
+    $sumPayments = (float)($paidRow->total_paid ?? 0);
+    $totalAmount = max($totalAmount - $sumAdvances - $sumPayments, 0);
+    if ($totalAmount <= 0.005) {
+        LocationUtils::redirectInternal("/order-access/suborder?token=" . urlencode($token));
+    }
     
     error_log("Payment calculation - Subtotal: $subtotalCalculated, Tax: $tax, Advances: $sumAdvances, Total: $totalAmount");
 

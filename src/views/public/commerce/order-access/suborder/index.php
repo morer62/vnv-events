@@ -186,6 +186,7 @@ $router->get(function () {
         "parent_order_token" => $orderToken,
         "hasSigned" => $hasSigned,
         "paymentStatus" => $paymentStatus,
+        "current_status" => (string)($suborder->status_workflow ?? 'INVOICE_DRAFT'),
         "payment_type" => $suborder->payment_split_type == 2 ? 'split' : 'one',
 
         "first_payment_amount" => $firstPayment,

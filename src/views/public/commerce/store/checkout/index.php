@@ -1039,6 +1039,14 @@ $router->post(function () {
     $isRecurringOrder = $orderFrequency === 'RECURRING';
     $recurrenceType = strtoupper(trim((string)($payload['recurrence_type'] ?? 'WEEKLY')));
     $recurrenceInterval = max(1, min(12, (int)($payload['recurrence_interval'] ?? 1)));
+    if (!in_array($recurrenceType, ['WEEKLY', 'SELECTED_WEEKDAYS', 'INTERVAL_WEEKS'], true)) {
+        $recurrenceType = 'WEEKLY';
+    }
+    // The interval field belongs to "Every X weeks". Its hidden/default value
+    // must not silently turn the plain weekly option into a biweekly schedule.
+    if ($recurrenceType !== 'INTERVAL_WEEKS') {
+        $recurrenceInterval = 1;
+    }
     $recurrenceCount = max(2, min(52, (int)($payload['recurrence_count'] ?? 6)));
     $recurrenceWeekdays = array_values(array_unique(array_filter(array_map('intval', (array)($payload['recurrence_weekdays'] ?? [])), static fn($day) => $day >= 1 && $day <= 7)));
     $guestName = trim($payload['guest_name'] ?? ($cart->guest_name ?? ''));

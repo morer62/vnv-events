@@ -124,7 +124,13 @@
             });
         }
 
-        if (form && savedSelect) {
+        // Traditional payment pages submit directly to a POST action. Tip forms
+        // are handled asynchronously by their own script and must not be turned
+        // into a native GET submission when a saved method is selected.
+        const isTraditionalPostForm = form
+            && (form.getAttribute('method') || '').toLowerCase() === 'post'
+            && !!form.getAttribute('action');
+        if (isTraditionalPostForm && savedSelect) {
             form.addEventListener('submit', function (event) {
                 if (!savedSelect.value) {
                     return;

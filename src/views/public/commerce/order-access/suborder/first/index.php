@@ -47,6 +47,9 @@ $router->get(function () {
     $suborder = $suborderRepo->getByIdWithoutOwnershipCheck($decoded["suborder_id"]);
     if (!$suborder)
         LocationUtils::redirectInternal("/404");
+    if ((int)$suborder->payment_split_type !== 2 || in_array((string)$suborder->status_workflow, ['INVOICE_PARTIAL', 'INVOICE_PAID'], true)) {
+        LocationUtils::redirectInternal("/order-access/suborder?token=" . urlencode($token));
+    }
 
     $parentOrder = $orderRepo->getByIdWithoutOwnershipCheck($suborder->id_order);
     if ($parentOrder) {
@@ -146,6 +149,9 @@ $router->post(function () {
         return TemplateResponse::render(__DIR__ . "/error.twig", [
             "error" => TranslationService::trans('planner_hub.suborder_not_found')
         ]);
+    }
+    if ((int)$suborder->payment_split_type !== 2 || in_array((string)$suborder->status_workflow, ['INVOICE_PARTIAL', 'INVOICE_PAID'], true)) {
+        LocationUtils::redirectInternal("/order-access/suborder?token=" . urlencode($token));
     }
 
     $parentOrder = $orderRepo->getByIdWithoutOwnershipCheck($suborder->id_order);
