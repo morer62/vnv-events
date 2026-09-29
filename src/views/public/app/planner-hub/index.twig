@@ -1678,6 +1678,25 @@ h1, h2, h3, h4, .luxury-font {
         padding-right: 50px;
     }
 }
+
+.gourmet-express-banner {
+    position: relative;
+    overflow: hidden;
+    padding: clamp(42px, 7vw, 78px) 0;
+    background:
+        linear-gradient(100deg, rgba(8,15,13,.97) 5%, rgba(20,57,45,.88) 58%, rgba(20,57,45,.48)),
+        url('{{ asset_for('assets/images/vnv-gourmet-hero-small-fast.webp') }}') center 45% / cover;
+    color: #fff;
+}
+.gourmet-express-banner-inner { display:flex; align-items:center; justify-content:space-between; gap:36px; }
+.gourmet-express-copy { max-width:760px; }
+.gourmet-express-kicker { display:block; margin-bottom:12px; color:#8ffff1; font-size:.78rem; font-weight:900; letter-spacing:.16em; text-transform:uppercase; }
+.gourmet-express-banner h2 { margin:0 0 14px; color:#fff; font-size:clamp(2.35rem,5vw,4.9rem); font-weight:900; line-height:.98; }
+.gourmet-express-banner p { margin:0; max-width:680px; color:rgba(255,255,255,.82); font-size:clamp(1rem,2vw,1.2rem); }
+.gourmet-express-actions { display:flex; flex:0 0 auto; flex-wrap:wrap; gap:12px; }
+@media (max-width: 900px) {
+    .gourmet-express-banner-inner { align-items:flex-start; flex-direction:column; }
+}
 </style>
 {% endblock %}
 
@@ -1705,6 +1724,20 @@ h1, h2, h3, h4, .luxury-font {
             <video class="hero-video-src" muted loop playsinline preload="none" data-vnv-lazy-video>
                 <source data-src="{{ asset_for('assets/video/intro_vnv.mp4') }}" type="video/mp4">
             </video>
+        </div>
+    </div>
+</section>
+
+<section class="gourmet-express-banner" aria-labelledby="gourmet-express-title">
+    <div class="container gourmet-express-banner-inner">
+        <div class="gourmet-express-copy">
+            <span class="gourmet-express-kicker">New · VNV Gourmet Express</span>
+            <h2 id="gourmet-express-title">Chef-prepared favorites, ready for your table.</h2>
+            <p>Choose family meals, party boxes, paellas, desserts and seasonal menus. Customize your order and schedule delivery online.</p>
+        </div>
+        <div class="gourmet-express-actions">
+            <a href="{{ path('vnv-gourmet-express') }}" class="vnv-btn btn-gold-vnv">Order Gourmet Express</a>
+            <a href="{{ path('vnv-gourmet') }}" class="vnv-btn btn-outline-vnv">Explore VNV Gourmet</a>
         </div>
     </div>
 </section>
