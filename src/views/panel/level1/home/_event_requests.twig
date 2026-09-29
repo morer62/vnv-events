@@ -1,0 +1,50 @@
+<section class="vnv-request-board" id="event-requests">
+  <div class="vnv-request-board__head">
+    <div>
+      <h2>New event requests</h2>
+      <p>Requests submitted from the public popup or client dashboard. Review them here even when the email notification was not opened.</p>
+    </div>
+    <div class="vnv-request-count">{{ eventRequestsUnreadCount|default(0) }} new · {{ eventRequestsCount|default(0) }} active</div>
+  </div>
+
+  <div class="vnv-request-list">
+    {% for request in eventRequests|default([]) %}
+      {% set services = request.selected_services ? request.selected_services|json_decode : [] %}
+      <article class="vnv-request-card{% if request.status == 'NEW' %} vnv-request-card--new{% endif %}">
+        <div class="vnv-request-card__top">
+          <div>
+            <strong>{{ request.full_name }}</strong>
+            <small>{{ request.email }}{% if request.phone %} · {{ request.phone }}{% endif %}</small>
+          </div>
+          <span class="vnv-request-card__date">{% if request.status == 'NEW' %}NEW · {% endif %}{{ request.event_date|date('M j') }}</span>
+        </div>
+        <div>{{ request.event_time|date('g:i A') }} · {{ request.event_address }}</div>
+        {% if services %}
+          <div class="vnv-request-card__services">{{ services|join(', ') }}</div>
+        {% endif %}
+        {% if request.details %}
+          <small>{{ request.details }}</small>
+        {% endif %}
+        <div class="d-flex flex-wrap gap-2">
+          {% if request.status == 'NEW' %}
+            <form method="post">
+              <input type="hidden" name="action" value="read_event_request">
+              <input type="hidden" name="event_request_id" value="{{ request.id }}">
+              <button type="submit" class="vnv-request-archive">Mark as read</button>
+            </form>
+          {% endif %}
+          <form method="post">
+            <input type="hidden" name="action" value="archive_event_request">
+            <input type="hidden" name="event_request_id" value="{{ request.id }}">
+            <button type="submit" class="vnv-request-archive" onclick="return confirm('Archive this event request?')">Archive request</button>
+          </form>
+        </div>
+      </article>
+    {% else %}
+      <article class="vnv-request-card">
+        <strong>No active event requests yet.</strong>
+        <small>New popup submissions will appear here for Level 1 follow-up.</small>
+      </article>
+    {% endfor %}
+  </div>
+</section>

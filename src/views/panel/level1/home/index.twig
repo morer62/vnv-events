@@ -672,6 +672,8 @@
     </a>
   </section>
 
+  {% include 'panel/level1/home/_event_requests.twig' %}
+
   {% if agentApprovals|default([]) %}
   <section class="vnv-request-board" id="agent-approvals">
     <div class="vnv-request-board__head"><div><h2>Pending agent approvals</h2><p>Review, edit or return each draft with corrections before anything is sent or published.</p></div><div class="vnv-request-count">{{ agentApprovalsCount }} pending</div></div>
@@ -829,6 +831,8 @@
     </div>
   </section>
 
+  {# Event requests now render near the operational summary above. #}
+  {% if false %}
   <section class="vnv-request-board" id="event-requests">
     <div class="vnv-request-board__head">
       <div>
@@ -879,6 +883,7 @@
       {% endfor %}
     </div>
   </section>
+  {% endif %}
 
   <section class="vnv-final">
     <h2 class="vnv-title" style="color:#fff;">
