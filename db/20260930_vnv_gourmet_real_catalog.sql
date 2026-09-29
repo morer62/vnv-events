@@ -72,5 +72,9 @@ INSERT INTO site_visibility (site_key,entity_type,entity_id,id_user_business,is_
 SELECT 'vnvevents','store_product',p.id,2,1,'VISIBLE','VNV Gourmet To Go launch catalog.',NOW(),NOW() FROM store_products p WHERE p.id_owner=2 AND p.site_key='vnvevents' AND p.slug IN ('homemade-lasagna-pasticho','latin-bites-box','signature-appetizer-box','charcuterie-to-go','chicken-chorizo-paella','seafood-paella','dessert-box','ensaimada-box','garlic-bread','salad-add-on','extra-dessert-add-on','thanksgiving-feast','thanksgiving-dinner-to-go','venezuelan-christmas-dinner','latin-holiday-dinner','extra-hallaca','pan-de-jamon','pernil-by-the-pound')
 ON DUPLICATE KEY UPDATE id_user_business=2,is_visible=1,visibility_status='VISIBLE',notes=VALUES(notes),updated_at=NOW();
 
+INSERT INTO site_visibility (site_key,entity_type,entity_id,id_user_business,is_visible,visibility_status,notes,created_at,updated_at)
+SELECT 'vnvevents','store_category',c.id,2,1,'VISIBLE','VNV Gourmet To Go launch category.',NOW(),NOW() FROM store_categories c WHERE c.id_owner=2 AND c.site_key='vnvevents' AND c.slug IN ('family-meals','party-boxes','party-trays','desserts-add-ons','seasonal-holiday-packages')
+ON DUPLICATE KEY UPDATE id_user_business=2,is_visible=1,visibility_status='VISIBLE',notes=VALUES(notes),updated_at=NOW();
+
 COMMIT;
 SELECT 'VNV Gourmet To Go real catalog ready' result;
