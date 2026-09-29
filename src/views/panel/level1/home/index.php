@@ -5,6 +5,7 @@ use App\Repositories\Connection;
 use App\Repositories\AiAgentsRepository;
 use App\Services\LoginService;
 use App\Services\OphyraGrowthHubClient;
+use App\Services\LoyaltyRewardsService;
 use App\Utils\LocationUtils;
 use App\Utils\MessageUtil;
 use App\Utils\Router;
@@ -57,6 +58,32 @@ function level1HomeOrderSummary(int $ownerId): array
     return $summary;
 }
 
+function level1HomeRewardsSummary(int $ownerId): array
+{
+    $summary = [
+        'reward_percent' => 0.0,
+        'point_value' => 0.0,
+        'clients_with_balance' => 0,
+        'available_points' => 0.0,
+        'pending_points' => 0.0,
+    ];
+    try {
+        $settings = (new LoyaltyRewardsService())->settings($ownerId, 'vnvevents');
+        $summary['reward_percent'] = (float)$settings->reward_percent;
+        $summary['point_value'] = (float)$settings->point_value;
+        $db = new Connection();
+        $db->query("SELECT COUNT(*) clients_with_balance,COALESCE(SUM(available_points),0) available_points,COALESCE(SUM(pending_points),0) pending_points FROM (SELECT id_user,SUM(CASE WHEN status IN ('AVAILABLE','REDEEMED') THEN points ELSE 0 END) available_points,SUM(CASE WHEN status='PENDING' THEN points ELSE 0 END) pending_points FROM loyalty_transactions WHERE id_owner=:owner AND site_key='vnvevents' GROUP BY id_user HAVING available_points>0 OR pending_points>0) balances");
+        $db->bind(':owner', $ownerId);
+        $row = $db->fetchOne();
+        $summary['clients_with_balance'] = (int)($row->clients_with_balance ?? 0);
+        $summary['available_points'] = (float)($row->available_points ?? 0);
+        $summary['pending_points'] = (float)($row->pending_points ?? 0);
+    } catch (Throwable $e) {
+        error_log('[Level1 Home] Rewards summary failed: ' . $e->getMessage());
+    }
+    return $summary;
+}
+
 $router->get(function () {
     $user = LoginService::getSession();
     $requestRepo = new EventRequestRepository();
@@ -87,6 +114,7 @@ $router->get(function () {
     return TemplateResponse::render(__DIR__ . "/index.twig", [
         'user' => $user,
         'orderSummary' => level1HomeOrderSummary((int)$user->getOwner()),
+        'rewardsSummary' => level1HomeRewardsSummary((int)$user->getOwner()),
         'eventRequests' => $requestRepo->latestForOwner((int)$user->getOwner(), 6, false),
         'eventRequestsCount' => $requestRepo->countForOwner((int)$user->getOwner(), false),
         'eventRequestsArchivedCount' => $requestRepo->countForOwner((int)$user->getOwner(), true),

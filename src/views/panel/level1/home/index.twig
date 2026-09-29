@@ -236,6 +236,26 @@
       color:var(--vnv-gold);
     }
 
+    .vnv-rewards-banner{
+      display:grid;
+      grid-template-columns:minmax(220px,1.4fr) repeat(3,minmax(120px,.65fr)) auto;
+      align-items:center;
+      gap:1rem;
+      margin:0 0 1.4rem;
+      padding:1.2rem 1.35rem;
+      border-radius:22px;
+      background:linear-gradient(135deg,#111819,#223234);
+      color:#fff !important;
+      text-decoration:none;
+      box-shadow:0 18px 38px rgba(17,24,25,.22);
+    }
+    .vnv-rewards-banner:hover{color:#fff !important;transform:translateY(-2px)}
+    .vnv-rewards-banner small{display:block;color:#8edbd7;text-transform:uppercase;letter-spacing:.1em;font-weight:900}
+    .vnv-rewards-banner h2{margin:.2rem 0 0;font-size:1.35rem;font-weight:900}
+    .vnv-rewards-metric strong{display:block;color:var(--vnv-gold);font-size:1.35rem;font-weight:900}
+    .vnv-rewards-metric span{color:rgba(255,255,255,.72);font-size:.82rem;font-weight:700}
+    .vnv-rewards-arrow{width:44px;height:44px;display:grid;place-items:center;border-radius:50%;background:#fff;color:#172223}
+
     .vnv-main-card{
       background:#fff;
       padding:1.8rem 1.35rem;
@@ -522,6 +542,7 @@
     }
 
     @media (max-width: 991px){
+      .vnv-rewards-banner{grid-template-columns:1fr 1fr}.vnv-rewards-banner__title,.vnv-rewards-arrow{grid-column:1/-1}.vnv-rewards-arrow{justify-self:end}
       .vnv-mini-row{
         grid-template-columns:repeat(2,1fr);
       }
@@ -603,6 +624,14 @@
 
   <a href="{{ path('panel/planner-hub/store/orders/home') }}" style="display:flex;align-items:center;justify-content:space-between;gap:1rem;margin:0 0 1.4rem;padding:1.25rem 1.5rem;border-radius:22px;background:linear-gradient(135deg,#173f32,#24624d);color:#fff;text-decoration:none;box-shadow:0 18px 38px rgba(23,63,50,.24)">
     <div><small style="text-transform:uppercase;letter-spacing:.12em;color:#bfe9d8;font-weight:800">VNV Events To Go</small><div style="font-size:clamp(1.3rem,3vw,2rem);font-weight:900">You have {{ orderSummary.pending_delivery_orders|default(0) }} delivery orders pending.</div><span style="color:rgba(255,255,255,.78)">Open preparation, assignment and delivery workflow.</span></div><i class="fa-solid fa-truck-fast" style="font-size:2.2rem;color:#e0b95d"></i>
+  </a>
+
+  <a class="vnv-rewards-banner" href="{{ path('panel/planner-hub/management/orders/loyalty') }}" aria-label="Open Rewards settings">
+    <div class="vnv-rewards-banner__title"><small>VNV Rewards</small><h2>Rewards overview and settings</h2></div>
+    <div class="vnv-rewards-metric"><strong>${{ rewardsSummary.point_value|number_format(2) }}</strong><span>Value per point</span></div>
+    <div class="vnv-rewards-metric"><strong>{{ rewardsSummary.available_points|number_format(2) }}</strong><span>Available client points</span></div>
+    <div class="vnv-rewards-metric"><strong>{{ rewardsSummary.clients_with_balance }}</strong><span>Clients with balance · {{ rewardsSummary.reward_percent|number_format(2) }}% earn rate</span></div>
+    <i class="fa-solid fa-arrow-right vnv-rewards-arrow" aria-hidden="true"></i>
   </a>
 
   <section class="vnv-status-grid" aria-label="Operational shortcuts">
