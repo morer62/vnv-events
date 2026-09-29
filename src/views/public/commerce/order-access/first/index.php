@@ -372,7 +372,10 @@ $router->post(function () {
     }
     $savedPaymentService->commitRewards($chargeResult['loyalty']['token'] ?? null, (int)$order->id_client);
 
-    $orderRepo->update(["status_workflow" => "INVOICE_PARTIAL"], ["id" => $orderId]);
+    $orderRepo->update([
+        "status_workflow" => "INVOICE_PARTIAL",
+        "payment_status" => "paid_half",
+    ], ["id" => $orderId]);
 
     $statusRepo = new OrdersStatusHistoryRepository();
     $statusRepo->add([
@@ -424,7 +427,7 @@ $router->post(function () {
     } catch (Exception $e) {
     }
 
-    LocationUtils::redirectInternal("/order-access/success/?token=" . urlencode($token));
+    LocationUtils::redirectInternal("/order-access/success/?token=" . urlencode($token) . "&next=second");
 });
 
 $router->run();

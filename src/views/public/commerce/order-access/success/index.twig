@@ -34,10 +34,19 @@
                         <h1 class="text-success mb-3">{{ trans('planner_hub.payment_successful') }}</h1>
                         <p class="lead text-muted mb-4">{{ trans('planner_hub.payment_received_processed') }}</p>
                         
+                        {% if next_url %}
+                        <div class="alert alert-success mb-4" role="alert">
+                            <strong>✓ First payment received.</strong><br>
+                            Your order still has a second scheduled payment remaining.
+                        </div>
+                        <a href="{{ path(next_url) }}" class="btn btn-success btn-lg px-5 mb-3">Continue to second payment</a>
+                        {% else %}
                         <div class="alert alert-success mb-4" role="alert">
                             <strong>✓ {{ trans('planner_hub.order_fully_paid') }}</strong><br>
                             {{ trans('planner_hub.event_order_completed') }}
                         </div>
+
+                        {% endif %}
 
                         {% if show_tip_option %}
                         <div class="card bg-light border-0 mb-4">

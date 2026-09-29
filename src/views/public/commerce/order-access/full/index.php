@@ -338,7 +338,10 @@ $router->post(function () {
     }
     $savedPaymentService->commitRewards($chargeResult['loyalty']['token'] ?? null, (int)$order->id_client);
 
-    $orderRepo->update(["status_workflow" => "INVOICE_PAID"], ["id" => $orderId]);
+    $orderRepo->update([
+        "status_workflow" => "INVOICE_PAID",
+        "payment_status" => "paid_full",
+    ], ["id" => $orderId]);
 
     $statusRepo = new OrdersStatusHistoryRepository();
     $statusRepo->add([
