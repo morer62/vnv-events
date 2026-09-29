@@ -81,7 +81,7 @@ if (!empty($order->id_client)) {
     }
 }
 
-$baseUrl = $_ENV["APP_URL"] ?? 'http://localhost/vnv-venue';
+$baseUrl = rtrim((string) ($_ENV["APP_URL"] ?? 'http://localhost/vnv-venue'), '/');
 if (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') {
     $baseUrl = str_replace('http://', 'https://', $baseUrl);
 }
