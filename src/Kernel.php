@@ -422,7 +422,7 @@ class Kernel
                             }
 
                             \App\Utils\MessageUtil::setMessage("ℹ️ This area is reserved for administrators. Let us know if you need help finding what you are looking for.");
-                            LocationUtils::redirectInternal("panel/planner-hub/management");
+                            LocationUtils::redirectInternal("panel/home");
                         }
                     }
 

@@ -57,7 +57,7 @@ class EventRequestRepository extends BaseRepository
                 FROM `{$this->table}`
                 WHERE `id_owner` = :id_owner
                   AND `is_archived` = :is_archived
-                ORDER BY `created_at` DESC
+                ORDER BY (`status` = 'NEW') DESC, `created_at` DESC
                 LIMIT :limit
             ");
             $this->db->bind(':id_owner', $ownerId);
@@ -89,6 +89,44 @@ class EventRequestRepository extends BaseRepository
             error_log('EventRequestRepository::countForOwner error: ' . $e->getMessage());
             return 0;
         }
+    }
+
+    public function countUnreadForOwner(int $ownerId): int
+    {
+        try {
+            $this->db->query("
+                SELECT COUNT(*) AS total
+                FROM `{$this->table}`
+                WHERE `id_owner` = :id_owner
+                  AND `is_archived` = 0
+                  AND `status` = 'NEW'
+            ");
+            $this->db->bind(':id_owner', $ownerId);
+            $row = $this->db->fetchOne();
+
+            return (int)($row->total ?? 0);
+        } catch (\Throwable $e) {
+            error_log('EventRequestRepository::countUnreadForOwner error: ' . $e->getMessage());
+            return 0;
+        }
+    }
+
+    public function markReadForOwner(int $id, int $ownerId): bool
+    {
+        $this->db->query("
+            UPDATE `{$this->table}`
+            SET `status` = 'READ',
+                `updated_at` = NOW()
+            WHERE `id` = :id
+              AND `id_owner` = :id_owner
+              AND `is_archived` = 0
+              AND `status` = 'NEW'
+        ");
+        $this->db->bind(':id', $id);
+        $this->db->bind(':id_owner', $ownerId);
+        $this->db->execute();
+
+        return $this->db->rowCount() > 0;
     }
 
     public function archiveForOwner(int $id, int $ownerId): bool

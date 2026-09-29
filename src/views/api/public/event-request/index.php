@@ -351,6 +351,7 @@ $router->post(function () {
         </div>
     </div>';
 
+    $emailDelivered = false;
     try {
         $emailService = new EmailService();
         $results = $emailService->sendBulkEmail([
@@ -358,17 +359,21 @@ $router->post(function () {
             ['email' => 'contact@vnvevents.com', 'name' => 'VNV Events'],
         ], $subject, $body, true);
 
-        if (!in_array(true, $results, true)) {
-            MessageUtil::setMessage('Could not send your request email. Please try again.', 'Email', 'error');
-            eventRequestRedirectBack();
+        $emailDelivered = in_array(true, $results, true);
+        if (!$emailDelivered) {
+            error_log('Public event request #' . $requestId . ' was saved, but no notification email was delivered.');
         }
     } catch (\Throwable $e) {
         error_log('Public event request email error: ' . $e->getMessage());
-        MessageUtil::setMessage('Could not send your request email. Please try again.', 'Email', 'error');
-        eventRequestRedirectBack();
     }
 
-    MessageUtil::setMessage('Your request was sent successfully.', 'Success', 'success');
+    MessageUtil::setMessage(
+        $emailDelivered
+            ? 'Your request was sent successfully.'
+            : 'Your request was received successfully. Our team can already see it in the dashboard.',
+        'Success',
+        'success'
+    );
     eventRequestRedirectSuccess();
 });
 

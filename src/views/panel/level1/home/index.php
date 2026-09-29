@@ -117,6 +117,7 @@ $router->get(function () {
         'rewardsSummary' => level1HomeRewardsSummary((int)$user->getOwner()),
         'eventRequests' => $requestRepo->latestForOwner((int)$user->getOwner(), 6, false),
         'eventRequestsCount' => $requestRepo->countForOwner((int)$user->getOwner(), false),
+        'eventRequestsUnreadCount' => $requestRepo->countUnreadForOwner((int)$user->getOwner()),
         'eventRequestsArchivedCount' => $requestRepo->countForOwner((int)$user->getOwner(), true),
         'growthHubSummary' => $growthHubSummary,
         'agentApprovals' => $agentApprovals,
@@ -137,6 +138,16 @@ $router->post(function () {
         }
 
         LocationUtils::redirectInternal('panel/home');
+        return;
+    }
+
+    if ($action === 'read_event_request') {
+        $id = (int)($_POST['event_request_id'] ?? 0);
+        if ($id > 0) {
+            (new EventRequestRepository())->markReadForOwner($id, (int)$user->getOwner());
+        }
+
+        LocationUtils::redirectInternal('panel/home#event-requests');
         return;
     }
 

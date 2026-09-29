@@ -251,7 +251,7 @@
     }
     .vnv-rewards-banner:hover{color:#fff !important;transform:translateY(-2px)}
     .vnv-rewards-banner small{display:block;color:#8edbd7;text-transform:uppercase;letter-spacing:.1em;font-weight:900}
-    .vnv-rewards-banner h2{margin:.2rem 0 0;font-size:1.35rem;font-weight:900}
+    .vnv-rewards-banner h2{margin:.2rem 0 0;font-size:1.35rem;font-weight:900;color:#fff !important}
     .vnv-rewards-metric strong{display:block;color:var(--vnv-gold);font-size:1.35rem;font-weight:900}
     .vnv-rewards-metric span{color:rgba(255,255,255,.72);font-size:.82rem;font-weight:700}
     .vnv-rewards-arrow{width:44px;height:44px;display:grid;place-items:center;border-radius:50%;background:#fff;color:#172223}
@@ -403,6 +403,11 @@
       border:1px solid rgba(255,255,255,.09);
       border-radius:18px;
       padding:1rem;
+    }
+
+    .vnv-request-card--new{
+      border-color:var(--vnv-gold);
+      box-shadow:0 0 0 1px rgba(224,174,73,.2);
     }
 
     .vnv-request-card__top{
@@ -619,6 +624,9 @@
       <a href="{{ path('panel/planner-hub/management/crm') }}" class="btn-vnv-light">
         <i class="fa-solid fa-users-viewfinder"></i> Open CRM
       </a>
+      <a href="#event-requests" class="btn-vnv-light">
+        <i class="fa-solid fa-inbox"></i> Requests{% if eventRequestsUnreadCount|default(0) > 0 %} ({{ eventRequestsUnreadCount }}){% endif %}
+      </a>
     </div>
   </section>
 
@@ -665,7 +673,7 @@
   </section>
 
   {% if agentApprovals|default([]) %}
-  <section class="vnv-request-board">
+  <section class="vnv-request-board" id="agent-approvals">
     <div class="vnv-request-board__head"><div><h2>Pending agent approvals</h2><p>Review, edit or return each draft with corrections before anything is sent or published.</p></div><div class="vnv-request-count">{{ agentApprovalsCount }} pending</div></div>
     <div class="vnv-request-list">
       {% for approval in agentApprovals|slice(0,6) %}
@@ -821,25 +829,25 @@
     </div>
   </section>
 
-  <section class="vnv-request-board">
+  <section class="vnv-request-board" id="event-requests">
     <div class="vnv-request-board__head">
       <div>
         <h2>New event requests</h2>
         <p>Requests submitted from the public popup or client dashboard. Archive them once the team has converted or handled the order.</p>
       </div>
-      <div class="vnv-request-count">{{ eventRequestsCount|default(0) }} active</div>
+      <div class="vnv-request-count">{{ eventRequestsUnreadCount|default(0) }} new · {{ eventRequestsCount|default(0) }} active</div>
     </div>
 
     <div class="vnv-request-list">
       {% for request in eventRequests|default([]) %}
         {% set services = request.selected_services ? request.selected_services|json_decode : [] %}
-        <article class="vnv-request-card">
+        <article class="vnv-request-card{% if request.status == 'NEW' %} vnv-request-card--new{% endif %}">
           <div class="vnv-request-card__top">
             <div>
               <strong>{{ request.full_name }}</strong>
               <small>{{ request.email }}{% if request.phone %} · {{ request.phone }}{% endif %}</small>
             </div>
-            <span class="vnv-request-card__date">{{ request.event_date|date('M j') }}</span>
+            <span class="vnv-request-card__date">{% if request.status == 'NEW' %}NEW · {% endif %}{{ request.event_date|date('M j') }}</span>
           </div>
           <div>{{ request.event_time|date('g:i A') }} · {{ request.event_address }}</div>
           {% if services %}
@@ -848,11 +856,20 @@
           {% if request.details %}
             <small>{{ request.details|slice(0, 140) }}{% if request.details|length > 140 %}...{% endif %}</small>
           {% endif %}
-          <form method="post">
-            <input type="hidden" name="action" value="archive_event_request">
-            <input type="hidden" name="event_request_id" value="{{ request.id }}">
-            <button type="submit" class="vnv-request-archive" onclick="return confirm('Archive this event request?')">Archive request</button>
-          </form>
+          <div class="d-flex flex-wrap gap-2">
+            {% if request.status == 'NEW' %}
+              <form method="post">
+                <input type="hidden" name="action" value="read_event_request">
+                <input type="hidden" name="event_request_id" value="{{ request.id }}">
+                <button type="submit" class="vnv-request-archive">Mark as read</button>
+              </form>
+            {% endif %}
+            <form method="post">
+              <input type="hidden" name="action" value="archive_event_request">
+              <input type="hidden" name="event_request_id" value="{{ request.id }}">
+              <button type="submit" class="vnv-request-archive" onclick="return confirm('Archive this event request?')">Archive request</button>
+            </form>
+          </div>
         </article>
       {% else %}
         <article class="vnv-request-card">
