@@ -632,6 +632,20 @@
                                     <div class="pp-variation-meta" id="variation-meta"></div>
                                 </div>
 
+                                {% if product_addons|length %}
+                                <div class="pp-block" style="margin:1rem 0;padding:1rem">
+                                    <h4>Optional add-ons</h4>
+                                    {% for addon in product_addons %}
+                                    <div class="pp-addon" style="display:grid;grid-template-columns:auto 1fr;gap:.75rem;align-items:center;margin:.7rem 0">
+                                        <input type="checkbox" class="product-addon-check" id="addon-{{ addon.id }}" data-id="{{ addon.id }}" data-name="{{ addon.name|e('html_attr') }}" data-slug="{{ addon.slug|e('html_attr') }}" data-image="{{ addon.main_image|default('')|e('html_attr') }}" data-price="{{ addon.price_override is not null ? addon.price_override : addon.price }}" data-type="{{ addon.product_type }}">
+                                        <label for="addon-{{ addon.id }}"><strong>{{ addon.name }}</strong>{% if addon.product_type == 'FIXED' %} · ${{ (addon.price_override is not null ? addon.price_override : addon.price)|number_format(2) }}{% endif %}</label>
+                                        <input type="number" class="pp-input product-addon-qty" data-addon-id="{{ addon.id }}" min="1" value="1" style="grid-column:2;max-width:110px" disabled aria-label="{{ addon.name }} quantity">
+                                        {% if addon.product_type == 'VARIABLE' %}<select class="pp-select product-addon-variation" data-addon-id="{{ addon.id }}" style="grid-column:2" disabled><option value="">Choose an option</option>{% for variation in addon.variations %}<option value="{{ variation.id }}" data-name="{{ variation.name|e('html_attr') }}" data-price="{{ variation.effective_price }}">{{ variation.name }} — ${{ variation.effective_price|number_format(2) }}</option>{% endfor %}</select>{% endif %}
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                                {% endif %}
+
                                 <div class="pp-actions">
                                     <button
                                         type="button"
@@ -821,6 +835,8 @@ document.addEventListener('DOMContentLoaded', function () {
     const qtyInput = document.getElementById('product-qty');
     const servingsInput = document.getElementById('product-servings');
     const cookingPreferenceInput = document.getElementById('cooking-preference');
+    const addonChecks = Array.from(document.querySelectorAll('.product-addon-check'));
+    addonChecks.forEach(check => check.addEventListener('change',()=>{const select=document.querySelector('.product-addon-variation[data-addon-id="'+check.dataset.id+'"]');const qty=document.querySelector('.product-addon-qty[data-addon-id="'+check.dataset.id+'"]');if(select)select.disabled=!check.checked;if(qty)qty.disabled=!check.checked;}));
 
     function configuredUnitPrice(basePrice) {
         if (!servingsInput) return basePrice;
@@ -1002,6 +1018,19 @@ document.addEventListener('DOMContentLoaded', function () {
                 min_purchase_qty: minPurchaseQty,
                 max_purchase_qty: maxPurchaseQty
             });
+        }
+
+        for (const check of addonChecks) {
+            if (!check.checked) continue;
+            let addonVariationId=null, addonVariationName='', addonPrice=toFloat(check.dataset.price,0);
+            const addonSelect=document.querySelector('.product-addon-variation[data-addon-id="'+check.dataset.id+'"]');
+            if (check.dataset.type==='VARIABLE') {
+                if (!addonSelect || !addonSelect.value) { alert('Please choose an option for '+check.dataset.name+'.'); return; }
+                const option=addonSelect.options[addonSelect.selectedIndex];addonVariationId=toInt(option.value,0);addonVariationName=option.dataset.name||'';addonPrice=toFloat(option.dataset.price,0);
+            }
+            const addonId=toInt(check.dataset.id,0);const addonQty=Math.max(1,toInt(document.querySelector('.product-addon-qty[data-addon-id="'+check.dataset.id+'"]')?.value,1));const existingAddon=cart.items.find(item=>toInt(item.id_product,0)===addonId&&toInt(item.id_product_variation||0,0)===toInt(addonVariationId||0,0));
+            const addonItem={id_product:addonId,id_product_variation:addonVariationId,product_name:check.dataset.name||'',slug:check.dataset.slug||'',main_image:check.dataset.image||'',sku:'',product_type:check.dataset.type||'FIXED',variation_name:addonVariationName,variation_options:[],servings:null,configuration:{addon_for:productId},unit_price:addonPrice,quantity:addonQty,line_total:Number((addonPrice*addonQty).toFixed(2)),stock_quantity:999,min_purchase_qty:1,max_purchase_qty:null};
+            if(existingAddon)Object.assign(existingAddon,addonItem);else cart.items.push(addonItem);
         }
 
         cart.items_count = cart.items.length;
