@@ -30,6 +30,13 @@
 </li>
 
 <li class="sidebar-item">
+    <a class="sidebar-link" href="{{ path(storeTeamRole|default('general') == 'kitchen' ? 'panel/planner-hub/team/store/kitchen/home' : (storeTeamRole|default('general') == 'delivery' ? 'panel/planner-hub/team/store/delivery/home' : 'panel/planner-hub/team/store/home')) }}">
+        <i class="align-middle" data-feather="shopping-bag"></i>
+        <span class="align-middle">{{ storeTeamRole|default('general') == 'kitchen' ? 'Kitchen Workspace' : (storeTeamRole|default('general') == 'delivery' ? 'Delivery Workspace' : 'Store Workspace') }}</span>
+    </a>
+</li>
+
+<li class="sidebar-item">
     <a class="sidebar-link" href="{{ path('panel/planner-hub/team/chat') }}">
         <i class="align-middle" data-feather="message-circle"></i>
         <span class="align-middle">{{ trans('ui.team_chat') }}</span>

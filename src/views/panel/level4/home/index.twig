@@ -376,6 +376,9 @@
       <a href="{{ path('panel/planner-hub/team/orders/orders/') }}" class="btn-vnv-light">
         <i class="fa-solid fa-calendar-check"></i> Open Schedule
       </a>
+      <a href="{{ path(storeTeamRole == 'kitchen' ? 'panel/planner-hub/team/store/kitchen/home' : (storeTeamRole == 'delivery' ? 'panel/planner-hub/team/store/delivery/home' : 'panel/planner-hub/team/store/home')) }}" class="btn-vnv-light">
+        <i class="fa-solid {{ storeRoleIcon }}"></i> {{ storeRoleLabel }} Workspace
+      </a>
       <a href="{{ path('panel/event-execution') }}" class="btn-vnv-light"><i class="fa-solid fa-microphone-lines"></i> Event Area</a>
 
       <a href="{{ path('panel/planner-hub/team/orders/calendar') }}" class="btn-vnv-light">
@@ -517,6 +520,11 @@
       <a href="{{ path('panel/planner-hub/team/orders/calendar') }}" class="vnv-mini-card">
         <i class="fa-solid fa-calendar-days"></i>
         <span>Calendar</span>
+      </a>
+
+      <a href="{{ path(storeTeamRole == 'kitchen' ? 'panel/planner-hub/team/store/kitchen/home' : (storeTeamRole == 'delivery' ? 'panel/planner-hub/team/store/delivery/home' : 'panel/planner-hub/team/store/home')) }}" class="vnv-mini-card">
+        <i class="fa-solid {{ storeRoleIcon }}"></i>
+        <span>{{ storeRoleLabel }} Workspace</span>
       </a>
 
       <a href="{{ path('panel/settings') }}" class="vnv-mini-card">
