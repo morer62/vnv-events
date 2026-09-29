@@ -5,6 +5,7 @@ use App\Repositories\StoreCartItemsRepository;
 use App\Repositories\StoreOrdersRepository;
 use App\Repositories\StoreOrderItemsRepository;
 use App\Repositories\StorePaymentsRepository; 
+use App\Repositories\StoreProductsRepository;
 use App\Repositories\StoreCouponsRepository;
 use App\Repositories\StoreCouponRedemptionsRepository;
 use App\Repositories\UserRepository;
@@ -19,8 +20,16 @@ use App\Services\StripeService;
 use App\Services\LoginService;
 use App\Services\StoreCouponService;
 use App\Services\ClientPaymentMethodService;
+use App\Services\StoreDeliveryAvailabilityService;
+use App\Services\GourmetScheduleService;
+use App\Services\GourmetRecurringOrderService;
+use App\Services\Delivery\DeliveryPricingService;
+use App\Services\GourmetDeliveryAreaService;
+use App\Services\Payment\PaymentProviderFactory;
+use App\Services\Payment\StripeProvider;
 use App\Utils\LocationUtils;
 use App\Utils\AvomealContext;
+use App\Utils\SiteContext;
 
 $router = new Router();
 
@@ -505,6 +514,7 @@ function parseCardExpiration(string $exp): array
 $router->get(function () {
     $recoveryToken = trim($_GET['recovery'] ?? '');
     $ownerId = getStoreOwnerId();
+    $deliveryAvailability = (new StoreDeliveryAvailabilityService())->availability($ownerId);
 
     $providersRepo = new PaymentProvidersRepository();
     $activeProvider = $ownerId > 0 ? $providersRepo->getActiveProviderForOwner($ownerId) : null;
@@ -534,6 +544,7 @@ $router->get(function () {
         "provider_currency" => $activeProvider ? strtoupper((string)($activeProvider->currency ?? 'USD')) : 'USD',
         "recovery_token" => $recoveryToken,
         "has_recovery" => $recoveryToken !== ''
+        ,"delivery_availability" => $deliveryAvailability
     ]);
 });
 
@@ -657,7 +668,7 @@ $router->post(function () {
         $out = array_map(function ($method) {
             $provider = strtolower((string)($method->payment_provider ?? ''));
             $token = $provider === 'stripe'
-                ? (string)($method->provider_customer_id ?? '')
+                ? (string)($method->provider_payment_method_id ?? $method->provider_customer_id ?? '')
                 : (string)($method->provider_payment_method_id ?? $method->provider_reference ?? '');
 
             return [
@@ -705,7 +716,11 @@ $router->post(function () {
 
     $subtotal = round($subtotal, 2);
     $discount = round((float)($cart->coupon_discount ?? 0), 2);
-    $total = round($subtotal - $discount, 2);
+    $gourmetSettings=(new DeliveryPricingService())->settings($ownerId,SiteContext::siteKey());
+    $taxRate=max(0,(float)($gourmetSettings['tax_rate_percent']??7));
+    $preTaxTotal=max(0,round($subtotal-$discount,2));
+    $tax=round($preTaxTotal*$taxRate/100,2);
+    $total=round($preTaxTotal+$tax,2);
     $minimumOrderAmount = AvomealContext::minimumOrderAmount();
     $couponCodeFromCart = trim((string)($cart->coupon_code ?? ''));
     $couponIdFromCart = (int)($cart->id_coupon ?? 0);
@@ -733,19 +748,21 @@ $router->post(function () {
         $emailForValidation = $candidateEmail !== '' ? $candidateEmail : $sessionEmail;
 
         if ($code === '') {
+            $removedTax=round($subtotal*$taxRate/100,2);
+            $removedTotal=round($subtotal+$removedTax,2);
             $cartsRepo->update([
                 'coupon_code' => null,
                 'id_coupon' => null,
                 'coupon_discount' => 0,
                 'discount' => 0,
-                'total' => $subtotal,
+                'total' => $removedTotal,
                 'updated_at' => date('Y-m-d H:i:s')
             ], ['id' => (int)$cart->id]);
 
             $removeNextCharge = null;
             $pMode = strtoupper(trim((string)($cart->pricing_mode ?? '')));
             if ($pMode === StoreCartsRepository::PRICING_SUBSCRIPTION) {
-                $removeNextCharge = $subtotal;
+                $removeNextCharge = $removedTotal;
             }
 
             echo json_encode([
@@ -755,7 +772,8 @@ $router->post(function () {
                 "coupon_discount" => 0,
                 "discount" => 0,
                 "subtotal" => $subtotal,
-                "total" => $subtotal,
+                "tax" => $removedTax,
+                "total" => $removedTotal,
                 "next_charge_total" => $removeNextCharge
             ]);
             return;
@@ -780,7 +798,9 @@ $router->post(function () {
 
         $coupon = $couponResult['coupon'];
         $couponDiscount = round((float)$couponResult['discount'], 2);
-        $newTotal = round((float)$couponResult['total'], 2);
+        $newPreTaxTotal = round((float)$couponResult['total'], 2);
+        $newTax = round($newPreTaxTotal*$taxRate/100,2);
+        $newTotal = round($newPreTaxTotal+$newTax,2);
         $normalizedCode = (string)$couponResult['code'];
 
         $cartsRepo->update([
@@ -808,6 +828,7 @@ $router->post(function () {
             "coupon_discount" => $couponDiscount,
             "discount" => $couponDiscount,
             "subtotal" => $subtotal,
+            "tax" => $newTax,
             "total" => $newTotal,
             "next_charge_total" => $applyCouponNextCharge
         ]);
@@ -951,6 +972,7 @@ $router->post(function () {
                 "coupon_code" => $couponCodeFromCart ?: null,
                 "id_coupon" => $couponIdFromCart > 0 ? $couponIdFromCart : null,
                 "coupon_discount" => $discount,
+                "tax" => $tax,
                 "total" => $total,
                 "next_charge_total" => $nextChargeTotal,
                 "next_charge_date" => $nextChargeDate,
@@ -985,7 +1007,7 @@ $router->post(function () {
     if ($action === 'pay' && $total < $minimumOrderAmount) {
         echo json_encode([
             "success" => false,
-            "message" => "Avomeal minimum order is $" . number_format($minimumOrderAmount, 2) . ". Please add more items before checkout."
+            "message" => "The minimum order is $" . number_format($minimumOrderAmount, 2) . ". Please add more items before checkout."
         ]);
         return;
     }
@@ -1013,6 +1035,12 @@ $router->post(function () {
     $savePaymentMethod = filter_var($payload['save_payment_method'] ?? false, FILTER_VALIDATE_BOOLEAN);
     $autoChargeConsent = filter_var($payload['auto_charge_consent'] ?? false, FILTER_VALIDATE_BOOLEAN);
     $savedPaymentMethodId = (int)($payload['saved_payment_method_id'] ?? 0);
+    $orderFrequency = strtoupper(trim((string)($payload['order_frequency'] ?? 'ONE_TIME')));
+    $isRecurringOrder = $orderFrequency === 'RECURRING';
+    $recurrenceType = strtoupper(trim((string)($payload['recurrence_type'] ?? 'WEEKLY')));
+    $recurrenceInterval = max(1, min(12, (int)($payload['recurrence_interval'] ?? 1)));
+    $recurrenceCount = max(2, min(52, (int)($payload['recurrence_count'] ?? 6)));
+    $recurrenceWeekdays = array_values(array_unique(array_filter(array_map('intval', (array)($payload['recurrence_weekdays'] ?? [])), static fn($day) => $day >= 1 && $day <= 7)));
     $guestName = trim($payload['guest_name'] ?? ($cart->guest_name ?? ''));
     $guestEmail = trim($payload['guest_email'] ?? ($cart->guest_email ?? ''));
     $guestPhone = trim($payload['guest_phone'] ?? ($cart->guest_phone ?? ''));
@@ -1029,6 +1057,54 @@ $router->post(function () {
     $shippingCity = trim($payload['shipping_city'] ?? '');
     $shippingState = trim($payload['shipping_state'] ?? '');
     $shippingZip = trim($payload['shipping_zip'] ?? '');
+    $deliveryTiming = strtoupper(trim((string)($payload['delivery_timing'] ?? 'SCHEDULED')));
+    $requestedDeliveryRaw = trim((string)($payload['requested_delivery_at'] ?? ''));
+    $deliveryAvailability = (new StoreDeliveryAvailabilityService())->availability($ownerId);
+
+    if (!in_array($deliveryTiming, ['ASAP', 'SCHEDULED'], true)) {
+        $deliveryTiming = 'SCHEDULED';
+    }
+    if ($isRecurringOrder && ($providerType !== 'stripe' || $deliveryTiming !== 'SCHEDULED' || !$autoChargeConsent)) {
+        echo json_encode(['success' => false, 'message' => 'Recurring orders require Stripe, a scheduled first delivery, and authorization for future automatic charges.']);
+        return;
+    }
+    if ($deliveryTiming === 'ASAP' && !$deliveryAvailability['asap_available']) {
+        echo json_encode(['success' => false, 'message' => 'Immediate delivery is not available right now. Please select one of the next available times.']);
+        return;
+    }
+
+    if ($action === 'pay') {
+        $productsRepo = new StoreProductsRepository();
+        $subscriptionCheckout = $isRecurringOrder || strtoupper((string)($cart->pricing_mode ?? '')) === StoreOrdersRepository::PRICING_SUBSCRIPTION;
+        foreach ($cartItems as $item) {
+            $product = $productsRepo->getOne(['id' => (int)$item->id_product, 'id_owner' => $ownerId]);
+            if (!$product || strtoupper((string)($product->purchase_mode ?? 'REQUEST')) !== 'DIRECT' || !(int)($product->allow_immediate_payment ?? 0)) {
+                echo json_encode(['success' => false, 'message' => 'One or more products require confirmation and cannot be paid through direct checkout.']);
+                return;
+            }
+            if ($subscriptionCheckout && !(int)($product->allow_recurring_purchase ?? 0)) {
+                echo json_encode(['success' => false, 'message' => 'One or more products do not allow recurring purchase.']);
+                return;
+            }
+        }
+    }
+    $requestedDeliveryAt = null;
+    $requestedDeliveryAtUtc = null;
+    $requestedDeliveryTimezone = null;
+    if ($deliveryTiming === 'SCHEDULED') {
+        try {
+            $validatedSchedule = (new GourmetScheduleService())->validateLocalDelivery($ownerId, SiteContext::siteKey(), $requestedDeliveryRaw);
+            $requestedDeliveryAt = $validatedSchedule['local'];
+            $requestedDeliveryAtUtc = $validatedSchedule['utc'];
+            $requestedDeliveryTimezone = $validatedSchedule['timezone'];
+        } catch (Throwable $e) {
+            echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+            return;
+        }
+    }
+    $promisedDeliveryAt = $deliveryTiming === 'ASAP'
+        ? $deliveryAvailability['asap_estimate']
+        : $requestedDeliveryAt;
 
     $shippingSameAsBilling = filter_var(
         $payload['shipping_same_as_billing'] ?? false,
@@ -1072,10 +1148,14 @@ $router->post(function () {
         $total = $subtotal;
     }
 
+    $preTaxTotal=max(0,round($total,2));
+    $tax=round($preTaxTotal*$taxRate/100,2);
+    $total=round($preTaxTotal+$tax,2);
+
     if ($total < $minimumOrderAmount) {
         echo json_encode([
             "success" => false,
-            "message" => "Avomeal minimum order is $" . number_format($minimumOrderAmount, 2) . ". Please add more items before checkout."
+            "message" => "The minimum order is $" . number_format($minimumOrderAmount, 2) . ". Please add more items before checkout."
         ]);
         return;
     }
@@ -1114,14 +1194,14 @@ $router->post(function () {
             return;
         }
 
-        $cardsRepo = new UserCardsRepository();
-        $sessionCards = $cardsRepo->getByUserId((int)$sessionUser->getId());
         $tokenAllowed = false;
-        foreach ($sessionCards ?: [] as $c) {
-            if ((string)($c->token ?? '') === $customerToken) {
-                $tokenAllowed = true;
-                break;
-            }
+        if ($savedPaymentMethodId > 0) {
+            $savedMethod=(new ClientPaymentMethodService())->getActiveMethodForClientProvider($savedPaymentMethodId,$ownerId,(int)$sessionUser->getId(),$providerType);
+            $tokenAllowed=$savedMethod && in_array($customerToken,[(string)($savedMethod->provider_customer_id??''),(string)($savedMethod->provider_payment_method_id??'')],true);
+        } else {
+            $cardsRepo = new UserCardsRepository();
+            $sessionCards = $cardsRepo->getByUserId((int)$sessionUser->getId());
+            foreach ($sessionCards ?: [] as $c) { if ((string)($c->token ?? '') === $customerToken) { $tokenAllowed = true; break; } }
         }
 
         if (!$tokenAllowed) {
@@ -1183,6 +1263,14 @@ $router->post(function () {
 
     $orderNotes = $shippingAddressFull !== '' ? ('Shipping: ' . $shippingAddressFull) : null;
 
+    try {
+        $verifiedDelivery=(new GourmetDeliveryAreaService())->validate($ownerId,SiteContext::siteKey(),$shippingAddressFull);
+        $city=(string)($verifiedDelivery['city']?:$city);
+    } catch (Throwable $e) {
+        echo json_encode(['success'=>false,'message'=>$e->getMessage()]);
+        return;
+    }
+
     if ($customerToken === '') {
         echo json_encode([
             "success" => false,
@@ -1213,23 +1301,45 @@ $router->post(function () {
             "Store Order - Cart #" . $cart->id,
             $squareCustomerIdForCardOnFile
         );
+    } elseif ($paymentTokenType === 'payment_intent') {
+        if ($customerToken !== (string)($cart->checkout_payment_intent_id ?? '')) {
+            $paymentResponse=['success'=>false,'message'=>'The Stripe payment does not belong to this cart.'];
+        } else {
+            try {
+                $stripeProvider=PaymentProviderFactory::create($activeProvider);
+                if(!$stripeProvider instanceof StripeProvider) throw new RuntimeException('Stripe provider unavailable.');
+                $intent=$stripeProvider->retrievePaymentIntent($customerToken);
+                $amountMatches=$intent && abs((float)$intent->amount-$total)<0.01;
+                $paymentResponse=$intent && $intent->paid && $amountMatches
+                    ? ['success'=>true,'payment_id'=>$intent->id,'reference'=>$intent->payment_method,'raw'=>json_encode($intent->raw)]
+                    : ['success'=>false,'message'=>'Stripe payment is incomplete or its amount changed.'];
+            }catch(Throwable $e){$paymentResponse=['success'=>false,'message'=>$e->getMessage()];}
+        }
     } else {
         if ($paymentTokenType === 'stored_card') {
-            $paymentResponse = chargeStripeCustomerPayment(
-                $activeProvider,
-                $customerToken,
-                $amountCents,
-                $guestEmail,
-                "Avomeal Order - Cart #" . $cart->id
-            );
+            try {
+                $sessionUser=LoginService::getSession();
+                $savedMethod=$sessionUser&&$savedPaymentMethodId>0
+                    ? (new ClientPaymentMethodService())->getActiveMethodForClientProvider($savedPaymentMethodId,$ownerId,(int)$sessionUser->getId(),'stripe')
+                    : null;
+                if(!$savedMethod||empty($savedMethod->provider_customer_id)||empty($savedMethod->provider_payment_method_id)) throw new RuntimeException('This saved Stripe card must be updated before it can be charged securely.');
+                $stripeProvider=PaymentProviderFactory::create($activeProvider);
+                if(!$stripeProvider instanceof StripeProvider) throw new RuntimeException('Stripe provider unavailable.');
+                $charge=$stripeProvider->chargeCustomerWithPaymentMethod((string)$savedMethod->provider_customer_id,(string)$savedMethod->provider_payment_method_id,$total,[
+                    'description'=>'VNV Gourmet To Go cart #'.(int)$cart->id,
+                    'idempotency_key'=>'store-cart-'.(int)$cart->id.'-saved-method-'.(int)$savedPaymentMethodId,
+                    'customer_email'=>$guestEmail,
+                    'cart_id'=>(string)$cart->id,
+                ]);
+                $paymentResponse=$charge&&$charge->paid
+                    ? ['success'=>true,'payment_id'=>$charge->id,'reference'=>$charge->payment_method,'raw'=>json_encode($charge->raw)]
+                    : ['success'=>false,'message'=>'The saved Stripe payment could not be completed.'];
+            }catch(Throwable $e){$paymentResponse=['success'=>false,'message'=>$e->getMessage()];}
         } else {
-            $paymentResponse = chargeStripePayment(
-                $activeProvider,
-                $customerToken,
-                $amountCents,
-                $guestEmail,
-                "Avomeal Order - Cart #" . $cart->id
-            );
+            $paymentResponse = [
+                'success' => false,
+                'message' => 'Stripe checkout requires a confirmed PaymentIntent. Please reload checkout and try again.'
+            ];
         }
     }
 
@@ -1317,7 +1427,13 @@ $router->post(function () {
         'city' => $city ?: null,
         'audience_type' => $cart->audience_type ?: null,
         'meal_style' => $cart->meal_style ?: null,
-        'pricing_mode' => $cart->pricing_mode ?: StoreOrdersRepository::PRICING_PAYG,
+        'pricing_mode' => $isRecurringOrder ? StoreOrdersRepository::PRICING_SUBSCRIPTION : ($cart->pricing_mode ?: StoreOrdersRepository::PRICING_PAYG),
+        'fulfillment_method' => 'DELIVERY',
+        'delivery_timing' => $deliveryTiming,
+        'requested_delivery_at' => $requestedDeliveryAt,
+        'requested_delivery_at_utc' => $requestedDeliveryAtUtc,
+        'requested_delivery_timezone' => $requestedDeliveryTimezone,
+        'promised_delivery_at' => $promisedDeliveryAt,
         'items_count' => $itemsCount,
         'meals_count' => $mealsCount,
         'subtotal' => $subtotal,
@@ -1325,6 +1441,7 @@ $router->post(function () {
         'coupon_code' => $couponCodeFromCart !== '' ? $couponCodeFromCart : null,
         'id_coupon' => $couponIdFromCart > 0 ? $couponIdFromCart : null,
         'coupon_discount' => $discount,
+        'tax_total' => $tax,
         'total' => $total,
         'payment_status' => StoreOrdersRepository::PAYMENT_PENDING,
         'status' => StoreOrdersRepository::STATUS_NEW,
@@ -1358,10 +1475,15 @@ $router->post(function () {
             'id_owner' => $ownerId,
             'id_store_order' => $orderId,
             'id_product' => (int)$item->id_product,
+            'id_product_variation' => !empty($item->id_product_variation) ? (int)$item->id_product_variation : null,
             'product_name_snapshot' => $item->product_name_snapshot,
+            'variation_name_snapshot' => $item->variation_name_snapshot ?? null,
+            'variation_options_snapshot' => $item->variation_options_snapshot ?? null,
+            'configuration_snapshot' => $item->configuration_snapshot ?? null,
             'unit_price' => (float)$item->unit_price,
-            'pricing_mode' => $item->pricing_mode,
+            'pricing_mode' => $isRecurringOrder ? StoreOrdersRepository::PRICING_SUBSCRIPTION : $item->pricing_mode,
             'quantity' => (int)$item->quantity,
+            'servings' => isset($item->servings) ? (int)$item->servings : null,
             'line_total' => (float)$item->line_total
         ]);
 
@@ -1379,7 +1501,7 @@ $router->post(function () {
         'id_store_order' => $orderId,
         'id_user' => $userId,
         'payment_method' => $providerType,
-        'payment_type' => $cart->pricing_mode === StoreCartsRepository::PRICING_SUBSCRIPTION
+        'payment_type' => $isRecurringOrder || $cart->pricing_mode === StoreCartsRepository::PRICING_SUBSCRIPTION
             ? StorePaymentsRepository::TYPE_SUBSCRIPTION_INITIAL
             : StorePaymentsRepository::TYPE_FULL,
         'external_payment_id' => $paymentResponse['payment_id'] ?? null,
@@ -1418,6 +1540,7 @@ $router->post(function () {
     }
 
     $paymentMethodService = new ClientPaymentMethodService();
+    $resolvedRecurringPaymentMethodId = $paymentTokenType === 'stored_card' ? $savedPaymentMethodId : 0;
     if ($paymentTokenType === 'stored_card' && $savedPaymentMethodId > 0 && $autoChargeConsent && $userId) {
         $paymentMethodService->recordFromSuccessfulPayment([
             'id_user_business' => $ownerId,
@@ -1469,6 +1592,28 @@ $router->post(function () {
         }
     } catch (\Throwable $e) {
         error_log('Store order details email error: ' . $e->getMessage());
+    }
+
+    if ($paymentTokenType === 'payment_intent' && $userId && $providerType === 'stripe' && ($savePaymentMethod || $autoChargeConsent)) {
+        try {
+            $stripeProvider=PaymentProviderFactory::create($activeProvider);
+            if($stripeProvider instanceof StripeProvider){
+                $intent=$stripeProvider->retrievePaymentIntent($customerToken);
+                $method=$intent && $intent->payment_method ? $stripeProvider->retrievePaymentMethod((string)$intent->payment_method) : null;
+                if($intent&&$method&&$method->customer){
+                    $savedResult=$paymentMethodService->recordFromSuccessfulPayment([
+                        'id_user_business'=>$ownerId,'id_client'=>$userId,'user_id'=>$userId,'payment_provider'=>'stripe',
+                        'provider_customer_id'=>(string)$method->customer,'provider_payment_method_id'=>(string)$method->id,
+                        'provider_reference'=>(string)$intent->id,'method_type'=>(string)$method->type,
+                        'brand'=>$method->brand,'last4'=>$method->last4,'exp_month'=>$method->exp_month,'exp_year'=>$method->exp_year,
+                        'billing_name'=>$guestName,'billing_email'=>$guestEmail,'is_default'=>true,'source'=>'store_checkout_payment_intent',
+                        'save_payment_method'=>true,'auto_charge_consent'=>$autoChargeConsent,'related_store_order_id'=>$orderId,
+                        'related_payment_id'=>$paymentId?:null,'metadata'=>['provider_transaction_id'=>$intent->id,'modern_payment_intent'=>true],
+                    ]);
+                    $resolvedRecurringPaymentMethodId=(int)($savedResult['saved_payment_method_id']??0);
+                }
+            }
+        }catch(Throwable $e){error_log('Stripe PaymentMethod persistence failed: '.$e->getMessage());}
     }
 
     if ($paymentTokenType === 'new_card' && $userId && $providerType === 'stripe' && $cardBrand !== '' && $cardLast4 !== '' && $cardExp !== '' && $customerToken !== '') {
@@ -1611,6 +1756,51 @@ $router->post(function () {
         }
     }
 
+    $recurringOrderId = null;
+    $recurringOrderWarning = null;
+    if ($isRecurringOrder) {
+        try {
+            if (!$userId || $resolvedRecurringPaymentMethodId <= 0) {
+                throw new RuntimeException('The first delivery was paid, but a reusable Stripe payment method could not be authorized.');
+            }
+            $settings=(new \App\Services\Delivery\DeliveryPricingService())->settings($ownerId,SiteContext::siteKey());
+            $timezone=(string)($requestedDeliveryTimezone?:($settings['timezone']??'America/New_York'));
+            $firstLocal=new DateTimeImmutable((string)$requestedDeliveryAt,new DateTimeZone($timezone));
+            $futureStart=$firstLocal->modify('+1 day')->format('Y-m-d');
+            $weekdays=$recurrenceWeekdays;
+            if($recurrenceType==='WEEKLY' || $recurrenceType==='INTERVAL_WEEKS') $weekdays=[(int)$firstLocal->format('N')];
+            if($recurrenceType==='SELECTED_WEEKDAYS' && !$weekdays) throw new DomainException('Select at least one recurring weekday.');
+            $recurringItems=[];
+            foreach($cartItems as $item){
+                $configuration=json_decode((string)($item->configuration_snapshot??''),true);
+                $recurringItems[]=[
+                    'id_product'=>(int)$item->id_product,
+                    'id_product_variation'=>!empty($item->id_product_variation)?(int)$item->id_product_variation:null,
+                    'product_name_snapshot'=>(string)$item->product_name_snapshot,
+                    'variation_name_snapshot'=>$item->variation_name_snapshot??null,
+                    'configuration'=>is_array($configuration)?$configuration:[],
+                    'quantity'=>(int)$item->quantity,
+                    'servings'=>isset($item->servings)?(int)$item->servings:null,
+                    'expected_unit_price'=>(float)$item->unit_price,
+                ];
+            }
+            $recurringOrderId=(new GourmetRecurringOrderService())->create([
+                'id_owner'=>$ownerId,'site_key'=>SiteContext::siteKey(),'id_user'=>$userId,'id_client'=>$userId,
+                'saved_payment_method_id'=>$resolvedRecurringPaymentMethodId,'title'=>'VNV Gourmet recurring order #'.$orderId,
+                'recurrence_type'=>$recurrenceType,'interval_value'=>$recurrenceInterval,'weekdays'=>$weekdays,
+                'timezone'=>$timezone,'local_delivery_time'=>$firstLocal->format('H:i:s'),'start_date'=>$futureStart,
+                'occurrence_limit'=>$recurrenceCount-1,'payment_lead_hours'=>(int)($settings['recurring_payment_lead_hours']??48),
+                'horizon_weeks'=>(int)($settings['occurrence_horizon_weeks']??12),
+                'delivery_address'=>['address_1'=>$shippingAddress1,'address_2'=>$shippingAddress2,'city'=>$shippingCity,'state'=>$shippingState,'zip'=>$shippingZip,'country'=>'US'],
+                'delivery_instructions'=>$orderNotes,'expected_subtotal'=>$subtotal,'expected_delivery_fee'=>0,'expected_tax'=>$tax,'expected_total'=>$total,'currency'=>'USD',
+            ],$recurringItems);
+            $ordersRepo->update(['recurring_order_id'=>$recurringOrderId],['id'=>$orderId,'id_owner'=>$ownerId]);
+        } catch (Throwable $e) {
+            $recurringOrderWarning=$e->getMessage();
+            error_log('Recurring order setup failed after first payment for store order '.$orderId.': '.$e->getMessage());
+        }
+    }
+
      
 
     if ($couponIdFromCart > 0 && $couponCodeFromCart !== '' && $discount > 0) {
@@ -1630,7 +1820,7 @@ $router->post(function () {
     $successPayload = [
     'order_id' => (int)$orderId,
     'public_token' => (string)$order->public_token,
-    'pricing_mode' => 'PAYG',
+    'pricing_mode' => $isRecurringOrder ? 'SUBSCRIPTION' : 'PAYG',
     'guest_name' => (string)$guestName,
     'total' => (float)$total,
     'email' => (string)$guestEmail,
@@ -1653,7 +1843,9 @@ $router->post(function () {
 
     echo json_encode([
         "success" => true,
-        "message" => "Payment completed successfully.",
+        "message" => $recurringOrderWarning ? "Payment completed, but recurring setup needs attention: ".$recurringOrderWarning : "Payment completed successfully.",
+        "recurring_order_id" => $recurringOrderId,
+        "recurring_warning" => $recurringOrderWarning,
         "redirect" => \App\Utils\LocationUtils::pathFor("store/payment-successful") 
     ]);
 });

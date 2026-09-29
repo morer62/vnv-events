@@ -42,14 +42,6 @@ $router->get(function () {
     }
     if (!$order) LocationUtils::redirectInternal("/404");
 
-    $eventDateTs = strtotime((string)($order->event_date ?? ''));
-    $todayTs = strtotime(date('Y-m-d'));
-    if ($eventDateTs !== false && $eventDateTs < $todayTs) {
-        return TemplateResponse::render(__DIR__ . "/error.twig", [
-            "error" => "This event date has already passed. Payments are no longer available."
-        ]);
-    }
-
     $paymentProvidersRepo = new PaymentProvidersRepository();
     $paymentOwnerId = $paymentProvidersRepo->getPaymentOwnerIdForOrder($order);
     $activeProvider = $paymentProvidersRepo->getActiveProviderForOwner($paymentOwnerId);
@@ -194,14 +186,6 @@ $router->post(function () {
         // Payment intentionally continues if the operational scheduling check
         // is unavailable. Level 1 can review the assignment independently.
         error_log('[ManagerAvailability] Non-blocking first-payment check failed for order '.$orderId.': '.$e->getMessage());
-    }
-
-    $eventDateTs = strtotime((string)($order->event_date ?? ''));
-    $todayTs = strtotime(date('Y-m-d'));
-    if ($eventDateTs !== false && $eventDateTs < $todayTs) {
-        return TemplateResponse::render(__DIR__ . "/error.twig", [
-            "error" => "This event date has already passed. Payments are no longer available."
-        ]);
     }
 
     $paymentProvidersRepo = new PaymentProvidersRepository();

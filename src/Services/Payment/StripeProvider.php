@@ -190,7 +190,12 @@ class StripeProvider extends AbstractPaymentProvider
             }
 
             $description = $metadata['description'] ?? 'Payment to VNV Events';
-            $metadata = array_filter($metadata, fn($key) => $key !== 'description', ARRAY_FILTER_USE_KEY);
+            $idempotencyKey = trim((string)($metadata['idempotency_key'] ?? ''));
+            $metadata = array_filter(
+                $metadata,
+                fn($key) => !in_array($key, ['description', 'idempotency_key'], true),
+                ARRAY_FILTER_USE_KEY
+            );
 
             $intentParams = [
                 'amount' => $this->toCents($amount),
@@ -208,7 +213,8 @@ class StripeProvider extends AbstractPaymentProvider
             }
 
             // Create payment intent
-            $intent = $this->stripe->paymentIntents->create($intentParams);
+            $requestOptions = $idempotencyKey !== '' ? ['idempotency_key' => $idempotencyKey] : [];
+            $intent = $this->stripe->paymentIntents->create($intentParams, $requestOptions);
 
             return (object) [
                 'id' => $intent->id,
@@ -381,6 +387,7 @@ class StripeProvider extends AbstractPaymentProvider
                 return false;
             }
 
+            $idempotencyKey = trim((string)($metadata['idempotency_key'] ?? ''));
             $params = [
                 'amount' => $this->toCents($amount),
                 'currency' => strtolower($this->currency),
@@ -394,11 +401,16 @@ class StripeProvider extends AbstractPaymentProvider
                 $params['customer'] = $metadata['customer_id'];
             }
 
+            if (!empty($metadata['save_for_future'])) {
+                $params['setup_future_usage'] = 'off_session';
+            }
+
             if (isset($metadata['metadata'])) {
                 $params['metadata'] = $metadata['metadata'];
             }
 
-            $intent = $this->stripe->paymentIntents->create($params);
+            $requestOptions = $idempotencyKey !== '' ? ['idempotency_key' => $idempotencyKey] : [];
+            $intent = $this->stripe->paymentIntents->create($params, $requestOptions);
 
             return (object) [
                 'id' => $intent->id,
@@ -411,6 +423,34 @@ class StripeProvider extends AbstractPaymentProvider
 
         } catch (ApiErrorException $e) {
             $this->logError("Failed to create payment intent", $e);
+            return false;
+        }
+    }
+
+    /** Create a SetupIntent when no immediate payment is required. */
+    public function createSetupIntent(string $customerId, array $metadata = []): object|false
+    {
+        try {
+            $idempotencyKey = trim((string)($metadata['idempotency_key'] ?? ''));
+            unset($metadata['idempotency_key']);
+            $options = $idempotencyKey !== '' ? ['idempotency_key' => $idempotencyKey] : [];
+            $intent = $this->stripe->setupIntents->create([
+                'customer' => $customerId,
+                'usage' => 'off_session',
+                'automatic_payment_methods' => ['enabled' => true],
+                'metadata' => $metadata,
+            ], $options);
+
+            return (object) [
+                'id' => $intent->id,
+                'client_secret' => $intent->client_secret,
+                'status' => $intent->status,
+                'customer' => $intent->customer,
+                'payment_method' => $intent->payment_method,
+                'raw' => $intent,
+            ];
+        } catch (ApiErrorException $e) {
+            $this->logError("Failed to create SetupIntent for customer $customerId", $e);
             return false;
         }
     }
@@ -436,6 +476,26 @@ class StripeProvider extends AbstractPaymentProvider
 
         } catch (ApiErrorException $e) {
             $this->logError("Failed to retrieve payment intent $intentId", $e);
+            return null;
+        }
+    }
+
+    public function retrievePaymentMethod(string $paymentMethodId): ?object
+    {
+        try {
+            $method=$this->stripe->paymentMethods->retrieve($paymentMethodId);
+            return (object)[
+                'id'=>$method->id,
+                'customer'=>$method->customer,
+                'type'=>$method->type,
+                'brand'=>$method->card->brand??null,
+                'last4'=>$method->card->last4??null,
+                'exp_month'=>$method->card->exp_month??null,
+                'exp_year'=>$method->card->exp_year??null,
+                'raw'=>$method,
+            ];
+        } catch (ApiErrorException $e) {
+            $this->logError("Failed to retrieve payment method $paymentMethodId", $e);
             return null;
         }
     }

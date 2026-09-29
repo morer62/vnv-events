@@ -27,7 +27,7 @@ if (\App\Services\LoginService::getSession() !== null) {
 }
 
 $router->get(function () use ($client) {
-    $level = $_GET['level'] ?? null;
+    $level = 5;
     $code = $_GET['code'] ?? null;
     $state = $_GET['state'] ?? $level;
     $fromAffiliate = $_GET['from_affiliate'] ?? null;
@@ -35,12 +35,6 @@ $router->get(function () use ($client) {
     if ($code) {
         handleGoogleCallback($client, $code, $state);
         exit();
-    }
-
-    if (!$level) {
-        return TemplateResponse::render(__DIR__ . "/choose.twig", [
-            "from_affiliate" => $fromAffiliate
-        ]);
     }
 
     $client->setState($level);
@@ -89,7 +83,8 @@ $router->post(function () {
 
     $days = intval($_ENV['FREE_MEMBERSHIP_DAYS']);
     $dueDate = date('Y-m-d', strtotime("+{$days} days"));
-    $level = intval($_POST["level"]);
+    // Public registration in VNV Events always creates a client account.
+    $level = 5;
     $id_owner = null;
 
     if ($level === 5) {
@@ -104,7 +99,7 @@ $router->post(function () {
         'lastname' => $_POST["lastname"],
         'email' => $_POST["email"],
         'password' => HashService::hashPassword($password),
-        'phone' => FormatPhone::formatPhone($_POST["phoneNumber"]),
+        'phone' => trim((string)($_POST["phoneNumber"] ?? '')) !== '' ? FormatPhone::formatPhone($_POST["phoneNumber"]) : '',
         'phone_code' => '',
         'phone_validation' => 1,
         'membership_due_date' => $dueDate,
@@ -134,12 +129,17 @@ $router->post(function () {
         
         return \App\Utils\JsonResponse::createResponse([
             "success" => true,
-            "message" => "Account created successfully"
+            "message" => "Account created successfully",
+            "redirect" => (string)($_SESSION['post_auth_redirect'] ?? 'panel/home')
         ]);
     }
     
-    MessageUtil::setMessage("You have been registered successfully");
-    LocationUtils::redirectInternal('login');
+    $loginService = new \App\Services\LoginService();
+    $loginService->authenticate($_POST["email"], $password);
+    MessageUtil::setMessage("Your client account is ready.");
+    $redirect = (string)($_SESSION['post_auth_redirect'] ?? 'panel/home');
+    unset($_SESSION['post_auth_redirect']);
+    LocationUtils::redirectInternal(ltrim($redirect, '/'));
 });
 
 function handleGoogleCallback($client, $code, $level)
@@ -163,7 +163,8 @@ function handleGoogleCallback($client, $code, $level)
 
         $days = intval($_ENV['FREE_MEMBERSHIP_DAYS']);
         $dueDate = date('Y-m-d', strtotime("+{$days} days"));
-        $level = intval($level ?? 1);
+        // OAuth state is untrusted input. Public signup can only create clients.
+        $level = 5;
         $id_owner = null;
 
         if ($level === 5) {
@@ -204,7 +205,10 @@ function handleGoogleCallback($client, $code, $level)
         } catch (\Exception $e) {
         }
 
-        LocationUtils::redirectInternal('login');
+        \App\Services\LoginService::authenticateFromUserDbo($userRepository->getOneWithoutOwnership(['id' => $user_id]));
+        $redirect = (string)($_SESSION['post_auth_redirect'] ?? 'panel/home');
+        unset($_SESSION['post_auth_redirect']);
+        LocationUtils::redirectInternal(ltrim($redirect, '/'));
     } catch (Exception $e) {
         MessageUtil::setMessage("Error with Google signup: " . $e->getMessage());
         LocationUtils::redirectInternal('signup');

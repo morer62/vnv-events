@@ -4,7 +4,9 @@ use App\Repositories\StoreCouponsRepository;
 use App\Repositories\StoreSubscriptionItemsRepository;
 use App\Repositories\StoreSubscriptionsRepository;
 use App\Repositories\StoreProductsRepository;
+use App\Repositories\Connection;
 use App\Services\LoginService;
+use App\Services\GourmetRecurringOrderService;
 use App\Utils\AvomealContext;
 use App\Utils\LocationUtils;
 use App\Utils\MessageUtil;
@@ -23,6 +25,18 @@ $router->get(function () {
 
     $userId = (int)$session->getId();
     $email = method_exists($session, 'getEmail') ? trim((string)$session->getEmail()) : '';
+    $recurringOrders = [];
+    try {
+        $db=new Connection();
+        $db->query("SELECT r.*,m.brand payment_brand,m.last4 payment_last4,m.exp_month,m.exp_year FROM store_recurring_orders r LEFT JOIN client_saved_payment_methods m ON m.id=r.saved_payment_method_id WHERE r.id_owner=:owner AND r.site_key='vnvevents' AND r.id_user=:user ORDER BY r.created_at DESC");
+        $db->bind(':owner',$ownerId,\PDO::PARAM_INT); $db->bind(':user',$userId,\PDO::PARAM_INT);
+        $recurringOrders=$db->fetchAll()?:[];
+        foreach($recurringOrders as $recurring){
+            $db->query("SELECT * FROM store_recurring_occurrences WHERE recurring_order_id=:parent AND status NOT IN ('FULFILLED') ORDER BY scheduled_at_utc LIMIT 24");
+            $db->bind(':parent',(int)$recurring->id,\PDO::PARAM_INT); $recurring->occurrences=$db->fetchAll()?:[];
+            $recurring->weekdays=json_decode((string)($recurring->weekdays_json??'[]'),true)?:[];
+        }
+    } catch (Throwable $e) { error_log('VNV Gourmet recurring dashboard: '.$e->getMessage()); }
 
     $byUser = $repo->getAllByUser($userId, 100, $ownerId) ?: [];
     $byEmail = $email !== '' ? ($repo->getAllByEmail($email, 100, $ownerId) ?: []) : [];
@@ -114,7 +128,8 @@ $router->get(function () {
     unset($sub);
 
     return TemplateResponse::render(__DIR__ . "/index.twig", [
-        "subscriptions" => $subscriptions
+        "subscriptions" => $subscriptions,
+        "recurring_orders" => $recurringOrders
     ]);
 });
 
@@ -127,6 +142,26 @@ $router->post(function () {
     $subscriptionId = (int)($_POST['subscription_id'] ?? 0);
     $sessionUserId = (int)$session->getId();
     $sessionEmail = strtolower(trim((string)(method_exists($session, 'getEmail') ? $session->getEmail() : '')));
+
+    $recurrenceId=(int)($_POST['recurrence_id']??0);
+    $occurrenceId=(int)($_POST['occurrence_id']??0);
+    if($recurrenceId>0||$occurrenceId>0){
+        try{
+            $service=new GourmetRecurringOrderService();
+            $ok=match($action){
+                'pause_recurrence'=>$service->setStatus($recurrenceId,$sessionUserId,'PAUSED'),
+                'resume_recurrence'=>$service->setStatus($recurrenceId,$sessionUserId,'ACTIVE'),
+                'cancel_recurrence'=>$service->setStatus($recurrenceId,$sessionUserId,'CANCELLED'),
+                'skip_occurrence'=>$service->skipOccurrence($occurrenceId,$sessionUserId),
+                'cancel_occurrence'=>$service->cancelOccurrence($occurrenceId,$sessionUserId),
+                'reschedule_occurrence'=>$service->rescheduleOccurrence($occurrenceId,$sessionUserId,(string)($_POST['local_scheduled_at']??'')),
+                'reschedule_future'=>$service->rescheduleFuture($recurrenceId,$sessionUserId,(string)($_POST['effective_date']??''),(string)($_POST['local_delivery_time']??''),(array)($_POST['weekdays']??[]))>0,
+                default=>false,
+            };
+            MessageUtil::setMessage($ok?'Recurring delivery updated.':'That delivery can no longer be changed.');
+        }catch(Throwable $e){MessageUtil::setMessage($e->getMessage());}
+        LocationUtils::reload();
+    }
 
     if ($subscriptionId <= 0 || !in_array($action, ['pause', 'resume', 'edit_items', 'delete'], true)) {
         MessageUtil::setMessage('Invalid subscription action.');

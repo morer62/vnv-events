@@ -84,6 +84,7 @@
                                     </td>
                                     <td>
                                         <span class="badge {{ o.status_badge_class }}">{{ o.status_label }}</span>
+                                        {% if o.fulfillment_method == 'DELIVERY' %}<div class="small text-muted mt-1">{{ o.delivery_timing == 'ASAP' ? 'ASAP' : 'Scheduled' }} · {{ (o.promised_delivery_at ?: o.requested_delivery_at) ? (o.promised_delivery_at ?: o.requested_delivery_at)|date('M j, g:i A') : 'time pending' }}</div>{% endif %}
                                     </td>
                                     <td>{{ o.created_at|date('M j, Y g:i A') }}</td>
                                     <td class="text-end">

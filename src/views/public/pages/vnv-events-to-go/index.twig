@@ -1,0 +1,31 @@
+{% extends "templates/base.twig" %}
+
+{% block title %}VNV Gourmet To Go | Gourmet Food Delivery in South Florida{% endblock %}
+{% block meta_description %}Choose chef-prepared VNV Gourmet dishes, portions and add-ons, schedule delivery and enjoy polished presentation at home or at your event.{% endblock %}
+
+{% block head %}
+<link rel="canonical" href="https://vnvevents.com/vnv-events-to-go">
+<meta property="og:title" content="VNV Gourmet To Go">
+<meta property="og:description" content="Your favorite VNV Gourmet dishes, prepared by VNV and delivered.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://vnvevents.com/vnv-events-to-go">
+{% endblock %}
+
+{% block styles %}
+<style>
+:root{--tg-ink:#111817;--tg-gold:#d6a84b;--tg-cream:#fbf7ef;--tg-green:#244c3e}
+.tg-page{background:var(--tg-cream);color:var(--tg-ink);padding-bottom:5rem}.tg-hero{min-height:68vh;display:grid;place-items:center;text-align:center;padding:7rem 1rem 5rem;background:linear-gradient(120deg,rgba(10,18,16,.94),rgba(24,55,44,.82)),url('https://res.cloudinary.com/djlzi8bdv/image/upload/v1787926830/ophyra-growth-hub/vnvevents/service-photos/pasta-station-1.webp') center/cover;color:#fff}.tg-hero-inner{max-width:880px}.tg-kicker{letter-spacing:.18em;text-transform:uppercase;color:#f2ce83;font-weight:800}.tg-hero h1{font:900 clamp(3rem,8vw,6.4rem)/.92 'Poppins',sans-serif;margin:1rem 0}.tg-hero p{font-size:clamp(1.05rem,2vw,1.35rem);line-height:1.7;color:rgba(255,255,255,.88)}.tg-btn{display:inline-flex;padding:.9rem 1.4rem;border-radius:999px;background:var(--tg-gold);color:#16130d!important;font-weight:900;text-decoration:none;margin:1rem .35rem 0}.tg-btn.alt{background:transparent;color:#fff!important;border:1px solid rgba(255,255,255,.7)}.tg-nav{max-width:1180px;margin:-2rem auto 3rem;position:relative;display:grid;grid-template-columns:repeat(4,1fr);gap:.8rem;padding:0 1rem}.tg-nav a{background:#fff;border:1px solid #e8ddc8;border-radius:18px;padding:1.2rem;text-align:center;color:var(--tg-ink);text-decoration:none;font-weight:900;box-shadow:0 14px 35px rgba(17,24,23,.09)}.tg-section{max-width:1180px;margin:0 auto;padding:2rem 1rem}.tg-how{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem}.tg-step{background:#fff;border:1px solid #eadfcb;border-radius:20px;padding:1.25rem}.tg-step strong{display:block;color:var(--tg-green);margin-bottom:.4rem}.tg-heading{display:flex;justify-content:space-between;align-items:end;border-bottom:1px solid #ddcfb6;padding-bottom:.8rem;margin-bottom:1.2rem}.tg-heading h2{font:900 clamp(1.8rem,4vw,3rem)/1 'Poppins',sans-serif;margin:0}.tg-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1rem}.tg-card{background:#fff;border:1px solid #eadfcb;border-radius:22px;overflow:hidden;box-shadow:0 12px 30px rgba(17,24,23,.06)}.tg-card img{width:100%;aspect-ratio:4/3;object-fit:cover;background:#eee}.tg-card-body{padding:1.1rem}.tg-card h3{font-weight:900;font-size:1.15rem}.tg-price{color:var(--tg-green);font-weight:900;font-size:1.1rem}.tg-card-actions{display:flex;justify-content:space-between;align-items:center;gap:.7rem}.tg-link{color:var(--tg-green);font-weight:900;text-decoration:none}.tg-empty{padding:2rem;border:1px dashed #cdbc9d;border-radius:18px;color:#766b58}@media(max-width:800px){.tg-nav,.tg-grid,.tg-how{grid-template-columns:1fr}.tg-hero{min-height:58vh}.tg-nav{margin-top:-1.3rem}}
+</style>
+{% endblock %}
+
+{% block body %}
+<main class="tg-page">
+  <section class="tg-hero"><div class="tg-hero-inner"><div class="tg-kicker">VNV Gourmet</div><h1>VNV Gourmet To Go</h1><p>Gourmet food prepared by VNV and delivered directly to your home. Choose portions, customize your menu, schedule delivery and follow our preparation and presentation guide.</p><a class="tg-btn" href="#main-courses">Explore the Menu</a><a class="tg-btn alt" href="#how-it-works">How It Works</a></div></section>
+  <nav class="tg-nav" aria-label="To Go categories"><a href="#main-courses">Main Courses</a><a href="#appetizers">Appetizers</a><a href="#desserts">Desserts</a><a href="#seasonal">Seasonal</a></nav>
+  <section class="tg-section" id="how-it-works"><div class="tg-heading"><h2>Hosting, made easier</h2></div><div class="tg-how"><div class="tg-step"><strong>1. Choose</strong>Select dishes, portions, preferences and sides.</div><div class="tg-step"><strong>2. Schedule</strong>Choose an eligible delivery date and time.</div><div class="tg-step"><strong>3. Receive</strong>Your food arrives prepared by the VNV Gourmet team.</div><div class="tg-step"><strong>4. Present</strong>Use the included heating, plating and presentation guide.</div></div></section>
+  {% for key, group in groups %}
+  <section class="tg-section" id="{{ key == 'main' ? 'main-courses' : key }}"><div class="tg-heading"><h2>{{ group.title }}</h2><span>{{ group.products|length }} selections</span></div>
+    {% if group.products|length %}<div class="tg-grid">{% for product in group.products %}<article class="tg-card"><img src="{{ product.main_image }}" alt="{{ product.name }}" loading="lazy"><div class="tg-card-body"><h3>{{ product.name }}</h3><p>{{ product.short_description|default('Prepared with the quality and care of VNV Events.') }}</p><div class="tg-card-actions"><span class="tg-price">{% if product.min_price is defined and product.min_price %}From ${{ product.min_price|number_format(2,'.',',') }}{% else %}${{ product.price|number_format(2,'.',',') }}{% endif %}</span><a class="tg-link" href="{{ path('product/' ~ product.slug) }}">View →</a></div></div></article>{% endfor %}</div>{% else %}<div class="tg-empty">Selections in this category are being prepared.</div>{% endif %}
+  </section>{% endfor %}
+</main>
+{% endblock %}

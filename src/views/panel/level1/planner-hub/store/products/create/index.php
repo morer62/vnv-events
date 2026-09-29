@@ -4,6 +4,7 @@ use App\Repositories\StoreAttributesRepository;
 use App\Repositories\StoreAttributeValuesRepository;
 use App\Repositories\StoreCategoriesRepository;
 use App\Repositories\StoreProductsRepository;
+use App\Repositories\StoreProductFoodProfilesRepository;
 use App\Utils\FileUtils;
 use App\Utils\AvomealContext;
 use App\Utils\LocationUtils;
@@ -60,6 +61,10 @@ $router->post(function () {
     $status = trim($_POST['status'] ?? StoreProductsRepository::STATUS_ACTIVE);
     $isFeatured = isset($_POST['is_featured']) ? 1 : 0;
     $isPublic = isset($_POST['is_public']) ? 1 : 0;
+    $purchaseMode = in_array(($_POST['purchase_mode'] ?? 'REQUEST'), ['REQUEST', 'DIRECT'], true) ? $_POST['purchase_mode'] : 'REQUEST';
+    $allowImmediatePayment = isset($_POST['allow_immediate_payment']) ? 1 : 0;
+    $allowRecurringPurchase = isset($_POST['allow_recurring_purchase']) ? 1 : 0;
+    $fulfillmentType = in_array(($_POST['fulfillment_type'] ?? 'SERVICE'), ['SERVICE', 'DELIVERY', 'PICKUP'], true) ? $_POST['fulfillment_type'] : 'SERVICE';
 
     $categoryIds = $_POST['category_ids'] ?? [];
     $attributeValues = $_POST['attribute_values'] ?? [];
@@ -220,6 +225,10 @@ $router->post(function () {
         'short_description' => $shortDescription !== '' ? $shortDescription : null,
         'description' => $description !== '' ? $description : null,
         'product_type' => $productType,
+        'purchase_mode' => $purchaseMode,
+        'allow_immediate_payment' => $allowImmediatePayment,
+        'allow_recurring_purchase' => $allowRecurringPurchase,
+        'fulfillment_type' => $fulfillmentType,
         'price' => $productsRepo->getPlainPriceForStorage([
             'product_type' => $productType,
             'price' => $price
@@ -246,6 +255,15 @@ $router->post(function () {
 
         if (!$productId) {
             throw new \Exception("saveProductWithRelations returned false.");
+        }
+
+        if ($fulfillmentType === 'DELIVERY') {
+            (new StoreProductFoodProfilesRepository())->upsert(
+                $ownerId,
+                AvomealContext::siteKey(),
+                (int)$productId,
+                $_POST
+            );
         }
 
         MessageUtil::setMessage("Product created successfully.");

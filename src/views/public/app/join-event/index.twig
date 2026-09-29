@@ -1,0 +1,16 @@
+{% extends 'templates/base.twig' %}
+{% block body %}
+<main style="min-height:75vh;display:grid;place-items:center;padding:32px 18px;background:linear-gradient(145deg,#071113,#173033)">
+  <section style="width:min(520px,100%);padding:32px;border-radius:24px;background:#fff;box-shadow:0 24px 70px #0005">
+    <small style="font-weight:900;color:#087267;letter-spacing:.12em">VNV EVENTS · PRIVATE</small>
+    <h1 style="margin:10px 0">Join your event</h1>
+    <p>Enter the private code shared for your event. If needed, we will ask you to sign in or create a client account, then bring you straight back.</p>
+    {% if message %}<div role="alert" style="margin:14px 0;padding:12px 14px;border-radius:12px;background:#ffe8e8;color:#7f1d1d;border:1px solid #efb4b4"><strong>{{ message.title|default('Event access') }}</strong> {{ message.message }}</div>{% endif %}
+    <form method="post" style="display:grid;gap:14px">
+      <label for="event-code"><strong>Event code</strong></label>
+      <input id="event-code" name="code" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{5,6}" minlength="5" maxlength="6" placeholder="000000" required style="font-size:1.6rem;letter-spacing:.18em;padding:14px;border:1px solid #b9c8c8;border-radius:12px">
+      <button type="submit" style="border:0;border-radius:999px;padding:13px 18px;background:#087267;color:#fff;font-weight:900">Continue</button>
+    </form>
+  </section>
+</main>
+{% endblock %}

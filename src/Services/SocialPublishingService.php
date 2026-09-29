@@ -7,16 +7,16 @@ use RuntimeException;
 
 final class SocialPublishingService
 {
-    public function __construct(private ?AiAgentConnectionsRepository $connections=null)
+    public function __construct(private ?AiAgentConnectionsRepository $connections=null,private ?string $siteKey=null)
     {
         $this->connections??=new AiAgentConnectionsRepository();
     }
 
     public function verify(int $ownerId,string $platform): array
     {
-        $agent=(new AiAgentsRepository())->find($ownerId,'social_publisher');
+        $agent=$this->socialAgent($ownerId);
         if(!$agent)throw new RuntimeException('Social Publisher agent is not initialized.');
-        $c=$this->connections->credentials($ownerId,(int)$agent->id,$platform);
+        $c=$this->connections->credentials($ownerId,(int)$agent->id,$platform,$this->siteKey);
         try{
             $graph=$this->graphBase();
             $result=match($platform){
@@ -34,9 +34,9 @@ final class SocialPublishingService
 
     public function publish(int $ownerId,string $platform,array $payload): array
     {
-        $agent=(new AiAgentsRepository())->find($ownerId,'social_publisher');
+        $agent=$this->socialAgent($ownerId);
         if(!$agent)throw new RuntimeException('Social Publisher agent is not initialized.');
-        $c=$this->connections->credentials($ownerId,(int)$agent->id,$platform);
+        $c=$this->connections->credentials($ownerId,(int)$agent->id,$platform,$this->siteKey);
         $copy=trim((string)($payload['copy']??$payload['caption']??''));
         $tags=array_map(fn($v)=>'#'.ltrim((string)$v,'#'),(array)($payload['hashtags']??[]));
         $message=trim($copy."\n\n".implode(' ',$tags));
@@ -91,6 +91,7 @@ final class SocialPublishingService
     {
         $base=$this->graphBase().'/'.rawurlencode($c['account_identifier']);
         $video=(string)($payload['video_url']??'');if(filter_var($video,FILTER_VALIDATE_URL))return $this->request('POST',$base.'/videos',['file_url'=>$video,'description'=>$message,'access_token'=>$c['access_token']]);
+        $link=(string)($payload['article_url']??$payload['link']??'');if(filter_var($link,FILTER_VALIDATE_URL))return $this->request('POST',$base.'/feed',['message'=>$message,'link'=>$link,'access_token'=>$c['access_token']]);
         $image=(string)($payload['image_url']??'');
         return filter_var($image,FILTER_VALIDATE_URL)
             ?$this->request('POST',$base.'/photos',['url'=>$image,'caption'=>$message,'access_token'=>$c['access_token']])
@@ -110,6 +111,11 @@ final class SocialPublishingService
         return ['Authorization: Bearer '.$c['access_token'],'X-Restli-Protocol-Version: 2.0.0','Linkedin-Version: '.($_ENV['LINKEDIN_API_VERSION']??'202605')];
     }
     private function graphBase(): string{return 'https://graph.facebook.com/'.trim((string)($_ENV['META_GRAPH_VERSION']??'v23.0'),'/');}
+    private function socialAgent(int $ownerId): ?object
+    {
+        if($this->siteKey===null)return (new AiAgentsRepository())->find($ownerId,'social_publisher');
+        $db=new \App\Repositories\Connection();$db->query("SELECT * FROM ai_agents WHERE id_owner=:owner AND site_key=:site AND agent_key='social_publisher' LIMIT 1");$db->bind(':owner',$ownerId);$db->bind(':site',$this->siteKey);return $db->fetchOne()?:null;
+    }
     private function verifyLinkedin(array $c): array
     {
         $id=preg_replace('/^urn:li:organization:/','',(string)$c['account_identifier']);

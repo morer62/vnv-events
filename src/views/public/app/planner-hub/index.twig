@@ -2347,7 +2347,11 @@ h1, h2, h3, h4, .luxury-font {
 
     let mapsLoading = false;
     const loadGooglePlaces = () => {
-        if (mapsLoading || window.google?.maps?.places) return;
+        if (window.google?.maps?.places) {
+            window.dispatchEvent(new CustomEvent('vnv:google-places-ready'));
+            return;
+        }
+        if (mapsLoading) return;
         mapsLoading = true;
 
         const mapsHelper = document.createElement('script');
@@ -2355,9 +2359,15 @@ h1, h2, h3, h4, .luxury-font {
         mapsHelper.defer = true;
         mapsHelper.onload = function () {
             const mapsScript = document.createElement('script');
-            mapsScript.src = "https://maps.googleapis.com/maps/api/js?key={{ env.GOOGLE_KEY }}&libraries=places&callback=initMap";
+            mapsScript.src = "https://maps.googleapis.com/maps/api/js?key={{ env.GOOGLE_KEY }}&loading=async&libraries=places&callback=initMap";
             mapsScript.async = true;
             mapsScript.defer = true;
+            mapsScript.addEventListener('load', function () {
+                window.dispatchEvent(new CustomEvent('vnv:google-places-ready'));
+            }, { once: true });
+            mapsScript.addEventListener('error', function () {
+                mapsLoading = false;
+            }, { once: true });
             document.head.appendChild(mapsScript);
         };
         document.head.appendChild(mapsHelper);

@@ -16,9 +16,11 @@ class StoreCartItemsRepository extends BaseRepository
         'product_name_snapshot',
         'variation_name_snapshot',
         'variation_options_snapshot',
+        'configuration_snapshot',
         'unit_price',
         'pricing_mode',
         'quantity',
+        'servings',
         'line_total',
         'created_at'
     ];
@@ -36,6 +38,8 @@ class StoreCartItemsRepository extends BaseRepository
             'id_product_variation' => 'INT(11) NULL AFTER `id_product`',
             'variation_name_snapshot' => 'VARCHAR(180) NULL AFTER `product_name_snapshot`',
             'variation_options_snapshot' => 'LONGTEXT NULL AFTER `variation_name_snapshot`',
+            'configuration_snapshot' => 'LONGTEXT NULL AFTER `variation_options_snapshot`',
+            'servings' => 'SMALLINT UNSIGNED NULL AFTER `quantity`',
         ];
 
         foreach ($columns as $column => $definition) {

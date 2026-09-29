@@ -951,6 +951,10 @@ body.vnv-request-lock{
         modal.classList.add('is-open');
         modal.setAttribute('aria-hidden', 'false');
         document.body.classList.add('vnv-request-lock');
+        // Places is intentionally lazy-loaded by the homepage. The initial
+        // page-load polling may have finished long before the visitor opens
+        // this modal, so restart initialization on every open.
+        waitForGoogleAndInit(60);
         setTimeout(function () {
             ensureMapVisible();
         }, 80);
@@ -1050,6 +1054,10 @@ body.vnv-request-lock{
 
     function initLocationTools() {
         if (!addressInput || !miniMapEl || !window.google || !google.maps || !google.maps.places) return false;
+        if (requestAutocomplete) {
+            ensureMapVisible();
+            return true;
+        }
 
         requestGeocoder = new google.maps.Geocoder();
         updateMiniMap({ lat: 25.7617, lng: -80.1918 });
@@ -1087,16 +1095,22 @@ body.vnv-request-lock{
         });
     }
 
+    let googleInitTimer = null;
+
     function waitForGoogleAndInit(maxAttempts = 20) {
+        if (initLocationTools()) return;
+        if (googleInitTimer) clearInterval(googleInitTimer);
         let attempts = 0;
-        const timer = setInterval(function () {
+        googleInitTimer = setInterval(function () {
             attempts += 1;
             if (initLocationTools()) {
-                clearInterval(timer);
+                clearInterval(googleInitTimer);
+                googleInitTimer = null;
                 return;
             }
             if (attempts >= maxAttempts) {
-                clearInterval(timer);
+                clearInterval(googleInitTimer);
+                googleInitTimer = null;
             }
         }, 350);
     }

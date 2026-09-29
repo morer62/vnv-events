@@ -32,14 +32,14 @@ $resolveSpace = static function () use ($service) {
         if (!$allowed) return null;
         return $service->getOrCreateForOrder($orderId, (int)$user->getId(), (int)$order->id_owner);
     }
-    return strlen($code) === 5 ? $service->findByCode($code) : null;
+    return in_array(strlen($code), [5, 6], true) ? $service->findByCode($code) : null;
 };
 
 $router->get(callback: function () use ($service, $resolveSpace) {
     $user = LoginService::getSession();
     $space = $resolveSpace();
     if ($space && !$service->canOpen($space, $user)) $space = null;
-    if ($space) $service->join($space, $user);
+    if ($space && $service->canOpen($space, $user)) $service->join($space, $user);
     if (($_GET['format'] ?? '') === 'state') {
         header('Content-Type: application/json; charset=utf-8');
         header('Cache-Control: no-store, no-cache, must-revalidate');
@@ -60,6 +60,11 @@ $router->get(callback: function () use ($service, $resolveSpace) {
         'isMusicManager'=>$space ? $service->isMusicManager((int)$space->id,$user) : false,
         'tipProvider'=>$payment['provider'], 'tipPaymentMethods'=>$payment['methods'],
         'stateVersion'=>$space ? $service->stateVersion((int)$space->id) : null,
+        'isInteractive'=>$space ? ($service->isInteractionOpen($space) || (int)$user->getLevel()===1 || (int)$user->getId()===(int)$space->id_client) : false,
+        'photoLimit'=>$space ? (int)($space->max_guest_photos??6) : 6,
+        'myPhotoCount'=>$space ? count(array_filter($data['photos']??[],fn($photo)=>(int)$photo->id_user===(int)$user->getId())) : 0,
+        'modules'=>$data['modules']??[],
+        'message'=>MessageUtil::getMessage(),
     ]);
 });
 
@@ -67,15 +72,15 @@ $router->post(callback: function () use ($service, $resolveSpace) {
     $user=LoginService::getSession(); $action=(string)($_POST['action']??'join'); $space=$resolveSpace();
     try {
         if (!$space) throw new RuntimeException('Event code not found.');
-        if ($action==='join') $service->join($space,$user);
+        if ($action==='join') {$service->assertCanJoin($space,$user);$service->join($space,$user);}
         elseif (!$service->canOpen($space,$user)) throw new RuntimeException('You do not have access to this event.');
-        elseif ($action==='add_music') $service->addMusic((int)$space->id,$user,$_POST);
-        elseif ($action==='delete_music') $service->deleteMusic((int)$space->id,(int)($_POST['request_id']??0),$user);
+        elseif ($action==='add_music') {$service->assertInteractionAllowed($space,$user);$service->addMusic((int)$space->id,$user,$_POST);}
+        elseif ($action==='delete_music') {$service->assertInteractionAllowed($space,$user);$service->deleteMusic((int)$space->id,(int)($_POST['request_id']??0),$user);}
         elseif ($action==='update_music') $service->updateMusic((int)$space->id,(int)($_POST['request_id']??0),$user,$_POST);
         elseif ($action==='set_member_role') $service->setMemberRole((int)$space->id,(int)($_POST['member_id']??0),(string)($_POST['role']??''),$user);
-        elseif ($action==='pay_tip') $service->payTip((int)$space->id,(int)($_POST['request_id']??0),(int)($_POST['saved_payment_method_id']??0),$user);
-        elseif ($action==='add_photo') $service->addPhoto((int)$space->id,$user,$_FILES['photo']??[],(string)($_POST['caption']??''));
-        elseif ($action==='delete_photo') $service->deletePhoto((int)$space->id,(int)($_POST['photo_id']??0),$user,(int)$space->id_client===(int)$user->getId());
+        elseif ($action==='pay_tip') {$service->assertInteractionAllowed($space,$user);$service->payTip((int)$space->id,(int)($_POST['request_id']??0),(int)($_POST['saved_payment_method_id']??0),$user);}
+        elseif ($action==='add_photo') {$service->assertInteractionAllowed($space,$user);$service->addPhoto((int)$space->id,$user,$_FILES['photo']??[],(string)($_POST['caption']??''));}
+        elseif ($action==='delete_photo') {$service->assertInteractionAllowed($space,$user);$service->deletePhoto((int)$space->id,(int)($_POST['photo_id']??0),$user,(int)$space->id_client===(int)$user->getId());}
         elseif ($action==='delete_all_photos') $service->deleteAllPhotos((int)$space->id,$user,(int)$space->id_client===(int)$user->getId());
         MessageUtil::setMessage('Event area updated.');
         LocationUtils::redirectInternal('panel/event-execution?code='.$space->access_code);

@@ -43,6 +43,8 @@ class StoreOrdersRepository extends BaseRepository
         'site_key',
         'id_user',
         'id_cart',
+        'recurring_order_id',
+        'recurring_occurrence_id',
         'public_token',
         'guest_name',
         'guest_email',
@@ -51,10 +53,20 @@ class StoreOrdersRepository extends BaseRepository
         'audience_type',
         'meal_style',
         'pricing_mode',
+        'fulfillment_method',
+        'delivery_timing',
+        'requested_delivery_at',
+        'requested_delivery_at_utc',
+        'requested_delivery_timezone',
+        'promised_delivery_at',
         'items_count',
         'meals_count',
         'subtotal',
         'discount',
+        'delivery_provider_cost',
+        'delivery_fee',
+        'delivery_margin',
+        'tax_total',
         'coupon_code',
         'id_coupon',
         'coupon_discount',
@@ -162,6 +174,10 @@ class StoreOrdersRepository extends BaseRepository
             'shipping_city' => 'VARCHAR(120) NULL AFTER `shipping_address_1`',
             'shipping_state' => 'VARCHAR(120) NULL AFTER `shipping_city`',
             'shipping_zip' => 'VARCHAR(60) NULL AFTER `shipping_state`'
+            ,'fulfillment_method' => "VARCHAR(24) NOT NULL DEFAULT 'DELIVERY' AFTER `pricing_mode`"
+            ,'delivery_timing' => "VARCHAR(24) NOT NULL DEFAULT 'SCHEDULED' AFTER `fulfillment_method`"
+            ,'requested_delivery_at' => 'DATETIME NULL AFTER `delivery_timing`'
+            ,'promised_delivery_at' => 'DATETIME NULL AFTER `requested_delivery_at`'
         ];
 
         foreach ($columns as $column => $definition) {

@@ -811,8 +811,9 @@ h1, h2, h3, h4, h5, .luxury-font {
 .top-catering-intro { display:grid; grid-template-columns:1fr auto; gap:30px; align-items:end; margin-bottom:48px; }
 .top-catering-intro .section-heading { margin-bottom:0; }
 .top-catering-count { font-family:Georgia,"Times New Roman",serif; font-size:clamp(5rem,11vw,10rem); color:rgba(94,198,196,.13); line-height:.72; font-weight:900; }
+.gourmet-paths{background:#f4f7f8;color:#11181a;padding:72px 0}.gourmet-path-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px}.gourmet-path{min-height:330px;border-radius:30px;padding:38px;display:flex;flex-direction:column;justify-content:flex-end;color:#fff;position:relative;overflow:hidden;isolation:isolate;box-shadow:0 22px 60px rgba(0,0,0,.16)}.gourmet-path::before{content:"";position:absolute;inset:0;z-index:-2;background:center/cover no-repeat}.gourmet-path::after{content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(180deg,rgba(7,10,10,.08),rgba(7,10,10,.9))}.gourmet-path.full::before{background-image:url('{{ asset_for('assets/images/vnv-gourmet-hero-small-fast.webp') }}')}.gourmet-path.togo::before{background-image:url('https://res.cloudinary.com/djlzi8bdv/image/upload/v1787926830/ophyra-growth-hub/vnvevents/service-photos/pasta-station-1.webp')}.gourmet-path h2{font-size:clamp(2rem,4vw,3.4rem);margin:12px 0}.gourmet-path p{color:rgba(255,255,255,.84);max-width:580px}.gourmet-path-label{text-transform:uppercase;letter-spacing:.14em;color:#8ffff1;font-size:.75rem;font-weight:900}.gourmet-path-actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:18px}
 @media (max-width: 991px) { .top-catering-card,.top-catering-card:first-child { grid-column:span 6; }.top-catering-intro{grid-template-columns:1fr}.top-catering-count{display:none} }
-@media (max-width: 640px) { .top-catering-card,.top-catering-card:first-child { grid-column:1/-1; min-height:430px; }.top-catering-content{padding:24px}.top-catering-bottom{align-items:flex-start;flex-direction:column} }
+@media (max-width: 640px) { .top-catering-card,.top-catering-card:first-child { grid-column:1/-1; min-height:430px; }.top-catering-content{padding:24px}.top-catering-bottom{align-items:flex-start;flex-direction:column}.gourmet-path-grid{grid-template-columns:1fr}.gourmet-path{min-height:360px;padding:26px} }
 
 @media (prefers-reduced-motion: reduce) {
     html { scroll-behavior: auto; }
@@ -855,7 +856,15 @@ h1, h2, h3, h4, h5, .luxury-font {
     </div>
 </section>
 
-
+<section class="gourmet-paths" aria-labelledby="gourmet-paths-title">
+    <div class="container">
+        <div class="section-heading"><span class="vnv-badge">Choose your experience</span><h2 id="gourmet-paths-title">Two ways to enjoy <span class="text-vnv">VNV Gourmet</span></h2></div>
+        <div class="gourmet-path-grid">
+            <article class="gourmet-path full"><span class="gourmet-path-label">Food Stations &amp; Full Service</span><h2>We bring the experience.</h2><p>Staffed stations, service teams and event-ready catering built and presented by VNV.</p><div class="gourmet-path-actions"><a href="#menu-services" class="vnv-btn btn-gold-vnv">Explore Food Stations</a></div></article>
+            <article class="gourmet-path togo"><span class="gourmet-path-label">VNV Gourmet To Go</span><h2>Your favorite dishes, delivered.</h2><p>Choose portions and add-ons, schedule delivery, then use our heating, plating and presentation guide.</p><div class="gourmet-path-actions"><a href="{{ path('vnv-events-to-go') }}" class="vnv-btn btn-gold-vnv">Explore the Menu</a></div></article>
+        </div>
+    </div>
+</section>
 
 <section class="metric-strip-vnv text-center">
     <div class="container">

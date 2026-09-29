@@ -129,8 +129,15 @@ $router->get(function () {
         $items = $itemsRepo->getByOrder((int)$order->id);
         $modalItems = [];
         foreach ($items ?: [] as $item) {
+            $configuration = json_decode((string)($item->configuration_snapshot ?? ''), true);
+            $configuration = is_array($configuration) ? $configuration : [];
+            $detailParts = [];
+            if (!empty($item->servings)) $detailParts[] = (int)$item->servings . ' servings';
+            foreach ($configuration as $label => $value) {
+                if (is_scalar($value) && trim((string)$value) !== '') $detailParts[] = ucwords(str_replace('_', ' ', (string)$label)) . ': ' . (string)$value;
+            }
             $modalItems[] = [
-                'name' => $item->product_name_snapshot ?? ('#' . $item->id_product),
+                'name' => ($item->product_name_snapshot ?? ('#' . $item->id_product)) . ($detailParts ? ' — ' . implode(' · ', $detailParts) : ''),
                 'quantity' => (int)($item->quantity ?? 0),
                 'unit_price' => (float)($item->unit_price ?? 0),
                 'line_total' => (float)($item->line_total ?? 0),

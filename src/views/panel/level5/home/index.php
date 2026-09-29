@@ -11,7 +11,10 @@ use App\Repositories\TeamMemberContractsRepository;
 use App\Repositories\VenueEventsRepository;
 use App\Repositories\UserRepository;
 use App\Repositories\InstitutionProfileRepository;
+use App\Repositories\Connection;
 use App\Services\LoginService;
+use App\Services\EventExecutionService;
+use App\Services\LoyaltyRewardsService;
 use App\Utils\LocationUtils;
 use App\Utils\MessageUtil;
 use App\Utils\Router;
@@ -121,6 +124,28 @@ $router->get(function () {
             ?: strcmp((string)($a->start_time ?? ''), (string)($b->start_time ?? ''));
     });
 
+    $participatedEvents = [];
+    try {
+        $eventService = new EventExecutionService();
+        foreach ($upcomingEvents as $order) {
+            $space = $eventService->getOrCreateForOrder((int)$order->id, (int)$user->getId(), (int)$user->getOwner());
+            $order->event_access_code = $space->access_code;
+        }
+
+        $eventDb = new Connection();
+        $eventDb->query("SELECT s.access_code,s.status,s.interaction_days_after,o.id AS id_order,o.event_date,o.start_time,o.address,m.role,m.joined_at,
+            (SELECT COUNT(*) FROM event_execution_photos p WHERE p.id_space=s.id AND p.deleted_at IS NULL) AS photo_count
+            FROM event_execution_members m
+            JOIN event_execution_spaces s ON s.id=m.id_space
+            JOIN orders o ON o.id=s.id_order
+            WHERE m.id_user=:user AND s.status<>'ARCHIVED'
+            ORDER BY o.event_date DESC,o.start_time DESC");
+        $eventDb->bind(':user', (int)$user->getId(), \PDO::PARAM_INT);
+        $participatedEvents = $eventDb->fetchAll();
+    } catch (Throwable $e) {
+        error_log('[Level5 home] Event portal summary failed: ' . $e->getMessage());
+    }
+
     $email = method_exists($user, 'getEmail') ? (string)$user->getEmail() : '';
     $ticketCount = 0;
     $activeTicketCount = 0;
@@ -138,6 +163,23 @@ $router->get(function () {
     }
 
     $musicSessions = array_slice($sessionsRepo->getPublicSessionsByPlatform(null, null, null), 0, 3);
+    $storeOrderCount = 0;
+    $storeSubscriptionCount = 0;
+    try {
+        $db = new Connection();
+        $db->query("SELECT COUNT(*) AS total FROM store_orders WHERE id_owner=:owner AND id_user=:user");
+        $db->bind(':owner', (int)$user->getOwner(), \PDO::PARAM_INT);
+        $db->bind(':user', (int)$user->getId(), \PDO::PARAM_INT);
+        $storeOrderCount = (int)($db->fetchOne()->total ?? 0);
+        $db->query("SELECT COUNT(*) AS total FROM store_subscriptions WHERE id_owner=:owner AND id_user=:user AND archive=0");
+        $db->bind(':owner', (int)$user->getOwner(), \PDO::PARAM_INT);
+        $db->bind(':user', (int)$user->getId(), \PDO::PARAM_INT);
+        $storeSubscriptionCount = (int)($db->fetchOne()->total ?? 0);
+    } catch (Throwable $e) { error_log('[Level5 home] Store summary failed: ' . $e->getMessage()); }
+
+    $rewards = ['available_points'=>0,'pending_points'=>0,'available_value'=>0,'pending_value'=>0];
+    try { $rewards=(new LoyaltyRewardsService())->balance((int)$user->getOwner(),(int)$user->getId()); }
+    catch (Throwable $e) { error_log('[Level5 home] Rewards summary failed: '.$e->getMessage()); }
 
     return TemplateResponse::render(__DIR__ . '/index.twig', [
         'user' => $user,
@@ -145,6 +187,7 @@ $router->get(function () {
         'pendingPayments' => array_slice($pendingPayments, 0, 3),
         'pendingSignatures' => array_slice($pendingSignatures, 0, 3),
         'upcomingEvents' => array_slice($upcomingEvents, 0, 4),
+        'participatedEvents' => $participatedEvents,
         'musicSessions' => $musicSessions,
         'stats' => [
             'orders' => count($orders),
@@ -154,8 +197,11 @@ $router->get(function () {
             'tickets' => $ticketCount,
             'active_tickets' => $activeTicketCount,
             'balance_due' => round($totalBalanceDue, 2),
+            'store_orders' => $storeOrderCount,
+            'store_subscriptions' => $storeSubscriptionCount,
         ],
         'canSwitchToTeam' => (bool)$activeTeamContract,
+        'rewards' => $rewards,
     ]);
 });
 

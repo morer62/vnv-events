@@ -99,6 +99,17 @@ class SquareProvider extends AbstractPaymentProvider
                 'amountMoney' => $amountMoney
             ]);
             $body->setLocationId($this->locationId);
+
+            // Square requires the owning Customer ID whenever source_id is a
+            // card-on-file ID (ccof:...). One-time Web Payments SDK tokens do
+            // not require it, so only attach it when the caller resolved it.
+            $customerId = trim((string)($metadata['customer_id'] ?? ''));
+            if ($customerId !== '') {
+                $body->setCustomerId($customerId);
+            } elseif (str_starts_with($token, 'ccof:')) {
+                $this->logError('Cannot charge Square card-on-file: customer_id is required.');
+                return false;
+            }
             
             if (isset($metadata['note'])) {
                 $body->setNote($metadata['note']);
@@ -211,9 +222,12 @@ class SquareProvider extends AbstractPaymentProvider
             return false;
         }
 
-        if (!empty($savedMethod->provider_customer_id)) {
-            $metadata['customer_id'] = (string)$savedMethod->provider_customer_id;
+        $customerId = trim((string)($savedMethod->provider_customer_id ?? ''));
+        if ($customerId === '') {
+            $this->logError('Cannot charge saved Square method: provider_customer_id is missing.');
+            return false;
         }
+        $metadata['customer_id'] = $customerId;
 
         return $this->chargeCustomer($cardId, $amount, $metadata);
     }

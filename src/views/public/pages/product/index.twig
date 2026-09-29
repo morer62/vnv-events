@@ -554,7 +554,13 @@
                         {% endif %}
                     </div>
 
-                    {% if store_active %}
+                    {% if product.purchase_mode|default('REQUEST') == 'REQUEST' %}
+                        <div class="pp-purchase-box">
+                            <h3>Request this experience</h3>
+                            <p>This product requires confirmation from our team before payment.</p>
+                            <a href="{{ path('/#request') }}" class="pp-btn pp-btn-main" data-vnv-open-request>Start a request</a>
+                        </div>
+                    {% elseif store_active and product.allow_immediate_payment|default(0) %}
                         <div class="pp-purchase-box">
                             <form id="public-product-form">
                                 <input type="hidden" name="id_product" value="{{ product.id }}">
@@ -600,6 +606,26 @@
                                             {% endif %}
                                         >
                                     </div>
+                                    {% if food_profile %}
+                                    <div>
+                                        <label class="pp-form-label" for="product-servings">Guests / servings</label>
+                                        <input type="number" id="product-servings" class="pp-input"
+                                            min="{{ food_profile.minimum_servings }}"
+                                            {% if food_profile.maximum_servings %}max="{{ food_profile.maximum_servings }}"{% endif %}
+                                            value="{{ food_profile.included_servings }}"
+                                            data-included="{{ food_profile.included_servings }}"
+                                            data-additional-price="{{ food_profile.additional_person_price }}">
+                                        <small>Includes {{ food_profile.included_servings }} servings{% if food_profile.additional_person_price > 0 %}; additional guests ${{ food_profile.additional_person_price|number_format(2,'.',',') }} each{% endif %}.</small>
+                                    </div>
+                                    {% if food_profile.cooking_preferences|length %}
+                                    <div>
+                                        <label class="pp-form-label" for="cooking-preference">Cooking preference</label>
+                                        <select class="pp-select" id="cooking-preference">
+                                            {% for preference in food_profile.cooking_preferences %}<option value="{{ preference }}">{{ preference }}</option>{% endfor %}
+                                        </select>
+                                    </div>
+                                    {% endif %}
+                                    {% endif %}
                                 </div>
 
                                 <div class="pp-variation-preview" id="variation-preview">
@@ -631,7 +657,7 @@
                                 </div>
 
                                 <div class="pp-helper">
-                                    Choose quantity and, if needed, a variation. The next cart step can now receive standard product data instead of meal-plan data.
+                                    Choose quantity and, if needed, a variation. {% if product.allow_recurring_purchase|default(0) %}This product also supports recurring purchases at checkout.{% endif %}
                                 </div>
                             </form>
                         </div>
@@ -672,6 +698,17 @@
             <h3>Product Description</h3>
             <div class="pp-desc">{{ product.description|raw }}</div>
         </section>
+
+        {% if food_profile %}
+            <section class="pp-block">
+                <h3>Your VNV Gourmet guide</h3>
+                {% if food_profile.preparation_instructions %}<h4>Preparation</h4><p>{{ food_profile.preparation_instructions }}</p>{% endif %}
+                {% if food_profile.reheating_instructions %}<h4>Reheating</h4><p>{{ food_profile.reheating_instructions }}</p>{% endif %}
+                {% if food_profile.serving_instructions %}<h4>Serving</h4><p>{{ food_profile.serving_instructions }}</p>{% endif %}
+                {% if food_profile.plating_instructions %}<h4>Plating</h4><p>{{ food_profile.plating_instructions }}</p>{% endif %}
+                {% if food_profile.presentation_instructions %}<h4>Presentation</h4><p>{{ food_profile.presentation_instructions }}</p>{% endif %}
+            </section>
+        {% endif %}
 
         {% if product.categories|length > 0 %}
             <section class="pp-block">
@@ -782,6 +819,26 @@ document.addEventListener('DOMContentLoaded', function () {
     const priceDisplay = document.getElementById('product-price-display');
     const priceNote = document.getElementById('product-price-note');
     const qtyInput = document.getElementById('product-qty');
+    const servingsInput = document.getElementById('product-servings');
+    const cookingPreferenceInput = document.getElementById('cooking-preference');
+
+    function configuredUnitPrice(basePrice) {
+        if (!servingsInput) return basePrice;
+        const included = Math.max(1, toInt(servingsInput.dataset.included, 1));
+        const servings = Math.max(included, toInt(servingsInput.value, included));
+        const extra = Math.max(0, servings - included);
+        return Number((basePrice + extra * toFloat(servingsInput.dataset.additionalPrice, 0)).toFixed(2));
+    }
+
+    function refreshConfiguredPrice() {
+        const base = variationSelect && variationSelect.value
+            ? toFloat(variationSelect.options[variationSelect.selectedIndex].dataset.price, 0)
+            : toFloat(addBtn?.dataset.price, 0);
+        const configured = configuredUnitPrice(base);
+        if (selectedUnitPrice) selectedUnitPrice.value = configured.toFixed(2);
+        if (priceDisplay) priceDisplay.textContent = '$' + configured.toFixed(2);
+    }
+    if (servingsInput) servingsInput.addEventListener('input', refreshConfiguredPrice);
 
     function renderVariation(option) {
         if (!option || !option.value) {
@@ -849,6 +906,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         variationMeta.innerHTML = parts.join('');
         variationPreview.style.display = 'block';
+        refreshConfiguredPrice();
     }
 
     if (variationSelect) {
@@ -863,6 +921,11 @@ document.addEventListener('DOMContentLoaded', function () {
         const productType = addBtn.dataset.productType || 'FIXED';
         const productId = toInt(addBtn.dataset.id, 0);
         const quantity = Math.max(1, toInt(qtyInput.value, 1));
+        const servings = servingsInput ? Math.max(1, toInt(servingsInput.value, 1)) : null;
+        const configuration = servingsInput ? {
+            servings: servings,
+            cooking_preference: cookingPreferenceInput ? cookingPreferenceInput.value : ''
+        } : {};
 
         if (!productId) {
             window.location.href = '{{ path("store/cart") }}';
@@ -872,7 +935,7 @@ document.addEventListener('DOMContentLoaded', function () {
         let variationId = null;
         let variationName = '';
         let variationOptions = [];
-        let unitPrice = toFloat(addBtn.dataset.price, 0);
+        let unitPrice = configuredUnitPrice(toFloat(addBtn.dataset.price, 0));
         let stockQuantity = Math.max(0, toInt(addBtn.dataset.stockQuantity, 0));
         let minPurchaseQty = Math.max(1, toInt(addBtn.dataset.minPurchaseQty, 1));
         let maxPurchaseQty = addBtn.dataset.maxPurchaseQty !== '' ? Math.max(1, toInt(addBtn.dataset.maxPurchaseQty, 1)) : null;
@@ -886,7 +949,7 @@ document.addEventListener('DOMContentLoaded', function () {
             const selectedOption = variationSelect.options[variationSelect.selectedIndex];
             variationId = toInt(selectedOption.value, 0);
             variationName = selectedOption.dataset.name || '';
-            unitPrice = toFloat(selectedOption.dataset.price, 0);
+            unitPrice = configuredUnitPrice(toFloat(selectedOption.dataset.price, 0));
             stockQuantity = Math.max(0, toInt(selectedOption.dataset.stock, 0));
             minPurchaseQty = Math.max(1, toInt(selectedOption.dataset.min, 1));
             maxPurchaseQty = selectedOption.dataset.max !== '' ? Math.max(1, toInt(selectedOption.dataset.max, 1)) : null;
@@ -915,6 +978,8 @@ document.addEventListener('DOMContentLoaded', function () {
             existingItem.max_purchase_qty = maxPurchaseQty;
             existingItem.variation_name = variationName;
             existingItem.variation_options = variationOptions;
+            existingItem.servings = servings;
+            existingItem.configuration = configuration;
         } else {
             cart.items.push({
                 id_product: productId,
@@ -928,6 +993,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 product_type: productType,
                 variation_name: variationName,
                 variation_options: variationOptions,
+                servings: servings,
+                configuration: configuration,
                 unit_price: unitPrice,
                 quantity: quantity,
                 line_total: Number((unitPrice * quantity).toFixed(2)),

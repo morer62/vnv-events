@@ -5,14 +5,15 @@
     </a>
 
     <ul class="sidebar-nav">
-      <li class="sidebar-header">Select your option</li>
-
+      {% if user.level not in [1, 4, 5] %}
+      <li class="sidebar-header">Navigation</li>
       <li class="sidebar-item">
         <a class="sidebar-link" href="{{ path('panel/home') }}">
-          <i class="align-middle" data-feather="sliders"></i>
-          <span class="align-middle">🏠 Home</span>
+          <i class="align-middle" data-feather="home"></i>
+          <span class="align-middle">Home</span>
         </a>
       </li>
+      {% endif %}
 
       {#<li class="sidebar-item active">
         <a data-bs-target="#dashboards" data-bs-toggle="collapse" class="sidebar-link">

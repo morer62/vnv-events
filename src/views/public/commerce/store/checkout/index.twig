@@ -389,11 +389,29 @@ body{
                         <span>Coupon discount</span>
                         <strong id="checkoutDiscount">-$0.00</strong>
                     </div>
+                    <div class="summary-row">
+                        <span>Sales tax (7%)</span>
+                        <strong id="checkoutTax">$0.00</strong>
+                    </div>
                     <div class="summary-row total">
                         <span>Total</span>
                         <strong id="checkoutTotal">$0.00</strong>
                     </div>
                 </div>
+
+                {% if active_provider_type == 'stripe' %}
+                <div class="summary-box">
+                    <div class="checkout-section-title" style="font-size:1.05rem">Order frequency</div>
+                    <label class="payment-consent-option"><input type="radio" name="order_frequency" value="ONE_TIME" checked><span><strong>One-time order</strong><span class="payment-consent-copy">Pay for this delivery only.</span></span></label>
+                    <label class="payment-consent-option"><input type="radio" name="order_frequency" value="RECURRING"><span><strong>Recurring order</strong><span class="payment-consent-copy">Repeat this menu and automatically charge each future delivery about 48 hours before delivery.</span></span></label>
+                    <div id="recurringOrderFields" class="hidden">
+                        <div class="field"><label for="recurrence_type">Repeat</label><select id="recurrence_type" class="form-select"><option value="WEEKLY">Every week</option><option value="SELECTED_WEEKDAYS">On selected weekdays</option><option value="INTERVAL_WEEKS">Every X weeks</option></select></div>
+                        <div class="field" id="recurrenceIntervalField" style="display:none"><label for="recurrence_interval">Week interval</label><input id="recurrence_interval" type="number" min="1" max="12" value="2"></div>
+                        <div class="field" id="recurrenceWeekdaysField" style="display:none"><label>Delivery weekdays</label><div class="d-flex flex-wrap gap-2">{% for day,label in {1:'Mon',2:'Tue',3:'Wed',4:'Thu',5:'Fri',6:'Sat',7:'Sun'} %}<label class="payment-consent-option" style="padding:.55rem .7rem"><input type="checkbox" name="recurrence_weekday" value="{{ day }}"><span>{{ label }}</span></label>{% endfor %}</div></div>
+                        <div class="field"><label for="recurrence_count">Total deliveries</label><input id="recurrence_count" type="number" min="2" max="52" value="6"><small>This includes today's scheduled delivery. Future deliveries remain editable.</small></div>
+                    </div>
+                </div>
+                {% endif %}
 
                 <div class="field">
                     <label for="guest_name">Full name</label>
@@ -408,6 +426,22 @@ body{
                 <div class="field">
                     <label for="guest_phone">Phone</label>
                     <input type="text" id="guest_phone" placeholder="(305) 000-0000" inputmode="tel" autocomplete="tel">
+                </div>
+
+                <div class="summary-box">
+                    <div class="checkout-section-title" style="font-size:1.05rem">When should we deliver?</div>
+                    <label class="payment-consent-option">
+                        <input type="radio" name="delivery_timing" value="ASAP" id="delivery_asap" {{ delivery_availability.asap_available ? '' : 'disabled' }}>
+                        <span><strong>As soon as possible</strong><span class="payment-consent-copy">{% if delivery_availability.asap_available %}{{ delivery_availability.available_driver_count }} delivery team member(s) active. Estimated within two hours.{% else %}No delivery team member is currently clocked in. Choose a scheduled time.{% endif %}</span></span>
+                    </label>
+                    <label class="payment-consent-option">
+                        <input type="radio" name="delivery_timing" value="SCHEDULED" id="delivery_scheduled" checked>
+                        <span><strong>Schedule delivery</strong><span class="payment-consent-copy">Choose a future date and time.</span></span>
+                    </label>
+                    <div class="field" id="deliveryScheduleField">
+                        <label for="requested_delivery_at">Delivery date and time</label>
+                        <input type="datetime-local" id="requested_delivery_at" min="{{ 'now'|date('Y-m-d\\TH:i') }}" value="{{ delivery_availability.next_slots[0].value|default('') }}">
+                    </div>
                 </div>
 
                 <div class="field">
@@ -552,6 +586,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const discountRowEl = document.getElementById('checkoutDiscountRow');
     const discountEl = document.getElementById('checkoutDiscount');
     const totalEl = document.getElementById('checkoutTotal');
+    const taxEl = document.getElementById('checkoutTax');
 
     const guestNameInput = document.getElementById('guest_name');
     const guestEmailInput = document.getElementById('guest_email');
@@ -570,6 +605,26 @@ document.addEventListener('DOMContentLoaded', function () {
     const shippingCityInput = document.getElementById('shipping_city');
     const shippingStateInput = document.getElementById('shipping_state');
     const shippingZipInput = document.getElementById('shipping_zip');
+    const requestedDeliveryInput = document.getElementById('requested_delivery_at');
+    const recurringOrderFields = document.getElementById('recurringOrderFields');
+    const recurrenceTypeInput = document.getElementById('recurrence_type');
+    const recurrenceIntervalField = document.getElementById('recurrenceIntervalField');
+    const recurrenceWeekdaysField = document.getElementById('recurrenceWeekdaysField');
+    document.querySelectorAll('input[name="order_frequency"]').forEach((radio) => radio.addEventListener('change', () => {
+        if (recurringOrderFields) recurringOrderFields.classList.toggle('hidden', radio.value !== 'RECURRING' || !radio.checked);
+        if (radio.value === 'RECURRING' && radio.checked) {
+            if (savePaymentMethodInput) savePaymentMethodInput.checked = true;
+            if (autoChargeConsentInput) autoChargeConsentInput.checked = true;
+        }
+    }));
+    if (recurrenceTypeInput) recurrenceTypeInput.addEventListener('change', () => {
+        recurrenceIntervalField.style.display = recurrenceTypeInput.value === 'INTERVAL_WEEKS' ? 'block' : 'none';
+        recurrenceWeekdaysField.style.display = recurrenceTypeInput.value === 'SELECTED_WEEKDAYS' ? 'block' : 'none';
+    });
+    const deliveryScheduleField = document.getElementById('deliveryScheduleField');
+    document.querySelectorAll('input[name="delivery_timing"]').forEach((radio) => radio.addEventListener('change', () => {
+        deliveryScheduleField.style.display = radio.value === 'SCHEDULED' && radio.checked ? 'block' : (document.getElementById('delivery_scheduled').checked ? 'block' : 'none');
+    }));
 
     const payNowBtn = document.getElementById('payNowBtn');
     const activeProviderType = `{{ active_provider_type|default('')|e('js') }}`;
@@ -658,11 +713,13 @@ document.addEventListener('DOMContentLoaded', function () {
         const subtotal = Number(cart.subtotal || 0);
         const discount = Number(cart.discount || cart.coupon_discount || 0);
         const total = Number(cart.total || subtotal);
+        const tax = Number(cart.tax || 0);
 
         itemsCountEl.textContent = itemsCount;
         quantityTotalEl.textContent = quantityTotal;
         subtotalEl.textContent = `$${subtotal.toFixed(2)}`;
         totalEl.textContent = `$${total.toFixed(2)}`;
+        taxEl.textContent = `$${tax.toFixed(2)}`;
 
         if (discount > 0) {
             discountRowEl.style.display = 'flex';
@@ -916,15 +973,48 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         if (activeProviderType === 'stripe') {
-            const result = await stripe.createToken(stripeCard);
-            if (result.error) {
-                throw new Error(result.error.message || 'Could not tokenize Stripe card.');
+            const intentResponse = await fetch('{{ path("store/checkout/payment-intent") }}', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    session_token: sessionToken,
+                    email: guestEmailInput.value.trim(),
+                    name: guestNameInput.value.trim(),
+                    shipping_address: [shippingSameAsBillingInput.checked ? billingAddress1Input.value.trim() : shippingAddress1Input.value.trim(), shippingSameAsBillingInput.checked ? billingCityInput.value.trim() : shippingCityInput.value.trim(), shippingSameAsBillingInput.checked ? billingStateInput.value.trim() : shippingStateInput.value.trim(), shippingSameAsBillingInput.checked ? billingZipInput.value.trim() : shippingZipInput.value.trim()].filter(Boolean).join(', '),
+                    save_for_future: Boolean(savePaymentMethodInput?.checked || autoChargeConsentInput?.checked)
+                })
+            });
+            const intentData = await intentResponse.json();
+            if (!intentResponse.ok || !intentData.success) {
+                throw new Error(intentData.message || 'Could not prepare secure Stripe payment.');
             }
+            const result = await stripe.confirmCardPayment(intentData.client_secret, {
+                payment_method: {
+                    card: stripeCard,
+                    billing_details: {
+                        name: guestNameInput.value.trim(),
+                        email: guestEmailInput.value.trim(),
+                        phone: guestPhoneInput.value.trim(),
+                        address: {
+                            line1: billingAddress1Input.value.trim(),
+                            line2: billingAddress2Input.value.trim(),
+                            city: billingCityInput.value.trim(),
+                            state: billingStateInput.value.trim(),
+                            postal_code: billingZipInput.value.trim(),
+                            country: 'US'
+                        }
+                    }
+                }
+            });
+            if (result.error || !result.paymentIntent || result.paymentIntent.status !== 'succeeded') {
+                throw new Error(result.error?.message || 'Stripe payment was not completed.');
+            }
+            paymentTokenType = 'payment_intent';
             return {
-                token: result.token.id,
-                card_brand: result.token.card?.brand || '',
-                card_last4: result.token.card?.last4 || '',
-                card_exp: `${result.token.card?.exp_month || ''}/${result.token.card?.exp_year || ''}`
+                token: result.paymentIntent.id,
+                card_brand: '',
+                card_last4: '',
+                card_exp: ''
             };
         }
 
@@ -949,6 +1039,18 @@ document.addEventListener('DOMContentLoaded', function () {
                 showError('Shipping address is required.');
                 return;
             }
+        }
+
+        const deliveryTiming = document.querySelector('input[name="delivery_timing"]:checked')?.value || 'SCHEDULED';
+        const orderFrequency = document.querySelector('input[name="order_frequency"]:checked')?.value || 'ONE_TIME';
+        if (deliveryTiming === 'SCHEDULED' && !requestedDeliveryInput.value) {
+            showError('Please select a delivery date and time.');
+            return;
+        }
+        if (orderFrequency === 'RECURRING') {
+            if (deliveryTiming !== 'SCHEDULED') { showError('Recurring orders require a scheduled first delivery.'); return; }
+            if (recurrenceTypeInput?.value === 'SELECTED_WEEKDAYS' && !document.querySelector('input[name="recurrence_weekday"]:checked')) { showError('Select at least one recurring delivery weekday.'); return; }
+            if (!autoChargeConsentInput?.checked) { showError('Recurring delivery requires authorization for future automatic charges.'); return; }
         }
 
         payNowBtn.disabled = true;
@@ -986,6 +1088,13 @@ document.addEventListener('DOMContentLoaded', function () {
                     shipping_city: shippingSameAsBillingInput.checked ? billingCityInput.value.trim() : shippingCityInput.value.trim(),
                     shipping_state: shippingSameAsBillingInput.checked ? billingStateInput.value.trim() : shippingStateInput.value.trim(),
                     shipping_zip: shippingSameAsBillingInput.checked ? billingZipInput.value.trim() : shippingZipInput.value.trim(),
+                    delivery_timing: deliveryTiming,
+                    requested_delivery_at: requestedDeliveryInput.value,
+                    order_frequency: orderFrequency,
+                    recurrence_type: recurrenceTypeInput?.value || 'WEEKLY',
+                    recurrence_interval: Number(document.getElementById('recurrence_interval')?.value || 1),
+                    recurrence_count: Number(document.getElementById('recurrence_count')?.value || 6),
+                    recurrence_weekdays: Array.from(document.querySelectorAll('input[name="recurrence_weekday"]:checked')).map(input => Number(input.value)),
                     card_brand: paymentData.card_brand || '',
                     card_last4: paymentData.card_last4 || '',
                     card_exp: paymentData.card_exp || ''
@@ -1001,7 +1110,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
             localStorage.removeItem(CART_KEY);
             localStorage.removeItem(SESSION_KEY);
-            showSuccess('Payment completed successfully.');
+            showSuccess(data.message || 'Payment completed successfully.');
 
             setTimeout(() => {
                 window.location.href = data.redirect || PAYMENT_SUCCESS_FALLBACK;

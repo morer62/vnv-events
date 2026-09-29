@@ -1,0 +1,76 @@
+{# Consistent contextual navigation for the principal VNV private modules. #}
+<div id="vnv-context-nav" data-user-level="{{ user.level }}" hidden></div>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  const mount = document.getElementById('vnv-context-nav');
+  if (!mount) return;
+
+  const level = Number(mount.dataset.userLevel || 0);
+  const current = window.location.pathname.replace(/\/+$/, '');
+  const groups = [];
+
+  if (level === 1 && current.includes('/panel/planner-hub/management/orders')) {
+    groups.push({label: 'Event operations', links: [
+      ['Execution', '{{ path('panel/planner-hub/management/orders/orders/execution') }}'],
+      ['All orders', '{{ path('panel/planner-hub/management/orders/orders') }}'],
+      ['New order', '{{ path('panel/planner-hub/management/orders/orders/create') }}'],
+      ['Calendar', '{{ path('panel/planner-hub/management/orders/calendar') }}'],
+      ['Contracts', '{{ path('panel/planner-hub/management/orders/contracts') }}']
+    ]});
+  } else if ((level === 1 || level === 4) && current.includes('/panel/planner-hub/management/crm')) {
+    groups.push({label: 'Customer relationships', links: [
+      ['Customers', '{{ path('panel/planner-hub/management/crm') }}'],
+      ['Categories', '{{ path('panel/planner-hub/management/crm/categories') }}'],
+      ['New customer', '{{ path('panel/planner-hub/management/crm/lead/create') }}']
+    ]});
+  } else if ((level === 1 || level === 4) && current.includes('/panel/planner-hub/management/storage')) {
+    groups.push({label: 'Inventory & storage', links: [
+      ['Overview', '{{ path('panel/planner-hub/management/storage') }}'],
+      ['Containers', '{{ path('panel/planner-hub/management/storage/containers') }}']
+    ]});
+  } else if (level === 4 && current.includes('/panel/planner-hub/team')) {
+    groups.push({label: 'My work', links: [
+      ['Assigned events', '{{ path('panel/planner-hub/team/orders/orders/') }}'],
+      ['Tasks', '{{ path('panel/planner-hub/team/my-work') }}'],
+      ['Team chat', '{{ path('panel/planner-hub/team/chat') }}'],
+      ['Contract', '{{ path('panel/planner-hub/team/contracts') }}']
+    ]});
+  } else if (level === 5 && current.includes('/panel/planner-hub/orders')) {
+    groups.push({label: 'My events', links: [
+      ['Orders', '{{ path('panel/planner-hub/orders/orders') }}'],
+      ['Upcoming events', '{{ path('panel/planner-hub/orders/calendar') }}'],
+      ['Payment methods', '{{ path('panel/payment-methods') }}']
+    ]});
+  } else if (level === 1 && current.includes('/panel/cms')) {
+    groups.push({label: 'VNV content', links: [
+      ['Library', '{{ path('panel/cms') }}'],
+      ['Pages & articles', '{{ path('panel/cms/pages') }}'],
+      ['Create with AI', '{{ path('panel/cms/pages/create') }}?mode=ai']
+    ]});
+  }
+
+  if (!groups.length) return;
+  const group = groups[0];
+  const nav = document.createElement('nav');
+  nav.className = 'vnv-context-nav';
+  nav.setAttribute('aria-label', group.label);
+  const label = document.createElement('span');
+  label.className = 'vnv-context-nav__label';
+  label.textContent = group.label;
+  nav.appendChild(label);
+
+  group.links.forEach(function (item) {
+    const link = document.createElement('a');
+    link.href = item[1];
+    link.textContent = item[0];
+    const target = new URL(link.href, window.location.origin).pathname.replace(/\/+$/, '');
+    if (current === target || (target && current.startsWith(target + '/'))) {
+      link.classList.add('is-active');
+      link.setAttribute('aria-current', 'page');
+    }
+    nav.appendChild(link);
+  });
+
+  mount.replaceWith(nav);
+});
+</script>

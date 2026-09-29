@@ -21,9 +21,11 @@ class StoreOrderItemsRepository extends BaseRepository
         'product_name_snapshot',
         'variation_name_snapshot',
         'variation_options_snapshot',
+        'configuration_snapshot',
         'unit_price',
         'pricing_mode',
         'quantity',
+        'servings',
         'line_total',
         'created_at'
     ];
@@ -82,6 +84,39 @@ class StoreOrderItemsRepository extends BaseRepository
             ORDER BY id ASC
         ");
         $this->db->bind(':id_store_order', $orderId, \PDO::PARAM_INT);
+
+        return $this->db->fetchAll();
+    }
+
+    /**
+     * Aggregate the preparation quantities for a kitchen queue.
+     * The caller supplies the already-authorized order ids, so this method
+     * only summarizes those orders and never broadens the tenant scope.
+     */
+    public function getPreparationTotalsByOrders(array $orderIds): array
+    {
+        $orderIds = array_values(array_unique(array_filter(array_map('intval', $orderIds))));
+        if ($orderIds === []) {
+            return [];
+        }
+
+        $placeholders = [];
+        foreach ($orderIds as $index => $orderId) {
+            $placeholders[] = ':order_' . $index;
+        }
+
+        $this->db->query("
+            SELECT
+                COALESCE(NULLIF(TRIM(product_name_snapshot), ''), CONCAT('Product #', id_product)) AS product_name,
+                SUM(GREATEST(quantity, 0)) AS total_qty
+            FROM {$this->table}
+            WHERE id_store_order IN (" . implode(',', $placeholders) . ")
+            GROUP BY id_product, product_name_snapshot
+            ORDER BY product_name ASC
+        ");
+        foreach ($orderIds as $index => $orderId) {
+            $this->db->bind(':order_' . $index, $orderId, \PDO::PARAM_INT);
+        }
 
         return $this->db->fetchAll();
     }

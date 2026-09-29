@@ -10,27 +10,27 @@ use RuntimeException;
 
 final class EventExecutionService
 {
-    public const PHOTO_LIMIT = 10;
+    public const DEFAULT_PHOTO_LIMIT = 6;
     private Connection $db;
 
     public function __construct() { $this->db = new Connection(); }
 
     public function findByCode(string $code): ?object
     {
-        $this->db->query("SELECT s.*, o.id_client, o.event_date, o.address FROM event_execution_spaces s JOIN orders o ON o.id=s.id_order WHERE s.access_code=:code AND s.status='ACTIVE' LIMIT 1");
+        $this->db->query("SELECT s.*, o.id_client, o.event_date, o.start_time, o.end_time, o.address, TRIM(CONCAT(COALESCE(c.name,''),' ',COALESCE(c.lastname,''))) event_name FROM event_execution_spaces s JOIN orders o ON o.id=s.id_order LEFT JOIN users c ON c.id=o.id_client WHERE s.access_code=:code AND s.status<>'ARCHIVED' LIMIT 1");
         $this->db->bind(':code', $code);
         return $this->db->fetchOne() ?: null;
     }
 
     public function getOrCreateForOrder(int $orderId, int $actorId, int $ownerId): object
     {
-        $this->db->query('SELECT s.*, o.id_client, o.event_date, o.address FROM event_execution_spaces s JOIN orders o ON o.id=s.id_order WHERE s.id_order=:order LIMIT 1');
+        $this->db->query("SELECT s.*, o.id_client, o.event_date, o.start_time, o.end_time, o.address, TRIM(CONCAT(COALESCE(c.name,''),' ',COALESCE(c.lastname,''))) event_name FROM event_execution_spaces s JOIN orders o ON o.id=s.id_order LEFT JOIN users c ON c.id=o.id_client WHERE s.id_order=:order LIMIT 1");
         $this->db->bind(':order', $orderId);
         $space = $this->db->fetchOne();
         if ($space) return $space;
 
         for ($attempt=0; $attempt<20; $attempt++) {
-            $code = (string)random_int(10000, 99999);
+            $code = (string)random_int(100000, 999999);
             try {
                 $this->db->query('INSERT INTO event_execution_spaces (id_order,id_owner,access_code,created_by) VALUES (:order,:owner,:code,:actor)');
                 $this->db->bind(':order',$orderId); $this->db->bind(':owner',$ownerId); $this->db->bind(':code',$code); $this->db->bind(':actor',$actorId);
@@ -62,17 +62,41 @@ final class EventExecutionService
         $this->db->bind(':space',(int)$space->id); $this->db->bind(':user',(int)$user->getId()); $this->db->bind(':role',$role); $this->db->execute();
     }
 
+    public function isInteractionOpen(object $space): bool
+    {
+        if (($space->status ?? '') !== 'ACTIVE' || empty($space->event_date)) return false;
+        try {
+            $timezone=new \DateTimeZone('America/New_York');
+            $now=new \DateTimeImmutable('now',$timezone);
+            $start=(new \DateTimeImmutable((string)$space->event_date,$timezone))->setTime(0,0);
+            $end=$start->modify('+'.max(0,(int)($space->interaction_days_after??1)).' days')->setTime(23,59,59);
+            return $now >= $start && $now <= $end;
+        } catch (\Throwable) { return false; }
+    }
+
+    public function assertCanJoin(object $space, object $user): void
+    {
+        if((int)$user->getLevel()===1 || (int)$user->getId()===(int)$space->id_client) return;
+        if(!$this->isInteractionOpen($space)) throw new RuntimeException('This event code is outside its active participation window.');
+    }
+
+    public function assertInteractionAllowed(object $space, object $user): void
+    {
+        if((int)$user->getLevel()===1 || (int)$user->getId()===(int)$space->id_client) return;
+        if(!$this->isInteractionOpen($space)) throw new RuntimeException('This event is now read-only.');
+    }
+
     public function dashboard(object $space): array
     {
         $this->db->query("SELECT r.*, CONCAT(COALESCE(u.name,''),' ',COALESCE(u.lastname,'')) user_name FROM event_execution_music_requests r LEFT JOIN users u ON u.id=r.id_user WHERE r.id_space=:space AND r.status<>'CANCELLED' ORDER BY r.request_type,r.sort_order,r.created_at");
         $this->db->bind(':space',(int)$space->id); $music=$this->db->fetchAll();
-        $this->db->query("SELECT p.*, CONCAT(COALESCE(u.name,''),' ',COALESCE(u.lastname,'')) uploader_name FROM event_execution_photos p LEFT JOIN users u ON u.id=p.id_user WHERE p.id_space=:space AND p.deleted_at IS NULL AND p.expires_at>NOW() ORDER BY p.id_user,p.uploaded_at DESC");
+        $this->db->query("SELECT p.*, CONCAT(COALESCE(u.name,''),' ',COALESCE(u.lastname,'')) uploader_name FROM event_execution_photos p LEFT JOIN users u ON u.id=p.id_user WHERE p.id_space=:space AND p.deleted_at IS NULL ORDER BY p.id_user,p.uploaded_at DESC");
         $this->db->bind(':space',(int)$space->id); $photos=$this->db->fetchAll();
         $this->db->query("SELECT m.*, CONCAT(COALESCE(u.name,''),' ',COALESCE(u.lastname,'')) member_name FROM event_execution_members m LEFT JOIN users u ON u.id=m.id_user WHERE m.id_space=:space ORDER BY FIELD(m.role,'ADMIN','DJ','TEAM','CLIENT','PARTICIPANT'),m.joined_at");
         $this->db->bind(':space',(int)$space->id); $members=$this->db->fetchAll();
         $folders=[];
         foreach($photos as $photo){$key=(int)$photo->id_user;if(!isset($folders[$key]))$folders[$key]=['id_user'=>$key,'name'=>trim((string)$photo->uploader_name)?:'Participant','photos'=>[]];$folders[$key]['photos'][]=$photo;}
-        return ['karaoke'=>array_values(array_filter($music,fn($r)=>$r->request_type==='KARAOKE')),'song_requests'=>array_values(array_filter($music,fn($r)=>$r->request_type==='SONG_REQUEST')),'photos'=>$photos,'photo_folders'=>array_values($folders),'members'=>$members];
+        return ['karaoke'=>array_values(array_filter($music,fn($r)=>$r->request_type==='KARAOKE')),'song_requests'=>array_values(array_filter($music,fn($r)=>$r->request_type==='SONG_REQUEST')),'photos'=>$photos,'photo_folders'=>array_values($folders),'members'=>$members,'modules'=>json_decode((string)($space->modules_json??'[]'),true)?:['PHOTOS','TIPS','REQUESTS','KARAOKE']];
     }
 
     public function stateVersion(int $spaceId): string
@@ -82,7 +106,7 @@ final class EventExecutionService
             (SELECT COALESCE(MAX(COALESCE(deleted_at,uploaded_at)),'1970-01-01') FROM event_execution_photos WHERE id_space=:photo_space) photo_version,
             (SELECT COALESCE(MAX(joined_at),'1970-01-01') FROM event_execution_members WHERE id_space=:member_space) member_version,
             (SELECT COUNT(*) FROM event_execution_music_requests WHERE id_space=:music_count AND status<>'CANCELLED') music_count,
-            (SELECT COUNT(*) FROM event_execution_photos WHERE id_space=:photo_count AND deleted_at IS NULL AND expires_at>NOW()) photo_count");
+            (SELECT COUNT(*) FROM event_execution_photos WHERE id_space=:photo_count AND deleted_at IS NULL) photo_count");
         foreach(['music_space','photo_space','member_space','music_count','photo_count'] as $key)$this->db->bind(':'.$key,$spaceId);
         $state=$this->db->fetchOne();
         return hash('sha256',json_encode($state));
@@ -165,7 +189,7 @@ final class EventExecutionService
             $this->db->query("INSERT INTO event_execution_tip_payments (id_space,id_music_request,id_user,id_owner,provider_type,provider_payment_id,amount,currency,status,metadata_json) VALUES (:space,:request,:user,:owner,:provider,:payment,:amount,:currency,'PAID',:metadata)");
             foreach(['space'=>$spaceId,'request'=>$requestId,'user'=>(int)$user->getId(),'owner'=>(int)$request->id_owner,'provider'=>$type,'payment'=>(string)$charge->id,'amount'=>(float)$request->tip_amount,'currency'=>strtoupper((string)($credentials->currency??'USD')),'metadata'=>json_encode(['saved_payment_method_id'=>$methodId])] as $k=>$v)$this->db->bind(':'.$k,$v);
             $this->db->execute();
-            $this->db->query("UPDATE event_execution_music_requests SET tip_status='PAID',tip_transaction_id=:payment WHERE id=:id AND tip_status='PENDING'");
+            $this->db->query("UPDATE event_execution_music_requests SET tip_status='PAID',tip_transaction_id=:payment WHERE id=:id AND tip_status='PROCESSING'");
             $this->db->bind(':payment',(string)$charge->id);$this->db->bind(':id',$requestId);$this->db->execute();$this->db->commit();
         } catch (\Throwable $e) {$this->db->rollback();throw $e;}
     }
@@ -174,11 +198,15 @@ final class EventExecutionService
     {
         if (($file['error']??UPLOAD_ERR_NO_FILE)!==UPLOAD_ERR_OK || ($file['size']??0)>10485760) throw new RuntimeException('Choose an image up to 10 MB.');
         $mime=(new \finfo(FILEINFO_MIME_TYPE))->file($file['tmp_name']); if(!in_array($mime,['image/jpeg','image/png','image/webp'],true)) throw new RuntimeException('Only JPG, PNG and WEBP images are allowed.');
-        $this->db->query('SELECT COUNT(*) total FROM event_execution_photos WHERE id_space=:space AND id_user=:user AND deleted_at IS NULL AND expires_at>NOW()');
+        $this->db->query('SELECT s.max_guest_photos,o.id_client FROM event_execution_spaces s JOIN orders o ON o.id=s.id_order WHERE s.id=:space LIMIT 1');$this->db->bind(':space',$spaceId);$space=$this->db->fetchOne();
+        if(!$space) throw new RuntimeException('Event area not found.');
+        $limit=max(1,(int)($space->max_guest_photos??self::DEFAULT_PHOTO_LIMIT));
+        $this->db->query('SELECT COUNT(*) total FROM event_execution_photos WHERE id_space=:space AND id_user=:user AND deleted_at IS NULL');
         $this->db->bind(':space',$spaceId); $this->db->bind(':user',(int)$user->getId());
-        if((int)$this->db->fetchOne()->total>=self::PHOTO_LIMIT) throw new RuntimeException('You can upload up to 10 active photos per event.');
+        $photoCount=(int)($this->db->fetchOne()->total??0);
+        if((int)$user->getLevel()!==1 && (int)$user->getId()!==(int)$space->id_client && $photoCount>=$limit) throw new RuntimeException('You already reached the maximum of '.$limit.' photos for this event.');
         $url=FileUtils::saveFile($file,'vnv-events/event-execution/'.$spaceId);
-        $this->db->query('INSERT INTO event_execution_photos (id_space,id_user,photo_url,caption,expires_at) VALUES (:space,:user,:url,:caption,DATE_ADD(NOW(),INTERVAL 60 DAY))');
+        $this->db->query('INSERT INTO event_execution_photos (id_space,id_user,photo_url,caption,expires_at) VALUES (:space,:user,:url,:caption,NULL)');
         $this->db->bind(':space',$spaceId);$this->db->bind(':user',(int)$user->getId());$this->db->bind(':url',$url);$this->db->bind(':caption',mb_substr(trim($caption),0,240));$this->db->execute();
     }
 
@@ -188,7 +216,6 @@ final class EventExecutionService
         $where='id=:id AND id_space=:space AND deleted_at IS NULL'.($all?'':' AND id_user=:user');
         $this->db->query('SELECT photo_url FROM event_execution_photos WHERE '.$where.' LIMIT 1');$this->db->bind(':id',$photoId);$this->db->bind(':space',$spaceId);if(!$all)$this->db->bind(':user',(int)$user->getId());$photo=$this->db->fetchOne();
         if(!$photo) throw new RuntimeException('Photo not found or cannot be deleted by this user.');
-        FileUtils::removeFile((string)$photo->photo_url);
         $sql='UPDATE event_execution_photos SET deleted_at=NOW(),deleted_by=:actor WHERE '.$where;
         $this->db->query($sql);$this->db->bind(':actor',(int)$user->getId());$this->db->bind(':id',$photoId);$this->db->bind(':space',$spaceId);if(!$all)$this->db->bind(':user',(int)$user->getId());$this->db->execute();
     }
@@ -197,7 +224,6 @@ final class EventExecutionService
     {
         if(!$clientOwner && (int)$user->getLevel()!==1) throw new RuntimeException('Only the event client or administrator can clear the gallery.');
         $this->db->query('SELECT photo_url FROM event_execution_photos WHERE id_space=:space AND deleted_at IS NULL');$this->db->bind(':space',$spaceId);$photos=$this->db->fetchAll();
-        foreach($photos as $photo) FileUtils::removeFile((string)$photo->photo_url);
         $this->db->query('UPDATE event_execution_photos SET deleted_at=NOW(),deleted_by=:user WHERE id_space=:space AND deleted_at IS NULL');$this->db->bind(':user',(int)$user->getId());$this->db->bind(':space',$spaceId);$this->db->execute();
     }
 

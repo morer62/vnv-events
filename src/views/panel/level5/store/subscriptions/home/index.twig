@@ -13,14 +13,30 @@
     <div class="vnv-page-header">
         <div>
             <p class="vnv-kicker">Client Dashboard</p>
-            <h1>My Avomeal Subscriptions</h1>
-            <p>Review recurring Avomeal meal plans, upcoming renewals and selected meals.</p>
+            <h1>My Recurring Orders</h1>
+            <p>Manage VNV Gourmet deliveries, upcoming automatic payments and legacy meal plans.</p>
         </div>
 
         <a href="{{ path('/meal-plans') }}" class="btn vnv-btn-primary">
             Order More Meals
         </a>
     </div>
+
+    {% for recurring in recurring_orders %}
+    <div class="card vnv-panel-card mb-4">
+        <div class="card-body">
+            <div class="d-flex flex-wrap justify-content-between gap-3 align-items-start">
+                <div><p class="vnv-kicker mb-1">VNV Gourmet To Go</p><h3 class="mb-1">{{ recurring.title }}</h3><div class="text-muted">{{ recurring.recurrence_type|replace({'_':' '})|title }} · {{ recurring.local_delivery_time|date('g:i A') }} · {{ recurring.timezone }}</div></div>
+                <div><span class="badge {{ recurring.status == 'ACTIVE' ? 'bg-success' : (recurring.status == 'PAYMENT_ACTION_REQUIRED' ? 'bg-danger' : 'bg-secondary') }}">{{ recurring.status|replace({'_':' '}) }}</span><div class="small mt-2">{{ recurring.payment_brand|default('Card')|title }} •••• {{ recurring.payment_last4|default('—') }}</div></div>
+            </div>
+            <div class="table-responsive mt-3"><table class="table align-middle vnv-table"><thead><tr><th>Delivery</th><th>Automatic payment</th><th>Expected</th><th>Status</th><th class="text-end">Actions</th></tr></thead><tbody>
+            {% for occurrence in recurring.occurrences %}<tr><td>{{ occurrence.local_scheduled_at|date('M j, Y · g:i A') }}</td><td>{{ occurrence.charge_at_utc|date('M j, Y · g:i A') }} UTC</td><td>${{ occurrence.expected_total|number_format(2,'.',',') }}</td><td><span class="badge bg-light text-dark">{{ occurrence.status|replace({'_':' '}) }}</span></td><td class="text-end">{% if occurrence.status == 'SCHEDULED' and occurrence.payment_status == 'PENDING' %}<details class="d-inline-block text-start"><summary class="btn btn-sm btn-outline-primary">Change</summary><form method="post" class="p-2 border rounded bg-white mt-1"><input type="hidden" name="action" value="reschedule_occurrence"><input type="hidden" name="occurrence_id" value="{{ occurrence.id }}"><input class="form-control form-control-sm mb-2" type="datetime-local" name="local_scheduled_at" value="{{ occurrence.local_scheduled_at|date('Y-m-d\\TH:i') }}" required><button class="btn btn-sm btn-primary">Save this delivery</button></form></details> <form method="post" class="d-inline"><input type="hidden" name="action" value="skip_occurrence"><input type="hidden" name="occurrence_id" value="{{ occurrence.id }}"><button class="btn btn-sm btn-outline-warning" onclick="return confirm('Skip only this delivery?')">Skip</button></form> <form method="post" class="d-inline"><input type="hidden" name="action" value="cancel_occurrence"><input type="hidden" name="occurrence_id" value="{{ occurrence.id }}"><button class="btn btn-sm btn-outline-danger" onclick="return confirm('Cancel only this delivery?')">Cancel</button></form>{% endif %}</td></tr>{% endfor %}
+            </tbody></table></div>
+            <div class="d-flex flex-wrap gap-2 mt-3">{% if recurring.status == 'ACTIVE' %}<form method="post"><input type="hidden" name="action" value="pause_recurrence"><input type="hidden" name="recurrence_id" value="{{ recurring.id }}"><button class="btn btn-outline-warning">Pause</button></form>{% elseif recurring.status == 'PAUSED' %}<form method="post"><input type="hidden" name="action" value="resume_recurrence"><input type="hidden" name="recurrence_id" value="{{ recurring.id }}"><button class="btn btn-outline-success">Resume</button></form>{% endif %}{% if recurring.status not in ['CANCELLED','COMPLETED'] %}<form method="post"><input type="hidden" name="action" value="cancel_recurrence"><input type="hidden" name="recurrence_id" value="{{ recurring.id }}"><button class="btn btn-outline-danger" onclick="return confirm('Cancel all future deliveries? Completed deliveries remain in history.')">Cancel recurring order</button></form>{% endif %}</div>
+            {% if recurring.status in ['ACTIVE','PAUSED'] %}<details class="mt-3"><summary class="btn btn-outline-primary">Change this and future deliveries</summary><form method="post" class="row g-2 border rounded p-3 mt-2"><input type="hidden" name="action" value="reschedule_future"><input type="hidden" name="recurrence_id" value="{{ recurring.id }}"><div class="col-md-4"><label class="form-label">Effective date</label><input class="form-control" type="date" name="effective_date" required></div><div class="col-md-4"><label class="form-label">Delivery time</label><input class="form-control" type="time" name="local_delivery_time" value="{{ recurring.local_delivery_time|slice(0,5) }}" required></div><div class="col-12"><label class="form-label d-block">New delivery weekdays</label>{% for day,label in {1:'Mon',2:'Tue',3:'Wed',4:'Thu',5:'Fri',6:'Sat',7:'Sun'} %}<label class="me-3"><input type="checkbox" name="weekdays[]" value="{{ day }}"> {{ label }}</label>{% endfor %}</div><div class="col-12"><button class="btn btn-primary">Update future schedule</button></div></form></details>{% endif %}
+        </div>
+    </div>
+    {% endfor %}
 
     <div class="card vnv-panel-card">
         <div class="card-body">
@@ -154,7 +170,7 @@
             {% else %}
                 <div class="vnv-empty-state text-center py-5">
                     <h5 class="mb-2">No subscriptions yet</h5>
-                    <p class="text-muted mb-3">You do not have any Avomeal subscriptions yet.</p>
+                    <p class="text-muted mb-3">You do not have any recurring To Go orders yet.</p>
                     <a href="{{ path('/meal-plans') }}" class="btn btn-primary">
                         Start My Meal Plan
                     </a>

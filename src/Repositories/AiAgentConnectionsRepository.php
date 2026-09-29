@@ -10,16 +10,16 @@ final class AiAgentConnectionsRepository
     private Connection $db;
     public function __construct(){ $this->db=new Connection(); }
 
-    public function all(int $ownerId,int $agentId): array
+    public function all(int $ownerId,int $agentId,?string $siteKey=null): array
     {
         $this->db->query("SELECT id,platform,account_label,account_identifier,credential_hint,status,last_error,verified_at,updated_at FROM ai_agent_connections WHERE id_owner=:owner AND site_key=:site AND id_agent=:agent ORDER BY platform");
-        $this->db->bind(':owner',$ownerId);$this->db->bind(':site',SiteContext::siteKey());$this->db->bind(':agent',$agentId);return $this->db->fetchAll();
+        $this->db->bind(':owner',$ownerId);$this->db->bind(':site',$siteKey?:SiteContext::siteKey());$this->db->bind(':agent',$agentId);return $this->db->fetchAll();
     }
 
-    public function save(int $ownerId,int $agentId,string $platform,string $label,string $identifier,string $token,array $extra=[]): void
+    public function save(int $ownerId,int $agentId,string $platform,string $label,string $identifier,string $token,array $extra=[],?string $siteKey=null): void
     {
         if(!in_array($platform,['facebook','instagram','linkedin','youtube','whatsapp'],true))throw new RuntimeException('Unsupported social platform.');
-        $existing=$this->findEncrypted($ownerId,$agentId,$platform);
+        $existing=$this->findEncrypted($ownerId,$agentId,$platform,$siteKey);
         if($token===''&&!$existing)throw new RuntimeException('Enter an access token for '.$platform.'.');
         if($token!==''||$extra){
             $current=$existing?$this->decrypt((string)$existing->credentials_encrypted):[];
@@ -30,13 +30,13 @@ final class AiAgentConnectionsRepository
             VALUES(:agent,:owner,:site,:platform,:label,:identifier,:credentials,:hint,'CONFIGURED')
             ON DUPLICATE KEY UPDATE account_label=VALUES(account_label),account_identifier=VALUES(account_identifier),
             credentials_encrypted=VALUES(credentials_encrypted),credential_hint=VALUES(credential_hint),status='CONFIGURED',last_error=NULL,verified_at=NULL");
-        foreach(['agent'=>$agentId,'owner'=>$ownerId,'site'=>SiteContext::siteKey(),'platform'=>$platform,'label'=>$label?:null,'identifier'=>$identifier?:null,'credentials'=>$encrypted,'hint'=>$hint] as $key=>$value)$this->db->bind(':'.$key,$value);
+        foreach(['agent'=>$agentId,'owner'=>$ownerId,'site'=>$siteKey?:SiteContext::siteKey(),'platform'=>$platform,'label'=>$label?:null,'identifier'=>$identifier?:null,'credentials'=>$encrypted,'hint'=>$hint] as $key=>$value)$this->db->bind(':'.$key,$value);
         $this->db->execute();
     }
 
-    public function credentials(int $ownerId,int $agentId,string $platform): array
+    public function credentials(int $ownerId,int $agentId,string $platform,?string $siteKey=null): array
     {
-        $row=$this->findEncrypted($ownerId,$agentId,$platform);
+        $row=$this->findEncrypted($ownerId,$agentId,$platform,$siteKey);
         if(!$row||$row->status==='DISCONNECTED'||trim((string)$row->credentials_encrypted)==='')throw new RuntimeException(ucfirst($platform).' is not connected.');
         $credentials=$this->decrypt((string)$row->credentials_encrypted);
         $credentials['account_identifier']=(string)$row->account_identifier;
@@ -56,10 +56,10 @@ final class AiAgentConnectionsRepository
         $this->db->bind(':owner',$ownerId);$this->db->bind(':site',SiteContext::siteKey());$this->db->bind(':agent',$agentId);$this->db->bind(':platform',$platform);$this->db->execute();
     }
 
-    private function findEncrypted(int $ownerId,int $agentId,string $platform): ?object
+    private function findEncrypted(int $ownerId,int $agentId,string $platform,?string $siteKey=null): ?object
     {
         $this->db->query("SELECT * FROM ai_agent_connections WHERE id_owner=:owner AND site_key=:site AND id_agent=:agent AND platform=:platform LIMIT 1");
-        $this->db->bind(':owner',$ownerId);$this->db->bind(':site',SiteContext::siteKey());$this->db->bind(':agent',$agentId);$this->db->bind(':platform',$platform);return $this->db->fetchOne()?:null;
+        $this->db->bind(':owner',$ownerId);$this->db->bind(':site',$siteKey?:SiteContext::siteKey());$this->db->bind(':agent',$agentId);$this->db->bind(':platform',$platform);return $this->db->fetchOne()?:null;
     }
 
     private function encrypt(array $value): string

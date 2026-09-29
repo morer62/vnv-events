@@ -96,6 +96,13 @@ class PaymentNotificationService
         }
         
         // Generar notificación para pago completo
+        // Loyalty credit must not depend on notification state. The ledger has
+        // a unique EARN source per order, so repeated calls remain idempotent.
+        if ($paymentStatus === 'complete') {
+            try { (new LoyaltyRewardsService())->earnForEventOrder($orderId); }
+            catch (\Throwable $e) { error_log('[Loyalty] Unable to create reward for order #'.$orderId.': '.$e->getMessage()); }
+        }
+
         if ($paymentStatus === 'complete' && !$hasCompletePaymentNotification) {
             // Notificación para el propietario
             $notificationsRepo->add([

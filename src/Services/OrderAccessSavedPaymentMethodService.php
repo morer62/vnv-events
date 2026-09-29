@@ -85,6 +85,9 @@ class OrderAccessSavedPaymentMethodService
                 return ['charge' => false, 'error' => 'Square could not create a reusable card-on-file.'];
             }
             $token = (string)$squareReusable['card_id'];
+            // The source is now a Square card-on-file rather than the original
+            // one-time nonce, so CreatePayment must include its customer ID.
+            $metadata['customer_id'] = (string)$squareReusable['customer_id'];
         }
 
         $charge = $provider->chargeCustomer($token, $amount, $metadata);

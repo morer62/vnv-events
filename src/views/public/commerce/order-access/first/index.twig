@@ -20,7 +20,7 @@
             <label class="form-label fw-bold">{{ trans('planner_hub.your_email') }}</label>
             <input type="email" name="customer_email" id="payment-customer-email" class="form-control form-control-lg" required>
         </div>
-        <input type="hidden" name="billing_zip" id="payment-billing-zip" value="">
+        <div class="mb-3" id="billing-zip-group"><label class="form-label fw-bold" for="payment-billing-zip">Billing ZIP Code</label><input type="text" inputmode="numeric" autocomplete="postal-code" name="billing_zip" id="payment-billing-zip" class="form-control form-control-lg" maxlength="10" required><small class="form-text">Enter the ZIP code associated with your card.</small></div>
 
         {% include 'public/commerce/order-access/_saved_payment_methods.twig' %}
 
@@ -111,14 +111,16 @@
         try {
             {% if active_provider_type == 'stripe' and stripe_publishable_key %}
             var stripe = Stripe("{{ stripe_publishable_key|e('js') }}");
-            var cardElement = stripe.elements().create('card', { style: { base: { fontSize: '16px' } } });
+            var cardComplete=false; var cardElement = stripe.elements().create('card', { hidePostalCode:true, style: { base: { fontSize: '16px' } } });
             cardElement.mount('#payment-card-container');
+            function validateStripeForm(showError){const zipOk=/^\d{5}(?:-\d{4})?$/.test((zipInput.value||'').trim());const ready=!!usingSavedMethod()||(cardComplete&&zipOk);payButton.disabled=!ready;if(showError&&!zipOk&&!usingSavedMethod())errorDiv.textContent='Please enter the billing ZIP code associated with your card.';return ready;}cardElement.on('change',e=>{cardComplete=e.complete;if(e.error)errorDiv.textContent=e.error.message;validateStripeForm(false);});zipInput.addEventListener('input',()=>validateStripeForm(false));savedMethodSelect?.addEventListener('change',()=>validateStripeForm(false));validateStripeForm(false);
             form.addEventListener('submit', async function(e) {
                 e.preventDefault();
+                if(!validateStripeForm(true))return;
                 setProcessingState(true);
                 errorDiv.textContent = '';
                 if (usingSavedMethod()) { tokenInput.value = ''; form.submit(); return; }
-                var res = await stripe.createToken(cardElement);
+                var res = await stripe.createToken(cardElement,{address_zip:zipInput.value.trim()});
                 if (res.error) { errorDiv.textContent = res.error.message || '{{ trans('planner_hub.payment_failed')|e('js') }}'; setProcessingState(false); return; }
                 tokenInput.value = res.token.id;
                 form.submit();

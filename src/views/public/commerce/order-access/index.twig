@@ -572,10 +572,6 @@
 						<i class="bi bi-clipboard-check me-2"></i><strong>{{ trans('planner_hub.order_acceptance_signed') }}</strong> {{ trans('planner_hub.signed_receipt_confirmation') }}
 					</div>
 					{% endif %}
-				{% elseif is_event_past %}
-					<div class="alert alert-warning mb-0">
-						<strong><i class="bi bi-exclamation-triangle me-1"></i>Event date passed.</strong> Payments are no longer available for this order.
-					</div>
 				{% elseif not isPaymentReady %}
 					<div class="alert alert-warning mb-0">
 						<strong><i class="bi bi-exclamation-triangle me-1"></i>{{ trans('planner_hub.payment_unavailable') }}</strong> {{ trans('planner_hub.payments_unavailable_contact') }}
@@ -720,7 +716,7 @@
 {% endblock %}
 
 {% block scripts %}
-	{% if isPaymentReady and activeProvider and paymentStatus != "complete" and not is_event_past %}
+	{% if isPaymentReady and activeProvider and paymentStatus != "complete" %}
 		{% if activeProvider.provider_type == 'stripe' and stripe_publishable_key %}
 	<script src="https://js.stripe.com/v3/"></script>
 		{% elseif activeProvider.provider_type == 'square' %}
@@ -1025,7 +1021,7 @@
 			}
 		});
 
-		{% if isPaymentReady and activeProvider and paymentStatus != "complete" and not is_event_past %}
+		{% if isPaymentReady and activeProvider and paymentStatus != "complete" %}
 		window.VnvOrderAccessPayment = (function() {
 			const processingHtml = '<span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>Procesando...';
 

@@ -19,6 +19,7 @@ function level1HomeOrderSummary(int $ownerId): array
         'pending_orders' => 0,
         'upcoming_events' => 0,
         'pending_contracts' => 0,
+        'pending_delivery_orders' => 0,
     ];
 
     try {
@@ -45,6 +46,10 @@ function level1HomeOrderSummary(int $ownerId): array
         ");
         $db->bind(':owner', $ownerId);
         $summary['pending_contracts'] = (int)($db->fetchOne()->total ?? 0);
+
+        $db->query("SELECT COUNT(*) AS total FROM store_orders WHERE id_owner=:owner AND fulfillment_method='DELIVERY' AND payment_status='PAID' AND status NOT IN ('DELIVERED','COMPLETED','CANCELLED','CLOSED')");
+        $db->bind(':owner', $ownerId);
+        $summary['pending_delivery_orders'] = (int)($db->fetchOne()->total ?? 0);
     } catch (Throwable $e) {
         error_log('[Level1 Home] Summary failed: ' . $e->getMessage());
     }

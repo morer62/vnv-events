@@ -12,6 +12,7 @@ use App\Repositories\DocumentsLogsRepository;
 use App\Repositories\OrdersAcceptanceContractsRepository;
 use App\Services\UserWorkspaceContextService;
 use App\Services\TranslationService;
+use App\Services\EventExecutionService;
 
 $router = new Router();
 
@@ -27,6 +28,7 @@ $router->get(callback: function () {
     $workspaceContextService = new UserWorkspaceContextService();
     $clientContext = $workspaceContextService->getClientContext($user);
     $orders = $repo->getOrdersForClientWithCompany((int)$user->getId());
+    $eventExecution = new EventExecutionService();
 
     $secret = $_ENV["VNV_SECRET_KEY"] ?? "mySuperSecretKey";
     $orderIds = array_values(array_unique(array_map(static fn($order) => (int)$order->id, $orders)));
@@ -51,6 +53,17 @@ $router->get(callback: function () {
     $pastOrders = [];
 
     foreach ($orders as &$order) {
+        try {
+            $eventSpace = $eventExecution->getOrCreateForOrder(
+                (int)$order->id,
+                (int)$user->getId(),
+                (int)$order->id_owner
+            );
+            $order->event_access_code = (string)$eventSpace->access_code;
+        } catch (\Throwable $exception) {
+            // Keep the orders page usable if the event-area migration is pending.
+            $order->event_access_code = null;
+        }
         $order->institution = (object)[
             'company_name' => $order->company_name ?? null,
             'logo_path' => $order->company_logo_path ?? null,

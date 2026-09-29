@@ -12,8 +12,22 @@ Despite the historical skill name, this workflow serves three isolated brands. T
 | Project root | Site key | Brand | Public origin |
 |---|---|---|---|
 | `C:\xampp\htdocs\vnv-events` | `vnvevents` | VNV Events | `https://vnvevents.com` |
-| `C:\xampp\htdocs\miami-tech-lab` | `miamitechlab` | Miami Tech Lab | `https://miamitechlab.com` |
+| `C:\xampp\htdocs\miami-tech-lab` | `miamitechlab` | Tech Lab Miami | `https://techlabmiami.com` |
 | `C:\xampp\htdocs\vnv-gourmet` | `avomeal` | The Pasta Station | `https://thepastastation.net` |
+
+### The Pasta Station editorial scope
+
+Do not reduce The Pasta Station to articles about pasta products. Its authorized editorial territory also includes:
+
+- Italian food, ingredients, techniques, regional traditions and menu planning.
+- Mediterranean food, hospitality, shared-table culture and event menus.
+- Gourmet food and culinary experiences for weddings, corporate gatherings and private events.
+- Practical comparisons, hosting guidance, dietary planning and service logistics when supported by verified sources.
+- Prepared pasta, family meals, weekly ordering and live pasta-station service.
+
+Maintain a credible connection to The Pasta Station, but do not force every article to sell a store product or repeat pasta keywords. Balance each six-article cycle across informational, culinary, hospitality and commercial intent. Research culinary or cultural claims with authoritative external sources. Never imply that The Pasta Station offers a dish, package, delivery area or event capability unless its current site inventory verifies it.
+
+For The Pasta Station, `featured_image_url` must be a reachable Cloudinary HTTPS URL. The public blog card may use that same featured image as its thumbnail when no independent thumbnail field exists. Validate the rendered card and article image rather than claiming a separate thumbnail was generated.
 
 Before proposing a topic or opening an editorial provider:
 

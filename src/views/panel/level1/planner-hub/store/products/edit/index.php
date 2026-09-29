@@ -6,6 +6,7 @@ use App\Repositories\StoreCategoriesRepository;
 use App\Repositories\StoreProductsCategoriesRepository;
 use App\Repositories\StoreProductsRepository;
 use App\Repositories\StoreProductVariationsRepository;
+use App\Repositories\StoreProductFoodProfilesRepository;
 use App\Utils\FileUtils;
 use App\Utils\AvomealContext;
 use App\Utils\LocationUtils;
@@ -22,6 +23,7 @@ $router->get(function () {
     $attributeValuesRepo = new StoreAttributeValuesRepository();
     $productsCategoriesRepo = new StoreProductsCategoriesRepository();
     $variationsRepo = new StoreProductVariationsRepository();
+    $foodProfilesRepo = new StoreProductFoodProfilesRepository();
     $ownerId = AvomealContext::ownerId();
 
     $id = intval($_GET['id'] ?? 0);
@@ -54,6 +56,7 @@ $router->get(function () {
     }
 
     $variations = $variationsRepo->getDetailedByProduct($id);
+    $foodProfile = $foodProfilesRepo->getForProduct($ownerId, AvomealContext::siteKey(), $id);
 
     return TemplateResponse::render(__DIR__ . "/index.twig", [
         "product" => $product,
@@ -62,6 +65,8 @@ $router->get(function () {
         "selected_category_ids" => $selectedCategoryIds,
         "selected_value_ids" => $selectedValueIds,
         "variations" => $variations,
+        "food_profile" => $foodProfile ?: null,
+        "cooking_preferences_text" => $foodProfilesRepo->preferencesText($foodProfile),
         "product_types" => [
             StoreProductsRepository::PRODUCT_TYPE_FIXED,
             StoreProductsRepository::PRODUCT_TYPE_VARIABLE,
@@ -144,6 +149,10 @@ $router->post(function () {
     $status = trim($_POST['status'] ?? StoreProductsRepository::STATUS_ACTIVE);
     $isFeatured = isset($_POST['is_featured']) ? 1 : 0;
     $isPublic = isset($_POST['is_public']) ? 1 : 0;
+    $purchaseMode = in_array(($_POST['purchase_mode'] ?? 'REQUEST'), ['REQUEST', 'DIRECT'], true) ? $_POST['purchase_mode'] : 'REQUEST';
+    $allowImmediatePayment = isset($_POST['allow_immediate_payment']) ? 1 : 0;
+    $allowRecurringPurchase = isset($_POST['allow_recurring_purchase']) ? 1 : 0;
+    $fulfillmentType = in_array(($_POST['fulfillment_type'] ?? 'SERVICE'), ['SERVICE', 'DELIVERY', 'PICKUP'], true) ? $_POST['fulfillment_type'] : 'SERVICE';
 
     $categoryIds = $_POST['category_ids'] ?? [];
     $attributeValues = $_POST['attribute_values'] ?? [];
@@ -329,6 +338,10 @@ $router->post(function () {
         'short_description' => $shortDescription !== '' ? $shortDescription : null,
         'description' => $description !== '' ? $description : null,
         'product_type' => $productType,
+        'purchase_mode' => $purchaseMode,
+        'allow_immediate_payment' => $allowImmediatePayment,
+        'allow_recurring_purchase' => $allowRecurringPurchase,
+        'fulfillment_type' => $fulfillmentType,
         'price' => $productsRepo->getPlainPriceForStorage([
             'product_type' => $productType,
             'price' => $price
@@ -383,6 +396,15 @@ $router->post(function () {
         $logDebug('Update failed: repository returned false', ['id' => $id]);
         MessageUtil::setMessage("Product could not be updated.");
         LocationUtils::redirectInternal("panel/planner-hub/store/products/edit?id=" . $id);
+    }
+
+    if ($fulfillmentType === 'DELIVERY') {
+        (new StoreProductFoodProfilesRepository())->upsert(
+            $ownerId,
+            AvomealContext::siteKey(),
+            $id,
+            $_POST
+        );
     }
 
     $logDebug('Update success', ['id' => $id]);

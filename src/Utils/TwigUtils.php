@@ -24,7 +24,13 @@ class TwigUtils {
                 continue;
             }
 
-            $pathName = ucwords(str_replace("-", " ", $currentPath));
+            $labels = [
+                'planner-hub' => 'VNV Operations',
+                'management' => 'Administration',
+                'crm' => 'CRM',
+                'cms' => 'Content',
+            ];
+            $pathName = $labels[$currentPath] ?? ucwords(str_replace("-", " ", $currentPath));
             $pathNavigation = "";
 
             for ($j = 0; $j <= $i; $j++) {

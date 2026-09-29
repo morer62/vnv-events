@@ -259,6 +259,28 @@
                         <label class="form-label">Full Description</label>
                         <textarea name="description" id="description-editor" class="form-control" rows="6" placeholder="Describe your product or service...">{{ product.description|default('') }}</textarea>
                     </div>
+                    <div class="col-md-4 mb-3"><label class="form-label">Purchase flow</label><select name="purchase_mode" class="form-select"><option value="REQUEST" {{ product.purchase_mode|default('REQUEST') == 'REQUEST' ? 'selected' : '' }}>Request / assisted sale</option><option value="DIRECT" {{ product.purchase_mode == 'DIRECT' ? 'selected' : '' }}>Direct checkout</option></select></div>
+                    <div class="col-md-4 mb-3"><label class="form-label">Fulfillment</label><select name="fulfillment_type" class="form-select"><option value="SERVICE" {{ product.fulfillment_type|default('SERVICE') == 'SERVICE' ? 'selected' : '' }}>Service</option><option value="DELIVERY" {{ product.fulfillment_type == 'DELIVERY' ? 'selected' : '' }}>Delivery / To Go</option><option value="PICKUP" {{ product.fulfillment_type == 'PICKUP' ? 'selected' : '' }}>Pickup</option></select></div>
+                    <div class="col-md-4 mb-3"><label class="form-label d-block">Payment options</label><label class="form-check"><input class="form-check-input" type="checkbox" name="allow_immediate_payment" {{ product.allow_immediate_payment ? 'checked' : '' }}> Immediate payment</label><label class="form-check"><input class="form-check-input" type="checkbox" name="allow_recurring_purchase" {{ product.allow_recurring_purchase ? 'checked' : '' }}> Recurring purchase</label></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="store-section-card" id="gourmet-food-profile-card">
+            <div class="card-body">
+                <div class="store-section-title">VNV Gourmet To Go details</div>
+                <div class="store-section-subtitle">Serving rules and the private preparation guide delivered with this food order.</div>
+                <div class="row">
+                    <div class="col-md-3 mb-3"><label class="form-label">Minimum servings</label><input class="form-control" type="number" min="1" name="minimum_servings" value="{{ food_profile.minimum_servings|default(1) }}"></div>
+                    <div class="col-md-3 mb-3"><label class="form-label">Included servings</label><input class="form-control" type="number" min="1" name="included_servings" value="{{ food_profile.included_servings|default(1) }}"></div>
+                    <div class="col-md-3 mb-3"><label class="form-label">Maximum servings</label><input class="form-control" type="number" min="1" name="maximum_servings" value="{{ food_profile.maximum_servings|default('') }}" placeholder="Optional"></div>
+                    <div class="col-md-3 mb-3"><label class="form-label">Additional guest price</label><input class="form-control" type="number" min="0" step="0.01" name="additional_person_price" value="{{ food_profile.additional_person_price|default('0.00') }}"></div>
+                    <div class="col-12 mb-3"><label class="form-label">Cooking preferences</label><textarea class="form-control" name="cooking_preferences" rows="2" placeholder="One option per line">{{ cooking_preferences_text|default('') }}</textarea></div>
+                    <div class="col-md-6 mb-3"><label class="form-label">Preparation instructions</label><textarea class="form-control" name="preparation_instructions" rows="4">{{ food_profile.preparation_instructions|default('') }}</textarea></div>
+                    <div class="col-md-6 mb-3"><label class="form-label">Reheating instructions</label><textarea class="form-control" name="reheating_instructions" rows="4">{{ food_profile.reheating_instructions|default('') }}</textarea></div>
+                    <div class="col-md-6 mb-3"><label class="form-label">Serving instructions</label><textarea class="form-control" name="serving_instructions" rows="4">{{ food_profile.serving_instructions|default('') }}</textarea></div>
+                    <div class="col-md-6 mb-3"><label class="form-label">Plating instructions</label><textarea class="form-control" name="plating_instructions" rows="4">{{ food_profile.plating_instructions|default('') }}</textarea></div>
+                    <div class="col-12 mb-3"><label class="form-label">Presentation / setup recommendations</label><textarea class="form-control" name="presentation_instructions" rows="4">{{ food_profile.presentation_instructions|default('') }}</textarea></div>
                 </div>
             </div>
         </div>

@@ -1,6 +1,7 @@
 <?php
 
 use App\Repositories\StoreProductsRepository;
+use App\Repositories\Connection;
 use App\Services\PublicSeoService;
 use App\Utils\AvomealContext;
 use App\Utils\SiteContext;
@@ -173,12 +174,38 @@ $relatedProducts = method_exists($productsRepository, 'getPublicRelatedProducts'
     : [];
 
 $storeActiveRaw = $_ENV['STORE_ACTIVE'] ?? getenv('STORE_ACTIVE') ?? 'YES';
-$storeActive = strtoupper(trim((string)$storeActiveRaw)) === 'YES';
+$storeActive = strtoupper(trim((string)$storeActiveRaw)) === 'YES'
+    || (
+        strtoupper((string)($product->purchase_mode ?? 'REQUEST')) === 'DIRECT'
+        && (int)($product->allow_immediate_payment ?? 0) === 1
+    );
 $productFaqs = product_extract_faqs_from_html($product->description ?? '');
+$foodProfile = null;
+$productRecommendations = [];
+try {
+    $db = new Connection();
+    $db->query('SELECT * FROM store_product_food_profiles WHERE id_owner=:owner AND site_key=:site AND id_product=:product LIMIT 1');
+    $db->bind(':owner', $ownerId, \PDO::PARAM_INT);
+    $db->bind(':site', $siteKey);
+    $db->bind(':product', (int)$product->id, \PDO::PARAM_INT);
+    $foodProfile = $db->fetchOne() ?: null;
+    if ($foodProfile) {
+        $foodProfile->cooking_preferences = json_decode((string)($foodProfile->cooking_preferences_json ?? '[]'), true) ?: [];
+    }
+    $db->query("SELECT * FROM store_product_recommendations WHERE id_owner=:owner AND site_key=:site AND id_product=:product AND status='ACTIVE' ORDER BY sort_order,id");
+    $db->bind(':owner', $ownerId, \PDO::PARAM_INT);
+    $db->bind(':site', $siteKey);
+    $db->bind(':product', (int)$product->id, \PDO::PARAM_INT);
+    $productRecommendations = $db->fetchAll() ?: [];
+} catch (Throwable $e) {
+    error_log('[Product food profile] ' . $e->getMessage());
+}
 
 echo TemplateResponse::render(__DIR__ . "/index.twig", [
     'product' => $product,
     'related_products' => $relatedProducts,
+    'food_profile' => $foodProfile,
+    'product_recommendations' => $productRecommendations,
     'store_active' => $storeActive,
     'schemaJson' => PublicSeoService::productSchema($product, $productFaqs),
 ]);

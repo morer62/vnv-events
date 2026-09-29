@@ -493,7 +493,8 @@ $router->get(function () {
         "label" => null,
     ];
 
-    if ($hasSigned && $isPaymentReady && $paymentStatus !== 'complete' && !$isEventPast) {
+    // Event completion and payment completion are independent states.
+    if ($hasSigned && $isPaymentReady && $paymentStatus !== 'complete') {
         if ($payment_type === 'one' && $paymentStatus === 'pending_first' && $total > 0) {
             $paymentRequest = [
                 "enabled" => true,

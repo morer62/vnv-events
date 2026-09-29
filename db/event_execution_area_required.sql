@@ -3,8 +3,11 @@ CREATE TABLE IF NOT EXISTS event_execution_spaces (
   id INT UNSIGNED NOT NULL AUTO_INCREMENT,
   id_order INT NOT NULL,
   id_owner INT NOT NULL,
-  access_code CHAR(5) NOT NULL,
+  access_code VARCHAR(6) NOT NULL,
   status ENUM('ACTIVE','CLOSED','ARCHIVED') NOT NULL DEFAULT 'ACTIVE',
+  interaction_days_after SMALLINT UNSIGNED NOT NULL DEFAULT 1,
+  max_guest_photos SMALLINT UNSIGNED NOT NULL DEFAULT 6,
+  modules_json VARCHAR(500) NULL,
   created_by INT NOT NULL,
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -13,6 +16,17 @@ CREATE TABLE IF NOT EXISTS event_execution_spaces (
   UNIQUE KEY uq_event_execution_access_code (access_code),
   KEY idx_event_execution_code_status (access_code, status)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+ALTER TABLE event_execution_spaces
+  MODIFY access_code VARCHAR(6) NOT NULL,
+  ADD COLUMN IF NOT EXISTS interaction_days_after SMALLINT UNSIGNED NOT NULL DEFAULT 1 AFTER status,
+  ADD COLUMN IF NOT EXISTS max_guest_photos SMALLINT UNSIGNED NOT NULL DEFAULT 6 AFTER interaction_days_after,
+  ADD COLUMN IF NOT EXISTS modules_json VARCHAR(500) NULL AFTER max_guest_photos;
+
+UPDATE event_execution_spaces
+SET max_guest_photos=6,
+    interaction_days_after=1,
+    modules_json=COALESCE(modules_json,JSON_ARRAY('PHOTOS','TIPS','REQUESTS','KARAOKE'));
 
 CREATE TABLE IF NOT EXISTS event_execution_members (
   id INT UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -55,13 +69,15 @@ CREATE TABLE IF NOT EXISTS event_execution_photos (
   photo_url VARCHAR(700) NOT NULL,
   caption VARCHAR(240) DEFAULT NULL,
   uploaded_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  expires_at DATETIME NOT NULL,
+  expires_at DATETIME NULL,
   deleted_at DATETIME DEFAULT NULL,
   deleted_by INT DEFAULT NULL,
   PRIMARY KEY (id),
   KEY idx_event_execution_photo_gallery (id_space, deleted_at, expires_at, id_user),
   CONSTRAINT fk_event_execution_photo_space FOREIGN KEY (id_space) REFERENCES event_execution_spaces(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+ALTER TABLE event_execution_photos MODIFY expires_at DATETIME NULL;
 
 CREATE TABLE IF NOT EXISTS event_execution_tip_payments (
   id INT UNSIGNED NOT NULL AUTO_INCREMENT,

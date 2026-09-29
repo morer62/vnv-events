@@ -24,6 +24,8 @@ class StoreCartsRepository extends BaseRepository
         'id_user',
         'session_token',
         'recovery_token',
+        'checkout_provider_customer_id',
+        'checkout_payment_intent_id',
         'guest_name',
         'guest_email',
         'guest_phone',

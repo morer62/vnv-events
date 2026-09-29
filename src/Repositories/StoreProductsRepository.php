@@ -25,6 +25,10 @@ class StoreProductsRepository extends BaseRepository
         'short_description',
         'description',
         'product_type',
+        'purchase_mode',
+        'allow_immediate_payment',
+        'allow_recurring_purchase',
+        'fulfillment_type',
         'price',
         'promo_price',
         'main_image',
@@ -90,8 +94,9 @@ class StoreProductsRepository extends BaseRepository
 
         $idColumn = $alias !== '' ? "{$alias}.id" : "{$table}.id";
 
-        return $siteSql . "
-            AND EXISTS (
+        return " AND (
+            ({$column} = :site_key OR {$column} IN ('shared', 'global', 'all_sites'))
+            OR EXISTS (
                 SELECT 1
                 FROM site_visibility sv
                 WHERE sv.site_key = :visibility_site_key
@@ -99,8 +104,7 @@ class StoreProductsRepository extends BaseRepository
                   AND sv.entity_id = {$idColumn}
                   AND sv.is_visible = 1
                   AND sv.visibility_status = 'VISIBLE'
-            )
-        ";
+            ))";
     }
 
     private function bindPublicProductScope(?string $siteKey = null): void
@@ -889,7 +893,12 @@ class StoreProductsRepository extends BaseRepository
             $this->db->bind(':existing_site_key', $siteKey);
             $this->db->bind(':existing_entity_id', $productId, \PDO::PARAM_INT);
 
-            return $this->db->execute();
+            // Database::execute() is side-effect only in this application and
+            // may return null on success. Reaching this point without an
+            // exception means both visibility statements completed.
+            $this->db->execute();
+
+            return true;
         } catch (\Throwable $e) {
             error_log('Unable to synchronize store product visibility for product ' . $productId . ': ' . $e->getMessage());
             return false;

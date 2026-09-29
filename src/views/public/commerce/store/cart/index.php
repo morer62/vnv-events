@@ -4,6 +4,7 @@ use App\Repositories\StoreCartsRepository;
 use App\Repositories\StoreCartItemsRepository;
 use App\Repositories\StoreProductsRepository;
 use App\Repositories\StoreProductVariationsRepository;
+use App\Repositories\Connection;
 use App\Services\StoreCouponService;
 use App\Services\LoginService;
 use App\Utils\AvomealContext;
@@ -23,6 +24,7 @@ $router->post(function () {
     $variationsRepo = new StoreProductVariationsRepository();
     $cartsRepo = new StoreCartsRepository();
     $cartItemsRepo = new StoreCartItemsRepository();
+    $db = new Connection();
 
     $payload = json_decode(file_get_contents("php://input"), true);
     $ownerId = AvomealContext::ownerId();
@@ -60,6 +62,8 @@ $router->post(function () {
         $productId = intval($item['id_product'] ?? 0);
         $variationId = intval($item['id_product_variation'] ?? 0);
         $quantity = intval($item['quantity'] ?? 0);
+        $requestedServings = intval($item['servings'] ?? 0);
+        $submittedConfiguration = is_array($item['configuration'] ?? null) ? $item['configuration'] : [];
 
         if ($productId <= 0 || $quantity <= 0) {
             continue;
@@ -109,6 +113,30 @@ $router->post(function () {
                 : null;
         }
 
+        $servings = null;
+        $configuration = [];
+        if (strtoupper((string)($product->fulfillment_type ?? '')) === 'DELIVERY') {
+            $db->query('SELECT * FROM store_product_food_profiles WHERE id_owner=:owner AND site_key=:site AND id_product=:product LIMIT 1');
+            $db->bind(':owner', $ownerId, \PDO::PARAM_INT);
+            $db->bind(':site', (string)($product->site_key ?? 'vnvevents'));
+            $db->bind(':product', (int)$product->id, \PDO::PARAM_INT);
+            $foodProfile = $db->fetchOne();
+            if ($foodProfile) {
+                $servings = $requestedServings > 0 ? $requestedServings : (int)$foodProfile->included_servings;
+                $servings = max((int)$foodProfile->minimum_servings, $servings);
+                if ($foodProfile->maximum_servings !== null) {
+                    $servings = min((int)$foodProfile->maximum_servings, $servings);
+                }
+                $additionalGuests = max(0, $servings - (int)$foodProfile->included_servings);
+                $unitPrice = round($unitPrice + $additionalGuests * (float)$foodProfile->additional_person_price, 2);
+                $configuration['servings'] = $servings;
+            }
+            $preference = trim((string)($submittedConfiguration['cooking_preference'] ?? ''));
+            if ($preference !== '') {
+                $configuration['cooking_preference'] = mb_substr($preference, 0, 80);
+            }
+        }
+
         if ($quantity < $minPurchaseQty) {
             $quantity = $minPurchaseQty;
         }
@@ -133,9 +161,11 @@ $router->post(function () {
             'product_name_snapshot' => $product->name,
             'variation_name_snapshot' => $variationName,
             'variation_options_snapshot' => $variationOptions ? json_encode($variationOptions, JSON_UNESCAPED_UNICODE) : null,
+            'configuration_snapshot' => $configuration ? json_encode($configuration, JSON_UNESCAPED_UNICODE) : null,
             'unit_price' => $unitPrice,
             'pricing_mode' => StoreCartItemsRepository::PRICING_PAYG,
             'quantity' => $quantity,
+            'servings' => $servings,
             'line_total' => $lineTotal
         ];
 
@@ -295,9 +325,11 @@ $router->post(function () {
             'product_name_snapshot' => $item['product_name_snapshot'],
             'variation_name_snapshot' => $item['variation_name_snapshot'],
             'variation_options_snapshot' => $item['variation_options_snapshot'],
+            'configuration_snapshot' => $item['configuration_snapshot'],
             'unit_price' => $item['unit_price'],
             'pricing_mode' => $item['pricing_mode'],
             'quantity' => $item['quantity'],
+            'servings' => $item['servings'],
             'line_total' => $item['line_total']
         ]);
 

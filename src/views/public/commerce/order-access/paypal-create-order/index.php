@@ -41,13 +41,6 @@ if (!$order || empty($order->id_owner)) {
     exit;
 }
 
-$eventDateTs = strtotime((string)($order->event_date ?? ''));
-$todayTs = strtotime(date('Y-m-d'));
-if ($eventDateTs !== false && $eventDateTs < $todayTs) {
-    echo json_encode(['success' => false, 'error' => 'This event date has already passed. Payments are no longer available.']);
-    exit;
-}
-
 $paymentProvidersRepo = new PaymentProvidersRepository();
 $paymentOwnerId = $paymentProvidersRepo->getPaymentOwnerIdForOrder($order);
 $activeProvider = $paymentProvidersRepo->getActiveProviderForOwner($paymentOwnerId);

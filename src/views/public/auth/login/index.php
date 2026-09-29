@@ -21,6 +21,16 @@ $client->addScope("email");
 $client->addScope("profile");
 $client->addScope(Calendar::CALENDAR_EVENTS);
 
+function consumePostAuthRedirect(string $fallback = 'panel/home'): string
+{
+    $target = (string)($_SESSION['post_auth_redirect'] ?? $fallback);
+    if ($target === '' || str_contains($target, '://') || str_starts_with($target, '//') || str_contains($target, "\n") || str_contains($target, "\r")) {
+        $target = $fallback;
+    }
+    unset($_SESSION['post_auth_redirect']);
+    return ltrim($target, '/');
+}
+
 if (\App\Services\LoginService::getSession() !== null) {
     \App\Utils\LocationUtils::redirectInternal("panel/home");
     exit;
@@ -76,17 +86,19 @@ $router->post(function () {
             $loginService->authenticate($email, $password);
         }
         if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') {
+            $redirect = $needsPasswordUpdate ? 'update-password' : consumePostAuthRedirect();
             return \App\Utils\JsonResponse::createResponse([
                 "success" => true,
                 "message" => "Login successful",
-                "needs_password_update" => $needsPasswordUpdate
+                "needs_password_update" => $needsPasswordUpdate,
+                "redirect" => $redirect
             ]);
         }
 
         if ($needsPasswordUpdate) {
             LocationUtils::redirectInternal('update-password');
         } else {
-            LocationUtils::redirectInternal('panel/home');
+            LocationUtils::redirectInternal(consumePostAuthRedirect());
         }
     } catch (Exception $e) {
         return $e->getMessage();
@@ -124,7 +136,7 @@ function handleGoogleLogin($client, $code): never
         ]);
 
         LoginService::authenticateFromUserDbo($user);
-        LocationUtils::redirectInternal('panel/home');
+        LocationUtils::redirectInternal(consumePostAuthRedirect());
 
     } catch (Exception $e) {
         MessageUtil::setMessage("Error with Google login: " . $e->getMessage());

@@ -37,14 +37,6 @@ $router->get(function () {
     }
     if (!$order) LocationUtils::redirectInternal("/404");
 
-    $eventDateTs = strtotime((string)($order->event_date ?? ''));
-    $todayTs = strtotime(date('Y-m-d'));
-    if ($eventDateTs !== false && $eventDateTs < $todayTs) {
-        return TemplateResponse::render(__DIR__ . "/error.twig", [
-            "error" => "This event date has already passed. Payments are no longer available."
-        ]);
-    }
-
     $paymentProvidersRepo = new PaymentProvidersRepository();
     $paymentOwnerId = $paymentProvidersRepo->getPaymentOwnerIdForOrder($order);
     $activeProvider = $paymentProvidersRepo->getActiveProviderForOwner($paymentOwnerId);
@@ -162,14 +154,6 @@ $router->post(function () {
     if (!$order) {
         return TemplateResponse::render(__DIR__ . "/error.twig", [
             "error" => TranslationService::trans('planner_hub.no_orders_found')
-        ]);
-    }
-
-    $eventDateTs = strtotime((string)($order->event_date ?? ''));
-    $todayTs = strtotime(date('Y-m-d'));
-    if ($eventDateTs !== false && $eventDateTs < $todayTs) {
-        return TemplateResponse::render(__DIR__ . "/error.twig", [
-            "error" => "This event date has already passed. Payments are no longer available."
         ]);
     }
 
