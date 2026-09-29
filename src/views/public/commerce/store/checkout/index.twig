@@ -390,6 +390,10 @@ body{
                         <strong id="checkoutDiscount">-$0.00</strong>
                     </div>
                     <div class="summary-row">
+                        <span>Delivery</span>
+                        <strong id="checkoutDelivery">Not calculated</strong>
+                    </div>
+                    <div class="summary-row">
                         <span>Sales tax (7%)</span>
                         <strong id="checkoutTax">$0.00</strong>
                     </div>
@@ -503,6 +507,12 @@ body{
                     </div>
                 </div>
 
+                <div class="summary-box" id="deliveryQuoteBox">
+                    <div class="checkout-section-title" style="font-size:1.05rem">Delivery price</div>
+                    <p class="payment-consent-copy" id="deliveryQuoteStatus">Complete your address, then calculate delivery before paying.</p>
+                    <button type="button" class="btn btn-outline-dark w-100" id="calculateDeliveryBtn"><i class="fa-solid fa-route"></i> Calculate Delivery</button>
+                </div>
+
                 <div class="saved-cards-field" id="savedCardsField">
                     <div class="field">
                         <label for="savedCardsSelect">Saved cards</label>
@@ -587,6 +597,9 @@ document.addEventListener('DOMContentLoaded', function () {
     const discountEl = document.getElementById('checkoutDiscount');
     const totalEl = document.getElementById('checkoutTotal');
     const taxEl = document.getElementById('checkoutTax');
+    const deliveryEl = document.getElementById('checkoutDelivery');
+    const calculateDeliveryBtn = document.getElementById('calculateDeliveryBtn');
+    const deliveryQuoteStatus = document.getElementById('deliveryQuoteStatus');
 
     const guestNameInput = document.getElementById('guest_name');
     const guestEmailInput = document.getElementById('guest_email');
@@ -647,6 +660,7 @@ document.addEventListener('DOMContentLoaded', function () {
     let paymentTokenType = 'new_card';
     let selectedSavedCardToken = '';
     let selectedSavedPaymentMethodId = 0;
+    let deliveryQuoteReady = false;
 
     function showError(message) {
         errorBox.textContent = message;
@@ -714,12 +728,15 @@ document.addEventListener('DOMContentLoaded', function () {
         const discount = Number(cart.discount || cart.coupon_discount || 0);
         const total = Number(cart.total || subtotal);
         const tax = Number(cart.tax || 0);
+        const delivery = Number(cart.delivery_fee || 0);
 
         itemsCountEl.textContent = itemsCount;
         quantityTotalEl.textContent = quantityTotal;
         subtotalEl.textContent = `$${subtotal.toFixed(2)}`;
         totalEl.textContent = `$${total.toFixed(2)}`;
         taxEl.textContent = `$${tax.toFixed(2)}`;
+        deliveryEl.textContent = delivery > 0 ? `$${delivery.toFixed(2)}` : 'Not calculated';
+        deliveryQuoteReady = delivery > 0;
 
         if (discount > 0) {
             discountRowEl.style.display = 'flex';
@@ -728,6 +745,36 @@ document.addEventListener('DOMContentLoaded', function () {
             discountRowEl.style.display = 'none';
         }
     }
+
+    function deliveryAddressPayload() {
+        const same = shippingSameAsBillingInput.checked;
+        return {
+            shipping_address_1: (same ? billingAddress1Input : shippingAddress1Input).value.trim(),
+            shipping_address_2: (same ? billingAddress2Input : shippingAddress2Input).value.trim(),
+            shipping_city: (same ? billingCityInput : shippingCityInput).value.trim(),
+            shipping_state: (same ? billingStateInput : shippingStateInput).value.trim(),
+            shipping_zip: (same ? billingZipInput : shippingZipInput).value.trim(),
+            requested_delivery_at: requestedDeliveryInput.value
+        };
+    }
+
+    function invalidateDeliveryQuote() {
+        deliveryQuoteReady = false;
+        deliveryEl.textContent = 'Recalculate';
+        deliveryQuoteStatus.textContent = 'Address or delivery time changed. Please calculate delivery again.';
+    }
+
+    async function calculateDelivery() {
+        const address=deliveryAddressPayload();
+        if(!address.shipping_address_1||!address.shipping_city||!address.shipping_state||!address.shipping_zip) throw new Error('Complete the delivery address first.');
+        calculateDeliveryBtn.disabled=true;calculateDeliveryBtn.innerHTML='<i class="fa-solid fa-spinner fa-spin"></i> Calculating delivery...';deliveryQuoteStatus.textContent='Calculating delivery...';
+        try{
+            const response=await fetch('{{ path("store/checkout") }}',{method:'POST',headers:{'Content-Type':'application/json','X-Requested-With':'XMLHttpRequest'},body:JSON.stringify({action:'calculate_delivery',session_token:sessionToken,recovery_token:RECOVERY_TOKEN,...address})});
+            const data=await response.json();if(!response.ok||!data.success)throw new Error(data.message||'Delivery could not be calculated.');
+            deliveryQuoteReady=true;deliveryEl.textContent=`$${Number(data.delivery_fee).toFixed(2)}`;taxEl.textContent=`$${Number(data.tax).toFixed(2)}`;totalEl.textContent=`$${Number(data.total).toFixed(2)}`;deliveryQuoteStatus.textContent=`${Number(data.distance_miles).toFixed(1)} miles · ${String(data.pricing_source).replaceAll('_',' ')} · price reserved for this checkout.`;return data;
+        }finally{calculateDeliveryBtn.disabled=false;calculateDeliveryBtn.innerHTML='<i class="fa-solid fa-route"></i> Calculate Delivery';}
+    }
+    calculateDeliveryBtn.addEventListener('click',()=>{hideMessages();calculateDelivery().catch(e=>{deliveryQuoteStatus.textContent=e.message;showError(e.message)})});
 
     function renderItems(items) {
         if (!items || !items.length) {
@@ -906,11 +953,15 @@ document.addEventListener('DOMContentLoaded', function () {
 
     [billingAddress1Input, billingAddress2Input, billingCityInput, billingStateInput, billingZipInput].forEach(input => {
         if (!input) return;
-        input.addEventListener('input', applyShippingToggle);
+        input.addEventListener('input', () => { applyShippingToggle(); invalidateDeliveryQuote(); });
+    });
+
+    [shippingAddress1Input, shippingAddress2Input, shippingCityInput, shippingStateInput, shippingZipInput, requestedDeliveryInput].forEach(input => {
+        if (input) input.addEventListener('input', invalidateDeliveryQuote);
     });
 
     if (shippingSameAsBillingInput) {
-        shippingSameAsBillingInput.addEventListener('change', applyShippingToggle);
+        shippingSameAsBillingInput.addEventListener('change', () => { applyShippingToggle(); invalidateDeliveryQuote(); });
     }
 
     if (guestPhoneInput) {
@@ -981,6 +1032,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     email: guestEmailInput.value.trim(),
                     name: guestNameInput.value.trim(),
                     shipping_address: [shippingSameAsBillingInput.checked ? billingAddress1Input.value.trim() : shippingAddress1Input.value.trim(), shippingSameAsBillingInput.checked ? billingCityInput.value.trim() : shippingCityInput.value.trim(), shippingSameAsBillingInput.checked ? billingStateInput.value.trim() : shippingStateInput.value.trim(), shippingSameAsBillingInput.checked ? billingZipInput.value.trim() : shippingZipInput.value.trim()].filter(Boolean).join(', '),
+                    ...deliveryAddressPayload(),
                     save_for_future: Boolean(savePaymentMethodInput?.checked || autoChargeConsentInput?.checked)
                 })
             });
@@ -1057,6 +1109,7 @@ document.addEventListener('DOMContentLoaded', function () {
         payNowBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Processing payment...';
 
         try {
+            if (!deliveryQuoteReady) await calculateDelivery();
             const paymentData = await getPaymentToken();
 
             const response = await fetch('{{ path("store/checkout") }}', {

@@ -407,6 +407,12 @@ body{
                                 —
                             {% endif %}
                         </div>
+                        {% if order.delivery_fee is defined %}
+                            <div class="mt-3"><strong>Delivery:</strong> ${{ (order.delivery_fee ?: 0)|number_format(2) }}</div>
+                            {% if order.delivery_refund_status|default('NONE') != 'NONE' %}
+                                <div class="alert alert-info mt-2 mb-0"><strong>Delivery refund:</strong> {{ order.delivery_refund_status|replace({'_':' '})|title }}{% if (order.delivery_refunded_amount ?: 0) > 0 %} · ${{ order.delivery_refunded_amount|number_format(2) }} issued{% endif %}</div>
+                            {% endif %}
+                        {% endif %}
                     </div>
                 </div>
 

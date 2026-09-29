@@ -719,8 +719,9 @@ $router->post(function () {
     $gourmetSettings=(new DeliveryPricingService())->settings($ownerId,SiteContext::siteKey());
     $taxRate=max(0,(float)($gourmetSettings['tax_rate_percent']??7));
     $preTaxTotal=max(0,round($subtotal-$discount,2));
-    $tax=round($preTaxTotal*$taxRate/100,2);
-    $total=round($preTaxTotal+$tax,2);
+    $deliveryFee=max(0,(float)($cart->delivery_fee??0));
+    $tax=round(($preTaxTotal+$deliveryFee)*$taxRate/100,2);
+    $total=round($preTaxTotal+$deliveryFee+$tax,2);
     $minimumOrderAmount = AvomealContext::minimumOrderAmount();
     $couponCodeFromCart = trim((string)($cart->coupon_code ?? ''));
     $couponIdFromCart = (int)($cart->id_coupon ?? 0);
@@ -730,6 +731,7 @@ $router->post(function () {
         'meals_count' => $mealsCount,
         'subtotal' => $subtotal,
         'discount' => $discount,
+        'delivery_fee' => $deliveryFee,
         'total' => $total,
         'updated_at' => date('Y-m-d H:i:s'),
         'last_activity_at' => date('Y-m-d H:i:s')
@@ -738,6 +740,18 @@ $router->post(function () {
     $cartsRepo->update($baseCartUpdateData, [
         'id' => (int)$cart->id
     ]);
+
+    if ($action === 'calculate_delivery') {
+        try {
+            $quote=(new DeliveryPricingService())->quoteDelivery($ownerId,SiteContext::siteKey(),[
+                'address_1'=>trim((string)($payload['shipping_address_1']??'')),'address_2'=>trim((string)($payload['shipping_address_2']??'')),
+                'city'=>trim((string)($payload['shipping_city']??'')),'state'=>trim((string)($payload['shipping_state']??'')),'zip'=>trim((string)($payload['shipping_zip']??'')),'country'=>'US'
+            ],trim((string)($payload['requested_delivery_at']??''))?:null,'CHECKOUT');
+            $deliveryFee=(float)$quote['customer_fee'];$tax=round(($preTaxTotal+$deliveryFee)*$taxRate/100,2);$total=round($preTaxTotal+$deliveryFee+$tax,2);
+            $cartsRepo->update(['delivery_quote_id'=>(int)$quote['quote_id'],'delivery_fee'=>$deliveryFee,'delivery_pricing_snapshot'=>json_encode($quote,JSON_UNESCAPED_SLASHES),'total'=>$total,'updated_at'=>date('Y-m-d H:i:s')],['id'=>(int)$cart->id]);
+            echo json_encode(['success'=>true,'delivery_fee'=>$deliveryFee,'tax'=>$tax,'total'=>$total,'distance_miles'=>$quote['distance_miles'],'pricing_source'=>$quote['pricing_source'],'quote_id'=>$quote['quote_id']]);return;
+        } catch(Throwable $e) { http_response_code(422);echo json_encode(['success'=>false,'message'=>"We couldn't calculate delivery automatically. Please confirm your address or contact VNV.",'detail'=>$e->getMessage()]);return; }
+    }
 
     if ($action === 'apply_coupon') {
         $code = trim((string)($payload['coupon_code'] ?? ''));
@@ -748,8 +762,8 @@ $router->post(function () {
         $emailForValidation = $candidateEmail !== '' ? $candidateEmail : $sessionEmail;
 
         if ($code === '') {
-            $removedTax=round($subtotal*$taxRate/100,2);
-            $removedTotal=round($subtotal+$removedTax,2);
+            $removedTax=round(($subtotal+$deliveryFee)*$taxRate/100,2);
+            $removedTotal=round($subtotal+$deliveryFee+$removedTax,2);
             $cartsRepo->update([
                 'coupon_code' => null,
                 'id_coupon' => null,
@@ -772,6 +786,7 @@ $router->post(function () {
                 "coupon_discount" => 0,
                 "discount" => 0,
                 "subtotal" => $subtotal,
+                "delivery_fee" => $deliveryFee,
                 "tax" => $removedTax,
                 "total" => $removedTotal,
                 "next_charge_total" => $removeNextCharge
@@ -799,8 +814,8 @@ $router->post(function () {
         $coupon = $couponResult['coupon'];
         $couponDiscount = round((float)$couponResult['discount'], 2);
         $newPreTaxTotal = round((float)$couponResult['total'], 2);
-        $newTax = round($newPreTaxTotal*$taxRate/100,2);
-        $newTotal = round($newPreTaxTotal+$newTax,2);
+        $newTax = round(($newPreTaxTotal+$deliveryFee)*$taxRate/100,2);
+        $newTotal = round($newPreTaxTotal+$deliveryFee+$newTax,2);
         $normalizedCode = (string)$couponResult['code'];
 
         $cartsRepo->update([
@@ -828,6 +843,7 @@ $router->post(function () {
             "coupon_discount" => $couponDiscount,
             "discount" => $couponDiscount,
             "subtotal" => $subtotal,
+            "delivery_fee" => $deliveryFee,
             "tax" => $newTax,
             "total" => $newTotal,
             "next_charge_total" => $applyCouponNextCharge
@@ -972,6 +988,7 @@ $router->post(function () {
                 "coupon_code" => $couponCodeFromCart ?: null,
                 "id_coupon" => $couponIdFromCart > 0 ? $couponIdFromCart : null,
                 "coupon_discount" => $discount,
+                "delivery_fee" => $deliveryFee,
                 "tax" => $tax,
                 "total" => $total,
                 "next_charge_total" => $nextChargeTotal,
@@ -1279,6 +1296,12 @@ $router->post(function () {
         return;
     }
 
+    try {
+        $deliveryQuote=(new DeliveryPricingService())->quoteDelivery($ownerId,SiteContext::siteKey(),['address_1'=>$shippingAddress1,'address_2'=>$shippingAddress2,'city'=>$shippingCity,'state'=>$shippingState,'zip'=>$shippingZip,'country'=>'US'],$requestedDeliveryAt,'CHECKOUT');
+        $deliveryFee=(float)$deliveryQuote['customer_fee'];$tax=round(($preTaxTotal+$deliveryFee)*$taxRate/100,2);$total=round($preTaxTotal+$deliveryFee+$tax,2);
+        $cartsRepo->update(['delivery_quote_id'=>(int)$deliveryQuote['quote_id'],'delivery_fee'=>$deliveryFee,'delivery_pricing_snapshot'=>json_encode($deliveryQuote,JSON_UNESCAPED_SLASHES),'total'=>$total,'updated_at'=>date('Y-m-d H:i:s')],['id'=>(int)$cart->id]);
+    } catch(Throwable $e) { echo json_encode(['success'=>false,'message'=>"We couldn't calculate delivery automatically. Please confirm your address or contact VNV."]);return; }
+
     if ($customerToken === '') {
         echo json_encode([
             "success" => false,
@@ -1442,6 +1465,14 @@ $router->post(function () {
         'requested_delivery_at_utc' => $requestedDeliveryAtUtc,
         'requested_delivery_timezone' => $requestedDeliveryTimezone,
         'promised_delivery_at' => $promisedDeliveryAt,
+        'delivery_provider_cost' => (float)$deliveryQuote['provider_cost'],
+        'delivery_fee' => $deliveryFee,
+        'delivery_margin' => (float)$deliveryQuote['delivery_margin'],
+        'delivery_quote_id' => (int)$deliveryQuote['quote_id'],
+        'delivery_pricing_source' => (string)$deliveryQuote['pricing_source'],
+        'delivery_distance_miles' => (float)$deliveryQuote['distance_miles'],
+        'delivery_markup_percent' => (float)$deliveryQuote['markup_percent'],
+        'delivery_reference_quoted_at' => (string)$deliveryQuote['queried_at'],
         'items_count' => $itemsCount,
         'meals_count' => $mealsCount,
         'subtotal' => $subtotal,
@@ -1477,6 +1508,9 @@ $router->post(function () {
 
     $orderId = $ordersRepo->getLastId();
     $order = $ordersRepo->getOne(['id' => $orderId]);
+    try {
+        $quoteDb=new \App\Repositories\Connection();$quoteDb->query('UPDATE store_delivery_quotes SET id_store_order=:order,status=\'ACCEPTED\' WHERE id=:quote AND id_owner=:owner');$quoteDb->bind(':order',$orderId);$quoteDb->bind(':quote',(int)$deliveryQuote['quote_id']);$quoteDb->bind(':owner',$ownerId);$quoteDb->execute();
+    } catch (Throwable $e) { error_log('[Store checkout] Delivery quote link failed: '.$e->getMessage()); }
 
     foreach ($cartItems as $item) {
         $ok = $orderItemsRepo->add([
@@ -1800,7 +1834,7 @@ $router->post(function () {
                 'occurrence_limit'=>$recurrenceCount-1,'payment_lead_hours'=>(int)($settings['recurring_payment_lead_hours']??48),
                 'horizon_weeks'=>(int)($settings['occurrence_horizon_weeks']??12),
                 'delivery_address'=>['address_1'=>$shippingAddress1,'address_2'=>$shippingAddress2,'city'=>$shippingCity,'state'=>$shippingState,'zip'=>$shippingZip,'country'=>'US'],
-                'delivery_instructions'=>$orderNotes,'expected_subtotal'=>$subtotal,'expected_delivery_fee'=>0,'expected_tax'=>$tax,'expected_total'=>$total,'currency'=>'USD',
+                'delivery_instructions'=>$orderNotes,'expected_subtotal'=>$subtotal,'expected_delivery_fee'=>$deliveryFee,'expected_tax'=>$tax,'expected_total'=>$total,'currency'=>'USD',
             ],$recurringItems);
             $ordersRepo->update(['recurring_order_id'=>$recurringOrderId],['id'=>$orderId,'id_owner'=>$ownerId]);
         } catch (Throwable $e) {
