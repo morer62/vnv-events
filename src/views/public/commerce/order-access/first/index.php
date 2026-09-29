@@ -129,6 +129,7 @@ $router->get(function () {
         "order" => $order,
         "base_url" => $baseUrl,
         "first_payment_amount" => $firstAmount,
+        "payment_amount" => $firstAmount,
         "active_provider_type" => $activeProvider->provider_type,
         "square_application_id" => $squareAppId,
         "square_location_id" => $squareLocId,
@@ -282,7 +283,7 @@ $router->post(function () {
     $billingAddress = trim($_POST["billing_address"] ?? "");
     $billingZip = trim((string)($_POST["billing_zip"] ?? ""));
 
-    if ((!$cardToken && $savedPaymentMethodId <= 0) || !$customerEmail) {
+    if ((!$cardToken && $savedPaymentMethodId <= 0 && (float)($_POST['loyalty_points'] ?? 0) <= 0) || !$customerEmail) {
         $logDir = \App\Utils\LocationUtils::getRootLocation() . '/.logs';
         $logFile = $logDir . '/app_error_' . date('Y-m-d') . '.log';
         if (is_dir($logDir)) {
@@ -348,12 +349,15 @@ $router->post(function () {
         "id_order" => $orderId,
         "id_suborder" => null,
         "is_suborder" => 0,
-        "amount" => $firstAmount,
-        "method" => $activeProvider->provider_type,
+        "amount" => (float)($chargeResult['charged_amount'] ?? $firstAmount),
+        "method" => ((float)($chargeResult['charged_amount'] ?? $firstAmount) <= 0.009) ? 'manual' : $activeProvider->provider_type,
         "stripe_charge_id" => $charge->id ?? null,
         "paid_at" => date("Y-m-d H:i:s"),
         "created_at" => date("Y-m-d H:i:s")
     ];
+    $paymentData['loyalty_points_redeemed'] = (float)($chargeResult['loyalty']['points'] ?? 0);
+    $paymentData['loyalty_discount_amount'] = (float)($chargeResult['loyalty']['discount'] ?? 0);
+    $paymentData['loyalty_reservation_token'] = $chargeResult['loyalty']['token'] ?? null;
     if ($cardBrand) $paymentData["card_brand"] = $cardBrand;
     if ($cardLast4) $paymentData["card_last4"] = $cardLast4;
     if ($cardExpMonth) $paymentData["card_exp_month"] = $cardExpMonth;
@@ -362,7 +366,11 @@ $router->post(function () {
         $paymentData["billing_address"] = $billingAddress;
     }
 
-    $paymentRepo->add($paymentData);
+    if (!$paymentRepo->add($paymentData)) {
+        $savedPaymentService->releaseRewards($chargeResult['loyalty']['token'] ?? null);
+        return TemplateResponse::render(__DIR__ . "/error.twig", ["error" => "The payment was authorized, but its accounting record could not be saved. Please contact support before trying again."]);
+    }
+    $savedPaymentService->commitRewards($chargeResult['loyalty']['token'] ?? null, (int)$order->id_client);
 
     $orderRepo->update(["status_workflow" => "INVOICE_PARTIAL"], ["id" => $orderId]);
 

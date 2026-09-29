@@ -19,6 +19,8 @@ class OrderAccessSavedPaymentMethodService
         $clientId = (int)($order->id_client ?? 0);
         $supportsFuture = in_array($providerType, ['stripe', 'square'], true);
         $canUseSaved = $session && (int)$session->getLevel() === 5 && (int)$session->getId() === $clientId && $supportsFuture;
+        $canUseRewards = $session && (int)$session->getLevel() === 5 && (int)$session->getId() === $clientId;
+        $rewards = $canUseRewards ? (new LoyaltyRewardsService())->balance($businessId, $clientId, 'vnvevents') : null;
 
         return [
             'can_use_saved_payment_methods' => $canUseSaved,
@@ -26,11 +28,71 @@ class OrderAccessSavedPaymentMethodService
             'supports_future_payment_methods' => $supportsFuture,
             'payment_consent_text' => 'I authorize this business to charge my saved payment method for balances, approved orders, recurring charges, tips or pending payments related to my services or purchases.',
             'payment_consent_version' => ClientPaymentMethodService::CONSENT_VERSION,
+            'loyalty_can_redeem' => $canUseRewards && (float)($rewards['available_points'] ?? 0) > 0,
+            'loyalty_balance' => $rewards,
         ];
+    }
+
+    public function reserveRewardsForPost(object $order, int $businessId, float $maximumDiscount, string $targetType): array
+    {
+        $requested = max(0, (float)($_POST['loyalty_points'] ?? 0));
+        $result = ['token' => null, 'points' => 0.0, 'discount' => 0.0, 'amount_due' => round($maximumDiscount, 2)];
+        if ($requested <= 0) return $result;
+
+        $session = LoginService::getSession();
+        $clientId = (int)($order->id_client ?? 0);
+        if (!$session || (int)$session->getLevel() !== 5 || (int)$session->getId() !== $clientId) {
+            throw new \RuntimeException('Please log in as the order client to use rewards.');
+        }
+
+        $reservation = (new LoyaltyRewardsService())->reserve($businessId, $clientId, $requested, $maximumDiscount, $targetType, (int)$order->id, 'vnvevents');
+        return [
+            'token' => (string)$reservation['token'],
+            'points' => (float)$reservation['points'],
+            'discount' => (float)$reservation['discount'],
+            'amount_due' => max(0, round($maximumDiscount - (float)$reservation['discount'], 2)),
+        ];
+    }
+
+    public function releaseRewards(?string $token): void
+    {
+        if ($token) (new LoyaltyRewardsService())->releaseReservation($token);
+    }
+
+    public function commitRewards(?string $token, int $actorId): void
+    {
+        if ($token) (new LoyaltyRewardsService())->commitReservation($token, $actorId);
     }
 
     public function chargeFromPost(AbstractPaymentProvider $provider, object $activeProvider, object $order, int $businessId, float $amount, array $metadata): array
     {
+        try {
+            $rewards = $this->reserveRewardsForPost($order, $businessId, $amount, strtoupper((string)($metadata['payment_type'] ?? 'PAYMENT')) . '_EVENT_ORDER');
+        } catch (\Throwable $e) {
+            return ['charge' => false, 'error' => $e->getMessage()];
+        }
+        $amountToCharge = (float)$rewards['amount_due'];
+        $minimumProviderCharge = max(0, $provider->getMinimumAmount());
+        if ($amountToCharge > 0.009 && $amountToCharge < $minimumProviderCharge) {
+            $this->releaseRewards($rewards['token']);
+            $maximumDiscount = max(0, round($amount - $minimumProviderCharge, 2));
+            if ($maximumDiscount > 0 && (float)($_POST['loyalty_points'] ?? 0) > 0) {
+                try {
+                    $rewards = $this->reserveRewardsForPost($order, $businessId, $maximumDiscount, strtoupper((string)($metadata['payment_type'] ?? 'PAYMENT')) . '_EVENT_ORDER');
+                    $amountToCharge = max($minimumProviderCharge, round($amount - (float)$rewards['discount'], 2));
+                } catch (\Throwable $e) {
+                    return ['charge' => false, 'error' => $e->getMessage()];
+                }
+            } else {
+                $rewards = ['token' => null, 'points' => 0.0, 'discount' => 0.0, 'amount_due' => round($amount, 2)];
+                $amountToCharge = round($amount, 2);
+            }
+        }
+        if ($amountToCharge <= 0.009) {
+            $charge = (object)['id' => 'rewards-' . $rewards['token'], 'paid' => true, 'status' => 'succeeded'];
+            return ['charge' => $charge, 'charged_amount' => 0.0, 'loyalty' => $rewards, 'error' => null];
+        }
+
         $providerType = strtolower((string)($activeProvider->provider_type ?? ''));
         $clientId = (int)($order->id_client ?? 0);
         $savedMethodId = (int)($_POST['saved_payment_method_id'] ?? 0);
@@ -46,29 +108,41 @@ class OrderAccessSavedPaymentMethodService
         if ($savedMethodId > 0) {
             $session = LoginService::getSession();
             if (!$session || (int)$session->getLevel() !== 5 || (int)$session->getId() !== $clientId) {
+                $this->releaseRewards($rewards['token']);
                 return ['charge' => false, 'error' => 'Please log in as the order client to use a saved payment method.'];
             }
 
             $method = $this->methods->getActiveMethodForClientProvider($savedMethodId, $businessId, $clientId, $providerType);
             if (!$method) {
+                $this->releaseRewards($rewards['token']);
                 return ['charge' => false, 'error' => 'The selected saved payment method is not available for this business and provider.'];
             }
 
             if (!$provider->supportsChargingSavedPaymentMethods()) {
+                $this->releaseRewards($rewards['token']);
                 return ['charge' => false, 'error' => 'This payment provider does not support charging saved payment methods.'];
             }
 
-            $charge = $provider->chargeSavedPaymentMethod($method, $amount, $metadata);
+            try {
+                $charge = $provider->chargeSavedPaymentMethod($method, $amountToCharge, $metadata);
+            } catch (\Throwable $e) {
+                $this->releaseRewards($rewards['token']);
+                return ['charge' => false, 'error' => 'Payment could not be processed with the saved payment method.'];
+            }
+            if ($charge === false) $this->releaseRewards($rewards['token']);
             return [
                 'charge' => $charge,
                 'saved_payment_method_id' => $charge === false ? null : $savedMethodId,
                 'auto_charge_consent_id' => null,
                 'error' => $charge === false ? 'Payment could not be processed with the saved payment method.' : null,
+                'charged_amount' => $amountToCharge,
+                'loyalty' => $rewards,
             ];
         }
 
         $token = (string)($_POST['customer_token'] ?? '');
         if ($token === '') {
+            $this->releaseRewards($rewards['token']);
             return ['charge' => false, 'error' => 'Missing payment data.'];
         }
 
@@ -78,10 +152,12 @@ class OrderAccessSavedPaymentMethodService
         $squareReusable = null;
         if ($providerType === 'square' && ($saveMethod || $autoConsent)) {
             if (!method_exists($provider, 'createReusablePaymentMethod')) {
+                $this->releaseRewards($rewards['token']);
                 return ['charge' => false, 'error' => 'This Square provider cannot save reusable payment methods.'];
             }
             $squareReusable = $provider->createReusablePaymentMethod($token, (string)($metadata['customer_email'] ?? ''), (string)($metadata['customer_name'] ?? ''), $metadata);
             if (!$squareReusable) {
+                $this->releaseRewards($rewards['token']);
                 return ['charge' => false, 'error' => 'Square could not create a reusable card-on-file.'];
             }
             $token = (string)$squareReusable['card_id'];
@@ -90,8 +166,14 @@ class OrderAccessSavedPaymentMethodService
             $metadata['customer_id'] = (string)$squareReusable['customer_id'];
         }
 
-        $charge = $provider->chargeCustomer($token, $amount, $metadata);
+        try {
+            $charge = $provider->chargeCustomer($token, $amountToCharge, $metadata);
+        } catch (\Throwable $e) {
+            $this->releaseRewards($rewards['token']);
+            return ['charge' => false, 'error' => 'Payment could not be processed.'];
+        }
         if ($charge === false) {
+            $this->releaseRewards($rewards['token']);
             return ['charge' => false, 'error' => 'Payment could not be processed.'];
         }
 
@@ -129,6 +211,8 @@ class OrderAccessSavedPaymentMethodService
             'saved_payment_method_id' => $saved['saved_payment_method_id'] ?? null,
             'auto_charge_consent_id' => $saved['auto_charge_consent_id'] ?? null,
             'error' => null,
+            'charged_amount' => $amountToCharge,
+            'loyalty' => $rewards,
         ];
     }
 

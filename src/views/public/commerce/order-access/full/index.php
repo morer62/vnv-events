@@ -121,6 +121,7 @@ $router->get(function () {
         "order" => $order,
         "base_url" => $baseUrl,
         "total_amount" => $totalAmount,
+        "payment_amount" => $totalAmount,
         "total_amount_cents" => $totalAmountCents,
         "square_application_id" => $squareAppId,
         "square_location_id" => $squareLocId,
@@ -248,7 +249,7 @@ $router->post(function () {
     $billingAddress = trim($_POST["billing_address"] ?? "");
     $billingZip = trim((string)($_POST["billing_zip"] ?? ""));
 
-    if ((!$cardToken && $savedPaymentMethodId <= 0) || !$customerEmail) {
+    if ((!$cardToken && $savedPaymentMethodId <= 0 && (float)($_POST['loyalty_points'] ?? 0) <= 0) || !$customerEmail) {
         $logDir = \App\Utils\LocationUtils::getRootLocation() . '/.logs';
         $logFile = $logDir . '/app_error_' . date('Y-m-d') . '.log';
         if (is_dir($logDir)) {
@@ -314,12 +315,15 @@ $router->post(function () {
         "id_order" => $orderId,
         "id_suborder" => null,
         "is_suborder" => 0,
-        "amount" => $totalAmount,
-        "method" => $activeProvider->provider_type,
+        "amount" => (float)($chargeResult['charged_amount'] ?? $totalAmount),
+        "method" => ((float)($chargeResult['charged_amount'] ?? $totalAmount) <= 0.009) ? 'manual' : $activeProvider->provider_type,
         "stripe_charge_id" => $charge->id ?? null,
         "paid_at" => date("Y-m-d H:i:s"),
         "created_at" => date("Y-m-d H:i:s")
     ];
+    $paymentData['loyalty_points_redeemed'] = (float)($chargeResult['loyalty']['points'] ?? 0);
+    $paymentData['loyalty_discount_amount'] = (float)($chargeResult['loyalty']['discount'] ?? 0);
+    $paymentData['loyalty_reservation_token'] = $chargeResult['loyalty']['token'] ?? null;
     if (!empty($billingAddress)) {
         $paymentData["billing_address"] = $billingAddress;
     }
@@ -328,7 +332,11 @@ $router->post(function () {
     if ($cardExpMonth) $paymentData["card_exp_month"] = $cardExpMonth;
     if ($cardExpYear) $paymentData["card_exp_year"] = $cardExpYear;
 
-    $paymentRepo->add($paymentData);
+    if (!$paymentRepo->add($paymentData)) {
+        $savedPaymentService->releaseRewards($chargeResult['loyalty']['token'] ?? null);
+        return TemplateResponse::render(__DIR__ . "/error.twig", ["error" => "The payment was authorized, but its accounting record could not be saved. Please contact support before trying again."]);
+    }
+    $savedPaymentService->commitRewards($chargeResult['loyalty']['token'] ?? null, (int)$order->id_client);
 
     $orderRepo->update(["status_workflow" => "INVOICE_PAID"], ["id" => $orderId]);
 

@@ -727,8 +727,9 @@ body::before{
         <script src="{{ asset_for('template/js/app.js') }}" defer></script>
     {% endif %}
     {% if not skip_public_google_maps|default(false) %}
-        <script src="https://maps.googleapis.com/maps/api/js?key={{ env.GOOGLE_KEY }}&libraries=places&callback=initMap" async defer></script>
-        <script src="{{ asset_for('assets/js/googleMaps.js') }}" defer></script>
+        {# Define the callback before the async API can invoke it. #}
+        <script src="{{ asset_for('assets/js/googleMaps.js') }}"></script>
+        <script src="https://maps.googleapis.com/maps/api/js?key={{ env.GOOGLE_KEY }}&loading=async&libraries=places&callback=initMap" async defer></script>
     {% endif %}
 
     <!-- Bootstrap JS -->

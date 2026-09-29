@@ -113,11 +113,11 @@
             var stripe = Stripe("{{ stripe_publishable_key|e('js') }}");
             var cardComplete=false; var cardElement = stripe.elements().create('card', { hidePostalCode:true, style: { base: { fontSize: '16px' } } });
             cardElement.mount('#payment-card-container');
-            function validateStripeForm(showError){const zipOk=/^\d{5}(?:-\d{4})?$/.test((zipInput.value||'').trim());const ready=!!usingSavedMethod()||(cardComplete&&zipOk);payButton.disabled=!ready;if(showError&&!zipOk&&!usingSavedMethod())errorDiv.textContent='Please enter the billing ZIP code associated with your card.';return ready;}cardElement.on('change',e=>{cardComplete=e.complete;if(e.error)errorDiv.textContent=e.error.message;validateStripeForm(false);});zipInput.addEventListener('input',()=>validateStripeForm(false));savedMethodSelect?.addEventListener('change',()=>validateStripeForm(false));validateStripeForm(false);
+            function validateStripeForm(showError){const covered=!!window.VnvRewardsCoversPayment?.();const zipOk=/^\d{5}(?:-\d{4})?$/.test((zipInput.value||'').trim());const ready=covered||!!usingSavedMethod()||(cardComplete&&zipOk);payButton.disabled=!ready;if(showError&&!zipOk&&!usingSavedMethod()&&!covered)errorDiv.textContent='Please enter the billing ZIP code associated with your card.';return ready;}cardElement.on('change',e=>{cardComplete=e.complete;if(e.error)errorDiv.textContent=e.error.message;validateStripeForm(false);});zipInput.addEventListener('input',()=>validateStripeForm(false));savedMethodSelect?.addEventListener('change',()=>validateStripeForm(false));window.addEventListener('vnv:rewards-change',()=>validateStripeForm(false));validateStripeForm(false);
             form.addEventListener('submit', async function(e) {
                 e.preventDefault();
                 if(!validateStripeForm(true))return;
-                if (usingSavedMethod()) { setProcessingState(true); errorDiv.textContent = ''; tokenInput.value = ''; form.submit(); return; }
+                if (usingSavedMethod() || window.VnvRewardsCoversPayment?.()) { setProcessingState(true); errorDiv.textContent = ''; tokenInput.value = ''; form.submit(); return; }
                 setProcessingState(true);
                 errorDiv.textContent = '';
                 var res = await stripe.createToken(cardElement,{address_zip:zipInput.value.trim()});
@@ -140,7 +140,7 @@
                 event.preventDefault();
                 setProcessingState(true);
                 errorDiv.textContent = '';
-                if (usingSavedMethod()) { tokenInput.value = ''; form.submit(); return; }
+                if (usingSavedMethod() || window.VnvRewardsCoversPayment?.()) { tokenInput.value = ''; form.submit(); return; }
                 try {
                     const tokenResult = await card.tokenize();
                     if (tokenResult.status === 'OK') {

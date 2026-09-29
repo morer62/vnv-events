@@ -94,6 +94,33 @@ final class LoyaltyRewardsService
 
     public function releaseReservation(string $token): void { $this->db->query("UPDATE loyalty_redemption_reservations SET status='RELEASED' WHERE reservation_token=:token AND status='HELD'");$this->db->bind(':token',$token);$this->db->execute(); }
 
+    public function reverseForEventPayment(string $providerPaymentId, float $refundedAmount): ?int
+    {
+        if ($providerPaymentId === '' || $refundedAmount <= 0) return null;
+        $this->db->query("SELECT op.id payment_id,op.id_order,op.amount,o.id_owner,o.id_client FROM orders_payments op JOIN orders o ON o.id=op.id_order WHERE op.stripe_charge_id=:charge LIMIT 1");
+        $this->db->bind(':charge', $providerPaymentId);
+        $payment = $this->db->fetchOne();
+        if (!$payment) return null;
+
+        $settings = $this->settings((int)$payment->id_owner, 'vnvevents');
+        $eligibleRefund = min((float)$payment->amount, $refundedAmount);
+        $points = round($eligibleRefund * ((float)$settings->reward_percent / 100) / (float)$settings->point_value, 4);
+        if ($points <= 0) return null;
+
+        $this->db->query("SELECT status FROM loyalty_transactions WHERE id_owner=:owner AND site_key='vnvevents' AND transaction_type='EARN' AND source_type='EVENT_ORDER' AND source_id=:order LIMIT 1");
+        $this->db->bind(':owner', (int)$payment->id_owner);
+        $this->db->bind(':order', (int)$payment->id_order);
+        $earn = $this->db->fetchOne();
+        if (!$earn) return null;
+        $status = $earn->status === 'PENDING' ? 'PENDING' : 'REDEEMED';
+        try {
+            return $this->insertLedger((int)$payment->id_owner, 'vnvevents', (int)$payment->id_client, 'REVERSE', $status, -$points, -round($points * (float)$settings->point_value, 2), (float)$settings->point_value, (float)$settings->reward_percent, $eligibleRefund, 'EVENT_PAYMENT_REFUND', (int)$payment->payment_id, 'Reward reversal for refunded event payment #' . $payment->payment_id, 0, (int)$payment->payment_id, null);
+        } catch (\PDOException $e) {
+            if ((string)$e->getCode() === '23000') return null;
+            throw $e;
+        }
+    }
+
     private function uuid(): string { $d=random_bytes(16);$d[6]=chr((ord($d[6])&0x0f)|0x40);$d[8]=chr((ord($d[8])&0x3f)|0x80);return vsprintf('%s%s-%s-%s-%s-%s%s%s',str_split(bin2hex($d),4)); }
 
     private function insertLedger(int $owner,string $site,int $user,string $type,string $status,float $points,float $money,float $pointValue,?float $percent,?float $eligible,?string $sourceType,?int $sourceId,string $description,int $actor,?int $paymentId,?string $availableAt): int

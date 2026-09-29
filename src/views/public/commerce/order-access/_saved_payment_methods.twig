@@ -1,4 +1,19 @@
 {% if supports_future_payment_methods %}
+    {% if loyalty_can_redeem %}
+        <section class="border rounded p-3 mb-3 bg-light" id="loyalty-rewards-section"
+                 data-payment-amount="{{ payment_amount|default(0) }}"
+                 data-point-value="{{ loyalty_balance.point_value|default(1) }}"
+                 data-available-points="{{ loyalty_balance.available_points|default(0) }}">
+            <label class="form-label fw-bold" for="loyalty-points">VNV Rewards</label>
+            <p class="small mb-2">Available: <strong>{{ loyalty_balance.available_points|number_format(2) }} points</strong> ({{ currency_code|default('USD') }} {{ loyalty_balance.available_value|number_format(2) }}).</p>
+            <div class="input-group">
+                <input type="number" min="0" max="{{ loyalty_balance.available_points }}" step="0.0001" value="0"
+                       name="loyalty_points" id="loyalty-points" class="form-control" aria-describedby="loyalty-payment-preview">
+                <button type="button" class="btn btn-outline-primary" id="loyalty-use-maximum">Use maximum</button>
+            </div>
+            <div class="form-text" id="loyalty-payment-preview">Card payment after rewards: {{ currency_code|default('USD') }} {{ payment_amount|default(0)|number_format(2) }}</div>
+        </section>
+    {% endif %}
     <input type="hidden" name="payment_token_type" id="payment-token-type" value="new_card">
     <input type="hidden" name="card_brand" id="payment-card-brand">
     <input type="hidden" name="card_last4" id="payment-card-last4">
@@ -39,6 +54,34 @@
 
     <script>
     document.addEventListener('DOMContentLoaded', function () {
+        const rewardsSection = document.getElementById('loyalty-rewards-section');
+        const rewardsInput = document.getElementById('loyalty-points');
+        const rewardsMaximum = document.getElementById('loyalty-use-maximum');
+        const rewardsPreview = document.getElementById('loyalty-payment-preview');
+        function rewardsState() {
+            if (!rewardsSection || !rewardsInput) return { discount: 0, due: Number(rewardsSection?.dataset.paymentAmount || 0), covers: false };
+            const amount = Number(rewardsSection.dataset.paymentAmount || 0);
+            const value = Number(rewardsSection.dataset.pointValue || 0);
+            const available = Number(rewardsSection.dataset.availablePoints || 0);
+            const points = Math.max(0, Math.min(available, Number(rewardsInput.value || 0)));
+            const discount = Math.min(amount, Math.round(points * value * 100) / 100);
+            return { discount, due: Math.max(0, Math.round((amount - discount) * 100) / 100), covers: discount >= amount && amount > 0 };
+        }
+        function syncRewards() {
+            const state = rewardsState();
+            if (rewardsPreview) rewardsPreview.textContent = 'Card payment after rewards: {{ currency_code|default('USD')|e('js') }} ' + state.due.toFixed(2);
+            window.dispatchEvent(new CustomEvent('vnv:rewards-change', { detail: state }));
+        }
+        window.VnvRewardsCoversPayment = function () { return rewardsState().covers; };
+        if (rewardsInput) rewardsInput.addEventListener('input', syncRewards);
+        if (rewardsMaximum) rewardsMaximum.addEventListener('click', function () {
+            const amount = Number(rewardsSection.dataset.paymentAmount || 0);
+            const value = Number(rewardsSection.dataset.pointValue || 1);
+            const available = Number(rewardsSection.dataset.availablePoints || 0);
+            rewardsInput.value = Math.min(available, amount / value).toFixed(4);
+            syncRewards();
+        });
+        syncRewards();
         const savedSelect = document.getElementById('saved-payment-method-id');
         const tokenTypeInput = document.getElementById('payment-token-type');
         const cardWrap = document.getElementById('payment-card-container')?.closest('.mb-4')

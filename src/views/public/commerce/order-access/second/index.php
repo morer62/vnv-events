@@ -107,7 +107,7 @@ $router->get(function () {
     // Restar pagos previos registrados (por si ya hubo parcial/full)
     try {
         $db = new Connection();
-        $db->query("SELECT COALESCE(SUM(amount),0) AS total_paid FROM orders_payments WHERE id_order = :id AND (id_suborder IS NULL OR id_suborder = 0)");
+        $db->query("SELECT COALESCE(SUM(amount + COALESCE(loyalty_discount_amount,0)),0) AS total_paid FROM orders_payments WHERE id_order = :id AND (id_suborder IS NULL OR id_suborder = 0)");
         $db->bind(":id", $order->id);
         $db->execute();
         $row = $db->fetchAll()[0] ?? null;
@@ -151,6 +151,7 @@ $router->get(function () {
         "currency_code" => $currencyCode,
         "payment_request_label" => $paymentRequestLabel,
         "total_amount_cents" => $secondAmountCents,
+        "payment_amount" => $secondAmount,
         "processingModal" => ProcessingModal::render("orderAccessProcessingModal", [
             "title" => TranslationService::trans('planner_hub.processing_payment'),
             "message" => TranslationService::trans('planner_hub.we_are_confirming_payment')
@@ -244,7 +245,7 @@ $router->post(function () {
     // Restar pagos previos registrados (por si ya hubo parcial/full)
     try {
         $db = new Connection();
-        $db->query("SELECT COALESCE(SUM(amount),0) AS total_paid FROM orders_payments WHERE id_order = :id AND (id_suborder IS NULL OR id_suborder = 0)");
+        $db->query("SELECT COALESCE(SUM(amount + COALESCE(loyalty_discount_amount,0)),0) AS total_paid FROM orders_payments WHERE id_order = :id AND (id_suborder IS NULL OR id_suborder = 0)");
         $db->bind(":id", $order->id);
         $db->execute();
         $row = $db->fetchAll()[0] ?? null;
@@ -303,7 +304,7 @@ $router->post(function () {
     $billingAddress = trim($_POST["billing_address"] ?? "");
     $billingZip = trim((string)($_POST["billing_zip"] ?? ""));
 
-    if ((!$cardToken && $savedPaymentMethodId <= 0) || !$customerEmail) {
+    if ((!$cardToken && $savedPaymentMethodId <= 0 && (float)($_POST['loyalty_points'] ?? 0) <= 0) || !$customerEmail) {
         $logDir = \App\Utils\LocationUtils::getRootLocation() . '/.logs';
         $logFile = $logDir . '/app_error_' . date('Y-m-d') . '.log';
         if (is_dir($logDir)) {
@@ -370,12 +371,15 @@ $router->post(function () {
         "id_order" => $orderId,
         "id_suborder" => null,
         "is_suborder" => 0,
-        "amount" => $amountInput,
-        "method" => $activeProvider->provider_type,
+        "amount" => (float)($chargeResult['charged_amount'] ?? $amountInput),
+        "method" => ((float)($chargeResult['charged_amount'] ?? $amountInput) <= 0.009) ? 'manual' : $activeProvider->provider_type,
         "stripe_charge_id" => $charge->id ?? null,
         "paid_at" => date("Y-m-d H:i:s"),
         "created_at" => date("Y-m-d H:i:s")
     ];
+    $paymentData['loyalty_points_redeemed'] = (float)($chargeResult['loyalty']['points'] ?? 0);
+    $paymentData['loyalty_discount_amount'] = (float)($chargeResult['loyalty']['discount'] ?? 0);
+    $paymentData['loyalty_reservation_token'] = $chargeResult['loyalty']['token'] ?? null;
     if ($cardBrand) $paymentData["card_brand"] = $cardBrand;
     if ($cardLast4) $paymentData["card_last4"] = $cardLast4;
     if ($cardExpMonth) $paymentData["card_exp_month"] = $cardExpMonth;
@@ -390,7 +394,11 @@ $router->post(function () {
         $paymentData["billing_address"] = $billingAddress;
     }
 
-    $paymentRepo->add($paymentData);
+    if (!$paymentRepo->add($paymentData)) {
+        $savedPaymentService->releaseRewards($chargeResult['loyalty']['token'] ?? null);
+        return TemplateResponse::render(__DIR__ . "/error.twig", ["error" => "The payment was authorized, but its accounting record could not be saved. Please contact support before trying again."]);
+    }
+    $savedPaymentService->commitRewards($chargeResult['loyalty']['token'] ?? null, (int)$order->id_client);
 
     $orderRepo->update(["status_workflow" => "INVOICE_PAID"], ["id" => $orderId]);
 

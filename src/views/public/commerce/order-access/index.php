@@ -387,7 +387,7 @@ $router->get(function () {
     // Calcular el monto total pagado (usando la misma consulta que se usa más abajo)
     try {
         $db = new \App\Repositories\Connection();
-        $db->query("SELECT COALESCE(SUM(amount),0) AS total_paid FROM orders_payments WHERE id_order = :id AND (id_suborder IS NULL OR id_suborder = 0)");
+        $db->query("SELECT COALESCE(SUM(amount + COALESCE(loyalty_discount_amount,0)),0) AS total_paid FROM orders_payments WHERE id_order = :id AND (id_suborder IS NULL OR id_suborder = 0)");
         $db->bind(":id", $order->id);
         $db->execute();
         $row = $db->fetchAll()[0] ?? null;

@@ -2,6 +2,8 @@
 
 namespace App\Repositories;
 
+use App\Services\LoyaltyRewardsService;
+
 class OrdersPaymentsRepository extends BaseRepository
 {
     public function __construct()
@@ -46,12 +48,15 @@ class OrdersPaymentsRepository extends BaseRepository
     }
 
     public function markRefunded(string $chargeId, float $amount): void {
-        $this->update([
+        $updated = $this->update([
             'refunded_at' => date('Y-m-d H:i:s'),
             'refunded_amount' => $amount
         ], [
             'stripe_charge_id' => $chargeId
         ]);
+        if ($updated) {
+            (new LoyaltyRewardsService())->reverseForEventPayment($chargeId, $amount);
+        }
     }
 
 }
