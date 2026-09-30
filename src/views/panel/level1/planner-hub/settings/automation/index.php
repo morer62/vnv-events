@@ -26,7 +26,7 @@ $router->post(function()use($redirect){
         elseif($action==='run'){$result=$service->runScheduler('MANUAL');MessageUtil::setMessage('Scheduler completed: '.json_encode($result),'Automation Center','success');}
         elseif($action==='deliver'){$result=$service->processOutbox(30);MessageUtil::setMessage('Delivery worker completed: '.json_encode($result),'Automation Center','success');}
         elseif($action==='test'){$email=trim((string)($_POST['test_email']??''));$service->queueTest($email,(int)$user->getId());MessageUtil::setMessage('Controlled test queued for '.$email.'. Run delivery to send it.','Automation Center','success');}
-        elseif($action==='review'){$service->review((string)($_POST['dedupe_key']??''),(string)($_POST['decision']??''),(int)$user->getId(),trim((string)($_POST['comment']??'')),($_POST['memory_type']??null),trim((string)($_POST['memory']??'')));MessageUtil::setMessage('Recommendation reviewed. The conversation and context were saved.','Automation Center','success');}
+        elseif($action==='review'){$service->review((string)($_POST['dedupe_key']??''),(string)($_POST['decision']??''),(int)$user->getId(),trim((string)($_POST['comment']??'')),($_POST['memory_type']??null),trim((string)($_POST['memory']??'')));MessageUtil::setMessage('Recomendación revisada. La conversación y el contexto quedaron guardados.','Mochi','success');}
         elseif($action==='ask_mochi'){$reply=(new MochiConciergeService($owner))->ask((int)$user->getId(),(string)($_POST['message']??''),($_POST['customer_id']??'')!==''?(int)$_POST['customer_id']:null);MessageUtil::setMessage('Mochi: '.$reply,'Mochi','success');}
     }catch(Throwable $e){MessageUtil::setMessage($e->getMessage(),'Automation Center','danger');}
     $redirect();
