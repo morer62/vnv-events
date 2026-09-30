@@ -160,7 +160,7 @@ final class AutomationCenterService
     {
         if($row->channel==='EMAIL'){$r=EmailServiceFactory::sendWithOwnerProvider($this->ownerId,(string)$row->recipient,(string)$row->subject,(string)$row->body,true);if(!($r['success']??false))throw new \RuntimeException((string)($r['message']??'Email failed'));return (string)($r['message']??'email');}
         if($row->channel==='PUSH'){$r=NotificationService::sendExpoNotificationWithResult((string)$row->recipient,(string)$row->subject,(string)$row->body,['url'=>$row->action_url,'route'=>$row->action_url,'type'=>$row->message_type]);if(!($r['ok']??false))throw new \RuntimeException(json_encode($r));return $r['ticket_id']??'push';}
-        $this->db->query("INSERT INTO notifications (id_user,mensaje,link,leido) VALUES (:user,:message,:link,'NO')");$this->db->bind(':user',(int)$row->id_user);$this->db->bind(':message',(string)$row->body);$this->db->bind(':link',(string)$row->action_url);$this->db->execute();return 'in-app';
+        $this->db->query("INSERT INTO notifications (id_user,mensaje,link,leido) VALUES (:user,:message,:link,'NO')");$this->db->bind(':user',(int)$row->id_user);$this->db->bind(':message',mb_substr(strip_tags((string)$row->body),0,120));$this->db->bind(':link',(string)$row->action_url);$this->db->execute();return 'in-app';
     }
 
     private function loadSettings(): object{$this->db->query("SELECT * FROM automation_settings WHERE id_owner=:owner AND site_key=:site LIMIT 1");$this->db->bind(':owner',$this->ownerId);$this->db->bind(':site',$this->siteKey);$row=$this->db->fetchOne();if(!$row)throw new \RuntimeException('Run db/20261003_event_automation_center.sql first.');return $row;}
