@@ -1,0 +1,8 @@
+# BEGIN VNV AUTOMATION
+*/5 * * * * cd /home/ophyra/public_html/vnvevents.com && /usr/local/bin/php src/cron/automation-scheduler.php >> .logs/automation-scheduler.log 2>&1
+*/5 * * * * cd /home/ophyra/public_html/vnvevents.com && /usr/local/bin/php src/cron/automation-delivery-worker.php >> .logs/automation-delivery.log 2>&1
+*/10 * * * * cd /home/ophyra/public_html/vnvevents.com && /usr/local/bin/php src/cron/vnv-gourmet-recurring-billing.php >> .logs/vnv-gourmet-recurring-billing.log 2>&1
+7 * * * * cd /home/ophyra/public_html/vnvevents.com && /usr/local/bin/php src/cron/loyalty-release.php >> .logs/loyalty-release.log 2>&1
+*/10 * * * * cd /home/ophyra/public_html/vnvevents.com && /usr/local/bin/php src/cron/ai-agents-scheduler.php >> .logs/ai-agents-scheduler.log 2>&1
+17 3 * * * cd /home/ophyra/public_html/vnvevents.com && /usr/local/bin/php src/cron/event-execution-photo-cleanup.php >> .logs/event-execution-photo-cleanup.log 2>&1
+# END VNV AUTOMATION

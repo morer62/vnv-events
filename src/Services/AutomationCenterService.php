@@ -53,6 +53,7 @@ final class AutomationCenterService
             if((int)$this->settings->payment_reminders_enabled)$this->scanOrders('PAYMENT',$result);
             if((int)$this->settings->team_reminders_enabled)$this->scanTeam($result);
             if((int)$this->settings->rewards_messages_enabled)$this->scanRewards($result);
+            $this->queueReviewerDigest((int)$result['queued']);
             $this->finishRun($run,'SUCCESS',$result);return $result+['status'=>'SUCCESS'];
         }catch(\Throwable $e){$this->finishRun($run,'FAILED',$result,$e->getMessage());throw $e;}
     }
@@ -133,6 +134,21 @@ final class AutomationCenterService
         if($email)$n+=$this->enqueue($userId,'EMAIL',$type,$dedupe,$email,$subject,$html,$url);
         if($token)$n+=$this->enqueue($userId,'PUSH',$type,$dedupe,$token,$subject,$message,$url);
         $n+=$this->enqueue($userId,'IN_APP',$type,$dedupe,(string)$userId,$subject,$message,$url);return $n;
+    }
+
+    private function queueReviewerDigest(int $newItems): void
+    {
+        if($newItems<1)return;
+        $this->db->query("SELECT DISTINCT u.id,u.email,u.expo_token FROM automation_reviewers r JOIN users u ON u.id=r.id_user WHERE r.id_owner=:owner AND r.site_key=:site AND r.status='ACTIVE'");
+        $this->db->bind(':owner',$this->ownerId);$this->db->bind(':site',$this->siteKey);$reviewers=$this->db->fetchAll();
+        $dedupe='review-digest:'.date('Y-m-d');$url='/panel/planner-hub/settings/automation';
+        $subject='Mochi has VNV recommendations for your review';
+        $text='Mochi reviewed today\'s VNV activity and has '.$newItems.' new communication recommendations. Please approve, edit or remove them before anything is sent.';
+        foreach($reviewers as $reviewer){
+            if(!empty($reviewer->email))$this->enqueue((int)$reviewer->id,'EMAIL','REVIEW_DIGEST',$dedupe,(string)$reviewer->email,$subject,'<p>'.htmlspecialchars($text).'</p><p><a href="'.htmlspecialchars($this->absolute($url)).'">Review Mochi\'s recommendations</a></p>',$url,'PENDING');
+            if(!empty($reviewer->expo_token))$this->enqueue((int)$reviewer->id,'PUSH','REVIEW_DIGEST',$dedupe,(string)$reviewer->expo_token,$subject,$text,$url,'PENDING');
+            $this->enqueue((int)$reviewer->id,'IN_APP','REVIEW_DIGEST',$dedupe,(string)$reviewer->id,$subject,$text,$url,'PENDING');
+        }
     }
 
     private function enqueue(?int $userId,string $channel,string $type,string $dedupe,?string $recipient,?string $subject,string $body,?string $url,string $status='AWAITING_APPROVAL'): int
