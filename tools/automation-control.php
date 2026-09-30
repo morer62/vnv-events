@@ -6,8 +6,8 @@ require_once dirname(__DIR__).'/vendor/autoload.php';
 Dotenv\Dotenv::createImmutable(dirname(__DIR__))->safeLoad();
 
 $command=(string)($argv[1]??'status');
-if(!in_array($command,['status','enable-live','pause'],true)){
-    fwrite(STDERR,"Usage: php tools/automation-control.php [status|enable-live|pause]\n");exit(2);
+if(!in_array($command,['status','enable-live','pause','retry-failed'],true)){
+    fwrite(STDERR,"Usage: php tools/automation-control.php [status|enable-live|pause|retry-failed]\n");exit(2);
 }
 
 try{
@@ -15,6 +15,7 @@ try{
     $pdo->setAttribute(PDO::ATTR_ERRMODE,PDO::ERRMODE_EXCEPTION);
     if($command==='enable-live')$pdo->exec("UPDATE automation_settings SET master_enabled=1,dry_run=0 WHERE id_owner=2 AND site_key='vnvevents'");
     elseif($command==='pause')$pdo->exec("UPDATE automation_settings SET master_enabled=0 WHERE id_owner=2 AND site_key='vnvevents'");
+    elseif($command==='retry-failed')$pdo->exec("UPDATE automation_outbox SET available_at=UTC_TIMESTAMP() WHERE id_owner=2 AND site_key='vnvevents' AND status='FAILED' AND attempts<4");
     $settings=$pdo->query("SELECT master_enabled,dry_run,timezone,quiet_hours_start,quiet_hours_end FROM automation_settings WHERE id_owner=2 AND site_key='vnvevents'")->fetch(PDO::FETCH_ASSOC);
     $reviewers=(int)$pdo->query("SELECT COUNT(*) FROM automation_reviewers WHERE id_owner=2 AND site_key='vnvevents' AND status='ACTIVE'")->fetchColumn();
     $pending=(int)$pdo->query("SELECT COUNT(DISTINCT dedupe_key) FROM automation_outbox WHERE id_owner=2 AND site_key='vnvevents' AND status='AWAITING_APPROVAL'")->fetchColumn();
