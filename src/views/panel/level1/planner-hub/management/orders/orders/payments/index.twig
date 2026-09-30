@@ -82,7 +82,7 @@
                         <th>Square Payment ID</th>
                         <th>Paid At</th>
                         <th>PDF</th>
-                        <th>Refund</th>
+                        <th>Refund / correction</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -152,7 +152,7 @@
                             {% elseif p.refunded_amount == p.amount or p.refunded_amount > p.amount %}
                                 <span class="text-danger">Refunded {{ p.refunded_at|date("Y-m-d H:i") }}</span>
                             {% else %}
-                                —
+                                {% if p.entry_type == 'advance' and not p.stripe_charge_id %}<form method="post" onsubmit="return confirm('Delete this manually entered advance? The order balance and status will be recalculated.');"><input type="hidden" name="action" value="delete_manual_advance"><input type="hidden" name="advance_id" value="{{ p.id }}"><button class="btn btn-sm btn-outline-danger">Delete advance</button></form>{% else %}—{% endif %}
                             {% endif %}
                         </td>
 

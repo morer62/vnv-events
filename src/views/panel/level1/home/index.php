@@ -6,6 +6,7 @@ use App\Repositories\AiAgentsRepository;
 use App\Services\LoginService;
 use App\Services\OphyraGrowthHubClient;
 use App\Services\LoyaltyRewardsService;
+use App\Services\AutomationCenterService;
 use App\Utils\LocationUtils;
 use App\Utils\MessageUtil;
 use App\Utils\Router;
@@ -111,6 +112,7 @@ $router->get(function () {
         if($agentRepo->storageReady())$agentApprovals=array_values(array_filter($agentRepo->pendingApprovals((int)$user->getOwner()),fn($item)=>$item->status==='PENDING'));
     }catch(Throwable $e){error_log('[Level1 Home] Agent approvals failed: '.$e->getMessage());}
 
+    $frogIsReviewer=false;$frogReviewCount=0;$frogState=['state'=>'sad','greeting'=>''];try{$automation=new AutomationCenterService((int)$user->getOwner());$frogIsReviewer=$automation->isReviewer((int)$user->getId())||(int)$user->getLevel()===1;$frogReviewCount=count($automation->pendingReview(100));$frogState=$automation->mascotState($frogReviewCount);}catch(Throwable $e){}
     return TemplateResponse::render(__DIR__ . "/index.twig", [
         'user' => $user,
         'orderSummary' => level1HomeOrderSummary((int)$user->getOwner()),
@@ -122,6 +124,7 @@ $router->get(function () {
         'growthHubSummary' => $growthHubSummary,
         'agentApprovals' => $agentApprovals,
         'agentApprovalsCount' => count($agentApprovals),
+        'frogIsReviewer'=>$frogIsReviewer,'frogReviewCount'=>$frogReviewCount,'frogState'=>$frogState,
     ]);
 });
 

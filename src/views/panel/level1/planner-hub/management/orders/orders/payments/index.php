@@ -81,6 +81,7 @@ $router->get(function () {
         }
         foreach ($advances as $a) {
             $row = (object)[
+                'id' => $a->id,
                 'id_order' => $a->id_order,
                 'amount' => (float)$a->amount,
                 'refunded_amount' => (float)($a->refunded_amount ?? 0),
@@ -93,6 +94,7 @@ $router->get(function () {
         }
         foreach ($subAdvances as $a) {
             $row = (object)[
+                'id' => $a->id,
                 'id_order' => $a->id_order,
                 'amount' => (float)$a->amount,
                 'refunded_amount' => (float)($a->refunded_amount ?? 0),
@@ -131,6 +133,16 @@ $router->post(function () {
     $squareRepo = new SquareAccountsRepository();
     $refundRepo = new OrderPaymentRefunds();
     $action = $_POST['action'] ?? 'refund';
+    if ($action === 'delete_manual_advance') {
+        $idOrder=(int)($_GET['id']??0);$advanceId=(int)($_POST['advance_id']??0);$session=LoginService::getSession();$db=new Connection();
+        $db->query("SELECT oa.id,oa.stripe_charge_id,o.id_owner FROM orders_advances oa JOIN orders o ON o.id=oa.id_order WHERE oa.id=:id AND oa.id_order=:order LIMIT 1");$db->bind(':id',$advanceId);$db->bind(':order',$idOrder);$advance=$db->fetchOne();
+        if(!$advance||(int)$advance->id_owner!==(int)$session->getOwner()){MessageUtil::setMessage('Advance not found or access denied.','Error','error');LocationUtils::reload();}
+        if(!empty($advance->stripe_charge_id)){MessageUtil::setMessage('Provider payments cannot be deleted. Use the audited refund action.','Error','error');LocationUtils::reload();}
+        $db->query("DELETE FROM orders_advances WHERE id=:id AND id_order=:order AND stripe_charge_id IS NULL");$db->bind(':id',$advanceId);$db->bind(':order',$idOrder);$db->execute();
+        $db->query("SELECT (SELECT COUNT(*) FROM orders_payments WHERE id_order=:order)+(SELECT COUNT(*) FROM orders_advances WHERE id_order=:order2) total");$db->bind(':order',$idOrder);$db->bind(':order2',$idOrder);$hasMoney=(int)($db->fetchOne()->total??0)>0;
+        $db->query("UPDATE orders SET status_workflow=:status WHERE id=:order AND status_workflow IN ('INVOICE_PARTIAL','INVOICE_PAID')");$db->bind(':status',$hasMoney?'INVOICE_PARTIAL':'INVOICE_READY');$db->bind(':order',$idOrder);$db->execute();
+        MessageUtil::setMessage('Manual advance deleted and order balance recalculated.','Payments','success');LocationUtils::reload();
+    }
     if ($action === 'authorized_manual_charge') {
         $id_order = (int)($_GET['id'] ?? 0);
         $amount = (float)($_POST['manual_charge_amount'] ?? 0);

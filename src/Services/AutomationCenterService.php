@@ -21,6 +21,18 @@ final class AutomationCenterService
 
     public function settings(): object{return $this->settings;}
 
+    public function mascotState(int $pending=0): array
+    {
+        $today=new \DateTimeImmutable('today',$this->timezone);$md=$today->format('m-d');$state=$pending>0?'coffee':'sad';$greeting='';
+        if($md==='12-01')$greeting='Psst… remember Jonathan’s birthday is coming up — but don’t tell him I reminded you!';
+        elseif($md==='11-26')$greeting='A tiny reminder: today is Mary’s birthday. 💛';
+        if($md==='10-31'){$state='halloween';$greeting='Happy Halloween!';}
+        elseif($today->format('m')==='12'){$state='reindeer';$greeting=$greeting?:'Happy holidays from your VNV concierge!';}
+        elseif($md==='02-14'){$state='cupid';$greeting='Happy Valentine’s Day!';}
+        else{$easter=(new \DateTimeImmutable('@'.easter_date((int)$today->format('Y'))))->setTimezone($this->timezone);if(abs((int)$today->diff($easter)->format('%r%a'))<=1){$state='easter';$greeting='Happy Easter!';}}
+        return ['state'=>$state,'greeting'=>$greeting];
+    }
+
     public function saveSettings(array $input,int $actorId): void
     {
         $bools=['master_enabled','dry_run','contract_reminders_enabled','payment_reminders_enabled','team_reminders_enabled','rewards_messages_enabled','ai_copy_enabled'];
@@ -48,13 +60,34 @@ final class AutomationCenterService
     public function queueTest(string $email,int $userId): int
     {
         if(!filter_var($email,FILTER_VALIDATE_EMAIL))throw new \InvalidArgumentException('A valid test email is required.');
-        return $this->enqueue($userId,'EMAIL','SYSTEM_TEST','test:'.date('YmdHi').':'.$email,$email,'VNV automation test','<p>Hello,</p><p>This controlled test confirms that the VNV automation outbox is operating. No client or employee was contacted.</p>','/panel/planner-hub/settings/automation');
+        return $this->enqueue($userId,'EMAIL','SYSTEM_TEST','test:'.date('YmdHi').':'.$email,$email,'VNV automation test','<p>Hello,</p><p>This controlled test confirms that the VNV automation outbox is operating. No client or employee was contacted.</p>','/panel/planner-hub/settings/automation','PENDING');
+    }
+
+    public function isReviewer(int $userId): bool
+    {
+        if($userId===$this->ownerId)return true;
+        $this->db->query("SELECT 1 FROM automation_reviewers WHERE id_owner=:owner AND site_key=:site AND id_user=:user AND status='ACTIVE' LIMIT 1");$this->db->bind(':owner',$this->ownerId);$this->db->bind(':site',$this->siteKey);$this->db->bind(':user',$userId);return (bool)$this->db->fetchOne();
+    }
+
+    public function pendingReview(int $limit=40): array
+    {
+        $this->db->query("SELECT o.dedupe_key,MIN(o.id) id,MIN(o.id_user) id_user,MIN(o.message_type) message_type,MIN(o.subject) subject,MIN(o.body) body,MIN(o.action_url) action_url,MIN(o.created_at) created_at,GROUP_CONCAT(o.channel ORDER BY o.channel) channels,u.name,u.lastname,u.email FROM automation_outbox o LEFT JOIN users u ON u.id=o.id_user WHERE o.id_owner=:owner AND o.site_key=:site AND o.status='AWAITING_APPROVAL' GROUP BY o.dedupe_key,u.name,u.lastname,u.email ORDER BY created_at LIMIT ".max(1,min(100,$limit)));$this->db->bind(':owner',$this->ownerId);$this->db->bind(':site',$this->siteKey);return $this->db->fetchAll();
+    }
+
+    public function review(string $dedupe,string $decision,int $reviewerId,string $comment='',?string $memoryType=null,?string $memory=''): void
+    {
+        if(!$this->isReviewer($reviewerId))throw new \RuntimeException('This user is not an active automation reviewer.');if(!in_array($decision,['APPROVE','REJECT'],true))throw new \InvalidArgumentException('Invalid review decision.');
+        $this->db->query("SELECT MIN(id_user) id_user FROM automation_outbox WHERE id_owner=:owner AND site_key=:site AND dedupe_key=:dedupe AND status='AWAITING_APPROVAL'");$this->db->bind(':owner',$this->ownerId);$this->db->bind(':site',$this->siteKey);$this->db->bind(':dedupe',$dedupe);$row=$this->db->fetchOne();if(!$row)throw new \RuntimeException('This recommendation was already reviewed.');
+        $status=$decision==='APPROVE'?'PENDING':'CANCELLED';$this->db->query("UPDATE automation_outbox SET status=:status,reviewed_by=:reviewer,reviewed_at=UTC_TIMESTAMP(),reviewer_comment=:comment WHERE id_owner=:owner AND site_key=:site AND dedupe_key=:dedupe AND status='AWAITING_APPROVAL'");foreach(['status'=>$status,'reviewer'=>$reviewerId,'comment'=>$comment?:null,'owner'=>$this->ownerId,'site'=>$this->siteKey,'dedupe'=>$dedupe] as $k=>$v)$this->db->bind(':'.$k,$v);$this->db->execute();
+        $text=($decision==='APPROVE'?'Approved':'Removed').' recommendation '.$dedupe.($comment!==''?' — '.$comment:'');$this->db->query("INSERT INTO automation_conversations (id_owner,site_key,thread_key,id_customer,id_author,author_type,message) VALUES (:owner,:site,:thread,:customer,:author,'HUMAN',:message)");foreach(['owner'=>$this->ownerId,'site'=>$this->siteKey,'thread'=>'review:'.$dedupe,'customer'=>(int)$row->id_user?:null,'author'=>$reviewerId,'message'=>$text] as $k=>$v)$this->db->bind(':'.$k,$v);$this->db->execute();$conversationId=(int)$this->db->lastId();
+        if($memory!==''&&in_array($memoryType,['FACT','PREFERENCE','SENSITIVITY','INFERENCE'],true)&&(int)$row->id_user>0){$confidence=$memoryType==='INFERENCE'?0.6000:1.0000;$this->db->query("INSERT INTO automation_customer_memory (id_owner,site_key,id_customer,memory_type,summary,confidence,source_conversation_id,created_by) VALUES (:owner,:site,:customer,:type,:summary,:confidence,:conversation,:author)");foreach(['owner'=>$this->ownerId,'site'=>$this->siteKey,'customer'=>(int)$row->id_user,'type'=>$memoryType,'summary'=>$memory,'confidence'=>$confidence,'conversation'=>$conversationId,'author'=>$reviewerId] as $k=>$v)$this->db->bind(':'.$k,$v);$this->db->execute();}
     }
 
     public function processOutbox(int $limit=30): array
     {
         $run=$this->startRun('automation-delivery-worker','CRON');$stats=['scanned'=>0,'sent'=>0,'failed'=>0,'simulated'=>0];
         try{
+            $this->db->query("UPDATE automation_outbox SET status='FAILED',last_error='Recovered after stale worker lock',locked_at=NULL,available_at=UTC_TIMESTAMP() WHERE id_owner=:owner AND site_key=:site AND status='PROCESSING' AND locked_at<DATE_SUB(UTC_TIMESTAMP(),INTERVAL 15 MINUTE)");$this->db->bind(':owner',$this->ownerId);$this->db->bind(':site',$this->siteKey);$this->db->execute();
             $this->db->query("SELECT * FROM automation_outbox WHERE id_owner=:owner AND site_key=:site AND status IN ('PENDING','FAILED') AND available_at<=UTC_TIMESTAMP() AND attempts<4 ORDER BY id LIMIT ".max(1,min(100,$limit)));
             $this->db->bind(':owner',$this->ownerId);$this->db->bind(':site',$this->siteKey);$rows=$this->db->fetchAll();
             foreach($rows as $row){$stats['scanned']++;if(!$this->claim((int)$row->id))continue;
@@ -102,9 +135,9 @@ final class AutomationCenterService
         $n+=$this->enqueue($userId,'IN_APP',$type,$dedupe,(string)$userId,$subject,$message,$url);return $n;
     }
 
-    private function enqueue(?int $userId,string $channel,string $type,string $dedupe,?string $recipient,?string $subject,string $body,?string $url): int
+    private function enqueue(?int $userId,string $channel,string $type,string $dedupe,?string $recipient,?string $subject,string $body,?string $url,string $status='AWAITING_APPROVAL'): int
     {
-        $this->db->query("INSERT IGNORE INTO automation_outbox (id_owner,site_key,id_user,channel,message_type,dedupe_key,recipient,subject,body,action_url,status,available_at) VALUES (:owner,:site,:user,:channel,:type,:dedupe,:recipient,:subject,:body,:url,'PENDING',UTC_TIMESTAMP())");foreach(['owner'=>$this->ownerId,'site'=>$this->siteKey,'user'=>$userId,'channel'=>$channel,'type'=>$type,'dedupe'=>$dedupe,'recipient'=>$recipient,'subject'=>$subject,'body'=>$body,'url'=>$url] as $k=>$v)$this->db->bind(':'.$k,$v);$this->db->execute();return $this->db->rowCount()>0?1:0;
+        $this->db->query("INSERT IGNORE INTO automation_outbox (id_owner,site_key,id_user,channel,message_type,dedupe_key,recipient,subject,body,action_url,status,available_at) VALUES (:owner,:site,:user,:channel,:type,:dedupe,:recipient,:subject,:body,:url,:status,UTC_TIMESTAMP())");foreach(['owner'=>$this->ownerId,'site'=>$this->siteKey,'user'=>$userId,'channel'=>$channel,'type'=>$type,'dedupe'=>$dedupe,'recipient'=>$recipient,'subject'=>$subject,'body'=>$body,'url'=>$url,'status'=>$status] as $k=>$v)$this->db->bind(':'.$k,$v);$this->db->execute();return $this->db->rowCount()>0?1:0;
     }
 
     private function deliver(object $row): ?string

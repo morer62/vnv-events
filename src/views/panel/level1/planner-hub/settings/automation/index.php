@@ -1,6 +1,7 @@
 <?php
 
 use App\Services\AutomationCenterService;
+use App\Services\MochiConciergeService;
 use App\Services\LoginService;
 use App\Utils\LocationUtils;
 use App\Utils\MessageUtil;
@@ -12,19 +13,21 @@ $redirect=static function(): never {LocationUtils::redirectInternal('panel/plann
 
 $router->get(function(){
     $user=LoginService::getSession();
-    if((int)$user->getLevel()!==1){http_response_code(403);return 'Level 1 access required.';}
-    try{$service=new AutomationCenterService((int)$user->getId());$dashboard=$service->dashboard();return TemplateResponse::render(__DIR__.'/index.twig',['settings'=>$service->settings(),'counts'=>$dashboard['counts'],'runs'=>$dashboard['runs'],'outbox'=>$dashboard['outbox'],'message'=>MessageUtil::getMessage()]);}
+    $owner=(int)((int)$user->getLevel()===1?$user->getId():$user->getOwner());
+    try{$service=new AutomationCenterService($owner);if((int)$user->getLevel()!==1&&!$service->isReviewer((int)$user->getId())){http_response_code(403);return 'Automation reviewer access required.';}$dashboard=$service->dashboard();return TemplateResponse::render(__DIR__.'/index.twig',['settings'=>$service->settings(),'counts'=>$dashboard['counts'],'runs'=>$dashboard['runs'],'outbox'=>$dashboard['outbox'],'recommendations'=>$service->pendingReview(),'mochiConversation'=>(new MochiConciergeService($owner))->recent((int)$user->getId()),'isAdmin'=>(int)$user->getLevel()===1,'message'=>MessageUtil::getMessage()]);}
     catch(Throwable $e){return TemplateResponse::render(__DIR__.'/index.twig',['settings'=>null,'counts'=>[],'runs'=>[],'outbox'=>[],'schemaError'=>$e->getMessage(),'message'=>MessageUtil::getMessage()]);}
 });
 
 $router->post(function()use($redirect){
-    $user=LoginService::getSession();if((int)$user->getLevel()!==1){http_response_code(403);return;}
+    $user=LoginService::getSession();$owner=(int)((int)$user->getLevel()===1?$user->getId():$user->getOwner());
     try{
-        $service=new AutomationCenterService((int)$user->getId());$action=(string)($_POST['action']??'save');
-        if($action==='save'){$service->saveSettings($_POST,(int)$user->getId());MessageUtil::setMessage('Automation settings saved.','Automation Center','success');}
+        $service=new AutomationCenterService($owner);$isAdmin=(int)$user->getLevel()===1;$isReviewer=$service->isReviewer((int)$user->getId());if(!$isAdmin&&!$isReviewer)throw new RuntimeException('Automation reviewer access required.');$action=(string)($_POST['action']??'save');
+        if($action==='save'){if(!$isAdmin)throw new RuntimeException('Only Level 1 can change automation settings.');$service->saveSettings($_POST,(int)$user->getId());MessageUtil::setMessage('Automation settings saved.','Automation Center','success');}
         elseif($action==='run'){$result=$service->runScheduler('MANUAL');MessageUtil::setMessage('Scheduler completed: '.json_encode($result),'Automation Center','success');}
         elseif($action==='deliver'){$result=$service->processOutbox(30);MessageUtil::setMessage('Delivery worker completed: '.json_encode($result),'Automation Center','success');}
         elseif($action==='test'){$email=trim((string)($_POST['test_email']??''));$service->queueTest($email,(int)$user->getId());MessageUtil::setMessage('Controlled test queued for '.$email.'. Run delivery to send it.','Automation Center','success');}
+        elseif($action==='review'){$service->review((string)($_POST['dedupe_key']??''),(string)($_POST['decision']??''),(int)$user->getId(),trim((string)($_POST['comment']??'')),($_POST['memory_type']??null),trim((string)($_POST['memory']??'')));MessageUtil::setMessage('Recommendation reviewed. The conversation and context were saved.','Automation Center','success');}
+        elseif($action==='ask_mochi'){$reply=(new MochiConciergeService($owner))->ask((int)$user->getId(),(string)($_POST['message']??''),($_POST['customer_id']??'')!==''?(int)$_POST['customer_id']:null);MessageUtil::setMessage('Mochi: '.$reply,'Mochi','success');}
     }catch(Throwable $e){MessageUtil::setMessage($e->getMessage(),'Automation Center','danger');}
     $redirect();
 });

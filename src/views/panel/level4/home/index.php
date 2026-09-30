@@ -11,6 +11,7 @@ use App\Repositories\StoreUserRolesRepository;
 use App\Repositories\TeamMemberContractsRepository;
 use App\Utils\LocationUtils;
 use App\Utils\MessageUtil;
+use App\Services\AutomationCenterService;
 
 $router = new Router();
 
@@ -109,6 +110,7 @@ $router->get(function () {
         $storeRoleDescription = 'Focus on assigned deliveries, route execution, and proof of delivery.';
     }
 
+    $frogIsReviewer=false;$frogReviewCount=0;$frogState=['state'=>'sad','greeting'=>''];try{if($currentOwnerId){$automation=new AutomationCenterService($currentOwnerId);$frogIsReviewer=$automation->isReviewer((int)$user->getId());$frogReviewCount=$frogIsReviewer?count($automation->pendingReview(100)):0;$frogState=$automation->mascotState($frogReviewCount);}}catch(Throwable $e){}
     return TemplateResponse::render(__DIR__ . "/index.twig", [
         'user' => $user,
         'userInstitutions' => $userInstitutions,
@@ -126,6 +128,7 @@ $router->get(function () {
         'teamContract' => $teamContract
         ,'isEventManager' => $isEventManager
         ,'futureAvailabilityBlocks' => $futureAvailabilityBlocks
+        ,'frogIsReviewer'=>$frogIsReviewer,'frogReviewCount'=>$frogReviewCount,'frogState'=>$frogState
     ]);
 });
 

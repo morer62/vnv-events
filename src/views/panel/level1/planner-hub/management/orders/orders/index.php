@@ -427,6 +427,11 @@ $router->post(function () {
     if (isset($_POST['archive_order_id'])) {
         $id = (int)$_POST['archive_order_id'];
         $repo = new OrdersRepository();
+        $order = $repo->getOneByIdAndOwner($id, (int)$session->getOwner());
+        if (!$order) {
+            MessageUtil::setMessage("Order not found or access denied.", "Error", "error");
+            LocationUtils::reload();
+        }
         $repo->update(['is_archived' => 1], ['id' => $id]);
 
         MessageUtil::setMessage("Order archived successfully.");

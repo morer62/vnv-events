@@ -101,4 +101,60 @@ CREATE TABLE IF NOT EXISTS automation_runs (
   KEY idx_automation_run_health (id_owner,site_key,job_key,started_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+ALTER TABLE automation_outbox
+  MODIFY status ENUM('AWAITING_APPROVAL','PENDING','PROCESSING','SENT','FAILED','CANCELLED','SIMULATED') NOT NULL DEFAULT 'AWAITING_APPROVAL',
+  ADD COLUMN IF NOT EXISTS reviewed_by INT NULL AFTER provider_reference,
+  ADD COLUMN IF NOT EXISTS reviewed_at DATETIME NULL AFTER reviewed_by,
+  ADD COLUMN IF NOT EXISTS reviewer_comment VARCHAR(1000) NULL AFTER reviewed_at;
+
+CREATE TABLE IF NOT EXISTS automation_reviewers (
+  id_owner INT NOT NULL,
+  site_key VARCHAR(80) NOT NULL,
+  id_user INT NOT NULL,
+  status ENUM('ACTIVE','INACTIVE') NOT NULL DEFAULT 'ACTIVE',
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (id_owner,site_key,id_user)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+INSERT IGNORE INTO automation_reviewers (id_owner,site_key,id_user)
+SELECT 2,'vnvevents',id FROM users
+WHERE id_owner=2 AND level=4 AND LOWER(email)='contact@vnvevents.com';
+
+CREATE TABLE IF NOT EXISTS automation_conversations (
+  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  id_owner INT NOT NULL,
+  site_key VARCHAR(80) NOT NULL,
+  thread_key VARCHAR(191) NOT NULL,
+  id_customer INT NULL,
+  id_author INT NULL,
+  author_type ENUM('AGENT','HUMAN','SYSTEM') NOT NULL,
+  message TEXT NOT NULL,
+  metadata_json LONGTEXT NULL,
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  KEY idx_automation_conversation_thread (id_owner,site_key,thread_key,created_at),
+  KEY idx_automation_conversation_customer (id_owner,site_key,id_customer,created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS automation_customer_memory (
+  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  id_owner INT NOT NULL,
+  site_key VARCHAR(80) NOT NULL,
+  id_customer INT NOT NULL,
+  memory_type ENUM('FACT','PREFERENCE','SENSITIVITY','INFERENCE') NOT NULL,
+  summary VARCHAR(1000) NOT NULL,
+  confidence DECIMAL(5,4) NOT NULL DEFAULT 1.0000,
+  source_conversation_id BIGINT UNSIGNED NULL,
+  status ENUM('ACTIVE','CORRECTED','EXPIRED','DELETED') NOT NULL DEFAULT 'ACTIVE',
+  expires_at DATETIME NULL,
+  created_by INT NULL,
+  corrected_by INT NULL,
+  correction_note VARCHAR(1000) NULL,
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  KEY idx_automation_memory_customer (id_owner,site_key,id_customer,status,expires_at),
+  CONSTRAINT fk_automation_memory_conversation FOREIGN KEY (source_conversation_id) REFERENCES automation_conversations(id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 SELECT 'VNV automation center schema ready' AS result;
