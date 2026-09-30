@@ -55,15 +55,18 @@ $router->get(callback: function () use ($service, $resolveSpace) {
     $payment = $space ? $service->paymentOptions($space, $user) : ['provider'=>null, 'methods'=>[]];
     return TemplateResponse::render(dirname(__DIR__) . '/event-execution/index.twig', [
         'space'=>$space, 'karaoke'=>$data['karaoke'], 'songRequests'=>$data['song_requests'], 'photos'=>$data['photos'], 'photoFolders'=>$data['photo_folders']??[], 'members'=>$data['members']??[],
+        'teamMembers'=>$data['team_members']??[], 'eventTips'=>$data['tips']??[], 'eventTipTotal'=>$data['tip_total']??0, 'tipsByRecipient'=>$data['tips_by_recipient']??[], 'commentsByRequest'=>$data['comments_by_request']??[],
         'currentUserId'=>(int)$user->getId(), 'userLevel'=>(int)$user->getLevel(),
         'isClientOwner'=>$space && (int)$space->id_client === (int)$user->getId(),
         'isMusicManager'=>$space ? $service->isMusicManager((int)$space->id,$user) : false,
         'tipProvider'=>$payment['provider'], 'tipPaymentMethods'=>$payment['methods'],
         'stateVersion'=>$space ? $service->stateVersion((int)$space->id) : null,
-        'isInteractive'=>$space ? ($service->isInteractionOpen($space) || (int)$user->getLevel()===1 || (int)$user->getId()===(int)$space->id_client) : false,
+        'isInteractive'=>$space ? ($service->isInteractionOpen($space) || (int)$user->getLevel()===1) : false,
         'photoLimit'=>$space ? (int)($space->max_guest_photos??6) : 6,
         'myPhotoCount'=>$space ? count(array_filter($data['photos']??[],fn($photo)=>(int)$photo->id_user===(int)$user->getId())) : 0,
         'modules'=>$data['modules']??[],
+        'joinUrl'=>$space ? LocationUtils::pathFor('join-event?code='.rawurlencode((string)$space->access_code)) : null,
+        'selectedTipRecipient'=>max(0,(int)($_GET['recipient']??0)),
         'message'=>MessageUtil::getMessage(),
     ]);
 });
@@ -76,12 +79,14 @@ $router->post(callback: function () use ($service, $resolveSpace) {
         elseif (!$service->canOpen($space,$user)) throw new RuntimeException('You do not have access to this event.');
         elseif ($action==='add_music') {$service->assertInteractionAllowed($space,$user);$service->addMusic((int)$space->id,$user,$_POST);}
         elseif ($action==='delete_music') {$service->assertInteractionAllowed($space,$user);$service->deleteMusic((int)$space->id,(int)($_POST['request_id']??0),$user);}
-        elseif ($action==='update_music') $service->updateMusic((int)$space->id,(int)($_POST['request_id']??0),$user,$_POST);
+        elseif ($action==='update_music') {$service->assertInteractionAllowed($space,$user);$service->updateMusic((int)$space->id,(int)($_POST['request_id']??0),$user,$_POST);}
+        elseif ($action==='add_request_comment') {$service->assertInteractionAllowed($space,$user);$service->addRequestComment((int)$space->id,(int)($_POST['request_id']??0),$user,$_POST);}
         elseif ($action==='set_member_role') $service->setMemberRole((int)$space->id,(int)($_POST['member_id']??0),(string)($_POST['role']??''),$user);
         elseif ($action==='pay_tip') {$service->assertInteractionAllowed($space,$user);$service->payTip((int)$space->id,(int)($_POST['request_id']??0),(int)($_POST['saved_payment_method_id']??0),$user);}
+        elseif ($action==='pay_team_tip') {$service->assertInteractionAllowed($space,$user);$service->payTeamTip((int)$space->id,(int)($_POST['recipient_user_id']??0),(float)($_POST['amount']??0),(int)($_POST['saved_payment_method_id']??0),(string)($_POST['note']??''),$user);}
         elseif ($action==='add_photo') {$service->assertInteractionAllowed($space,$user);$service->addPhoto((int)$space->id,$user,$_FILES['photo']??[],(string)($_POST['caption']??''));}
         elseif ($action==='delete_photo') {$service->assertInteractionAllowed($space,$user);$service->deletePhoto((int)$space->id,(int)($_POST['photo_id']??0),$user,(int)$space->id_client===(int)$user->getId());}
-        elseif ($action==='delete_all_photos') $service->deleteAllPhotos((int)$space->id,$user,(int)$space->id_client===(int)$user->getId());
+        elseif ($action==='delete_all_photos') {$service->assertInteractionAllowed($space,$user);$service->deleteAllPhotos((int)$space->id,$user,(int)$space->id_client===(int)$user->getId());}
         MessageUtil::setMessage('Event area updated.');
         LocationUtils::redirectInternal('panel/event-execution?code='.$space->access_code);
     } catch (Throwable $e) {

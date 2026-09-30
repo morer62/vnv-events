@@ -46,7 +46,7 @@
                                     <a href="{{ path(current_location ~ '/print') }}?id={{ order.id }}" class="btn btn-sm btn-dark">Print</a>
                                 </div>
                             </td>
-                            <td>{% if order.is_confirmed == 1 %}<a href="{{ path('panel/event-execution') }}?order_id={{ order.id }}" class="btn btn-sm btn-success">Enter Event Area</a>{% else %}<span class="text-muted">Accept assignment first</span>{% endif %}</td>
+                            <td>{% if order.is_confirmed == 1 %}{% if order.event_access_code %}<strong class="d-block">Code {{ order.event_access_code }}</strong>{% endif %}<a href="{{ path('panel/event-execution') }}?order_id={{ order.id }}" class="btn btn-sm btn-success">Event Tools / QR</a>{% else %}<span class="text-muted">Accept assignment first</span>{% endif %}</td>
                             <td style="min-width: 220px;">
                                 {% if order.is_confirmed is null %}
                                     <form method="post" action="?id={{ order.id }}" class="d-flex gap-1 justify-content-center">

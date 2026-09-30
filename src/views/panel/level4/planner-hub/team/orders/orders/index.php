@@ -21,6 +21,13 @@ $router->get(callback: function () {
 
     $orders = $repo->getOrdersByInvitation($user->getId());
     $clients = $clientRepo->getAllBy(["level" => 5]);
+    $eventExecution = new \App\Services\EventExecutionService();
+    foreach ($orders as $order) {
+        $order->event_access_code = null;
+        if ((int)$order->is_confirmed === 1) {
+            try { $order->event_access_code = $eventExecution->getOrCreateForOrder((int)$order->id,(int)$user->getId(),(int)$order->id_owner)->access_code; } catch (\Throwable) {}
+        }
+    }
 
     return TemplateResponse::render(__DIR__ . "/index.twig", [
         "orders" => $orders,

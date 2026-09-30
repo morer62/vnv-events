@@ -5,6 +5,7 @@ use App\Repositories\OrdersRepository;
 use App\Services\LoginService;
 use App\Services\NotificationService;
 use App\Services\WeeklyExecutionService;
+use App\Services\EventExecutionService;
 use App\Utils\FileUtils;
 use App\Utils\LocationUtils;
 use App\Utils\MessageUtil;
@@ -46,6 +47,14 @@ $router->get(function () use ($range) {
     }
     [$startDate, $endDate, $preset] = $range();
     $events = (new WeeklyExecutionService())->listReadyEvents((int)$user->getOwner(), $startDate, $endDate);
+    $eventExecution = new EventExecutionService();
+    foreach ($events as $event) {
+        try {
+            $event->event_access_code = $eventExecution->getOrCreateForOrder((int)$event->id, (int)$user->getId(), (int)$user->getOwner())->access_code;
+        } catch (Throwable) {
+            $event->event_access_code = null;
+        }
+    }
 
     return TemplateResponse::render(__DIR__ . '/index.twig', [
         'events' => $events,

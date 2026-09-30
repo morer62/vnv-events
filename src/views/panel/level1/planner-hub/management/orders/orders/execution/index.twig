@@ -45,6 +45,7 @@
             <div class="execution-event-date">{{ event.event_date|date('D')|upper }} · {{ event.event_date|date('M j, Y')|upper }}</div>
             <div class="execution-event-time"><i data-feather="clock"></i>{{ event.start_time ? event.start_time|date('g:i A') : 'TBD' }} <span>–</span> {{ event.end_time ? event.end_time|date('g:i A') : 'TBD' }}</div>
             <span class="execution-client-name">{{ event.client_name }}</span>
+            {% if event.event_access_code %}<div class="mt-2"><small class="text-muted">Private Event Code</small><br><strong class="font-monospace user-select-all">{{ event.event_access_code }}</strong> <button type="button" class="btn btn-sm btn-outline-secondary" onclick="navigator.clipboard.writeText('{{ event.event_access_code }}')">Copy</button> <a class="btn btn-sm btn-success" href="{{ path('panel/event-execution') }}?order_id={{ event.id }}">Open / QR</a></div>{% endif %}
             <small class="d-block text-muted">VNV-341{{ event.id }}{% if event.client_email %} · {{ event.client_email }}{% endif %}</small>
             {% if event.manager_name %}<span class="manager-pill"><i data-feather="user-check"></i>Manager: {{ event.manager_name }}</span>{% else %}<span class="manager-pill pending"><i data-feather="alert-circle"></i>Manager pending</span>{% endif %}
           </td>

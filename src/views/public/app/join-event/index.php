@@ -11,6 +11,7 @@ $router = new Router();
 
 $join = static function (): void {
     $code = preg_replace('/\D+/', '', (string)($_POST['code'] ?? $_GET['code'] ?? $_SESSION['pending_event_code'] ?? ''));
+    $recipient = max(0,(int)($_POST['recipient'] ?? $_GET['recipient'] ?? $_SESSION['pending_event_tip_recipient'] ?? 0));
     if (!preg_match('/^\d{5,6}$/', $code)) {
         MessageUtil::setMessage('Enter a valid event code.', 'Event access', 'error');
         LocationUtils::redirectInternal('join-event');
@@ -26,6 +27,7 @@ $join = static function (): void {
     $user = LoginService::getSession();
     if (!$user) {
         $_SESSION['pending_event_code'] = $code;
+        if($recipient>0)$_SESSION['pending_event_tip_recipient']=$recipient;
         $_SESSION['post_auth_redirect'] = 'join-event/continue';
         LocationUtils::redirectInternal('login');
     }
@@ -33,15 +35,18 @@ $join = static function (): void {
     try {
         $service->assertCanJoin($space, $user);
         $service->join($space, $user);
-        unset($_SESSION['pending_event_code'], $_SESSION['post_auth_redirect']);
-        LocationUtils::redirectInternal('panel/event-execution?code=' . rawurlencode($code));
+        unset($_SESSION['pending_event_code'], $_SESSION['pending_event_tip_recipient'], $_SESSION['post_auth_redirect']);
+        LocationUtils::redirectInternal('panel/event-execution?code=' . rawurlencode($code) . ($recipient>0?'&recipient='.$recipient:''));
     } catch (Throwable $e) {
         MessageUtil::setMessage($e->getMessage(), 'Event access', 'error');
         LocationUtils::redirectInternal('join-event');
     }
 };
 
-$router->get(function () {
+$router->get(function () use ($join) {
+    if (!empty($_GET['code'])) {
+        $join();
+    }
     if (LoginService::getSession() && !empty($_SESSION['pending_event_code'])) {
         LocationUtils::redirectInternal('join-event/continue');
     }

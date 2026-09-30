@@ -193,7 +193,8 @@
 												</small>
 											</td>
 											<td style="min-width: 220px;">
-												<a href="{{ path('panel/event-execution') }}?order_id={{ order.id }}" class="btn btn-success btn-sm">Enter / Create Code</a>
+												{% if order.event_access_code %}<strong class="d-block">Private Event Code: <span class="font-monospace user-select-all">{{ order.event_access_code }}</span></strong><button type="button" class="btn btn-outline-secondary btn-sm my-1" onclick="navigator.clipboard.writeText('{{ order.event_access_code }}')">Copy Code</button>{% endif %}
+												<a href="{{ path('panel/event-execution') }}?order_id={{ order.id }}" class="btn btn-success btn-sm">Open / View QR</a>
 											</td>
 											<td style="min-width: 220px;">
 												{% set token = order.contract_token ?? '' %}

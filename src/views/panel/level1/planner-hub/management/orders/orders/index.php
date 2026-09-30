@@ -402,6 +402,15 @@ $router->get(callback: function () {
         $o->_status_info = $statusDetails;
     }
 
+    $eventExecution = new \App\Services\EventExecutionService();
+    foreach ($orders as $eventOrder) {
+        try {
+            $eventOrder->event_access_code = $eventExecution->getOrCreateForOrder((int)$eventOrder->id, (int)$user->getId(), (int)$eventOrder->id_owner)->access_code;
+        } catch (\Throwable $e) {
+            $eventOrder->event_access_code = null;
+        }
+    }
+
     return TemplateResponse::render(__DIR__ . "/index.twig", [
         "orders" => $orders,
         "estimates" => $estimates,
