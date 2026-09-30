@@ -11,7 +11,7 @@ $router = new Router();
 $router->get(function () {
     return JsonResponse::createResponse([
         // `version` remains for compatibility with older mobile releases.
-        "version" => "4.0.13",
+        "version" => "4.0.14",
         "current_version" => "4.0.14",
         "minimum_supported_version" => "4.0.11",
         "update_url" => [
