@@ -1,6 +1,7 @@
 <?php
 
 use App\Services\ApiAuthService;
+use App\Repositories\StoreUserRolesRepository;
 use App\Utils\Cors;
 use App\Utils\JsonResponse;
 use App\Utils\Router;
@@ -8,11 +9,11 @@ use App\Utils\Router;
 Cors::handle();
 $router = new Router();
 
-function mobileNavigationForLevel(int $level): array
+function mobileNavigationForUser($user): array
 {
+    $level = (int)$user->getLevel();
     $common = [
         ['key' => 'notifications', 'label' => 'Notifications', 'icon' => 'bell', 'native_screen' => 'Notifications', 'group' => 'Account'],
-        ['key' => 'settings', 'label' => 'Settings', 'icon' => 'cog', 'route' => 'panel/settings', 'group' => 'Account'],
     ];
 
     if ($level === 1) {
@@ -43,22 +44,53 @@ function mobileNavigationForLevel(int $level): array
             ['key' => 'subscriptions', 'label' => 'Subscriptions', 'icon' => 'redo', 'route' => 'panel/planner-hub/store/subscriptions/home', 'group' => 'Store'],
             ['key' => 'coupons', 'label' => 'Coupons', 'icon' => 'percent', 'route' => 'panel/planner-hub/store/coupons/home', 'group' => 'Store'],
             ['key' => 'store_payments', 'label' => 'Store Payments', 'icon' => 'credit-card', 'route' => 'panel/planner-hub/store/payments/home', 'group' => 'Store'],
+            ['key' => 'settings', 'label' => 'Settings', 'icon' => 'cog', 'route' => 'panel/settings', 'group' => 'Settings'],
             ['key' => 'payment_providers', 'label' => 'Payment Providers', 'icon' => 'credit-card', 'route' => 'panel/planner-hub/settings/payment-providers', 'group' => 'Settings'],
             ['key' => 'smtp', 'label' => 'SMTP Providers', 'icon' => 'paper-plane', 'route' => 'panel/planner-hub/settings/smtp', 'group' => 'Settings'],
         ], $common);
     }
 
     if ($level === 4) {
-        return array_merge([
+        $storeRole = 'general';
+        try {
+            $storeRole = (new StoreUserRolesRepository())->getRoleValueByOwnerAndUser(
+                (int)($user->getOwner() ?: 0),
+                (int)$user->getId()
+            ) ?: 'general';
+        } catch (\Throwable $exception) {
+            // The general workspace remains a valid fallback when the optional role table is unavailable.
+        }
+        $storeRoute = $storeRole === 'kitchen'
+            ? 'panel/planner-hub/team/store/kitchen/home'
+            : ($storeRole === 'delivery' ? 'panel/planner-hub/team/store/delivery/home' : 'panel/planner-hub/team/store/home');
+        $storeLabel = $storeRole === 'kitchen'
+            ? 'Kitchen Workspace'
+            : ($storeRole === 'delivery' ? 'Delivery Workspace' : 'Store Workspace');
+
+        $items = [
             ['key' => 'home', 'label' => 'Team Home', 'icon' => 'home', 'native_screen' => 'Panel', 'group' => 'My Dashboard'],
-            ['key' => 'work', 'label' => 'My Work', 'icon' => 'tasks', 'route' => 'panel/planner-hub/team/my-work', 'group' => 'My Work'],
             ['key' => 'orders', 'label' => 'Assigned Orders', 'icon' => 'briefcase', 'route' => 'panel/planner-hub/team/orders/orders', 'group' => 'My Work'],
-            ['key' => 'store_workspace', 'label' => 'Store Workspace', 'icon' => 'shopping-bag', 'route' => 'panel/planner-hub/team/store/home', 'group' => 'My Work'],
-            ['key' => 'clock', 'label' => 'Time Clock', 'icon' => 'clock', 'route' => 'panel/planner-hub/team/payroll/clock', 'group' => 'Team'],
-            ['key' => 'payroll', 'label' => 'Payroll', 'icon' => 'money-check-alt', 'route' => 'panel/planner-hub/team/payroll/pending', 'group' => 'Team'],
-            ['key' => 'contract', 'label' => 'My Contract', 'icon' => 'file-contract', 'route' => 'panel/planner-hub/team/contracts', 'group' => 'Team'],
-            ['key' => 'availability', 'label' => 'My Availability', 'icon' => 'calendar-alt', 'route' => 'panel/manager-availability', 'group' => 'Team'],
-            ['key' => 'chat', 'label' => 'Team Chat', 'icon' => 'comments', 'route' => 'panel/planner-hub/team/chat', 'group' => 'Team'],
+            ['key' => 'work', 'label' => 'My Work', 'icon' => 'tasks', 'route' => 'panel/planner-hub/team/my-work', 'group' => 'My Work'],
+            ['key' => 'store_workspace', 'label' => $storeLabel, 'icon' => 'shopping-bag', 'route' => $storeRoute, 'group' => 'My Work'],
+            ['key' => 'chat', 'label' => 'Team Chat', 'icon' => 'comments', 'route' => 'panel/planner-hub/team/chat', 'group' => 'My Work'],
+            ['key' => 'contract', 'label' => 'My Contract', 'icon' => 'file-contract', 'route' => 'panel/planner-hub/team/contracts', 'group' => 'My Work'],
+            ['key' => 'availability', 'label' => 'My Availability', 'icon' => 'calendar-alt', 'route' => 'panel/manager-availability', 'group' => 'My Work'],
+            ['key' => 'clock', 'label' => 'Clock In / Out', 'icon' => 'clock', 'route' => 'panel/planner-hub/team/payroll/clock', 'group' => 'Time'],
+        ];
+        $approvedTools = [
+            'orders' => ['key' => 'approved_orders', 'label' => 'Orders', 'icon' => 'briefcase', 'route' => 'panel/planner-hub/management/orders', 'group' => 'Approved Tools'],
+            'crm' => ['key' => 'approved_crm', 'label' => 'CRM', 'icon' => 'users', 'route' => 'panel/planner-hub/management/crm', 'group' => 'Approved Tools'],
+            'storage' => ['key' => 'approved_storage', 'label' => 'Inventory / Storage', 'icon' => 'boxes', 'route' => 'panel/planner-hub/management/storage', 'group' => 'Approved Tools'],
+            'users' => ['key' => 'approved_team', 'label' => 'Team', 'icon' => 'user-check', 'route' => 'panel/planner-hub/management/users', 'group' => 'Approved Tools'],
+        ];
+        foreach ($approvedTools as $module => $item) {
+            if ($user->hasPermissionForModule($module)) {
+                $items[] = $item;
+            }
+        }
+        return array_merge($items, [
+            ['key' => 'settings', 'label' => 'Profile', 'icon' => 'cog', 'route' => 'panel/settings', 'group' => 'Account'],
+            ['key' => 'client_view', 'label' => 'Client View', 'icon' => 'user-check', 'action' => 'client_view', 'group' => 'Account'],
         ], $common);
     }
 
@@ -74,7 +106,9 @@ function mobileNavigationForLevel(int $level): array
         ['key' => 'rewards', 'label' => 'My Rewards', 'icon' => 'gift', 'route' => 'panel/rewards', 'group' => 'Payments'],
         ['key' => 'store_orders', 'label' => 'My Store Orders', 'icon' => 'shopping-bag', 'route' => 'panel/store/orders/home', 'group' => 'VNV To Go'],
         ['key' => 'store_subscriptions', 'label' => 'Recurring Orders', 'icon' => 'redo', 'route' => 'panel/store/subscriptions/home', 'group' => 'VNV To Go'],
-        ['key' => 'messages', 'label' => 'Messages', 'icon' => 'comments', 'route' => 'panel/chat', 'group' => 'Account'],
+        ['key' => 'messages', 'label' => 'Messages', 'icon' => 'comments', 'route' => 'panel/chat', 'group' => 'Support'],
+        ['key' => 'new_request', 'label' => 'New Event Request', 'icon' => 'paper-plane', 'action' => 'open_request', 'group' => 'Support'],
+        ['key' => 'settings', 'label' => 'Account Settings', 'icon' => 'cog', 'route' => 'panel/settings', 'group' => 'Support'],
     ], $common);
 }
 
@@ -89,7 +123,8 @@ $router->get(function () {
         'success' => true,
         'data' => [
             'level' => $level,
-            'items' => mobileNavigationForLevel($level),
+            'navigation_version' => 2,
+            'items' => mobileNavigationForUser($user),
         ],
     ]);
 });
