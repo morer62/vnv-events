@@ -284,14 +284,14 @@ class ReminderService
             default => "Reminder sent for order #{$orderId}"
         };
         
-        $link = "/vnv-venue/panel/planner-hub/management/orders/orders/reminders";
+        $link = "/panel/planner-hub/management/orders/orders/reminders";
         
         $sql = "INSERT INTO notifications (id_user, mensaje, link, leido) VALUES (:id_user, :mensaje, :link, :leido)";
         $this->notificationsRepo->db->query($sql);
         $this->notificationsRepo->db->bind(":id_user", $userId);
         $this->notificationsRepo->db->bind(":mensaje", $message);
         $this->notificationsRepo->db->bind(":link", $link);
-        $this->notificationsRepo->db->bind(":leido", 0);
+        $this->notificationsRepo->db->bind(":leido", 'NO');
         $this->notificationsRepo->db->execute();
     }
 
@@ -304,14 +304,14 @@ class ReminderService
             default => "Reminder sent for order #{$orderId}"
         };
         
-        $link = "/vnv-venue/order-access?token=" . $this->generateContractToken($orderId, $clientId);
+        $link = "/order-access?token=" . rawurlencode($this->generateContractToken($orderId, $clientId));
         
         $sql = "INSERT INTO notifications (id_user, mensaje, link, leido) VALUES (:id_user, :mensaje, :link, :leido)";
         $this->notificationsRepo->db->query($sql);
         $this->notificationsRepo->db->bind(":id_user", $clientId);
         $this->notificationsRepo->db->bind(":mensaje", $message);
         $this->notificationsRepo->db->bind(":link", $link);
-        $this->notificationsRepo->db->bind(":leido", 0);
+        $this->notificationsRepo->db->bind(":leido", 'NO');
         $this->notificationsRepo->db->execute();
     }
 }

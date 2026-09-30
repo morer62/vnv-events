@@ -60,6 +60,18 @@ class NotificationsRepository extends BaseRepository
         return $this->db->fetchAll();
     }
 
+    public function getMobileNotificationsByUser(int $userId, int $limit = 100): array
+    {
+        $this->db->query(
+            "SELECT * FROM notifications
+             WHERE id_user = :id_user
+             ORDER BY timestamp DESC
+             LIMIT " . max(1, min(200, $limit))
+        );
+        $this->db->bind(":id_user", $userId);
+        return $this->db->fetchAll();
+    }
+
     public function getMobileBroadcastByUserAndId(int $userId, int $notificationId): ?object
     {
         $this->db->query(
