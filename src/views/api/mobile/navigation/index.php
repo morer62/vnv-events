@@ -1,6 +1,7 @@
 <?php
 
 use App\Services\ApiAuthService;
+use App\Services\AutomationCenterService;
 use App\Repositories\StoreUserRolesRepository;
 use App\Utils\Cors;
 use App\Utils\JsonResponse;
@@ -21,6 +22,7 @@ function mobileNavigationForUser($user): array
             ['key' => 'home', 'label' => 'VNV Dashboard', 'icon' => 'home', 'native_screen' => 'Panel', 'group' => 'VNV Events'],
             ['key' => 'orders', 'label' => 'Event Orders', 'icon' => 'briefcase', 'route' => 'panel/planner-hub/management/orders/orders/execution', 'group' => 'VNV Events'],
             ['key' => 'calendar', 'label' => 'Order Calendar', 'icon' => 'calendar-alt', 'route' => 'panel/planner-hub/management/orders/calendar', 'group' => 'VNV Events'],
+            ['key' => 'event_area', 'label' => 'Event Area', 'icon' => 'camera', 'route' => 'panel/event-execution', 'group' => 'VNV Events'],
             ['key' => 'contracts', 'label' => 'Contracts', 'icon' => 'file-contract', 'route' => 'panel/planner-hub/management/orders/contracts', 'group' => 'VNV Events'],
             ['key' => 'clients', 'label' => 'Clients', 'icon' => 'user-check', 'route' => 'panel/planner-hub/management/users?active_tab=clients', 'group' => 'VNV Events'],
             ['key' => 'team', 'label' => 'Team', 'icon' => 'users', 'route' => 'panel/planner-hub/management/users', 'group' => 'VNV Events'],
@@ -44,6 +46,8 @@ function mobileNavigationForUser($user): array
             ['key' => 'subscriptions', 'label' => 'Subscriptions', 'icon' => 'redo', 'route' => 'panel/planner-hub/store/subscriptions/home', 'group' => 'Store'],
             ['key' => 'coupons', 'label' => 'Coupons', 'icon' => 'percent', 'route' => 'panel/planner-hub/store/coupons/home', 'group' => 'Store'],
             ['key' => 'store_payments', 'label' => 'Store Payments', 'icon' => 'credit-card', 'route' => 'panel/planner-hub/store/payments/home', 'group' => 'Store'],
+            ['key' => 'delivery_pricing', 'label' => 'Delivery Pricing', 'icon' => 'truck', 'route' => 'panel/planner-hub/store/delivery-pricing', 'group' => 'Store'],
+            ['key' => 'loyalty', 'label' => 'Rewards & Points', 'icon' => 'gift', 'route' => 'panel/planner-hub/management/orders/loyalty', 'group' => 'VNV Events'],
             ['key' => 'settings', 'label' => 'Settings', 'icon' => 'cog', 'route' => 'panel/settings', 'group' => 'Settings'],
             ['key' => 'automation', 'label' => 'Automation Center', 'icon' => 'clock', 'route' => 'panel/planner-hub/settings/automation', 'group' => 'Settings'],
             ['key' => 'payment_providers', 'label' => 'Payment Providers', 'icon' => 'credit-card', 'route' => 'panel/planner-hub/settings/payment-providers', 'group' => 'Settings'],
@@ -77,7 +81,9 @@ function mobileNavigationForUser($user): array
             ['key' => 'contract', 'label' => 'My Contract', 'icon' => 'file-contract', 'route' => 'panel/planner-hub/team/contracts', 'group' => 'My Work'],
             ['key' => 'availability', 'label' => 'My Availability', 'icon' => 'calendar-alt', 'route' => 'panel/manager-availability', 'group' => 'My Work'],
             ['key' => 'clock', 'label' => 'Clock In / Out', 'icon' => 'clock', 'route' => 'panel/planner-hub/team/payroll/clock', 'group' => 'Time'],
+            ['key' => 'event_area', 'label' => 'Event Area', 'icon' => 'camera', 'route' => 'panel/event-execution', 'group' => 'My Work'],
         ];
+        try { if ((new AutomationCenterService((int)$user->getOwner()))->isReviewer((int)$user->getId())) $items[]=['key'=>'mochi','label'=>'Mochi Review','icon'=>'comments','route'=>'panel/planner-hub/settings/automation','group'=>'My Work']; } catch (\Throwable) {}
         $approvedTools = [
             'orders' => ['key' => 'approved_orders', 'label' => 'Orders', 'icon' => 'briefcase', 'route' => 'panel/planner-hub/management/orders', 'group' => 'Approved Tools'],
             'crm' => ['key' => 'approved_crm', 'label' => 'CRM', 'icon' => 'users', 'route' => 'panel/planner-hub/management/crm', 'group' => 'Approved Tools'],
@@ -124,7 +130,7 @@ $router->get(function () {
         'success' => true,
         'data' => [
             'level' => $level,
-            'navigation_version' => 2,
+            'navigation_version' => 3,
             'items' => mobileNavigationForUser($user),
         ],
     ]);
