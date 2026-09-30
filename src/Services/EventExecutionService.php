@@ -126,7 +126,7 @@ final class EventExecutionService
             (SELECT COALESCE(MAX(joined_at),'1970-01-01') FROM event_execution_members WHERE id_space=:member_space) member_version,
             (SELECT COUNT(*) FROM event_execution_music_requests WHERE id_space=:music_count AND status<>'CANCELLED') music_count,
             (SELECT COUNT(*) FROM event_execution_photos WHERE id_space=:photo_count AND deleted_at IS NULL) photo_count,
-            (SELECT COALESCE(MAX(created_at),'1970-01-01') FROM event_execution_request_comments c JOIN event_execution_music_requests r ON r.id=c.id_music_request WHERE r.id_space=:comment_space) comment_version,
+            (SELECT COALESCE(MAX(c.created_at),'1970-01-01') FROM event_execution_request_comments c JOIN event_execution_music_requests r ON r.id=c.id_music_request WHERE r.id_space=:comment_space) comment_version,
             (SELECT COALESCE(MAX(created_at),'1970-01-01') FROM event_execution_tip_payments WHERE id_space=:tip_space) tip_version");
         foreach(['music_space','photo_space','member_space','music_count','photo_count','comment_space','tip_space'] as $key)$this->db->bind(':'.$key,$spaceId);
         $state=$this->db->fetchOne();
