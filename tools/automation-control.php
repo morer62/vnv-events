@@ -18,5 +18,7 @@ try{
     $settings=$pdo->query("SELECT master_enabled,dry_run,timezone,quiet_hours_start,quiet_hours_end FROM automation_settings WHERE id_owner=2 AND site_key='vnvevents'")->fetch(PDO::FETCH_ASSOC);
     $reviewers=(int)$pdo->query("SELECT COUNT(*) FROM automation_reviewers WHERE id_owner=2 AND site_key='vnvevents' AND status='ACTIVE'")->fetchColumn();
     $pending=(int)$pdo->query("SELECT COUNT(DISTINCT dedupe_key) FROM automation_outbox WHERE id_owner=2 AND site_key='vnvevents' AND status='AWAITING_APPROVAL'")->fetchColumn();
-    fwrite(STDOUT,json_encode(['settings'=>$settings,'active_reviewers'=>$reviewers,'recommendations_awaiting_approval'=>$pending],JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES)."\n");
+    $counts=$pdo->query("SELECT status,COUNT(*) total FROM automation_outbox WHERE id_owner=2 AND site_key='vnvevents' GROUP BY status")->fetchAll(PDO::FETCH_KEY_PAIR);
+    $errors=$pdo->query("SELECT id,channel,message_type,attempts,last_error FROM automation_outbox WHERE id_owner=2 AND site_key='vnvevents' AND status='FAILED' ORDER BY id DESC LIMIT 5")->fetchAll(PDO::FETCH_ASSOC);
+    fwrite(STDOUT,json_encode(['settings'=>$settings,'active_reviewers'=>$reviewers,'recommendations_awaiting_approval'=>$pending,'outbox_counts'=>$counts,'recent_errors'=>$errors],JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES)."\n");
 }catch(Throwable $e){fwrite(STDERR,"Automation control failed: ".$e->getMessage()."\n");exit(1);}
