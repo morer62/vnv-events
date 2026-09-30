@@ -42,7 +42,7 @@ function mobileNotificationPayload(object $notification): array
         'message' => $message,
         'link' => $link,
         'raw_link' => $rawLink,
-        'is_read' => (int)($notification->leido ?? 0) === 1,
+        'is_read' => in_array(strtoupper((string)($notification->leido ?? '0')), ['1', 'YES', 'SI', 'READ'], true),
         'created_at' => (string)($notification->timestamp ?? ''),
         'type' => $type,
     ];
@@ -58,7 +58,7 @@ $router->get(function () {
     }
 
     $repo = new NotificationsRepository();
-    $rows = $repo->getMobileBroadcastsByUser((int)$user->getId());
+    $rows = $repo->getMobileNotificationsByUser((int)$user->getId());
 
     return JsonResponse::createResponse([
         'success' => true,
@@ -85,7 +85,7 @@ $router->post(function () {
     }
 
     $repo = new NotificationsRepository();
-    $notification = $repo->getMobileBroadcastByUserAndId((int)$user->getId(), $notificationId);
+    $notification = $repo->getByUserAndId((int)$user->getId(), $notificationId);
     if (!$notification) {
         return JsonResponse::createResponse([
             'success' => false,

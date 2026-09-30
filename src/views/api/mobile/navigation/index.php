@@ -45,6 +45,7 @@ function mobileNavigationForUser($user): array
             ['key' => 'coupons', 'label' => 'Coupons', 'icon' => 'percent', 'route' => 'panel/planner-hub/store/coupons/home', 'group' => 'Store'],
             ['key' => 'store_payments', 'label' => 'Store Payments', 'icon' => 'credit-card', 'route' => 'panel/planner-hub/store/payments/home', 'group' => 'Store'],
             ['key' => 'settings', 'label' => 'Settings', 'icon' => 'cog', 'route' => 'panel/settings', 'group' => 'Settings'],
+            ['key' => 'automation', 'label' => 'Automation Center', 'icon' => 'clock', 'route' => 'panel/planner-hub/settings/automation', 'group' => 'Settings'],
             ['key' => 'payment_providers', 'label' => 'Payment Providers', 'icon' => 'credit-card', 'route' => 'panel/planner-hub/settings/payment-providers', 'group' => 'Settings'],
             ['key' => 'smtp', 'label' => 'SMTP Providers', 'icon' => 'paper-plane', 'route' => 'panel/planner-hub/settings/smtp', 'group' => 'Settings'],
         ], $common);
