@@ -20,6 +20,7 @@ $router->get(function(){
 
 $router->post(function()use($redirect){
     $user=LoginService::getSession();$owner=(int)((int)$user->getLevel()===1?$user->getId():$user->getOwner());
+    $isAjax=strtolower((string)($_SERVER['HTTP_X_REQUESTED_WITH']??''))==='xmlhttprequest';
     try{
         $service=new AutomationCenterService($owner);$isAdmin=(int)$user->getLevel()===1;$isReviewer=$service->isReviewer((int)$user->getId());if(!$isAdmin&&!$isReviewer)throw new RuntimeException('Automation reviewer access required.');$action=(string)($_POST['action']??'save');
         if($action==='save'){if(!$isAdmin)throw new RuntimeException('Only Level 1 can change automation settings.');$service->saveSettings($_POST,(int)$user->getId());MessageUtil::setMessage('Automation settings saved.','Automation Center','success');}
@@ -27,8 +28,8 @@ $router->post(function()use($redirect){
         elseif($action==='deliver'){$result=$service->processOutbox(30);MessageUtil::setMessage('Delivery worker completed: '.json_encode($result),'Automation Center','success');}
         elseif($action==='test'){$email=trim((string)($_POST['test_email']??''));$service->queueTest($email,(int)$user->getId());MessageUtil::setMessage('Controlled test queued for '.$email.'. Run delivery to send it.','Automation Center','success');}
         elseif($action==='review'){$service->review((string)($_POST['dedupe_key']??''),(string)($_POST['decision']??''),(int)$user->getId(),trim((string)($_POST['comment']??'')),($_POST['memory_type']??null),trim((string)($_POST['memory']??'')));MessageUtil::setMessage('Recomendación revisada. La conversación y el contexto quedaron guardados.','Mochi','success');}
-        elseif($action==='ask_mochi'){$reply=(new MochiConciergeService($owner))->ask((int)$user->getId(),(string)($_POST['message']??''),($_POST['customer_id']??'')!==''?(int)$_POST['customer_id']:null);MessageUtil::setMessage('Mochi: '.$reply,'Mochi','success');}
-    }catch(Throwable $e){MessageUtil::setMessage($e->getMessage(),'Automation Center','danger');}
+        elseif($action==='ask_mochi'){$reply=(new MochiConciergeService($owner))->ask((int)$user->getId(),(string)($_POST['message']??''));if($isAjax){header('Content-Type: application/json; charset=utf-8');echo json_encode(['ok'=>true,'reply'=>$reply],JSON_UNESCAPED_UNICODE);exit;}MessageUtil::setMessage('Mochi: '.$reply,'Mochi','success');}
+    }catch(Throwable $e){if($isAjax){header('Content-Type: application/json; charset=utf-8');http_response_code(422);echo json_encode(['ok'=>false,'error'=>$e->getMessage()],JSON_UNESCAPED_UNICODE);exit;}MessageUtil::setMessage($e->getMessage(),'Automation Center','danger');}
     $redirect();
 });
 $router->run();

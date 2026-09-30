@@ -30,7 +30,9 @@ final class AutomationCenterService
         elseif($today->format('m')==='12'){$state='reindeer';$greeting=$greeting?:'Happy holidays from your VNV concierge!';}
         elseif($md==='02-14'){$state='cupid';$greeting='Happy Valentine’s Day!';}
         else{$easter=(new \DateTimeImmutable('@'.easter_date((int)$today->format('Y'))))->setTimezone($this->timezone);if(abs((int)$today->diff($easter)->format('%r%a'))<=1){$state='easter';$greeting='Happy Easter!';}}
-        return ['state'=>$state,'greeting'=>$greeting];
+        $rhymes=['Con cafecito y buen humor, hoy avanzamos con mucho primor.','Pasito a paso y con alegría, ponemos bonita la agenda del día.','Con calma, enfoque y una sonrisa, hoy cada pendiente pierde la prisa.','Orden y cariño en cada tarea: hoy VNV avanza y todo se planea.','Agenda clara, mente ligera: hoy sacamos trabajo de primera.','Sin correr y sin tropezar, hoy cada detalle va a brillar.','Con café cerquita y enfoque también, hoy nuestro trabajo nos queda muy bien.','Mochi da un saltito para comenzar; con orden y calma vamos a avanzar.','Un pendiente menos, una sonrisa más; hoy el equipo lo logrará.','Con ideas claras desde temprano, hoy cada evento queda en buenas manos.'];
+        $rhyme=$rhymes[((int)sprintf('%u',crc32($today->format('Y-m-d'))))%count($rhymes)];
+        return ['state'=>$state,'greeting'=>$greeting,'rhyme'=>$rhyme];
     }
 
     public function saveSettings(array $input,int $actorId): void
