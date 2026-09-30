@@ -211,8 +211,14 @@ class PaymentReceiptPdfGenerator
         foreach ($payments as $payment) {
             $paymentDate = date("M j, Y", strtotime($payment->paid_at));
             $paymentMethod = ucfirst($payment->method);
-            $totalPaid += (float)$payment->amount;
-            $paymentHistory .= $paymentDate . ' (' . $paymentMethod . ') $' . number_format((float)$payment->amount, 2) . '<br>';
+            $providerAmount = (float)$payment->amount;
+            $rewardsAmount = (float)($payment->loyalty_discount_amount ?? 0);
+            $totalPaid += $providerAmount + $rewardsAmount;
+            $paymentHistory .= $paymentDate . ' (' . $paymentMethod . ') $' . number_format($providerAmount, 2);
+            if ($rewardsAmount > 0) {
+                $paymentHistory .= ' + Rewards $' . number_format($rewardsAmount, 2);
+            }
+            $paymentHistory .= '<br>';
         }
 
         $totalPaidAndAdvances = $totalPaid + $advancesTotal;

@@ -55,7 +55,9 @@ class OrdersPaymentsRepository extends BaseRepository
             'stripe_charge_id' => $chargeId
         ]);
         if ($updated) {
-            (new LoyaltyRewardsService())->reverseForEventPayment($chargeId, $amount);
+            $this->db->query("SELECT o.id_owner,o.id_client FROM orders_payments op JOIN orders o ON o.id=op.id_order WHERE op.stripe_charge_id=:charge LIMIT 1");
+            $this->db->bind(':charge',$chargeId);$scope=$this->db->fetchOne();
+            if($scope)(new LoyaltyRewardsService())->reconcileInvalidSources((int)$scope->id_owner,'vnvevents',(int)$scope->id_client);
         }
     }
 

@@ -365,6 +365,14 @@ body{
                 <div id="checkoutItemsWrap">
                     <div class="checkout-empty">Loading your cart...</div>
                 </div>
+
+                <div class="summary-box" id="rewardsBox" style="display:none">
+                    <div class="checkout-section-title" style="font-size:1.05rem">Your Rewards</div>
+                    <p class="payment-consent-copy"><strong id="rewardsAvailable">0 points · $0.00 available</strong><br><span id="rewardsProcessing"></span></p>
+                    <div class="field"><label for="loyaltyPoints">Use Rewards</label><input id="loyaltyPoints" type="number" min="0" step="0.01" value="0"></div>
+                    <button type="button" class="btn btn-outline-dark w-100" id="useAllRewards">Use all available</button>
+                    <div class="summary-row discount mt-2"><span>Rewards</span><strong id="checkoutRewards">-$0.00</strong></div>
+                </div>
             </div>
         </div>
 
@@ -585,6 +593,8 @@ document.addEventListener('DOMContentLoaded', function () {
     const SESSION_KEY = 'store_cart_session_token';
     const PAYMENT_SUCCESS_FALLBACK = `{{ path('store/payment-successful') }}`;
     const RECOVERY_TOKEN = `{{ recovery_token|default('')|e('js') }}`;
+    const rewardsBox=document.getElementById('rewardsBox'),rewardsAvailable=document.getElementById('rewardsAvailable'),rewardsProcessing=document.getElementById('rewardsProcessing'),loyaltyPointsInput=document.getElementById('loyaltyPoints'),useAllRewardsBtn=document.getElementById('useAllRewards'),checkoutRewards=document.getElementById('checkoutRewards');
+    let rewardsBalance=null;
 
     const errorBox = document.getElementById('checkoutErrorBox');
     const successBox = document.getElementById('checkoutSuccessBox');
@@ -745,6 +755,9 @@ document.addEventListener('DOMContentLoaded', function () {
             discountRowEl.style.display = 'none';
         }
     }
+    function requestedRewards(){return Math.max(0,Math.min(Number(rewardsBalance?.available_points||0),Number(loyaltyPointsInput?.value||0)));}
+    function syncRewardsPreview(){if(!loyaltyPointsInput)return;const points=requestedRewards(),value=Number(rewardsBalance?.point_value||1),discount=Math.min(Number(checkoutState.cart?.total||0),points*value);checkoutRewards.textContent=`-$${discount.toFixed(2)}`;}
+    loyaltyPointsInput?.addEventListener('input',syncRewardsPreview);useAllRewardsBtn?.addEventListener('click',()=>{loyaltyPointsInput.value=Number(rewardsBalance?.available_points||0).toFixed(2);syncRewardsPreview();});
 
     function deliveryAddressPayload() {
         const same = shippingSameAsBillingInput.checked;
@@ -771,7 +784,7 @@ document.addEventListener('DOMContentLoaded', function () {
         try{
             const response=await fetch('{{ path("store/checkout") }}',{method:'POST',headers:{'Content-Type':'application/json','X-Requested-With':'XMLHttpRequest'},body:JSON.stringify({action:'calculate_delivery',session_token:sessionToken,recovery_token:RECOVERY_TOKEN,...address})});
             const data=await response.json();if(!response.ok||!data.success)throw new Error(data.message||'Delivery could not be calculated.');
-            deliveryQuoteReady=true;deliveryEl.textContent=`$${Number(data.delivery_fee).toFixed(2)}`;taxEl.textContent=`$${Number(data.tax).toFixed(2)}`;totalEl.textContent=`$${Number(data.total).toFixed(2)}`;deliveryQuoteStatus.textContent=`${Number(data.distance_miles).toFixed(1)} miles · ${String(data.pricing_source).replaceAll('_',' ')} · price reserved for this checkout.`;return data;
+            deliveryQuoteReady=true;deliveryEl.textContent=`$${Number(data.delivery_fee).toFixed(2)}`;taxEl.textContent=`$${Number(data.tax).toFixed(2)}`;totalEl.textContent=`$${Number(data.total).toFixed(2)}`;if(checkoutState.cart)checkoutState.cart.total=Number(data.total);syncRewardsPreview();deliveryQuoteStatus.textContent=`${Number(data.distance_miles).toFixed(1)} miles · ${String(data.pricing_source).replaceAll('_',' ')} · price reserved for this checkout.`;return data;
         }finally{calculateDeliveryBtn.disabled=false;calculateDeliveryBtn.innerHTML='<i class="fa-solid fa-route"></i> Calculate Delivery';}
     }
     calculateDeliveryBtn.addEventListener('click',()=>{hideMessages();calculateDelivery().catch(e=>{deliveryQuoteStatus.textContent=e.message;showError(e.message)})});
@@ -836,6 +849,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
             checkoutState.cart = data.cart || null;
             checkoutState.items = Array.isArray(data.items) ? data.items : [];
+            rewardsBalance=data.rewards||null;if(rewardsBalance){rewardsBox.style.display='block';rewardsAvailable.textContent=`${Number(rewardsBalance.available_points||0).toFixed(2)} points · $${Number(rewardsBalance.available_value||0).toFixed(2)} available`;rewardsProcessing.textContent=Number(rewardsBalance.pending_points||0)>0?`$${Number(rewardsBalance.pending_value||0).toFixed(2)} additional rewards processing`:'';loyaltyPointsInput.max=Number(rewardsBalance.available_points||0);}else{rewardsBox.style.display='none';}
 
             if (checkoutState.cart) {
                 guestNameInput.value = checkoutState.cart.guest_name || '';
@@ -998,6 +1012,8 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     async function getPaymentToken() {
+        const rewardValue=requestedRewards()*Number(rewardsBalance?.point_value||1);
+        if(rewardValue+0.009>=Number(checkoutState.cart?.total||0)){paymentTokenType='rewards';return {token:'',card_brand:'',card_last4:'',card_exp:''};}
         if (paymentTokenType === 'stored_card') {
             if (!selectedSavedCardToken) {
                 throw new Error('Please select a saved card.');
@@ -1034,12 +1050,14 @@ document.addEventListener('DOMContentLoaded', function () {
                     shipping_address: [shippingSameAsBillingInput.checked ? billingAddress1Input.value.trim() : shippingAddress1Input.value.trim(), shippingSameAsBillingInput.checked ? billingCityInput.value.trim() : shippingCityInput.value.trim(), shippingSameAsBillingInput.checked ? billingStateInput.value.trim() : shippingStateInput.value.trim(), shippingSameAsBillingInput.checked ? billingZipInput.value.trim() : shippingZipInput.value.trim()].filter(Boolean).join(', '),
                     ...deliveryAddressPayload(),
                     save_for_future: Boolean(savePaymentMethodInput?.checked || autoChargeConsentInput?.checked)
+                    ,loyalty_points: requestedRewards()
                 })
             });
             const intentData = await intentResponse.json();
             if (!intentResponse.ok || !intentData.success) {
                 throw new Error(intentData.message || 'Could not prepare secure Stripe payment.');
             }
+            if(intentData.covered_by_rewards){paymentTokenType='rewards';return {token:'',card_brand:'',card_last4:'',card_exp:''};}
             const result = await stripe.confirmCardPayment(intentData.client_secret, {
                 payment_method: {
                     card: stripeCard,
@@ -1151,6 +1169,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     card_brand: paymentData.card_brand || '',
                     card_last4: paymentData.card_last4 || '',
                     card_exp: paymentData.card_exp || ''
+                    ,loyalty_points: requestedRewards()
                 })
             });
 

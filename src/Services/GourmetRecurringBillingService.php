@@ -114,6 +114,8 @@ final class GourmetRecurringBillingService
             $this->execute("UPDATE store_recurring_occurrences SET id_store_order=:order_id,status='CONFIRMED',payment_status='PAID',actual_subtotal=:subtotal,actual_delivery_provider_cost=:provider_cost,actual_delivery_fee=:delivery_fee,actual_delivery_margin=:margin,actual_tax=:tax,actual_total=:total,amount_charged=:charged,charged_at=UTC_TIMESTAMP(),updated_at=UTC_TIMESTAMP() WHERE id=:id",[':order_id'=>$orderId,':subtotal'=>$subtotal,':provider_cost'=>$delivery['provider_cost'],':delivery_fee'=>$delivery['customer_fee'],':margin'=>$delivery['delivery_margin'],':tax'=>$tax,':total'=>$total,':charged'=>$total,':id'=>(int)$occurrence->id]);
             $this->execute('INSERT INTO store_order_workflow (id_owner,id_store_order,created_at,updated_at) VALUES (:owner,:order_id,UTC_TIMESTAMP(),UTC_TIMESTAMP())',[':owner'=>(int)$parent->id_owner,':order_id'=>$orderId]);
             $this->db->commit();
+            try { (new LoyaltyRewardsService())->earnForStoreOrder($orderId); }
+            catch (\Throwable $rewardError) { error_log('[Recurring To Go] Reward earn failed for order #'.$orderId.': '.$rewardError->getMessage()); }
             $this->notifyPaymentConfirmed($parent, $occurrence, $user, $orderId, $total);
             return $orderId;
         }catch(\Throwable $e){$this->db->rollback();throw $e;}

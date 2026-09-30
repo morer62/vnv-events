@@ -52,7 +52,7 @@ $router->get(function () {
             'upcoming_events'=>mobileDashboardScalar($db,"SELECT COUNT(*) total FROM orders WHERE id_client=:user AND is_archived=0 AND event_date>=CURDATE()",[':user'=>$userId]),
             'store_orders'=>mobileDashboardScalar($db,"SELECT COUNT(*) total FROM store_orders WHERE id_user=:user",[':user'=>$userId]),
         ];
-        try { $rewards=(new LoyaltyRewardsService())->balance($ownerId,$userId); $metrics['available_points']=(float)$rewards['available_points']; $metrics['available_value']=(float)$rewards['available_value']; } catch(Throwable $e) {}
+        try { $loyalty=new LoyaltyRewardsService();$rewards=$loyalty->balance($ownerId,$userId);$settings=$loyalty->settings($ownerId); $metrics['available_points']=(float)$rewards['available_points']; $metrics['available_value']=(float)$rewards['available_value'];$metrics['processing_points']=(float)$rewards['pending_points'];$metrics['processing_value']=(float)$rewards['pending_value'];$metrics['reward_release_hours']=(int)($settings->release_hours??48); } catch(Throwable $e) {}
     }
 
     return JsonResponse::createResponse(['success'=>true,'data'=>['level'=>$level,'metrics'=>$metrics,'alerts'=>$alerts,'generated_at'=>date(DATE_ATOM)]]);

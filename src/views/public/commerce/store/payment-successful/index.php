@@ -34,6 +34,9 @@ $router->get(function () {
     $pricingMode = (string)($payload['pricing_mode'] ?? '');
     $guestName = (string)($payload['guest_name'] ?? '');
     $total = (float)($payload['total'] ?? 0);
+    $providerTotal = (float)($payload['provider_total'] ?? $total);
+    $rewardsDiscount = (float)($payload['rewards_discount'] ?? 0);
+    $rewardsPoints = (float)($payload['rewards_points'] ?? 0);
     $email = (string)($payload['email'] ?? '');
 
     // clear cookie so the page cannot be re-opened manually and analytics stay clean
@@ -45,6 +48,9 @@ $router->get(function () {
         'pricing_mode' => $pricingMode,
         'guest_name' => $guestName,
         'total' => $total,
+        'provider_total' => $providerTotal,
+        'rewards_discount' => $rewardsDiscount,
+        'rewards_points' => $rewardsPoints,
         'email' => $email,
     ]);
 });

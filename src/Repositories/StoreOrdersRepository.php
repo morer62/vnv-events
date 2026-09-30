@@ -3,6 +3,7 @@
 namespace App\Repositories;
 
 use App\Repositories\Concerns\SiteScopedRepositoryTrait;
+use App\Services\LoyaltyRewardsService;
 
 class StoreOrdersRepository extends BaseRepository
 {
@@ -63,6 +64,7 @@ class StoreOrdersRepository extends BaseRepository
         'meals_count',
         'subtotal',
         'discount',
+        'loyalty_discount_amount',
         'delivery_provider_cost',
         'delivery_fee',
         'delivery_margin',
@@ -82,6 +84,7 @@ class StoreOrdersRepository extends BaseRepository
         'total',
         'payment_status',
         'status',
+        'reward_completed_at',
         'billing_address_1',
         'billing_address_2',
         'billing_city',
@@ -355,22 +358,20 @@ class StoreOrdersRepository extends BaseRepository
 
     public function markAsRefunded(int $orderId): bool
     {
-        return $this->update([
+        $updated=$this->update([
             'payment_status' => self::PAYMENT_REFUNDED,
             'updated_at' => date('Y-m-d H:i:s')
         ], [
             'id' => $orderId
-        ]);
+        ]);if($updated){$order=$this->getById($orderId);if($order)(new LoyaltyRewardsService())->reconcileInvalidSources((int)$order->id_owner,(string)($order->site_key?:'vnvevents'),(int)$order->id_user);}return $updated;
     }
 
     public function updateStatus(int $orderId, string $status): bool
     {
-        return $this->update([
+        $data=[
             'status' => $status,
             'updated_at' => date('Y-m-d H:i:s')
-        ], [
-            'id' => $orderId
-        ]);
+        ];if(in_array($status,[self::STATUS_DELIVERED,self::STATUS_COMPLETED],true))$data['reward_completed_at']=date('Y-m-d H:i:s');$updated=$this->update($data,['id'=>$orderId]);if($updated){$order=$this->getById($orderId);if($order){$loyalty=new LoyaltyRewardsService();if(in_array($status,[self::STATUS_DELIVERED,self::STATUS_COMPLETED],true))$loyalty->sourceCompleted('STORE_ORDER',$orderId,(string)$order->reward_completed_at);if($status===self::STATUS_CANCELLED)$loyalty->reconcileInvalidSources((int)$order->id_owner,(string)($order->site_key?:'vnvevents'),(int)$order->id_user);}}return $updated;
     }
 
     public function assignUser(int $orderId, int $userId): bool

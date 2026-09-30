@@ -219,6 +219,13 @@
             {% endif %}
         </div>
 
+        {% if rewards_discount > 0 %}
+            <div class="success-box">
+                <strong>Rewards applied</strong>
+                <span>{{ rewards_points|number_format(2) }} points covered ${{ rewards_discount|number_format(2, '.', ',') }}. Card payment: ${{ provider_total|number_format(2, '.', ',') }}.</span>
+            </div>
+        {% endif %}
+
         <div class="success-box">
             <strong>What happens next</strong>
             <span>

@@ -3,6 +3,7 @@
 namespace App\Repositories;
 
 use App\Repositories\Concerns\SiteScopedRepositoryTrait;
+use App\Services\LoyaltyRewardsService;
 
 class StorePaymentsRepository extends BaseRepository
 {
@@ -28,6 +29,10 @@ class StorePaymentsRepository extends BaseRepository
         'external_payment_id',
         'external_reference',
         'amount',
+        'loyalty_points_redeemed',
+        'loyalty_discount_amount',
+        'loyalty_reservation_token',
+        'refunded_amount',
         'currency',
         'status',
         'payer_name',
@@ -163,7 +168,23 @@ class StorePaymentsRepository extends BaseRepository
             $data['raw_response'] = $rawResponse;
         }
 
-        return $this->update($data, ['id' => $paymentId]);
+        $updated=$this->update($data, ['id' => $paymentId]);
+        if($updated){
+            $payment=$this->getOne(['id'=>$paymentId]);
+            if($payment){
+                $order=(new StoreOrdersRepository())->getById((int)$payment->id_store_order);
+                if($order)(new LoyaltyRewardsService())->reconcileInvalidSources((int)$order->id_owner,(string)($order->site_key?:'vnvevents'),(int)$order->id_user);
+            }
+        }
+        return $updated;
+    }
+
+    public function recordRefund(int $paymentId,float $amount,?string $rawResponse=null): bool
+    {
+        $payment=$this->getOne(['id'=>$paymentId]);if(!$payment||$amount<=0)return false;
+        $refunded=min((float)$payment->amount,max(0,(float)($payment->refunded_amount??0)+$amount));
+        $data=['refunded_amount'=>$refunded];if($refunded+0.009>=(float)$payment->amount)$data['status']=self::STATUS_REFUNDED;if($rawResponse!==null)$data['raw_response']=$rawResponse;
+        $updated=$this->update($data,['id'=>$paymentId]);if($updated){$order=(new StoreOrdersRepository())->getById((int)$payment->id_store_order);if($order)(new LoyaltyRewardsService())->reconcileInvalidSources((int)$order->id_owner,(string)($order->site_key?:'vnvevents'),(int)$order->id_user);}return $updated;
     }
 
     public function getAllByOwner(int $ownerId, int $limit = 100, ?string $siteKey = null): array

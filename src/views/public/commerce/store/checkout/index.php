@@ -26,6 +26,7 @@ use App\Services\GourmetRecurringOrderService;
 use App\Services\Delivery\DeliveryPricingService;
 use App\Services\GourmetDeliveryAreaService;
 use App\Services\Payment\PaymentProviderFactory;
+use App\Services\LoyaltyRewardsService;
 use App\Services\Payment\StripeProvider;
 use App\Utils\LocationUtils;
 use App\Utils\AvomealContext;
@@ -970,6 +971,7 @@ $router->post(function () {
 
         echo json_encode([
             "success" => true,
+            "rewards" => (function() use ($ownerId) { $session=LoginService::getSession();if(!$session||(int)$session->getLevel()!==5)return null;return (new LoyaltyRewardsService())->balance($ownerId,(int)$session->getId(),'vnvevents'); })(),
             "cart" => [
                 "id" => (int)$cart->id,
                 "session_token" => $cart->session_token ?? null,
@@ -1302,7 +1304,13 @@ $router->post(function () {
         $cartsRepo->update(['delivery_quote_id'=>(int)$deliveryQuote['quote_id'],'delivery_fee'=>$deliveryFee,'delivery_pricing_snapshot'=>json_encode($deliveryQuote,JSON_UNESCAPED_SLASHES),'total'=>$total,'updated_at'=>date('Y-m-d H:i:s')],['id'=>(int)$cart->id]);
     } catch(Throwable $e) { echo json_encode(['success'=>false,'message'=>"We couldn't calculate delivery automatically. Please confirm your address or contact VNV."]);return; }
 
-    if ($customerToken === '') {
+    $loyalty=['token'=>null,'points'=>0.0,'discount'=>0.0];$sessionForRewards=LoginService::getSession();$requestedRewards=max(0,(float)($payload['loyalty_points']??0));
+    if($providerType==='stripe'&&!empty($cart->loyalty_reservation_token)){$loyalty=['token'=>(string)$cart->loyalty_reservation_token,'points'=>(float)($cart->loyalty_points_redeemed??0),'discount'=>(float)($cart->loyalty_discount_amount??0)];}
+    elseif($requestedRewards>0&&$sessionForRewards&&(int)$sessionForRewards->getLevel()===5){try{$loyalty=(new LoyaltyRewardsService())->reserve($ownerId,(int)$sessionForRewards->getId(),$requestedRewards,$total,'STORE_CART',(int)$cart->id,'vnvevents');}catch(Throwable $e){echo json_encode(['success'=>false,'message'=>$e->getMessage()]);return;}}
+    $providerTotal=max(0,round($total-(float)$loyalty['discount'],2));
+
+    if ($customerToken === '' && $providerTotal>0.009) {
+        if($loyalty['token'])(new LoyaltyRewardsService())->releaseReservation($loyalty['token']);
         echo json_encode([
             "success" => false,
             "message" => "Payment token missing."
@@ -1312,9 +1320,10 @@ $router->post(function () {
 
      
 
-    $amountCents = (int)round($total * 100);
+    $amountCents = (int)round($providerTotal * 100);
 
-    if ($providerType === 'square') {
+    if($providerTotal<=0.009){$paymentResponse=['success'=>true,'payment_id'=>'rewards-'.$loyalty['token'],'reference'=>'VNV Rewards','raw'=>json_encode(['covered_by_rewards'=>true])];}
+    elseif ($providerType === 'square') {
         $squareCustomerIdForCardOnFile = null;
         if ($paymentTokenType === 'stored_card') {
             $squareCustomerIdForCardOnFile = getSquareCardCustomerId($activeProvider, $customerToken);
@@ -1340,7 +1349,7 @@ $router->post(function () {
                 $stripeProvider=PaymentProviderFactory::create($activeProvider);
                 if(!$stripeProvider instanceof StripeProvider) throw new RuntimeException('Stripe provider unavailable.');
                 $intent=$stripeProvider->retrievePaymentIntent($customerToken);
-                $amountMatches=$intent && abs((float)$intent->amount-$total)<0.01;
+                $amountMatches=$intent && abs((float)$intent->amount-$providerTotal)<0.01;
                 $paymentResponse=$intent && $intent->paid && $amountMatches
                     ? ['success'=>true,'payment_id'=>$intent->id,'reference'=>$intent->payment_method,'raw'=>json_encode($intent->raw)]
                     : ['success'=>false,'message'=>'Stripe payment is incomplete or its amount changed.'];
@@ -1356,7 +1365,7 @@ $router->post(function () {
                 if(!$savedMethod||empty($savedMethod->provider_customer_id)||empty($savedMethod->provider_payment_method_id)) throw new RuntimeException('This saved Stripe card must be updated before it can be charged securely.');
                 $stripeProvider=PaymentProviderFactory::create($activeProvider);
                 if(!$stripeProvider instanceof StripeProvider) throw new RuntimeException('Stripe provider unavailable.');
-                $charge=$stripeProvider->chargeCustomerWithPaymentMethod((string)$savedMethod->provider_customer_id,(string)$savedMethod->provider_payment_method_id,$total,[
+                $charge=$stripeProvider->chargeCustomerWithPaymentMethod((string)$savedMethod->provider_customer_id,(string)$savedMethod->provider_payment_method_id,$providerTotal,[
                     'description'=>'VNV Gourmet To Go cart #'.(int)$cart->id,
                     'idempotency_key'=>'store-cart-'.(int)$cart->id.'-saved-method-'.(int)$savedPaymentMethodId,
                     'customer_email'=>$guestEmail,
@@ -1375,6 +1384,7 @@ $router->post(function () {
     }
 
     if (!$paymentResponse['success']) {
+        if($loyalty['token'])(new LoyaltyRewardsService())->releaseReservation($loyalty['token']);
         echo json_encode([
             "success" => false,
             "message" => $paymentResponse['message'] ?? 'Payment failed.'
@@ -1477,6 +1487,7 @@ $router->post(function () {
         'meals_count' => $mealsCount,
         'subtotal' => $subtotal,
         'discount' => $discount,
+        'loyalty_discount_amount' => (float)$loyalty['discount'],
         'coupon_code' => $couponCodeFromCart !== '' ? $couponCodeFromCart : null,
         'id_coupon' => $couponIdFromCart > 0 ? $couponIdFromCart : null,
         'coupon_discount' => $discount,
@@ -1548,7 +1559,10 @@ $router->post(function () {
             : StorePaymentsRepository::TYPE_FULL,
         'external_payment_id' => $paymentResponse['payment_id'] ?? null,
         'external_reference' => $paymentResponse['reference'] ?? null,
-        'amount' => $total,
+        'amount' => $providerTotal,
+        'loyalty_points_redeemed' => (float)$loyalty['points'],
+        'loyalty_discount_amount' => (float)$loyalty['discount'],
+        'loyalty_reservation_token' => $loyalty['token'],
         'currency' => strtoupper((string)($activeProvider->currency ?? ($_ENV['SQUARE_CURRENCY'] ?? 'USD'))),
         'status' => StorePaymentsRepository::STATUS_PAID,
         'payer_name' => $guestName,
@@ -1558,15 +1572,13 @@ $router->post(function () {
     ]);
 
     if (!$paymentSaved) {
+        if($loyalty['token'])(new LoyaltyRewardsService())->releaseReservation($loyalty['token']);
         echo json_encode([
             "success" => false,
             "message" => "Payment was approved, but the payment log could not be saved."
         ]);
         return;
     }
-
-    $ordersRepo->markAsPaid($orderId);
-    $ordersRepo->updateStatus($orderId, StoreOrdersRepository::STATUS_PROCESSING);
 
     if ($userId) {
         $ordersRepo->assignUser($orderId, $userId);
@@ -1579,6 +1591,23 @@ $router->post(function () {
         ], [
             'id' => $paymentId
         ]);
+    }
+
+    $ordersRepo->markAsPaid($orderId);
+    $ordersRepo->updateStatus($orderId, StoreOrdersRepository::STATUS_PROCESSING);
+
+    if ($loyalty['token']) {
+        try {
+            (new LoyaltyRewardsService())->commitReservation($loyalty['token'], (int)$userId);
+        } catch (Throwable $e) {
+            error_log('[Store checkout] Reward commit failed: ' . $e->getMessage());
+        }
+    }
+
+    try {
+        (new LoyaltyRewardsService())->earnForStoreOrder($orderId, $paymentId ? (int)$paymentId : null);
+    } catch (Throwable $e) {
+        error_log('[Store checkout] Reward earn failed for order #' . $orderId . ': ' . $e->getMessage());
     }
 
     $paymentMethodService = new ClientPaymentMethodService();
@@ -1865,6 +1894,9 @@ $router->post(function () {
     'pricing_mode' => $isRecurringOrder ? 'SUBSCRIPTION' : 'PAYG',
     'guest_name' => (string)$guestName,
     'total' => (float)$total,
+    'provider_total' => (float)$providerTotal,
+    'rewards_discount' => (float)$loyalty['discount'],
+    'rewards_points' => (float)$loyalty['points'],
     'email' => (string)$guestEmail,
     'created_at' => date('Y-m-d H:i:s')
     ];
