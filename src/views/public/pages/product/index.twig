@@ -577,6 +577,7 @@
                                                     <option
                                                         value="{{ variation.id }}"
                                                         data-name="{{ variation.name|e('html_attr') }}"
+                                                        data-size="{{ variation.size_code|default('')|e('html_attr') }}"
                                                         data-price="{{ variation.effective_price }}"
                                                         data-stock="{{ variation.stock_quantity|default(0) }}"
                                                         data-min="{{ variation.min_purchase_qty|default(1) }}"
@@ -606,7 +607,7 @@
                                             {% endif %}
                                         >
                                     </div>
-                                    {% if food_profile %}
+                                    {% if food_profile and product.brand_name != 'VNV Gourmet Express' %}
                                     <div>
                                         <label class="pp-form-label" for="product-servings">Guests / servings</label>
                                         <input type="number" id="product-servings" class="pp-input"
@@ -637,7 +638,7 @@
                                     <h4>Optional add-ons</h4>
                                     {% for addon in product_addons %}
                                     <div class="pp-addon" style="display:grid;grid-template-columns:auto 1fr;gap:.75rem;align-items:center;margin:.7rem 0">
-                                        <input type="checkbox" class="product-addon-check" id="addon-{{ addon.id }}" data-id="{{ addon.id }}" data-name="{{ addon.name|e('html_attr') }}" data-slug="{{ addon.slug|e('html_attr') }}" data-image="{{ addon.main_image|default('')|e('html_attr') }}" data-price="{{ addon.price_override is not null ? addon.price_override : addon.price }}" data-type="{{ addon.product_type }}">
+                                        <input type="checkbox" class="product-addon-check" id="addon-{{ addon.id }}" data-id="{{ addon.id }}" data-name="{{ addon.name|e('html_attr') }}" data-slug="{{ addon.slug|e('html_attr') }}" data-image="{{ addon.main_image|default('')|e('html_attr') }}" data-price="{{ addon.price_override is not null ? addon.price_override : addon.price }}" data-type="{{ addon.product_type }}" data-size-match="{{ addon.size_match|default(0) }}">
                                         <label for="addon-{{ addon.id }}"><strong>{{ addon.name }}</strong>{% if addon.product_type == 'FIXED' %} · ${{ (addon.price_override is not null ? addon.price_override : addon.price)|number_format(2) }}{% endif %}</label>
                                         <input type="number" class="pp-input product-addon-qty" data-addon-id="{{ addon.id }}" min="1" value="1" style="grid-column:2;max-width:110px" disabled aria-label="{{ addon.name }} quantity">
                                         {% if addon.product_type == 'VARIABLE' %}<select class="pp-select product-addon-variation" data-addon-id="{{ addon.id }}" style="grid-column:2" disabled><option value="">Choose an option</option>{% for variation in addon.variations %}<option value="{{ variation.id }}" data-name="{{ variation.name|e('html_attr') }}" data-price="{{ variation.effective_price }}">{{ variation.name }} — ${{ variation.effective_price|number_format(2) }}</option>{% endfor %}</select>{% endif %}
@@ -860,7 +861,19 @@ document.addEventListener('DOMContentLoaded', function () {
         let saved=null;try{saved=JSON.parse(localStorage.getItem('vnv_gourmet_delivery_address')||'null')}catch(e){}
         return await new Promise(resolve=>{if(!addressGate){resolve(false);return;}addressInput.value=saved?.formatted_address||saved?.entered_address||'';addressError.textContent='';addressGate.hidden=false;document.body.style.overflow='hidden';setTimeout(()=>addressInput.focus(),20);const finish=value=>{addressGate.hidden=true;document.body.style.overflow='';addressCheck.onclick=null;addressCancel.onclick=null;resolve(value)};addressCancel.onclick=()=>finish(false);addressCheck.onclick=async()=>{const address=addressInput.value.trim();if(!address){addressError.textContent='Please enter the complete delivery address.';return;}addressCheck.disabled=true;addressError.textContent='Checking delivery availability…';try{const response=await fetch('{{ path('api/store/gourmet-delivery-check') }}',{method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json'},body:JSON.stringify({address})});const data=await response.json();if(!response.ok||!data.ok)throw new Error(data.message||'We could not verify this address.');localStorage.setItem('vnv_gourmet_delivery_address',JSON.stringify({...data.address,entered_address:address,verified_at:new Date().toISOString()}));finish(true)}catch(error){addressError.textContent=error.message}finally{addressCheck.disabled=false}}});
     }
-    addonChecks.forEach(check => check.addEventListener('change',()=>{const select=document.querySelector('.product-addon-variation[data-addon-id="'+check.dataset.id+'"]');const qty=document.querySelector('.product-addon-qty[data-addon-id="'+check.dataset.id+'"]');if(select)select.disabled=!check.checked;if(qty)qty.disabled=!check.checked;}));
+    function matchAddonSize(check) {
+        if (!check || check.dataset.sizeMatch !== '1' || !variationSelect?.value) return;
+        const parentOption = variationSelect.options[variationSelect.selectedIndex];
+        const parentSize = parentOption?.dataset.size || (parentOption?.dataset.name || '').split(' ')[0].toUpperCase();
+        const select = document.querySelector('.product-addon-variation[data-addon-id="'+check.dataset.id+'"]');
+        if (!select || !parentSize) return;
+        const option = Array.from(select.options).find(item => {
+            const name = (item.dataset.name || '').toUpperCase();
+            return name.startsWith(parentSize) || name.startsWith(parentSize === 'S' ? 'SMALL' : parentSize === 'M' ? 'MEDIUM' : parentSize === 'L' ? 'LARGE' : parentSize);
+        });
+        if (option) select.value = option.value;
+    }
+    addonChecks.forEach(check => check.addEventListener('change',()=>{const select=document.querySelector('.product-addon-variation[data-addon-id="'+check.dataset.id+'"]');const qty=document.querySelector('.product-addon-qty[data-addon-id="'+check.dataset.id+'"]');if(select)select.disabled=!check.checked;if(qty)qty.disabled=!check.checked;if(check.checked)matchAddonSize(check);}));
 
     function configuredUnitPrice(basePrice) {
         if (!servingsInput) return basePrice;
@@ -952,6 +965,7 @@ document.addEventListener('DOMContentLoaded', function () {
     if (variationSelect) {
         variationSelect.addEventListener('change', function () {
             renderVariation(this.options[this.selectedIndex]);
+            addonChecks.filter(check => check.checked).forEach(matchAddonSize);
         });
     }
 
