@@ -19,6 +19,8 @@ $router->post(function()use($context,$redirect){
     $isAjax=strtolower((string)($_SERVER['HTTP_X_REQUESTED_WITH']??''))==='xmlhttprequest';
     try{[$user,$owner,$level]=$context();$userId=(int)$user->getId();$service=new AutomationCenterService($owner);$isAdmin=$level===1;$reviewer=$isAdmin||$service->isReviewer($userId);$action=(string)($_POST['action']??'');$mochi=new MochiConciergeService($owner);
         if($action==='ask_mochi')$result=$mochi->ask($userId,$level,(string)($_POST['message']??''),!empty($_POST['session_id'])?(int)$_POST['session_id']:null);
+        elseif($action==='confirm_mochi_action')$result=$mochi->confirmAction($userId,$level,(int)($_POST['session_id']??0),(int)($_POST['draft_id']??0));
+        elseif($action==='cancel_mochi_action')$result=$mochi->cancelAction($userId,(int)($_POST['session_id']??0),(int)($_POST['draft_id']??0));
         elseif($action==='new_mochi_chat')$result=$mochi->newChat($userId,$level);
         elseif($action==='open_mochi_session')$result=$mochi->open($userId,$level,(int)($_POST['session_id']??0));
         elseif(!$isAdmin&&!$reviewer)throw new RuntimeException('Automation reviewer access required.');
