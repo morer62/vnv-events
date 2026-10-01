@@ -121,6 +121,17 @@ UPDATE store_product_variations v JOIN (
 SET v.status=IF(v.id=d.keep_id,'ACTIVE','INACTIVE'),v.updated_at=NOW()
 WHERE v.slug IN ('small','medium','large','serves-8-10','serves-14-16','12-pieces','24-pieces','6-count','12-count','alioli-8oz','guasacaca-8oz','chimichurri-8oz','salsa-rosada-8oz','mojo-8oz','pumpkin-10-inch','apple-10-inch');
 
+-- Canonical SKUs with no same-slug predecessor must also be reactivated on every rerun.
+UPDATE store_product_variations SET status='ACTIVE',updated_at=NOW() WHERE sku IN (
+ 'VNV-GE-PAE-SEA-S','VNV-GE-PAE-SEA-M','VNV-GE-PAE-SEA-L','VNV-GE-PAE-CHK-S','VNV-GE-PAE-CHK-M','VNV-GE-PAE-CHK-L',
+ 'VNV-GE-PASTA-S','VNV-GE-PASTA-M','VNV-GE-PASTA-L','VNV-GE-LAS-S','VNV-GE-LAS-M','VNV-GE-LAS-L',
+ 'VNV-GE-LBB-S','VNV-GE-LBB-M','VNV-GE-LBB-L','VNV-GE-SAB-M','VNV-GE-SAB-L','VNV-GE-CHA-S','VNV-GE-CHA-M','VNV-GE-CHA-L',
+ 'VNV-GE-DES-S','VNV-GE-DES-M','VNV-GE-DES-L','VNV-GE-TG-810','VNV-GE-TG-1416','VNV-GE-NB-810','VNV-GE-NB-1416',
+ 'VNV-GE-VC-810','VNV-GE-VC-1416','VNV-GE-HD-S','VNV-GE-HD-M','VNV-GE-BR-S','VNV-GE-BR-M',
+ 'VNV-GE-CHICKPEA-S','VNV-GE-CHICKPEA-M','VNV-GE-CHICKPEA-L','VNV-GE-GB-12','VNV-GE-GB-24','VNV-GE-EN-6','VNV-GE-EN-12',
+ 'VNV-GE-SAU-ALI','VNV-GE-SAU-GUA','VNV-GE-SAU-CHI','VNV-GE-SAU-ROS','VNV-GE-SAU-MOJ','VNV-GE-PIE-P','VNV-GE-PIE-A'
+);
+
 -- Retire every former public add-on map, then install the approved maximum-four matrix.
 UPDATE store_product_relationships r JOIN store_products p ON p.id=r.id_product
 SET r.status='INACTIVE',r.updated_at=NOW()
