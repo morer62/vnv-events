@@ -461,7 +461,7 @@
                     <h1 class="pp-title">{{ product.name }}</h1>
                     <p class="pp-sub">{{ product.short_description ?: 'Explore the details of this product.' }}</p>
 
-                    <div class="pp-badges">
+                    {% if not is_gourmet_express %}<div class="pp-badges">
                         {% if product.product_type == 'VARIABLE' %}
                             <span class="pp-badge pp-badge-dark">Variable Product</span>
                         {% else %}
@@ -470,7 +470,7 @@
                         {% if product.is_featured %}<span class="pp-badge">Featured</span>{% endif %}
                         {% if product.is_public %}<span class="pp-badge">Public</span>{% endif %}
                         {% if product.status %}<span class="pp-badge">{{ product.status }}</span>{% endif %}
-                    </div>
+                    </div>{% endif %}
 
                     <div class="pp-price-row">
                         <div class="pp-price" id="product-price-display">
@@ -485,7 +485,7 @@
                             {% endif %}
                         </div>
 
-                        {% if product.short_description %}
+                        {% if product.short_description and not is_gourmet_express %}
                             <div class="pp-helper" style="margin-top:0; margin-bottom:14px;">
                                 {{ product.short_description }}
                             </div>
