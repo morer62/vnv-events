@@ -758,12 +758,15 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function buildPayload() {
         const sessionToken = localStorage.getItem(SESSION_KEY) || '';
+        let verifiedAddress = {};
+        try { verifiedAddress = JSON.parse(localStorage.getItem('vnv_gourmet_delivery_address') || '{}') || {}; } catch (e) {}
 
         return {
             guest_name: state.guestName || '',
             guest_email: state.guestEmail || '',
             guest_phone: state.guestPhone || '',
             city: '',
+            delivery_address: verifiedAddress.formatted_address || verifiedAddress.entered_address || '',
             coupon_code: state.couponCode || '',
             pricing_mode: 'PAYG',
             session_token: sessionToken,

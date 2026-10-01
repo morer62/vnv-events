@@ -7,6 +7,7 @@ use App\Repositories\StoreProductVariationsRepository;
 use App\Repositories\Connection;
 use App\Services\StoreCouponService;
 use App\Services\GourmetExpressService;
+use App\Services\GourmetDeliveryAreaService;
 use App\Services\LoginService;
 use App\Utils\AvomealContext;
 use App\Utils\Router;
@@ -42,6 +43,7 @@ $router->post(function () {
     $guestEmail = trim($payload['guest_email'] ?? '');
     $guestPhone = trim($payload['guest_phone'] ?? '');
     $city = trim($payload['city'] ?? '');
+    $deliveryAddress = trim((string)($payload['delivery_address'] ?? ''));
     $couponCode = trim((string)($payload['coupon_code'] ?? ''));
     $pricingMode = StoreCartsRepository::PRICING_PAYG;
     $sessionToken = trim($payload['session_token'] ?? '');
@@ -57,6 +59,7 @@ $router->post(function () {
 
     $cleanItems = [];
     $compositionItems = [];
+    $containsGourmetExpress = false;
     $quantityTotal = 0;
     $subtotal = 0.00;
 
@@ -78,6 +81,7 @@ $router->post(function () {
         }
 
         $productType = $product->product_type ?? StoreProductsRepository::PRODUCT_TYPE_FIXED;
+        $containsGourmetExpress = $containsGourmetExpress || (string)($product->brand_name ?? '') === 'VNV Gourmet Express';
 
         $unitPrice = 0.00;
         $stockQuantity = 0;
@@ -191,6 +195,7 @@ $router->post(function () {
         $express = new GourmetExpressService($db);
         $express->assertStoreOpen($ownerId, 'vnvevents');
         $express->assertCartComposition($compositionItems);
+        if ($containsGourmetExpress) (new GourmetDeliveryAreaService())->validate($ownerId, 'vnvevents', $deliveryAddress);
     } catch (Throwable $e) {
         http_response_code(422);
         echo json_encode(['success' => false, 'message' => $e->getMessage()]);

@@ -3,6 +3,7 @@
 use App\Repositories\StoreProductsRepository;
 use App\Repositories\Connection;
 use App\Services\PublicSeoService;
+use App\Services\GourmetExpressService;
 use App\Utils\AvomealContext;
 use App\Utils\SiteContext;
 use App\Utils\TemplateResponse;
@@ -239,5 +240,7 @@ echo TemplateResponse::render(__DIR__ . "/index.twig", [
     'product_recommendations' => $productRecommendations,
     'product_addons' => $productAddons,
     'store_active' => $storeActive,
+    'gourmet_settings' => (new GourmetExpressService())->settings($ownerId, $siteKey),
+    'is_gourmet_express' => (string)($product->brand_name ?? '') === 'VNV Gourmet Express',
     'schemaJson' => PublicSeoService::productSchema($product, $productFaqs),
 ]);

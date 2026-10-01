@@ -784,6 +784,21 @@
     {% endif %}
 </main>
 
+{% if store_active and is_gourmet_express %}
+<style>.ge-address-gate{position:fixed;inset:0;z-index:2200;display:grid;place-items:center;padding:1rem}.ge-address-gate[hidden]{display:none}.ge-address-shade{position:absolute;inset:0;background:rgba(5,13,11,.76);backdrop-filter:blur(5px)}.ge-address-box{position:relative;width:min(560px,100%);background:#fff;color:#14231e;border-radius:24px;padding:1.5rem;box-shadow:0 28px 90px rgba(0,0,0,.38)}.ge-address-icon{width:50px;height:50px;border-radius:50%;display:grid;place-items:center;background:#e8f7f1;color:#176c50;font-size:1.35rem}.ge-address-box h2{margin:.65rem 0 .35rem;font-weight:900}.ge-address-box p{color:#62716c;line-height:1.55}.ge-address-box label{display:grid;gap:.4rem;font-weight:850}.ge-address-box input{border:1px solid #cbdad4;border-radius:12px;padding:.85rem;font:inherit}.ge-address-actions{display:flex;gap:.6rem;margin-top:1rem}.ge-address-actions button{border:0;border-radius:12px;padding:.8rem 1rem;font-weight:900}.ge-address-check{flex:1;background:#183e32;color:#fff}.ge-address-cancel{background:#edf2ef;color:#293832}.ge-address-error{min-height:1.3rem;color:#a43f2f;font-weight:750;margin-top:.5rem}.ge-address-check:disabled{opacity:.6}</style>
+<div class="ge-address-gate" id="ge-address-gate" hidden>
+  <div class="ge-address-shade"></div>
+  <section class="ge-address-box" role="dialog" aria-modal="true" aria-labelledby="ge-address-title">
+    <div class="ge-address-icon"><i class="fa-solid fa-location-dot"></i></div>
+    <h2 id="ge-address-title">First, confirm your delivery address</h2>
+    <p>We deliver throughout Miami-Dade and Broward, plus Boca Raton, Delray Beach and Boynton Beach in south Palm Beach County.</p>
+    <label>Street address, city, state and ZIP<input id="ge-delivery-address" type="text" autocomplete="street-address" placeholder="123 Main St, Fort Lauderdale, FL 33301"></label>
+    <div class="ge-address-error" id="ge-address-error" role="alert"></div>
+    <div class="ge-address-actions"><button type="button" class="ge-address-cancel" id="ge-address-cancel">Cancel</button><button type="button" class="ge-address-check" id="ge-address-check">Check address</button></div>
+  </section>
+</div>
+{% endif %}
+
 {% if store_active %}
 <script>
 document.addEventListener('DOMContentLoaded', function () {
@@ -834,6 +849,17 @@ document.addEventListener('DOMContentLoaded', function () {
     const servingsInput = document.getElementById('product-servings');
     const cookingPreferenceInput = document.getElementById('cooking-preference');
     const addonChecks = Array.from(document.querySelectorAll('.product-addon-check'));
+    const isGourmetExpress = {{ is_gourmet_express ? 'true' : 'false' }};
+    const gourmetStorePaused = {{ gourmet_settings.store_paused ? 'true' : 'false' }};
+    const gourmetClosedMessage = {{ (gourmet_settings.pause_message|default('VNV Gourmet Express is temporarily pausing new orders. You can still browse the menu.'))|json_encode|raw }};
+    const gourmetReopenAt = {{ (gourmet_settings.reopen_at|default(''))|json_encode|raw }};
+    const addressGate=document.getElementById('ge-address-gate'),addressInput=document.getElementById('ge-delivery-address'),addressError=document.getElementById('ge-address-error'),addressCheck=document.getElementById('ge-address-check'),addressCancel=document.getElementById('ge-address-cancel');
+    async function confirmGourmetDelivery(){
+        if(!isGourmetExpress)return true;
+        if(gourmetStorePaused){let message=gourmetClosedMessage;if(gourmetReopenAt)message+=' We expect to reopen '+new Date(gourmetReopenAt.replace(' ','T')).toLocaleString()+'.';alert(message);return false;}
+        let saved=null;try{saved=JSON.parse(localStorage.getItem('vnv_gourmet_delivery_address')||'null')}catch(e){}
+        return await new Promise(resolve=>{if(!addressGate){resolve(false);return;}addressInput.value=saved?.formatted_address||saved?.entered_address||'';addressError.textContent='';addressGate.hidden=false;document.body.style.overflow='hidden';setTimeout(()=>addressInput.focus(),20);const finish=value=>{addressGate.hidden=true;document.body.style.overflow='';addressCheck.onclick=null;addressCancel.onclick=null;resolve(value)};addressCancel.onclick=()=>finish(false);addressCheck.onclick=async()=>{const address=addressInput.value.trim();if(!address){addressError.textContent='Please enter the complete delivery address.';return;}addressCheck.disabled=true;addressError.textContent='Checking delivery availability…';try{const response=await fetch('{{ path('api/store/gourmet-delivery-check') }}',{method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json'},body:JSON.stringify({address})});const data=await response.json();if(!response.ok||!data.ok)throw new Error(data.message||'We could not verify this address.');localStorage.setItem('vnv_gourmet_delivery_address',JSON.stringify({...data.address,entered_address:address,verified_at:new Date().toISOString()}));finish(true)}catch(error){addressError.textContent=error.message}finally{addressCheck.disabled=false}}});
+    }
     addonChecks.forEach(check => check.addEventListener('change',()=>{const select=document.querySelector('.product-addon-variation[data-addon-id="'+check.dataset.id+'"]');const qty=document.querySelector('.product-addon-qty[data-addon-id="'+check.dataset.id+'"]');if(select)select.disabled=!check.checked;if(qty)qty.disabled=!check.checked;}));
 
     function configuredUnitPrice(basePrice) {
@@ -931,7 +957,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
     if (!addBtn) return;
 
-    addBtn.addEventListener('click', function () {
+    addBtn.addEventListener('click', async function () {
+        if (!(await confirmGourmetDelivery())) return;
         const productType = addBtn.dataset.productType || 'FIXED';
         const productId = toInt(addBtn.dataset.id, 0);
         const quantity = Math.max(1, toInt(qtyInput.value, 1));
