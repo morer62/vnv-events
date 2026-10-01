@@ -7,6 +7,7 @@ if (empty($GLOBALS['vnv_gourmet_canonical'])) {
 
 use App\Repositories\Connection;
 use App\Repositories\StoreProductsRepository;
+use App\Services\GourmetExpressService;
 use App\Utils\AvomealContext;
 use App\Utils\SiteContext;
 use App\Utils\TemplateResponse;
@@ -62,5 +63,6 @@ try {
 
 echo TemplateResponse::render(__DIR__ . '/index.twig', [
     'groups' => $groups,
+    'gourmet_settings' => (new GourmetExpressService())->settings($ownerId, $siteKey),
     'to_go_product_count' => array_sum(array_map(static fn($group) => count($group['products']), $groups)),
 ]);

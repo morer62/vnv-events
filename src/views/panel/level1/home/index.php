@@ -7,6 +7,7 @@ use App\Services\LoginService;
 use App\Services\OphyraGrowthHubClient;
 use App\Services\LoyaltyRewardsService;
 use App\Services\AutomationCenterService;
+use App\Services\GourmetExpressService;
 use App\Utils\LocationUtils;
 use App\Utils\MessageUtil;
 use App\Utils\Router;
@@ -113,6 +114,7 @@ $router->get(function () {
     }catch(Throwable $e){error_log('[Level1 Home] Agent approvals failed: '.$e->getMessage());}
 
     $frogIsReviewer=false;$frogReviewCount=0;$frogState=['state'=>'sad','greeting'=>''];try{$automation=new AutomationCenterService((int)$user->getOwner());$frogIsReviewer=$automation->isReviewer((int)$user->getId())||(int)$user->getLevel()===1;$frogReviewCount=count($automation->pendingReview(100));$frogState=$automation->mascotState($frogReviewCount);}catch(Throwable $e){}
+    $gourmetSettings=[];try{$gourmetSettings=(new GourmetExpressService())->settings((int)$user->getOwner(),'vnvevents');}catch(Throwable $e){error_log('[Level1 Home] Gourmet status failed: '.$e->getMessage());}
     return TemplateResponse::render(__DIR__ . "/index.twig", [
         'user' => $user,
         'orderSummary' => level1HomeOrderSummary((int)$user->getOwner()),
@@ -125,6 +127,7 @@ $router->get(function () {
         'agentApprovals' => $agentApprovals,
         'agentApprovalsCount' => count($agentApprovals),
         'frogIsReviewer'=>$frogIsReviewer,'frogReviewCount'=>$frogReviewCount,'frogState'=>$frogState,
+        'gourmetSettings'=>$gourmetSettings,
     ]);
 });
 
