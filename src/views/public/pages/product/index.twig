@@ -660,7 +660,7 @@
                                     <div><strong>Need help during your event?</strong><br><span>Our full-service team can set up, serve and run your event.</span></div>
                                     <div class="pp-staff-actions">
                                         <a href="tel:+1{{ gourmet_settings.staff_phone|default('3052042547') }}" data-staff-method="call">Call VNV Events: (305) 204-2547</a>
-                                        <a href="https://wa.me/{{ gourmet_settings.staff_whatsapp|default('13053761210') }}" target="_blank" rel="noopener" data-staff-method="whatsapp">WhatsApp</a>
+                                        <a href="https://wa.me/{{ gourmet_settings.staff_whatsapp|default('13053761210') }}" rel="noopener" data-staff-method="whatsapp">WhatsApp</a>
                                         <a href="{{ gourmet_settings.staff_service_url|default('/service/catering') }}" data-staff-method="link">See full-service catering →</a>
                                     </div>
                                 </aside>
@@ -823,9 +823,11 @@
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     const CART_KEY = 'store_cart_selection';
-    document.querySelectorAll('[data-staff-method]').forEach(link => link.addEventListener('click', () => {
+    document.querySelectorAll('[data-staff-method]').forEach(link => link.addEventListener('click', event => {
+        event.preventDefault();
         window.dataLayer = window.dataLayer || [];
         window.dataLayer.push({event:'staff_cta_click',method:link.dataset.staffMethod});
+        window.location.href = link.href;
     }));
 
     function toInt(value, fallback) {
