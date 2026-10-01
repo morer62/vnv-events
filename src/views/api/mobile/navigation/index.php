@@ -38,6 +38,7 @@ function mobileNavigationForUser($user): array
             ['key' => 'multimedia', 'label' => 'Multimedia Sessions', 'icon' => 'film', 'route' => 'panel/multimedia-sessions', 'group' => 'AI Operations'],
             ['key' => 'forums', 'label' => 'Forums', 'icon' => 'comments', 'route' => 'panel/forum', 'group' => 'AI Operations'],
             ['key' => 'invitations', 'label' => 'Tickets / RSVP', 'icon' => 'paper-plane', 'route' => 'panel/event-invitations', 'group' => 'AI Operations'],
+            ['key' => 'mochi', 'label' => 'Mochi Assistant', 'icon' => 'comments', 'route' => 'panel/planner-hub/settings/automation', 'group' => 'AI Operations'],
             ['key' => 'store_orders', 'label' => 'Store Orders', 'icon' => 'shopping-bag', 'route' => 'panel/planner-hub/store/orders/home', 'group' => 'Store'],
             ['key' => 'products', 'label' => 'Products', 'icon' => 'boxes', 'route' => 'panel/planner-hub/store/products/home', 'group' => 'Store'],
             ['key' => 'categories', 'label' => 'Product Categories', 'icon' => 'tag', 'route' => 'panel/planner-hub/store/categories/home', 'group' => 'Store'],
@@ -49,7 +50,6 @@ function mobileNavigationForUser($user): array
             ['key' => 'delivery_pricing', 'label' => 'Delivery Pricing', 'icon' => 'truck', 'route' => 'panel/planner-hub/store/delivery-pricing', 'group' => 'Store'],
             ['key' => 'loyalty', 'label' => 'Rewards & Points', 'icon' => 'gift', 'route' => 'panel/planner-hub/management/orders/loyalty', 'group' => 'VNV Events'],
             ['key' => 'settings', 'label' => 'Settings', 'icon' => 'cog', 'route' => 'panel/settings', 'group' => 'Settings'],
-            ['key' => 'automation', 'label' => 'Automation Center', 'icon' => 'clock', 'route' => 'panel/planner-hub/settings/automation', 'group' => 'Settings'],
             ['key' => 'payment_providers', 'label' => 'Payment Providers', 'icon' => 'credit-card', 'route' => 'panel/planner-hub/settings/payment-providers', 'group' => 'Settings'],
             ['key' => 'smtp', 'label' => 'SMTP Providers', 'icon' => 'paper-plane', 'route' => 'panel/planner-hub/settings/smtp', 'group' => 'Settings'],
         ], $common);
