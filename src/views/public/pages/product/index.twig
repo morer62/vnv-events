@@ -633,6 +633,13 @@
                                     <div class="pp-variation-meta" id="variation-meta"></div>
                                 </div>
 
+                                {% if is_gourmet_express %}
+                                <section class="pp-block"><h3>Product Description</h3><div class="pp-desc">{{ product.description|raw }}</div></section>
+                                {% if food_profile and food_profile.whats_included_html %}<section class="pp-block"><h3>What's included</h3><div class="pp-desc">{{ food_profile.whats_included_html|raw }}</div></section>{% endif %}
+                                <section class="pp-block pp-dropoff"><p>{{ gourmet_settings.dropoff_disclaimer|raw }}</p></section>
+                                {% if food_profile and food_profile.lead_time_note %}<section class="pp-block"><h3>Lead time</h3><p>{{ food_profile.lead_time_note }}</p></section>{% endif %}
+                                {% endif %}
+
                                 {% if product_addons|length %}
                                 <div class="pp-block" style="margin:1rem 0;padding:1rem">
                                     <h4>Optional add-ons</h4>
@@ -719,16 +726,10 @@
             </div>
         </section>
 
-        <section class="pp-block">
+        {% if not is_gourmet_express %}<section class="pp-block">
             <h3>Product Description</h3>
             <div class="pp-desc">{{ product.description|raw }}</div>
-        </section>
-
-        {% if is_gourmet_express and food_profile %}
-            {% if food_profile.whats_included_html %}<section class="pp-block"><h3>What's included</h3><div class="pp-desc">{{ food_profile.whats_included_html|raw }}</div></section>{% endif %}
-            <section class="pp-block pp-dropoff"><p>{{ gourmet_settings.dropoff_disclaimer|raw }}</p></section>
-            {% if food_profile.lead_time_note %}<section class="pp-block"><h3>Lead time</h3><p>{{ food_profile.lead_time_note }}</p></section>{% endif %}
-        {% endif %}
+        </section>{% endif %}
 
         {% if food_profile %}
             <section class="pp-block">
