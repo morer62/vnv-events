@@ -454,6 +454,8 @@ class SeoFilesGeneratorService
             'location-page',
             'product',
             'product-category',
+            'vnv-events-to-go',
+            'vnv-gourmet-express',
         ];
 
         $entries = [];
