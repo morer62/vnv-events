@@ -83,7 +83,7 @@ function mobileNavigationForUser($user): array
             ['key' => 'clock', 'label' => 'Clock In / Out', 'icon' => 'clock', 'route' => 'panel/planner-hub/team/payroll/clock', 'group' => 'Time'],
             ['key' => 'event_area', 'label' => 'Event Area', 'icon' => 'camera', 'route' => 'panel/event-execution', 'group' => 'My Work'],
         ];
-        try { if ((new AutomationCenterService((int)$user->getOwner()))->isReviewer((int)$user->getId())) $items[]=['key'=>'mochi','label'=>'Mochi Review','icon'=>'comments','route'=>'panel/planner-hub/settings/automation','group'=>'My Work']; } catch (\Throwable) {}
+        $items[]=['key'=>'mochi','label'=>'Ask Mochi','icon'=>'comments','route'=>'panel/planner-hub/settings/automation','group'=>'My Work'];
         $approvedTools = [
             'orders' => ['key' => 'approved_orders', 'label' => 'Orders', 'icon' => 'briefcase', 'route' => 'panel/planner-hub/management/orders', 'group' => 'Approved Tools'],
             'crm' => ['key' => 'approved_crm', 'label' => 'CRM', 'icon' => 'users', 'route' => 'panel/planner-hub/management/crm', 'group' => 'Approved Tools'],
@@ -111,6 +111,7 @@ function mobileNavigationForUser($user): array
         ['key' => 'payments', 'label' => 'Payment Methods', 'icon' => 'credit-card', 'route' => 'panel/payment-methods', 'group' => 'Payments'],
         ['key' => 'billing', 'label' => 'Billing Details', 'icon' => 'address-book', 'route' => 'panel/billing', 'group' => 'Payments'],
         ['key' => 'rewards', 'label' => 'My Rewards', 'icon' => 'gift', 'route' => 'panel/rewards', 'group' => 'Payments'],
+        ['key' => 'mochi', 'label' => 'Ask Mochi', 'icon' => 'comments', 'route' => 'panel/planner-hub/settings/automation', 'group' => 'Support'],
         ['key' => 'store_orders', 'label' => 'My Store Orders', 'icon' => 'shopping-bag', 'route' => 'panel/store/orders/home', 'group' => 'VNV To Go'],
         ['key' => 'store_subscriptions', 'label' => 'Recurring Orders', 'icon' => 'redo', 'route' => 'panel/store/subscriptions/home', 'group' => 'VNV To Go'],
         ['key' => 'messages', 'label' => 'Messages', 'icon' => 'comments', 'route' => 'panel/chat', 'group' => 'Support'],
