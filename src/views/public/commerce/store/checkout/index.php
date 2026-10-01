@@ -22,6 +22,7 @@ use App\Services\StoreCouponService;
 use App\Services\ClientPaymentMethodService;
 use App\Services\StoreDeliveryAvailabilityService;
 use App\Services\GourmetScheduleService;
+use App\Services\GourmetExpressService;
 use App\Services\GourmetRecurringOrderService;
 use App\Services\Delivery\DeliveryPricingService;
 use App\Services\GourmetDeliveryAreaService;
@@ -723,7 +724,10 @@ $router->post(function () {
     $deliveryFee=max(0,(float)($cart->delivery_fee??0));
     $tax=round(($preTaxTotal+$deliveryFee)*$taxRate/100,2);
     $total=round($preTaxTotal+$deliveryFee+$tax,2);
-    $minimumOrderAmount = AvomealContext::minimumOrderAmount();
+    $minimumOrderAmount = max(
+        AvomealContext::minimumOrderAmount(),
+        (float)($gourmetSettings['delivery_minimum'] ?? 150)
+    );
     $couponCodeFromCart = trim((string)($cart->coupon_code ?? ''));
     $couponIdFromCart = (int)($cart->id_coupon ?? 0);
 
@@ -747,7 +751,7 @@ $router->post(function () {
             $quote=(new DeliveryPricingService())->quoteDelivery($ownerId,SiteContext::siteKey(),[
                 'address_1'=>trim((string)($payload['shipping_address_1']??'')),'address_2'=>trim((string)($payload['shipping_address_2']??'')),
                 'city'=>trim((string)($payload['shipping_city']??'')),'state'=>trim((string)($payload['shipping_state']??'')),'zip'=>trim((string)($payload['shipping_zip']??'')),'country'=>'US'
-            ],trim((string)($payload['requested_delivery_at']??''))?:null,'CHECKOUT');
+            ],trim((string)($payload['requested_delivery_at']??''))?:null,'CHECKOUT',null,$preTaxTotal);
             $deliveryFee=(float)$quote['customer_fee'];$tax=round(($preTaxTotal+$deliveryFee)*$taxRate/100,2);$total=round($preTaxTotal+$deliveryFee+$tax,2);
             $cartsRepo->update(['delivery_quote_id'=>(int)$quote['quote_id'],'delivery_fee'=>$deliveryFee,'delivery_pricing_snapshot'=>json_encode($quote,JSON_UNESCAPED_SLASHES),'total'=>$total,'updated_at'=>date('Y-m-d H:i:s')],['id'=>(int)$cart->id]);
             echo json_encode(['success'=>true,'delivery_fee'=>$deliveryFee,'tax'=>$tax,'total'=>$total,'distance_miles'=>$quote['distance_miles'],'pricing_source'=>$quote['pricing_source'],'quote_id'=>$quote['quote_id']]);return;
@@ -1120,7 +1124,9 @@ $router->post(function () {
     $requestedDeliveryTimezone = null;
     if ($deliveryTiming === 'SCHEDULED') {
         try {
-            $validatedSchedule = (new GourmetScheduleService())->validateLocalDelivery($ownerId, SiteContext::siteKey(), $requestedDeliveryRaw);
+            $express = new GourmetExpressService();
+            $express->assertStoreOpen($ownerId, SiteContext::siteKey());
+            $validatedSchedule = $express->assertSchedule($ownerId, SiteContext::siteKey(), $cartItems, $requestedDeliveryRaw);
             $requestedDeliveryAt = $validatedSchedule['local'];
             $requestedDeliveryAtUtc = $validatedSchedule['utc'];
             $requestedDeliveryTimezone = $validatedSchedule['timezone'];
@@ -1299,7 +1305,7 @@ $router->post(function () {
     }
 
     try {
-        $deliveryQuote=(new DeliveryPricingService())->quoteDelivery($ownerId,SiteContext::siteKey(),['address_1'=>$shippingAddress1,'address_2'=>$shippingAddress2,'city'=>$shippingCity,'state'=>$shippingState,'zip'=>$shippingZip,'country'=>'US'],$requestedDeliveryAt,'CHECKOUT');
+        $deliveryQuote=(new DeliveryPricingService())->quoteDelivery($ownerId,SiteContext::siteKey(),['address_1'=>$shippingAddress1,'address_2'=>$shippingAddress2,'city'=>$shippingCity,'state'=>$shippingState,'zip'=>$shippingZip,'country'=>'US'],$requestedDeliveryAt,'CHECKOUT',null,$preTaxTotal);
         $deliveryFee=(float)$deliveryQuote['customer_fee'];$tax=round(($preTaxTotal+$deliveryFee)*$taxRate/100,2);$total=round($preTaxTotal+$deliveryFee+$tax,2);
         $cartsRepo->update(['delivery_quote_id'=>(int)$deliveryQuote['quote_id'],'delivery_fee'=>$deliveryFee,'delivery_pricing_snapshot'=>json_encode($deliveryQuote,JSON_UNESCAPED_SLASHES),'total'=>$total,'updated_at'=>date('Y-m-d H:i:s')],['id'=>(int)$cart->id]);
     } catch(Throwable $e) { echo json_encode(['success'=>false,'message'=>"We couldn't calculate delivery automatically. Please confirm your address or contact VNV."]);return; }

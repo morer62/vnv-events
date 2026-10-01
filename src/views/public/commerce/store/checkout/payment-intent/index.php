@@ -31,11 +31,11 @@ $router->post(function () {
         'address_1'=>trim((string)($payload['shipping_address_1']??'')),'address_2'=>trim((string)($payload['shipping_address_2']??'')),
         'city'=>trim((string)($payload['shipping_city']??'')),'state'=>trim((string)($payload['shipping_state']??'')),'zip'=>trim((string)($payload['shipping_zip']??'')),'country'=>'US'
     ];
-    try{$deliveryQuote=(new DeliveryPricingService())->quoteDelivery($ownerId,'vnvevents',$address,trim((string)($payload['requested_delivery_at']??''))?:null,'CHECKOUT');}catch(Throwable $e){http_response_code(422);echo json_encode(['success'=>false,'message'=>$e->getMessage()]);return '';}
     $items=(new StoreCartItemsRepository())->getByCart((int)$cart->id);
     $subtotal=round(array_reduce($items,fn($sum,$item)=>$sum+(float)$item->line_total,0.0),2);
     $discount=max(0.0,(float)($cart->coupon_discount??0));
     $preTaxTotal=max(0.0,round($subtotal-$discount,2));
+    try{$deliveryQuote=(new DeliveryPricingService())->quoteDelivery($ownerId,'vnvevents',$address,trim((string)($payload['requested_delivery_at']??''))?:null,'CHECKOUT',null,$preTaxTotal);}catch(Throwable $e){http_response_code(422);echo json_encode(['success'=>false,'message'=>$e->getMessage()]);return '';}
     $settings=(new DeliveryPricingService())->settings($ownerId,'vnvevents');
     $deliveryFee=(float)$deliveryQuote['customer_fee'];
     $tax=round(($preTaxTotal+$deliveryFee)*max(0,(float)($settings['tax_rate_percent']??7))/100,2);

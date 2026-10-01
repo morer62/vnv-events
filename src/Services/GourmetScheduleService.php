@@ -18,6 +18,8 @@ final class GourmetScheduleService
         $this->db->bind(':owner',$ownerId,\PDO::PARAM_INT); $this->db->bind(':site',$siteKey);
         $settings=$this->db->fetchOne();
         if(!$settings) throw new \RuntimeException('Gourmet delivery settings are not configured.');
+        // Product lead times, configured two-hour windows and capacity are
+        // validated centrally when cart items are available at checkout.
         $timezone=new \DateTimeZone((string)$settings->timezone);
         $local=\DateTimeImmutable::createFromFormat('!Y-m-d\TH:i',$localInput,$timezone);
         if(!$local) throw new \InvalidArgumentException('Choose a valid delivery date and time.');

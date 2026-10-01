@@ -6,6 +6,7 @@ use App\Repositories\StoreProductsRepository;
 use App\Repositories\StoreProductVariationsRepository;
 use App\Repositories\Connection;
 use App\Services\StoreCouponService;
+use App\Services\GourmetExpressService;
 use App\Services\LoginService;
 use App\Utils\AvomealContext;
 use App\Utils\Router;
@@ -55,6 +56,7 @@ $router->post(function () {
     }
 
     $cleanItems = [];
+    $compositionItems = [];
     $quantityTotal = 0;
     $subtotal = 0.00;
 
@@ -168,6 +170,10 @@ $router->post(function () {
             'servings' => $servings,
             'line_total' => $lineTotal
         ];
+        $compositionItems[] = [
+            'product_role' => (string)($product->product_role ?? 'MAIN'),
+            'is_addon_only' => (int)($product->is_addon_only ?? 0),
+        ];
 
         $quantityTotal += $quantity;
         $subtotal += $lineTotal;
@@ -178,6 +184,16 @@ $router->post(function () {
             "success" => false,
             "message" => "No valid products found"
         ]);
+        return '';
+    }
+
+    try {
+        $express = new GourmetExpressService($db);
+        $express->assertStoreOpen($ownerId, 'vnvevents');
+        $express->assertCartComposition($compositionItems);
+    } catch (Throwable $e) {
+        http_response_code(422);
+        echo json_encode(['success' => false, 'message' => $e->getMessage()]);
         return '';
     }
 

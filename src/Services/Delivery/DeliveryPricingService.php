@@ -54,7 +54,7 @@ final class DeliveryPricingService
     }
 
     /** Validate, quote, price and persist one immutable delivery reference. */
-    public function quoteDelivery(int $ownerId, string $siteKey, array $destination, ?string $requestedAt = null, string $context = 'CHECKOUT', ?int $orderId = null): array
+    public function quoteDelivery(int $ownerId, string $siteKey, array $destination, ?string $requestedAt = null, string $context = 'CHECKOUT', ?int $orderId = null, ?float $subtotal = null): array
     {
         $settings = $this->settings($ownerId, $siteKey);
         if (!$settings) throw new \RuntimeException('Delivery settings are not configured.');
@@ -71,12 +71,26 @@ final class DeliveryPricingService
         if ($distance > $maximum) throw new \DomainException('This address is currently outside our delivery area. Please contact VNV for assistance.');
 
         $cached = $this->cachedQuote($ownerId,$siteKey,$destination,$requestedAt,(int)($settings['delivery_quote_cache_minutes']??5));
-        if ($cached) return $cached + ['cached'=>true];
+        if ($cached) {
+            $zone=(new \App\Services\GourmetExpressService($this->db))->deliveryZone($ownerId,$siteKey,(string)$destination['zip'],max(0,(float)($subtotal??0)));
+            $cached['customer_fee']=round((float)$zone['fee'],2);
+            $cached['delivery_margin']=round((float)$cached['customer_fee']-(float)$cached['provider_cost'],2);
+            $cached['pricing_source']='FIXED_ZONE';$cached['zone_name']=$zone['name'];$cached['free_delivery_threshold']=$zone['free_threshold'];
+            return $cached + ['cached'=>true];
+        }
         $historicalPeak = $this->historicalPeak($ownerId,$siteKey,$destination,$requestedAt,$settings);
         $provider = new UberQuoteReferenceProvider();
         $live = $provider->getQuote($pickup,$destination,$this->deliveryWindow($requestedAt));
         $live['distance_miles']=$distance; $live['historical_peak_cost']=$historicalPeak;
         $priced = $this->priceQuote($live,$ownerId,$siteKey);
+        // Uber remains an internal cost reference. The customer-facing fee is
+        // the fixed VNV county-zone fee (or free above its configured threshold).
+        $zone = (new \App\Services\GourmetExpressService($this->db))->deliveryZone($ownerId,$siteKey,(string)$destination['zip'],max(0,(float)($subtotal??0)));
+        $priced['customer_fee'] = round((float)$zone['fee'],2);
+        $priced['delivery_margin'] = round((float)$priced['customer_fee']-(float)$priced['provider_cost'],2);
+        $priced['pricing_source'] = 'FIXED_ZONE';
+        $priced['zone_name'] = $zone['name'];
+        $priced['free_delivery_threshold'] = $zone['free_threshold'];
         $result = array_merge($live,$priced,[
             'pickup'=>$pickup,'destination'=>$destination,'requested_delivery_at'=>$requestedAt,
             'quote_context'=>strtoupper($context),'queried_at'=>gmdate('Y-m-d H:i:s'),'cached'=>false,

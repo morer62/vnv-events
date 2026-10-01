@@ -502,7 +502,7 @@
                         {% endif %}
                     </div>
 
-                    <div class="pp-meta">
+                    {% if product.brand_name != 'VNV Gourmet Express' %}<div class="pp-meta">
                         <div class="pp-meta-card">
                             <div class="pp-meta-label">SKU</div>
                             <div class="pp-meta-value">{{ product.sku ?: '—' }}</div>
@@ -552,7 +552,7 @@
                                 </div>
                             {% endif %}
                         {% endif %}
-                    </div>
+                    </div>{% endif %}
 
                     {% if product.purchase_mode|default('REQUEST') == 'REQUEST' %}
                         <div class="pp-purchase-box">
@@ -594,7 +594,7 @@
                                     </div>
 
                                     <div>
-                                        <label class="pp-form-label">Quantity</label>
+                                        <label class="pp-form-label">{{ product.brand_name == 'VNV Gourmet Express' ? 'Number of trays' : 'Quantity' }}</label>
                                         <input
                                             type="number"
                                             id="product-qty"
@@ -670,9 +670,7 @@
                                     <a href="{{ path('store/cart') }}" class="pp-btn pp-btn-light">Go to cart</a>
                                 </div>
 
-                                <div class="pp-helper">
-                                    Choose quantity and, if needed, a variation. {% if product.allow_recurring_purchase|default(0) %}This product also supports recurring purchases at checkout.{% endif %}
-                                </div>
+                                <div class="pp-helper">{% if product.brand_name == 'VNV Gourmet Express' %}Choose a tray size and the number of trays you need. Add-ons stay attached to this selection.{% else %}Choose quantity and, if needed, a variation. {% if product.allow_recurring_purchase|default(0) %}This product also supports recurring purchases at checkout.{% endif %}{% endif %}</div>
                             </form>
                         </div>
                     {% else %}

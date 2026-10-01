@@ -11,6 +11,18 @@ $url = trim($_GET['url'] ?? '', '/');
 $parts = $url !== '' ? explode('/', $url) : [];
 $slug = $parts[1] ?? null;
 
+$legacyProductRedirects = [
+    'latin-holiday-dinner' => 'nochebuena-dinner',
+    'thanksgiving-feast' => null,
+    'extra-dessert-add-on' => null,
+    'extra-hallaca' => 'hallacas-by-the-dozen',
+];
+if ($slug !== null && array_key_exists($slug, $legacyProductRedirects)) {
+    $target = $legacyProductRedirects[$slug];
+    header('Location: ' . ($target ? '/product/' . $target : '/catering-delivery'), true, 301);
+    exit;
+}
+
 function product_not_found_debug(string $reason, ?string $slug = null, ?int $ownerId = null, ?string $siteKey = null, array $debug = []): never
 {
     http_response_code(404);
@@ -167,6 +179,14 @@ $product = $productsRepository->getFullPublicProductDetails((int)$productBase->i
 
 if (!$product) {
     product_not_found_debug('full_public_product_details_failed_for_product_id_' . (int)$productBase->id, $slug, $ownerId, $siteKey);
+}
+
+// Add-ons can be selected inside an eligible product flow, but do not have a
+// standalone commercial landing page or indexable URL.
+if ((int)($product->is_addon_only ?? 0) === 1 || strtoupper((string)($product->product_role ?? 'MAIN')) === 'ADDON') {
+    header('X-Robots-Tag: noindex, nofollow', true);
+    header('Location: ' . \App\Utils\LocationUtils::pathFor('catering-delivery'), true, 302);
+    exit;
 }
 
 $relatedProducts = method_exists($productsRepository, 'getPublicRelatedProducts')
