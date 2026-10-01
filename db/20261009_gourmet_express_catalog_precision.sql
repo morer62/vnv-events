@@ -132,6 +132,33 @@ UPDATE store_product_variations SET status='ACTIVE',updated_at=NOW() WHERE sku I
  'VNV-GE-SAU-ALI','VNV-GE-SAU-GUA','VNV-GE-SAU-CHI','VNV-GE-SAU-ROS','VNV-GE-SAU-MOJ','VNV-GE-PIE-P','VNV-GE-PIE-A'
 );
 
+-- Correct canonical rows that already existed under the same SKU before this pass.
+UPDATE store_product_variations v JOIN store_products p ON p.id=v.id_product
+SET v.price=CASE
+ WHEN p.slug='nochebuena-dinner' AND v.slug='serves-8-10' THEN 229
+ WHEN p.slug='nochebuena-dinner' AND v.slug='serves-14-16' THEN 349
+ WHEN p.slug='venezuelan-christmas-dinner' AND v.slug='serves-8-10' THEN 299
+ WHEN p.slug='venezuelan-christmas-dinner' AND v.slug='serves-14-16' THEN 459
+ WHEN p.slug='brunch-box' AND v.slug='small' THEN 129
+ WHEN p.slug='brunch-box' AND v.slug='medium' THEN 199
+ ELSE v.price END,
+ v.piece_count=CASE
+ WHEN p.slug='signature-appetizer-box' AND v.slug='medium' THEN 80
+ WHEN p.slug='signature-appetizer-box' AND v.slug='large' THEN 120
+ WHEN p.slug='dessert-box' AND v.slug='small' THEN 36
+ WHEN p.slug='dessert-box' AND v.slug='medium' THEN 54
+ WHEN p.slug='dessert-box' AND v.slug='large' THEN 80
+ ELSE v.piece_count END,
+ v.name=CASE
+ WHEN p.slug='signature-appetizer-box' AND v.slug='medium' THEN 'Medium - Serves 10-12 - 80 pcs'
+ WHEN p.slug='signature-appetizer-box' AND v.slug='large' THEN 'Large - Serves 15-20 - 120 pcs'
+ WHEN p.slug='dessert-box' AND v.slug='small' THEN 'Small - Serves 6-8 - 36 pcs'
+ WHEN p.slug='dessert-box' AND v.slug='medium' THEN 'Medium - Serves 10-12 - 54 pcs'
+ WHEN p.slug='dessert-box' AND v.slug='large' THEN 'Large - Serves 15-20 - 80 pcs'
+ ELSE v.name END,
+ v.updated_at=NOW()
+WHERE p.id_owner=2 AND p.site_key='vnvevents' AND v.status='ACTIVE';
+
 -- Retire every former public add-on map, then install the approved maximum-four matrix.
 UPDATE store_product_relationships r JOIN store_products p ON p.id=r.id_product
 SET r.status='INACTIVE',r.updated_at=NOW()
