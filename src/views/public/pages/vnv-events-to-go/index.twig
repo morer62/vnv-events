@@ -1,4 +1,5 @@
 {% extends "templates/base.twig" %}
+{% set show_whatsapp = true %}
 {% block title %}VNV Gourmet Express | Gourmet Food Delivery in South Florida{% endblock %}
 {% block meta_description %}Choose chef-prepared VNV Gourmet dishes, portions and add-ons, schedule delivery and enjoy polished presentation at home or at your event.{% endblock %}
 {% block canonical %}https://vnvevents.com/vnv-gourmet-express{% endblock %}
@@ -13,6 +14,7 @@
 </style>
 {% endblock %}
 {% block body %}
+{% include "templates/layout/publicHeaderVnv.html.twig" %}
 <main class="tg-page">
   <section class="tg-hero"><div class="tg-hero-inner"><img class="tg-logo" src="{{ path('assets/images/vnv-gourmet-express-logo.webp') }}" alt="VNV Gourmet Express" width="1000" height="500"><h1>Chef-prepared menus for effortless hosting.</h1><p class="tg-intro">Build your celebration à la carte with VNV favorites, flexible portions and polished delivery throughout South Florida.</p><div class="tg-benefits" aria-label="Gourmet Express benefits"><div class="tg-benefit"><span class="tg-benefit-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span><span><strong>Order ahead</strong><br>Place your event order at least 24 hours in advance.</span></div><div class="tg-benefit"><span class="tg-benefit-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7h11v9H3zM14 10h4l3 3v3h-7z"/><circle cx="7" cy="18" r="2"/><circle cx="18" cy="18" r="2"/></svg></span><span><strong>South Florida delivery</strong><br>Broward, Palm Beach and Miami-Dade.</span></div><div class="tg-benefit"><span class="tg-benefit-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16M6 5l1 15h10l1-15M9 9v7M12 9v7M15 9v7"/></svg></span><span><strong>Create your own feast</strong><br>Mix entrées, trays, boxes, desserts and add-ons à la carte.</span></div><div class="tg-benefit"><span class="tg-benefit-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="3" width="10" height="18" rx="2"/><path d="M9 8h6M9 12h6M10 17h4"/></svg></span><span><strong>Easy from the app</strong><br>Reorder favorites, add more or adjust your selections.</span></div></div><a class="tg-btn" href="#main-courses">Explore the Menu</a><a class="tg-btn alt" href="#how-it-works">How It Works</a></div></section>
   <nav class="tg-nav" aria-label="Gourmet Express categories"><a href="#main-courses">Main Courses</a><a href="#appetizers">Appetizers</a><a href="#desserts">Desserts</a><a href="#seasonal">Seasonal</a></nav>
@@ -22,4 +24,5 @@
     {% if group.products|length %}<div class="tg-grid">{% for product in group.products %}<article class="tg-card"><img src="{{ product.main_image }}" alt="{{ product.name }}" loading="lazy"><div class="tg-card-body"><h3>{{ product.name }}</h3><p>{{ product.short_description|default('Prepared with the quality and care of VNV Events.') }}</p><div class="tg-card-actions"><span class="tg-price">{% if product.min_price is defined and product.min_price %}From ${{ product.min_price|number_format(2,'.',',') }}{% else %}${{ product.price|number_format(2,'.',',') }}{% endif %}</span><a class="tg-link" href="{{ path('product/' ~ product.slug) }}">View →</a></div></div></article>{% endfor %}</div>{% else %}<div class="tg-empty">Selections in this category are being prepared.</div>{% endif %}
   </section>{% endfor %}
 </main>
+{% include "templates/layout/publicFooterVnv.html.twig" %}
 {% endblock %}
