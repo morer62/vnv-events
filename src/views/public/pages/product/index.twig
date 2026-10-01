@@ -647,6 +647,18 @@
                                 </div>
                                 {% endif %}
 
+                                {% if is_gourmet_express %}
+                                <style>.pp-staff-cta{margin:1rem 0;padding:1rem 1.1rem;border:1px solid #b8d8ce;border-radius:16px;background:#eff9f5;display:grid;gap:.75rem}.pp-staff-actions{display:flex;flex-wrap:wrap;gap:.55rem}.pp-staff-actions a{padding:.6rem .8rem;border-radius:10px;background:#173f34;color:#fff!important;font-weight:800;text-decoration:none}.pp-dropoff{border-left:5px solid #208269;background:#f2faf7}</style>
+                                <aside class="pp-staff-cta">
+                                    <div><strong>Need help during your event?</strong><br><span>Our full-service team can set up, serve and run your event.</span></div>
+                                    <div class="pp-staff-actions">
+                                        <a href="tel:+1{{ gourmet_settings.staff_phone|default('3052042547') }}" data-staff-method="call">Call VNV Events: (305) 204-2547</a>
+                                        <a href="https://wa.me/{{ gourmet_settings.staff_whatsapp|default('13053761210') }}" target="_blank" rel="noopener" data-staff-method="whatsapp">WhatsApp</a>
+                                        <a href="{{ gourmet_settings.staff_service_url|default('/service/catering') }}" data-staff-method="link">See full-service catering →</a>
+                                    </div>
+                                </aside>
+                                {% endif %}
+
                                 <div class="pp-actions">
                                     <button
                                         type="button"
@@ -712,9 +724,15 @@
             <div class="pp-desc">{{ product.description|raw }}</div>
         </section>
 
+        {% if is_gourmet_express and food_profile %}
+            {% if food_profile.whats_included_html %}<section class="pp-block"><h3>What's included</h3><div class="pp-desc">{{ food_profile.whats_included_html|raw }}</div></section>{% endif %}
+            <section class="pp-block pp-dropoff"><p>{{ gourmet_settings.dropoff_disclaimer|raw }}</p></section>
+            {% if food_profile.lead_time_note %}<section class="pp-block"><h3>Lead time</h3><p>{{ food_profile.lead_time_note }}</p></section>{% endif %}
+        {% endif %}
+
         {% if food_profile %}
             <section class="pp-block">
-                <h3>Your VNV Gourmet guide</h3>
+                <h3>{{ is_gourmet_express ? 'Reheating & serving' : 'Your VNV Gourmet guide' }}</h3>
                 {% if food_profile.preparation_instructions %}<h4>Preparation</h4><p>{{ food_profile.preparation_instructions }}</p>{% endif %}
                 {% if food_profile.reheating_instructions %}<h4>Reheating</h4><p>{{ food_profile.reheating_instructions }}</p>{% endif %}
                 {% if food_profile.serving_instructions %}<h4>Serving</h4><p>{{ food_profile.serving_instructions }}</p>{% endif %}
@@ -804,6 +822,10 @@
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     const CART_KEY = 'store_cart_selection';
+    document.querySelectorAll('[data-staff-method]').forEach(link => link.addEventListener('click', () => {
+        window.dataLayer = window.dataLayer || [];
+        window.dataLayer.push({event:'staff_cta_click',method:link.dataset.staffMethod});
+    }));
 
     function toInt(value, fallback) {
         const n = parseInt(value, 10);

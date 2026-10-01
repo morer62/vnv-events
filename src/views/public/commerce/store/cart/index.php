@@ -16,7 +16,10 @@ use App\Utils\TemplateResponse;
 $router = new Router();
 
 $router->get(function () {
-    return TemplateResponse::render(__DIR__ . "/index.twig", []);
+    $ownerId = AvomealContext::ownerId();
+    return TemplateResponse::render(__DIR__ . "/index.twig", [
+        'gourmet_settings' => (new GourmetExpressService())->settings($ownerId, 'vnvevents'),
+    ]);
 });
 
 $router->post(function () {

@@ -86,6 +86,10 @@ function sendCheckoutOrderDetailsEmail(
     string $shippingState,
     string $shippingZip
 ): bool {
+    $gourmetSettings = (new GourmetExpressService())->settings($ownerId, 'vnvevents');
+    $staffPhone = preg_replace('/\D+/', '', (string)($gourmetSettings->staff_phone ?? '3052042547'));
+    $staffWhatsapp = preg_replace('/\D+/', '', (string)($gourmetSettings->staff_whatsapp ?? '13053761210'));
+    $staffServiceUrl = (string)($gourmetSettings->staff_service_url ?? '/service/catering');
     $baseUrl = rtrim($_ENV['APP_URL'] ?? '', '/');
     $accessPath = (string)LocationUtils::pathFor("store/order-access?token=" . urlencode($publicToken));
     $isAbsolute = (bool)preg_match('#^https?://#i', $accessPath);
@@ -147,6 +151,12 @@ function sendCheckoutOrderDetailsEmail(
                     View order
                 </a>
             </p>
+            <div style="margin-top:18px;padding:14px;background:#eff9f5;border:1px solid #b8d8ce;border-radius:8px;">
+                <strong>Need help during your event?</strong><br>Our full-service team can set up, serve and run your event.<br>
+                <a href="tel:+1' . htmlspecialchars($staffPhone) . '">Call VNV Events: (305) 204-2547</a> ·
+                <a href="https://wa.me/' . htmlspecialchars($staffWhatsapp) . '">WhatsApp</a> ·
+                <a href="' . htmlspecialchars($baseUrl . '/' . ltrim($staffServiceUrl, '/')) . '">See full-service catering →</a>
+            </div>
         </div>
     ';
 

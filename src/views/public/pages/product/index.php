@@ -219,7 +219,7 @@ try {
     $db->bind(':site', $siteKey);
     $db->bind(':product', (int)$product->id, \PDO::PARAM_INT);
     $productRecommendations = $db->fetchAll() ?: [];
-    $db->query("SELECT p.*,r.price_override,r.sort_order FROM store_product_relationships r INNER JOIN store_products p ON p.id=r.id_related_product WHERE r.id_owner=:owner AND r.site_key=:site AND r.id_product=:product AND r.relationship_type IN ('ADD_ON','OPTIONAL_SIDE','PAID_SIDE') AND r.status='ACTIVE' AND p.status='ACTIVE' AND p.is_public=1 ORDER BY r.sort_order,r.id");
+    $db->query("SELECT p.*,r.price_override,r.sort_order,r.size_match FROM store_product_relationships r INNER JOIN store_products p ON p.id=r.id_related_product WHERE r.id_owner=:owner AND r.site_key=:site AND r.id_product=:product AND r.relationship_type IN ('ADD_ON','OPTIONAL_SIDE','PAID_SIDE') AND r.status='ACTIVE' AND p.status='ACTIVE' AND p.is_public=1 ORDER BY r.sort_order,r.id");
     $db->bind(':owner', $ownerId, \PDO::PARAM_INT);
     $db->bind(':site', $siteKey);
     $db->bind(':product', (int)$product->id, \PDO::PARAM_INT);

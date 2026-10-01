@@ -3,6 +3,8 @@
 use App\Utils\Router;
 use App\Utils\TemplateResponse;
 use App\Utils\LocationUtils;
+use App\Services\GourmetExpressService;
+use App\Utils\AvomealContext;
 
 $router = new Router();
 
@@ -52,6 +54,7 @@ $router->get(function () {
         'rewards_discount' => $rewardsDiscount,
         'rewards_points' => $rewardsPoints,
         'email' => $email,
+        'gourmet_settings' => (new GourmetExpressService())->settings(AvomealContext::ownerId(), 'vnvevents'),
     ]);
 });
 
