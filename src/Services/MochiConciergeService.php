@@ -14,7 +14,7 @@ final class MochiConciergeService
     public function newChat(int $userId,int $level): array {$session=$this->sessions->create($userId);return $this->open($userId,$level,(int)$session->id);}
     public function ask(int $authorId,int $level,string $message,?int $sessionId=null): array
     {
-        $message=trim($message);if($message==='')throw new \InvalidArgumentException('Escribe un mensaje para Mochi.');if(mb_strlen($message)>3000)throw new \InvalidArgumentException('El mensaje es demasiado largo.');
+        $message=trim($message);if($message==='')throw new \InvalidArgumentException('Escribe un mensaje o adjunta una captura para Mochi.');if(mb_strlen($message)>6000)throw new \InvalidArgumentException('El mensaje y la captura contienen demasiado texto.');
         $session=$sessionId?$this->sessions->get($sessionId,$authorId):$this->sessions->today($authorId);$sessionId=(int)$session->id;$this->save($sessionId,$authorId,'HUMAN',$message);
         $actions=new MochiActionService($this->ownerId,$this->siteKey,$this->db);if($actions->detects($message)){$result=$actions->prepare($authorId,$level,$sessionId,$message);$metadata=['tool'=>'write_action_prepare','items'=>$result['items']??[],'action_draft'=>$result['action_draft']??null];$this->save($sessionId,null,'AGENT',(string)$result['reply'],$metadata);$this->sessions->touch($sessionId);return ['reply'=>$result['reply'],'items'=>$metadata['items'],'action_draft'=>$metadata['action_draft'],'tool'=>'write_action_prepare','session_id'=>$sessionId];}
         $tool=$this->tools->select($message,$level);
