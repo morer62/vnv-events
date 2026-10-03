@@ -42,7 +42,7 @@ final class MochiImageReaderService
             'messages' => [[
                 'role' => 'user',
                 'content' => [
-                    ['type' => 'text', 'text' => 'Read this screenshot for the internal VNV Events assistant. Transcribe relevant text accurately and organize names, email, phone, event date/time, address, services, quantities, prices and notes when visible. Do not guess obscured or missing values. Return JSON only as {"text":"concise transcription in Spanish"}.'],
+                    ['type' => 'text', 'text' => 'Read this screenshot for the internal VNV Events assistant. Transcribe relevant text accurately and organize names, email, phone, event date/time, address, services, quantities, prices and notes when visible. Explicitly label uncertain or unreadable text and never guess missing values. Explain the extracted information in Spanish for the internal operator, but preserve customer names, service names and customer-facing wording in English exactly as shown. Return JSON only as {"text":"concise structured transcription"}.'],
                     ['type' => 'image_url', 'image_url' => ['url' => 'data:'.$mime.';base64,'.base64_encode($bytes), 'detail' => 'high']],
                 ],
             ]],
