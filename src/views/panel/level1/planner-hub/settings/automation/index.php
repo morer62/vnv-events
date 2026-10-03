@@ -21,10 +21,11 @@ $router->post(function()use($context,$redirect){
     try{[$user,$owner,$level]=$context();$userId=(int)$user->getId();$service=new AutomationCenterService($owner);$isAdmin=$level===1;$reviewer=$isAdmin||$service->isReviewer($userId);$action=(string)($_POST['action']??'');$mochi=new MochiConciergeService($owner);
         if($action==='ask_mochi'){
             $message=trim((string)($_POST['message']??''));
-            $imageText=!empty($_FILES['screenshot'])?(new MochiImageReaderService())->extract($_FILES['screenshot']):'';
-            if($imageText!=='')$message=trim($message."\n\n[Texto extraido de la captura]\n".$imageText);
+            $imageTexts=!empty($_FILES['screenshots'])?(new MochiImageReaderService())->extractMany($_FILES['screenshots']):[];
+            if(!$imageTexts&&!empty($_FILES['screenshot']))$imageTexts=(new MochiImageReaderService())->extractMany($_FILES['screenshot']);
+            if($imageTexts){$blocks=[];foreach($imageTexts as $index=>$text)$blocks[]='[Captura '.($index+1).' procesada por el modelo multimodal]' . "\n" . $text;$message=trim($message."\n\n".implode("\n\n",$blocks));}
             $result=$mochi->ask($userId,$level,$message,!empty($_POST['session_id'])?(int)$_POST['session_id']:null);
-            if($imageText!=='')$result['image_read']=true;
+            if($imageTexts){$result['image_read']=true;$result['images_read']=count($imageTexts);}
         }
         elseif($action==='confirm_mochi_action')$result=$mochi->confirmAction($userId,$level,(int)($_POST['session_id']??0),(int)($_POST['draft_id']??0));
         elseif($action==='cancel_mochi_action')$result=$mochi->cancelAction($userId,(int)($_POST['session_id']??0),(int)($_POST['draft_id']??0));

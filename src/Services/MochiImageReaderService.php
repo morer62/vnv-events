@@ -9,6 +9,29 @@ final class MochiImageReaderService
     private const MAX_BYTES = 8 * 1024 * 1024;
     private const ALLOWED_MIME = ['image/jpeg', 'image/png', 'image/webp'];
 
+    public function extractMany(array $files): array
+    {
+        if (!isset($files['name']) || !is_array($files['name'])) {
+            $text = $this->extract($files);
+            return $text === '' ? [] : [$text];
+        }
+        if (count($files['name']) > 5) {
+            throw new RuntimeException('Puedes adjuntar hasta 5 capturas por mensaje.');
+        }
+        $results = [];
+        foreach ($files['name'] as $index => $_name) {
+            $file = [];
+            foreach (['name', 'type', 'tmp_name', 'error', 'size'] as $key) {
+                $file[$key] = $files[$key][$index] ?? null;
+            }
+            $text = $this->extract($file);
+            if ($text !== '') {
+                $results[] = $text;
+            }
+        }
+        return $results;
+    }
+
     public function extract(array $file): string
     {
         $error = (int)($file['error'] ?? UPLOAD_ERR_NO_FILE);
