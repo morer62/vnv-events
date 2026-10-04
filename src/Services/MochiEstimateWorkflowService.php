@@ -102,7 +102,7 @@ final class MochiEstimateWorkflowService
     private function parse(array $current,string $message): array
     {
         try{return (new AiJsonGenerator())->generate(
-            'Update a VNV Events estimate draft from the latest Spanish or English user message. Preserve existing values unless explicitly corrected. Explicit user clarification overrides image extraction. Never invent unreadable or missing facts. When the user confirms or corrects uncertain data, remove that field from uncertain_fields. For a CRM contact conflict set contact_resolution only when the user explicitly chooses use_crm or update_crm. Dates YYYY-MM-DD, times HH:MM:SS. Customer-facing service/product names and estimate content remain English. Return JSON only.',
+            'Update a VNV Events estimate draft from the latest Spanish or English user message. Preserve existing values unless explicitly corrected. Explicit user clarification overrides image extraction. Never invent unreadable or missing facts. Event type is optional: never add event_type to uncertain_fields and never ask the user for it; leave it null when it was not explicitly supplied because the application will use Social Event. Only mark information that is essential to create the estimate as uncertain. When the user confirms or corrects uncertain data, remove that field from uncertain_fields. For a CRM contact conflict set contact_resolution only when the user explicitly chooses use_crm or update_crm. Dates YYYY-MM-DD, times HH:MM:SS. Customer-facing service/product names and estimate content remain English. Return JSON only.',
             ['current_draft'=>$current,'latest_message'=>$message,'today'=>(new \DateTimeImmutable('now',new \DateTimeZone('America/New_York')))->format('Y-m-d')],
             ['customer_name'=>'string or null','email'=>'string or null','phone'=>'string or null','event_date'=>'YYYY-MM-DD or null','start_time'=>'HH:MM:SS or null','end_time'=>'HH:MM:SS or null','venue'=>'string or null','address'=>'string or null','city'=>'string or null','guest_count'=>'integer or null','event_type'=>'English string or null','requested_services'=>['English service names explicitly requested'],'notes'=>'English customer-facing notes or null','remove_services'=>['English service names explicitly removed'],'uncertain_fields'=>['field names that remain uncertain'],'contact_resolution'=>'use_crm, update_crm, or null','estimate_identifier'=>'number/name/email/phone when supplied or null']
         );}catch(\Throwable){return ['notes'=>$message];}
@@ -111,6 +111,11 @@ final class MochiEstimateWorkflowService
     private function normalize(array $draft): array
     {
         foreach(['customer_name','email','phone','event_date','start_time','end_time','venue','address','city','event_type','notes'] as $key){if(isset($draft[$key])&&is_string($draft[$key]))$draft[$key]=trim($draft[$key]);}
+        if(empty($draft['event_type']))$draft['event_type']='Social Event';
+        $draft['uncertain_fields']=array_values(array_filter(
+            (array)($draft['uncertain_fields']??[]),
+            static fn($field)=>is_string($field)&&$field!==''&&$field!=='event_type'
+        ));
         $draft['phone']=$this->phone((string)($draft['phone']??''));
         $services=array_values(array_unique(array_filter(array_map('trim',(array)($draft['requested_services']??[])))));
         $removed=array_values(array_filter(array_map('trim',(array)($draft['remove_services']??[]))));
