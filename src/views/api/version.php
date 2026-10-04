@@ -10,8 +10,9 @@ $router = new Router();
 
 $router->get(function () {
     return JsonResponse::createResponse([
-        // `version` remains for compatibility with older mobile releases.
-        "version" => "4.0.14",
+        // Older iOS releases only read `version`, so keep it at the oldest
+        // supported build until 4.0.14 is available in the App Store.
+        "version" => "4.0.11",
         "current_version" => "4.0.14",
         "minimum_supported_version" => "4.0.11",
         "update_url" => [
