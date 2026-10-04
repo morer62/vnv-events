@@ -284,6 +284,7 @@ Rules:
 - For location pages, use JSON-LD Service with areaServed. Do not create a fake LocalBusiness for each city.
 - Make schema_json valid JSON data, not a string of HTML.
 - body_html must be clean HTML with headings, paragraphs, lists, and FAQ section when appropriate.
+- When presenting structured comparisons or row-and-column data, use a semantic table: wrap it in <div class="cms-table-scroll" role="region" aria-label="Descriptive table title" tabindex="0">, use <table class="cms-article-table">, <thead>, <tbody>, and <th scope="col">. Never imitate tables with spaces, tabs, paragraphs, or line breaks. Keep cell copy concise and do not add inline table styles.
 - Include practical internal link suggestions as JSON.
 - Include source_notes_json explaining what would need human verification.
 {$extraInstruction}

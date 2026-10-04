@@ -554,7 +554,7 @@ $router->post(function () {
                 $article = cmsCallOpenAiJson(
                     'You are a careful SEO content writer for VNV Events. Return valid JSON only.',
                     [
-                        'task' => 'Generate one CMS-ready draft. Required keys: title, slug, excerpt, body_html, meta_title, meta_description, meta_keywords, schema_json, og_title, og_description, image_prompts. body_html must be clean rich HTML with h2 sections, useful paragraphs, lists and FAQ when helpful. image_prompts must be hyperrealistic professional event photography prompts, not illustration, cartoon, anime or 3D render. No markdown.',
+                        'task' => 'Generate one CMS-ready draft. Required keys: title, slug, excerpt, body_html, meta_title, meta_description, meta_keywords, schema_json, og_title, og_description, image_prompts. body_html must be clean rich HTML with h2 sections, useful paragraphs, lists and FAQ when helpful. For structured comparisons or row-and-column data, wrap a semantic table in <div class="cms-table-scroll" role="region" aria-label="Descriptive table title" tabindex="0"> and use <table class="cms-article-table">, <thead>, <tbody>, and <th scope="col">. Never imitate a table with spaces, tabs, paragraphs, or line breaks; keep cells concise and do not use inline table styles. image_prompts must be hyperrealistic professional event photography prompts, not illustration, cartoon, anime or 3D render. No markdown.',
                         'brand' => 'VNV Events LLC',
                         'content_type' => $contentType,
                         'idea' => $idea,
