@@ -228,7 +228,7 @@ final class MochiEstimateWorkflowService
         foreach(['event_date'=>'fecha del evento','start_time'=>'hora de inicio','end_time'=>'hora final','services'=>'servicio'] as $key=>$label)if(empty($d[$key]))$missing[]=$label;
         if(!empty($d['unresolved_services']))$missing[]='confirmar el servicio solicitado';
         $labels=['customer_name'=>'nombre del cliente','email'=>'correo del cliente','event_date'=>'fecha del evento','start_time'=>'hora de inicio','end_time'=>'hora final','requested_services'=>'servicio','services'=>'servicio'];
-        foreach(array_values(array_filter((array)($d['uncertain_fields']??[]),'is_string')) as $field)$missing[]='confirmar '.($labels[$field]??'un dato de la captura');
+        foreach(array_values(array_filter((array)($d['uncertain_fields']??[]),'is_string')) as $field){$label=$labels[$field]??'un dato de la captura';if(!in_array($label,$missing,true)&&!in_array($label==='correo del cliente'?'correo válido del cliente':$label,$missing,true))$missing[]='confirmar '.$label;}
         if(!empty($d['crm_conflicts']))$missing[]='elegir si conservamos el contacto del CRM o lo actualizamos';
         return array_values(array_unique($missing));
     }
