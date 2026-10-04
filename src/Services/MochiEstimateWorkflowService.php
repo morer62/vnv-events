@@ -84,7 +84,7 @@ final class MochiEstimateWorkflowService
             unset($draft['pending_service'],$draft['service_suggestions']);
             $message='El servicio correcto es '.$selectedSuggestion.'. '.$message;
         }
-        $parsed=$this->parse($draft,$message);
+        $parsed=$this->messageFallbacks($this->parse($draft,$message),$message);
         $replaceServices=(bool)preg_match('/\b(solo|solamente|únicamente|unicamente|nada más|nada mas|más nada|mas nada|only|nothing else)\b/iu',$message);
         $parsedServices=array_values(array_filter(array_map('trim',(array)($parsed['requested_services']??[]))));
         $parsedCustom=(array)($parsed['custom_services']??[]);
@@ -123,6 +123,15 @@ final class MochiEstimateWorkflowService
             ['current_draft'=>$current,'latest_message'=>$message,'today'=>(new \DateTimeImmutable('now',new \DateTimeZone('America/New_York')))->format('Y-m-d')],
             ['customer_name'=>'string or null','email'=>'string or null','phone'=>'string or null','event_date'=>'YYYY-MM-DD or null','start_time'=>'HH:MM:SS or null','end_time'=>'HH:MM:SS or null','venue'=>'string or null','address'=>'string or null','city'=>'string or null','guest_count'=>'integer or null','event_type'=>'English string or null','requested_services'=>['English service names explicitly requested'],'custom_services'=>[['name'=>'English service name','price'=>'explicit numeric price or null','description'=>'English description or null','is_variable'=>'boolean or null','is_per_guest'=>'boolean']],'notes'=>'English customer-facing notes or null','remove_services'=>['English service names explicitly removed'],'uncertain_fields'=>['field names that remain uncertain'],'contact_resolution'=>'use_crm, update_crm, or null','estimate_identifier'=>'number/name/email/phone when supplied or null']
         );}catch(\Throwable){return ['notes'=>$message];}
+    }
+
+    private function messageFallbacks(array $parsed,string $message): array
+    {
+        if(empty($parsed['email'])&&preg_match('/\b[A-Z0-9._%+\-]+@[A-Z0-9.\-]+\.[A-Z]{2,}\b/iu',$message,$match))$parsed['email']=$match[0];
+        if(empty($parsed['customer_name'])&&preg_match('/(?:para|cliente|nombre)\s*:?\s*([\pL][\pL\s\'\-]{2,80}?)(?=\s*,?\s*(?:correo|email|tel[eé]fono|fecha|el\s+\d)|$)/iu',$message,$match))$parsed['customer_name']=trim($match[1],' ,');
+        $custom=(array)($parsed['custom_services']??[]);
+        if(count($custom)===1&&is_array($custom[0])&&(float)($custom[0]['price']??0)<=0&&preg_match('/(?:precio(?:\s+variable|\s+fijo)?\s*:?\s*|\$\s*)(\d+(?:\.\d{1,2})?)/iu',$message,$match)){$custom[0]['price']=(float)$match[1];$parsed['custom_services']=$custom;}
+        return $parsed;
     }
 
     private function normalize(array $draft): array
