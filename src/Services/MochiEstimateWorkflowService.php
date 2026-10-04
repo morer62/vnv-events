@@ -10,7 +10,7 @@ use RuntimeException;
 
 final class MochiEstimateWorkflowService
 {
-    private const CREATE_RE='/\b(create|crear|crea|nuevo|new)\b.*\b(estimate|estimado|cotizaci[oó]n)\b|\b(estimate|estimado|cotizaci[oó]n)\b.*\b(create|crear|crea|nuevo|new)\b/iu';
+    private const CREATE_RE='/\b(create|crear|crea|cr[eé]ame|prep[aá]rame|hazme|armame|[aá]rmame|nuevo|new)\b.*\b(estimate|estimado|cotizaci[oó]n)\b|\b(estimate|estimado|cotizaci[oó]n)\b.*\b(create|crear|crea|cr[eé]ame|prep[aá]rame|hazme|armame|[aá]rmame|nuevo|new)\b/iu';
     private const MODIFY_RE='/\b(modify|edit|update|modificar|editar|cambiar|actualizar)\b.*\b(estimate|estimado|cotizaci[oó]n)\b|\b(estimate|estimado|cotizaci[oó]n)\b.*\b(modify|edit|update|modificar|editar|cambiar|actualizar)\b/iu';
     private const APPROVE_RE='/^(s[ií]|yes|correcto|correct|looks good|se ve bien|créalo|crealo|create it|hazlo|aprobado|approve)[.!\s]*$/iu';
 
@@ -25,7 +25,8 @@ final class MochiEstimateWorkflowService
 
     public function shouldHandle(int $userId,int $sessionId,string $message): bool
     {
-        return (bool)($this->active($userId,$sessionId)||preg_match(self::CREATE_RE,$message)||preg_match(self::MODIFY_RE,$message));
+        $imageEstimate=str_contains($message,'[Captura ')&&preg_match('/\b(estimate|estimado|cotizaci[oó]n)\b/iu',$message);
+        return (bool)($this->active($userId,$sessionId)||preg_match(self::CREATE_RE,$message)||preg_match(self::MODIFY_RE,$message)||$imageEstimate);
     }
 
     public function handle(int $userId,int $level,int $sessionId,string $message): array
