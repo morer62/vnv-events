@@ -74,6 +74,16 @@ final class MochiEstimateWorkflowService
             return $this->result('Encontré Estimate #'.$matches[0]->id.'. ¿Qué deseas cambiar?',$workflow,$this->estimateItems($matches),'editing');
         }
         if(preg_match(self::APPROVE_RE,trim($message))&&$workflow->status==='REVIEW')return $this->createEstimate($workflow,$draft,$userId);
+        $selectedSuggestion=$this->selectedServiceSuggestion($draft,$message);
+        if($selectedSuggestion!==null){
+            $pending=(string)($draft['pending_service']??'');
+            $draft['requested_services']=array_values(array_unique(array_map(
+                fn($name)=>$this->matchesServiceName((string)$name,$pending)?$selectedSuggestion:(string)$name,
+                (array)($draft['requested_services']??[])
+            )));
+            unset($draft['pending_service'],$draft['service_suggestions']);
+            $message='El servicio correcto es '.$selectedSuggestion.'. '.$message;
+        }
         $parsed=$this->parse($draft,$message);
         $replaceServices=(bool)preg_match('/\b(solo|solamente|únicamente|unicamente|nada más|nada mas|más nada|mas nada|only|nothing else)\b/iu',$message);
         $parsedServices=array_values(array_filter(array_map('trim',(array)($parsed['requested_services']??[]))));
@@ -101,10 +111,9 @@ final class MochiEstimateWorkflowService
         $missing=$this->missing($draft);
         $status=$missing?'COLLECTING':'REVIEW';
         $this->saveDraft((int)$workflow->id,$draft,$status);
-        $reply=$this->summary($draft,false);
-        if($missing)$reply.="\n\nPara continuar necesito: ".implode(', ',$missing).'.';
-        else $reply.="\n\n¿Está correcto? Cuando me digas “sí”, crearé el estimate con los precios actuales.";
-        return $this->result($reply,$this->reload((int)$workflow->id),$draft['matches']??[],'creating');
+        if(!$missing)return $this->createEstimate($this->reload((int)$workflow->id),$draft,$userId);
+        $reply=$this->missingReply($draft,$missing);
+        return $this->result($reply,$this->reload((int)$workflow->id),$this->serviceSuggestionItems($draft),'creating');
     }
 
     private function parse(array $current,string $message): array
@@ -129,7 +138,7 @@ final class MochiEstimateWorkflowService
         $services=array_values(array_unique(array_filter(array_map('trim',(array)($draft['requested_services']??[])))));
         $removed=array_values(array_filter(array_map('trim',(array)($draft['remove_services']??[]))));
         $draft['requested_services']=array_values(array_filter($services,fn($name)=>!array_filter($removed,fn($remove)=>$this->matchesServiceName((string)$name,(string)$remove))));
-        $custom=[];foreach((array)($draft['custom_services']??[]) as $service){if(!is_array($service))continue;$name=trim((string)($service['name']??''));if($name==='')continue;$custom[mb_strtolower($name)]=['name'=>$name,'price'=>isset($service['price'])?(float)$service['price']:null,'description'=>trim((string)($service['description']??'')),'is_variable'=>array_key_exists('is_variable',$service)&&$service['is_variable']!==null?(bool)$service['is_variable']:null,'is_per_guest'=>!empty($service['is_per_guest'])];}$draft['custom_services']=array_values($custom);
+        $custom=[];foreach((array)($draft['custom_services']??[]) as $service){if(!is_array($service))continue;$name=trim((string)($service['name']??''));if($name==='')continue;$custom[mb_strtolower($name)]=['name'=>$name,'price'=>isset($service['price'])?(float)$service['price']:null,'description'=>trim((string)($service['description']??'')),'is_variable'=>array_key_exists('is_variable',$service)&&$service['is_variable']!==null?(bool)$service['is_variable']:true,'is_per_guest'=>!empty($service['is_per_guest'])];}$draft['custom_services']=array_values($custom);
         unset($draft['remove_services']);return $draft;
     }
 
@@ -138,6 +147,10 @@ final class MochiEstimateWorkflowService
         $customers=$this->findCustomers($draft);$draft['customer_matches']=array_map(fn($c)=>(int)$c->id,$customers);
         if(count($customers)===1){$c=$customers[0];$draft['customer_id']=(int)$c->id;$draft['customer_name']=($draft['customer_name']??'')?:trim($c->name.' '.$c->lastname);$crmEmail=trim((string)$c->email);$crmPhone=$this->phone((string)$c->phone);$incomingEmail=trim((string)($draft['email']??''));$incomingPhone=$this->phone((string)($draft['phone']??''));$conflicts=[];if($incomingEmail!==''&&$crmEmail!==''&&strcasecmp($incomingEmail,$crmEmail)!==0)$conflicts['email']=['incoming'=>$incomingEmail,'crm'=>$crmEmail];if($incomingPhone!==''&&$crmPhone!==''&&$incomingPhone!==$crmPhone)$conflicts['phone']=['incoming'=>$incomingPhone,'crm'=>$crmPhone];if(($draft['contact_resolution']??null)==='use_crm'){$draft['email']=$crmEmail;$draft['phone']=$crmPhone;$conflicts=[];}elseif(($draft['contact_resolution']??null)==='update_crm'){$draft['update_customer_contact']=true;$conflicts=[];}else{$draft['crm_conflicts']=$conflicts;}$draft['email']=($draft['email']??'')?:$crmEmail;$draft['phone']=($draft['phone']??'')?:$crmPhone;}
         $draft['services']=$this->applyQuantities(array_merge($this->resolveServices($this->catalogRequestedServices((array)($draft['requested_services']??[]),(array)($draft['custom_services']??[]))),$this->customDraftServices((array)($draft['custom_services']??[]))),(int)($draft['guest_count']??0));$draft['unresolved_services']=$this->unresolvedServices((array)($draft['requested_services']??[]),$draft['services']);
+        if(!empty($draft['unresolved_services'])){
+            $draft['pending_service']=(string)$draft['unresolved_services'][0];
+            $draft['service_suggestions']=$this->serviceCandidates($draft['pending_service']);
+        }else unset($draft['pending_service'],$draft['service_suggestions']);
         $draft['possible_duplicates']=$this->duplicates($draft);
         $draft['conflicts']=$this->conflicts($draft);
         return $draft;
@@ -192,7 +205,24 @@ final class MochiEstimateWorkflowService
         if($editing&&!empty($d['services_to_remove']))$lines[]="\nQuitar\n• ".implode("\n• ",$d['services_to_remove']);if(!empty($d['notes']))$lines[]="\nNotas\n".$d['notes'];if(!empty($d['possible_duplicates']))$lines[]="\n⚠️ Encontré un posible estimate duplicado.";if(!empty($d['conflicts']))$lines[]="\n⚠️ Hay otro evento cercano en fecha/hora; no bloquea automáticamente, pero requiere revisión.";if(!empty($d['crm_conflicts'])){foreach($d['crm_conflicts'] as $field=>$values)$lines[]="\n⚠️ Conflicto de contacto ({$field}): captura/mensaje {$values['incoming']} · CRM {$values['crm']}. Indícame si uso el dato del CRM o si actualizo el CRM.";}if(!empty($d['uncertain_fields']))$lines[]="\n⚠️ Necesito confirmar: ".implode(', ',$d['uncertain_fields']).'.';return implode("\n",$lines);
     }
 
-    private function missing(array $d): array {if(empty($d['email'])||!filter_var($d['email'],FILTER_VALIDATE_EMAIL))return ['email válido'];if(empty($d['customer_id'])&&empty($d['customer_name']))return ['nombre del cliente'];foreach((array)($d['custom_services']??[]) as $service){$name=(string)($service['name']??'el servicio nuevo');if(trim((string)($service['description']??''))==='')return ['descripción de '.$name];if((float)($service['price']??0)<=0)return ['precio de '.$name];if(!array_key_exists('is_variable',$service)||$service['is_variable']===null)return ['indicar si el precio de '.$name.' es fijo o variable'];if(!empty($service['is_per_guest'])&&(int)($d['guest_count']??0)<=0)return ['cantidad exacta de invitados para calcular '.$name];}$map=['event_date'=>'fecha','start_time'=>'hora de inicio','end_time'=>'hora final','services'=>'al menos un servicio'];foreach($map as $key=>$label)if(empty($d[$key]))return [$label];if(!empty($d['unresolved_services']))return ['el servicio '.implode(', ',$d['unresolved_services']).' no existe en el catálogo; indica si deseas crearlo y proporciona descripción, precio y si es fijo o variable'];$uncertain=array_values(array_filter((array)($d['uncertain_fields']??[]),'is_string'));if($uncertain)return ['confirmar el dato dudoso: '.$uncertain[0]];if(!empty($d['crm_conflicts']))return ['resolver el conflicto de contacto con CRM'];return [];}
+    private function missing(array $d): array
+    {
+        $missing=[];
+        if(empty($d['email'])||!filter_var($d['email'],FILTER_VALIDATE_EMAIL))$missing[]='correo válido del cliente';
+        if(empty($d['customer_id'])&&empty($d['customer_name']))$missing[]='nombre del cliente';
+        foreach((array)($d['custom_services']??[]) as $service){
+            $name=(string)($service['name']??'el servicio nuevo');
+            if(trim((string)($service['description']??''))==='')$missing[]='descripción de '.$name;
+            if((float)($service['price']??0)<=0)$missing[]='precio de '.$name;
+            if(!empty($service['is_per_guest'])&&(int)($d['guest_count']??0)<=0)$missing[]='cantidad de invitados para calcular '.$name;
+        }
+        foreach(['event_date'=>'fecha del evento','start_time'=>'hora de inicio','end_time'=>'hora final','services'=>'servicio'] as $key=>$label)if(empty($d[$key]))$missing[]=$label;
+        if(!empty($d['unresolved_services']))$missing[]='confirmar el servicio solicitado';
+        $labels=['customer_name'=>'nombre del cliente','email'=>'correo del cliente','event_date'=>'fecha del evento','start_time'=>'hora de inicio','end_time'=>'hora final','requested_services'=>'servicio','services'=>'servicio'];
+        foreach(array_values(array_filter((array)($d['uncertain_fields']??[]),'is_string')) as $field)$missing[]='confirmar '.($labels[$field]??'un dato de la captura');
+        if(!empty($d['crm_conflicts']))$missing[]='elegir si conservamos el contacto del CRM o lo actualizamos';
+        return array_values(array_unique($missing));
+    }
     private function findCustomers(array $d): array {$email=trim((string)($d['email']??''));if(!filter_var($email,FILTER_VALIDATE_EMAIL))return [];$this->db->query('SELECT id,name,lastname,email,phone FROM users WHERE id_owner=:owner AND level=5 AND is_active=1 AND LOWER(email)=LOWER(:email) LIMIT 2');$this->bind(['owner'=>$this->ownerId,'email'=>$email]);return $this->db->fetchAll();}
     private function syncCustomerContact(int $customerId,array $draft,int $actor): void {$this->db->query('SELECT email,phone FROM users WHERE id=:id AND id_owner=:owner AND level=5');$this->bind(['id'=>$customerId,'owner'=>$this->ownerId]);$before=$this->db->fetchOne();if(!$before)return;$email=trim((string)($draft['email']??$before->email));$phone=$this->phone((string)($draft['phone']??$before->phone));$changes=[];if($email!==''&&strcasecmp($email,(string)$before->email)!==0){$this->db->query('SELECT id FROM users WHERE id_owner=:owner AND level=5 AND id<>:id AND LOWER(email)=LOWER(:email) LIMIT 1');$this->bind(['owner'=>$this->ownerId,'id'=>$customerId,'email'=>$email]);if($this->db->fetchOne())throw new RuntimeException('Ese email ya pertenece a otro cliente. Revisa el contacto antes de crear el estimate.');$changes['email']=['old'=>$before->email,'new'=>$email];}if($phone!==''&&$phone!==$this->phone((string)$before->phone))$changes['phone']=['old'=>$before->phone,'new'=>$phone];if(!$changes)return;$sets=[];$params=['id'=>$customerId,'owner'=>$this->ownerId];foreach($changes as $field=>$values){$sets[]="$field=:$field";$params[$field]=$values['new'];}$this->db->query('UPDATE users SET '.implode(',',$sets).' WHERE id=:id AND id_owner=:owner');$this->bind($params);$this->db->execute();$this->audit($actor,'UPDATE_CUSTOMER_CONTACT',$customerId,$changes,'customer');}
     private function resolveServices(array $names): array {$out=[];foreach($names as $name){$this->db->query("SELECT id,name,price,description FROM orders_services WHERE id_owner=:owner AND is_archived=0 AND (LOWER(name)=LOWER(:exact) OR LOWER(name) LIKE LOWER(:like)) ORDER BY LOWER(name)=LOWER(:exact) DESC,ABS(CHAR_LENGTH(name)-CHAR_LENGTH(:length_name)),id LIMIT 1");$this->bind(['owner'=>$this->ownerId,'exact'=>$name,'like'=>'%'.$name.'%','length_name'=>$name]);$s=$this->db->fetchOne()?:$this->fuzzyService((string)$name);if($s)$out[]=['id'=>(int)$s->id,'name'=>$s->name,'price'=>(float)$s->price,'description'=>$s->description,'quantity'=>1,'_requested'=>(string)$name];}return $out;}
@@ -201,9 +231,27 @@ final class MochiEstimateWorkflowService
     private function catalogRequestedServices(array $requested,array $custom): array {$customNames=array_values(array_filter(array_map(fn($service)=>is_array($service)?(string)($service['name']??''):'',$custom)));return array_values(array_filter($requested,fn($name)=>!$this->nameInList((string)$name,$customNames)));}
     private function nameInList(string $name,array $names): bool {foreach($names as $candidate)if($this->matchesServiceName($name,(string)$candidate)||mb_strtolower(trim($name))===mb_strtolower(trim((string)$candidate)))return true;return false;}
     private function createCustomService(array $service,int $actor): int {$this->db->query('SELECT id FROM orders_services WHERE id_owner=:owner AND is_archived=0 AND LOWER(name)=LOWER(:name) LIMIT 1');$this->bind(['owner'=>$this->ownerId,'name'=>$service['name']]);if($existing=$this->db->fetchOne())return (int)$existing->id;$this->db->query('INSERT INTO orders_services(name,description,price,requirements,id_owner,is_archived,is_variable) VALUES(:name,:description,:price,NULL,:owner,0,:variable)');$this->bind(['name'=>$service['name'],'description'=>$service['description'],'price'=>(float)$service['price'],'owner'=>$this->ownerId,'variable'=>($service['is_variable']??'YES')==='YES'?'YES':'NO']);$this->db->execute();$id=(int)$this->db->lastId();if(!$id)throw new RuntimeException('No pude crear el servicio nuevo. Conservé el borrador para reintentar.');$this->audit($actor,'CREATE_SERVICE',$id,['name'=>$service['name'],'description'=>$service['description'],'price'=>(float)$service['price'],'is_variable'=>$service['is_variable']??'YES'],'service');return $id;}
-    private function fuzzyService(string $requested): ?object {$this->db->query('SELECT id,name,price,description FROM orders_services WHERE id_owner=:owner AND is_archived=0');$this->db->bind(':owner',$this->ownerId);$needle=$this->serviceTokens($requested);$best=null;$bestScore=0.0;foreach($this->db->fetchAll() as $candidate){$tokens=$this->serviceTokens((string)$candidate->name);$union=array_unique(array_merge($needle,$tokens));$score=$union?count(array_intersect($needle,$tokens))/count($union):0;if($score>$bestScore){$bestScore=$score;$best=$candidate;}}return $bestScore>=0.5?$best:null;}
+    private function fuzzyService(string $requested): ?object
+    {
+        $candidates=$this->serviceCandidates($requested,1);
+        return $candidates&&($candidates[0]->_score??0)>=0.72?$candidates[0]:null;
+    }
+    private function serviceCandidates(string $requested,int $limit=3): array
+    {
+        $this->db->query('SELECT id,name,price,description FROM orders_services WHERE id_owner=:owner AND is_archived=0');$this->db->bind(':owner',$this->ownerId);
+        $ranked=[];foreach($this->db->fetchAll() as $candidate){$score=$this->serviceSimilarity($requested,(string)$candidate->name);if($score<0.42)continue;$candidate->_score=$score;$ranked[]=$candidate;}
+        usort($ranked,fn($a,$b)=>($b->_score<=>$a->_score)?:strcmp((string)$a->name,(string)$b->name));return array_slice($ranked,0,max(1,$limit));
+    }
+    private function serviceSimilarity(string $left,string $right): float
+    {
+        $a=$this->serviceKey($left);$b=$this->serviceKey($right);if($a===''||$b==='')return 0.0;if($a===$b)return 1.0;
+        $length=max(strlen($a),strlen($b));$edit=$length?1-(levenshtein($a,$b)/$length):0.0;
+        $ta=$this->serviceTokens($left);$tb=$this->serviceTokens($right);$union=array_unique(array_merge($ta,$tb));$token=$union?count(array_intersect($ta,$tb))/count($union):0.0;
+        similar_text($a,$b,$percent);return max($edit,$token,((float)$percent)/100);
+    }
+    private function serviceKey(string $value): string {$value=iconv('UTF-8','ASCII//TRANSLIT//IGNORE',mb_strtolower($value))?:mb_strtolower($value);return preg_replace('/[^a-z0-9]+/','',$value)??'';}
     private function serviceTokens(string $value): array {$words=preg_split('/[^\pL\pN]+/u',mb_strtolower($value),-1,PREG_SPLIT_NO_EMPTY)?:[];return array_values(array_unique(array_map(fn($word)=>mb_strlen($word)>3&&str_ends_with($word,'s')?mb_substr($word,0,-1):$word,$words)));}
-    private function matchesServiceName(string $left,string $right): bool {$a=$this->serviceTokens($left);$b=$this->serviceTokens($right);if(!$a||!$b)return false;$union=array_unique(array_merge($a,$b));return count(array_intersect($a,$b))/count($union)>=0.5;}
+    private function matchesServiceName(string $left,string $right): bool {return $this->serviceSimilarity($left,$right)>=0.72;}
     private function unresolvedServices(array $requested,array $resolved): array {$found=array_map(fn($service)=>(string)($service['_requested']??''),$resolved);return array_values(array_filter($requested,fn($name)=>!in_array((string)$name,$found,true)));}
     private function applyQuantities(array $services,int $guests): array {foreach($services as &$service){$perGuest=!empty($service['is_per_guest'])||str_contains(mb_strtolower(($service['name']??'').' '.($service['description']??'')),'per guest');$service['quantity']=$perGuest&&$guests>0?$guests:max(1,(int)($service['quantity']??1));}unset($service);return $services;}
     private function requestDraft(string $message): array {$id=preg_match('/(?:request|solicitud)\s*#?\s*(\d+)/iu',$message,$m)?(int)$m[1]:0;$latest=(bool)preg_match('/\b(latest|última|ultimo|último|más reciente)\b/iu',$message);$name='';if(!$id&&!$latest&&preg_match('/(?:request|solicitud)(?:\s+de|\s+for)\s+([\pL][\pL\s\'-]{2,80})/iu',$message,$m))$name=trim($m[1]);if(!$id&&!$latest&&$name==='')return [];$sql="SELECT * FROM event_requests WHERE id_owner=:owner AND is_archived=0";$params=['owner'=>$this->ownerId];if($id){$sql.=' AND id=:id';$params['id']=$id;}elseif($name!==''){$sql.=' AND LOWER(full_name) LIKE LOWER(:name)';$params['name']='%'.$name.'%';}$sql.=' ORDER BY created_at DESC LIMIT 1';$this->db->query($sql);$this->bind($params);$r=$this->db->fetchOne();if(!$r)return [];$services=json_decode((string)$r->selected_services,true);if(!is_array($services))$services=preg_split('/[,;\n]+/',(string)$r->selected_services)?:[];return ['source_request_id'=>(int)$r->id,'customer_id'=>$r->id_user? (int)$r->id_user:null,'customer_name'=>$r->full_name,'email'=>$r->email,'phone'=>$this->phone((string)$r->phone),'event_date'=>$r->event_date,'start_time'=>$r->event_time,'address'=>$r->event_address,'guest_count'=>$r->guest_count? (int)$r->guest_count:null,'requested_services'=>array_values(array_filter(array_map(fn($v)=>is_array($v)?(string)($v['name']??$v['title']??''):(string)$v,$services))),'notes'=>$r->details];}
@@ -224,6 +272,26 @@ final class MochiEstimateWorkflowService
     private function englishNotes(array $d): string {$parts=[];if(!empty($d['event_type']))$parts[]='Event type: '.$d['event_type'];if(!empty($d['guest_count']))$parts[]='Guest count: '.$d['guest_count'];if(!empty($d['venue']))$parts[]='Venue: '.$d['venue'];if(!empty($d['notes']))$parts[]=$d['notes'];$parts[]='Created by Mochi for review. No customer email was sent automatically.';return implode("\n",$parts);}
     private function address(array $d): string {$parts=[];foreach([$d['venue']??'',$d['address']??'',$d['city']??''] as $part){$part=trim((string)$part,' ,');if($part===''||array_filter($parts,fn($existing)=>mb_stripos($existing,$part)!==false||mb_stripos($part,$existing)!==false))continue;$parts[]=$part;}return implode(', ',$parts);}
     private function phone(string $value): string {return preg_replace('/\D+/','',$value)??'';}
+    private function selectedServiceSuggestion(array $draft,string $message): ?string
+    {
+        $suggestions=(array)($draft['service_suggestions']??[]);if(!$suggestions)return null;$plain=mb_strtolower(trim($message));
+        $ordinals=['primero'=>0,'primera'=>0,'1'=>0,'segundo'=>1,'segunda'=>1,'2'=>1,'tercero'=>2,'tercera'=>2,'3'=>2];
+        foreach($ordinals as $word=>$index)if(preg_match('/\b'.preg_quote($word,'/').'\b/u',$plain)&&isset($suggestions[$index]))return $this->candidateField($suggestions[$index],'name');
+        foreach($suggestions as $candidate){$name=$this->candidateField($candidate,'name');if($this->serviceSimilarity($plain,$name)>=0.72)return $name;}
+        return null;
+    }
+    private function serviceSuggestionItems(array $draft): array
+    {
+        return array_map(fn($service)=>['title'=>$this->candidateField($service,'name'),'meta'=>'Servicio parecido · $'.number_format((float)$this->candidateField($service,'price'),2),'detail'=>'Escribe el nombre o “el primero/segundo/tercero”'],(array)($draft['service_suggestions']??[]));
+    }
+    private function missingReply(array $draft,array $missing): string
+    {
+        $pending=(string)($draft['pending_service']??'');$suggestions=(array)($draft['service_suggestions']??[]);
+        if($pending!==''&&$suggestions){$names=array_map(fn($service)=>$this->candidateField($service,'name'),$suggestions);return 'No encontré “'.$pending.'” exactamente. ¿Quisiste decir '.implode(', ',array_slice($names,0,-1)).(count($names)>1?' o ':'').end($names).'? Puedes responder con el nombre o “el primero”.';}
+        if($pending!=='')return 'No encontré “'.$pending.'” en el catálogo. Si es un servicio nuevo, envíame en una sola respuesta: nombre, descripción breve y precio. Lo crearé como precio variable para este estimate.';
+        return 'Ya tengo el resto. Solo necesito '.implode(', ',$missing).'. Puedes enviarlo todo en una sola respuesta.';
+    }
+    private function candidateField(mixed $candidate,string $field): string {return (string)(is_array($candidate)?($candidate[$field]??''):($candidate->$field??''));}
     private function isStarterOnly(string $message,string $mode): bool {$plain=mb_strtolower(trim(preg_replace('/[^\pL\pN\s]+/u',' ',$message)??$message));$plain=preg_replace('/\s+/',' ',$plain)??$plain;$starters=$mode==='CREATE'?['create an estimate','create estimate','create another estimate','crear un estimate','crear estimate','crear otro estimate','crear un estimado','nuevo estimate','new estimate','necesito crear un estimate','i need to create an estimate']:['modify an estimate','modify estimate','modificar un estimate','editar estimate','actualizar estimate','i need to modify an existing estimate'];return in_array($plain,$starters,true);}
     private function create(int $user,int $session,string $mode): object {$this->db->query("INSERT INTO mochi_estimate_workflows(id_owner,site_key,id_user,id_session,mode,status,draft_json) VALUES(:owner,:site,:user,:session,:mode,'COLLECTING','{}') ON DUPLICATE KEY UPDATE mode=VALUES(mode),status='COLLECTING',draft_json='{}',current_estimate_id=NULL,last_error_code=NULL");$this->bind(['owner'=>$this->ownerId,'site'=>$this->siteKey,'user'=>$user,'session'=>$session,'mode'=>$mode]);$this->db->execute();return $this->active($user,$session);}
     private function reset(int $id,string $mode): void {$this->db->query("UPDATE mochi_estimate_workflows SET mode=:mode,status='COLLECTING',draft_json='{}',current_estimate_id=NULL,last_error_code=NULL WHERE id=:id");$this->bind(['id'=>$id,'mode'=>$mode]);$this->db->execute();}
