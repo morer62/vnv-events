@@ -77,6 +77,9 @@ final class MochiEstimateWorkflowService
         $parsed=$this->parse($draft,$message);
         $removeServices=array_values(array_filter(array_map('trim',(array)($parsed['remove_services']??[]))));
         $draft=array_replace_recursive($draft,$parsed);
+        $uncertain=array_values(array_filter((array)($draft['uncertain_fields']??[]),'is_string'));
+        if(!str_contains($message,'[Captura '))foreach($parsed as $field=>$value){if($field==='uncertain_fields'||$field==='contact_resolution'||$field==='estimate_identifier'||$field==='remove_services')continue;if($value!==null&&$value!==''&&$value!==[])$uncertain=array_values(array_diff($uncertain,[$field]));}
+        $draft['uncertain_fields']=$uncertain;
         $draft=$this->normalize($draft);
         if($removeServices)$draft['services_to_remove']=$removeServices;
         if($workflow->current_estimate_id){
