@@ -314,7 +314,8 @@ final class MochiEstimateWorkflowService
 
     private function plainEstimateCustomerName(string $message): string
     {
-        $plain=trim(preg_replace('/\s+/u',' ',preg_replace('/[^\pL\s\'\-]+/u',' ',$message)??$message)??$message);
+        $plain=preg_replace('/\b\d{1,2}\s+de\s+(?:enero|febrero|marzo|abril|mayo|junio|julio|agosto|septiembre|setiembre|octubre|noviembre|diciembre)(?:\s+de\s+20\d{2})?\b/iu',' ',$message)??$message;
+        $plain=trim(preg_replace('/\s+/u',' ',preg_replace('/[^\pL\s\'\-]+/u',' ',$plain)??$plain)??$plain);
         if($plain===''||preg_match('/\b(estimate|estimado|cotizaci[oó]n|modificar|editar|actualizar|cambiar|evento|fecha|tel[eé]fono|correo|email)\b/iu',$plain))return '';
         $tokens=preg_split('/\s+/u',$plain,-1,PREG_SPLIT_NO_EMPTY)?:[];
         return count($tokens)>=2&&count($tokens)<=4?$plain:'';
