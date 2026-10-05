@@ -239,6 +239,9 @@ $router->post(function () {
     $ordersRepo->update([
         "status_workflow" => $newStatus
     ], ["id" => $orderId]);
+    if (trim($newStatus) === 'INVOICE_PAID') {
+        $ordersRepo->archiveSupersededEventInvoices((int)$orderId);
+    }
 
     $statusesThatSign = ["INVOICE_READY", "INVOICE_PARTIAL", "INVOICE_PAID"];
     if (in_array(trim($newStatus), $statusesThatSign, true)) {

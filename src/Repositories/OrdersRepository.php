@@ -459,6 +459,29 @@ class OrdersRepository extends BaseRepository
         return $this->db->execute();
     }
 
+    /**
+     * When a replacement invoice for the same client and event is fully paid,
+     * keep only the newest invoice in operational lists while preserving every
+     * previous version in the archive.
+     */
+    public function archiveSupersededEventInvoices(int $currentOrderId): int
+    {
+        $sql = "UPDATE orders previous_order
+                INNER JOIN orders current_order ON current_order.id = :current_id
+                SET previous_order.is_archived = 1,
+                    previous_order.archived_at = NOW()
+                WHERE previous_order.id_owner = current_order.id_owner
+                  AND previous_order.id_client = current_order.id_client
+                  AND previous_order.event_date = current_order.event_date
+                  AND previous_order.id < current_order.id
+                  AND current_order.status_workflow = 'INVOICE_PAID'
+                  AND previous_order.is_archived = 0";
+        $this->db->query($sql);
+        $this->db->bind(':current_id', $currentOrderId);
+        $this->db->execute();
+        return $this->db->rowCount();
+    }
+
 
 
 

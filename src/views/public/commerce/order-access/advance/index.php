@@ -354,6 +354,7 @@ $router->post(function () {
         $orderRepo->update([
             "status_workflow" => "INVOICE_PAID"
         ], ["id" => $order->id]);
+        $orderRepo->archiveSupersededEventInvoices((int)$order->id);
         
         // Add status history
         $statusRepo = new \App\Repositories\OrdersStatusHistoryRepository();

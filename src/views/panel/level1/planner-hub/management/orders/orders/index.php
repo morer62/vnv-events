@@ -50,8 +50,11 @@ $router->get(callback: function () {
             $clients = [];
         }
     } else {
+        $visibilityFilter = $user->getLevel() === 1
+            ? ['id_owner' => $user->getOwner()]
+            : LoginService::getUserIdAsArray(true);
         $allOrders = $repo->getFiltered2([
-            ...LoginService::getUserIdAsArray(true),
+            ...$visibilityFilter,
             "is_archived" => 0
         ], $search, $startDate, $endDate);
         $clients = $clientRepo->getAllAssociatedClients($user->getOwner());
@@ -550,6 +553,7 @@ $router->post(function () {
                 $orderRepo->update([
                     'status_workflow' => 'INVOICE_PAID'
                 ], ['id' => $orderId]);
+                $orderRepo->archiveSupersededEventInvoices($orderId);
                 
                 try {
                     $db->query("INSERT INTO orders_status_history (id_order, id_suborder, status, action_type, note, created_by, created_at) VALUES (:id_order, NULL, :status, :action_type, :note, :created_by, :created_at)");
@@ -587,6 +591,7 @@ $router->post(function () {
             $orderRepo->update([
                 'status_workflow' => 'INVOICE_PAID'
             ], ['id' => $orderId]);
+            $orderRepo->archiveSupersededEventInvoices($orderId);
             
             try {
                 $db->query("INSERT INTO orders_status_history (id_order, id_suborder, status, action_type, note, created_by, created_at) VALUES (:id_order, NULL, :status, :action_type, :note, :created_by, :created_at)");

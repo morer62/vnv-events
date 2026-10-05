@@ -192,7 +192,7 @@ $router->post(function () {
 
     $discount_type = $_POST["discount_type"] ?? "amount";
     $discount_value = $_POST["discount_value"] ?? 0;
-    $tax_percentage = $_POST["tax_percentage"] ?? 0;
+    $tax_percentage = $_POST["tax_percentage"] ?? 10;
     $id_tip = !empty($_POST["id_tip"]) ? $_POST["id_tip"] : null;
     $notes = $_POST["notes"] ?? "";
     $services = $_POST["selectedServices"] ?? "";
