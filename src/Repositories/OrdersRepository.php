@@ -468,8 +468,7 @@ class OrdersRepository extends BaseRepository
     {
         $sql = "UPDATE orders previous_order
                 INNER JOIN orders current_order ON current_order.id = :current_id
-                SET previous_order.is_archived = 1,
-                    previous_order.archived_at = NOW()
+                SET previous_order.is_archived = 1
                 WHERE previous_order.id_owner = current_order.id_owner
                   AND previous_order.id_client = current_order.id_client
                   AND previous_order.event_date = current_order.event_date
