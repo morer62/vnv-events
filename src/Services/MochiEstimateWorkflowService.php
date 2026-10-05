@@ -132,6 +132,9 @@ final class MochiEstimateWorkflowService
     {
         if(empty($parsed['email'])&&preg_match('/\b[A-Z0-9._%+\-]+@[A-Z0-9.\-]+\.[A-Z]{2,}\b/iu',$message,$match))$parsed['email']=$match[0];
         if(empty($parsed['customer_name'])&&preg_match('/(?:para|cliente|nombre)\s*:?\s*([\pL][\pL\s\'\-]{2,80}?)(?=\s*,?\s*(?:correo|email|tel[eé]fono|fecha|el\s+\d)|$)/iu',$message,$match))$parsed['customer_name']=trim($match[1],' ,');
+        $catalogServices=$this->catalogServicesMentioned($message);
+        if($catalogServices)$parsed['requested_services']=array_values(array_unique(array_merge((array)($parsed['requested_services']??[]),$catalogServices)));
+        if(!empty($parsed['venue']))foreach($catalogServices as $serviceName)if($this->sameServiceLabel((string)$parsed['venue'],$serviceName)){unset($parsed['venue']);break;}
         $custom=(array)($parsed['custom_services']??[]);
         if(count($custom)===1&&is_array($custom[0])&&(float)($custom[0]['price']??0)<=0&&preg_match('/(?:precio(?:\s+variable|\s+fijo)?\s*:?\s*|\$\s*)(\d+(?:\.\d{1,2})?)/iu',$message,$match)){$custom[0]['price']=(float)$match[1];$parsed['custom_services']=$custom;}
         return $parsed;
@@ -159,6 +162,7 @@ final class MochiEstimateWorkflowService
         $removed=array_values(array_filter(array_map('trim',(array)($draft['remove_services']??[]))));
         $draft['requested_services']=array_values(array_filter($services,fn($name)=>!array_filter($removed,fn($remove)=>$this->matchesServiceName((string)$name,(string)$remove))));
         $custom=[];foreach((array)($draft['custom_services']??[]) as $service){if(!is_array($service))continue;$name=trim((string)($service['name']??''));if($name==='')continue;$custom[mb_strtolower($name)]=['name'=>$name,'price'=>isset($service['price'])?(float)$service['price']:null,'description'=>trim((string)($service['description']??'')),'is_variable'=>array_key_exists('is_variable',$service)&&$service['is_variable']!==null?(bool)$service['is_variable']:true,'is_per_guest'=>!empty($service['is_per_guest'])];}$draft['custom_services']=array_values($custom);
+        foreach((array)$draft['requested_services'] as $serviceName)if(!empty($draft['venue'])&&$this->sameServiceLabel((string)$draft['venue'],(string)$serviceName)){$draft['venue']='';break;}
         unset($draft['remove_services']);return $draft;
     }
 
@@ -272,6 +276,15 @@ final class MochiEstimateWorkflowService
     }
     private function serviceKey(string $value): string {$value=iconv('UTF-8','ASCII//TRANSLIT//IGNORE',mb_strtolower($value))?:mb_strtolower($value);return preg_replace('/[^a-z0-9]+/','',$value)??'';}
     private function serviceTokens(string $value): array {$words=preg_split('/[^\pL\pN]+/u',mb_strtolower($value),-1,PREG_SPLIT_NO_EMPTY)?:[];return array_values(array_unique(array_map(fn($word)=>mb_strlen($word)>3&&str_ends_with($word,'s')?mb_substr($word,0,-1):$word,$words)));}
+    private function catalogServicesMentioned(string $message): array
+    {
+        $haystack=$this->serviceMentionText($message);if($haystack==='')return [];
+        $this->db->query('SELECT name FROM orders_services WHERE id_owner=:owner AND is_archived=0 ORDER BY CHAR_LENGTH(name) DESC');$this->db->bind(':owner',$this->ownerId);
+        $matches=[];foreach($this->db->fetchAll() as $service){$name=trim((string)$service->name);$base=trim((string)preg_replace('/\s*[\(\[].*$/u','',$name));$needle=$this->serviceMentionText($base);if($needle===''||mb_strlen(str_replace(' ','',$needle))<5)continue;if(preg_match('/(?:^|\s)'.preg_quote($needle,'/').'(?:$|\s)/u',$haystack))$matches[]=$base;}
+        return array_values(array_unique($matches));
+    }
+    private function serviceMentionText(string $value): string {$value=iconv('UTF-8','ASCII//TRANSLIT//IGNORE',mb_strtolower($value))?:mb_strtolower($value);return trim(preg_replace('/\s+/',' ',preg_replace('/[^a-z0-9]+/',' ',$value)??$value)??$value);}
+    private function sameServiceLabel(string $left,string $right): bool {$right=(string)preg_replace('/\s*[\(\[].*$/u','',trim($right));return $this->serviceMentionText($left)===$this->serviceMentionText($right)||$this->matchesServiceName($left,$right);}
     private function matchesServiceName(string $left,string $right): bool {return $this->serviceSimilarity($left,$right)>=0.72;}
     private function unresolvedServices(array $requested,array $resolved): array {$found=array_map(fn($service)=>(string)($service['_requested']??''),$resolved);return array_values(array_filter($requested,fn($name)=>!in_array((string)$name,$found,true)));}
     private function applyQuantities(array $services,int $guests): array {foreach($services as &$service){$copy=mb_strtolower(($service['name']??'').' '.($service['description']??''));$perGuest=!empty($service['is_per_guest'])||(bool)preg_match('/\b(?:per guest|per person|guest minimum|minimum[^.]{0,20}guests?|p\s*\/\s*p)\b/iu',$copy);$service['is_per_guest']=$perGuest;$service['quantity']=$perGuest&&$guests>0?$guests:max(1,(int)($service['quantity']??1));}unset($service);return $services;}
