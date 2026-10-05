@@ -12,7 +12,7 @@ final class MochiEstimateWorkflowService
 {
     private const CREATE_RE='/\b(create|crear|crea|cr[eé]ame|prep[aá]rame|hazme|armame|[aá]rmame|nuevo|new)\b.*\b(estimate|estimado|cotizaci[oó]n)\b|\b(estimate|estimado|cotizaci[oó]n)\b.*\b(create|crear|crea|cr[eé]ame|prep[aá]rame|hazme|armame|[aá]rmame|nuevo|new)\b/iu';
     private const MODIFY_RE='/\b(modify|edit|update|modificar|editar|cambiar|actualizar)\b.*\b(estimate|estimado|cotizaci[oó]n)\b|\b(estimate|estimado|cotizaci[oó]n)\b.*\b(modify|edit|update|modificar|editar|cambiar|actualizar)\b/iu';
-    private const APPROVE_RE='/^(s[ií]|yes|correcto|correct|looks good|se ve bien|créalo|crealo|create it|hazlo|aprobado|approve)[.!\s]*$/iu';
+    private const APPROVE_RE='/^(?:(?:s[ií]|yes|correcto|correct|looks good|se ve bien|aprobado|approve)(?:[,.!\s]+(?:aplica|aplicar|aplica los|aplica esos|haz|realiza|guarda|confirma)(?:\s+(?:los|esos|estos))?(?:\s+cambios)?)?|(?:aplica|aplicar|haz|realiza|guarda|confirma)(?:\s+(?:los|esos|estos))?\s+cambios|cr[eé]alo|crealo|create it|hazlo)[.!\s]*$/iu';
 
     public function __construct(private int $ownerId=2,private string $siteKey='vnvevents',private ?Connection $db=null){$this->db??=new Connection();}
 
@@ -90,7 +90,7 @@ final class MochiEstimateWorkflowService
         $parsedCustom=(array)($parsed['custom_services']??[]);
         unset($parsed['requested_services'],$parsed['custom_services']);
         $removeServices=array_values(array_filter(array_map('trim',(array)($parsed['remove_services']??[]))));
-        $draft=array_replace_recursive($draft,$parsed);
+        $draft=array_replace_recursive($draft,$this->meaningfulParsedValues($parsed));
         if($parsedServices)$draft['requested_services']=$replaceServices?$parsedServices:array_values(array_unique(array_merge((array)($draft['requested_services']??[]),$parsedServices)));
         if($parsedCustom)$draft['custom_services']=$this->mergeCustomServices((array)($draft['custom_services']??[]),$parsedCustom);
         if($replaceServices&&!empty($draft['requested_services'])){$keep=(array)$draft['requested_services'];$draft['custom_services']=array_values(array_filter((array)($draft['custom_services']??[]),fn($service)=>$this->nameInList((string)($service['name']??''),$keep)));}
@@ -132,6 +132,14 @@ final class MochiEstimateWorkflowService
         $custom=(array)($parsed['custom_services']??[]);
         if(count($custom)===1&&is_array($custom[0])&&(float)($custom[0]['price']??0)<=0&&preg_match('/(?:precio(?:\s+variable|\s+fijo)?\s*:?\s*|\$\s*)(\d+(?:\.\d{1,2})?)/iu',$message,$match)){$custom[0]['price']=(float)$match[1];$parsed['custom_services']=$custom;}
         return $parsed;
+    }
+
+    private function meaningfulParsedValues(array $parsed): array
+    {
+        return array_filter($parsed,static function($value,$key){
+            if(in_array($key,['contact_resolution','estimate_identifier'],true))return $value!==null&&$value!=='';
+            return $value!==null&&$value!==''&&$value!==[];
+        },ARRAY_FILTER_USE_BOTH);
     }
 
     private function normalize(array $draft): array
@@ -262,7 +270,7 @@ final class MochiEstimateWorkflowService
     private function serviceTokens(string $value): array {$words=preg_split('/[^\pL\pN]+/u',mb_strtolower($value),-1,PREG_SPLIT_NO_EMPTY)?:[];return array_values(array_unique(array_map(fn($word)=>mb_strlen($word)>3&&str_ends_with($word,'s')?mb_substr($word,0,-1):$word,$words)));}
     private function matchesServiceName(string $left,string $right): bool {return $this->serviceSimilarity($left,$right)>=0.72;}
     private function unresolvedServices(array $requested,array $resolved): array {$found=array_map(fn($service)=>(string)($service['_requested']??''),$resolved);return array_values(array_filter($requested,fn($name)=>!in_array((string)$name,$found,true)));}
-    private function applyQuantities(array $services,int $guests): array {foreach($services as &$service){$perGuest=!empty($service['is_per_guest'])||str_contains(mb_strtolower(($service['name']??'').' '.($service['description']??'')),'per guest');$service['quantity']=$perGuest&&$guests>0?$guests:max(1,(int)($service['quantity']??1));}unset($service);return $services;}
+    private function applyQuantities(array $services,int $guests): array {foreach($services as &$service){$copy=mb_strtolower(($service['name']??'').' '.($service['description']??''));$perGuest=!empty($service['is_per_guest'])||(bool)preg_match('/\b(?:per guest|per person|guest minimum|minimum[^.]{0,20}guests?|p\s*\/\s*p)\b/iu',$copy);$service['is_per_guest']=$perGuest;$service['quantity']=$perGuest&&$guests>0?$guests:max(1,(int)($service['quantity']??1));}unset($service);return $services;}
     private function requestDraft(string $message): array {$id=preg_match('/(?:request|solicitud)\s*#?\s*(\d+)/iu',$message,$m)?(int)$m[1]:0;$latest=(bool)preg_match('/\b(latest|última|ultimo|último|más reciente)\b/iu',$message);$name='';if(!$id&&!$latest&&preg_match('/(?:request|solicitud)(?:\s+de|\s+for)\s+([\pL][\pL\s\'-]{2,80})/iu',$message,$m))$name=trim($m[1]);if(!$id&&!$latest&&$name==='')return [];$sql="SELECT * FROM event_requests WHERE id_owner=:owner AND is_archived=0";$params=['owner'=>$this->ownerId];if($id){$sql.=' AND id=:id';$params['id']=$id;}elseif($name!==''){$sql.=' AND LOWER(full_name) LIKE LOWER(:name)';$params['name']='%'.$name.'%';}$sql.=' ORDER BY created_at DESC LIMIT 1';$this->db->query($sql);$this->bind($params);$r=$this->db->fetchOne();if(!$r)return [];$services=json_decode((string)$r->selected_services,true);if(!is_array($services))$services=preg_split('/[,;\n]+/',(string)$r->selected_services)?:[];return ['source_request_id'=>(int)$r->id,'customer_id'=>$r->id_user? (int)$r->id_user:null,'customer_name'=>$r->full_name,'email'=>$r->email,'phone'=>$this->phone((string)$r->phone),'event_date'=>$r->event_date,'start_time'=>$r->event_time,'address'=>$r->event_address,'guest_count'=>$r->guest_count? (int)$r->guest_count:null,'requested_services'=>array_values(array_filter(array_map(fn($v)=>is_array($v)?(string)($v['name']??$v['title']??''):(string)$v,$services))),'notes'=>$r->details];}
     private function duplicates(array $d): array {if(empty($d['customer_id'])||empty($d['event_date']))return [];$this->db->query("SELECT o.id,o.event_date,o.start_time,o.address,o.status_workflow FROM orders o WHERE o.id_owner=:owner AND o.id_client=:client AND o.event_date=:day AND o.is_archived=0 ORDER BY o.id DESC LIMIT 5");$this->bind(['owner'=>$this->ownerId,'client'=>$d['customer_id'],'day'=>$d['event_date']]);return $this->estimateItems($this->db->fetchAll());}
     private function conflicts(array $d): array {if(empty($d['event_date'])||empty($d['start_time'])||empty($d['end_time']))return [];$this->db->query("SELECT id,event_date,start_time,end_time,address FROM orders WHERE id_owner=:owner AND event_date=:day AND is_archived=0 AND COALESCE(status_workflow,'')<>'INVOICE_DRAFT' AND start_time<:end AND end_time>:start LIMIT 8");$this->bind(['owner'=>$this->ownerId,'day'=>$d['event_date'],'start'=>$d['start_time'],'end'=>$d['end_time']]);return array_map(fn($r)=>['id'=>(int)$r->id,'address'=>$r->address,'start_time'=>$r->start_time,'end_time'=>$r->end_time],$this->db->fetchAll());}

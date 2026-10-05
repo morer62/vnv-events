@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Repositories\UserRepository;
+use App\Repositories\ClientsUsersRepository;
 
 class StoreCustomerService
 {
@@ -19,6 +20,9 @@ class StoreCustomerService
         ]);
 
         if ($existingUser) {
+            if ((int)($existingUser->level ?? 0) === 5) {
+                (new ClientsUsersRepository())->create((int)$existingUser->id, $ownerId);
+            }
             return $existingUser;
         }
 
@@ -60,6 +64,7 @@ class StoreCustomerService
         ]);
 
         if ($newUser) {
+            (new ClientsUsersRepository())->create((int)$newUser->id, $ownerId);
             $newUser->temporary_password_plain = $temporaryPasswordPlain;
         }
 
