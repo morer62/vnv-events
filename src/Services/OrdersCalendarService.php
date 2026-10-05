@@ -480,10 +480,13 @@ class OrdersCalendarService
             return true;
         }
 
+        // The calendar badge and payment filter must use the same operational
+        // source of truth. Legacy payment_status values can say paid_full while
+        // the order is still at INVOICE_PARTIAL, which previously made both
+        // dropdown results incorrect.
         $workflow = strtoupper($this->stringValue($order, 'status_workflow', ''));
-        $payment = strtolower($this->stringValue($order, 'payment_status', ''));
-        $fullyPaid = $workflow === 'INVOICE_PAID' || in_array($payment, ['paid_full', 'paid', 'fully_paid'], true);
-        $firstPayment = !$fullyPaid && ($workflow === 'INVOICE_PARTIAL' || in_array($payment, ['paid_half', 'partial', 'partially_paid'], true));
+        $fullyPaid = $workflow === 'INVOICE_PAID';
+        $firstPayment = $workflow === 'INVOICE_PARTIAL';
 
         return $paymentFilter === 'fully_paid' ? $fullyPaid : $firstPayment;
     }

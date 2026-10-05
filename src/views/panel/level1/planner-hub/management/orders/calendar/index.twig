@@ -281,7 +281,7 @@
 						<option value="{{ value }}" {{ calendar.status_filter == value ? 'selected' : '' }}>{{ label }}</option>
 					{% endfor %}
 				</select>
-				<select name="payment" class="form-select" style="min-width: 220px;" aria-label="Payment status">
+				<select name="payment" class="form-select" style="min-width: 220px;" aria-label="Payment status" onchange="this.form.submit()">
 					<option value="all" {{ calendar.payment_filter == 'all' ? 'selected' : '' }}>All payment statuses</option>
 					{% for value, label in calendar.payment_filters %}
 						<option value="{{ value }}" {{ calendar.payment_filter == value ? 'selected' : '' }}>{{ label }}</option>
