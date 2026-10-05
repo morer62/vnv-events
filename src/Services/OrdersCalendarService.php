@@ -22,7 +22,9 @@ class OrdersCalendarService
     ): array {
         [$weekStart, $weekEnd] = $this->getWeekBounds($weekDate);
         $clientMap = $this->buildClientMap($clients);
-        $paymentFilter = in_array($paymentFilter, ['first_payment', 'fully_paid'], true) ? $paymentFilter : 'all';
+        $paymentFilter = in_array($paymentFilter, ['first_payment', 'fully_paid', 'paid_events', 'signed_pending'], true)
+            ? $paymentFilter
+            : 'all';
 
         $days = [];
         for ($i = 0; $i < 7; $i++) {
@@ -85,8 +87,10 @@ class OrdersCalendarService
             'status_filter' => $statusFilter ?: 'all',
             'payment_filter' => $paymentFilter,
             'payment_filters' => [
-                'first_payment' => 'First payment received',
+                'first_payment' => '50% paid',
                 'fully_paid' => 'Fully paid events',
+                'paid_events' => 'Fully paid + 50% paid',
+                'signed_pending' => 'Signed, first payment pending',
             ],
             'total_orders' => $this->countOrders($days),
             'no_time_total' => $this->countNoTimeOrders($days),
@@ -488,7 +492,13 @@ class OrdersCalendarService
         $fullyPaid = $workflow === 'INVOICE_PAID';
         $firstPayment = $workflow === 'INVOICE_PARTIAL';
 
-        return $paymentFilter === 'fully_paid' ? $fullyPaid : $firstPayment;
+        return match ($paymentFilter) {
+            'fully_paid' => $fullyPaid,
+            'first_payment' => $firstPayment,
+            'paid_events' => $fullyPaid || $firstPayment,
+            'signed_pending' => $workflow === 'INVOICE_READY',
+            default => true,
+        };
     }
 
     private function countOrders(array $days): int
