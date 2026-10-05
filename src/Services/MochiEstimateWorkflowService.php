@@ -136,7 +136,7 @@ final class MochiEstimateWorkflowService
         if($catalogServices)$parsed['requested_services']=array_values(array_unique(array_merge((array)($parsed['requested_services']??[]),$catalogServices)));
         if(!empty($parsed['venue']))foreach($catalogServices as $serviceName)if($this->sameServiceLabel((string)$parsed['venue'],$serviceName)){unset($parsed['venue']);break;}
         if(preg_match('/\b(100\s*%|one[ -]time payment|single payment|pago (?:único|unico|completo)|un solo pago)\b/iu',$message))$parsed['payment_split_type']=1;
-        elseif(preg_match('/\b(50\s*[/\-]\s*50|dos pagos|split payment)\b/iu',$message))$parsed['payment_split_type']=2;
+        elseif(preg_match('/\b(50\s*[\/-]\s*50|dos pagos|split payment)\b/iu',$message))$parsed['payment_split_type']=2;
         $custom=(array)($parsed['custom_services']??[]);
         if(count($custom)===1&&is_array($custom[0])&&(float)($custom[0]['price']??0)<=0&&preg_match('/(?:precio(?:\s+variable|\s+fijo)?\s*:?\s*|\$\s*)(\d+(?:\.\d{1,2})?)/iu',$message,$match)){$custom[0]['price']=(float)$match[1];$parsed['custom_services']=$custom;}
         return $parsed;
