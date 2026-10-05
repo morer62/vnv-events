@@ -101,6 +101,7 @@ final class MochiEstimateWorkflowService
         if(!str_contains($message,'[Captura '))foreach($parsed as $field=>$value){if($field==='uncertain_fields'||$field==='contact_resolution'||$field==='estimate_identifier'||$field==='remove_services')continue;if($value!==null&&$value!==''&&$value!==[])$uncertain=array_values(array_diff($uncertain,[$field]));}
         $draft['uncertain_fields']=$uncertain;
         $draft=$this->normalize($draft);
+        if($workflow->mode==='CREATE')$draft=$this->normalizeFutureEstimateDate($draft);
         if($removeServices)$draft['services_to_remove']=$removeServices;
         if($workflow->current_estimate_id){
             $draft['current_estimate_id']=(int)$workflow->current_estimate_id;
@@ -279,14 +280,16 @@ final class MochiEstimateWorkflowService
     private function conflicts(array $d): array {if(empty($d['event_date'])||empty($d['start_time'])||empty($d['end_time']))return [];$this->db->query("SELECT id,event_date,start_time,end_time,address FROM orders WHERE id_owner=:owner AND event_date=:day AND is_archived=0 AND COALESCE(status_workflow,'')<>'INVOICE_DRAFT' AND start_time<:end AND end_time>:start LIMIT 8");$this->bind(['owner'=>$this->ownerId,'day'=>$d['event_date'],'start'=>$d['start_time'],'end'=>$d['end_time']]);return array_map(fn($r)=>['id'=>(int)$r->id,'address'=>$r->address,'start_time'=>$r->start_time,'end_time'=>$r->end_time],$this->db->fetchAll());}
     private function findEstimates(string $q): array
     {
-        $q=trim($q);$where=[];$params=['owner'=>$this->ownerId];
-        if(preg_match('/\b(?:estimate|estimado|cotizaci[oó]n)\s*#?\s*(\d{1,9})\b/iu',$q,$m)){$where[]='o.id=:estimate_id';$params['estimate_id']=(int)$m[1];}
-        if(preg_match('/\b[A-Z0-9._%+\-]+@[A-Z0-9.\-]+\.[A-Z]{2,}\b/iu',$q,$m)){$where[]='LOWER(u.email)=LOWER(:email)';$params['email']=$m[0];}
-        if(preg_match('/(?:\+?1[\s.\-]?)?(?:\(?\d{3}\)?[\s.\-]?)\d{3}[\s.\-]?\d{4}/',$q,$m)){$where[]="RIGHT(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(COALESCE(u.phone,''),'(',''),')',''),'-',''),' ',''),'+',''),10)=:phone";$params['phone']=substr($this->phone($m[0]),-10);}
-        $name=$this->estimateCustomerName($q);if($name!==''){$tokens=preg_split('/\s+/u',$name,-1,PREG_SPLIT_NO_EMPTY)?:[];$nameWhere=[];foreach(array_slice($tokens,0,4) as $index=>$token){$key='name_'.$index;$nameWhere[]="LOWER(CONCAT_WS(' ',u.name,u.lastname)) LIKE LOWER(:{$key})";$params[$key]='%'.$token.'%';}if($nameWhere)$where[]='('.implode(' AND ',$nameWhere).')';}
-        $date=$this->estimateEventDate($q);if($date!==null){$where[]='o.event_date=:event_date';$params['event_date']=$date;}
-        if(!$where)return [];
-        $this->db->query("SELECT o.*,CONCAT_WS(' ',u.name,u.lastname) customer_name,u.email,u.phone FROM orders o JOIN users u ON u.id=o.id_client WHERE o.id_owner=:owner AND o.is_archived=0 AND COALESCE(o.status_workflow,'')='INVOICE_DRAFT' AND (".implode(' OR ',$where).") ORDER BY o.id DESC LIMIT 8");$this->bind($params);return $this->db->fetchAll();
+        $q=trim($q);$identity=[];$constraints=[];$params=['owner'=>$this->ownerId];
+        if(preg_match('/\b(?:estimate|estimado|cotizaci[oó]n)\s*#?\s*(\d{1,9})\b/iu',$q,$m)){$identity[]='o.id=:estimate_id';$params['estimate_id']=(int)$m[1];}
+        if(preg_match('/\b[A-Z0-9._%+\-]+@[A-Z0-9.\-]+\.[A-Z]{2,}\b/iu',$q,$m)){$identity[]='LOWER(u.email)=LOWER(:email)';$params['email']=$m[0];}
+        if(preg_match('/(?:\+?1[\s.\-]?)?(?:\(?\d{3}\)?[\s.\-]?)\d{3}[\s.\-]?\d{4}/',$q,$m)){$identity[]="RIGHT(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(COALESCE(u.phone,''),'(',''),')',''),'-',''),' ',''),'+',''),10)=:phone";$params['phone']=substr($this->phone($m[0]),-10);}
+        $name=$this->estimateCustomerName($q);if($name==='')$name=$this->plainEstimateCustomerName($q);
+        if($name!==''){$tokens=preg_split('/\s+/u',$name,-1,PREG_SPLIT_NO_EMPTY)?:[];$nameWhere=[];foreach(array_slice($tokens,0,4) as $index=>$token){$key='name_'.$index;$nameWhere[]="LOWER(CONCAT_WS(' ',u.name,u.lastname)) LIKE LOWER(:{$key})";$params[$key]='%'.$token.'%';}if($nameWhere)$identity[]='('.implode(' AND ',$nameWhere).')';}
+        $date=$this->estimateEventDate($q);if($date!==null){$constraints[]='o.event_date=:event_date';$params['event_date']=$date;}
+        if(!$identity&&!$constraints)return [];
+        $lookup=[];if($identity)$lookup[]='('.implode(' OR ',$identity).')';if($constraints)$lookup=array_merge($lookup,$constraints);
+        $this->db->query("SELECT o.*,CONCAT_WS(' ',u.name,u.lastname) customer_name,u.email,u.phone FROM orders o JOIN users u ON u.id=o.id_client WHERE o.id_owner=:owner AND o.is_archived=0 AND COALESCE(o.status_workflow,'')='INVOICE_DRAFT' AND ".implode(' AND ',$lookup)." ORDER BY o.id DESC LIMIT 8");$this->bind($params);return $this->db->fetchAll();
     }
 
     private function explicitUpdateFields(string $message,array $currentServices,array $services,array $customServices,array $removeServices): array
@@ -307,6 +310,27 @@ final class MochiEstimateWorkflowService
     {
         if(!preg_match('/(?:se\s+llama|cliente(?:\s+que\s+se\s+llama)?|nombre)\s*:?[\s]+([\pL][\pL\s\'\-]{1,80}?)(?=\s+(?:la\s+clienta|el\s+cliente|el\s+evento|evento|correo|email|tel[eé]fono|fecha|direcci[oó]n)\b|[,.;]|$)/iu',$message,$match))return '';
         return trim(preg_replace('/\s+/u',' ',$match[1])??$match[1]);
+    }
+
+    private function plainEstimateCustomerName(string $message): string
+    {
+        $plain=trim(preg_replace('/\s+/u',' ',preg_replace('/[^\pL\s\'\-]+/u',' ',$message)??$message)??$message);
+        if($plain===''||preg_match('/\b(estimate|estimado|cotizaci[oó]n|modificar|editar|actualizar|cambiar|evento|fecha|tel[eé]fono|correo|email)\b/iu',$plain))return '';
+        $tokens=preg_split('/\s+/u',$plain,-1,PREG_SPLIT_NO_EMPTY)?:[];
+        return count($tokens)>=2&&count($tokens)<=4?$plain:'';
+    }
+
+    private function normalizeFutureEstimateDate(array $draft): array
+    {
+        $raw=trim((string)($draft['event_date']??''));
+        if(!preg_match('/^(\d{4})-(\d{2})-(\d{2})$/',$raw,$parts))return $draft;
+        $timezone=new \DateTimeZone('America/New_York');$today=new \DateTimeImmutable('today',$timezone);
+        $date=\DateTimeImmutable::createFromFormat('!Y-m-d',$raw,$timezone);
+        if(!$date||$date>=$today)return $draft;
+        $year=(int)$today->format('Y');$month=(int)$parts[2];$day=(int)$parts[3];
+        if(!checkdate($month,$day,$year))return $draft;
+        $candidate=$today->setDate($year,$month,$day);if($candidate<$today)$candidate=$candidate->modify('+1 year');
+        $draft['event_date']=$candidate->format('Y-m-d');return $draft;
     }
 
     private function estimateEventDate(string $message): ?string
