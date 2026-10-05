@@ -252,13 +252,13 @@
 			</div>
 
 			<div class="orders-calendar-actions">
-				<a class="btn btn-outline-secondary" href="{{ path(calendar_route ~ '?week=' ~ calendar.previous_week ~ '&status=' ~ calendar.status_filter) }}">
+				<a class="btn btn-outline-secondary" href="{{ path(calendar_route ~ '?week=' ~ calendar.previous_week ~ '&status=' ~ calendar.status_filter ~ '&payment=' ~ calendar.payment_filter) }}">
 					<i data-feather="chevron-left"></i> Previous
 				</a>
-				<a class="btn btn-outline-dark" href="{{ path(calendar_route ~ '?week=' ~ calendar.today_week ~ '&status=' ~ calendar.status_filter) }}">
+				<a class="btn btn-outline-dark" href="{{ path(calendar_route ~ '?week=' ~ calendar.today_week ~ '&status=' ~ calendar.status_filter ~ '&payment=' ~ calendar.payment_filter) }}">
 					Today
 				</a>
-				<a class="btn btn-outline-secondary" href="{{ path(calendar_route ~ '?week=' ~ calendar.next_week ~ '&status=' ~ calendar.status_filter) }}">
+				<a class="btn btn-outline-secondary" href="{{ path(calendar_route ~ '?week=' ~ calendar.next_week ~ '&status=' ~ calendar.status_filter ~ '&payment=' ~ calendar.payment_filter) }}">
 					Next <i data-feather="chevron-right"></i>
 				</a>
 				<a class="btn btn-dark" href="{{ path(list_route) }}">
@@ -279,6 +279,12 @@
 					<option value="all" {{ calendar.status_filter == 'all' ? 'selected' : '' }}>All statuses</option>
 					{% for value, label in calendar.statuses %}
 						<option value="{{ value }}" {{ calendar.status_filter == value ? 'selected' : '' }}>{{ label }}</option>
+					{% endfor %}
+				</select>
+				<select name="payment" class="form-select" style="min-width: 220px;" aria-label="Payment status">
+					<option value="all" {{ calendar.payment_filter == 'all' ? 'selected' : '' }}>All payment statuses</option>
+					{% for value, label in calendar.payment_filters %}
+						<option value="{{ value }}" {{ calendar.payment_filter == value ? 'selected' : '' }}>{{ label }}</option>
 					{% endfor %}
 				</select>
 				<button type="submit" class="btn btn-outline-primary">Filter</button>

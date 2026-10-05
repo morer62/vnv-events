@@ -17,10 +17,12 @@ class OrdersCalendarService
         ?string $weekDate,
         ?string $statusFilter = null,
         string $detailRoutePrefix = 'order-access?token=',
-        string $staffRoutePrefix = 'panel/planner-hub/management/orders/orders/team_comunication/?id='
+        string $staffRoutePrefix = 'panel/planner-hub/management/orders/orders/team_comunication/?id=',
+        ?string $paymentFilter = null
     ): array {
         [$weekStart, $weekEnd] = $this->getWeekBounds($weekDate);
         $clientMap = $this->buildClientMap($clients);
+        $paymentFilter = in_array($paymentFilter, ['first_payment', 'fully_paid'], true) ? $paymentFilter : 'all';
 
         $days = [];
         for ($i = 0; $i < 7; $i++) {
@@ -43,6 +45,10 @@ class OrdersCalendarService
             $visibleStatuses[$status] = $this->formatStatus($status);
 
             if ($statusFilter && $statusFilter !== 'all' && $status !== $statusFilter) {
+                continue;
+            }
+
+            if (!$this->matchesPaymentFilter($order, $paymentFilter)) {
                 continue;
             }
 
@@ -77,6 +83,11 @@ class OrdersCalendarService
             'days' => array_values($days),
             'statuses' => $visibleStatuses,
             'status_filter' => $statusFilter ?: 'all',
+            'payment_filter' => $paymentFilter,
+            'payment_filters' => [
+                'first_payment' => 'First payment received',
+                'fully_paid' => 'Fully paid events',
+            ],
             'total_orders' => $this->countOrders($days),
             'no_time_total' => $this->countNoTimeOrders($days),
         ];
@@ -461,6 +472,20 @@ class OrdersCalendarService
             'INVOICE_EXPIRED' => 'is-expired',
             default => 'is-neutral',
         };
+    }
+
+    private function matchesPaymentFilter(object $order, string $paymentFilter): bool
+    {
+        if ($paymentFilter === 'all') {
+            return true;
+        }
+
+        $workflow = strtoupper($this->stringValue($order, 'status_workflow', ''));
+        $payment = strtolower($this->stringValue($order, 'payment_status', ''));
+        $fullyPaid = $workflow === 'INVOICE_PAID' || in_array($payment, ['paid_full', 'paid', 'fully_paid'], true);
+        $firstPayment = !$fullyPaid && ($workflow === 'INVOICE_PARTIAL' || in_array($payment, ['paid_half', 'partial', 'partially_paid'], true));
+
+        return $paymentFilter === 'fully_paid' ? $fullyPaid : $firstPayment;
     }
 
     private function countOrders(array $days): int

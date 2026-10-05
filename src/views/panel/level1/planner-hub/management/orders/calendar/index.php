@@ -17,6 +17,7 @@ $router->get(callback: function () {
 
     $week = $_GET['week'] ?? null;
     $status = $_GET['status'] ?? 'all';
+    $payment = $_GET['payment'] ?? 'all';
 
     $calendarService = new OrdersCalendarService();
     [$weekStart, $weekEnd] = $calendarService->getWeekBounds($week);
@@ -31,7 +32,7 @@ $router->get(callback: function () {
     ], null, $weekStart->format('Y-m-d'), $weekEnd->format('Y-m-d'));
 
     $clients = $clientRepo->getAllAssociatedClients($ownerId);
-    $calendar = $calendarService->buildWeek($orders, $clients, $weekStart->format('Y-m-d'), $status);
+    $calendar = $calendarService->buildWeek($orders, $clients, $weekStart->format('Y-m-d'), $status, paymentFilter: $payment);
 
     return TemplateResponse::render(__DIR__ . '/index.twig', [
         'calendar' => $calendar,
