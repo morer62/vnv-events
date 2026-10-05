@@ -166,6 +166,10 @@
 		.orders-agenda-view {
 			display: none;
 		}
+		.orders-calendar-print-heading,
+		.orders-calendar-print-url {
+			display: none;
+		}
 		.orders-agenda-day {
 			background: #fff;
 			border: 1px solid #dde4ee;
@@ -226,6 +230,158 @@
 				grid-template-columns: repeat(2, minmax(0, 1fr));
 			}
 		}
+		@media print {
+			@page {
+				size: letter landscape;
+				margin: .3in;
+			}
+			html,
+			body {
+				width: 11in;
+				margin: 0 !important;
+				padding: 0 !important;
+				background: #fff !important;
+				font-size: 8pt;
+				-webkit-print-color-adjust: exact;
+				print-color-adjust: exact;
+			}
+			.wrapper,
+			.main,
+			.content,
+			.container-fluid,
+			#content {
+				display: block !important;
+				width: 100% !important;
+				max-width: none !important;
+				min-width: 0 !important;
+				margin: 0 !important;
+				padding: 0 !important;
+			}
+			.sidebar,
+			.navbar,
+			footer,
+			.floating-whatsapp,
+			#vnv-context-nav,
+			.ophyra-private-module-nav,
+			.ophyra-page-header,
+			.orders-calendar-actions,
+			.orders-calendar-tabs,
+			.orders-calendar-toolbar form,
+			.orders-agenda-view,
+			.modal,
+			.toast-container {
+				display: none !important;
+			}
+			.orders-calendar-shell {
+				display: block !important;
+				width: 100% !important;
+			}
+			.orders-calendar-toolbar {
+				display: block !important;
+				margin: 0 0 .12in !important;
+			}
+			.orders-calendar-toolbar h3 {
+				font-size: 12pt !important;
+				margin: 0 !important;
+			}
+			.orders-calendar-toolbar p,
+			.orders-calendar-toolbar .small {
+				font-size: 7pt !important;
+				margin: 0 !important;
+			}
+			.orders-calendar-print-heading {
+				display: flex !important;
+				align-items: flex-end;
+				justify-content: space-between;
+				gap: .2in;
+				padding-bottom: .08in;
+				margin-bottom: .1in;
+				border-bottom: 1px solid #334155;
+			}
+			.orders-calendar-print-heading strong {
+				font-size: 14pt;
+			}
+			.orders-calendar-print-page-url {
+				max-width: 6.8in;
+				font-size: 6.5pt;
+				color: #475569;
+				text-align: right;
+				overflow-wrap: anywhere;
+			}
+			.orders-week-view {
+				display: block !important;
+			}
+			.orders-calendar-grid {
+				display: grid !important;
+				grid-template-columns: repeat(7, minmax(0, 1fr)) !important;
+				gap: .06in !important;
+				width: 100% !important;
+			}
+			.orders-calendar-day {
+				min-width: 0 !important;
+				min-height: 0 !important;
+				border: 1px solid #94a3b8 !important;
+				border-radius: 3px !important;
+				overflow: visible !important;
+				break-inside: avoid;
+			}
+			.orders-calendar-day-header {
+				padding: .05in !important;
+				background: #e2e8f0 !important;
+			}
+			.orders-calendar-day-name {
+				font-size: 6pt !important;
+			}
+			.orders-calendar-day-number {
+				font-size: 8.5pt !important;
+			}
+			.orders-calendar-events {
+				gap: .04in !important;
+				padding: .04in !important;
+			}
+			.orders-calendar-event {
+				padding: .045in !important;
+				border-width: 1px 1px 1px 3px !important;
+				border-radius: 2px !important;
+				box-shadow: none !important;
+				break-inside: avoid;
+			}
+			.orders-calendar-time {
+				font-size: 6.3pt !important;
+				margin-bottom: .015in !important;
+			}
+			.orders-calendar-title {
+				font-size: 7pt !important;
+				line-height: 1.15 !important;
+				margin-bottom: .015in !important;
+			}
+			.orders-calendar-meta,
+			.orders-calendar-status,
+			.orders-calendar-empty,
+			.orders-no-time-label {
+				font-size: 5.8pt !important;
+				line-height: 1.2 !important;
+			}
+			.orders-calendar-status {
+				margin-top: .025in !important;
+				padding: .02in .035in !important;
+			}
+			.orders-calendar-detail-hint {
+				display: none !important;
+			}
+			.orders-calendar-print-url {
+				display: block !important;
+				margin-top: .025in;
+				font-size: 5pt;
+				line-height: 1.15;
+				color: #475569 !important;
+				overflow-wrap: anywhere;
+				word-break: break-all;
+			}
+			.orders-calendar-empty {
+				padding: .05in !important;
+			}
+		}
 	</style>
 {% endblock %}
 
@@ -239,6 +395,10 @@
 	</div>
 
 	<div class="orders-calendar-shell" id="ordersCalendarShell" data-view="week">
+		<div class="orders-calendar-print-heading">
+			<strong>VNV Events — Weekly Event Calendar</strong>
+			<span class="orders-calendar-print-page-url" id="ordersCalendarPrintPageUrl"></span>
+		</div>
 		<div class="orders-calendar-toolbar">
 			<div>
 				<div class="text-muted small fw-bold text-uppercase mb-1">{{ calendar_level_label|default('Orders') }}</div>
@@ -264,6 +424,9 @@
 				<a class="btn btn-dark" href="{{ path(list_route) }}">
 					<i data-feather="list"></i> List View
 				</a>
+				<button type="button" class="btn btn-outline-primary" onclick="window.print()">
+					<i data-feather="printer"></i> Print Week
+				</button>
 			</div>
 		</div>
 
@@ -313,6 +476,7 @@
 									</div>
 									<span class="orders-calendar-status">{{ order.status_label }}</span>
 									<span class="orders-calendar-detail-hint">{{ trans('planner_hub.view_details') }} <i data-feather="arrow-right"></i></span>
+									<span class="orders-calendar-print-url" data-print-event-url="{{ path(order.edit_url)|e('html_attr') }}"></span>
 								</button>
 							{% endfor %}
 
@@ -326,6 +490,7 @@
 											<div class="orders-calendar-meta">{{ order.code }} - {{ order.client_name }}</div>
 											<span class="orders-calendar-status">{{ order.status_label }}</span>
 											<span class="orders-calendar-detail-hint">{{ trans('planner_hub.view_details') }} <i data-feather="arrow-right"></i></span>
+											<span class="orders-calendar-print-url" data-print-event-url="{{ path(order.edit_url)|e('html_attr') }}"></span>
 										</button>
 									{% endfor %}
 								</div>
@@ -503,6 +668,19 @@
 				});
 			});
 		});
+
+		(function () {
+			var pageUrl = document.getElementById('ordersCalendarPrintPageUrl');
+			if (pageUrl) {
+				pageUrl.textContent = window.location.href;
+			}
+			document.querySelectorAll('[data-print-event-url]').forEach(function (element) {
+				var eventUrl = element.getAttribute('data-print-event-url') || '';
+				if (eventUrl) {
+					element.textContent = new URL(eventUrl, window.location.origin).href;
+				}
+			});
+		})();
 
 		(function () {
 			var shell = document.getElementById('ordersCalendarShell');
