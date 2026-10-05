@@ -2,6 +2,7 @@
 use App\Services\AutomationCenterService;
 use App\Services\MochiConciergeService;
 use App\Services\MochiImageReaderService;
+use App\Services\MochiAudioTranscriptionService;
 use App\Services\LoginService;
 use App\Utils\LocationUtils;
 use App\Utils\MessageUtil;
@@ -19,7 +20,10 @@ $router->get(function()use($context){
 $router->post(function()use($context,$redirect){
     $isAjax=strtolower((string)($_SERVER['HTTP_X_REQUESTED_WITH']??''))==='xmlhttprequest';
     try{[$user,$owner,$level]=$context();$userId=(int)$user->getId();$service=new AutomationCenterService($owner);$isAdmin=$level===1;$reviewer=$isAdmin||$service->isReviewer($userId);$action=(string)($_POST['action']??'');$mochi=new MochiConciergeService($owner);
-        if($action==='ask_mochi'){
+        if($action==='transcribe_mochi_audio'){
+            $result=['transcript'=>(new MochiAudioTranscriptionService())->transcribe((array)($_FILES['audio']??[]))];
+        }
+        elseif($action==='ask_mochi'){
             $message=trim((string)($_POST['message']??''));
             $imageTexts=!empty($_FILES['screenshots'])?(new MochiImageReaderService())->extractMany($_FILES['screenshots']):[];
             if(!$imageTexts&&!empty($_FILES['screenshot']))$imageTexts=(new MochiImageReaderService())->extractMany($_FILES['screenshot']);
