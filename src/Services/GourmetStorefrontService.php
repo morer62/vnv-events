@@ -19,7 +19,7 @@ final class GourmetStorefrontService
         $categories = [
             'holidays' => ['title' => 'Holidays', 'products' => []],
             'party-boxes' => ['title' => 'Party Boxes', 'products' => []],
-            'family-dinners' => ['title' => 'Family Dinners', 'products' => []],
+            'family-dinners' => ['title' => 'Family Occasion Meals', 'products' => []],
             'weeknight-dinners' => ['title' => 'Weeknight Dinners', 'products' => []],
             'desserts' => ['title' => 'Desserts', 'products' => []],
         ];
