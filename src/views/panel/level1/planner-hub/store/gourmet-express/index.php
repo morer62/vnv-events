@@ -1,6 +1,7 @@
 <?php
 
 use App\Repositories\Connection;
+use App\Repositories\PaymentProvidersRepository;
 use App\Services\GourmetExpressService;
 use App\Services\LoginService;
 use App\Utils\LocationUtils;
@@ -15,10 +16,17 @@ $load = static function (): array {
     $db->query("SELECT * FROM store_gourmet_windows WHERE id_owner=:owner AND site_key=:site ORDER BY sort_order");$db->bind(':owner',$owner);$db->bind(':site',$site);$windows=$db->fetchAll();
     $db->query("SELECT COUNT(*) orders,COALESCE(SUM(total),0) revenue,COALESCE(AVG(total),0) average_order FROM store_orders WHERE id_owner=:owner AND site_key=:site AND created_at>=DATE_SUB(NOW(),INTERVAL 30 DAY) AND status<>'CANCELLED'");$db->bind(':owner',$owner);$db->bind(':site',$site);$kpis=$db->fetchOne();
     $db->query("SELECT COUNT(*) pending_photos FROM store_products WHERE id_owner=:owner AND site_key=:site AND brand_name='VNV Gourmet Express' AND status='DRAFT'");$db->bind(':owner',$owner);$db->bind(':site',$site);$drafts=(int)($db->fetchOne()->pending_photos??0);
-    return compact('owner','site','service','zones','windows','kpis','drafts');
+    $providers=new PaymentProvidersRepository();$stripeSandbox=$providers->getByTypeAndEnvironment($owner,'stripe','sandbox');$stripeProduction=$providers->getByTypeAndEnvironment($owner,'stripe','production');$activeProvider=$providers->getActiveProviderForOwner($owner);
+    return compact('owner','site','service','zones','windows','kpis','drafts','stripeSandbox','stripeProduction','activeProvider');
 };
-$router->get(function() use($load){$d=$load();return TemplateResponse::render(__DIR__.'/index.twig',['settings'=>$d['service']->settings($d['owner'],$d['site']),'zones'=>$d['zones'],'windows'=>$d['windows'],'kpis'=>$d['kpis'],'drafts'=>$d['drafts']]);});
+$router->get(function() use($load){$d=$load();return TemplateResponse::render(__DIR__.'/index.twig',['settings'=>$d['service']->settings($d['owner'],$d['site']),'zones'=>$d['zones'],'windows'=>$d['windows'],'kpis'=>$d['kpis'],'drafts'=>$d['drafts'],'stripeSandbox'=>$d['stripeSandbox'],'stripeProduction'=>$d['stripeProduction'],'activeProvider'=>$d['activeProvider']]);});
 $router->post(function() use($load){$d=$load();$db=new Connection();$action=(string)($_POST['action']??'save');$isAjax=strtolower((string)($_SERVER['HTTP_X_REQUESTED_WITH']??''))==='xmlhttprequest';try{
+    if($action==='activate_stripe_environment'){
+        $environment=strtolower(trim((string)($_POST['environment']??'')));if(!in_array($environment,['sandbox','production'],true))throw new InvalidArgumentException('Invalid Stripe environment.');
+        $repo=new PaymentProvidersRepository();$provider=$repo->getByTypeAndEnvironment($d['owner'],'stripe',$environment);if(!$provider)throw new RuntimeException('Stripe '.$environment.' is not configured. Add its credentials in Payment Providers first.');if(!(int)($provider->is_verified??0))throw new RuntimeException('Stripe '.$environment.' must be verified before it can be activated.');
+        if($environment==='sandbox'){$db->query("SELECT COUNT(*) total FROM store_orders WHERE id_owner=:owner AND payment_status='PENDING' AND status NOT IN ('CANCELLED','CLOSED','COMPLETED') AND created_at>=DATE_SUB(NOW(),INTERVAL 2 HOUR)");$db->bind(':owner',$d['owner']);$pending=(int)($db->fetchOne()->total??0);if($pending>0&&!isset($_POST['confirm_pending']))throw new RuntimeException('There are recent pending customer orders. Confirm the warning before temporarily enabling Stripe test mode.');}
+        $repo->setActive($d['owner'],(int)$provider->id);MessageUtil::setMessage($environment==='sandbox'?'Stripe test mode is active. Use only Stripe test cards, then restore production.':'Stripe production is active again. Live checkout is ready.');LocationUtils::reload();
+    }
     if($action==='toggle_pause'){$paused=!empty($_POST['store_paused'])?1:0;$reopen=$paused?(trim((string)($_POST['reopen_at']??''))?:null):null;$openMessage=trim((string)($_POST['open_message']??''))?:'We are open and accepting VNV Gourmet Express orders.';$pauseMessage=trim((string)($_POST['pause_message']??''))?:'VNV Gourmet Express is temporarily pausing new orders. You can still browse the menu.';$db->query("UPDATE store_gourmet_settings SET store_paused=:paused,open_message=:open_message,pause_message=:pause_message,reopen_at=:reopen,updated_at=NOW() WHERE id_owner=:owner AND site_key=:site");$db->bind(':paused',$paused);$db->bind(':open_message',$openMessage);$db->bind(':pause_message',$pauseMessage);$db->bind(':reopen',$reopen);$db->bind(':owner',$d['owner']);$db->bind(':site',$d['site']);$db->execute();if($isAjax){header('Content-Type: application/json; charset=utf-8');echo json_encode(['ok'=>true,'paused'=>(bool)$paused,'status'=>$paused?'Closed':'Open','message'=>$paused?$pauseMessage:$openMessage,'reopen_at'=>$reopen],JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES);return;}}
     else {
         $pickupWindowsJson=trim((string)($_POST['pickup_windows_json']??''));

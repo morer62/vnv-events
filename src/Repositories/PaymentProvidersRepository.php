@@ -256,6 +256,19 @@ class PaymentProvidersRepository extends BaseRepository
         return null;
     }
 
+    public function getByTypeAndEnvironment(int $ownerId, string $providerType, string $environment): ?object
+    {
+        $providerType = strtolower(trim($providerType));
+        $environment = strtolower(trim($environment));
+        if (!in_array($environment, ['sandbox', 'production'], true)) return null;
+        $this->db->query("SELECT * FROM `{$this->table}` WHERE `id_owner`=:owner_id AND LOWER(`provider_type`)=:provider_type AND LOWER(`environment`)=:environment ORDER BY `is_verified` DESC, `is_default` DESC, `updated_at` DESC, `id` DESC LIMIT 1");
+        $this->db->bind(':owner_id', $ownerId);
+        $this->db->bind(':provider_type', $providerType);
+        $this->db->bind(':environment', $environment);
+        $row = $this->db->fetchOne();
+        return $row ? $this->decryptCredentials($row) : null;
+    }
+
     /**
      * Devuelve el id_owner a usar para cobros (order-access).
      * Si la orden fue creada por un usuario nivel 2 que tiene proveedor configurado, usa ese;
