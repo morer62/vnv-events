@@ -19,6 +19,7 @@ $parts = $url !== '' ? explode('/', $url) : [];
 $slug = $parts[1] ?? null;
 
 $legacyProductRedirects = [
+    'pasta-al-horno' => 'baked-ziti',
     'latin-holiday-dinner' => 'nochebuena-dinner',
     'thanksgiving-feast' => null,
     'extra-dessert-add-on' => null,
@@ -264,12 +265,23 @@ foreach (($product->categories ?? []) as $category) {
     if (isset($categoryAnchorMap[(string)$category->slug])) { $gourmetCategory = $categoryAnchorMap[(string)$category->slug]; break; }
 }
 $variationAxes = [];
+$variationSizes = [];
 if ($isGourmet) {
     foreach (($product->variations ?? []) as $variation) {
         foreach (($variation->attribute_values ?? []) as $attribute) {
             $axis = (string)($attribute['attribute_slug'] ?? '');
             $valueSlug = (string)($attribute['attribute_value_slug'] ?? '');
             if ($axis !== '' && $valueSlug !== '') $variationAxes[$axis][$valueSlug] = (string)($attribute['attribute_value'] ?? $valueSlug);
+        }
+        $sizeCode = (string)($variation->size_code ?? '');
+        if ($sizeCode !== '' && !isset($variationSizes[$sizeCode])) {
+            $variationSizes[$sizeCode] = [
+                'code' => $sizeCode,
+                'slug' => strtolower($sizeCode === 'S' ? 'small' : ($sizeCode === 'M' ? 'medium' : ($sizeCode === 'L' ? 'large' : $sizeCode))),
+                'guests_min' => (int)($variation->guests_min ?? 0),
+                'guests_max' => (int)($variation->guests_max ?? 0),
+                'price' => (float)($variation->effective_price ?? $variation->price ?? 0),
+            ];
         }
     }
 }
@@ -287,6 +299,7 @@ echo TemplateResponse::render(__DIR__ . "/index.twig", [
     'gourmet_category_anchor' => $gourmetCategory[0],
     'gourmet_category_name' => $gourmetCategory[1],
     'variation_axes' => $variationAxes,
+    'variation_sizes' => array_values($variationSizes),
     'service_area_label' => 'Broward, Miami-Dade and south Palm Beach (Boca Raton, Delray Beach, Boynton Beach)',
     'seo' => $isGourmet ? ['title' => $product->name . ' | VNV Gourmet To Go', 'description' => html_entity_decode(strip_tags((string)$product->short_description), ENT_QUOTES | ENT_HTML5, 'UTF-8'), 'canonical' => $canonicalUrl, 'og_type' => 'product', 'og_image' => $imageUrl, 'og_image_alt' => $product->name, 'site_name' => 'VNV Gourmet To Go'] : [],
     'schemaJson' => PublicSeoService::productSchema($product, $productFaqs),

@@ -207,7 +207,7 @@
         box-shadow:0 0 0 3px rgba(17,24,39,.08);
     }
 
-    .pp-size-buttons{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.65rem}.pp-size-button{min-height:74px;padding:.75rem;border:1px solid var(--pp-border);border-radius:14px;background:#fff;color:var(--pp-text);text-align:left;cursor:pointer}.pp-size-button strong,.pp-size-button span{display:block}.pp-size-button strong{text-transform:capitalize}.pp-size-button span{margin-top:.25rem;font-size:.78rem;color:var(--pp-muted);line-height:1.35}.pp-size-button.is-selected{border-color:#173f35;background:#eff8f4;box-shadow:0 0 0 2px rgba(23,63,53,.12)}@media(max-width:700px){.pp-size-buttons{grid-template-columns:1fr}}
+    .pp-size-buttons{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.65rem}.pp-size-button{min-height:74px;padding:.75rem;border:1px solid var(--pp-border);border-radius:14px;background:#fff;color:var(--pp-text);text-align:left;cursor:pointer}.pp-size-button strong,.pp-size-button span{display:block}.pp-size-button strong{text-transform:capitalize}.pp-size-button span{margin-top:.25rem;font-size:.78rem;color:var(--pp-muted);line-height:1.35}.pp-size-button.is-selected{border-color:#173f35;background:#eff8f4;box-shadow:0 0 0 2px rgba(23,63,53,.12)}.pp-selection-hint{min-height:1.25rem;margin-top:.35rem;color:#a43f2f;font-size:.82rem;font-weight:800}.pp-selection-hint.is-complete{visibility:hidden}.pp-btn:disabled{opacity:.5;cursor:not-allowed}@media(max-width:700px){.pp-size-buttons{grid-template-columns:1fr}.pp-actions{position:sticky;bottom:8px;z-index:30;background:#fff;padding:8px;border-radius:16px;box-shadow:0 10px 30px rgba(0,0,0,.18)}}
     .pp-gallery-thumbs{display:grid;grid-template-columns:repeat(3,1fr);gap:.55rem;margin-top:.7rem}.pp-gallery-thumb{padding:0;border:1px solid var(--pp-border);border-radius:12px;overflow:hidden;background:#fff;cursor:pointer}.pp-gallery-thumb img{display:block;width:100%;aspect-ratio:1/1;object-fit:cover}.pp-gallery-thumb.is-active{border-color:#173f35;box-shadow:0 0 0 2px rgba(23,63,53,.14)}
 
     .pp-purchase-grid{
@@ -578,8 +578,8 @@
                                     <div>
                                         {% if product.product_type == 'VARIABLE' %}
                                             <label class="pp-form-label">Choose an option</label>
-                                            {% if is_gourmet_express and variation_axes.flavor|default([])|length %}<label class="pp-form-label" for="variation-flavor">Flavor</label><select class="pp-select pp-axis-select" id="variation-flavor" data-axis="flavor"><option value="">Select a flavor</option>{% for slug,label in variation_axes.flavor %}<option value="{{ slug }}">{{ label }}</option>{% endfor %}</select><label class="pp-form-label" for="variation-size" style="margin-top:.8rem">Size</label><select class="pp-select pp-axis-select" id="variation-size" data-axis="size"><option value="">Select a size</option>{% for slug,label in variation_axes.size|default([]) %}<option value="{{ slug }}">{{ label }}</option>{% endfor %}</select>{% endif %}
-                                            {% if is_gourmet_express and not variation_axes.flavor|default([])|length %}<div class="pp-size-buttons" id="variation-buttons" role="group" aria-label="Choose a size">{% for variation in product.variations|default([]) %}<button type="button" class="pp-size-button" data-variation-id="{{ variation.id }}"><strong>{{ variation.size_code|default(variation.name) }}</strong><span>{% if variation.guests_max %}Serves {{ variation.guests_min }}–{{ variation.guests_max }} · {% endif %}${{ variation.effective_price|number_format(2,'.',',') }}{% if variation.guests_max %} · ≈${{ (variation.effective_price / variation.guests_max)|round(0,'ceil') }}/person{% endif %}</span></button>{% endfor %}</div>{% endif %}
+                                            {% if is_gourmet_express and variation_axes.flavor|default([])|length %}<label class="pp-form-label">Flavor</label><div class="pp-size-buttons pp-flavor-buttons" role="group" aria-label="Choose a flavor">{% for slug,label in variation_axes.flavor %}<button type="button" class="pp-size-button pp-axis-button" data-axis="flavor" data-axis-value="{{ slug }}"><strong>{{ label }}</strong></button>{% endfor %}</div><div class="pp-selection-hint" id="flavor-hint">Choose a flavor</div>{% endif %}
+                                            {% if is_gourmet_express %}<label class="pp-form-label" style="margin-top:.8rem">Size</label><div class="pp-size-buttons" id="variation-buttons" role="group" aria-label="Choose a size">{% for size in variation_sizes %}<button type="button" class="pp-size-button pp-axis-button" data-axis="size" data-axis-value="{{ size.slug }}" data-price="{{ size.price }}" data-guests-min="{{ size.guests_min }}" data-guests-max="{{ size.guests_max }}"><strong>{{ size.code }}</strong><span>{% if size.guests_max %}Serves {{ size.guests_min }}–{{ size.guests_max }} · {% endif %}${{ size.price|number_format(2,'.',',') }}{% if size.guests_max %} · ≈${{ (size.price / size.guests_max)|round(0,'ceil') }}/person{% endif %}</span></button>{% endfor %}</div><div class="pp-selection-hint" id="size-hint">Choose a size</div>{% endif %}
                                             <select class="pp-select" id="variation-select"{% if is_gourmet_express %} hidden aria-hidden="true"{% endif %}>
                                                 <option value="">Select a variation</option>
                                                 {% for variation in product.variations|default([]) %}
@@ -587,6 +587,8 @@
                                                         value="{{ variation.id }}"
                                                         data-name="{{ variation.name|e('html_attr') }}"
                                                         data-size="{{ variation.size_code|default('')|e('html_attr') }}"
+                                                        data-guests-min="{{ variation.guests_min|default(0) }}"
+                                                        data-guests-max="{{ variation.guests_max|default(0) }}"
                                                         data-price="{{ variation.effective_price }}"
                                                         data-stock="{{ variation.stock_quantity|default(0) }}"
                                                         data-min="{{ variation.min_purchase_qty|default(1) }}"
@@ -687,6 +689,7 @@
                                         data-description="{{ (product.description ?: '')|e('html_attr') }}"
                                         data-main-image="{{ (product.main_image ?: '')|e('html_attr') }}"
                                         data-price="{{ product.display_price|default(product.min_price)|default(0) }}"
+                                        data-lowest-price="{{ product.min_price|default(product.display_price)|default(0) }}"
                                         data-stock-quantity="{{ product.stock_quantity|default(0) }}"
                                         data-min-purchase-qty="{{ product.min_purchase_qty|default(1) }}"
                                         data-max-purchase-qty="{{ product.max_purchase_qty is not null ? product.max_purchase_qty : '' }}"
@@ -881,6 +884,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const addBtn = document.getElementById('add-to-cart-btn');
     const variationSelect = document.getElementById('variation-select');
     const variationButtons = document.querySelectorAll('[data-variation-id]');
+    const axisButtons = Array.from(document.querySelectorAll('.pp-axis-button'));
     const variationPreview = document.getElementById('variation-preview');
     const variationMeta = document.getElementById('variation-meta');
     const selectedVariationId = document.getElementById('selected-variation-id');
@@ -903,20 +907,35 @@ document.addEventListener('DOMContentLoaded', function () {
         variationSelect.dispatchEvent(new Event('change', {bubbles:true}));
     }));
     const axisSelects = Array.from(document.querySelectorAll('.pp-axis-select'));
+    const selectedAxes = {};
     function selectAxisVariation() {
-        if (!variationSelect || !axisSelects.length || axisSelects.some(select => !select.value)) return;
-        const wanted = Object.fromEntries(axisSelects.map(select => [select.dataset.axis, select.value]));
+        if (!variationSelect || (!axisButtons.length && !axisSelects.length)) return;
+        const wanted = {...selectedAxes, ...Object.fromEntries(axisSelects.filter(select => select.value).map(select => [select.dataset.axis, select.value]))};
+        const requiredAxes = new Set(axisButtons.map(button => button.dataset.axis).concat(axisSelects.map(select => select.dataset.axis)));
+        if (Array.from(requiredAxes).some(axis => !wanted[axis])) {
+            variationSelect.value = '';
+            variationSelect.dispatchEvent(new Event('change', {bubbles:true}));
+            updateSelectionState();
+            return;
+        }
         const match = Array.from(variationSelect.options).find(option => {
             if (!option.value) return false;
             let values = [];
-            try { values = JSON.parse(option.dataset.options || '[]'); } catch (e) { return false; }
+            try { values = JSON.parse(option.dataset.options || '[]'); } catch (e) { values = []; }
             const map = Object.fromEntries(values.map(item => [item.attribute_slug, item.attribute_value_slug]));
+            if (!map.size && option.dataset.size) map.size = option.dataset.size === 'S' ? 'small' : (option.dataset.size === 'M' ? 'medium' : (option.dataset.size === 'L' ? 'large' : option.dataset.size.toLowerCase()));
             return Object.keys(wanted).every(axis => map[axis] === wanted[axis]);
         });
         variationSelect.value = match ? match.value : '';
         variationSelect.dispatchEvent(new Event('change', {bubbles:true}));
+        updateSelectionState();
     }
     axisSelects.forEach(select => select.addEventListener('change', selectAxisVariation));
+    axisButtons.forEach(button => button.addEventListener('click', () => {
+        selectedAxes[button.dataset.axis] = button.dataset.axisValue;
+        axisButtons.filter(item => item.dataset.axis === button.dataset.axis).forEach(item => item.classList.toggle('is-selected', item === button));
+        selectAxisVariation();
+    }));
     const isGourmetExpress = {{ is_gourmet_express ? 'true' : 'false' }};
     const gourmetStorePaused = {{ gourmet_settings.store_paused ? 'true' : 'false' }};
     const gourmetClosedMessage = {{ (gourmet_settings.pause_message|default('VNV Gourmet To Go is temporarily pausing new orders. You can still browse the menu.'))|json_encode|raw }};
@@ -940,7 +959,8 @@ document.addEventListener('DOMContentLoaded', function () {
         });
         if (option) select.value = option.value;
     }
-    addonChecks.forEach(check => check.addEventListener('change',()=>{const select=document.querySelector('.product-addon-variation[data-addon-id="'+check.dataset.id+'"]');const qty=document.querySelector('.product-addon-qty[data-addon-id="'+check.dataset.id+'"]');if(select)select.disabled=!check.checked;if(qty)qty.disabled=!check.checked;if(check.checked)matchAddonSize(check);}));
+    addonChecks.forEach(check => check.addEventListener('change',()=>{const select=document.querySelector('.product-addon-variation[data-addon-id="'+check.dataset.id+'"]');const qty=document.querySelector('.product-addon-qty[data-addon-id="'+check.dataset.id+'"]');if(select)select.disabled=!check.checked;if(qty)qty.disabled=!check.checked;if(check.checked)matchAddonSize(check);updateRunningTotal();}));
+    document.querySelectorAll('.product-addon-variation,.product-addon-qty').forEach(input => { input.addEventListener('change', updateRunningTotal); input.addEventListener('input', updateRunningTotal); });
 
     function configuredUnitPrice(basePrice) {
         if (!servingsInput) return basePrice;
@@ -956,7 +976,7 @@ document.addEventListener('DOMContentLoaded', function () {
             : toFloat(addBtn?.dataset.price, 0);
         const configured = configuredUnitPrice(base);
         if (selectedUnitPrice) selectedUnitPrice.value = configured.toFixed(2);
-        if (priceDisplay) priceDisplay.textContent = '$' + configured.toFixed(2);
+        updateRunningTotal();
     }
     if (servingsInput) servingsInput.addEventListener('input', refreshConfiguredPrice);
 
@@ -965,6 +985,9 @@ document.addEventListener('DOMContentLoaded', function () {
             selectedVariationId.value = '';
             variationPreview.style.display = 'none';
             variationMeta.innerHTML = '';
+            if (priceDisplay) priceDisplay.textContent = 'From $' + toFloat(addBtn?.dataset.lowestPrice, 0).toFixed(2);
+            updateSelectionState();
+            updateRunningTotal();
             return;
         }
 
@@ -983,7 +1006,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
         selectedVariationId.value = option.value;
         selectedUnitPrice.value = price.toFixed(2);
-        priceDisplay.textContent = '$' + price.toFixed(2);
+        const guestsMin = toInt(option.dataset.guestsMin, 0), guestsMax = toInt(option.dataset.guestsMax, 0);
+        const perPerson = guestsMax ? Math.ceil(price / guestsMax) : 0;
+        priceDisplay.textContent = '$' + price.toFixed(2) + (guestsMax ? ` · Serves ${guestsMin}–${guestsMax} · ≈$${perPerson}/person` : '');
         if (priceNote) priceNote.textContent = name ? ('Selected: ' + name) : 'Variation selected';
 
         qtyInput.min = minQty || 1;
@@ -1026,15 +1051,49 @@ document.addEventListener('DOMContentLoaded', function () {
 
         variationMeta.innerHTML = parts.join('');
         variationPreview.style.display = 'block';
-        refreshConfiguredPrice();
+        updateSelectionState();
+        updateRunningTotal();
     }
+
+    function updateSelectionState() {
+        const flavorRequired = axisButtons.some(button => button.dataset.axis === 'flavor');
+        const sizeRequired = axisButtons.some(button => button.dataset.axis === 'size');
+        const flavorReady = !flavorRequired || !!selectedAxes.flavor;
+        const sizeReady = !sizeRequired || !!selectedAxes.size;
+        document.getElementById('flavor-hint')?.classList.toggle('is-complete', flavorReady);
+        document.getElementById('size-hint')?.classList.toggle('is-complete', sizeReady);
+        if (addBtn) addBtn.disabled = productIsVariable && (!flavorReady || !sizeReady || !variationSelect?.value);
+    }
+
+    function updateRunningTotal() {
+        if (!addBtn) return;
+        if (productIsVariable && !variationSelect?.value) { addBtn.textContent = 'Add to cart'; return; }
+        const option = variationSelect?.value ? variationSelect.options[variationSelect.selectedIndex] : null;
+        const unit = configuredUnitPrice(toFloat(option?.dataset.price ?? addBtn.dataset.price, 0));
+        const quantity = Math.max(1, toInt(qtyInput?.value, 1));
+        let total = unit * quantity;
+        addonChecks.forEach(check => {
+            if (!check.checked) return;
+            const addonQty = Math.max(1, toInt(document.querySelector('.product-addon-qty[data-addon-id="'+check.dataset.id+'"]')?.value, 1));
+            const addonSelect = document.querySelector('.product-addon-variation[data-addon-id="'+check.dataset.id+'"]');
+            const addonPrice = addonSelect?.value ? toFloat(addonSelect.options[addonSelect.selectedIndex].dataset.price, 0) : toFloat(check.dataset.price, 0);
+            total += addonPrice * addonQty;
+        });
+        addBtn.textContent = 'Add to cart — $' + total.toFixed(2);
+    }
+
+    const productIsVariable = (addBtn?.dataset.productType || 'FIXED') === 'VARIABLE';
+    qtyInput?.addEventListener('input', updateRunningTotal);
 
     if (variationSelect) {
         variationSelect.addEventListener('change', function () {
             renderVariation(this.options[this.selectedIndex]);
             addonChecks.filter(check => check.checked).forEach(matchAddonSize);
+            updateRunningTotal();
         });
     }
+    const firstSizeButton = axisButtons.find(button => button.dataset.axis === 'size');
+    if (firstSizeButton) firstSizeButton.click(); else updateSelectionState();
 
     if (!addBtn) return;
 

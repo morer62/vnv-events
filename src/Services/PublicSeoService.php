@@ -112,7 +112,7 @@ class PublicSeoService
 
     public static function productSchema(object $product, array $faqs = []): array
     {
-        $canonical = self::SITE_URL . '/product/' . trim((string)($product->slug ?? ''), '/') . '/';
+        $canonical = self::SITE_URL . '/product/' . trim((string)($product->slug ?? ''), '/');
         $name = self::clean($product->name ?? 'VNV Events Product');
         $description = self::firstFilled([
             $product->short_description ?? null,
@@ -886,6 +886,10 @@ class PublicSeoService
         $path = parse_url($path, PHP_URL_PATH) ?: '/';
         $path = '/' . ltrim($path, '/');
         $path = preg_replace('#/+#', '/', $path) ?: '/';
+
+        if (str_starts_with($path, '/product/') || str_contains(basename($path), '.')) {
+            return rtrim($path, '/');
+        }
 
         if ($path !== '/') {
             $path = rtrim($path, '/') . '/';
