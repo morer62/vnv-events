@@ -731,7 +731,7 @@ class StoreProductsRepository extends BaseRepository
 
         if (($product->product_type ?? self::PRODUCT_TYPE_FIXED) === self::PRODUCT_TYPE_VARIABLE) {
             $variationsRepo = new StoreProductVariationsRepository();
-            $product->variations = $variationsRepo->getDetailedByProduct($id);
+            $product->variations = $variationsRepo->getDetailedActiveByProduct($id);
         } else {
             $product->variations = [];
         }

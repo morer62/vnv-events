@@ -279,4 +279,23 @@ class StoreProductVariationsRepository extends BaseRepository
 
         return $rows;
     }
+
+    public function getDetailedActiveByProduct(int $productId): array
+    {
+        $rows = $this->getActiveByProduct($productId);
+        if (!$rows) return [];
+        $variationValuesRepo = new StoreProductVariationValuesRepository();
+        foreach ($rows as $row) {
+            $variationId = (int)(is_object($row) ? $row->id : $row['id']);
+            $values = $variationValuesRepo->getGroupedByVariation($variationId);
+            if (is_object($row)) {
+                $row->attribute_values = $values;
+                $row->effective_price = $this->getEffectivePrice($row);
+            } else {
+                $row['attribute_values'] = $values;
+                $row['effective_price'] = $this->getEffectivePrice($row);
+            }
+        }
+        return $rows;
+    }
 }
