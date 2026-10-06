@@ -8,6 +8,12 @@ use App\Utils\AvomealContext;
 use App\Utils\SiteContext;
 use App\Utils\TemplateResponse;
 
+$requestPath = (string)(parse_url($_SERVER['REQUEST_URI'] ?? '', PHP_URL_PATH) ?? '');
+if ($requestPath !== '/' && str_ends_with($requestPath, '/')) {
+    header('Location: ' . rtrim($requestPath, '/'), true, 301);
+    exit;
+}
+
 $url = trim($_GET['url'] ?? '', '/');
 $parts = $url !== '' ? explode('/', $url) : [];
 $slug = $parts[1] ?? null;
@@ -243,6 +249,31 @@ try {
     error_log('[Product food profile] ' . $e->getMessage());
 }
 
+$isGourmet = in_array((string)($product->brand_name ?? ''), ['VNV Gourmet Express', 'VNV Gourmet To Go'], true)
+    || (strtoupper((string)($product->purchase_mode ?? '')) === 'DIRECT' && strtoupper((string)($product->fulfillment_type ?? '')) === 'DELIVERY');
+$imageUrl = trim((string)($productMedia[0]->image_url ?? $product->main_image ?? ''));
+if ($imageUrl !== '' && !preg_match('#^https?://#i', $imageUrl)) $imageUrl = 'https://vnvevents.com/' . ltrim($imageUrl, '/');
+$canonicalUrl = 'https://vnvevents.com/product/' . rawurlencode((string)$product->slug);
+$categoryAnchorMap = [
+    'party-trays' => ['family-dinners', 'Family Occasion Meals'], 'family-meals' => ['family-dinners', 'Family Occasion Meals'],
+    'party-boxes' => ['party-boxes', 'Party Boxes'], 'desserts-add-ons' => ['desserts', 'Desserts'],
+    'seasonal-holiday-packages' => ['holidays', 'Seasonal'],
+];
+$gourmetCategory = ['family-dinners', 'Family Occasion Meals'];
+foreach (($product->categories ?? []) as $category) {
+    if (isset($categoryAnchorMap[(string)$category->slug])) { $gourmetCategory = $categoryAnchorMap[(string)$category->slug]; break; }
+}
+$variationAxes = [];
+if ($isGourmet) {
+    foreach (($product->variations ?? []) as $variation) {
+        foreach (($variation->attribute_values ?? []) as $attribute) {
+            $axis = (string)($attribute['attribute_slug'] ?? '');
+            $valueSlug = (string)($attribute['attribute_value_slug'] ?? '');
+            if ($axis !== '' && $valueSlug !== '') $variationAxes[$axis][$valueSlug] = (string)($attribute['attribute_value'] ?? $valueSlug);
+        }
+    }
+}
+
 echo TemplateResponse::render(__DIR__ . "/index.twig", [
     'product' => $product,
     'related_products' => $relatedProducts,
@@ -252,8 +283,11 @@ echo TemplateResponse::render(__DIR__ . "/index.twig", [
     'product_media' => $productMedia,
     'store_active' => $storeActive,
     'gourmet_settings' => (new GourmetExpressService())->settings($ownerId, $siteKey),
-    'is_gourmet_express' => in_array((string)($product->brand_name ?? ''), ['VNV Gourmet Express', 'VNV Gourmet To Go'], true)
-        || (strtoupper((string)($product->purchase_mode ?? '')) === 'DIRECT'
-            && strtoupper((string)($product->fulfillment_type ?? '')) === 'DELIVERY'),
+    'is_gourmet_express' => $isGourmet,
+    'gourmet_category_anchor' => $gourmetCategory[0],
+    'gourmet_category_name' => $gourmetCategory[1],
+    'variation_axes' => $variationAxes,
+    'service_area_label' => 'Broward, Miami-Dade and south Palm Beach (Boca Raton, Delray Beach, Boynton Beach)',
+    'seo' => $isGourmet ? ['title' => $product->name . ' | VNV Gourmet To Go', 'description' => html_entity_decode(strip_tags((string)$product->short_description), ENT_QUOTES | ENT_HTML5, 'UTF-8'), 'canonical' => $canonicalUrl, 'og_type' => 'product', 'og_image' => $imageUrl, 'og_image_alt' => $product->name, 'site_name' => 'VNV Gourmet To Go'] : [],
     'schemaJson' => PublicSeoService::productSchema($product, $productFaqs),
 ]);

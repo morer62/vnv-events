@@ -81,7 +81,9 @@ final class GourmetStorefrontService
             WHERE p.id_owner=:owner AND p.site_key=:site AND p.status='ACTIVE' AND p.is_public=1
               AND p.purchase_mode='DIRECT' AND p.fulfillment_type='DELIVERY'
               AND COALESCE(p.is_addon_only,0)=0 AND COALESCE(p.product_role,'MAIN')<>'ADDON'
-            GROUP BY p.id ORDER BY p.is_featured DESC,p.name";
+            GROUP BY p.id ORDER BY p.is_featured DESC,
+              CASE p.slug WHEN 'chicken-chorizo-paella' THEN 10 WHEN 'homemade-lasagna-pasticho' THEN 20 WHEN 'pasta-al-horno' THEN 30 WHEN 'seafood-paella' THEN 40 ELSE 100 END,
+              p.name";
         $this->db->query($sql);
         $this->db->bind(':owner', $ownerId, \PDO::PARAM_INT);
         $this->db->bind(':site', $siteKey);

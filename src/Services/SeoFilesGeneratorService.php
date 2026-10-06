@@ -503,7 +503,7 @@ class SeoFilesGeneratorService
             foreach ($productsRepo->getPublicSitemapEntries(5000, $ownerId, $siteKey) as $product) {
                 if ((int)($product->is_addon_only ?? 0) === 1 || strtoupper((string)($product->product_role ?? 'MAIN')) === 'ADDON') continue;
                 $entries[] = $this->entry(
-                    '/product/' . trim((string)$product->slug, '/') . '/',
+                    '/product/' . trim((string)$product->slug, '/'),
                     $product->name ?? 'Product',
                     $this->bestDate($product),
                     'weekly',
@@ -965,6 +965,10 @@ class SeoFilesGeneratorService
     {
         $path = '/' . ltrim($path, '/');
         $path = preg_replace('#/+#', '/', $path) ?: '/';
+
+        if (str_starts_with($path, '/product/') || $path === '/gourmet-to-go' || $path === '/gourmet-to-go/') {
+            return rtrim($path, '/');
+        }
 
         if ($path !== '/' && !str_contains(basename($path), '.')) {
             $path = rtrim($path, '/') . '/';

@@ -38,6 +38,12 @@ if (!$slug) {
     category_not_found_debug('missing_slug', $slug);
 }
 
+$gourmetCategoryAnchors = ['party-trays' => 'family-dinners', 'family-meals' => 'family-dinners', 'party-boxes' => 'party-boxes', 'desserts-add-ons' => 'desserts', 'seasonal-holiday-packages' => 'holidays'];
+if (isset($gourmetCategoryAnchors[$slug])) {
+    header('Location: /gourmet-to-go#' . $gourmetCategoryAnchors[$slug], true, 301);
+    exit;
+}
+
 $categoriesRepository = new StoreCategoriesRepository();
 $productsRepository = new StoreProductsRepository();
 $ownerId = AvomealContext::ownerId();

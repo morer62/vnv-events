@@ -105,7 +105,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
        CANONICAL / FAVICON / APP ICONS
        ------------------------------------------------------- #}
     {% set fallback_canonical = page_seo.canonical|default(block('canonical') is defined ? block('canonical')|striptags|trim : site_url ~ '/') %}
-    {% set canonical_value = current_canonical_url|default(fallback_canonical) %}
+    {% set canonical_value = page_seo.canonical|default(current_canonical_url|default(fallback_canonical)) %}
     <link rel="canonical" href="{{ canonical_value ?: fallback_canonical }}">
     <link rel="icon" type="image/png" href="{{ site_favicon }}">
     <link rel="shortcut icon" href="{{ site_favicon }}">
@@ -137,11 +137,11 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
     {# -------------------------------------------------------
        OPEN GRAPH / SOCIAL
        ------------------------------------------------------- #}
-    <meta property="og:site_name" content="VNV Events">
+    <meta property="og:site_name" content="{{ page_seo.site_name|default(block('og_site_name') is defined ? block('og_site_name')|striptags|trim : 'VNV Events') }}">
     {% set og_type_value = page_seo.og_type|default(block('og_type') is defined ? block('og_type')|striptags|trim : 'website') %}
     {% set og_title_value = page_seo.title|default(block('og_title') is defined ? block('og_title')|striptags|trim : title_value) %}
     {% set og_description_value = page_seo.description|default(block('og_description') is defined ? block('og_description')|striptags|trim : description_value) %}
-    {% set og_url_value = current_canonical_url|default(page_seo.canonical|default(block('og_url') is defined ? block('og_url')|striptags|trim : canonical_value)) %}
+    {% set og_url_value = page_seo.canonical|default(current_canonical_url|default(block('og_url') is defined ? block('og_url')|striptags|trim : canonical_value)) %}
     {% set og_image_value = page_seo.og_image|default(block('og_image') is defined ? block('og_image')|striptags|trim : default_og_image) %}
     <meta property="og:type" content="{{ og_type_value ?: 'website' }}">
     <meta property="og:title" content="{{ og_title_value ?: default_title }}">
