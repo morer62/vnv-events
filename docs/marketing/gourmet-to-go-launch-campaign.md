@@ -47,3 +47,10 @@ Now serving South Florida. Order at vnvevents.com/gourmet-to-go
 - Food trays are silver aluminum; Latin bites use a kraft box with food-safe paper.
 - No generated logos or legible AI-generated interface text.
 - The mood is warm, human and attainable—not cold luxury.
+
+## Final deliverables
+
+- Vertical campaign video: `public/assets/videos/gourmet-to-go-launch-30s.mp4`
+- Feed campaign image: `public/assets/images/vnv-gourmet-to-go/campaign-launch-feed-v1.png`
+
+The final video is 720 × 1280, 30.4 seconds, includes the full English voice-over, a lowered acoustic music bed, a clean branded end card and no visible CapCut watermark.
