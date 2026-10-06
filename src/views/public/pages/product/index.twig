@@ -1,14 +1,14 @@
-{% extends "templates/base.twig" %}
+{% extends "templates/base.store.twig" %}
 
 {% block title %}
-    {{ product ? product.name ~ ' | Store' : 'Product not found' }}
+    {{ product ? product.name ~ ' | Gourmet To Go' : 'Product not found' }}
 {% endblock %}
 
 {% block meta_description %}
     {{ product and product.short_description ? product.short_description : 'Explore product details in our store.' }}
 {% endblock %}
 
-{% block body %}
+{% block store_body %}
 <style>
     :root{
         --pp-bg:#f8fafc;
@@ -201,6 +201,9 @@
         border-color:#111827;
         box-shadow:0 0 0 3px rgba(17,24,39,.08);
     }
+
+    .pp-size-buttons{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.65rem}.pp-size-button{min-height:74px;padding:.75rem;border:1px solid var(--pp-border);border-radius:14px;background:#fff;color:var(--pp-text);text-align:left;cursor:pointer}.pp-size-button strong,.pp-size-button span{display:block}.pp-size-button strong{text-transform:capitalize}.pp-size-button span{margin-top:.25rem;font-size:.78rem;color:var(--pp-muted);line-height:1.35}.pp-size-button.is-selected{border-color:#173f35;background:#eff8f4;box-shadow:0 0 0 2px rgba(23,63,53,.12)}@media(max-width:700px){.pp-size-buttons{grid-template-columns:1fr}}
+    .pp-gallery-thumbs{display:grid;grid-template-columns:repeat(3,1fr);gap:.55rem;margin-top:.7rem}.pp-gallery-thumb{padding:0;border:1px solid var(--pp-border);border-radius:12px;overflow:hidden;background:#fff;cursor:pointer}.pp-gallery-thumb img{display:block;width:100%;aspect-ratio:1/1;object-fit:cover}.pp-gallery-thumb.is-active{border-color:#173f35;box-shadow:0 0 0 2px rgba(23,63,53,.14)}
 
     .pp-purchase-grid{
         display:grid;
@@ -450,8 +453,10 @@
         <section class="pp-shell">
             <div class="pp-main">
                 <div class="pp-image-wrap">
-                    {% if product.main_image %}
-                        <img src="{{ product.main_image }}" alt="{{ product.name }}" class="pp-image">
+                    {% set primary_media = product_media|default([])|first %}
+                    {% if primary_media or product.main_image %}
+                        <img src="{{ primary_media.image_url|default(product.main_image) }}" alt="{{ primary_media.alt_text|default(product.name) }}" class="pp-image" id="pp-main-image" style="object-position:{{ primary_media.focal_x|default(50) }}% {{ primary_media.focal_y|default(50) }}%">
+                        {% if product_media|default([])|length > 1 %}<div class="pp-gallery-thumbs" aria-label="Product photos">{% for media in product_media %}<button type="button" class="pp-gallery-thumb {{ loop.first ? 'is-active' : '' }}" data-gallery-src="{{ media.image_url }}" data-gallery-alt="{{ media.alt_text|default(product.name)|e('html_attr') }}" data-gallery-position="{{ media.focal_x|default(50) }}% {{ media.focal_y|default(50) }}%"><img src="{{ media.image_url }}" alt="" width="160" height="160" loading="lazy"></button>{% endfor %}</div>{% endif %}
                     {% else %}
                         <div class="pp-image d-flex align-items-center justify-content-center text-muted">No image</div>
                     {% endif %}
@@ -491,7 +496,7 @@
                             </div>
                         {% endif %}
 
-                        {% if store_active %}
+                        {% if store_active and not is_gourmet_express %}
                             <div class="pp-price-note" id="product-price-note">
                                 {% if product.product_type == 'VARIABLE' %}
                                     Select an option to see the exact price.
@@ -502,7 +507,7 @@
                         {% endif %}
                     </div>
 
-                    {% if product.brand_name != 'VNV Gourmet Express' %}<div class="pp-meta">
+                    {% if not is_gourmet_express %}<div class="pp-meta">
                         <div class="pp-meta-card">
                             <div class="pp-meta-label">SKU</div>
                             <div class="pp-meta-value">{{ product.sku ?: '—' }}</div>
@@ -570,8 +575,9 @@
                                 <div class="pp-purchase-grid">
                                     <div>
                                         {% if product.product_type == 'VARIABLE' %}
-                                            <label class="pp-form-label">Choose an option</label>
-                                            <select class="pp-select" id="variation-select">
+                                            <label class="pp-form-label">Choose a size</label>
+                                            {% if is_gourmet_express %}<div class="pp-size-buttons" id="variation-buttons" role="group" aria-label="Choose a size">{% for variation in product.variations|default([]) %}<button type="button" class="pp-size-button" data-variation-id="{{ variation.id }}"><strong>{{ variation.size_code|default(variation.name) }}</strong><span>{% if variation.guests_max %}Serves {{ variation.guests_min }}–{{ variation.guests_max }} · {% endif %}${{ variation.effective_price|number_format(2,'.',',') }}{% if variation.guests_max %} · ≈${{ (variation.effective_price / variation.guests_max)|round(0,'ceil') }}/person{% endif %}</span></button>{% endfor %}</div>{% endif %}
+                                            <select class="pp-select" id="variation-select"{% if is_gourmet_express %} hidden aria-hidden="true"{% endif %}>
                                                 <option value="">Select a variation</option>
                                                 {% for variation in product.variations|default([]) %}
                                                     <option
@@ -595,7 +601,7 @@
                                     </div>
 
                                     <div>
-                                        <label class="pp-form-label">{{ product.brand_name == 'VNV Gourmet Express' ? 'Number of trays' : 'Quantity' }}</label>
+                                        <label class="pp-form-label">{{ is_gourmet_express ? 'Number of trays' : 'Quantity' }}</label>
                                         <input
                                             type="number"
                                             id="product-qty"
@@ -607,7 +613,7 @@
                                             {% endif %}
                                         >
                                     </div>
-                                    {% if food_profile and product.brand_name != 'VNV Gourmet Express' %}
+                                    {% if food_profile and not is_gourmet_express %}
                                     <div>
                                         <label class="pp-form-label" for="product-servings">Guests / servings</label>
                                         <input type="number" id="product-servings" class="pp-input"
@@ -661,7 +667,7 @@
                                     <div class="pp-staff-actions">
                                         <a href="tel:+1{{ gourmet_settings.staff_phone|default('3052042547') }}" data-staff-method="call">Call VNV Events: (305) 204-2547</a>
                                         <a href="https://wa.me/{{ gourmet_settings.staff_whatsapp|default('13053761210') }}" rel="noopener" data-staff-method="whatsapp">WhatsApp</a>
-                                        <a href="{{ path('catering-delivery') }}" data-staff-method="link">Back to Gourmet Express →</a>
+                                        <a href="{{ path('gourmet-to-go') }}" data-staff-method="link">Back to Gourmet To Go →</a>
                                     </div>
                                 </aside>
                                 {% endif %}
@@ -690,7 +696,7 @@
                                     <a href="{{ path('store/cart') }}" class="pp-btn pp-btn-light">Go to cart</a>
                                 </div>
 
-                                <div class="pp-helper">{% if product.brand_name == 'VNV Gourmet Express' %}Choose a tray size and the number of trays you need. Add-ons stay attached to this selection.{% else %}Choose quantity and, if needed, a variation. {% if product.allow_recurring_purchase|default(0) %}This product also supports recurring purchases at checkout.{% endif %}{% endif %}</div>
+                                <div class="pp-helper">{% if is_gourmet_express %}Choose a tray size and the number of trays you need. Add-ons stay attached to this selection.{% else %}Choose quantity and, if needed, a variation. {% if product.allow_recurring_purchase|default(0) %}This product also supports recurring purchases at checkout.{% endif %}{% endif %}</div>
                             </form>
                         </div>
                     {% else %}
@@ -822,6 +828,14 @@
 {% if store_active %}
 <script>
 document.addEventListener('DOMContentLoaded', function () {
+    const galleryImage = document.getElementById('pp-main-image');
+    document.querySelectorAll('[data-gallery-src]').forEach(button => button.addEventListener('click', () => {
+        if (!galleryImage) return;
+        galleryImage.src = button.dataset.gallerySrc || galleryImage.src;
+        galleryImage.alt = button.dataset.galleryAlt || galleryImage.alt;
+        galleryImage.style.objectPosition = button.dataset.galleryPosition || '50% 50%';
+        document.querySelectorAll('[data-gallery-src]').forEach(item => item.classList.toggle('is-active', item === button));
+    }));
     const CART_KEY = 'store_cart_selection';
     document.querySelectorAll('[data-staff-method]').forEach(link => link.addEventListener('click', event => {
         event.preventDefault();
@@ -865,6 +879,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     const addBtn = document.getElementById('add-to-cart-btn');
     const variationSelect = document.getElementById('variation-select');
+    const variationButtons = document.querySelectorAll('[data-variation-id]');
     const variationPreview = document.getElementById('variation-preview');
     const variationMeta = document.getElementById('variation-meta');
     const selectedVariationId = document.getElementById('selected-variation-id');
@@ -875,9 +890,15 @@ document.addEventListener('DOMContentLoaded', function () {
     const servingsInput = document.getElementById('product-servings');
     const cookingPreferenceInput = document.getElementById('cooking-preference');
     const addonChecks = Array.from(document.querySelectorAll('.product-addon-check'));
+    variationButtons.forEach(button => button.addEventListener('click', () => {
+        if (!variationSelect) return;
+        variationSelect.value = button.dataset.variationId || '';
+        variationButtons.forEach(item => item.classList.toggle('is-selected', item === button));
+        variationSelect.dispatchEvent(new Event('change', {bubbles:true}));
+    }));
     const isGourmetExpress = {{ is_gourmet_express ? 'true' : 'false' }};
     const gourmetStorePaused = {{ gourmet_settings.store_paused ? 'true' : 'false' }};
-    const gourmetClosedMessage = {{ (gourmet_settings.pause_message|default('VNV Gourmet Express is temporarily pausing new orders. You can still browse the menu.'))|json_encode|raw }};
+    const gourmetClosedMessage = {{ (gourmet_settings.pause_message|default('VNV Gourmet To Go is temporarily pausing new orders. You can still browse the menu.'))|json_encode|raw }};
     const gourmetReopenAt = {{ (gourmet_settings.reopen_at|default(''))|json_encode|raw }};
     const addressGate=document.getElementById('ge-address-gate'),addressInput=document.getElementById('ge-delivery-address'),addressError=document.getElementById('ge-address-error'),addressCheck=document.getElementById('ge-address-check'),addressCancel=document.getElementById('ge-address-cancel');
     async function confirmGourmetDelivery(){

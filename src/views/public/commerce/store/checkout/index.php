@@ -154,7 +154,7 @@ function sendCheckoutOrderDetailsEmail(
                 <strong>Need help during your event?</strong><br>Our full-service team can set up, serve and run your event.<br>
                 <a href="tel:+1' . htmlspecialchars($staffPhone) . '">Call VNV Events: (305) 204-2547</a> ·
                 <a href="https://wa.me/' . htmlspecialchars($staffWhatsapp) . '">WhatsApp</a> ·
-                <a href="' . htmlspecialchars($baseUrl . '/catering-delivery') . '">Back to Gourmet Express →</a>
+                <a href="' . htmlspecialchars($baseUrl . '/gourmet-to-go') . '">Back to Gourmet To Go →</a>
             </div>
         </div>
     ';
@@ -526,6 +526,7 @@ $router->get(function () {
     $recoveryToken = trim($_GET['recovery'] ?? '');
     $ownerId = getStoreOwnerId();
     $deliveryAvailability = (new StoreDeliveryAvailabilityService())->availability($ownerId);
+    $gourmetSettings = (new GourmetExpressService())->settings($ownerId, SiteContext::siteKey());
 
     $providersRepo = new PaymentProvidersRepository();
     $activeProvider = $ownerId > 0 ? $providersRepo->getActiveProviderForOwner($ownerId) : null;
@@ -556,6 +557,7 @@ $router->get(function () {
         "recovery_token" => $recoveryToken,
         "has_recovery" => $recoveryToken !== ''
         ,"delivery_availability" => $deliveryAvailability
+        ,"gourmet_settings" => $gourmetSettings
     ]);
 });
 
@@ -733,9 +735,13 @@ $router->post(function () {
     $deliveryFee=max(0,(float)($cart->delivery_fee??0));
     $tax=round(($preTaxTotal+$deliveryFee)*$taxRate/100,2);
     $total=round($preTaxTotal+$deliveryFee+$tax,2);
+    $requestedFulfillment = strtoupper(trim((string)($payload['fulfillment_method'] ?? 'DELIVERY')));
+    $configuredMinimum = $requestedFulfillment === 'PICKUP'
+        ? (float)($gourmetSettings['pickup_minimum'] ?? 80)
+        : (float)($gourmetSettings['delivery_minimum'] ?? 150);
     $minimumOrderAmount = max(
         AvomealContext::minimumOrderAmount(),
-        (float)($gourmetSettings['delivery_minimum'] ?? 150)
+        $configuredMinimum
     );
     $couponCodeFromCart = trim((string)($cart->coupon_code ?? ''));
     $couponIdFromCart = (int)($cart->id_coupon ?? 0);
@@ -1097,6 +1103,18 @@ $router->post(function () {
     $shippingCity = trim($payload['shipping_city'] ?? '');
     $shippingState = trim($payload['shipping_state'] ?? '');
     $shippingZip = trim($payload['shipping_zip'] ?? '');
+    $fulfillmentMethod = strtoupper(trim((string)($payload['fulfillment_method'] ?? 'DELIVERY')));
+    if (!in_array($fulfillmentMethod, ['DELIVERY', 'PICKUP'], true)) $fulfillmentMethod = 'DELIVERY';
+    if ($fulfillmentMethod === 'PICKUP' && !(int)($gourmetSettings['pickup_enabled'] ?? 1)) {
+        echo json_encode(['success' => false, 'message' => 'Pickup is not available for this order.']);
+        return;
+    }
+    $attributionInput = is_array($payload['attribution'] ?? null) ? $payload['attribution'] : [];
+    $attribution = [];
+    foreach (['utm_source','utm_medium','utm_campaign','utm_term','utm_content','fbclid','landing_page','captured_at'] as $key) {
+        $value = trim((string)($attributionInput[$key] ?? ''));
+        if ($value !== '') $attribution[$key] = mb_substr($value, 0, $key === 'landing_page' ? 500 : 255);
+    }
     $deliveryTiming = strtoupper(trim((string)($payload['delivery_timing'] ?? 'SCHEDULED')));
     $requestedDeliveryRaw = trim((string)($payload['requested_delivery_at'] ?? ''));
     $deliveryAvailability = (new StoreDeliveryAvailabilityService())->availability($ownerId);
@@ -1131,6 +1149,7 @@ $router->post(function () {
     $requestedDeliveryAt = null;
     $requestedDeliveryAtUtc = null;
     $requestedDeliveryTimezone = null;
+    $pickupWindow = null;
     if ($deliveryTiming === 'SCHEDULED') {
         try {
             $express = new GourmetExpressService();
@@ -1139,6 +1158,9 @@ $router->post(function () {
             $requestedDeliveryAt = $validatedSchedule['local'];
             $requestedDeliveryAtUtc = $validatedSchedule['utc'];
             $requestedDeliveryTimezone = $validatedSchedule['timezone'];
+            if ($fulfillmentMethod === 'PICKUP') {
+                $pickupWindow = trim((string)($validatedSchedule['window_label'] ?? '')) ?: null;
+            }
         } catch (Throwable $e) {
             echo json_encode(['success' => false, 'message' => $e->getMessage()]);
             return;
@@ -1260,10 +1282,10 @@ $router->post(function () {
         $billingCity === '' ||
         $billingState === '' ||
         $billingZip === '' ||
-        $shippingAddress1 === '' ||
-        $shippingCity === '' ||
-        $shippingState === '' ||
-        $shippingZip === ''
+        ($fulfillmentMethod === 'DELIVERY' && $shippingAddress1 === '') ||
+        ($fulfillmentMethod === 'DELIVERY' && $shippingCity === '') ||
+        ($fulfillmentMethod === 'DELIVERY' && $shippingState === '') ||
+        ($fulfillmentMethod === 'DELIVERY' && $shippingZip === '')
     ) {
         echo json_encode([
             "success" => false,
@@ -1272,7 +1294,7 @@ $router->post(function () {
         return;
     }
 
-    if ($shippingSameAsBilling) {
+    if ($fulfillmentMethod === 'DELIVERY' && $shippingSameAsBilling) {
         if (
             $billingAddress1 !== $shippingAddress1 ||
             $billingAddress2 !== $shippingAddress2 ||
@@ -1288,6 +1310,13 @@ $router->post(function () {
         }
     }
 
+    if ($fulfillmentMethod === 'PICKUP') {
+        $shippingAddress1 = trim((string)($gourmetSettings['pickup_address_1'] ?? '10258 NW 47th St'));
+        $shippingAddress2 = '';
+        $shippingCity = trim((string)($gourmetSettings['pickup_city'] ?? 'Sunrise'));
+        $shippingState = trim((string)($gourmetSettings['pickup_state'] ?? 'FL'));
+        $shippingZip = trim((string)($gourmetSettings['pickup_zip'] ?? '33351'));
+    }
     if ($shippingCity !== '') {
         $city = $shippingCity;
     } elseif ($billingCity !== '') {
@@ -1303,9 +1332,9 @@ $router->post(function () {
         return trim((string)$v) !== '';
     }))));
 
-    $orderNotes = $shippingAddressFull !== '' ? ('Shipping: ' . $shippingAddressFull) : null;
+    $orderNotes = $shippingAddressFull !== '' ? (($fulfillmentMethod === 'PICKUP' ? 'Pickup: ' : 'Shipping: ') . $shippingAddressFull) : null;
 
-    try {
+    if ($fulfillmentMethod === 'DELIVERY') try {
         $verifiedDelivery=(new GourmetDeliveryAreaService())->validate($ownerId,SiteContext::siteKey(),$shippingAddressFull);
         $city=(string)($verifiedDelivery['city']?:$city);
     } catch (Throwable $e) {
@@ -1313,11 +1342,16 @@ $router->post(function () {
         return;
     }
 
-    try {
+    $deliveryQuote = ['provider_cost'=>0.0,'customer_fee'=>0.0,'delivery_margin'=>0.0,'quote_id'=>null,'pricing_source'=>'PICKUP','distance_miles'=>0.0,'markup_percent'=>0.0,'queried_at'=>date('Y-m-d H:i:s')];
+    if ($fulfillmentMethod === 'DELIVERY') try {
         $deliveryQuote=(new DeliveryPricingService())->quoteDelivery($ownerId,SiteContext::siteKey(),['address_1'=>$shippingAddress1,'address_2'=>$shippingAddress2,'city'=>$shippingCity,'state'=>$shippingState,'zip'=>$shippingZip,'country'=>'US'],$requestedDeliveryAt,'CHECKOUT',null,$preTaxTotal);
         $deliveryFee=(float)$deliveryQuote['customer_fee'];$tax=round(($preTaxTotal+$deliveryFee)*$taxRate/100,2);$total=round($preTaxTotal+$deliveryFee+$tax,2);
         $cartsRepo->update(['delivery_quote_id'=>(int)$deliveryQuote['quote_id'],'delivery_fee'=>$deliveryFee,'delivery_pricing_snapshot'=>json_encode($deliveryQuote,JSON_UNESCAPED_SLASHES),'total'=>$total,'updated_at'=>date('Y-m-d H:i:s')],['id'=>(int)$cart->id]);
     } catch(Throwable $e) { echo json_encode(['success'=>false,'message'=>"We couldn't calculate delivery automatically. Please confirm your address or contact VNV."]);return; }
+    else {
+        $deliveryFee=0.0;$tax=round($preTaxTotal*$taxRate/100,2);$total=round($preTaxTotal+$tax,2);
+        $cartsRepo->update(['delivery_quote_id'=>null,'delivery_fee'=>0,'delivery_pricing_snapshot'=>json_encode($deliveryQuote,JSON_UNESCAPED_SLASHES),'total'=>$total,'updated_at'=>date('Y-m-d H:i:s')],['id'=>(int)$cart->id]);
+    }
 
     $loyalty=['token'=>null,'points'=>0.0,'discount'=>0.0];$sessionForRewards=LoginService::getSession();$requestedRewards=max(0,(float)($payload['loyalty_points']??0));
     if($providerType==='stripe'&&!empty($cart->loyalty_reservation_token)){$loyalty=['token'=>(string)$cart->loyalty_reservation_token,'points'=>(float)($cart->loyalty_points_redeemed??0),'discount'=>(float)($cart->loyalty_discount_amount??0)];}
@@ -1484,7 +1518,8 @@ $router->post(function () {
         'audience_type' => $cart->audience_type ?: null,
         'meal_style' => $cart->meal_style ?: null,
         'pricing_mode' => $isRecurringOrder ? StoreOrdersRepository::PRICING_SUBSCRIPTION : ($cart->pricing_mode ?: StoreOrdersRepository::PRICING_PAYG),
-        'fulfillment_method' => 'DELIVERY',
+        'fulfillment_method' => $fulfillmentMethod,
+        'pickup_window' => $pickupWindow,
         'delivery_timing' => $deliveryTiming,
         'requested_delivery_at' => $requestedDeliveryAt,
         'requested_delivery_at_utc' => $requestedDeliveryAtUtc,
@@ -1493,7 +1528,7 @@ $router->post(function () {
         'delivery_provider_cost' => (float)$deliveryQuote['provider_cost'],
         'delivery_fee' => $deliveryFee,
         'delivery_margin' => (float)$deliveryQuote['delivery_margin'],
-        'delivery_quote_id' => (int)$deliveryQuote['quote_id'],
+        'delivery_quote_id' => $deliveryQuote['quote_id'] ? (int)$deliveryQuote['quote_id'] : null,
         'delivery_pricing_source' => (string)$deliveryQuote['pricing_source'],
         'delivery_distance_miles' => (float)$deliveryQuote['distance_miles'],
         'delivery_markup_percent' => (float)$deliveryQuote['markup_percent'],
@@ -1521,6 +1556,7 @@ $router->post(function () {
         'shipping_state' => $shippingState ?: null,
         'shipping_zip' => $shippingZip ?: null,
         'notes' => $orderNotes,
+        'attribution_json' => $attribution ? json_encode($attribution, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) : null,
         'updated_at' => date('Y-m-d H:i:s')
     ]);
 
@@ -1535,7 +1571,7 @@ $router->post(function () {
     $orderId = $ordersRepo->getLastId();
     $order = $ordersRepo->getOne(['id' => $orderId]);
     try {
-        $quoteDb=new \App\Repositories\Connection();$quoteDb->query('UPDATE store_delivery_quotes SET id_store_order=:order,status=\'ACCEPTED\' WHERE id=:quote AND id_owner=:owner');$quoteDb->bind(':order',$orderId);$quoteDb->bind(':quote',(int)$deliveryQuote['quote_id']);$quoteDb->bind(':owner',$ownerId);$quoteDb->execute();
+        if (!empty($deliveryQuote['quote_id'])) {$quoteDb=new \App\Repositories\Connection();$quoteDb->query('UPDATE store_delivery_quotes SET id_store_order=:order,status=\'ACCEPTED\' WHERE id=:quote AND id_owner=:owner');$quoteDb->bind(':order',$orderId);$quoteDb->bind(':quote',(int)$deliveryQuote['quote_id']);$quoteDb->bind(':owner',$ownerId);$quoteDb->execute();}
     } catch (Throwable $e) { error_log('[Store checkout] Delivery quote link failed: '.$e->getMessage()); }
 
     foreach ($cartItems as $item) {

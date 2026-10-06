@@ -34,7 +34,7 @@ final class GourmetExpressService
             return;
         }
 
-        throw new \DomainException(trim((string)($settings['pause_message'] ?? '')) ?: 'VNV Gourmet Express is temporarily pausing new orders. You can still browse the menu.');
+        throw new \DomainException(trim((string)($settings['pause_message'] ?? '')) ?: 'VNV Gourmet To Go is temporarily pausing new orders. You can still browse the menu.');
     }
 
     /** @param array<int,array<string,mixed>|object> $items */
@@ -89,7 +89,7 @@ final class GourmetExpressService
         $this->db->bind(':start', (string)$window->start_time); $this->db->bind(':end', (string)$window->end_time);
         if ((int)($this->db->fetchOne()->total ?? 0) >= (int)$window->capacity) throw new \DomainException('That delivery window is full. Please choose another window.');
 
-        return ['local'=>$local->format('Y-m-d H:i:s'),'utc'=>$local->setTimezone(new \DateTimeZone('UTC'))->format('Y-m-d H:i:s'),'timezone'=>$timezone->getName(),'lead_hours'=>$requiredHours,'window_id'=>(int)$window->id];
+        return ['local'=>$local->format('Y-m-d H:i:s'),'utc'=>$local->setTimezone(new \DateTimeZone('UTC'))->format('Y-m-d H:i:s'),'timezone'=>$timezone->getName(),'lead_hours'=>$requiredHours,'window_id'=>(int)$window->id,'window_label'=>(string)($window->label ?? '')];
     }
 
     public function deliveryZone(int $ownerId, string $siteKey, string $zip, float $subtotal): array
@@ -102,6 +102,6 @@ final class GourmetExpressService
             $fee = $subtotal >= (float)$zone->free_delivery_threshold ? 0.0 : (float)$zone->delivery_fee;
             return ['name'=>(string)$zone->zone_name,'fee'=>$fee,'free_threshold'=>(float)$zone->free_delivery_threshold];
         }
-        throw new \DomainException('This ZIP code is outside the VNV Gourmet Express delivery area.');
+        throw new \DomainException('This ZIP code is outside the VNV Gourmet To Go delivery area.');
     }
 }

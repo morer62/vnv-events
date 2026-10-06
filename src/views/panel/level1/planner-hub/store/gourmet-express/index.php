@@ -21,7 +21,12 @@ $router->get(function() use($load){$d=$load();return TemplateResponse::render(__
 $router->post(function() use($load){$d=$load();$db=new Connection();$action=(string)($_POST['action']??'save');$isAjax=strtolower((string)($_SERVER['HTTP_X_REQUESTED_WITH']??''))==='xmlhttprequest';try{
     if($action==='toggle_pause'){$paused=!empty($_POST['store_paused'])?1:0;$reopen=$paused?(trim((string)($_POST['reopen_at']??''))?:null):null;$openMessage=trim((string)($_POST['open_message']??''))?:'We are open and accepting VNV Gourmet Express orders.';$pauseMessage=trim((string)($_POST['pause_message']??''))?:'VNV Gourmet Express is temporarily pausing new orders. You can still browse the menu.';$db->query("UPDATE store_gourmet_settings SET store_paused=:paused,open_message=:open_message,pause_message=:pause_message,reopen_at=:reopen,updated_at=NOW() WHERE id_owner=:owner AND site_key=:site");$db->bind(':paused',$paused);$db->bind(':open_message',$openMessage);$db->bind(':pause_message',$pauseMessage);$db->bind(':reopen',$reopen);$db->bind(':owner',$d['owner']);$db->bind(':site',$d['site']);$db->execute();if($isAjax){header('Content-Type: application/json; charset=utf-8');echo json_encode(['ok'=>true,'paused'=>(bool)$paused,'status'=>$paused?'Closed':'Open','message'=>$paused?$pauseMessage:$openMessage,'reopen_at'=>$reopen],JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES);return;}}
     else {
-        $db->query("UPDATE store_gourmet_settings SET pickup_minimum=:pickup,delivery_minimum=:delivery,daily_capacity=:daily,window_capacity=:window,minimum_order_notice_hours=:notice,dropoff_disclaimer=:disclaimer,staff_phone=:phone,staff_whatsapp=:whatsapp,staff_service_url=:service_url,updated_at=NOW() WHERE id_owner=:owner AND site_key=:site");
+        $pickupWindowsJson=trim((string)($_POST['pickup_windows_json']??''));
+        $holidayDeadlinesJson=trim((string)($_POST['holiday_deadlines_json']??''));
+        foreach (['Pickup windows'=>$pickupWindowsJson,'Holiday deadlines'=>$holidayDeadlinesJson] as $label=>$json) {
+            if ($json!=='' && json_decode($json,true)===null && json_last_error()!==JSON_ERROR_NONE) throw new InvalidArgumentException($label.' must be valid JSON.');
+        }
+        $db->query("UPDATE store_gourmet_settings SET pickup_minimum=:pickup,delivery_minimum=:delivery,daily_capacity=:daily,window_capacity=:window,minimum_order_notice_hours=:notice,dropoff_disclaimer=:disclaimer,staff_phone=:phone,staff_whatsapp=:whatsapp,staff_service_url=:service_url,pickup_enabled=:pickup_enabled,pickup_windows_json=:pickup_windows,holiday_deadlines_json=:holiday_deadlines,hero_image_url=:hero_image,food_arrival_policy=:food_policy,allergen_policy=:allergen_policy,cancellation_policy=:cancellation_policy,updated_at=NOW() WHERE id_owner=:owner AND site_key=:site");
         $db->bind(':pickup',max(0,(float)($_POST['pickup_minimum']??80)));
         $db->bind(':delivery',max(0,(float)($_POST['delivery_minimum']??150)));
         $db->bind(':daily',max(1,(int)($_POST['daily_capacity']??25)));
@@ -31,6 +36,13 @@ $router->post(function() use($load){$d=$load();$db=new Connection();$action=(str
         $db->bind(':phone',preg_replace('/\D+/','',(string)($_POST['staff_phone']??'')));
         $db->bind(':whatsapp',preg_replace('/\D+/','',(string)($_POST['staff_whatsapp']??'')));
         $db->bind(':service_url',trim((string)($_POST['staff_service_url']??'/service/catering')));
+        $db->bind(':pickup_enabled',!empty($_POST['pickup_enabled'])?1:0);
+        $db->bind(':pickup_windows',$pickupWindowsJson!==''?$pickupWindowsJson:null);
+        $db->bind(':holiday_deadlines',$holidayDeadlinesJson!==''?$holidayDeadlinesJson:null);
+        $db->bind(':hero_image',trim((string)($_POST['hero_image_url']??''))?:null);
+        $db->bind(':food_policy',trim((string)($_POST['food_arrival_policy']??''))?:null);
+        $db->bind(':allergen_policy',trim((string)($_POST['allergen_policy']??''))?:null);
+        $db->bind(':cancellation_policy',trim((string)($_POST['cancellation_policy']??''))?:null);
         $db->bind(':owner',$d['owner']);$db->bind(':site',$d['site']);$db->execute();
         foreach((array)($_POST['zone_fee']??[]) as $id=>$fee){$db->query("UPDATE store_gourmet_delivery_zones SET delivery_fee=:fee,free_delivery_threshold=:free WHERE id=:id AND id_owner=:owner AND site_key=:site");$db->bind(':fee',max(0,(float)$fee));$db->bind(':free',max(0,(float)($_POST['zone_free'][$id]??0)));$db->bind(':id',(int)$id);$db->bind(':owner',$d['owner']);$db->bind(':site',$d['site']);$db->execute();}
         foreach((array)($_POST['window_capacity_row']??[]) as $id=>$capacity){$db->query("UPDATE store_gourmet_windows SET capacity=:capacity WHERE id=:id AND id_owner=:owner AND site_key=:site");$db->bind(':capacity',max(1,(int)$capacity));$db->bind(':id',(int)$id);$db->bind(':owner',$d['owner']);$db->bind(':site',$d['site']);$db->execute();}

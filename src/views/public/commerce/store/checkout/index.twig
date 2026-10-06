@@ -1,6 +1,8 @@
-{% extends "templates/base.twig" %}
+{% extends "templates/base.store.twig" %}
+{% block title %}Checkout | Gourmet To Go{% endblock %}
+{% block meta_description %}Choose delivery or pickup and complete your VNV Gourmet To Go order securely.{% endblock %}
 
-{% block styles %}
+{% block store_styles %}
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
 {% if active_provider_type == 'square' and square_environment %}
 <script type="text/javascript" src="https://{{ square_environment == 'production' ? 'web' : 'sandbox.web' }}.squarecdn.com/v1/square.js"></script>
@@ -345,7 +347,7 @@ body{
 </style>
 {% endblock %}
 
-{% block body %}
+{% block store_body %}
 <main class="checkout-wrap">
     <section class="checkout-header">
         <h1 class="checkout-title">Checkout</h1>
@@ -441,7 +443,13 @@ body{
                 </div>
 
                 <div class="summary-box">
-                    <div class="checkout-section-title" style="font-size:1.05rem">When should we deliver?</div>
+                    <div class="checkout-section-title" style="font-size:1.05rem">Delivery or pickup?</div>
+                    <label class="payment-consent-option"><input type="radio" name="fulfillment_method" value="DELIVERY" checked><span><strong>Delivery</strong><span class="payment-consent-copy">We deliver within the configured service area. The fee is shown before payment.</span></span></label>
+                    {% if gourmet_settings.pickup_enabled|default(1) %}<label class="payment-consent-option"><input type="radio" name="fulfillment_method" value="PICKUP"><span><strong>Pickup</strong><span class="payment-consent-copy">{{ gourmet_settings.pickup_address_1|default('10258 NW 47th St') }}, {{ gourmet_settings.pickup_city|default('Sunrise') }}, FL {{ gourmet_settings.pickup_zip|default('33351') }}</span></span></label>{% endif %}
+                </div>
+
+                <div class="summary-box" id="deliveryTimingBox">
+                    <div class="checkout-section-title" id="fulfillmentTimingTitle" style="font-size:1.05rem">When should we deliver?</div>
                     <label class="payment-consent-option">
                         <input type="radio" name="delivery_timing" value="ASAP" id="delivery_asap" {{ delivery_availability.asap_available ? '' : 'disabled' }}>
                         <span><strong>As soon as possible</strong><span class="payment-consent-copy">{% if delivery_availability.asap_available %}{{ delivery_availability.available_driver_count }} delivery team member(s) active. Estimated within two hours.{% else %}No delivery team member is currently clocked in. Choose a scheduled time.{% endif %}</span></span>
@@ -451,7 +459,7 @@ body{
                         <span><strong>Schedule delivery</strong><span class="payment-consent-copy">Choose a future date and time.</span></span>
                     </label>
                     <div class="field" id="deliveryScheduleField">
-                        <label for="requested_delivery_at">Delivery date and time</label>
+                        <label for="requested_delivery_at" id="requestedTimeLabel">Delivery date and time</label>
                         <input type="datetime-local" id="requested_delivery_at" min="{{ 'now'|date('Y-m-d\\TH:i') }}" value="{{ delivery_availability.next_slots[0].value|default('') }}">
                     </div>
                 </div>
@@ -610,6 +618,10 @@ document.addEventListener('DOMContentLoaded', function () {
     const deliveryEl = document.getElementById('checkoutDelivery');
     const calculateDeliveryBtn = document.getElementById('calculateDeliveryBtn');
     const deliveryQuoteStatus = document.getElementById('deliveryQuoteStatus');
+    const deliveryQuoteBox = document.getElementById('deliveryQuoteBox');
+    const shippingChoiceField = document.getElementById('shipping_same_as_billing')?.closest('.field');
+    const fulfillmentTimingTitle = document.getElementById('fulfillmentTimingTitle');
+    const requestedTimeLabel = document.getElementById('requestedTimeLabel');
 
     const guestNameInput = document.getElementById('guest_name');
     const guestEmailInput = document.getElementById('guest_email');
@@ -671,6 +683,25 @@ document.addEventListener('DOMContentLoaded', function () {
     let selectedSavedCardToken = '';
     let selectedSavedPaymentMethodId = 0;
     let deliveryQuoteReady = false;
+
+    function selectedFulfillment() {
+        return document.querySelector('input[name="fulfillment_method"]:checked')?.value || 'DELIVERY';
+    }
+    function syncFulfillment() {
+        const pickup = selectedFulfillment() === 'PICKUP';
+        if (deliveryQuoteBox) deliveryQuoteBox.style.display = pickup ? 'none' : '';
+        if (shippingChoiceField) shippingChoiceField.style.display = pickup ? 'none' : '';
+        if (shippingFieldsBlock) shippingFieldsBlock.style.display = pickup ? 'none' : '';
+        document.getElementById('delivery_asap')?.closest('label')?.classList.toggle('hidden', pickup);
+        if (pickup && document.getElementById('delivery_scheduled')) document.getElementById('delivery_scheduled').checked = true;
+        if (fulfillmentTimingTitle) fulfillmentTimingTitle.textContent = pickup ? 'When will you pick it up?' : 'When should we deliver?';
+        if (requestedTimeLabel) requestedTimeLabel.textContent = pickup ? 'Pickup date and time' : 'Delivery date and time';
+        deliveryQuoteReady = pickup;
+        if (pickup) deliveryEl.textContent = '$0.00';
+        else invalidateDeliveryQuote();
+    }
+    document.querySelectorAll('input[name="fulfillment_method"]').forEach(radio => radio.addEventListener('change', syncFulfillment));
+    syncFulfillment();
 
     function showError(message) {
         errorBox.textContent = message;
@@ -1104,7 +1135,8 @@ document.addEventListener('DOMContentLoaded', function () {
             return;
         }
 
-        if (!shippingSameAsBillingInput.checked) {
+        const fulfillmentMethod = selectedFulfillment();
+        if (fulfillmentMethod === 'DELIVERY' && !shippingSameAsBillingInput.checked) {
             if (!shippingAddress1Input.value.trim() || !shippingCityInput.value.trim() || !shippingStateInput.value.trim() || !shippingZipInput.value.trim()) {
                 showError('Shipping address is required.');
                 return;
@@ -1127,7 +1159,7 @@ document.addEventListener('DOMContentLoaded', function () {
         payNowBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Processing payment...';
 
         try {
-            if (!deliveryQuoteReady) await calculateDelivery();
+            if (fulfillmentMethod === 'DELIVERY' && !deliveryQuoteReady) await calculateDelivery();
             const paymentData = await getPaymentToken();
 
             const response = await fetch('{{ path("store/checkout") }}', {
@@ -1161,6 +1193,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     shipping_zip: shippingSameAsBillingInput.checked ? billingZipInput.value.trim() : shippingZipInput.value.trim(),
                     delivery_timing: deliveryTiming,
                     requested_delivery_at: requestedDeliveryInput.value,
+                    fulfillment_method: fulfillmentMethod,
                     order_frequency: orderFrequency,
                     recurrence_type: recurrenceTypeInput?.value || 'WEEKLY',
                     recurrence_interval: Number(document.getElementById('recurrence_interval')?.value || 1),
@@ -1169,6 +1202,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     card_brand: paymentData.card_brand || '',
                     card_last4: paymentData.card_last4 || '',
                     card_exp: paymentData.card_exp || ''
+                    ,attribution: JSON.parse(localStorage.getItem('vnv_store_attribution') || '{}')
                     ,loyalty_points: requestedRewards()
                 })
             });

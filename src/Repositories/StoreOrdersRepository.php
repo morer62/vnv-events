@@ -100,6 +100,8 @@ class StoreOrdersRepository extends BaseRepository
         'cooked_at',
         'expiration_date',
         'notes',
+        'attribution_json',
+        'pickup_window',
         'return_notes',
         'return_requested_at',
         'return_admin_message',

@@ -20,7 +20,7 @@ $legacyProductRedirects = [
 ];
 if ($slug !== null && array_key_exists($slug, $legacyProductRedirects)) {
     $target = $legacyProductRedirects[$slug];
-    header('Location: ' . ($target ? '/product/' . $target : '/catering-delivery'), true, 301);
+    header('Location: ' . ($target ? '/product/' . $target : '/gourmet-to-go'), true, 301);
     exit;
 }
 
@@ -186,7 +186,7 @@ if (!$product) {
 // standalone commercial landing page or indexable URL.
 if ((int)($product->is_addon_only ?? 0) === 1 || strtoupper((string)($product->product_role ?? 'MAIN')) === 'ADDON') {
     header('X-Robots-Tag: noindex, nofollow', true);
-    header('Location: ' . \App\Utils\LocationUtils::pathFor('catering-delivery'), true, 302);
+    header('Location: ' . \App\Utils\LocationUtils::pathFor('gourmet-to-go'), true, 302);
     exit;
 }
 
@@ -204,6 +204,7 @@ $productFaqs = product_extract_faqs_from_html($product->description ?? '');
 $foodProfile = null;
 $productRecommendations = [];
 $productAddons = [];
+$productMedia = [];
 try {
     $db = new Connection();
     $db->query('SELECT * FROM store_product_food_profiles WHERE id_owner=:owner AND site_key=:site AND id_product=:product LIMIT 1');
@@ -229,6 +230,15 @@ try {
         $addon->variations = strtoupper((string)$addon->product_type) === 'VARIABLE' ? $variationsRepo->getActiveByProduct((int)$addon->id) : [];
         foreach ($addon->variations as $variation) $variation->effective_price = $variationsRepo->getEffectivePrice($variation);
     }
+    try {
+        $db->query("SELECT * FROM store_product_media WHERE id_owner=:owner AND site_key=:site AND id_product=:product AND status='ACTIVE' ORDER BY FIELD(slot,'HERO','IN_THE_BOX','SCALE_CONTEXT','OG'),sort_order,id");
+        $db->bind(':owner', $ownerId, \PDO::PARAM_INT);
+        $db->bind(':site', $siteKey);
+        $db->bind(':product', (int)$product->id, \PDO::PARAM_INT);
+        $productMedia = $db->fetchAll() ?: [];
+    } catch (Throwable $mediaError) {
+        $productMedia = [];
+    }
 } catch (Throwable $e) {
     error_log('[Product food profile] ' . $e->getMessage());
 }
@@ -239,8 +249,11 @@ echo TemplateResponse::render(__DIR__ . "/index.twig", [
     'food_profile' => $foodProfile,
     'product_recommendations' => $productRecommendations,
     'product_addons' => $productAddons,
+    'product_media' => $productMedia,
     'store_active' => $storeActive,
     'gourmet_settings' => (new GourmetExpressService())->settings($ownerId, $siteKey),
-    'is_gourmet_express' => (string)($product->brand_name ?? '') === 'VNV Gourmet Express',
+    'is_gourmet_express' => in_array((string)($product->brand_name ?? ''), ['VNV Gourmet Express', 'VNV Gourmet To Go'], true)
+        || (strtoupper((string)($product->purchase_mode ?? '')) === 'DIRECT'
+            && strtoupper((string)($product->fulfillment_type ?? '')) === 'DELIVERY'),
     'schemaJson' => PublicSeoService::productSchema($product, $productFaqs),
 ]);

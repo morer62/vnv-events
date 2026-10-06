@@ -43,6 +43,7 @@ class StoreCartsRepository extends BaseRepository
         'loyalty_discount_amount',
         'loyalty_reservation_token',
         'delivery_pricing_snapshot',
+        'attribution_json',
         'total',
         'status',
         'last_step',
