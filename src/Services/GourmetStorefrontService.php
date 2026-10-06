@@ -17,11 +17,11 @@ final class GourmetStorefrontService
         $settings = (new GourmetExpressService($this->db))->settings($ownerId, $siteKey);
         $products = $this->products($ownerId, $siteKey);
         $categories = [
-            'holidays' => ['title' => 'Holidays', 'products' => []],
-            'party-boxes' => ['title' => 'Party Boxes', 'products' => []],
             'family-dinners' => ['title' => 'Family Occasion Meals', 'products' => []],
+            'party-boxes' => ['title' => 'Party Boxes', 'products' => []],
             'weeknight-dinners' => ['title' => 'Weeknight Dinners', 'products' => []],
             'desserts' => ['title' => 'Desserts', 'products' => []],
+            'holidays' => ['title' => 'Seasonal', 'products' => []],
         ];
 
         foreach ($products as $product) {
