@@ -413,6 +413,9 @@ $router->post(function () {
         if (isset($_POST["phone"])) {
             $newData["phone"] = $_POST["phone"];
         }
+        if (isset($_POST["email"])) {
+            $newData["email"] = $_POST["email"];
+        }
     } elseif ($user->password_updated == 0) {
         if (isset($_POST["name"]) && !empty($_POST["name"])) {
             $newData["name"] = $_POST["name"];
@@ -425,6 +428,24 @@ $router->post(function () {
         }
         if (isset($_POST["phone"])) {
             $newData["phone"] = $_POST["phone"];
+        }
+    }
+
+    if (isset($newData["email"])) {
+        $email = strtolower(trim((string) $newData["email"]));
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            MessageUtil::setMessage("Please provide a valid client email address.");
+            LocationUtils::redirectInternal("panel/planner-hub/management/users/edit/?id=" . $id);
+        }
+        $existingEmailUser = $userRepo->getOneWithoutOwnership(["email" => $email]);
+        if ($existingEmailUser && (int) $existingEmailUser->id !== (int) $id) {
+            MessageUtil::setMessage("That email is already registered to another account.");
+            LocationUtils::redirectInternal("panel/planner-hub/management/users/edit/?id=" . $id);
+        }
+        if (strcasecmp($email, (string) $user->email) === 0) {
+            unset($newData["email"]);
+        } else {
+            $newData["email"] = $email;
         }
     }
 
@@ -457,6 +478,27 @@ $router->post(function () {
     
     if (!empty($userUpdateData)) {
         $userRepo->update($userUpdateData, ["id" => $id]);
+
+        if (isset($userUpdateData["email"]) && $currentOwnerId) {
+            $leadRepo = new CrmLeadRepository();
+            $customerLead = $leadRepo->getOneWithoutOwnership([
+                "id_user" => (int) $id,
+                "id_owner" => (int) $currentOwnerId
+            ]);
+            if (!$customerLead && !empty($originalData["email"])) {
+                $customerLead = $leadRepo->getOneWithoutOwnership([
+                    "email" => $originalData["email"],
+                    "id_owner" => (int) $currentOwnerId
+                ]);
+            }
+            if ($customerLead) {
+                $leadRepo->update(["email" => $userUpdateData["email"]], ["id" => $customerLead->id]);
+            }
+        }
+
+        if ($isPrimaryCompany) {
+            $userEditService->logUserChanges((int) $id, $originalData, $newData);
+        }
     }
 
     if (!empty($institutionUpdateData) && $userInstitutionRecord) {
