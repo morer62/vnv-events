@@ -111,6 +111,21 @@
                 </tr>
             </table>
 
+            <?php if (!empty($paidSessions)): ?>
+            <h2>Sessions Included in This Payment:</h2>
+            <table class="details-table">
+                <tr><th>Session</th><th>Start</th><th>End</th><th>Hours</th></tr>
+                <?php foreach ($paidSessions as $session): ?>
+                <tr>
+                    <td>#<?php echo (int)($session['id'] ?? 0); ?></td>
+                    <td><?php echo htmlspecialchars((string)($session['start'] ?? '')); ?></td>
+                    <td><?php echo htmlspecialchars((string)($session['end'] ?? '')); ?></td>
+                    <td><?php echo number_format((float)($session['hours'] ?? 0), 2); ?></td>
+                </tr>
+                <?php endforeach; ?>
+            </table>
+            <?php endif; ?>
+
             <?php if (!empty($additionalInfo) && $additionalInfo !== 'No additional message'): ?>
             <h2>Additional Information:</h2>
             <p style="background-color: #f8f9fa; padding: 15px; border-radius: 5px; border-left: 4px solid #198754;">

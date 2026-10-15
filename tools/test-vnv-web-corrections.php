@@ -36,5 +36,14 @@ $assert(str_contains($editTemplate, "getElementById('quoteEditForm')?.addEventLi
 $assert(str_contains($gourmet, 'Bacon, sausages, roasted potatoes and pastries available as add-ons'), 'Brunch add-on copy is missing.');
 $brunchUpdater = $read('bin/apply-vnv-web-corrections.php');
 $assert(str_contains($brunchUpdater, 'Every station includes scrambled eggs, fresh bread,veggies and syrops. Bacon, sausages, roasted potatoes, and pastries are optional add-ons available upon request.'), 'Brunch product copy must match the approved wording exactly.');
+$payrollController = $read('src/views/panel/level1/planner-hub/management/payroll/pending/details/index.php');
+$payrollTemplate = $read('src/views/panel/level1/planner-hub/management/payroll/pending/details/index.twig');
+$payrollEmail = $read('src/views/templates/emails/payroll_payment_confirmation.php');
+$assert(str_contains($payrollController, 'foreach ($selectedHours as $h)'), 'Payroll totals must use only selected sessions.');
+$assert(!str_contains($payrollController, 'foreach ($unpaidHours as $h)'), 'Payroll must not total every unpaid session.');
+$assert(str_contains($payrollController, '"id_owner" => (int)$currentOwnerId'), 'Paid-hour updates must remain scoped to the active owner.');
+$assert(str_contains($payrollTemplate, 'data-duration-seconds='), 'Payroll selection must expose each selected duration.');
+$assert(str_contains($payrollTemplate, "selectedAmount.toFixed(2)"), 'Payroll must show the selected amount before payment.');
+$assert(str_contains($payrollEmail, 'Sessions Included in This Payment:'), 'Payroll confirmation must list the sessions actually paid.');
 
 echo "VNV web correction contracts passed.\n";

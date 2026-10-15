@@ -25,8 +25,8 @@
         🧮 Total Hours:
         <strong>{{ total }}</strong>
         {% if hourly_rate is not null %}
-            <br>💰 Estimated Total:
-            <strong>${{ (total_amount)|number_format(2, '.', ',') }}</strong>
+            <br>💰 Selected payment total:
+            <strong id="selectedPaymentTotal">${{ (total_amount)|number_format(2, '.', ',') }}</strong>
         {% endif %}
     </p>
 
@@ -63,7 +63,7 @@
         </ul>
     </div>
 
-    <form id="payment-form" method="post" enctype="multipart/form-data">
+    <form id="payment-form" method="post" enctype="multipart/form-data" data-hourly-rate="{{ hourly_rate|default(0) }}">
 
         <input type="hidden" name="user_id" value="{{ userId }}">
         <input type="hidden" name="userTimezone" id="userTimezone" value="">
@@ -86,7 +86,7 @@
                         <tr class="{% if not h.can_pay %}table-warning{% endif %}">
                             <td>
                                 {% if h.can_pay %}
-                                    <input type="checkbox" name="selected_ids[]" value="{{ h.id }}" checked>
+                                    <input type="checkbox" name="selected_ids[]" value="{{ h.id }}" data-duration-seconds="{{ h.duration_seconds|default(0) }}" checked>
                                 {% else %}
                                     <input type="checkbox" disabled title="Cannot pay active or incomplete sessions">
                                 {% endif %}
@@ -437,6 +437,12 @@
                 const cardPaymentButton = document.getElementById("cardPaymentButton");
                 const cardSection = document.getElementById("cardSection");
                 const manualSection = document.getElementById("manualSection");
+                const hourlyRate = parseFloat(document.getElementById('payment-form')?.dataset.hourlyRate || '0');
+                const selectedSeconds = Array.from(checkedCheckboxes).reduce((sum, checkbox) => sum + parseInt(checkbox.dataset.durationSeconds || '0', 10), 0);
+                const selectedHours = Math.round((selectedSeconds / 3600) * 100) / 100;
+                const selectedAmount = selectedHours * hourlyRate;
+                const selectedTotal = document.getElementById('selectedPaymentTotal');
+                if (selectedTotal) selectedTotal.textContent = '$' + selectedAmount.toFixed(2);
 
                 if (checkedCheckboxes.length === 0) {
                     paymentButton.disabled = true;
