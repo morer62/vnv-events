@@ -29,6 +29,10 @@ $assert(str_contains($payments, "delete_manual_advance"), 'Manual advance deleti
 $assert(str_contains($paymentsTemplate, 'Delete advance'), 'Manual advance deletion control is missing.');
 $assert(str_contains($editTemplate, 'position: fixed;'), 'Desktop service suggestions must escape the responsive table overflow.');
 $assert(str_contains($editTemplate, 'input.getBoundingClientRect()'), 'Desktop service suggestions must be positioned against the active input.');
+$assert(str_contains($editTemplate, 'item.addEventListener("pointerdown", chooseService)'), 'Desktop service selection must be committed before input blur.');
+$assert(str_contains($editTemplate, 'function selectExactService(input)'), 'Exact service names must resolve to a service id.');
+$assert(str_contains($editTemplate, "event.key !== 'Enter'"), 'Desktop service selection must support the Enter key.');
+$assert(str_contains($editTemplate, "getElementById('quoteEditForm')?.addEventListener('submit'"), 'Quote save must resolve or reject incomplete service selections.');
 $assert(str_contains($gourmet, 'Bacon, sausages, roasted potatoes and pastries available as add-ons'), 'Brunch add-on copy is missing.');
 $brunchUpdater = $read('bin/apply-vnv-web-corrections.php');
 $assert(str_contains($brunchUpdater, 'Every station includes scrambled eggs, fresh bread,veggies and syrops. Bacon, sausages, roasted potatoes, and pastries are optional add-ons available upon request.'), 'Brunch product copy must match the approved wording exactly.');

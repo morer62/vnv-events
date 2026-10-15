@@ -32,7 +32,7 @@
 </div>
 {% endif %}
 
-        <form method="POST" data-vnv-async data-async-success-url="{{ path('panel/planner-hub/management/orders/orders') }}" data-async-success-message="Order updated successfully." data-async-waiting="Updating order...">
+        <form method="POST" id="quoteEditForm" data-vnv-async data-async-success-url="{{ path('panel/planner-hub/management/orders/orders') }}" data-async-success-message="Order updated successfully." data-async-waiting="Updating order...">
             <input type="hidden" name="id" value="{{ order.id }}">
 
             <div class="row mb-3">
@@ -347,6 +347,52 @@
     let nextServiceIndex = {{ assigned|length }};
 
     const num = (v) => parseFloat(String(v).replace(',', '.')) || 0;
+    const normalizeServiceName = (value) => String(value || '').trim().toLocaleLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+
+    function matchingServices(input) {
+        const term = normalizeServiceName(input.value);
+        return services.filter(service => normalizeServiceName(service.name).includes(term));
+    }
+
+    function selectExactService(input) {
+        if (input.getAttribute('data-service-id')) return true;
+        const term = normalizeServiceName(input.value).replace(/\s*\(\$[^)]*\)\s*$/, '');
+        const exact = services.filter(service => normalizeServiceName(service.name) === term);
+        if (exact.length === 1) {
+            selectService(input, exact[0]);
+            return true;
+        }
+        return false;
+    }
+
+    function bindServiceInput(input) {
+        input.addEventListener("input", function() {
+            this.setAttribute("data-service-id", "");
+            this.setAttribute("data-price", "");
+            this.setAttribute("data-is-variable", "");
+            this.setAttribute("data-variable-price", "");
+            handleServiceSearch(this);
+        });
+        input.addEventListener("focus", function() { showServiceDropdown(this); });
+        input.addEventListener("keydown", function(event) {
+            if (event.key !== 'Enter' || this.getAttribute('data-service-id')) return;
+            const matches = matchingServices(this);
+            const exact = matches.find(service => normalizeServiceName(service.name) === normalizeServiceName(this.value));
+            const choice = exact || (matches.length === 1 ? matches[0] : null);
+            if (choice) {
+                event.preventDefault();
+                selectService(this, choice);
+            }
+        });
+        input.addEventListener("blur", function() {
+            const field = this;
+            setTimeout(() => {
+                if (currentServiceInput === field) return;
+                selectExactService(field);
+                hideServiceDropdown(field);
+            }, 200);
+        });
+    }
 
     function addServiceRow() {
         const row = document.createElement("tr");
@@ -364,15 +410,7 @@
         serviceInput.setAttribute("data-service-id", "");
         serviceInput.setAttribute("data-price", "");
         
-        serviceInput.addEventListener("input", function() { 
-            handleServiceSearch(this); 
-        });
-        serviceInput.addEventListener("focus", function() { 
-            showServiceDropdown(this); 
-        });
-        serviceInput.addEventListener("blur", function() { 
-            setTimeout(() => hideServiceDropdown(this), 200); 
-        });
+        bindServiceInput(serviceInput);
 
         const dropdown = document.createElement("div");
         dropdown.className = "service-dropdown";
@@ -423,7 +461,7 @@
     }
 
     function handleServiceSearch(input) {
-        const searchTerm = input.value.toLowerCase();
+        const searchTerm = normalizeServiceName(input.value);
         const dropdown = input.parentNode.querySelector('.service-dropdown');
         
         if (searchTerm.length < 1) {
@@ -431,21 +469,17 @@
             return;
         }
 
-        const filteredServices = services.filter(service => 
-            service.name.toLowerCase().includes(searchTerm)
-        );
+        const filteredServices = matchingServices(input);
 
         showServiceDropdown(input, filteredServices);
     }
 
     function showServiceDropdown(input, filteredServices = null) {
         const dropdown = input.parentNode.querySelector('.service-dropdown');
-        const searchTerm = input.value.toLowerCase();
+        const searchTerm = normalizeServiceName(input.value);
         
         if (!filteredServices) {
-            filteredServices = services.filter(service => 
-                service.name.toLowerCase().includes(searchTerm)
-            );
+            filteredServices = matchingServices(input);
         }
 
         if (filteredServices.length === 0) {
@@ -474,11 +508,16 @@
                 <small class="text-muted">${priceDisplay} - ${service.description || 'Sin descripción'}</small>
             `;
             
-            item.addEventListener("click", function(e) {
+            let chosen = false;
+            const chooseService = function(e) {
                 e.preventDefault();
                 e.stopPropagation();
+                if (chosen) return;
+                chosen = true;
                 selectService(input, service);
-            });
+            };
+            item.addEventListener("pointerdown", chooseService);
+            item.addEventListener("click", chooseService);
             
             item.addEventListener("mouseenter", function() {
                 this.style.backgroundColor = "#f8f9fa";
@@ -682,15 +721,7 @@
 
         document.querySelectorAll(".service-input").forEach(input => {
             if (!input.readOnly) {
-                input.addEventListener("input", function() { 
-                    handleServiceSearch(this); 
-                });
-                input.addEventListener("focus", function() { 
-                    showServiceDropdown(this); 
-                });
-                input.addEventListener("blur", function() { 
-                    setTimeout(() => hideServiceDropdown(this), 200); 
-                });
+                bindServiceInput(input);
             }
         });
     }
@@ -806,6 +837,22 @@
         }
 
         setupTableScroll();
+
+        document.getElementById('quoteEditForm')?.addEventListener('submit', function(event) {
+            let firstIncomplete = null;
+            document.querySelectorAll('#serviceRows .service-input').forEach(function(input) {
+                if (!input.getAttribute('data-service-id')) selectExactService(input);
+                if (!input.getAttribute('data-service-id') && !firstIncomplete) firstIncomplete = input;
+            });
+            if (firstIncomplete) {
+                event.preventDefault();
+                event.stopImmediatePropagation();
+                firstIncomplete.style.borderColor = '#dc3545';
+                firstIncomplete.focus();
+                showServiceDropdown(firstIncomplete);
+                if (!currentServiceInput) window.alert('Select the service from the suggestions before saving the quote.');
+            }
+        }, true);
         
         // Re-apply when rows change
         const observer = new MutationObserver(setupTableScroll);
