@@ -48,13 +48,24 @@ $router->post(static function () use ($authenticate, $rawBody) {
     if(!preg_match('/^[A-Za-z0-9._:-]{8,120}$/',$key)||!filter_var($approvedBy,FILTER_VALIDATE_EMAIL))return new JsonResponse(['error'=>'idempotency_key_and_approver_required'],422);
     $ownerId=max(1,(int)($_ENV['VNV_EVENTS_OWNER_ID']??2));$hash=hash('sha256',$rawBody);$db=new Connection();
     $db->query('SELECT request_hash,status,result_json FROM mochi_integration_requests WHERE idempotency_key=:key LIMIT 1');$db->bind(':key',$key);$existing=$db->fetchOne();
-    if($existing){if(!hash_equals((string)$existing->request_hash,$hash))return new JsonResponse(['error'=>'idempotency_conflict'],409);$result=json_decode((string)($existing->result_json??'{}'),true)?:[];return new JsonResponse($result+['idempotent'=>true,'status'=>$existing->status],$existing->status==='COMPLETED'?200:409);}
-    $db->query("SELECT id,level FROM users WHERE LOWER(email)=LOWER(:email) AND id_owner=:owner AND level=1 AND is_active=1 LIMIT 1");$db->bind(':email',$approvedBy);$db->bind(':owner',$ownerId);$actor=$db->fetchOne();if(!$actor)return new JsonResponse(['error'=>'authorized_level_1_approver_not_found'],403);
-    try{$db->query("INSERT INTO mochi_integration_requests(idempotency_key,request_hash,status) VALUES(:key,:hash,'PROCESSING')");$db->bind(':key',$key);$db->bind(':hash',$hash);$db->execute();}
-    catch(\Throwable){return new JsonResponse(['error'=>'idempotency_reservation_failed'],409);}
-    try{$result=(new MochiActionService($ownerId,'vnvevents'))->createApprovedIntegrationEstimate($payload,(int)$actor->id,(int)$actor->level);$stored=json_encode($result,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES);$db->query("UPDATE mochi_integration_requests SET status='COMPLETED',result_json=:result,completed_at=UTC_TIMESTAMP() WHERE idempotency_key=:key");$db->bind(':result',$stored);$db->bind(':key',$key);$db->execute();return new JsonResponse($result,201);}
+    if($existing){
+        if(!hash_equals((string)$existing->request_hash,$hash))return new JsonResponse(['error'=>'idempotency_conflict'],409);
+        if($existing->status==='COMPLETED'){$result=json_decode((string)($existing->result_json??'{}'),true)?:[];return new JsonResponse($result+['idempotent'=>true,'status'=>'COMPLETED'],200);}
+        if($existing->status==='PROCESSING')return new JsonResponse(['error'=>'request_already_processing'],409);
+    }
+    // The signed MOCHI reviewer remains part of the audit trail, while writes run
+    // under a real active VNV Level 1 service actor belonging to this tenant.
+    $actorEmail=strtolower(trim((string)($_ENV['MOCHI_VNV_ACTOR_EMAIL']??'')));
+    if($actorEmail!==''){$db->query("SELECT id,level,email FROM users WHERE LOWER(email)=LOWER(:email) AND id_owner=:owner AND level=1 AND is_active=1 LIMIT 1");$db->bind(':email',$actorEmail);$db->bind(':owner',$ownerId);$actor=$db->fetchOne();}
+    else{$db->query("SELECT id,level,email FROM users WHERE id_owner=:owner AND level=1 AND is_active=1 ORDER BY id ASC LIMIT 1");$db->bind(':owner',$ownerId);$actor=$db->fetchOne();}
+    if(!$actor)return new JsonResponse(['error'=>'authorized_level_1_service_actor_not_found'],503);
+    try{
+        if($existing){$db->query("UPDATE mochi_integration_requests SET status='PROCESSING',result_json=NULL,completed_at=NULL WHERE idempotency_key=:key AND status='FAILED'");$db->bind(':key',$key);$db->execute();if($db->rowCount()!==1)return new JsonResponse(['error'=>'idempotency_retry_failed'],409);}
+        else{$db->query("INSERT INTO mochi_integration_requests(idempotency_key,request_hash,status) VALUES(:key,:hash,'PROCESSING')");$db->bind(':key',$key);$db->bind(':hash',$hash);$db->execute();}
+    }catch(\Throwable){return new JsonResponse(['error'=>'idempotency_reservation_failed'],409);}
+    try{$result=(new MochiActionService($ownerId,'vnvevents'))->createApprovedIntegrationEstimate($payload,(int)$actor->id,(int)$actor->level);$result['approved_by_mochi']=$approvedBy;$result['executed_by_vnv']=(string)$actor->email;$stored=json_encode($result,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES);$db->query("UPDATE mochi_integration_requests SET status='COMPLETED',result_json=:result,completed_at=UTC_TIMESTAMP() WHERE idempotency_key=:key");$db->bind(':result',$stored);$db->bind(':key',$key);$db->execute();return new JsonResponse($result,201);}
     catch(\InvalidArgumentException $e){$error=['error'=>'invalid_estimate_payload','message'=>$e->getMessage()];}
-    catch(\Throwable){$error=['error'=>'estimate_creation_failed'];}
+    catch(\Throwable $e){error_log('[MOCHI signed estimate] '.$e->getMessage());$error=['error'=>'estimate_creation_failed'];}
     $db->query("UPDATE mochi_integration_requests SET status='FAILED',result_json=:result,completed_at=UTC_TIMESTAMP() WHERE idempotency_key=:key");$db->bind(':result',json_encode($error));$db->bind(':key',$key);$db->execute();return new JsonResponse($error,422);
 });
 $router->run();
