@@ -31,6 +31,6 @@ $assert(str_contains($editTemplate, 'position: fixed;'), 'Desktop service sugges
 $assert(str_contains($editTemplate, 'input.getBoundingClientRect()'), 'Desktop service suggestions must be positioned against the active input.');
 $assert(str_contains($gourmet, 'Bacon, sausages, roasted potatoes and pastries available as add-ons'), 'Brunch add-on copy is missing.');
 $brunchUpdater = $read('bin/apply-vnv-web-corrections.php');
-$assert(str_contains($brunchUpdater, 'Every station includes scrambled eggs. Bacon, sausages, roasted potatoes, fresh bread and pastries are optional add-ons'), 'Brunch product must treat sausages as an optional add-on.');
+$assert(str_contains($brunchUpdater, 'Every station includes scrambled eggs, fresh bread,veggies and syrops. Bacon, sausages, roasted potatoes, and pastries are optional add-ons available upon request.'), 'Brunch product copy must match the approved wording exactly.');
 
 echo "VNV web correction contracts passed.\n";

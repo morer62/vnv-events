@@ -11,8 +11,9 @@ $apply = in_array('--apply', $argv, true);
 $legacyCopies = [
     'Every Station includes Hot breakfast items (scrambled eggs, bacon, sausages, roasted potatoes) and Fresh bread &amp; pastries',
     'Every station includes scrambled eggs and sausages. Bacon, roasted potatoes, fresh bread and pastries are optional add-ons available upon request.',
+    'Every station includes scrambled eggs. Bacon, sausages, roasted potatoes, fresh bread and pastries are optional add-ons available upon request.',
 ];
-$newCopy = 'Every station includes scrambled eggs. Bacon, sausages, roasted potatoes, fresh bread and pastries are optional add-ons available upon request.';
+$newCopy = 'Every station includes scrambled eggs, fresh bread,veggies and syrops. Bacon, sausages, roasted potatoes, and pastries are optional add-ons available upon request.';
 
 $db = new Connection();
 $db->query("SELECT id, description FROM store_products WHERE slug = 'brunch-specials' LIMIT 1");
