@@ -275,7 +275,9 @@ if ($action === "deleteManualHour") {
     $requestedIds = array_values(array_unique($ids));
     
     foreach ($validHours as $h) {
-        if ($h->start_time && $h->end_time && in_array((int)$h->id, $requestedIds, true)) {
+        $startTimestamp = $h->start_time ? strtotime((string)$h->start_time) : false;
+        $endTimestamp = $h->end_time ? strtotime((string)$h->end_time) : false;
+        if ($startTimestamp !== false && $endTimestamp !== false && $endTimestamp > $startTimestamp && in_array((int)$h->id, $requestedIds, true)) {
             $validIds[] = (int)$h->id;
             $selectedHours[] = $h;
         }
