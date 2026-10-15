@@ -5,6 +5,7 @@ use App\Repositories\ClientsUsersRepository;
 use App\Repositories\Connection;
 use App\Repositories\NotificationsRepository;
 use App\Repositories\OrdersRepository;
+use App\Repositories\OrdersServicesAssignedRepository;
 
 final class MochiActionService
 {
@@ -27,6 +28,20 @@ final class MochiActionService
         }catch(\Throwable $e){$this->db->rollback();$this->audit($draftId,$userId,$action,'unknown',null,$payload,'FAILED','EXECUTION_FAILED');error_log('[Mochi action '.$action.'] '.$e->getMessage());throw new \RuntimeException('No pude completar la acción. No se aplicaron cambios.');}
     }
     public function cancel(int $draftId,int $userId): void {$this->db->query("UPDATE mochi_action_drafts SET status='CANCELLED' WHERE id=:id AND id_owner=:owner AND site_key=:site AND id_user=:user AND status='PENDING'");$this->bind(['id'=>$draftId,'owner'=>$this->ownerId,'site'=>$this->siteKey,'user'=>$userId]);$this->db->execute();$this->audit($draftId,$userId,'CANCEL','action_draft',(string)$draftId,[],'CANCELLED');}
+
+    public function createApprovedIntegrationEstimate(array $payload,int $userId,int $level): array
+    {
+        $this->assertAdmin($level);$payload=$this->resolveCustomerIdentity('CREATE_ESTIMATE',$payload);$missing=$this->validate('CREATE_ESTIMATE',$payload);
+        if($missing)throw new \InvalidArgumentException('Missing required estimate fields: '.implode(', ',$missing));
+        if($this->duplicates('CREATE_ESTIMATE',$payload))throw new \RuntimeException('A possible duplicate estimate already exists for this customer and date.');
+        $lines=array_slice((array)($payload['service_lines']??[]),0,20);unset($payload['service_lines'],$payload['service_id'],$payload['quantity']);
+        if(!$lines)throw new \InvalidArgumentException('At least one catalog service is required.');
+        $resolved=[];
+        foreach($lines as $line){$serviceId=(int)($line['service_id']??0);$quantity=max(1,(int)($line['quantity']??1));$this->db->query('SELECT id,name,price,description,is_variable FROM orders_services WHERE id=:id AND id_owner=:owner AND is_archived=0 LIMIT 1');$this->bind(['id'=>$serviceId,'owner'=>$this->ownerId]);$service=$this->db->fetchOne();if(!$service)throw new \InvalidArgumentException('Unknown catalog service: '.$serviceId);$resolved[]=['service'=>$service,'quantity'=>$quantity];}
+        $result=$this->perform('CREATE_ESTIMATE',$payload,$userId);$orderId=(int)$result['entity_id'];$assigned=new OrdersServicesAssignedRepository();
+        foreach($resolved as $line){$service=$line['service'];$quantity=$line['quantity'];$price=(float)$service->price;$variable=strtoupper((string)($service->is_variable??'NO'))==='YES';$assigned->add(['id_order'=>$orderId,'id_service'=>(int)$service->id,'quantity'=>$quantity,'unit_price'=>$price,'description'=>$service->description,'subtotal'=>$quantity*$price,'id_owner'=>$this->ownerId,'is_variable'=>$variable?'YES':'NO','variable_price'=>$variable?$price:null]);}
+        $order=(object)(new OrdersRepository())->getByIdWithoutOwnershipCheck($orderId);$totals=OrderCalculatorService::calculateTotal($order);$result['total']=(float)$totals['total'];$result['service_count']=count($resolved);$this->audit(null,$userId,'CREATE_ESTIMATE_INTEGRATION','estimate',(string)$orderId,['total'=>$result['total'],'service_count'=>count($resolved)],'SUCCEEDED');return $result;
+    }
 
     private function parse(string $message): array {try{return (new AiJsonGenerator())->generate('Extract one controlled VNV write action. Never infer missing values. Dates must be YYYY-MM-DD and times HH:MM:SS. Allowed actions: '.implode(',',self::ACTIONS).'. Fields may include customer_id, request_id, order_id, full_name, email, phone, address, event_date, start_time, end_time, service_id, quantity, note, due_at, subject, body.',['message'=>$message],['action'=>'allowed action or UNKNOWN','fields'=>['only explicitly supplied normalized fields']]);}catch(\Throwable){return ['action'=>'UNKNOWN','fields'=>[]];}}
     private function validate(string $a,array $p): array {$required=match($a){'CREATE_CUSTOMER'=>['full_name','email'],'UPDATE_CUSTOMER'=>['customer_id'],'CREATE_ESTIMATE','CREATE_ORDER','CREATE_EVENT'=>['email','event_date'],'ADD_NOTE'=>['order_id','note'],'CREATE_FOLLOW_UP'=>['customer_id','due_at','subject'],'ASSOCIATE_REQUEST_CUSTOMER'=>['request_id','customer_id'],'ASSOCIATE_CUSTOMER_ORDER'=>['order_id','customer_id'],'SEND_CUSTOMER_EMAIL'=>['customer_id','subject','body'],'SEND_PUSH_NOTIFICATION'=>['customer_id','subject','body'],default=>[]};$missing=[];foreach($required as $f)if(!isset($p[$f])||trim((string)$p[$f])==='')$missing[]=$this->fieldLabel($f);if(in_array($a,['CREATE_ESTIMATE','CREATE_ORDER','CREATE_EVENT'],true)&&empty($p['customer_id'])&&empty($p['full_name']))$missing[]='nombre del cliente';if(isset($p['email'])&&!filter_var($p['email'],FILTER_VALIDATE_EMAIL))$missing[]='correo válido del cliente';if(isset($p['event_date'])&&!preg_match('/^\d{4}-\d{2}-\d{2}$/',(string)$p['event_date']))$missing[]='fecha del evento';return array_values(array_unique($missing));}
