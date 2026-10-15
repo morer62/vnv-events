@@ -260,7 +260,7 @@
         max-height: 200px;
         overflow-y: auto;
         display: none;
-        position: absolute;
+        position: fixed;
         z-index: 9999;
         width: 100%;
         top: 100%;
@@ -454,6 +454,11 @@
             return;
         }
 
+        const inputRect = input.getBoundingClientRect();
+        dropdown.style.left = `${inputRect.left}px`;
+        dropdown.style.top = `${inputRect.bottom + 2}px`;
+        dropdown.style.width = `${inputRect.width}px`;
+        dropdown.style.minWidth = `${inputRect.width}px`;
         dropdown.innerHTML = '';
         filteredServices.forEach(service => {
             const item = document.createElement("div");

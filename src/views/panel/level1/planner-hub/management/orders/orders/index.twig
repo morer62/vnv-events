@@ -1324,7 +1324,10 @@ VNV-Events Team`;
             if (data.success) {
                 const remaining = parseFloat(data.remaining_balance || 0);
                 document.getElementById('remainingBalance').textContent = remaining.toFixed(2);
-                document.getElementById('advanceAmount').setAttribute('max', remaining);
+                // Keep browser validation on the same two-decimal currency value
+                // shown to the user. A raw floating-point max can reject an exact
+                // final payment such as 353.97.
+                document.getElementById('advanceAmount').setAttribute('max', remaining.toFixed(2));
             } else {
                 console.error('Error from server:', data.error);
                 document.getElementById('remainingBalance').textContent = 'Error';

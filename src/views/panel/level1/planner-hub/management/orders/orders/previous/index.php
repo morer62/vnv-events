@@ -377,11 +377,15 @@ $router->post(function () {
         }
 
         $remainingBefore = max($total - $sumAdvances - $sumPaid, 0);
+        $remainingBeforeCents = (int) round($remainingBefore * 100);
+        $amountCents = (int) round($amount * 100);
 
-        if ($amount > $remainingBefore) {
+        if ($amountCents > $remainingBeforeCents) {
             MessageUtil::setMessage("Amount cannot exceed remaining balance of $" . number_format($remainingBefore, 2), "Error", "error");
             LocationUtils::reload();
         }
+
+        $amount = $amountCents / 100;
 
         try {
             $db->query("INSERT INTO orders_advances (id_order, is_suborder, id_suborder, amount, total_before, total_after, note, created_at) VALUES (:order_id, 0, NULL, :amount, :before, :after, :note, NOW())");

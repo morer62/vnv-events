@@ -428,7 +428,7 @@
             if (data.success) {
                 const remaining = parseFloat(data.remaining_balance || 0);
                 document.getElementById('remainingBalance').textContent = remaining.toFixed(2);
-                document.getElementById('advanceAmount').setAttribute('max', remaining);
+                document.getElementById('advanceAmount').setAttribute('max', remaining.toFixed(2));
                 console.log('Remaining balance set to:', remaining);
             } else {
                 console.error('Error from server:', data.error);
