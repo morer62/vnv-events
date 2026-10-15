@@ -355,30 +355,22 @@ if ($action === "deleteManualHour") {
 
     $additionalInfo = $_POST['additional_info'] ?? 'No additional message';
 
-    // Guardar pago en la base
-    $save = $repoPayments->add([
-        "id_user" => $userId,
-        "id_owner" => $currentOwnerId,
-        "hours_count" => count($ids),
-        "hours_ids" => json_encode($ids),
-        "proof_url" => $proofUrl,
-        "paid_at" => date("Y-m-d H:i:s"),
-        "hourly_rate_snapshot" => $hourlyRate,
-        "aditional_info" => $additionalInfo
-    ]); 
-
-    if (!$save) {
-        MessageUtil::setMessage("The payroll payment could not be recorded. No hours were marked as paid.", "Error", "error");
-        LocationUtils::reload();
-    }
-
     $paidAt = date("Y-m-d H:i:s");
-    foreach ($ids as $id) {
-        $repoHours->update([
-            "is_paid" => 1,
-            "paid_at" => $paidAt,
-            "proof_url" => $proofUrl
-        ], ["id" => $id, "id_user" => (int)$userId, "id_owner" => (int)$currentOwnerId, "is_paid" => 0]);
+    try {
+        $selectedHours = $repoPayments->recordSelectedPayment(
+            (int)$userId,
+            (int)$currentOwnerId,
+            $ids,
+            $proofUrl,
+            $hourlyRate,
+            $additionalInfo,
+            $paidAt
+        );
+        $ids = array_map(static fn (object $hour): int => (int)$hour->id, $selectedHours);
+    } catch (\Throwable $e) {
+        error_log('Payroll payment rejected: ' . $e->getMessage());
+        MessageUtil::setMessage($e->getMessage(), "Payment not recorded", "error");
+        LocationUtils::reload();
     }
 
  
