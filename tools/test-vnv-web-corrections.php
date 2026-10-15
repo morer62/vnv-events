@@ -29,6 +29,8 @@ $assert(str_contains($payments, "delete_manual_advance"), 'Manual advance deleti
 $assert(str_contains($paymentsTemplate, 'Delete advance'), 'Manual advance deletion control is missing.');
 $assert(str_contains($editTemplate, 'position: fixed;'), 'Desktop service suggestions must escape the responsive table overflow.');
 $assert(str_contains($editTemplate, 'input.getBoundingClientRect()'), 'Desktop service suggestions must be positioned against the active input.');
-$assert(str_contains($gourmet, 'Bacon, roasted potatoes and pastries available as add-ons'), 'Brunch add-on copy is missing.');
+$assert(str_contains($gourmet, 'Bacon, sausages, roasted potatoes and pastries available as add-ons'), 'Brunch add-on copy is missing.');
+$brunchUpdater = $read('bin/apply-vnv-web-corrections.php');
+$assert(str_contains($brunchUpdater, 'Every station includes scrambled eggs. Bacon, sausages, roasted potatoes, fresh bread and pastries are optional add-ons'), 'Brunch product must treat sausages as an optional add-on.');
 
 echo "VNV web correction contracts passed.\n";

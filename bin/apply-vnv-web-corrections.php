@@ -8,8 +8,11 @@ Dotenv\Dotenv::createImmutable(dirname(__DIR__))->safeLoad();
 use App\Repositories\Connection;
 
 $apply = in_array('--apply', $argv, true);
-$oldCopy = 'Every Station includes Hot breakfast items (scrambled eggs, bacon, sausages, roasted potatoes) and Fresh bread &amp; pastries';
-$newCopy = 'Every station includes scrambled eggs and sausages. Bacon, roasted potatoes, fresh bread and pastries are optional add-ons available upon request.';
+$legacyCopies = [
+    'Every Station includes Hot breakfast items (scrambled eggs, bacon, sausages, roasted potatoes) and Fresh bread &amp; pastries',
+    'Every station includes scrambled eggs and sausages. Bacon, roasted potatoes, fresh bread and pastries are optional add-ons available upon request.',
+];
+$newCopy = 'Every station includes scrambled eggs. Bacon, sausages, roasted potatoes, fresh bread and pastries are optional add-ons available upon request.';
 
 $db = new Connection();
 $db->query("SELECT id, description FROM store_products WHERE slug = 'brunch-specials' LIMIT 1");
@@ -20,11 +23,18 @@ if (!$product) {
 }
 
 $description = (string) $product->description;
-if (!str_contains($description, $oldCopy)) {
-    if (str_contains($description, $newCopy)) {
-        echo "Brunch menu copy is already current.\n";
-        exit(0);
+if (str_contains($description, $newCopy)) {
+    echo "Brunch menu copy is already current.\n";
+    exit(0);
+}
+$oldCopy = null;
+foreach ($legacyCopies as $candidate) {
+    if (str_contains($description, $candidate)) {
+        $oldCopy = $candidate;
+        break;
     }
+}
+if ($oldCopy === null) {
     throw new RuntimeException('The expected brunch menu sentence was not found; no data was changed.');
 }
 
