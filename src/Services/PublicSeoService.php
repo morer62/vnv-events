@@ -857,8 +857,7 @@ class PublicSeoService
         }
 
         if (preg_match('#^https?://#i', $url)) {
-            $path = parse_url($url, PHP_URL_PATH) ?: '/';
-            return self::SITE_URL . self::normalizePath($path);
+            return $url;
         }
 
         return self::SITE_URL . self::normalizePath($url);
