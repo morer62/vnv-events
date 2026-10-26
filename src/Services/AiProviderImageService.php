@@ -12,7 +12,7 @@ final class AiProviderImageService
     {
         if(!in_array($provider,['openai','gemini'],true))throw new RuntimeException('Image generation is available through OpenAI or Gemini.');
         $repo=new AiProviderConnectionsRepository();$c=$repo->credentials($ownerId,$provider);
-        if(!$c&&$provider==='openai')$c=['api_key'=>(string)($_ENV['OPENAI_TOKEN']??''),'image_model'=>(string)($_ENV['OPENAI_IMAGE_MODEL']??'gpt-image-1')];
+        if(!$c&&$provider==='openai')$c=['api_key'=>(string)($_ENV['OPENAI_TOKEN']??''),'image_model'=>(string)($_ENV['OPENAI_IMAGE_MODEL']??'gpt-image-2')];
         if(!$c||trim($c['api_key'])==='')throw new RuntimeException(ucfirst($provider).' image credentials are not configured.');
         [$binary,$mime]=$provider==='gemini'?$this->gemini($c,$prompt,$aspectRatio):$this->openai($c,$prompt,$aspectRatio);
         $extension=str_contains($mime,'jpeg')?'jpg':'png';$url=FileUtils::saveFileFromContent($binary,'agents/blog-optimizer/images',$extension);
@@ -22,7 +22,7 @@ final class AiProviderImageService
     }
     private function openai(array $c,string $prompt,string $ratio): array
     {
-        $size=$ratio==='16:9'?'1536x1024':($ratio==='9:16'?'1024x1536':'1024x1024');$r=$this->request('https://api.openai.com/v1/images/generations',['Authorization: Bearer '.$c['api_key'],'Content-Type: application/json'],['model'=>$c['image_model']?:'gpt-image-1','prompt'=>$prompt,'size'=>$size,'n'=>1]);$item=$r['data'][0]??[];$binary=!empty($item['b64_json'])?base64_decode($item['b64_json'],true):$this->download((string)($item['url']??''));if(!$binary)throw new RuntimeException('OpenAI returned no image.');return [$binary,'image/png'];
+        $size=$ratio==='16:9'?'1536x1024':($ratio==='9:16'?'1024x1536':'1024x1024');$r=$this->request('https://api.openai.com/v1/images/generations',['Authorization: Bearer '.$c['api_key'],'Content-Type: application/json'],['model'=>$c['image_model']?:'gpt-image-2','prompt'=>$prompt,'size'=>$size,'quality'=>trim((string)($_ENV['OPENAI_IMAGE_QUALITY']??'medium')),'n'=>1]);$item=$r['data'][0]??[];$binary=!empty($item['b64_json'])?base64_decode($item['b64_json'],true):$this->download((string)($item['url']??''));if(!$binary)throw new RuntimeException('OpenAI returned no image.');return [$binary,'image/png'];
     }
     private function gemini(array $c,string $prompt,string $ratio): array
     {

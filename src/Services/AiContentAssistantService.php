@@ -219,7 +219,7 @@ class AiContentAssistantService
             throw new Exception('OPENAI_TOKEN is not configured. No AI draft was created.');
         }
 
-        $model = trim((string)($_ENV['AI_CONTENT_MODEL'] ?? 'gpt-4o-mini'));
+        $model = trim((string)($_ENV['AI_CONTENT_MODEL'] ?? $_ENV['OPENAI_COMPLEX_MODEL'] ?? 'gpt-6.1-sol'));
         $prompt = $this->buildPrompt($type, $settings, $extraInstruction);
         $response = $this->callOpenAI($apiKey, $model, $prompt);
         $data = $this->decodeJsonResponse($response);
@@ -295,15 +295,14 @@ PROMPT;
     {
         $payload = [
             'model' => $model,
-            'messages' => [
-                ['role' => 'system', 'content' => 'You are a careful SEO content assistant for a human-reviewed CMS.'],
-                ['role' => 'user', 'content' => $prompt],
-            ],
-            'temperature' => 0.7,
-            'response_format' => ['type' => 'json_object'],
+            'instructions' => 'You are a careful SEO content assistant for a human-reviewed CMS.',
+            'input' => $prompt,
+            'reasoning' => ['effort' => 'medium'],
+            'text' => ['format' => ['type' => 'json_object']],
+            'max_output_tokens' => 8000,
         ];
 
-        $ch = curl_init('https://api.openai.com/v1/chat/completions');
+        $ch = curl_init('https://api.openai.com/v1/responses');
         curl_setopt_array($ch, [
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_POST => true,
@@ -312,6 +311,7 @@ PROMPT;
                 'Authorization: Bearer ' . $apiKey,
             ],
             CURLOPT_POSTFIELDS => json_encode($payload),
+            CURLOPT_CONNECTTIMEOUT => 10,
             CURLOPT_TIMEOUT => 90,
         ]);
 
@@ -330,7 +330,10 @@ PROMPT;
     private function decodeJsonResponse(string $response): array
     {
         $outer = json_decode($response, true);
-        $content = $outer['choices'][0]['message']['content'] ?? '';
+        $content = (string)($outer['output_text'] ?? '');
+        if ($content === '') {
+            foreach ((array)($outer['output'] ?? []) as $item) foreach ((array)($item['content'] ?? []) as $part) if (($part['type'] ?? '') === 'output_text') {$content = (string)($part['text'] ?? '');break 2;}
+        }
         $data = json_decode((string)$content, true);
 
         if (!is_array($data)) {

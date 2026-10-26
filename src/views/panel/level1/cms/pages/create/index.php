@@ -98,8 +98,8 @@ function cmsCallOpenAiJson(string $system, array $payload, int $timeout = 120): 
         throw new Exception('OPENAI_TOKEN is not configured.');
     }
 
-    $model = trim((string)($_ENV['AI_CONTENT_MODEL'] ?? $_ENV['OPENAI_TEXT_MODEL'] ?? 'gpt-4o-mini'));
-    $ch = curl_init('https://api.openai.com/v1/chat/completions');
+    $model = trim((string)($_ENV['AI_CONTENT_MODEL'] ?? $_ENV['OPENAI_COMPLEX_MODEL'] ?? 'gpt-6.1-sol'));
+    $ch = curl_init('https://api.openai.com/v1/responses');
     curl_setopt_array($ch, [
         CURLOPT_RETURNTRANSFER => true,
         CURLOPT_POST => true,
@@ -109,14 +109,14 @@ function cmsCallOpenAiJson(string $system, array $payload, int $timeout = 120): 
         ],
         CURLOPT_POSTFIELDS => json_encode([
             'model' => $model,
-            'messages' => [
-                ['role' => 'system', 'content' => $system],
-                ['role' => 'user', 'content' => json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)],
-            ],
-            'temperature' => 0.72,
-            'response_format' => ['type' => 'json_object'],
+            'instructions' => $system,
+            'input' => json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
+            'reasoning' => ['effort' => 'medium'],
+            'text' => ['format' => ['type' => 'json_object']],
+            'max_output_tokens' => 8000,
         ]),
-        CURLOPT_TIMEOUT => $timeout,
+        CURLOPT_CONNECTTIMEOUT => 10,
+        CURLOPT_TIMEOUT => min($timeout, 90),
     ]);
 
     $response = curl_exec($ch);
@@ -129,7 +129,10 @@ function cmsCallOpenAiJson(string $system, array $payload, int $timeout = 120): 
     }
 
     $outer = json_decode((string)$response, true);
-    $content = $outer['choices'][0]['message']['content'] ?? '';
+    $content = (string)($outer['output_text'] ?? '');
+    if ($content === '') {
+        foreach ((array)($outer['output'] ?? []) as $item) foreach ((array)($item['content'] ?? []) as $part) if (($part['type'] ?? '') === 'output_text') {$content = (string)($part['text'] ?? '');break 2;}
+    }
     $decoded = json_decode((string)$content, true);
     if (!is_array($decoded)) {
         throw new Exception('AI returned invalid JSON.');

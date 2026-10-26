@@ -113,6 +113,7 @@ final class MochiEstimateWorkflowService
         $draft=$this->enrich($draft);
         $missing=$this->missing($draft);
         $status=$missing?'COLLECTING':'REVIEW';
+        if($missing){$missingKey=sha1(json_encode([$missing,$draft['pending_service']??null],JSON_UNESCAPED_UNICODE));$draft['_same_missing_count']=(($draft['_last_missing_key']??'')===$missingKey)?((int)($draft['_same_missing_count']??0)+1):0;$draft['_last_missing_key']=$missingKey;}
         $this->saveDraft((int)$workflow->id,$draft,$status);
         if(!$missing)return $this->createEstimate($this->reload((int)$workflow->id),$draft,$userId);
         $reply=$this->missingReply($draft,$missing);
@@ -124,8 +125,12 @@ final class MochiEstimateWorkflowService
         try{return (new AiJsonGenerator())->generate(
             'Update a VNV Events estimate draft from the latest Spanish or English user message. Preserve existing values unless explicitly corrected. Explicit user clarification overrides image extraction. Never invent unreadable or missing facts. If the user says only, nothing else, solo or más nada, requested_services must contain only the newly requested service. custom_services is only for a service that the user explicitly wants to create because it is not in the catalog; capture its English name, description, explicit price, whether that catalog price is variable, and whether quantity is per guest. A variable service keeps the stated amount as the estimate-specific price. Payment terms default to two equal 50/50 payments; use payment_split_type 1 only when the user explicitly asks for one payment or 100% payment. Email is the first required identity field because the application uses it to find or create the CRM customer. Event type, phone, guest count, venue, address, city and notes are optional unless guest count is required to calculate an explicitly per-guest service. Leave event_type null when it was not explicitly supplied because the application will use Social Event. Only customer_name (when no CRM customer exists), email, event_date, start_time, end_time and requested_services may otherwise be treated as required or uncertain. When the user confirms or corrects uncertain data, remove that field from uncertain_fields. For a CRM contact conflict set contact_resolution only when the user explicitly chooses use_crm or update_crm. Dates YYYY-MM-DD, times HH:MM:SS. Customer-facing service content remains English. Return JSON only.',
             ['current_draft'=>$current,'latest_message'=>$message,'today'=>(new \DateTimeImmutable('now',new \DateTimeZone('America/New_York')))->format('Y-m-d')],
-            ['customer_name'=>'string or null','email'=>'string or null','phone'=>'string or null','event_date'=>'YYYY-MM-DD or null','start_time'=>'HH:MM:SS or null','end_time'=>'HH:MM:SS or null','venue'=>'string or null','address'=>'string or null','city'=>'string or null','guest_count'=>'integer or null','event_type'=>'English string or null','payment_split_type'=>'1 only when the user explicitly requests one 100% payment; otherwise 2 or null','requested_services'=>['English service names explicitly requested'],'custom_services'=>[['name'=>'English service name','price'=>'explicit numeric price or null','description'=>'English description or null','is_variable'=>'boolean or null','is_per_guest'=>'boolean']],'notes'=>'English customer-facing notes or null','remove_services'=>['English service names explicitly removed'],'uncertain_fields'=>['field names that remain uncertain'],'contact_resolution'=>'use_crm, update_crm, or null','estimate_identifier'=>'number/name/email/phone when supplied or null']
-        );}catch(\Throwable){return ['notes'=>$message];}
+            ['customer_name'=>'string or null','email'=>'string or null','phone'=>'string or null','event_date'=>'YYYY-MM-DD or null','start_time'=>'HH:MM:SS or null','end_time'=>'HH:MM:SS or null','venue'=>'string or null','address'=>'string or null','city'=>'string or null','guest_count'=>'integer or null','event_type'=>'English string or null','payment_split_type'=>'1 only when the user explicitly requests one 100% payment; otherwise 2 or null','requested_services'=>['English service names explicitly requested'],'custom_services'=>[['name'=>'English service name','price'=>'explicit numeric price or null','description'=>'English description or null','is_variable'=>'boolean or null','is_per_guest'=>'boolean']],'notes'=>'English customer-facing notes or null','remove_services'=>['English service names explicitly removed'],'uncertain_fields'=>['field names that remain uncertain'],'contact_resolution'=>'use_crm, update_crm, or null','estimate_identifier'=>'number/name/email/phone when supplied or null'],
+            ['profile'=>'conversational','reasoning_effort'=>'low','timeout'=>30,'schema_name'=>'vnv_estimate_update']
+        );}catch(\Throwable $e){
+            error_log('[Mochi estimate parser] '.$e->getMessage());
+            throw new RuntimeException('No pude interpretar este mensaje con suficiente seguridad. El borrador quedó guardado; no creé ni cambié ningún estimate.');
+        }
     }
 
     private function messageFallbacks(array $parsed,string $message): array
@@ -139,6 +144,12 @@ final class MochiEstimateWorkflowService
         elseif(preg_match('/\b(50\s*[\/-]\s*50|dos pagos|split payment)\b/iu',$message))$parsed['payment_split_type']=2;
         $custom=(array)($parsed['custom_services']??[]);
         if(count($custom)===1&&is_array($custom[0])&&(float)($custom[0]['price']??0)<=0&&preg_match('/(?:precio(?:\s+variable|\s+fijo)?\s*:?\s*|\$\s*)(\d+(?:\.\d{1,2})?)/iu',$message,$match)){$custom[0]['price']=(float)$match[1];$parsed['custom_services']=$custom;}
+        if(count($custom)===1&&is_array($custom[0])&&(float)($custom[0]['price']??0)>0&&(!array_key_exists('is_variable',$custom[0])||$custom[0]['is_variable']===null)){
+            // A service created while preparing one estimate defaults to an
+            // estimate-specific variable price. This avoids asking the same
+            // fixed/variable question repeatedly.
+            $custom[0]['is_variable']=true;$parsed['custom_services']=$custom;
+        }
         return $parsed;
     }
 
@@ -390,6 +401,15 @@ final class MochiEstimateWorkflowService
     }
     private function missingReply(array $draft,array $missing): string
     {
+        $pending=(string)($draft['pending_service']??'');$suggestions=(array)($draft['service_suggestions']??[]);
+        $other=array_values(array_filter($missing,static fn($item)=>$item!=='confirmar el servicio solicitado'&&$item!=='servicio'));
+        $also=$other?' También necesito: '.implode(', ',$other).'.':'';
+        if($pending!==''&&$suggestions){$names=array_map(fn($service)=>$this->candidateField($service,'name'),$suggestions);$reply='No encontré “'.$pending.'” exactamente. ¿Quisiste decir '.implode(', ',array_slice($names,0,-1)).(count($names)>1?' o ':'').end($names).'? Responde con el nombre o “el primero”.'.$also;}
+        elseif($pending!=='')$reply='No encontré “'.$pending.'” en el catálogo. Si es nuevo, envía en una sola respuesta su nombre en inglés, descripción breve y precio; usaré ese precio como variable para este estimate.'.$also;
+        else $reply='Para terminar necesito: '.implode(', ',$missing).'. Envíalo todo en una sola respuesta.';
+        if((int)($draft['_same_missing_count']??0)>=1)$reply.=' Seguimos esperando exactamente esos datos; no ejecutaré nada hasta recibirlos.';
+        return $reply;
+        /* Legacy wording retained below for source-history clarity; unreachable. */
         $pending=(string)($draft['pending_service']??'');$suggestions=(array)($draft['service_suggestions']??[]);
         if($pending!==''&&$suggestions){$names=array_map(fn($service)=>$this->candidateField($service,'name'),$suggestions);return 'No encontré “'.$pending.'” exactamente. ¿Quisiste decir '.implode(', ',array_slice($names,0,-1)).(count($names)>1?' o ':'').end($names).'? Puedes responder con el nombre o “el primero”.';}
         if($pending!=='')return 'No encontré “'.$pending.'” en el catálogo. Si es un servicio nuevo, envíame en una sola respuesta: nombre, descripción breve y precio. Lo crearé como precio variable para este estimate.';

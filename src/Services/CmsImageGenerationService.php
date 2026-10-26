@@ -27,11 +27,12 @@ class CmsImageGenerationService
             throw new Exception('OPENAI_TOKEN is not configured.');
         }
 
-        $model = trim((string)($_ENV['OPENAI_IMAGE_MODEL'] ?? 'gpt-image-1'));
+        $model = trim((string)($_ENV['OPENAI_IMAGE_MODEL'] ?? 'gpt-image-2'));
         $payload = [
             'model' => $model,
             'prompt' => $prompt,
             'size' => $size,
+            'quality' => trim((string)($_ENV['OPENAI_IMAGE_QUALITY'] ?? 'medium')),
             'n' => 1,
         ];
 
@@ -44,7 +45,8 @@ class CmsImageGenerationService
                 'Authorization: Bearer ' . $apiKey,
             ],
             CURLOPT_POSTFIELDS => json_encode($payload),
-            CURLOPT_TIMEOUT => 180,
+            CURLOPT_CONNECTTIMEOUT => 10,
+            CURLOPT_TIMEOUT => 90,
         ]);
 
         $response = curl_exec($ch);

@@ -1,0 +1,85 @@
+<?php
+
+require dirname(__DIR__).'/vendor/autoload.php';
+
+use App\Services\AiJsonGenerator;
+use App\Services\MochiImageReaderService;
+
+$live = in_array('--live', $argv, true);
+if ($live) Dotenv\Dotenv::createImmutable(dirname(__DIR__))->safeLoad();
+else $_ENV['OPENAI_TOKEN'] = 'qa-token-not-sent';
+$calls = [];
+$transport = static function (string $url, array $payload, array $headers, int $timeout) use (&$calls): array {
+    $calls[] = compact('url', 'payload', 'headers', 'timeout');
+    return [
+        'status' => 200,
+        'body' => json_encode(['output' => [[
+            'type' => 'message',
+            'content' => [['type' => 'output_text', 'text' => '{"reply":"ok"}']],
+        ]]]),
+        'error' => '',
+    ];
+};
+
+$assert = static function (bool $condition, string $message): void {
+    if (!$condition) throw new RuntimeException($message);
+};
+
+$gateway = new AiJsonGenerator($transport);
+$result = $gateway->generate('Return a verified answer.', ['fact' => 'x'], ['reply' => 'string']);
+$assert(($result['reply'] ?? '') === 'ok', 'Responses output was not decoded.');
+$assert(($calls[0]['url'] ?? '') === 'https://api.openai.com/v1/responses', 'Wrong OpenAI endpoint.');
+$assert(($calls[0]['payload']['model'] ?? '') === 'gpt-6-luna', 'Routine routing must use Luna.');
+$assert(($calls[0]['payload']['reasoning']['effort'] ?? '') === 'low', 'Routine reasoning must stay low-cost.');
+$assert(($calls[0]['payload']['text']['format']['type'] ?? '') === 'json_schema', 'Structured output is not enabled.');
+
+$gateway->generate('Write.', [], ['reply' => 'string'], ['profile' => 'complex']);
+$assert(($calls[1]['payload']['model'] ?? '') === 'gpt-6.1-sol', 'Complex routing must use Sol.');
+$assert(($calls[1]['payload']['reasoning']['effort'] ?? '') === 'medium', 'Complex reasoning must use medium effort.');
+
+$root = dirname(__DIR__);
+$controller = file_get_contents($root.'/src/views/panel/level1/planner-hub/settings/automation/index.php');
+$view = file_get_contents($root.'/src/views/panel/level1/planner-hub/settings/automation/index.twig');
+$concierge = file_get_contents($root.'/src/Services/MochiConciergeService.php');
+$images = file_get_contents($root.'/src/Services/CmsImageGenerationService.php');
+$assert(!str_contains($controller, 'transcribe_mochi_audio'), 'Audio transcription endpoint still exists.');
+$assert(!str_contains($view, 'id="mochi-voice"'), 'Voice button still exists.');
+$assert(str_contains($view, 'name="screenshots[]"'), 'Screenshot upload is missing.');
+$assert(str_contains($concierge, 'scope_guard'), 'Editorial scope guard is missing.');
+$assert(str_contains($images, "'gpt-image-2'"), 'Retired image model is still the default.');
+
+echo "MOCHI AI contract QA: PASS\n";
+
+if ($live) {
+    $result = (new AiJsonGenerator())->generate(
+        'Return the verified input unchanged.',
+        ['value' => 'connection-ok'],
+        ['value' => 'string'],
+        ['profile' => 'routine', 'timeout' => 30, 'max_output_tokens' => 256, 'schema_name' => 'connection_probe']
+    );
+    $assert(($result['value'] ?? '') === 'connection-ok', 'Live OpenAI Responses probe returned an unexpected value.');
+    echo "MOCHI live OpenAI Responses probe: PASS\n";
+
+    if (in_array('--complex', $argv, true)) {
+        $result = (new AiJsonGenerator())->generate(
+            'Return the verified input unchanged.',
+            ['value' => 'sol-ok'],
+            ['value' => 'string'],
+            ['profile' => 'complex', 'timeout' => 45, 'max_output_tokens' => 256, 'schema_name' => 'complex_connection_probe']
+        );
+        $assert(($result['value'] ?? '') === 'sol-ok', 'Live Sol probe returned an unexpected value.');
+        echo "MOCHI live Sol probe: PASS\n";
+    }
+
+    if (in_array('--vision', $argv, true)) {
+        $path = dirname(__DIR__).'/public/assets/images/vnv-logo.png';
+        $text = (new MochiImageReaderService())->extract([
+            'name' => basename($path),
+            'tmp_name' => $path,
+            'error' => UPLOAD_ERR_OK,
+            'size' => filesize($path),
+        ]);
+        $assert(trim($text) !== '', 'Live screenshot reader returned no result.');
+        echo "MOCHI live screenshot probe: PASS\n";
+    }
+}

@@ -67,8 +67,8 @@
         <div class="ad-connection"><strong>{{ provider == 'anthropic' ? 'Claude (Anthropic)' : provider|capitalize }}</strong>{% if configured %}<span class="ad-connected"> · Configured</span><small class="d-block">Key ending {{ configured.key_hint }}</small>{% endif %}
         <form method="post"><input type="hidden" name="agent_key" value="{{ agent.agent_key }}"><input type="hidden" name="action" value="save_ai_provider"><input type="hidden" name="provider" value="{{ provider }}">
           <input class="ad-input" type="password" name="api_key" autocomplete="new-password" placeholder="{{ configured ? 'Leave blank to keep current key' : 'API key' }}">
-          <input class="ad-input" name="text_model" value="{{ configured.text_model|default(provider == 'anthropic' ? 'claude-sonnet-4-6' : (provider == 'gemini' ? 'gemini-2.5-flash' : 'gpt-4o-mini')) }}" placeholder="Text model">
-          <input class="ad-input" name="image_model" value="{{ configured.image_model|default(provider == 'gemini' ? 'gemini-3.1-flash-image' : (provider == 'openai' ? 'gpt-image-1' : '')) }}" placeholder="Image model (if supported)">
+          <input class="ad-input" name="text_model" value="{{ configured.text_model|default(provider == 'anthropic' ? 'claude-sonnet-4-6' : (provider == 'gemini' ? 'gemini-2.5-flash' : 'gpt-6-luna')) }}" placeholder="Text model">
+          <input class="ad-input" name="image_model" value="{{ configured.image_model|default(provider == 'gemini' ? 'gemini-3.1-flash-image' : (provider == 'openai' ? 'gpt-image-2' : '')) }}" placeholder="Image model (if supported)">
           <label><input type="checkbox" name="is_default_text" value="1" {% if configured.is_default_text|default(false) %}checked{% endif %}> Default for text</label> <label><input type="checkbox" name="is_default_image" value="1" {% if configured.is_default_image|default(false) %}checked{% endif %}> Default for images</label><br><button class="ad-btn mt-2">Save provider</button>
         </form></div>
       {% endfor %}</section>
