@@ -23,31 +23,42 @@ final class AutomationCenterService
 
     public function mascotState(int $pending=0): array
     {
-        $today=new \DateTimeImmutable('today',$this->timezone);$md=$today->format('m-d');$state=$pending>0?'coffee':'sad';$greeting='';
+        $today=new \DateTimeImmutable('today',$this->timezone);$md=$today->format('m-d');$state=$pending>0?'coffee':'sad';$greeting='';$theme='default';
         if($md==='12-01')$greeting='Psst… remember Jonathan’s birthday is coming up — but don’t tell him I reminded you!';
         elseif($md==='11-26')$greeting='A tiny reminder: today is Mary’s birthday. 💛';
-        if($md==='10-31'){$state='halloween';$greeting='Happy Halloween!';}
+        $halloweenCostumes=[25=>'halloween-ghost',26=>'halloween-vampire',27=>'halloween-hirax',28=>'halloween-pikachu',29=>'halloween-witch',30=>'halloween-pumpkin',31=>'halloween-skeleton'];
+        $day=(int)$today->format('d');
+        if($today->format('m')==='10'&&isset($halloweenCostumes[$day])){$state=$halloweenCostumes[$day];$theme='halloween';$greeting='¡Semana de Halloween en VNV!';}
         elseif($today->format('m')==='12'){$state='reindeer';$greeting=$greeting?:'Happy holidays from your VNV concierge!';}
         elseif($md==='02-14'){$state='cupid';$greeting='Happy Valentine’s Day!';}
         else{$easter=(new \DateTimeImmutable('@'.easter_date((int)$today->format('Y'))))->setTimezone($this->timezone);if(abs((int)$today->diff($easter)->format('%r%a'))<=1){$state='easter';$greeting='Happy Easter!';}}
         $rhymes=[
-            'Mary guía con ternura y Oriana asiste con dulzura; juntas hacen de cada evento una hermosura.',
-            'Mary marca el compás y Oriana pone magia de más; juntas hacen que VNV brille en paz.',
-            'Mary lleva el timón y Oriana suma el corazón; juntas convierten pendientes en celebración.',
-            'Mary sueña la meta y Oriana la deja completa; juntas hacen que la agenda florezca coqueta.',
-            'Mary, nuestra jefa encantadora; Oriana, nuestra asistente soñadora: juntas iluminan cada hora.',
-            'Mary guía la jornada y Oriana la vuelve encantada; juntas dejan la agenda bonita y ordenada.',
-            'Mary piensa con amor y Oriana ayuda con primor; juntas llenan cada evento de color.',
-            'Mary dirige con alegría y Oriana acompaña cada día; juntas convierten el trabajo en melodía.',
-            'Mary abre el sendero y Oriana cuida cada lucero; juntas forman un equipo verdadero.',
-            'Mary pone la visión y Oriana le da atención; juntas hacen magia en cada celebración.',
-            'Mary guía la misión y Oriana cuida cada ocasión; juntas trabajan con chispa y corazón.',
-            'Mary lleva la corona y Oriana cada detalle entona; juntas hacen que VNV luzca bella y juguetona.',
-            'Mary, jefa de ensueño; Oriana cuida cada empeño: juntas convierten el día en un pequeño sueño.',
-            'Mary inspira el camino y Oriana lo llena de cariño; juntas hacen que VNV brille bonito.',
+            'Mary y Oriana, con talento y alegría, hacen equipo y le ponen magia al día.',
+            'Oriana y Mary comparten la ilusión; juntas llenan cada evento de color y corazón.',
+            'Mary aporta una idea y Oriana otra maravilla; cuando trabajan juntas, todo VNV brilla.',
+            'Oriana suma cariño y Mary creatividad; juntas convierten pendientes en felicidad.',
+            'Mary y Oriana avanzan lado a lado; con su equipo, cada detalle queda encantado.',
+            'Entre ideas de Mary y el ingenio de Oriana, VNV florece bonito cada mañana.',
+            'Oriana y Mary, dos chispitas de emoción; juntas hacen de cada evento una celebración.',
+            'Mary y Oriana comparten el compás; cuando unen sus talentos, la magia llega de más.',
+            'Oriana y Mary hacen equipo verdadero; juntas cuidan cada sueño con cariño sincero.',
+            'Mary suma entusiasmo y Oriana inspiración; juntas le ponen dulzura a cada ocasión.',
+            'Oriana y Mary, con ternura y energía, convierten cada tarea en una linda melodía.',
+            'Mary y Oriana se apoyan con primor; juntas hacen que VNV trabaje con amor.',
+            'Oriana trae una idea y Mary otra sorpresa; juntas hacen de la agenda una belleza.',
+            'Mary y Oriana, compañeras de aventura, hacen brillar VNV con talento y dulzura.',
         ];
-        $rhyme=$rhymes[((int)sprintf('%u',crc32($today->format('Y-m-d'))))%count($rhymes)];
-        return ['state'=>$state,'greeting'=>$greeting,'rhyme'=>$rhyme];
+        $halloweenRhymes=[
+            25=>'Mary y Oriana, entre fantasmas de algodón, hacen equipo con dulzura y corazón.',
+            26=>'Con capa de vampiro y una alegre melodía, Mary y Oriana hacen magia todavía.',
+            27=>'Hirax llegó juguetón, pero Mary y Oriana juntas dominan la misión.',
+            28=>'Con orejitas eléctricas y energía sin igual, Mary y Oriana hacen un equipo fenomenal.',
+            29=>'Entre escobas y estrellas de brillante color, Mary y Oriana preparan eventos con amor.',
+            30=>'Con calabazas sonrientes y mucha inspiración, Mary y Oriana celebran cada creación.',
+            31=>'Entre huesitos tiernos y una dulce canción, Mary y Oriana cierran Halloween con emoción.',
+        ];
+        $rhyme=$theme==='halloween'?$halloweenRhymes[$day]:$rhymes[((int)sprintf('%u',crc32($today->format('Y-m-d'))))%count($rhymes)];
+        return ['state'=>$state,'theme'=>$theme,'greeting'=>$greeting,'rhyme'=>$rhyme];
     }
 
     public function saveSettings(array $input,int $actorId): void
