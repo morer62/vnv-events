@@ -21,7 +21,7 @@ final class MochiConciergeService
         // Read the existing daily thread before inserting the new turn. The router must see
         // what "eso", "el anterior" and similar follow-ups refer to.
         $recentMessages=$this->sessions->messages($sessionId,$authorId,120);
-        $memory=(new MochiMemoryService($this->ownerId,$this->siteKey,$this->db))->context($sessionId);
+        $memory=(new MochiMemoryService($this->ownerId,$this->siteKey,$this->db))->context($sessionId,$message);
         $this->save($sessionId,$authorId,'HUMAN',$message);
         if($this->isGreeting($message)){$reply='¡Hola! Claro que sí 😊 Soy Mochi y estoy aquí para ayudarte con VNV Events. Puedo revisar eventos, estimates, clientes, pagos pendientes, servicios, productos y tareas. Cuéntame qué necesitas y lo resolvemos juntos.';$this->save($sessionId,null,'AGENT',$reply,['tool'=>'greeting','items'=>[]]);$this->sessions->touch($sessionId);return ['reply'=>$reply,'items'=>[],'tool'=>'greeting','session_id'=>$sessionId];}
         if($this->isEditorialCreationIntent($message)){

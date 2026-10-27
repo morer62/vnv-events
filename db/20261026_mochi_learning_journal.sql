@@ -1,0 +1,20 @@
+CREATE TABLE IF NOT EXISTS mochi_learning_journal (
+    id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    id_owner INT NOT NULL,
+    site_key VARCHAR(80) NOT NULL,
+    id_session BIGINT UNSIGNED NULL,
+    memory_date DATE NOT NULL,
+    category VARCHAR(32) NOT NULL,
+    content TEXT NOT NULL,
+    content_hash CHAR(64) NOT NULL,
+    source_tool VARCHAR(180) NULL,
+    is_verified TINYINT(1) NOT NULL DEFAULT 0,
+    occurrence_count INT UNSIGNED NOT NULL DEFAULT 1,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    last_seen_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    UNIQUE KEY uq_mochi_learning_entry (id_owner,site_key,category,content_hash),
+    KEY idx_mochi_learning_recent (id_owner,site_key,last_seen_at),
+    KEY idx_mochi_learning_session (id_session),
+    FULLTEXT KEY ft_mochi_learning_content (content)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
