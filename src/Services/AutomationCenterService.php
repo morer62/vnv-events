@@ -51,7 +51,7 @@ final class AutomationCenterService
         $halloweenRhymes=[
             25=>'Mary y Oriana, entre fantasmas de algodón, hacen equipo con dulzura y corazón.',
             26=>'Con capa de vampiro y una alegre melodía, Mary y Oriana hacen magia todavía.',
-            27=>'Hirax llegó juguetón, pero Mary y Oriana juntas dominan la misión.',
+            27=>'Mochi llegó de vampiro juguetón; Mary y Oriana juntas dominan la misión.',
             28=>'Con orejitas eléctricas y energía sin igual, Mary y Oriana hacen un equipo fenomenal.',
             29=>'Entre escobas y estrellas de brillante color, Mary y Oriana preparan eventos con amor.',
             30=>'Con calabazas sonrientes y mucha inspiración, Mary y Oriana celebran cada creación.',
