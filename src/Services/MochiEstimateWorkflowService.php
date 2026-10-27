@@ -26,7 +26,15 @@ final class MochiEstimateWorkflowService
     public function shouldHandle(int $userId,int $sessionId,string $message): bool
     {
         $imageEstimate=str_contains($message,'[Captura ')&&preg_match('/\b(estimate|estimado|cotizaci[oó]n)\b/iu',$message);
-        return (bool)($this->active($userId,$sessionId)||preg_match(self::CREATE_RE,$message)||preg_match(self::MODIFY_RE,$message)||$imageEstimate);
+        $active=$this->active($userId,$sessionId);
+        if($active&&$this->isOperationalDetour($message))return false;
+        return (bool)($active||preg_match(self::CREATE_RE,$message)||preg_match(self::MODIFY_RE,$message)||$imageEstimate);
+    }
+
+    private function isOperationalDetour(string $message): bool
+    {
+        if(preg_match(self::CREATE_RE,$message)||preg_match(self::MODIFY_RE,$message))return false;
+        return (bool)preg_match('/\b(cu[aá]ntos?|cantidad|total|lista|mu[eé]strame|ind[ií]came|dime|cu[aá]les)\b.{0,90}\b(eventos?|contratos?|clientes?|pagos?|tareas?)\b|\b(eventos?|contratos?)\b.{0,90}\b(ejecutad[oa]s?|realizad[oa]s?|completad[oa]s?|este a[nñ]o|a[nñ]o\s+20\d{2})\b/iu',$message);
     }
 
     public function handle(int $userId,int $level,int $sessionId,string $message): array

@@ -6,7 +6,7 @@ use App\Repositories\Connection;
 /** Read-only, role-scoped operational queries used by Mochi. */
 final class MochiOperationalToolsService
 {
-    private const ADMIN_TOOLS=['weekend_events','collections','opportunities','requests','contracts','catalog','warehouse','rewards','customer_orders','website'];
+    private const ADMIN_TOOLS=['weekend_events','executed_events','collections','opportunities','requests','contracts','catalog','warehouse','rewards','customer_orders','website'];
     private const TEAM_TOOLS=['my_events','my_tasks','catalog','website'];
     private const CLIENT_TOOLS=['my_events','catalog','website','rewards'];
     public function __construct(private int $ownerId,private string $siteKey='vnvevents',private ?Connection $db=null){$this->db??=new Connection();}
@@ -14,6 +14,7 @@ final class MochiOperationalToolsService
     public function select(string $message,int $level): string
     {
         $m=mb_strtolower($message);
+        if(preg_match('/\b(eventos?|contratos?)\b.{0,90}\b(ejecutad[oa]s?|realizad[oa]s?|completad[oa]s?)\b|\b(ejecutad[oa]s?|realizad[oa]s?|completad[oa]s?)\b.{0,90}\b(eventos?|contratos?)\b/iu',$m))return 'executed_events';
         if(preg_match('/paella|lasagna|pasticho|gourmet|producto|paquete|caviar|comida|personas|add.?on|precio|cu[aá]nto cuesta|nochebuena|navidad/iu',$m))return 'catalog';
         if(preg_match('/punto|reward/iu',$m))return 'rewards';
         if(preg_match('/contenedor|warehouse|inventario|almac[eé]n/iu',$m))return 'warehouse';
@@ -31,7 +32,7 @@ final class MochiOperationalToolsService
     {
         $allowed=$level===1?self::ADMIN_TOOLS:($level===4?self::TEAM_TOOLS:($level===5?self::CLIENT_TOOLS:[]));$start=microtime(true);
         if(!in_array($tool,$allowed,true)){$this->log($userId,$sessionId,$tool,'DENIED',$start,0,'ROLE_SCOPE');throw new \RuntimeException('Esa información no está disponible para tu nivel de acceso.');}
-        try{$result=match($tool){'weekend_events'=>$this->weekendEvents(),'my_events'=>$this->myEvents($userId,$level),'my_tasks'=>$this->myTasks($userId),'collections'=>$this->collections(),'opportunities'=>$this->opportunities(),'requests'=>$this->requests(),'contracts'=>$this->contracts(),'catalog'=>$this->catalog($message),'warehouse'=>$this->warehouse(),'rewards'=>$this->rewards($userId,$level,$message),'customer_orders'=>$this->myEvents($userId,$level),'website'=>$this->website($message)};$this->log($userId,$sessionId,$tool,'SUCCESS',$start,count($result['items']??[]));return ['tool'=>$tool]+$result;}
+        try{$result=match($tool){'weekend_events'=>$this->weekendEvents(),'executed_events'=>$this->executedEvents($message),'my_events'=>$this->myEvents($userId,$level),'my_tasks'=>$this->myTasks($userId),'collections'=>$this->collections(),'opportunities'=>$this->opportunities(),'requests'=>$this->requests(),'contracts'=>$this->contracts(),'catalog'=>$this->catalog($message),'warehouse'=>$this->warehouse(),'rewards'=>$this->rewards($userId,$level,$message),'customer_orders'=>$this->myEvents($userId,$level),'website'=>$this->website($message)};$this->log($userId,$sessionId,$tool,'SUCCESS',$start,count($result['items']??[]));return ['tool'=>$tool]+$result;}
         catch(\Throwable $e){$this->log($userId,$sessionId,$tool,'FAILED',$start,0,'QUERY_FAILED');error_log('[Mochi tool '.$tool.'] '.$e->getMessage());throw new \RuntimeException('No pude recuperar esos datos ahora mismo. Intenta nuevamente.');}
     }
 
@@ -40,6 +41,18 @@ final class MochiOperationalToolsService
     private function weekendEvents(): array
     {
         [$start,$end]=$this->weekend();$sql="SELECT o.id,o.event_date,o.start_time,o.address,o.status_workflow,o.payment_status,o.main_manager_id,CONCAT_WS(' ',c.name,c.lastname) customer,CONCAT_WS(' ',m.name,m.lastname) manager,COALESCE((SELECT SUM(osa.subtotal) FROM orders_services_assigned osa WHERE osa.id_order=o.id),0) total,COUNT(DISTINCT ott.id_user) team_count FROM orders o LEFT JOIN users c ON c.id=o.id_client LEFT JOIN users m ON m.id=o.main_manager_id LEFT JOIN orders_team_tasks ott ON ott.id_order=o.id WHERE o.id_owner=:owner AND COALESCE(o.is_archived,0)=0 AND o.event_date BETWEEN :start AND :end GROUP BY o.id ORDER BY o.event_date,o.start_time";$this->db->query($sql);$this->bind(['owner'=>$this->ownerId,'start'=>$start,'end'=>$end]);$items=$this->rows($this->db->fetchAll(),fn($r)=>['title'=>'Evento #'.$r->id.' · '.($r->customer?:'Cliente sin nombre'),'meta'=>$r->event_date.' '.substr((string)$r->start_time,0,5).' · '.($r->address?:'Ubicación pendiente'),'detail'=>'Valor: $'.number_format((float)$r->total,2).' · Gerente: '.($r->manager?:'NO ASIGNADO').' · Equipo: '.(int)$r->team_count,'flag'=>!$r->main_manager_id?'Gerente no asignado':((int)$r->team_count===0?'Equipo no asignado':''),'url'=>'/panel/planner-hub/management/orders/orders/edit?id='.(int)$r->id]);return ['reply'=>count($items).' evento(s) entre '.$start.' y '.$end.'.','items'=>$items];
+    }
+    private function executedEvents(string $message): array
+    {
+        $now=new \DateTimeImmutable('now',new \DateTimeZone('America/New_York'));
+        $year=(int)$now->format('Y');if(preg_match('/\b(20\d{2})\b/',$message,$match))$year=(int)$match[1];
+        $start=sprintf('%04d-01-01',$year);$yearEnd=sprintf('%04d-12-31',$year);$end=$year===(int)$now->format('Y')?$now->format('Y-m-d'):$yearEnd;
+        if($year>(int)$now->format('Y'))$end=$start;
+        $this->db->query("SELECT COUNT(*) total,MIN(event_date) first_date,MAX(event_date) last_date FROM orders WHERE id_owner=:owner AND COALESCE(is_archived,0)=0 AND event_date BETWEEN :start AND :end AND COALESCE(status_workflow,'') NOT IN ('INVOICE_DRAFT','INVOICE_EXPIRED','INVOICE_CANCELLED','CANCELLED')");
+        $this->bind(['owner'=>$this->ownerId,'start'=>$start,'end'=>$end]);$row=$this->db->fetchOne();$total=(int)($row->total??0);
+        $reply=$total.' evento(s) con fecha ya transcurrida en '.$year.'. Excluí estimates en borrador, cancelados, expirados y registros archivados; no conté solamente contratos firmados.';
+        $items=[['title'=>'Eventos ejecutados en '.$year.': '.$total,'meta'=>$start.' a '.$end,'detail'=>'Criterio verificable: fecha del evento transcurrida; sin drafts, cancelados, expirados ni archivados.','url'=>'/panel/planner-hub/management/orders/orders/previous']];
+        return ['reply'=>$reply,'items'=>$items];
     }
     private function myEvents(int $userId,int $level): array {$scope=$level===5?'o.id_client=:user':'(o.main_manager_id=:user OR EXISTS(SELECT 1 FROM orders_team_tasks t WHERE t.id_order=o.id AND t.id_user=:user))';$this->db->query("SELECT DISTINCT o.id,o.event_date,o.start_time,o.address,o.status_workflow FROM orders o WHERE o.id_owner=:owner AND COALESCE(o.is_archived,0)=0 AND o.event_date>=CURDATE() AND {$scope} ORDER BY o.event_date,o.start_time LIMIT 20");$this->bind(['owner'=>$this->ownerId,'user'=>$userId]);$items=$this->rows($this->db->fetchAll(),fn($r)=>['title'=>'Evento #'.$r->id,'meta'=>$r->event_date.' '.substr((string)$r->start_time,0,5),'detail'=>(string)$r->address,'url'=>'/panel/event-execution?order_id='.(int)$r->id]);return ['reply'=>count($items).' evento(s) próximo(s) dentro de tu acceso.','items'=>$items];}
     private function myTasks(int $userId): array {$this->db->query("SELECT t.id,t.task_description,t.is_done,o.id order_id,o.event_date FROM orders_team_tasks t JOIN orders o ON o.id=t.id_order WHERE o.id_owner=:owner AND t.id_user=:user AND COALESCE(t.is_done,0)=0 AND o.event_date>=CURDATE() ORDER BY o.event_date LIMIT 30");$this->bind(['owner'=>$this->ownerId,'user'=>$userId]);$items=$this->rows($this->db->fetchAll(),fn($r)=>['title'=>(string)$r->task_description,'meta'=>'Evento #'.$r->order_id.' · '.$r->event_date,'detail'=>'Pendiente','url'=>'/panel/event-execution?order_id='.(int)$r->order_id]);return ['reply'=>count($items).' tarea(s) pendiente(s).','items'=>$items];}
