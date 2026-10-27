@@ -31,6 +31,8 @@ body.mochi-chat-page footer.footer{display:none}
 .mochi-chat-page .mochi-chat{flex:1 1 auto;height:auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
 .mochi-chat-page .mochi-composer-wrap{position:relative;bottom:auto;flex:0 0 auto}
 @media(max-width:767px){
+ html.mochi-chat-page{height:100%;min-height:0;overflow:hidden}
+ body.mochi-chat-page{position:fixed;inset:0;width:100%;height:var(--mochi-visible-height,100dvh);min-height:0;overflow:hidden}
  body.mochi-chat-page .content{width:100%;max-width:100%;padding:0}
  .mochi-app{height:100%;min-height:0;max-width:none;margin:0;display:flex;flex-direction:column;overflow:hidden;background:#fff}
  .mochi-topbar{position:relative;z-index:10;flex:0 0 auto;min-height:64px;padding:8px 12px;background:rgba(255,255,255,.96);box-shadow:0 1px 12px rgba(14,46,39,.07);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
@@ -87,8 +89,9 @@ body.mochi-chat-page footer.footer{display:none}
  if(viewportMeta&&!viewportMeta.content.includes('interactive-widget'))viewportMeta.content+=', viewport-fit=cover, interactive-widget=resizes-content';
  const nearBottom=()=>chat.scrollHeight-chat.scrollTop-chat.clientHeight<120;
  const scrollToLatest=()=>requestAnimationFrame(()=>{chat.scrollTop=chat.scrollHeight});
- const syncVisibleViewport=()=>{if(!mobile.matches){root.style.removeProperty('--mochi-visible-height');return}const keepBottom=document.activeElement===input||nearBottom();const height=Math.round(window.visualViewport?.height||window.innerHeight);root.style.setProperty('--mochi-visible-height',height+'px');if(keepBottom)scrollToLatest()};
- window.visualViewport?.addEventListener('resize',syncVisibleViewport);window.visualViewport?.addEventListener('scroll',syncVisibleViewport);window.addEventListener('resize',syncVisibleViewport);window.addEventListener('orientationchange',syncVisibleViewport);mobile.addEventListener?.('change',syncVisibleViewport);input.addEventListener('focus',syncVisibleViewport);syncVisibleViewport();
+ let viewportFrame=0,viewportSettledTimer=0,lastUsableViewportHeight=0;
+ const syncVisibleViewport=()=>{cancelAnimationFrame(viewportFrame);viewportFrame=requestAnimationFrame(()=>{if(!mobile.matches){root.style.removeProperty('--mochi-visible-height');lastUsableViewportHeight=0;return}const candidate=Math.round(window.visualViewport?.height||window.innerHeight);const minimum=Math.max(120,Math.min(220,Math.round(window.innerHeight*.25)));if(Number.isFinite(candidate)&&candidate>=minimum)lastUsableViewportHeight=candidate;const height=lastUsableViewportHeight||Math.round(window.innerHeight);root.style.setProperty('--mochi-visible-height',height+'px');clearTimeout(viewportSettledTimer);viewportSettledTimer=setTimeout(()=>{if(document.activeElement===input||nearBottom())scrollToLatest()},90)})};
+ window.visualViewport?.addEventListener('resize',syncVisibleViewport);window.visualViewport?.addEventListener('scroll',syncVisibleViewport);window.addEventListener('resize',syncVisibleViewport);window.addEventListener('orientationchange',syncVisibleViewport);mobile.addEventListener?.('change',syncVisibleViewport);input.addEventListener('focus',syncVisibleViewport);input.addEventListener('blur',syncVisibleViewport);syncVisibleViewport();
  const drawer=document.getElementById('mochi-history-drawer'),backdrop=document.getElementById('mochi-history-backdrop');
  const setDrawer=open=>{drawer?.classList.toggle('open',open);backdrop?.classList.toggle('open',open);document.body.style.overflow=open?'hidden':''};
  document.getElementById('mochi-history-open')?.addEventListener('click',()=>setDrawer(true));document.getElementById('mochi-history-close')?.addEventListener('click',()=>setDrawer(false));backdrop?.addEventListener('click',()=>setDrawer(false));
