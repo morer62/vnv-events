@@ -67,6 +67,7 @@ $assert(($requests[0]['payload']['reasoning']['effort'] ?? '') === 'medium', 'MO
 $topics = $requests[0]['payload']['tools'][0]['parameters']['properties']['topic']['enum'] ?? [];
 $assert(in_array('payroll_payments', $topics, true), 'Payroll payment history must be available to the agent.');
 $assert(in_array('crm', $topics, true), 'CRM data must be available to the agent.');
+$assert(in_array('estimates', $topics, true), 'Created-estimate history must be available to the agent.');
 $assert(in_array('warehouse', $topics, true), 'Storage inventory must be available to the agent.');
 $assert(!isset($requests[0]['payload']['previous_response_id']), 'A new chain must not invent a previous response id.');
 $assert(($requests[1]['payload']['previous_response_id'] ?? '') === 'resp_step_1', 'First tool output must continue the same Responses chain.');

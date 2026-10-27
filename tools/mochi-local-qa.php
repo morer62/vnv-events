@@ -2,6 +2,7 @@
 require dirname(__DIR__).'/vendor/autoload.php';
 Dotenv\Dotenv::createImmutable(dirname(__DIR__))->safeLoad();
 use App\Repositories\Connection;
+use App\Services\MochiConciergeService;
 use App\Services\MochiSessionService;
 use App\Services\MochiOperationalToolsService;
 
@@ -19,7 +20,9 @@ try{$db=new Connection();$db->beginTransaction();$db->query("SELECT id,id_owner,
  $ok($tools->select('¿Cuál ha sido el empleado al que más dinero le hemos pagado este año?',1)==='payroll_payments','employee payment questions use payroll payment history');
  $ok($tools->select('¿Cuántos leads activos tenemos en el CRM?',1)==='crm','CRM questions use the CRM source');
  $ok($tools->select('¿Dónde tengo las flores blancas?',1)==='warehouse','inventory location questions use Storage');
- foreach(['weekend_events','crm','collections','opportunities','requests','contracts','contract_terms','team_members','catalog','knowledge_audit','warehouse','website'] as $tool){$query=in_array($tool,['catalog','knowledge_audit'],true)?'Pasta Station':($tool==='team_members'?'solo los activos':($tool==='warehouse'?'¿Dónde tengo las flores blancas?':''));$result=$tools->run($tool,(int)$admin->id,1,(int)$b->id,$query);$ok(isset($result['reply'],$result['items']),'Level 1 tool '.$tool);}
+ $ok($tools->select('Muéstrame los estimados que se crearon el 26 de octubre de 2026',1)==='estimates','estimate creation-date questions use the dedicated estimate reader');
+ foreach(['weekend_events','crm','collections','estimates','opportunities','requests','contracts','contract_terms','team_members','catalog','knowledge_audit','warehouse','website'] as $tool){$query=in_array($tool,['catalog','knowledge_audit'],true)?'Pasta Station':($tool==='team_members'?'solo los activos':($tool==='warehouse'?'¿Dónde tengo las flores blancas?':($tool==='estimates'?'Muéstrame los estimados que se crearon el 26 de octubre de 2026':'')));$result=$tools->run($tool,(int)$admin->id,1,(int)$b->id,$query);$ok(isset($result['reply'],$result['items']),'Level 1 tool '.$tool);if($tool==='estimates'){$ok(($result['facts']['created_start']??'')==='2026-10-26 00:00:00','estimate reader preserves the requested creation date');$ok(($result['facts']['created_end_exclusive']??'')==='2026-10-27 00:00:00','estimate reader uses a safe exclusive end bound');}}
+ $estimateRead=(new MochiConciergeService($owner,'vnvevents',$db))->ask((int)$admin->id,1,'Muéstrame los estimados que se crearon el 26 de octubre de 2026 por favor');$ok(($estimateRead['tool']??'')==='estimates','the real Mochi chat bypasses estimate editing and returns the created-estimate reader');
  $teamUser=$by[4]??null;$teamName=$teamUser?trim((string)($teamUser->name??'').' '.(string)($teamUser->lastname??'')):'';
  foreach(['largest_event'=>'¿Cuál es el evento más grande de noviembre de 2026?','team_activity'=>'¿En cuántos eventos trabajó '.$teamName.' este año 2026?','payroll_hours'=>'¿Cuántas horas registró '.$teamName.' este año 2026?'] as $tool=>$query){if($tool!=='largest_event'&&!$teamUser)continue;$result=$tools->run($tool,(int)$admin->id,1,(int)$b->id,$query);$ok(isset($result['reply'],$result['items'],$result['facts']),'Level 1 analytic tool '.$tool);}
  $payroll=$tools->run('payroll_payments',(int)$admin->id,1,(int)$b->id,'¿Cuál ha sido el empleado al que más dinero le hemos pagado este año 2026?');$ok(isset($payroll['facts']['top_employee_name'],$payroll['facts']['top_calculated_amount']),'payroll payment ranking is calculated from payment history');

@@ -6,7 +6,7 @@ final class MochiConversationRouterService
 {
     private const ROUTES=[
         'estimate_workflow','service_workflow','executed_events','largest_event','team_activity','payroll_hours','weekend_events','collections',
-        'opportunities','requests','contracts','contract_terms','team_members','catalog','knowledge_audit','warehouse','rewards','website',
+        'estimates','opportunities','requests','contracts','contract_terms','team_members','catalog','knowledge_audit','warehouse','rewards','website',
         'my_events','my_tasks','customer_orders','write_action','conversation','clarify',
     ];
 
@@ -40,6 +40,7 @@ final class MochiConversationRouterService
             .'Questions about completed/executed events, annual event counts, revenue produced by those events, or follow-ups to those results use executed_events. '
             .'Use largest_event for the largest or highest-value event in a month, year or date range. Use team_activity for the events or dates to which a named employee was assigned. Use payroll_hours for clocked or registered work hours in payroll. '
             .'Use weekend_events only for a specific agenda, weekend, date range or upcoming-event request. '
+            .'Use estimates for read-only questions that list, count or inspect estimates by their creation date or creation period. This is different from estimate_workflow, which is only for intentionally creating, editing or continuing one estimate. '
             .'Use contract_terms when the user asks what a contract, agreement, clause, policy or terms say, including setup access or arrival times. Use contracts only for signature status, missing signatures or contract lists. '
             .'Use team_members for counts or lists of VNV team users, including a follow-up such as "solo los activos" after asking about Team Members. '
             .'Use catalog for questions about an offered product or service; it consults the public store, published landing pages and the internal estimate-service catalog together. Use knowledge_audit when the user asks whether those sources contradict, differ or are inconsistent. '
