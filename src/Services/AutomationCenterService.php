@@ -57,8 +57,63 @@ final class AutomationCenterService
             30=>'Con calabazas sonrientes y mucha inspiración, Mary y Oriana celebran cada creación.',
             31=>'Entre huesitos tiernos y una dulce canción, Mary y Oriana cierran Halloween con emoción.',
         ];
-        $rhyme=$theme==='halloween'?$halloweenRhymes[$day]:$rhymes[((int)sprintf('%u',crc32($today->format('Y-m-d'))))%count($rhymes)];
+        $rhyme=$this->rhymeForDate($today,$theme,$rhymes,$halloweenRhymes);
         return ['state'=>$state,'theme'=>$theme,'greeting'=>$greeting,'rhyme'=>$rhyme];
+    }
+
+    private function rhymeForDate(\DateTimeImmutable $today,string $theme,array $regular,array $halloween): string
+    {
+        $day=(int)$today->format('d');
+        if($theme==='halloween')return $halloween[$day];
+
+        $year=(int)$today->format('Y');
+        $novemberFirst=new \DateTimeImmutable($year.'-11-01',$this->timezone);
+        $daysUntilThursday=(4-(int)$novemberFirst->format('N')+7)%7;
+        $thanksgiving=$novemberFirst->modify('+'.($daysUntilThursday+21).' days');
+        if($today>=$novemberFirst&&$today<=$thanksgiving){
+            $offset=(int)$novemberFirst->diff($today)->format('%a');
+            $openings=[
+                'Entre hojas doradas y gratitud sincera',
+                'Con aroma de otoño y alegría verdadera',
+                'Con un gracias gigante que ilumina el día',
+                'Entre sonrisas, cosecha y dulce armonía',
+                'Con cariño de otoño y esperanza encendida',
+                'Entre tonos dorados y una mesa compartida',
+                'Con gratitud en el alma y ternura infinita',
+            ];
+            $closings=[
+                'Mary y Oriana hacen equipo y llenan VNV de alegría',
+                'Oriana y Mary unen sus talentos y vuelven cada pendiente una melodía',
+                'Mary y Oriana avanzan juntas y hacen especial cada día',
+                'Oriana y Mary comparten la magia y celebran su linda compañía',
+            ];
+            return $openings[$offset%count($openings)].'; '.$closings[intdiv($offset,count($openings))%count($closings)].'.';
+        }
+
+        $christmasStart=$thanksgiving->modify('+1 day');
+        $christmasEnd=new \DateTimeImmutable($year.'-12-31',$this->timezone);
+        if($today>=$christmasStart&&$today<=$christmasEnd){
+            $offset=(int)$christmasStart->diff($today)->format('%a');
+            $openings=[
+                'Entre luces y estrellas que alegran la jornada',
+                'Con campanas, sonrisas y una agenda encantada',
+                'Bajo un brillo navideño de ternura y emoción',
+                'Con un toque de nieve, esperanza e ilusión',
+                'Entre regalos, colores y espíritu festivo',
+                'Con canciones de Navidad y un abrazo positivo',
+                'Entre luces doradas y alegría compartida',
+            ];
+            $closings=[
+                'Mary y Oriana hacen equipo y dejan cada tarea cumplida',
+                'Oriana y Mary unen talentos y llenan VNV de color',
+                'Mary y Oriana trabajan juntas con chispa y corazón',
+                'Oriana y Mary comparten la magia de cada celebración',
+                'Mary y Oriana avanzan lado a lado y hacen que todo brille mejor',
+            ];
+            return $openings[$offset%count($openings)].'; '.$closings[intdiv($offset,count($openings))%count($closings)].'.';
+        }
+
+        return $regular[((int)sprintf('%u',crc32($today->format('Y-m-d'))))%count($regular)];
     }
 
     public function saveSettings(array $input,int $actorId): void
