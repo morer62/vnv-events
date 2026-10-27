@@ -5,11 +5,13 @@ use App\Repositories\Connection;
 use App\Services\MochiConciergeService;
 use App\Services\MochiSessionService;
 use App\Services\MochiOperationalToolsService;
+use App\Services\OrderContractPolicyService;
 
 $fail=[];$ok=static function(bool $condition,string $name)use(&$fail){echo ($condition?'PASS ':'FAIL ').$name.PHP_EOL;if(!$condition)$fail[]=$name;};
 try{$db=new Connection();$db->beginTransaction();$db->query("SELECT id,id_owner,level,name,lastname FROM users WHERE level IN (1,4,5) ORDER BY FIELD(level,1,4,5)");$users=$db->fetchAll();$by=[];foreach($users as $u)$by[(int)$u->level]=$u;$admin=$by[1]??null;if(!$admin)throw new RuntimeException('No Level 1 QA user exists.');$owner=(int)$admin->id;
  $sessions=new MochiSessionService($owner,'vnvevents',$db);$a=$sessions->today((int)$admin->id,'2026-09-30');$b=$sessions->today((int)$admin->id,'2026-10-01');$sameDay=$sessions->today((int)$admin->id,'2026-10-01');$compatibleCreate=$sessions->create((int)$admin->id);$ok((int)$a->id!==(int)$b->id,'daily reset creates a new session');$ok((int)$sameDay->id===(int)$b->id,'calendar date keeps one conversation per day');$ok((string)$compatibleCreate->session_date===(new DateTimeImmutable('now',new DateTimeZone('America/New_York')))->format('Y-m-d'),'legacy new-chat action resolves to today instead of creating a duplicate');$ok(count($sessions->history((int)$admin->id))>=2,'daily history is retained');
  $tools=new MochiOperationalToolsService($owner,'vnvevents',$db);$ok(count($tools->suggestions(1))===4,'Level 1 has four suggestions');$ok(count($tools->suggestions(4))===4,'Level 4 has four suggestions');$ok(count($tools->suggestions(5))===4,'Level 5 has four suggestions');
+ $generalConditionsId=(new OrderContractPolicyService($owner,$db))->requiredGeneralConditionsId();$db->query('SELECT title FROM orders_contracts WHERE id=:id AND id_owner=:owner');$db->bind(':id',$generalConditionsId);$db->bind(':owner',$owner);$generalConditions=$db->fetchOne();$ok(mb_strtolower(trim((string)($generalConditions->title??'')))==='general conditions','Mochi estimate policy resolves the owner General Conditions contract');
  $ok($tools->select('Revisa el contrato: ¿cuánto tiempo antes debemos llegar para instalar?',1)==='contract_terms','contract clause questions do not open signature lists');
  $ok($tools->select('¿Cuántos contratos faltan por firmar?',1)==='contracts','contract signature questions keep the contract status route');
  $ok($tools->select('¿Cuántos Team Members activos tengo?',1)==='team_members','team member questions use the team roster');

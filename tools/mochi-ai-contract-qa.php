@@ -44,12 +44,18 @@ $view = file_get_contents($root.'/src/views/panel/level1/planner-hub/settings/au
 $concierge = file_get_contents($root.'/src/Services/MochiConciergeService.php');
 $responder = file_get_contents($root.'/src/Services/MochiConversationResponderService.php');
 $images = file_get_contents($root.'/src/Services/CmsImageGenerationService.php');
+$estimateWorkflowSource = file_get_contents($root.'/src/Services/MochiEstimateWorkflowService.php');
+$actionSource = file_get_contents($root.'/src/Services/MochiActionService.php');
+$knowledgeSource = file_get_contents($root.'/src/Services/MochiBusinessKnowledgeService.php');
 $assert(!str_contains($controller, 'transcribe_mochi_audio'), 'Audio transcription endpoint still exists.');
 $assert(!str_contains($view, 'id="mochi-voice"'), 'Voice button still exists.');
 $assert(str_contains($view, 'name="screenshots[]"'), 'Screenshot upload is missing.');
 $assert(str_contains($concierge, 'scope_guard'), 'Editorial scope guard is missing.');
 $assert(str_contains($responder, "'profile'=>'complex','reasoning_effort'=>'medium'"), 'Visible Mochi replies must use GPT-6.1 Sol with medium reasoning.');
 $assert(str_contains($images, "'gpt-image-2'"), 'Retired image model is still the default.');
+$assert(str_contains($estimateWorkflowSource, "'id_contract'=>\$contractId"), 'The conversational estimate workflow must assign General Conditions.');
+$assert(str_contains($actionSource, "'id_contract'=>\$contractId"), 'The controlled action estimate workflow must assign General Conditions.');
+$assert(str_contains($knowledgeSource, 'estimate_contract_policy'), 'The General Conditions estimate policy is missing from Mochi knowledge.');
 
 $estimateWorkflow = (new ReflectionClass(MochiEstimateWorkflowService::class))->newInstanceWithoutConstructor();
 $sanitizeQaServices = new ReflectionMethod($estimateWorkflow, 'sanitizeQaMarkerServices');
