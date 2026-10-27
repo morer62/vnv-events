@@ -174,3 +174,36 @@ $assert(
 );
 
 fwrite(STDOUT, "PASS: estimate-catalog questions retain their literal service name.\n");
+
+$workflowCalls = [];
+$workflowResponses = [
+    [
+        'id' => 'resp_workflow_tool',
+        'output' => [[
+            'type' => 'function_call',
+            'call_id' => 'call_estimate',
+            'name' => 'work_on_estimate',
+            'arguments' => json_encode(['message' => 'Expanded model interpretation that must not replace the user selection.']),
+        ]],
+    ],
+    [
+        'id' => 'resp_workflow_final',
+        'output' => [[
+            'type' => 'message',
+            'content' => [['type' => 'output_text', 'text' => 'Model paraphrase that must not replace the workflow result.']],
+        ]],
+    ],
+];
+$workflowTransport = static function (string $url, array $payload) use (&$workflowResponses): array {
+    return ['status' => 200, 'body' => json_encode(array_shift($workflowResponses)), 'error' => ''];
+};
+$workflowExecutor = static function (string $name, array $arguments) use (&$workflowCalls): array {
+    $workflowCalls[] = [$name, $arguments];
+    return ['reply' => 'Estimate #123 creado correctamente.', 'facts' => [], 'items' => [], 'estimate_workflow' => ['id'=>9,'status'=>'ACTIVE']];
+};
+$workflowResult = (new MochiAgentLoopService(2, 'vnvevents', null, $workflowTransport, $workflowExecutor))
+    ->run(99, 1, 123, 'el primero', [], [], ['estimate'=>['active'=>true]]);
+$assert(($workflowCalls[0][1]['message'] ?? '') === 'el primero', 'Estimate workflow must receive the literal user selection.');
+$assert(($workflowResult['reply'] ?? '') === 'Estimate #123 creado correctamente.', 'The deterministic workflow result must remain the visible answer.');
+
+fwrite(STDOUT, "PASS: estimate workflow selections and results cannot be rewritten by the model.\n");

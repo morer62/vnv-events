@@ -10,7 +10,7 @@ use RuntimeException;
 
 final class MochiEstimateWorkflowService
 {
-    private const CREATE_RE='/\b(create|crear|crea|cr[eé]ame|prep[aá]rame|hazme|armame|[aá]rmame|nuevo|new)\b.*\b(estimate|estimado|cotizaci[oó]n)\b|\b(estimate|estimado|cotizaci[oó]n)\b.*\b(create|crear|crea|cr[eé]ame|prep[aá]rame|hazme|armame|[aá]rmame|nuevo|new)\b/iu';
+    private const CREATE_RE='/\b(create|crear|crea|cr[eé]ame|hacerme|hazme|prep[aá]rame|armame|[aá]rmame|nuevo|new)\b.*\b(estimate|estimado|cotizaci[oó]n)\b|\b(estimate|estimado|cotizaci[oó]n)\b.*\b(create|crear|crea|cr[eé]ame|hacerme|hazme|prep[aá]rame|armame|[aá]rmame|nuevo|new)\b/iu';
     private const MODIFY_RE='/\b(modify|edit|update|modificar|editar|cambiar|actualizar)\b.*\b(estimate|estimado|cotizaci[oó]n)\b|\b(estimate|estimado|cotizaci[oó]n)\b.*\b(modify|edit|update|modificar|editar|cambiar|actualizar)\b/iu';
     private const APPROVE_RE='/^(?:(?:s[ií]|yes|correcto|correct|looks good|se ve bien|aprobado|approve)(?:[,.!\s]+(?:aplica|aplicar|aplica los|aplica esos|haz|realiza|guarda|confirma)(?:\s+(?:los|esos|estos))?(?:\s+cambios)?)?|(?:aplica|aplicar|haz|realiza|guarda|confirma)(?:\s+(?:los|esos|estos))?\s+cambios|cr[eé]alo|crealo|create it|hazlo)[.!\s]*$/iu';
 
@@ -44,6 +44,10 @@ final class MochiEstimateWorkflowService
         if(preg_match('/\b(cancel|cancelar|start over|empezar de nuevo|reiniciar)\b/iu',$message)){
             if($workflow)$this->setStatus((int)$workflow->id,'CANCELLED');
             return $this->result('Cancelé el borrador. No se creó ni modificó ningún estimate.',null,[],'idle');
+        }
+        if($workflow&&!(int)($workflow->current_estimate_id??0)&&$this->startsDifferentEstimate($message)){
+            $this->reset((int)$workflow->id,'CREATE');
+            $workflow=$this->active($userId,$sessionId);
         }
         if(!$workflow){
             $mode=preg_match(self::MODIFY_RE,$message)?'MODIFY':'CREATE';
@@ -90,6 +94,7 @@ final class MochiEstimateWorkflowService
                 (array)($draft['requested_services']??[])
             )));
             unset($draft['pending_service'],$draft['service_suggestions']);
+            $draft=$this->clearResolvedServiceUncertainty($draft);
             $message='El servicio correcto es '.$selectedSuggestion.'. '.$message;
         }
         $parsed=$this->messageFallbacks($this->parse($draft,$message),$message);
@@ -159,6 +164,7 @@ final class MochiEstimateWorkflowService
             // fixed/variable question repeatedly.
             $custom[0]['is_variable']=true;$parsed['custom_services']=$custom;
         }
+        if($discount=$this->discountFromText($message)){$parsed['discount_type']=$discount['type'];$parsed['discount_value']=$discount['value'];}
         return $parsed;
     }
 
@@ -185,6 +191,10 @@ final class MochiEstimateWorkflowService
         foreach(['customer_name','email','phone','event_date','start_time','end_time','venue','address','city','event_type','notes'] as $key){if(isset($draft[$key])&&is_string($draft[$key]))$draft[$key]=trim($draft[$key]);}
         if(empty($draft['event_type']))$draft['event_type']='Social Event';
         $draft['payment_split_type']=(int)($draft['payment_split_type']??2)===1?1:2;
+        if((!isset($draft['discount_value'])||(float)$draft['discount_value']<=0)&&$discount=$this->discountFromText((string)($draft['notes']??''))){$draft['discount_type']=$discount['type'];$draft['discount_value']=$discount['value'];}
+        $draft['discount_type']=($draft['discount_type']??'amount')==='percentage'?'percentage':'amount';
+        $draft['discount_value']=max(0.0,(float)($draft['discount_value']??0));
+        if($draft['discount_type']==='percentage')$draft['discount_value']=min(100.0,$draft['discount_value']);
         $blockingUncertain=['customer_name','email','event_date','start_time','end_time','requested_services','services'];
         $draft['uncertain_fields']=array_values(array_filter(
             (array)($draft['uncertain_fields']??[]),
@@ -207,7 +217,7 @@ final class MochiEstimateWorkflowService
         if(!empty($draft['unresolved_services'])){
             $draft['pending_service']=(string)$draft['unresolved_services'][0];
             $draft['service_suggestions']=$this->serviceCandidates($draft['pending_service']);
-        }else unset($draft['pending_service'],$draft['service_suggestions']);
+        }else{$draft=$this->clearResolvedServiceUncertainty($draft);unset($draft['pending_service'],$draft['service_suggestions']);}
         $draft['possible_duplicates']=$this->duplicates($draft);
         $draft['conflicts']=$this->conflicts($draft);
         return $draft;
@@ -226,7 +236,7 @@ final class MochiEstimateWorkflowService
         if(!empty($draft['update_customer_contact']))$this->syncCustomerContact($customerId,$draft,$actor);
         $notes=$this->englishNotes($draft);
         $splitType=(int)($draft['payment_split_type']??2)===1?1:2;
-        $orderId=(new OrdersRepository())->addWithExplicitOwner(['id_owner'=>$this->ownerId,'id_user'=>$actor,'id_client'=>$customerId,'event_date'=>$draft['event_date'],'address'=>$this->address($draft),'start_time'=>$draft['start_time'],'end_time'=>$draft['end_time'],'setup_minutes'=>60,'payment_status'=>'pending','status_workflow'=>'INVOICE_DRAFT','notes'=>$notes,'discount_type'=>'amount','discount_value'=>0,'tax_percentage'=>10,'payment_split_type'=>$splitType,'payment_split_percent_1'=>$splitType===1?100:50,'payment_split_percent_2'=>$splitType===1?0:50,'total_team_needed'=>0,'is_archived'=>0]);
+        $orderId=(new OrdersRepository())->addWithExplicitOwner(['id_owner'=>$this->ownerId,'id_user'=>$actor,'id_client'=>$customerId,'event_date'=>$draft['event_date'],'address'=>$this->address($draft),'start_time'=>$draft['start_time'],'end_time'=>$draft['end_time'],'setup_minutes'=>60,'payment_status'=>'pending','status_workflow'=>'INVOICE_DRAFT','notes'=>$notes,'discount_type'=>$draft['discount_type']??'amount','discount_value'=>(float)($draft['discount_value']??0),'tax_percentage'=>10,'payment_split_type'=>$splitType,'payment_split_percent_1'=>$splitType===1?100:50,'payment_split_percent_2'=>$splitType===1?0:50,'total_team_needed'=>0,'is_archived'=>0]);
         if(!$orderId)throw new RuntimeException('No pude crear el estimate. Conservé el borrador para reintentar.');
         $assigned=new OrdersServicesAssignedRepository();foreach((array)$draft['services'] as $service){if((int)($service['id']??0)<=0)$service['id']=$this->createCustomService($service,$actor);$qty=max(1,(int)($service['quantity']??1));$price=(float)$service['price'];$variable=($service['is_variable']??'NO')==='YES';$assigned->add(['id_order'=>$orderId,'id_service'=>(int)$service['id'],'quantity'=>$qty,'unit_price'=>$price,'description'=>$service['description']??null,'subtotal'=>$qty*$price,'id_owner'=>$this->ownerId,'is_variable'=>$variable?'YES':'NO','variable_price'=>$variable?$price:null]);}
         $order=(object)(new OrdersRepository())->getByIdWithoutOwnershipCheck($orderId);$totals=OrderCalculatorService::calculateTotal($order);$public=$this->publicUrl($orderId,$customerId);
@@ -261,7 +271,7 @@ final class MochiEstimateWorkflowService
     {
         $services=array_map(function($s){if(!is_array($s))return '• '.$s;$detail='• '.($s['name']??'');if(!empty($s['_custom']))$detail.=' · nuevo · '.(($s['is_variable']??'NO')==='YES'?'variable':'fijo').' · $'.number_format((float)($s['price']??0),2).(!empty($s['is_per_guest'])?' por persona':'');return $detail;},(array)($d['services']??$d['requested_services']??[]));
         $lines=[$editing?'Estos son los cambios que entendí:':'Esto es lo que entendí:','',"Cliente\n".($d['customer_name']??'—')."\n".($d['email']??'—')."\n".($d['phone']??'—'),'',"Evento\n".($d['event_date']??'—').' · '.($d['start_time']??'—').'–'.($d['end_time']??'—')."\n".$this->address($d).(!empty($d['guest_count'])?"\n".$d['guest_count'].' invitados':''),'',"Servicios solicitados\n".($services?implode("\n",$services):'—')];
-        if($editing&&!empty($d['services_to_remove']))$lines[]="\nQuitar\n• ".implode("\n• ",$d['services_to_remove']);if(!empty($d['notes']))$lines[]="\nNotas\n".$d['notes'];if(!empty($d['possible_duplicates']))$lines[]="\n⚠️ Encontré un posible estimate duplicado.";if(!empty($d['conflicts']))$lines[]="\n⚠️ Hay otro evento cercano en fecha/hora; no bloquea automáticamente, pero requiere revisión.";if(!empty($d['crm_conflicts'])){foreach($d['crm_conflicts'] as $field=>$values)$lines[]="\n⚠️ Conflicto de contacto ({$field}): captura/mensaje {$values['incoming']} · CRM {$values['crm']}. Indícame si uso el dato del CRM o si actualizo el CRM.";}if(!empty($d['uncertain_fields']))$lines[]="\n⚠️ Necesito confirmar: ".implode(', ',$d['uncertain_fields']).'.';return implode("\n",$lines);
+        if((float)($d['discount_value']??0)>0)$lines[]="\nDescuento\n".number_format((float)$d['discount_value'],2).(($d['discount_type']??'amount')==='percentage'?'%':' USD');if($editing&&!empty($d['services_to_remove']))$lines[]="\nQuitar\n• ".implode("\n• ",$d['services_to_remove']);if(!empty($d['notes']))$lines[]="\nNotas\n".$d['notes'];if(!empty($d['possible_duplicates']))$lines[]="\n⚠️ Encontré un posible estimate duplicado.";if(!empty($d['conflicts']))$lines[]="\n⚠️ Hay otro evento cercano en fecha/hora; no bloquea automáticamente, pero requiere revisión.";if(!empty($d['crm_conflicts'])){foreach($d['crm_conflicts'] as $field=>$values)$lines[]="\n⚠️ Conflicto de contacto ({$field}): captura/mensaje {$values['incoming']} · CRM {$values['crm']}. Indícame si uso el dato del CRM o si actualizo el CRM.";}if(!empty($d['uncertain_fields']))$lines[]="\n⚠️ Necesito confirmar: ".implode(', ',$d['uncertain_fields']).'.';return implode("\n",$lines);
     }
 
     private function missing(array $d): array
@@ -412,6 +422,24 @@ final class MochiEstimateWorkflowService
     private function englishNotes(array $d): string {$parts=[];if(!empty($d['event_type']))$parts[]='Event type: '.$d['event_type'];if(!empty($d['guest_count']))$parts[]='Guest count: '.$d['guest_count'];if(!empty($d['venue']))$parts[]='Venue: '.$d['venue'];if(!empty($d['notes']))$parts[]=$d['notes'];$parts[]='Created by Mochi for review. No customer email was sent automatically.';return implode("\n",$parts);}
     private function address(array $d): string {$parts=[];foreach([$d['venue']??'',$d['address']??'',$d['city']??''] as $part){$part=trim((string)$part,' ,');if($part===''||array_filter($parts,fn($existing)=>mb_stripos($existing,$part)!==false||mb_stripos($part,$existing)!==false))continue;$parts[]=$part;}return implode(', ',$parts);}
     private function phone(string $value): string {return preg_replace('/\D+/','',$value)??'';}
+    private function startsDifferentEstimate(string $message): bool
+    {
+        if(!preg_match(self::CREATE_RE,$message))return false;
+        return (bool)preg_match('/\b[A-Z0-9._%+\-]+@[A-Z0-9.\-]+\.[A-Z]{2,}\b/iu',$message)
+            || $this->estimateEventDate($message)!==null;
+    }
+    private function clearResolvedServiceUncertainty(array $draft): array
+    {
+        if(!empty($draft['unresolved_services']))return $draft;
+        $draft['uncertain_fields']=array_values(array_diff((array)($draft['uncertain_fields']??[]),['requested_services','services']));
+        return $draft;
+    }
+    private function discountFromText(string $text): ?array
+    {
+        if(preg_match('/(\d{1,3}(?:\.\d{1,2})?)\s*%\s*(?:de\s+)?(?:descuento|discount)\b|(?:descuento|discount)\b.{0,25}?(\d{1,3}(?:\.\d{1,2})?)\s*%/iu',$text,$match))return ['type'=>'percentage','value'=>(float)($match[1]!==''?$match[1]:$match[2])];
+        if(preg_match('/(?:descuento|discount)\b.{0,20}?\$\s*(\d+(?:\.\d{1,2})?)/iu',$text,$match))return ['type'=>'amount','value'=>(float)$match[1]];
+        return null;
+    }
     private function selectedServiceSuggestion(array $draft,string $message): ?string
     {
         $suggestions=(array)($draft['service_suggestions']??[]);if(!$suggestions)return null;$plain=mb_strtolower(trim($message));

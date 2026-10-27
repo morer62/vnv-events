@@ -83,13 +83,17 @@ final class MochiAgentLoopService
             'service_workflow' => null,
             'action_draft' => null,
             'copy_url' => null,
+            'workflow_reply' => null,
         ];
         $totalCalls = 0;
 
         while (true) {
             $calls = $this->functionCalls($response);
             if (!$calls) {
-                $reply = $this->outputText($response);
+                $reply = (string)($aggregate['workflow_reply'] ?? '');
+                if ($reply === '') {
+                    $reply = $this->outputText($response);
+                }
                 if ($reply === '') {
                     throw new RuntimeException('OpenAI Responses returned no conversational answer.');
                 }
@@ -118,6 +122,9 @@ final class MochiAgentLoopService
                         (string)($arguments['query'] ?? '')
                     );
                 }
+                if (in_array($name, ['work_on_estimate', 'work_on_service_or_product'], true)) {
+                    $arguments['message'] = $message;
+                }
                 $result = $this->executeTool($name, $arguments, $userId, $level, $sessionId);
                 $toolKey = $name === 'read_vnv_data' ? $name.':'.(string)($arguments['topic'] ?? 'unknown') : $name;
                 $aggregate['tool_calls'][] = $toolKey;
@@ -130,6 +137,10 @@ final class MochiAgentLoopService
                     if (array_key_exists($field, $result) && $result[$field] !== null) {
                         $aggregate[$field] = $result[$field];
                     }
+                }
+                if (in_array($name, ['work_on_estimate', 'work_on_service_or_product'], true)
+                    && trim((string)($result['reply'] ?? '')) !== '') {
+                    $aggregate['workflow_reply'] = (string)$result['reply'];
                 }
                 $outputs[] = [
                     'type' => 'function_call_output',

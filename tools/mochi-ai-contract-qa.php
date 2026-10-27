@@ -61,6 +61,12 @@ $applyQuantities = new ReflectionMethod($estimateWorkflow, 'applyQuantities');
 $perGuestServices = $applyQuantities->invoke($estimateWorkflow, [['name' => 'QA service', 'description' => 'Test service', 'requirements' => 'Pricing basis: per guest.', 'quantity' => 1, 'is_variable' => 'YES']], 40);
 $assert(($perGuestServices[0]['quantity'] ?? 0) === 40, 'Catalog services marked per guest must use the guest count.');
 $assert(($perGuestServices[0]['is_variable'] ?? '') === 'YES', 'Catalog variable pricing must survive quantity calculation.');
+$clearResolved = new ReflectionMethod($estimateWorkflow, 'clearResolvedServiceUncertainty');
+$healedDraft = $clearResolved->invoke($estimateWorkflow, ['uncertain_fields'=>['requested_services','email'],'unresolved_services'=>[]]);
+$assert(($healedDraft['uncertain_fields'] ?? []) === ['email'], 'A resolved service selection must not remain blocked as uncertain.');
+$discountFromText = new ReflectionMethod($estimateWorkflow, 'discountFromText');
+$discount = $discountFromText->invoke($estimateWorkflow, 'Ponle un 5% de descuento al estimado.');
+$assert(($discount['type'] ?? '') === 'percentage' && abs((float)($discount['value'] ?? 0)-5.0)<0.001, 'Estimate percentage discount must be captured mathematically.');
 
 echo "MOCHI AI contract QA: PASS\n";
 
