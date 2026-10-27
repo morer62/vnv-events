@@ -35,6 +35,29 @@ final class MochiConciergeService
             'estimate'=>$activeEstimate?['active'=>true,'mode'=>(string)$activeEstimate->mode,'status'=>(string)$activeEstimate->status,'current_estimate_id'=>$activeEstimate->current_estimate_id? (int)$activeEstimate->current_estimate_id:null]:['active'=>false],
             'service'=>$activeService?['active'=>true,'status'=>(string)$activeService->status,'current_service_id'=>$activeService->current_service_id? (int)$activeService->current_service_id:null,'current_product_id'=>$activeService->current_product_id? (int)$activeService->current_product_id:null]:['active'=>false],
         ];
+        // Primary path: a real agent loop may consult several approved tools before
+        // answering. The legacy single-route flow below remains as a safe fallback
+        // if the Responses API or its stored conversation is temporarily unavailable.
+        try{
+            $agent=(new MochiAgentLoopService($this->ownerId,$this->siteKey,$this->db))->run(
+                $authorId,$level,$sessionId,$message,$recentMessages,$memory,$activeTasks
+            );
+            $metadata=[
+                'tool'=>(string)$agent['tool'],
+                'items'=>(array)($agent['items']??[]),
+                'facts'=>(array)($agent['facts']??[]),
+                'tool_calls'=>(array)($agent['tool_calls']??[]),
+                'tool_trace'=>(array)($agent['tool_trace']??[]),
+                'openai_response_id'=>(string)($agent['openai_response_id']??''),
+            ];
+            foreach(['estimate_workflow','service_workflow','action_draft','copy_url'] as $field)if(array_key_exists($field,$agent)&&$agent[$field]!==null)$metadata[$field]=$agent[$field];
+            $this->save($sessionId,null,'AGENT',(string)$agent['reply'],$metadata);$this->sessions->touch($sessionId);
+            return [
+                'reply'=>(string)$agent['reply'],'items'=>$metadata['items'],'tool'=>$metadata['tool'],'session_id'=>$sessionId,
+                'estimate_workflow'=>$agent['estimate_workflow']??null,'service_workflow'=>$agent['service_workflow']??null,
+                'action_draft'=>$agent['action_draft']??null,'copy_url'=>$agent['copy_url']??null,
+            ];
+        }catch(\Throwable $e){error_log('[Mochi agent loop fallback] '.$e->getMessage());}
         try{$decision=(new MochiConversationRouterService())->decide($message,$recentMessages,$activeTasks,$level,$memory);}
         catch(\Throwable $e){error_log('[Mochi context router] '.$e->getMessage());$decision=$this->fallbackDecision($message,$recentMessages,$activeEstimate,$activeService,$level);}
         $route=(string)$decision['route'];$resolvedMessage=(string)$decision['resolved_message'];$routerMetadata=['route'=>$route,'confidence'=>(float)$decision['confidence'],'resolved_message'=>$resolvedMessage];
@@ -76,10 +99,14 @@ final class MochiConciergeService
     {
         $previousTool='';
         foreach(array_reverse($recentMessages) as $row){if(($row->author_type??'')!=='AGENT')continue;$metadata=json_decode((string)($row->metadata_json??''),true)?:[];$previousTool=(string)($metadata['tool']??'');if($previousTool!=='')break;}
-        if(preg_match('/^(?:y\s+)?(?:cu[aá]nto|cu[aá]ntos|cu[aá]l|eso|el anterior|contin[uú]a)\b/iu',$message)&&in_array($previousTool,['executed_events','weekend_events','collections','opportunities','requests','contracts','contract_terms','team_members','catalog','knowledge_audit','warehouse','rewards','website'],true))return ['route'=>$previousTool,'resolved_message'=>$message,'confidence'=>0.65,'clarification'=>''];
+        if(preg_match('/read_vnv_data:(largest_event|team_activity|payroll_hours|executed_events|weekend_events|collections|opportunities|requests|contracts|contract_terms|team_members|catalog|knowledge_audit|warehouse|rewards|website)/',$previousTool,$match))$previousTool=$match[1];
+        if(preg_match('/^(?:y\s+)?(?:cu[aá]nto|cu[aá]ntos|cu[aá]l|eso|el anterior|contin[uú]a)\b/iu',$message)&&in_array($previousTool,['executed_events','largest_event','team_activity','payroll_hours','weekend_events','collections','opportunities','requests','contracts','contract_terms','team_members','catalog','knowledge_audit','warehouse','rewards','website'],true))return ['route'=>$previousTool,'resolved_message'=>$message,'confidence'=>0.65,'clarification'=>''];
         if(preg_match('/\b(contrato|acuerdo|cl[aá]usula|t[eé]rminos?)\b.{0,100}\b(dice|indica|especifica|establece|incluye|revis|cu[aá]nto tiempo|llegar|instalar|montaje|acceso)\b|\b(dice|indica|especifica|establece|revis|cu[aá]nto tiempo|llegar|instalar|montaje|acceso)\b.{0,100}\b(contrato|acuerdo|cl[aá]usula|t[eé]rminos?)\b/iu',$message))return ['route'=>'contract_terms','resolved_message'=>$message,'confidence'=>0.85,'clarification'=>''];
         if(preg_match('/team\s*members?|miembros? del equipo|personas?.{0,60}(equipo|staff)|equipo.{0,60}(registrad|activ|miembros?|personas?)/iu',$message))return ['route'=>'team_members','resolved_message'=>$message,'confidence'=>0.85,'clarification'=>''];
         if(preg_match('/contradic|inconsisten|no coincide|diferencias?.{0,80}(cat[aá]logo|servicio|producto|landing|tienda|store)|comparar?.{0,80}(cat[aá]logo|servicio|producto|landing|tienda|store)/iu',$message))return ['route'=>'knowledge_audit','resolved_message'=>$message,'confidence'=>0.85,'clarification'=>''];
+        if(preg_match('/\b(evento|orden)\b.{0,80}\b(m[aá]s grande|mayor|highest|largest)\b|\b(m[aá]s grande|mayor|highest|largest)\b.{0,80}\b(evento|orden)\b/iu',$message))return ['route'=>'largest_event','resolved_message'=>$message,'confidence'=>0.9,'clarification'=>''];
+        if(preg_match('/\b(cu[aá]ntas? horas?|payroll|reloj|clock|fich[oó])\b/iu',$message))return ['route'=>'payroll_hours','resolved_message'=>$message,'confidence'=>0.9,'clarification'=>''];
+        if(preg_match('/\b(eventos?|fechas?)\b.{0,100}\b(asignad[oa]|trabaj[oó]|worked|labor[oó])\b|\b(asignad[oa]|trabaj[oó]|worked|labor[oó])\b.{0,100}\b(eventos?|fechas?)\b/iu',$message))return ['route'=>'team_activity','resolved_message'=>$message,'confidence'=>0.9,'clarification'=>''];
         if(preg_match('/\b(eventos?|contratos?)\b.{0,100}\b(ejecutad[oa]s?|realizad[oa]s?|completad[oa]s?|gener[oó]|factur[oó]|produjo|ingresos?)\b|\b(cu[aá]nto dinero|ingresos?|facturaci[oó]n)\b.{0,80}\b(eventos?|contratos?)\b/iu',$message))return ['route'=>'executed_events','resolved_message'=>$message,'confidence'=>0.8,'clarification'=>''];
         if(preg_match('/\b(estimate|estimado|cotizaci[oó]n)\b/iu',$message))return ['route'=>'estimate_workflow','resolved_message'=>$message,'confidence'=>0.8,'clarification'=>''];
         if(preg_match('/\b(crear|agregar|modificar|editar|actualizar)\b.{0,80}\b(servicio|service)\b/iu',$message))return ['route'=>'service_workflow','resolved_message'=>$message,'confidence'=>0.8,'clarification'=>''];

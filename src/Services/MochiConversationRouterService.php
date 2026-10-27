@@ -5,7 +5,7 @@ namespace App\Services;
 final class MochiConversationRouterService
 {
     private const ROUTES=[
-        'estimate_workflow','service_workflow','executed_events','weekend_events','collections',
+        'estimate_workflow','service_workflow','executed_events','largest_event','team_activity','payroll_hours','weekend_events','collections',
         'opportunities','requests','contracts','contract_terms','team_members','catalog','knowledge_audit','warehouse','rewards','website',
         'my_events','my_tasks','customer_orders','write_action','conversation','clarify',
     ];
@@ -38,6 +38,7 @@ final class MochiConversationRouterService
             .'Select the tool that produced the referenced structured result so it can re-read current database facts. '
             .'An active task is only resumable context, never the default destination: select estimate_workflow only when the current message actually continues or changes that estimate. '
             .'Questions about completed/executed events, annual event counts, revenue produced by those events, or follow-ups to those results use executed_events. '
+            .'Use largest_event for the largest or highest-value event in a month, year or date range. Use team_activity for the events or dates to which a named employee was assigned. Use payroll_hours for clocked or registered work hours in payroll. '
             .'Use weekend_events only for a specific agenda, weekend, date range or upcoming-event request. '
             .'Use contract_terms when the user asks what a contract, agreement, clause, policy or terms say, including setup access or arrival times. Use contracts only for signature status, missing signatures or contract lists. '
             .'Use team_members for counts or lists of VNV team users, including a follow-up such as "solo los activos" after asking about Team Members. '
