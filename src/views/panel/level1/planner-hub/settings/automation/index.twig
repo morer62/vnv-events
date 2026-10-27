@@ -24,7 +24,7 @@
 <main class="mochi-app">
  <header class="mochi-topbar">
   <button class="mochi-menu" id="mochi-history-open" type="button" aria-label="Abrir historial"><i class="fa-solid fa-bars"></i></button>
-  <div class="mochi-title"><strong>Mochi</strong><small>{{ mochi.session.session_date }} · una conversación por día</small></div>
+  <div class="mochi-title"><strong>Mochi</strong><small>{{ mochi.session.date_label|default(mochi.session.session_date) }} · una conversación por día</small></div>
   <form class="mochi-date-form" method="get" title="Cambiar fecha"><button class="mochi-date-button" type="button" aria-hidden="true"><i class="fa-regular fa-calendar"></i></button><input type="date" name="date" value="{{ mochi.session.session_date }}" aria-label="Abrir conversación de otra fecha"></form>
  </header>
 
@@ -50,7 +50,7 @@
 <aside class="mochi-drawer" id="mochi-history-drawer" aria-label="Historial de conversaciones">
  <div class="mochi-drawer-head"><div><strong>Conversaciones</strong><small class="d-block text-muted">Una por cada día</small></div><button class="mochi-menu" id="mochi-history-close" type="button" aria-label="Cerrar historial"><i class="fa-solid fa-xmark"></i></button></div>
  <form class="mb-3" method="get"><label class="form-label small fw-bold" for="mochi-history-date">Abrir una fecha</label><input class="form-control" id="mochi-history-date" type="date" name="date" value="{{ mochi.session.session_date }}"></form>
- <nav class="mochi-history">{% for session in mochi.history %}<a class="history-link {{ session.id == mochi.session.id ? 'active' }}" href="?session={{ session.id }}"><strong>{{ session.session_date }}</strong><small>{{ session.message_count }} mensajes</small></a>{% endfor %}</nav>
+ <nav class="mochi-history">{% for session in mochi.history %}<a class="history-link {{ session.id == mochi.session.id ? 'active' }}" href="?session={{ session.id }}"><strong>{{ session.date_label|default(session.session_date) }}</strong><small>{{ session.message_count }} mensajes</small></a>{% endfor %}</nav>
 </aside>
 {% endif %}
 

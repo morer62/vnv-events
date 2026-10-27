@@ -22,7 +22,7 @@ final class MochiSessionService
         $this->bind(['owner' => $this->ownerId, 'site' => $this->siteKey, 'user' => $userId, 'day' => $date]);$this->db->execute();
         $this->db->query('SELECT * FROM mochi_sessions WHERE id_owner=:owner AND site_key=:site AND id_user=:user AND session_date=:day ORDER BY sequence_no ASC LIMIT 1');
         $this->bind(['owner' => $this->ownerId, 'site' => $this->siteKey, 'user' => $userId, 'day' => $date]);
-        if ($row = $this->db->fetchOne()) return $row;
+        if ($row = $this->db->fetchOne()) return $this->withDateLabel($row);
         $this->db->query("INSERT INTO mochi_sessions(id_owner,site_key,id_user,session_date,sequence_no,title,status) VALUES(:owner,:site,:user,:day,1,:title,'ACTIVE')");
         $this->bind(['owner' => $this->ownerId, 'site' => $this->siteKey, 'user' => $userId, 'day' => $date, 'title' => 'Conversación · '.$date]);$this->db->execute();
         return $this->get((int)$this->db->lastId(), $userId);
@@ -33,7 +33,8 @@ final class MochiSessionService
     {
         $this->db->query('SELECT * FROM mochi_sessions WHERE id_owner=:owner AND site_key=:site AND id_user=:user ORDER BY session_date DESC,sequence_no ASC LIMIT 1');
         $this->bind(['owner' => $this->ownerId, 'site' => $this->siteKey, 'user' => $userId]);
-        return $this->db->fetchOne() ?: $this->today($userId);
+        $row = $this->db->fetchOne();
+        return $row ? $this->withDateLabel($row) : $this->today($userId);
     }
 
     /** Kept for compatibility; it can no longer create multiple conversations in one day. */
@@ -45,14 +46,14 @@ final class MochiSessionService
         $this->bind(['id' => $id, 'owner' => $this->ownerId, 'site' => $this->siteKey, 'user' => $userId]);
         $row = $this->db->fetchOne();
         if (!$row) throw new \RuntimeException('Conversación no disponible.');
-        return $row;
+        return $this->withDateLabel($row);
     }
 
     public function history(int $userId, int $limit = 60): array
     {
         $this->db->query("SELECT s.*,COUNT(c.id) message_count FROM mochi_sessions s LEFT JOIN automation_conversations c ON c.id_mochi_session=s.id WHERE s.id_owner=:owner AND s.site_key=:site AND s.id_user=:user GROUP BY s.id ORDER BY s.session_date DESC,s.sequence_no ASC LIMIT ".max(1, min(120, $limit)));
         $this->bind(['owner' => $this->ownerId, 'site' => $this->siteKey, 'user' => $userId]);
-        return $this->db->fetchAll();
+        return array_map(fn(object $row): object => $this->withDateLabel($row), $this->db->fetchAll());
     }
 
     public function messages(int $sessionId, int $userId, int $limit = 100): array
@@ -67,6 +68,16 @@ final class MochiSessionService
     {
         $this->db->query('UPDATE mochi_sessions SET last_message_at=UTC_TIMESTAMP() WHERE id=:id AND id_owner=:owner AND site_key=:site');
         $this->bind(['id' => $sessionId, 'owner' => $this->ownerId, 'site' => $this->siteKey]);$this->db->execute();
+    }
+
+    private function withDateLabel(object $row): object
+    {
+        $date=\DateTimeImmutable::createFromFormat('!Y-m-d',(string)$row->session_date,new \DateTimeZone(self::ZONE));
+        if(!$date){$row->date_label=(string)$row->session_date;return $row;}
+        $days=['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
+        $months=[1=>'enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+        $row->date_label=ucfirst($days[(int)$date->format('w')]).', '.$date->format('j').' de '.$months[(int)$date->format('n')];
+        return $row;
     }
 
     private function bind(array $values): void {foreach ($values as $key => $value) $this->db->bind(':'.$key, $value);}
