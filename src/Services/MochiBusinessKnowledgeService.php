@@ -31,13 +31,14 @@ final class MochiBusinessKnowledgeService
         $estimate=$this->estimateServices($terms);
         $store=$this->storeProducts($terms);
         $pages=$this->landingPages($terms);
-        $items=[];
-        foreach($estimate as $row)$items[]=['title'=>$row['name'],'meta'=>'Catálogo interno de estimates · $'.number_format((float)$row['price'],2).($row['is_variable']==='YES'?' variable':''),'detail'=>mb_substr(trim($row['description'].' '.$row['requirements']),0,420),'url'=>'/panel/planner-hub/management/orders/services'];
-        foreach($store as $row)$items[]=['title'=>$row['name'],'meta'=>'Tienda pública · '.$row['price_label'],'detail'=>mb_substr(trim($row['description'].' '.($row['variations']??'')),0,420),'url'=>'/vnv-gourmet-express/product/'.$row['slug']];
-        foreach($pages as $row)$items[]=['title'=>$row['title'],'meta'=>'Landing page publicada','detail'=>mb_substr($row['excerpt'],0,420),'url'=>'/'.ltrim($row['route'],'/')];
+        $estimateItems=[];$storeItems=[];$pageItems=[];
+        foreach($estimate as $row)$estimateItems[]=['title'=>$row['name'],'meta'=>'Catálogo interno de estimates · $'.number_format((float)$row['price'],2).($row['is_variable']==='YES'?' variable':''),'detail'=>mb_substr(trim($row['description'].' '.$row['requirements']),0,420),'url'=>'/panel/planner-hub/management/orders/services'];
+        foreach($store as $row)$storeItems[]=['title'=>$row['name'],'meta'=>'Tienda pública · '.$row['price_label'],'detail'=>mb_substr(trim($row['description'].' '.($row['variations']??'')),0,420),'url'=>'/vnv-gourmet-express/product/'.$row['slug']];
+        foreach($pages as $row)$pageItems[]=['title'=>$row['title'],'meta'=>'Landing page publicada','detail'=>mb_substr($row['excerpt'],0,420),'url'=>'/'.ltrim($row['route'],'/')];
+        $items=array_merge(array_slice($estimateItems,0,3),array_slice($storeItems,0,2),array_slice($pageItems,0,1));
         return [
             'reply'=>'Encontré '.count($estimate).' servicio(s) en el catálogo de estimates, '.count($store).' producto(s) públicos y '.count($pages).' landing page(s) relacionadas.',
-            'items'=>array_slice($items,0,18),
+            'items'=>$items,
             'facts'=>['authoritative_sources'=>['general_terms','estimate_services','public_store_and_landings'],'estimate_services'=>$estimate,'store_products'=>$store,'landing_pages'=>$pages],
         ];
     }
