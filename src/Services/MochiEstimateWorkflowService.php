@@ -10,7 +10,7 @@ use RuntimeException;
 
 final class MochiEstimateWorkflowService
 {
-    private const CREATE_RE='/\b(create|crear|crea|cr[eé]ame|hacerme|hazme|prep[aá]rame|armame|[aá]rmame|nuevo|new)\b.*\b(estimate|estimado|cotizaci[oó]n)\b|\b(estimate|estimado|cotizaci[oó]n)\b.*\b(create|crear|crea|cr[eé]ame|hacerme|hazme|prep[aá]rame|armame|[aá]rmame|nuevo|new)\b/iu';
+    private const CREATE_RE='/\b(create|crear|crea|cr[eé]ame|hacerme|hazme|prep[aá]rame|armame|[aá]rmame|nuevo|new)\b.*\b(estimates?|estimados?|cotizaciones?)\b|\b(estimates?|estimados?|cotizaciones?)\b.*\b(create|crear|crea|cr[eé]ame|hacerme|hazme|prep[aá]rame|armame|[aá]rmame|nuevo|new)\b/iu';
     private const MODIFY_RE='/\b(modify|edit|update|modificar|editar|cambiar|actualizar)\b.*\b(estimate|estimado|cotizaci[oó]n)\b|\b(estimate|estimado|cotizaci[oó]n)\b.*\b(modify|edit|update|modificar|editar|cambiar|actualizar)\b/iu';
     private const APPROVE_RE='/^(?:(?:s[ií]|yes|correcto|correct|looks good|se ve bien|aprobado|approve)(?:[,.!\s]+(?:aplica|aplicar|aplica los|aplica esos|haz|realiza|guarda|confirma)(?:\s+(?:los|esos|estos))?(?:\s+cambios)?)?|(?:aplica|aplicar|haz|realiza|guarda|confirma)(?:\s+(?:los|esos|estos))?\s+cambios|cr[eé]alo|crealo|create it|hazlo)[.!\s]*$/iu';
 
@@ -45,7 +45,12 @@ final class MochiEstimateWorkflowService
             if($workflow)$this->setStatus((int)$workflow->id,'CANCELLED');
             return $this->result('Cancelé el borrador. No se creó ni modificó ningún estimate.',null,[],'idle');
         }
-        if($workflow&&!(int)($workflow->current_estimate_id??0)&&$this->startsDifferentEstimate($message)){
+        if($this->requestsSeparateEstimates($message)){
+            if(!$workflow)$workflow=$this->create($userId,$sessionId,'CREATE');
+            else{$this->reset((int)$workflow->id,'CREATE');$workflow=$this->active($userId,$sessionId);}
+            return $this->createSeparateEstimates($workflow,$message,$userId,$sessionId);
+        }
+        if($workflow&&$this->startsDifferentEstimate($message)){
             $this->reset((int)$workflow->id,'CREATE');
             $workflow=$this->active($userId,$sessionId);
         }
@@ -247,6 +252,36 @@ final class MochiEstimateWorkflowService
         return $this->result("Perfecto 😊 Estimate #{$orderId} está creado para {$draft['customer_name']}.\nTotal: $".number_format($totals['total'],2)."\n\nAquí puedes ver exactamente lo que verá el cliente. ¿Quieres modificar algo o está bien así?",$this->reload((int)$workflow->id),$items,'editing',['copy_url'=>$public]);
     }
 
+    private function createSeparateEstimates(object $workflow,string $message,int $actor,int $sessionId): array
+    {
+        $parsed=$this->messageFallbacks($this->parse([],$message),$message);
+        $mentioned=$this->catalogServicesMentioned($message);
+        $services=$mentioned?:array_values(array_filter((array)($parsed['requested_services']??[]),'is_string'));
+        $resolved=$this->resolveServices($services);
+        $serviceNames=array_values(array_unique(array_map(fn($service)=>(string)$service['name'],$resolved)));
+        if(count($serviceNames)!==2)return $this->result('Para crear dos estimates separados necesito identificar exactamente dos servicios del catálogo. Encontré '.count($serviceNames).': '.($serviceNames?implode(' y ',$serviceNames):'ninguno').'. Indica los dos nombres exactos.',$workflow,$this->serviceSuggestionItems(['service_suggestions'=>$this->serviceCandidates(implode(' ',$services),4)]),'creating');
+
+        unset($parsed['requested_services'],$parsed['custom_services'],$parsed['remove_services'],$parsed['estimate_identifier']);
+        $base=$this->normalize($this->meaningfulParsedValues($parsed));
+        if(empty($base['customer_name'])&&!empty($base['email']))$base['customer_name']=ucfirst((string)strtok((string)$base['email'],'@'));
+        if($times=$this->tentativeServiceTimes($message)){$base['start_time']=$times['start'];$base['end_time']=$times['end'];$note='Tentative food-service start between '.$times['label'].'; confirm the final start time with the client. This draft uses '.$times['start'].'–'.$times['end'].' for scheduling.';$base['notes']=trim((string)($base['notes']??'')."\n".$note);}
+        $base['custom_services']=[];$base['discount_type']='amount';$base['discount_value']=0.0;$base['force_separate']=true;$base['uncertain_fields']=array_values(array_diff((array)($base['uncertain_fields']??[]),['requested_services','services']));
+
+        $created=[];$allItems=[];$lastResult=null;
+        foreach($serviceNames as $index=>$serviceName){
+            if($index>0){$this->reset((int)$workflow->id,'CREATE');$workflow=$this->active($actor,$sessionId);}
+            $draft=$base;$draft['requested_services']=[$serviceName];$draft=$this->enrich($draft);$missing=$this->missing($draft);
+            if($missing){$prefix=$created?'Creé '.count($created).' de 2 estimates, pero ':'No creé estimates porque ';return $this->result($prefix.'faltan estos datos verificables: '.implode(', ',$missing).'.',$workflow,$allItems,'creating');}
+            $this->saveDraft((int)$workflow->id,$draft,'REVIEW');
+            $lastResult=$this->createEstimate($this->reload((int)$workflow->id),$draft,$actor);
+            $estimateId=(int)($lastResult['estimate_workflow']['current_estimate_id']??0);if($estimateId<=0)throw new RuntimeException('No pude crear el estimate separado para '.$serviceName.'.');
+            $created[]=['id'=>$estimateId,'service'=>$serviceName,'total'=>(float)($this->decode((string)$this->reload((int)$workflow->id)->draft_json)['total']??0)];
+            $allItems=array_merge($allItems,(array)($lastResult['items']??[]));
+        }
+        $lines=array_map(fn($row)=>'Estimate #'.$row['id'].' · '.$row['service'].' · $'.number_format($row['total'],2),$created);
+        return $this->result("Listo 😊 Creé dos estimates separados para el mismo cliente:\n".implode("\n",$lines)."\n\nNo fueron enviados al cliente.",$this->reload((int)$workflow->id),$allItems,'editing',['copy_url'=>$lastResult['copy_url']??null,'created_estimates'=>$created]);
+    }
+
     private function applyChanges(object $workflow,array $draft,int $actor): array
     {
         $id=(int)$workflow->current_estimate_id;$order=$this->ownedOrder($id);$before=OrderCalculatorService::calculateTotal($order);$beforeServices=$this->assignedServices($id);$explicit=(array)($draft['explicit_update_fields']??[]);$sets=[];$params=['id'=>$id,'owner'=>$this->ownerId];foreach(['event_date','start_time','end_time','address','notes'] as $field)if(in_array($field,$explicit,true)&&!empty($draft[$field])){$sets[]="$field=:$field";$params[$field]=$field==='address'?$this->address($draft):$draft[$field];}
@@ -427,6 +462,18 @@ final class MochiEstimateWorkflowService
         if(!preg_match(self::CREATE_RE,$message))return false;
         return (bool)preg_match('/\b[A-Z0-9._%+\-]+@[A-Z0-9.\-]+\.[A-Z]{2,}\b/iu',$message)
             || $this->estimateEventDate($message)!==null;
+    }
+    private function requestsSeparateEstimates(string $message): bool
+    {
+        return (bool)preg_match('/\b(?:dos|2|two)\s+(?:estimates?|estimados?|cotizaciones?)\b.{0,100}\b(?:separad[oa]s?|diferentes?|separate|different)\b|\b(?:separad[oa]s?|separate)\b.{0,100}\b(?:dos|2|two)\s+(?:estimates?|estimados?|cotizaciones?)\b/iu',$message);
+    }
+    private function tentativeServiceTimes(string $message): ?array
+    {
+        if(!preg_match('/(?:food\s+service|servicio\s+de\s+comida).{0,60}?(\d{1,2})(?::(\d{2}))?\s*(?:-|–|to|a)\s*(\d{1,2})(?::(\d{2}))?/iu',$message,$match))return null;
+        $hour=(int)$match[1];$minute=(int)(($match[2]??'')!==''?$match[2]:0);if($hour<12)$hour+=12;
+        $start=sprintf('%02d:%02d:00',$hour,$minute);$date=new \DateTimeImmutable('2000-01-01 '.$start);$end=$date->modify('+2 hours')->format('H:i:s');
+        $label=$match[1].(($match[2]??'')!==''?':'.$match[2]:'').'–'.$match[3].(($match[4]??'')!==''?':'.$match[4]:'').' PM';
+        return ['start'=>$start,'end'=>$end,'label'=>$label];
     }
     private function clearResolvedServiceUncertainty(array $draft): array
     {

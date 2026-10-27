@@ -67,6 +67,11 @@ $assert(($healedDraft['uncertain_fields'] ?? []) === ['email'], 'A resolved serv
 $discountFromText = new ReflectionMethod($estimateWorkflow, 'discountFromText');
 $discount = $discountFromText->invoke($estimateWorkflow, 'Ponle un 5% de descuento al estimado.');
 $assert(($discount['type'] ?? '') === 'percentage' && abs((float)($discount['value'] ?? 0)-5.0)<0.001, 'Estimate percentage discount must be captured mathematically.');
+$separateEstimates = new ReflectionMethod($estimateWorkflow, 'requestsSeparateEstimates');
+$assert($separateEstimates->invoke($estimateWorkflow, 'Crea dos estimados diferentes, uno con Pasta Station y otro con Pizza Station.'), 'Two separate estimates must use the batch workflow.');
+$tentativeTimes = new ReflectionMethod($estimateWorkflow, 'tentativeServiceTimes');
+$times = $tentativeTimes->invoke($estimateWorkflow, 'The food services may be around 6:30-7, still to be determined.');
+$assert(($times['start'] ?? '') === '18:30:00' && ($times['end'] ?? '') === '20:30:00', 'A tentative dinner-service window must become an explicit reviewable draft schedule.');
 
 echo "MOCHI AI contract QA: PASS\n";
 
