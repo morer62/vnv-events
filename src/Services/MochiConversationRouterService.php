@@ -24,6 +24,7 @@ final class MochiConversationRouterService
                 'tool'=>(string)($metadata['tool']??''),
             ];
             if($index>=$recentStart){
+                $entry['facts']=array_slice((array)($metadata['facts']??[]),0,16,true);
                 $entry['items']=array_map(static fn(array $item): array=>[
                     'title'=>mb_substr((string)($item['title']??''),0,140),
                     'meta'=>mb_substr((string)($item['meta']??''),0,180),
