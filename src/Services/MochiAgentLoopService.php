@@ -111,6 +111,13 @@ final class MochiAgentLoopService
                 if (!is_array($arguments)) {
                     $arguments = [];
                 }
+                if ($name === 'read_vnv_data') {
+                    $arguments['query'] = $this->effectiveReadQuery(
+                        (string)($arguments['topic'] ?? ''),
+                        $message,
+                        (string)($arguments['query'] ?? '')
+                    );
+                }
                 $result = $this->executeTool($name, $arguments, $userId, $level, $sessionId);
                 $toolKey = $name === 'read_vnv_data' ? $name.':'.(string)($arguments['topic'] ?? 'unknown') : $name;
                 $aggregate['tool_calls'][] = $toolKey;
@@ -152,7 +159,7 @@ final class MochiAgentLoopService
         return 'You are Mochi, the internal VNV Events operations assistant inside one continuous daily conversation. '
             .'Write concise, warm, natural Spanish and answer the exact current question. The user may change topics freely and later return to any prior topic; an active estimate or service draft is resumable context, never the automatic destination of a new message. '
             .'Use the dialogue and persistent memory to resolve follow-ups such as "eso", "los anteriores", "lo pagado" or "continúa". Do not repeat a full report when a focused answer is enough. '
-            .'For any current company count, amount, order, event, person, contract, service, product, assignment, payroll hour or status, call an approved read tool. You may call several tools before answering. Use largest_event for the largest event in a period, team_activity for staff-to-event assignments and dates, and payroll_hours for clocked hours. Treat tool output as the only source of live facts and clearly distinguish contracted value, payments recorded, balances, accounting income, assignment evidence and physical attendance. '
+            .'For any current company count, amount, order, event, person, contract, service, product, assignment, payroll hour or status, call an approved read tool. You may call several tools before answering. Use largest_event for the largest event in a period, team_activity for staff-to-event assignments and dates, payroll_hours for clock-in/clock-out time, payroll_payments for amounts paid through payroll, crm for leads and pipeline status, and warehouse for Storage containers, inventory items, quantities and locations. Treat tool output as the only source of live facts and clearly distinguish contracted value, payments recorded, balances, accounting income, assignment evidence and physical attendance. '
             .'Never invent data, causes, services, availability, promises or completed actions. If a requested fact is not available through the tools, say exactly what is missing instead of returning an unrelated result. Ask one concise question only when a missing fact truly blocks progress. '
             .'Call work_on_estimate only when the user is intentionally creating, modifying or continuing an estimate. Call work_on_service_or_product only for an intentional create/modify catalog workflow. For other explicit company changes call prepare_company_change, which only prepares a reviewable draft; never claim the change happened until a separate human confirmation executes it. Financial, fiscal, deletion, account suspension and irreversible actions always require human confirmation. '
             .'This Mochi does not create or publish editorial articles; direct those requests to Growth Hub. Do not expose credentials, card data, private notes, internal JSON, routing or tool implementation. Rewards cannot be used for tips. Preserve useful links from tool results. '
@@ -162,7 +169,7 @@ final class MochiAgentLoopService
     private function toolDefinitions(int $level): array
     {
         $topics = $level === 1
-            ? ['weekend_events', 'executed_events', 'largest_event', 'team_activity', 'payroll_hours', 'collections', 'opportunities', 'requests', 'contracts', 'contract_terms', 'team_members', 'catalog', 'knowledge_audit', 'warehouse', 'rewards', 'customer_orders', 'website']
+            ? ['weekend_events', 'executed_events', 'largest_event', 'team_activity', 'payroll_hours', 'payroll_payments', 'crm', 'collections', 'opportunities', 'requests', 'contracts', 'contract_terms', 'team_members', 'catalog', 'knowledge_audit', 'warehouse', 'rewards', 'customer_orders', 'website']
             : ($level === 4 ? ['my_events', 'my_tasks', 'catalog', 'website'] : ($level === 5 ? ['my_events', 'catalog', 'website', 'rewards', 'customer_orders'] : []));
         $definitions = [];
         if ($topics) {
@@ -220,6 +227,38 @@ final class MochiAgentLoopService
             'prepare_company_change' => $this->prepareAction($userId, $level, $sessionId, (string)($arguments['message'] ?? '')),
             default => throw new RuntimeException('Mochi requested an unknown tool: '.$name),
         };
+    }
+
+    private function effectiveReadQuery(string $topic, string $currentMessage, string $resolvedQuery): string
+    {
+        $currentMessage = trim($currentMessage);
+        $resolvedQuery = trim($resolvedQuery);
+        if ($currentMessage === '') {
+            return $resolvedQuery;
+        }
+
+        // These sources depend on exact names, periods and inventory wording.
+        // Keep the literal current request authoritative unless it is clearly a
+        // contextual follow-up that needs the model to resolve its references.
+        if (in_array($topic, ['payroll_hours', 'payroll_payments', 'crm', 'warehouse'], true)
+            && !$this->isContextualFollowUp($currentMessage)) {
+            return $currentMessage;
+        }
+
+        return $resolvedQuery !== '' ? $resolvedQuery : $currentMessage;
+    }
+
+    private function isContextualFollowUp(string $message): bool
+    {
+        $plain = mb_strtolower(trim($message));
+        $plain = strtr($plain, ['á'=>'a','é'=>'e','í'=>'i','ó'=>'o','ú'=>'u','ü'=>'u','ñ'=>'n']);
+
+        $words = count(preg_split('/\s+/u', $plain, -1, PREG_SPLIT_NO_EMPTY));
+        return $words <= 10 && (bool)preg_match(
+            '/(?:^\s*(?:y|no|ok|bueno)\b|\b(?:eso|esa|ese|esas|esos|aquello|'
+            .'anterior|anteriores|le|les|lo\s+pagado|tambien|ahi|alli)\b)/u',
+            $plain
+        );
     }
 
     private function prepareAction(int $userId, int $level, int $sessionId, string $message): array

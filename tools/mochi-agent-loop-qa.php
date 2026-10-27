@@ -64,6 +64,10 @@ $assert(count($toolCalls) === 2, 'Both requested tools must execute.');
 $assert(($requests[0]['url'] ?? '') === 'https://api.openai.com/v1/responses', 'Wrong Responses endpoint.');
 $assert(($requests[0]['payload']['model'] ?? '') === 'gpt-6.1-sol', 'MOCHI must use the fixed Sol model.');
 $assert(($requests[0]['payload']['reasoning']['effort'] ?? '') === 'medium', 'MOCHI must use medium reasoning.');
+$topics = $requests[0]['payload']['tools'][0]['parameters']['properties']['topic']['enum'] ?? [];
+$assert(in_array('payroll_payments', $topics, true), 'Payroll payment history must be available to the agent.');
+$assert(in_array('crm', $topics, true), 'CRM data must be available to the agent.');
+$assert(in_array('warehouse', $topics, true), 'Storage inventory must be available to the agent.');
 $assert(!isset($requests[0]['payload']['previous_response_id']), 'A new chain must not invent a previous response id.');
 $assert(($requests[1]['payload']['previous_response_id'] ?? '') === 'resp_step_1', 'First tool output must continue the same Responses chain.');
 $assert(($requests[2]['payload']['previous_response_id'] ?? '') === 'resp_step_2', 'Second tool output must continue the same Responses chain.');
@@ -92,3 +96,42 @@ $assert(($continuedRequests[0]['previous_response_id'] ?? '') === 'resp_final', 
 $assert(count($continuedRequests[0]['input'] ?? []) === 1, 'A continued turn should send only the new user message.');
 
 fwrite(STDOUT, "PASS: multi-tool loop, Sol Medium, and persistent response chain verified.\n");
+
+$literalToolCalls = [];
+$literalResponses = [
+    [
+        'id' => 'resp_literal_tool',
+        'output' => [[
+            'type' => 'function_call',
+            'call_id' => 'call_literal_payroll',
+            'name' => 'read_vnv_data',
+            'arguments' => json_encode([
+                'topic' => 'payroll_payments',
+                'query' => 'Consultar solamente enero de 2026.',
+            ]),
+        ]],
+    ],
+    [
+        'id' => 'resp_literal_final',
+        'output' => [[
+            'type' => 'message',
+            'content' => [['type' => 'output_text', 'text' => 'Consulta completada.']],
+        ]],
+    ],
+];
+$literalTransport = static function (string $url, array $payload) use (&$literalResponses): array {
+    return ['status' => 200, 'body' => json_encode(array_shift($literalResponses)), 'error' => ''];
+};
+$literalExecutor = static function (string $name, array $arguments) use (&$literalToolCalls): array {
+    $literalToolCalls[] = [$name, $arguments];
+    return ['reply' => 'Consulta completada.', 'facts' => [], 'items' => []];
+};
+$literalQuestion = '¿Cuál ha sido el empleado al que más dinero le hemos pagado este año 2026?';
+(new MochiAgentLoopService(2, 'vnvevents', null, $literalTransport, $literalExecutor))
+    ->run(99, 1, 123, $literalQuestion, [], [], []);
+$assert(
+    ($literalToolCalls[0][1]['query'] ?? '') === $literalQuestion,
+    'Payroll must execute the literal current question instead of a model-narrowed period.'
+);
+
+fwrite(STDOUT, "PASS: literal payroll and inventory questions remain authoritative.\n");
