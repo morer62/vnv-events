@@ -55,6 +55,10 @@ $qaServices = $sanitizeQaServices->invoke($estimateWorkflow, ['Prueba', 'QA Moon
 $assert($qaServices === ['QA Moonlight Dessert Cloud 2028'], 'QA record labels must not become estimate services.');
 $explicitTestService = $sanitizeQaServices->invoke($estimateWorkflow, ['Prueba'], 'PRUEBA QA 2028. Servicio solicitado: Prueba.');
 $assert($explicitTestService === ['Prueba'], 'An explicitly requested catalog service named Prueba must remain selectable.');
+$applyQuantities = new ReflectionMethod($estimateWorkflow, 'applyQuantities');
+$perGuestServices = $applyQuantities->invoke($estimateWorkflow, [['name' => 'QA service', 'description' => 'Test service', 'requirements' => 'Pricing basis: per guest.', 'quantity' => 1, 'is_variable' => 'YES']], 40);
+$assert(($perGuestServices[0]['quantity'] ?? 0) === 40, 'Catalog services marked per guest must use the guest count.');
+$assert(($perGuestServices[0]['is_variable'] ?? '') === 'YES', 'Catalog variable pricing must survive quantity calculation.');
 
 echo "MOCHI AI contract QA: PASS\n";
 
