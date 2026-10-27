@@ -3,6 +3,7 @@
 require dirname(__DIR__).'/vendor/autoload.php';
 
 use App\Services\AiJsonGenerator;
+use App\Services\MochiEstimateWorkflowService;
 use App\Services\MochiImageReaderService;
 
 $live = in_array('--live', $argv, true);
@@ -47,6 +48,13 @@ $assert(!str_contains($view, 'id="mochi-voice"'), 'Voice button still exists.');
 $assert(str_contains($view, 'name="screenshots[]"'), 'Screenshot upload is missing.');
 $assert(str_contains($concierge, 'scope_guard'), 'Editorial scope guard is missing.');
 $assert(str_contains($images, "'gpt-image-2'"), 'Retired image model is still the default.');
+
+$estimateWorkflow = (new ReflectionClass(MochiEstimateWorkflowService::class))->newInstanceWithoutConstructor();
+$sanitizeQaServices = new ReflectionMethod($estimateWorkflow, 'sanitizeQaMarkerServices');
+$qaServices = $sanitizeQaServices->invoke($estimateWorkflow, ['Prueba', 'QA Moonlight Dessert Cloud 2028'], 'PRUEBA QA 2028 — NO CONTACTAR. Servicio solicitado: QA Moonlight Dessert Cloud 2028.');
+$assert($qaServices === ['QA Moonlight Dessert Cloud 2028'], 'QA record labels must not become estimate services.');
+$explicitTestService = $sanitizeQaServices->invoke($estimateWorkflow, ['Prueba'], 'PRUEBA QA 2028. Servicio solicitado: Prueba.');
+$assert($explicitTestService === ['Prueba'], 'An explicitly requested catalog service named Prueba must remain selectable.');
 
 echo "MOCHI AI contract QA: PASS\n";
 

@@ -87,7 +87,7 @@ final class MochiEstimateWorkflowService
         $parsed=$this->messageFallbacks($this->parse($draft,$message),$message);
         if(!empty($parsed['phone'])&&preg_match('/\b(agrega(?:le)?|a[nñ]ade(?:le)?|pon(?:le)?|cambia|actualiza|modifica)\b.*\b(tel[eé]fono|phone|n[uú]mero)\b|\b(tel[eé]fono|phone|n[uú]mero)\b.*\b(agrega(?:le)?|a[nñ]ade(?:le)?|pon(?:le)?|cambia|actualiza|modifica)\b/iu',$message))$parsed['update_customer_contact']=true;
         $replaceServices=(bool)preg_match('/\b(solo|solamente|únicamente|unicamente|nada más|nada mas|más nada|mas nada|only|nothing else)\b/iu',$message);
-        $parsedServices=array_values(array_filter(array_map('trim',(array)($parsed['requested_services']??[]))));
+        $parsedServices=$this->sanitizeQaMarkerServices((array)($parsed['requested_services']??[]),$message);
         $parsedCustom=(array)($parsed['custom_services']??[]);
         unset($parsed['requested_services'],$parsed['custom_services']);
         $removeServices=array_values(array_filter(array_map('trim',(array)($parsed['remove_services']??[]))));
@@ -123,7 +123,7 @@ final class MochiEstimateWorkflowService
     private function parse(array $current,string $message): array
     {
         try{return (new AiJsonGenerator())->generate(
-            'Update a VNV Events estimate draft from the latest Spanish or English user message. Preserve existing values unless explicitly corrected. Explicit user clarification overrides image extraction. Never invent unreadable or missing facts. If the user says only, nothing else, solo or más nada, requested_services must contain only the newly requested service. custom_services is only for a service that the user explicitly wants to create because it is not in the catalog; capture its English name, description, explicit price, whether that catalog price is variable, and whether quantity is per guest. A variable service keeps the stated amount as the estimate-specific price. Payment terms default to two equal 50/50 payments; use payment_split_type 1 only when the user explicitly asks for one payment or 100% payment. Email is the first required identity field because the application uses it to find or create the CRM customer. Event type, phone, guest count, venue, address, city and notes are optional unless guest count is required to calculate an explicitly per-guest service. Leave event_type null when it was not explicitly supplied because the application will use Social Event. Only customer_name (when no CRM customer exists), email, event_date, start_time, end_time and requested_services may otherwise be treated as required or uncertain. When the user confirms or corrects uncertain data, remove that field from uncertain_fields. For a CRM contact conflict set contact_resolution only when the user explicitly chooses use_crm or update_crm. Dates YYYY-MM-DD, times HH:MM:SS. Customer-facing service content remains English. Return JSON only.',
+            'Update a VNV Events estimate draft from the latest Spanish or English user message. Preserve existing values unless explicitly corrected. Explicit user clarification overrides image extraction. Never invent unreadable or missing facts. QA labels such as prueba, test, QA, do not contact, no contactar, do not send or no enviar describe the record and are never requested services unless the user explicitly writes Servicio solicitado: or Service: followed by that exact catalog service. If the user says only, nothing else, solo or más nada, requested_services must contain only the newly requested service. custom_services is only for a service that the user explicitly wants to create because it is not in the catalog; capture its English name, description, explicit price, whether that catalog price is variable, and whether quantity is per guest. A variable service keeps the stated amount as the estimate-specific price. Payment terms default to two equal 50/50 payments; use payment_split_type 1 only when the user explicitly asks for one payment or 100% payment. Email is the first required identity field because the application uses it to find or create the CRM customer. Event type, phone, guest count, venue, address, city and notes are optional unless guest count is required to calculate an explicitly per-guest service. Leave event_type null when it was not explicitly supplied because the application will use Social Event. Only customer_name (when no CRM customer exists), email, event_date, start_time, end_time and requested_services may otherwise be treated as required or uncertain. When the user confirms or corrects uncertain data, remove that field from uncertain_fields. For a CRM contact conflict set contact_resolution only when the user explicitly chooses use_crm or update_crm. Dates YYYY-MM-DD, times HH:MM:SS. Customer-facing service content remains English. Return JSON only.',
             ['current_draft'=>$current,'latest_message'=>$message,'today'=>(new \DateTimeImmutable('now',new \DateTimeZone('America/New_York')))->format('Y-m-d')],
             ['customer_name'=>'string or null','email'=>'string or null','phone'=>'string or null','event_date'=>'YYYY-MM-DD or null','start_time'=>'HH:MM:SS or null','end_time'=>'HH:MM:SS or null','venue'=>'string or null','address'=>'string or null','city'=>'string or null','guest_count'=>'integer or null','event_type'=>'English string or null','payment_split_type'=>'1 only when the user explicitly requests one 100% payment; otherwise 2 or null','requested_services'=>['English service names explicitly requested'],'custom_services'=>[['name'=>'English service name','price'=>'explicit numeric price or null','description'=>'English description or null','is_variable'=>'boolean or null','is_per_guest'=>'boolean']],'notes'=>'English customer-facing notes or null','remove_services'=>['English service names explicitly removed'],'uncertain_fields'=>['field names that remain uncertain'],'contact_resolution'=>'use_crm, update_crm, or null','estimate_identifier'=>'number/name/email/phone when supplied or null'],
             ['profile'=>'conversational','reasoning_effort'=>'low','timeout'=>30,'schema_name'=>'vnv_estimate_update']
@@ -137,8 +137,9 @@ final class MochiEstimateWorkflowService
     {
         if(empty($parsed['email'])&&preg_match('/\b[A-Z0-9._%+\-]+@[A-Z0-9.\-]+\.[A-Z]{2,}\b/iu',$message,$match))$parsed['email']=$match[0];
         if(empty($parsed['customer_name'])&&preg_match('/(?:para|cliente|nombre)\s*:?\s*([\pL][\pL\s\'\-]{2,80}?)(?=\s*,?\s*(?:correo|email|tel[eé]fono|fecha|el\s+\d)|$)/iu',$message,$match))$parsed['customer_name']=trim($match[1],' ,');
-        $catalogServices=$this->catalogServicesMentioned($message);
+        $catalogServices=$this->sanitizeQaMarkerServices($this->catalogServicesMentioned($message),$message);
         if($catalogServices)$parsed['requested_services']=array_values(array_unique(array_merge((array)($parsed['requested_services']??[]),$catalogServices)));
+        if(isset($parsed['requested_services']))$parsed['requested_services']=$this->sanitizeQaMarkerServices((array)$parsed['requested_services'],$message);
         if(!empty($parsed['venue']))foreach($catalogServices as $serviceName)if($this->sameServiceLabel((string)$parsed['venue'],$serviceName)){unset($parsed['venue']);break;}
         if(preg_match('/\b(100\s*%|one[ -]time payment|single payment|pago (?:único|unico|completo)|un solo pago)\b/iu',$message))$parsed['payment_split_type']=1;
         elseif(preg_match('/\b(50\s*[\/-]\s*50|dos pagos|split payment)\b/iu',$message))$parsed['payment_split_type']=2;
@@ -151,6 +152,16 @@ final class MochiEstimateWorkflowService
             $custom[0]['is_variable']=true;$parsed['custom_services']=$custom;
         }
         return $parsed;
+    }
+
+    private function sanitizeQaMarkerServices(array $services,string $message): array
+    {
+        $services=array_values(array_filter(array_map(static fn($name)=>trim((string)$name),$services)));
+        if(!preg_match('/\b(?:qa|quality assurance|prueba|test|do not contact|no contactar|do not send|no enviar)\b/iu',$message))return array_values(array_unique($services));
+        return array_values(array_unique(array_filter($services,function(string $name)use($message): bool{
+            if(!preg_match('/^(?:qa|qa test|prueba|prueba qa|test|test service)$/iu',$name))return true;
+            return (bool)preg_match('/\b(?:servicio(?:\s+solicitado)?|service(?:\s+requested)?)\s*:\s*'.preg_quote($name,'/').'\b/iu',$message);
+        })));
     }
 
     private function meaningfulParsedValues(array $parsed): array
