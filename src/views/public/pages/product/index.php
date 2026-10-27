@@ -252,6 +252,13 @@ try {
 
 $isGourmet = in_array((string)($product->brand_name ?? ''), ['VNV Gourmet Express', 'VNV Gourmet To Go'], true)
     || (strtoupper((string)($product->purchase_mode ?? '')) === 'DIRECT' && strtoupper((string)($product->fulfillment_type ?? '')) === 'DELIVERY');
+$isVnvGourmetService = (string)($product->brand_name ?? '') === 'VNV Gourmet';
+foreach (($product->categories ?? []) as $productCategory) {
+    if ((string)($productCategory->slug ?? '') === 'catering-services') {
+        $isVnvGourmetService = true;
+        break;
+    }
+}
 $imageUrl = trim((string)($productMedia[0]->image_url ?? $product->main_image ?? ''));
 if ($imageUrl !== '' && !preg_match('#^https?://#i', $imageUrl)) $imageUrl = 'https://vnvevents.com/' . ltrim($imageUrl, '/');
 $canonicalUrl = 'https://vnvevents.com/product/' . rawurlencode((string)$product->slug);
@@ -296,11 +303,16 @@ echo TemplateResponse::render(__DIR__ . "/index.twig", [
     'store_active' => $storeActive,
     'gourmet_settings' => (new GourmetExpressService())->settings($ownerId, $siteKey),
     'is_gourmet_express' => $isGourmet,
+    'is_vnv_gourmet_service' => $isVnvGourmetService,
     'gourmet_category_anchor' => $gourmetCategory[0],
     'gourmet_category_name' => $gourmetCategory[1],
     'variation_axes' => $variationAxes,
     'variation_sizes' => array_values($variationSizes),
     'service_area_label' => 'Broward, Miami-Dade and south Palm Beach (Boca Raton, Delray Beach, Boynton Beach)',
-    'seo' => $isGourmet ? ['title' => $product->name . ' | VNV Gourmet To Go', 'description' => html_entity_decode(strip_tags((string)$product->short_description), ENT_QUOTES | ENT_HTML5, 'UTF-8'), 'canonical' => $canonicalUrl, 'og_type' => 'product', 'og_image' => $imageUrl, 'og_image_alt' => $product->name, 'site_name' => 'VNV Gourmet To Go'] : [],
+    'seo' => $isGourmet
+        ? ['title' => $product->name . ' | VNV Gourmet To Go', 'description' => html_entity_decode(strip_tags((string)$product->short_description), ENT_QUOTES | ENT_HTML5, 'UTF-8'), 'canonical' => $canonicalUrl, 'og_type' => 'product', 'og_image' => $imageUrl, 'og_image_alt' => $product->name, 'site_name' => 'VNV Gourmet To Go']
+        : ($isVnvGourmetService
+            ? ['title' => $product->name . ' | VNV Gourmet', 'description' => html_entity_decode(strip_tags((string)$product->short_description), ENT_QUOTES | ENT_HTML5, 'UTF-8'), 'canonical' => $canonicalUrl, 'og_type' => 'product', 'og_image' => $imageUrl, 'og_image_alt' => $product->name, 'site_name' => 'VNV Gourmet']
+            : []),
     'schemaJson' => PublicSeoService::productSchema($product, $productFaqs),
 ]);

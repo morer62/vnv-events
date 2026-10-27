@@ -114,6 +114,17 @@ class PublicSeoService
     {
         $canonical = self::SITE_URL . '/product/' . trim((string)($product->slug ?? ''), '/');
         $name = self::clean($product->name ?? 'VNV Events Product');
+        $isVnvGourmetService = (string)($product->brand_name ?? '') === 'VNV Gourmet';
+        foreach (($product->categories ?? []) as $category) {
+            if ((string)($category->slug ?? '') === 'catering-services') {
+                $isVnvGourmetService = true;
+                break;
+            }
+        }
+        $productExperienceName = $isVnvGourmetService ? 'VNV Gourmet' : 'VNV Events Store';
+        $productExperienceUrl = $isVnvGourmetService
+            ? self::SITE_URL . '/vnv-gourmet/'
+            : self::SITE_URL . '/store-categories/';
         $description = self::firstFilled([
             $product->short_description ?? null,
             $product->description ?? null,
@@ -146,7 +157,7 @@ class PublicSeoService
                 '@type' => 'WebPage',
                 '@id' => $canonical . '#webpage',
                 'url' => $canonical,
-                'name' => $name . ' | VNV Events Store',
+                'name' => $name . ' | ' . $productExperienceName,
                 'description' => $description,
                 'isPartOf' => ['@id' => self::WEBSITE_ID],
                 'about' => ['@id' => $canonical . '#product'],
@@ -156,8 +167,8 @@ class PublicSeoService
             $productNode,
             self::breadcrumbNode($canonical, [
                 ['name' => 'Home', 'url' => self::SITE_URL . '/'],
-                ['name' => 'Store', 'url' => self::SITE_URL . '/store-categories/'],
-                ['name' => self::productCategoryName($product), 'url' => self::productCategoryUrl($product)],
+                ['name' => $productExperienceName, 'url' => $productExperienceUrl],
+                ['name' => $isVnvGourmetService ? 'Food Stations' : self::productCategoryName($product), 'url' => $isVnvGourmetService ? self::SITE_URL . '/vnv-gourmet/#menu-services' : self::productCategoryUrl($product)],
                 ['name' => $name, 'url' => $canonical],
             ]),
         ];

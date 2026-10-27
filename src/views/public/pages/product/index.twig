@@ -1,13 +1,14 @@
 {% extends "templates/base.store.twig" %}
+{% set product_brand_label = is_vnv_gourmet_service|default(false) ? 'VNV Gourmet' : 'VNV Gourmet To Go' %}
 
 {% block title %}
-    {{ product ? product.name ~ ' | VNV Gourmet To Go' : 'Product not found' }}
+    {{ product ? product.name ~ ' | ' ~ product_brand_label : 'Product not found' }}
 {% endblock %}
 {% block canonical %}https://vnvevents.com/product/{{ product.slug }}{% endblock %}
 {% block og_type %}product{% endblock %}
-{% block og_site_name %}VNV Gourmet To Go{% endblock %}
-{% block og_title %}{{ product.name }} | VNV Gourmet To Go{% endblock %}
-{% block twitter_title %}{{ product.name }} | VNV Gourmet To Go{% endblock %}
+{% block og_site_name %}{{ product_brand_label }}{% endblock %}
+{% block og_title %}{{ product.name }} | {{ product_brand_label }}{% endblock %}
+{% block twitter_title %}{{ product.name }} | {{ product_brand_label }}{% endblock %}
 
 {% block meta_description %}
     {{ product and product.short_description ? product.short_description : 'Explore product details in our store.' }}
@@ -441,9 +442,9 @@
         </section>
     {% else %}
         <div class="pp-breadcrumb">
-            {% if is_gourmet_express %}<a href="{{ path('gourmet-to-go') }}">Gourmet To Go</a>{% else %}<a href="{{ path('') }}">Home</a>{% endif %}
+            {% if is_vnv_gourmet_service|default(false) %}<a href="{{ path('vnv-gourmet') }}">VNV Gourmet</a>{% elseif is_gourmet_express %}<a href="{{ path('gourmet-to-go') }}">Gourmet To Go</a>{% else %}<a href="{{ path('') }}">Home</a>{% endif %}
             <span>/</span>
-            {% if is_gourmet_express %}<a href="{{ path('gourmet-to-go') }}#{{ gourmet_category_anchor }}">{{ gourmet_category_name }}</a>{% elseif product.categories is defined and product.categories|length > 0 %}
+            {% if is_vnv_gourmet_service|default(false) %}<a href="{{ path('vnv-gourmet') }}#menu-services">Food Stations</a>{% elseif is_gourmet_express %}<a href="{{ path('gourmet-to-go') }}#{{ gourmet_category_anchor }}">{{ gourmet_category_name }}</a>{% elseif product.categories is defined and product.categories|length > 0 %}
                 {% set main_category = product.categories|first %}
                 <a href="{{ path('product-category/' ~ main_category.slug) }}">{{ main_category.name }}</a>
             {% endif %}
