@@ -135,3 +135,42 @@ $assert(
 );
 
 fwrite(STDOUT, "PASS: literal payroll and inventory questions remain authoritative.\n");
+
+$catalogToolCalls = [];
+$catalogResponses = [
+    [
+        'id' => 'resp_catalog_tool',
+        'output' => [[
+            'type' => 'function_call',
+            'call_id' => 'call_literal_catalog',
+            'name' => 'read_vnv_data',
+            'arguments' => json_encode([
+                'topic' => 'catalog',
+                'query' => 'Consultar precio, opciones, inclusiones y mínimos del grazing table.',
+            ]),
+        ]],
+    ],
+    [
+        'id' => 'resp_catalog_final',
+        'output' => [[
+            'type' => 'message',
+            'content' => [['type' => 'output_text', 'text' => 'El precio es $450.']],
+        ]],
+    ],
+];
+$catalogTransport = static function (string $url, array $payload) use (&$catalogResponses): array {
+    return ['status' => 200, 'body' => json_encode(array_shift($catalogResponses)), 'error' => ''];
+};
+$catalogExecutor = static function (string $name, array $arguments) use (&$catalogToolCalls): array {
+    $catalogToolCalls[] = [$name, $arguments];
+    return ['reply' => 'Grazing Table: $450.', 'facts' => [], 'items' => []];
+};
+$catalogQuestion = 'ok, cuanto vale un grazing table?';
+(new MochiAgentLoopService(2, 'vnvevents', null, $catalogTransport, $catalogExecutor))
+    ->run(99, 1, 123, $catalogQuestion, [], [], []);
+$assert(
+    ($catalogToolCalls[0][1]['query'] ?? '') === $catalogQuestion,
+    'The internal estimate catalog must execute the literal service-price question.'
+);
+
+fwrite(STDOUT, "PASS: estimate-catalog questions retain their literal service name.\n");
