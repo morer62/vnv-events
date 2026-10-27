@@ -42,6 +42,17 @@ final class MochiConciergeService
             'estimate'=>$activeEstimate?['active'=>true,'mode'=>(string)$activeEstimate->mode,'status'=>(string)$activeEstimate->status,'current_estimate_id'=>$activeEstimate->current_estimate_id? (int)$activeEstimate->current_estimate_id:null]:['active'=>false],
             'service'=>$activeService?['active'=>true,'status'=>(string)$activeService->status,'current_service_id'=>$activeService->current_service_id? (int)$activeService->current_service_id:null,'current_product_id'=>$activeService->current_product_id? (int)$activeService->current_product_id:null]:['active'=>false],
         ];
+        // An order-access link is a verified identifier for a specific estimate,
+        // including old estimates. Never let an active draft reinterpret it.
+        if($level===1&&$this->isOrderContractAssignmentIntent($message,$recentMessages)){
+            try{
+                $fallback=$activeEstimate&&$activeEstimate->current_estimate_id?(int)$activeEstimate->current_estimate_id:null;
+                $result=(new MochiActionService($this->ownerId,$this->siteKey,$this->db))->prepareOrderContractAssignment($authorId,$level,$sessionId,$message,$fallback);
+                $metadata=['tool'=>'order_contract_assignment_prepare','items'=>$result['items']??[],'facts'=>$result['facts']??[],'action_draft'=>$result['action_draft']??null,'deterministic_route'=>'order_contract_assignment'];
+                $this->save($sessionId,null,'AGENT',(string)$result['reply'],$metadata);$this->sessions->touch($sessionId);
+                return ['reply'=>$result['reply'],'items'=>$metadata['items'],'action_draft'=>$metadata['action_draft'],'tool'=>'order_contract_assignment_prepare','session_id'=>$sessionId];
+            }catch(\Throwable $e){error_log('[Mochi order contract assignment] '.$e->getMessage());$reply='No pude preparar la asignación del contrato con seguridad. No cambié el estimate. Detalle: '.$e->getMessage();$this->save($sessionId,null,'AGENT',$reply,['tool'=>'order_contract_assignment_prepare','items'=>[],'error'=>true,'error_detail'=>$e->getMessage()]);$this->sessions->touch($sessionId);return ['reply'=>$reply,'items'=>[],'tool'=>'order_contract_assignment_prepare','session_id'=>$sessionId];}
+        }
         // Primary path: a real agent loop may consult several approved tools before
         // answering. The legacy single-route flow below remains as a safe fallback
         // if the Responses API or its stored conversation is temporarily unavailable.
@@ -132,6 +143,14 @@ final class MochiConciergeService
     public function recent(int $authorId,int $limit=60): array {$session=$this->sessions->today($authorId);return $this->sessions->messages((int)$session->id,$authorId,$limit);}
     private function isGreeting(string $message): bool {$plain=mb_strtolower(trim(preg_replace('/[^\pL\pN\s¿?¡!]+/u',' ',$message)??$message));$plain=preg_replace('/\s+/u',' ',$plain)??$plain;return (bool)preg_match('/^(hola|buenos d[ií]as|buenas tardes|buenas noches|hey|hello)(\s+mochi)?([\s¿?¡!]*(puedes|podr[ií]as|me puedes|me podr[ií]as)?\s*(ayudar|ayudarme|orientar|orientarme))?[\s¿?¡!]*$/iu',$plain)||preg_match('/^(puedes|podr[ií]as|me puedes|me podr[ií]as)\s+(ayudar|ayudarme|orientar|orientarme)[\s¿?¡!]*$/iu',$plain);}
     private function isEstimateReadIntent(string $message): bool {return (bool)(preg_match('/\b(estimados?|estimates?|cotizaciones?)\b/iu',$message)&&preg_match('/\b(mu[eé]strame|mostrar|ens[eé]ñame|lista|listar|cu[aá]ntos?|cu[aá]les?|buscar|consulta|consultar|revisar|creados?|crearon|generados?|generaron|fecha de creaci[oó]n|hoy|ayer)\b/iu',$message));}
+    private function isOrderContractAssignmentIntent(string $message,array $recentMessages): bool
+    {
+        $pattern='/\b(asigna(?:r|le|les)?|agrega(?:r|le|les)?|a[nñ]ade(?:r|le|les)?|pon(?:er|le|les)?|attach|assign)\b.{0,100}\b(contrato|contract)\b|\b(contrato|contract)\b.{0,100}\b(asigna(?:r|le|les)?|agrega(?:r|le|les)?|a[nñ]ade(?:r|le|les)?|pon(?:er|le|les)?|attach|assign)\b/iu';
+        if(preg_match($pattern,$message))return true;
+        if(!preg_match('~/order-access\?[^\s]*token=~iu',$message))return false;
+        foreach(array_reverse(array_slice($recentMessages,-8)) as $row){if(($row->author_type??'')!=='HUMAN')continue;$prior=trim((string)($row->message??''));if($prior!==''&&preg_match($pattern,$prior))return true;}
+        return false;
+    }
     private function isEditorialCreationIntent(string $message): bool {return (bool)preg_match('/\b(crea|crear|escribe|redacta|publica|publicar|genera|generate|write|publish)\b.{0,80}\b(art[ií]culo|blog|blog post|post editorial|contenido editorial)\b|\b(art[ií]culo|blog|blog post|post editorial|contenido editorial)\b.{0,80}\b(crea|crear|escribe|redacta|publica|publicar|genera|generate|write|publish)\b/iu',$message);}
     private function save(int $sessionId,?int $author,string $type,string $message,array $metadata=[]): void {$this->db->query("INSERT INTO automation_conversations(id_owner,site_key,thread_key,id_mochi_session,id_author,author_type,message,metadata_json) VALUES(:owner,:site,:thread,:session,:author,:type,:message,:metadata)");foreach(['owner'=>$this->ownerId,'site'=>$this->siteKey,'thread'=>'mochi:session:'.$sessionId,'session'=>$sessionId,'author'=>$author,'type'=>$type,'message'=>$message,'metadata'=>$metadata?json_encode($metadata,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES):null] as $k=>$v)$this->db->bind(':'.$k,$v);$this->db->execute();if($type==='AGENT'){try{(new MochiMemoryService($this->ownerId,$this->siteKey,$this->db))->capture($sessionId,$message,$metadata);}catch(\Throwable $e){error_log('[Mochi memory save] '.$e->getMessage());}}}
 }

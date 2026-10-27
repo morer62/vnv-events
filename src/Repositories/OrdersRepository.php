@@ -541,6 +541,12 @@ public function getOneByIdAndOwner(int $id, int $institutionOwnerId): ?object
 public function addWithExplicitOwner(array $data): int
 {
     try {
+        $workflow=(string)($data['status_workflow']??'');
+        if(str_starts_with($workflow,'INVOICE_')&&(int)($data['id_contract']??0)<=0){
+            $ownerId=(int)($data['id_owner']??0);
+            if($ownerId<=0)throw new \RuntimeException('An owner is required before assigning the default estimate contract.');
+            $data['id_contract']=(new \App\Services\OrderContractPolicyService($ownerId,$this->db))->requiredGeneralConditionsId();
+        }
         $keys = array_keys($data);
         $insert = "(";
         $values = "(";

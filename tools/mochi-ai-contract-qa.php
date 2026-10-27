@@ -55,6 +55,10 @@ $assert(str_contains($responder, "'profile'=>'complex','reasoning_effort'=>'medi
 $assert(str_contains($images, "'gpt-image-2'"), 'Retired image model is still the default.');
 $assert(str_contains($estimateWorkflowSource, "'id_contract'=>\$contractId"), 'The conversational estimate workflow must assign General Conditions.');
 $assert(str_contains($actionSource, "'id_contract'=>\$contractId"), 'The controlled action estimate workflow must assign General Conditions.');
+$ordersRepositorySource=file_get_contents($root.'/src/Repositories/OrdersRepository.php');
+$assert(str_contains($ordersRepositorySource,"str_starts_with(\$workflow,'INVOICE_')")&&str_contains($ordersRepositorySource,'requiredGeneralConditionsId()'), 'All invoice lifecycle inserts must default to General Conditions in the central order repository.');
+$conciergeSource=file_get_contents($root.'/src/Services/MochiConciergeService.php');
+$assert(str_contains($conciergeSource,'isOrderContractAssignmentIntent')&&str_contains($conciergeSource,'prepareOrderContractAssignment'), 'Mochi must deterministically resolve contract requests that contain order-access links.');
 $assert(str_contains($knowledgeSource, 'estimate_contract_policy'), 'The General Conditions estimate policy is missing from Mochi knowledge.');
 
 $estimateWorkflow = (new ReflectionClass(MochiEstimateWorkflowService::class))->newInstanceWithoutConstructor();

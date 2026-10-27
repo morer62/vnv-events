@@ -9,9 +9,35 @@ use App\Repositories\OrdersServicesAssignedRepository;
 
 final class MochiActionService
 {
-    private const ACTIONS=['CREATE_CUSTOMER','UPDATE_CUSTOMER','CREATE_ESTIMATE','CREATE_ORDER','CREATE_EVENT','ADD_NOTE','CREATE_FOLLOW_UP','ASSOCIATE_REQUEST_CUSTOMER','ASSOCIATE_CUSTOMER_ORDER','SEND_CUSTOMER_EMAIL','SEND_PUSH_NOTIFICATION'];
+    private const ACTIONS=['CREATE_CUSTOMER','UPDATE_CUSTOMER','CREATE_ESTIMATE','CREATE_ORDER','CREATE_EVENT','ADD_NOTE','CREATE_FOLLOW_UP','ASSOCIATE_REQUEST_CUSTOMER','ASSOCIATE_CUSTOMER_ORDER','ASSIGN_ORDER_CONTRACT','SEND_CUSTOMER_EMAIL','SEND_PUSH_NOTIFICATION'];
     public function __construct(private int $ownerId,private string $siteKey='vnvevents',private ?Connection $db=null){$this->db??=new Connection();}
     public function detects(string $message): bool {return (bool)preg_match('/\b(crea|crear|create|actualiza|update|agrega|añade|nota|seguimiento|follow.?up|asocia|associate|env[ií]a|send)\b/iu',$message);}
+
+    public function prepareOrderContractAssignment(int $userId,int $level,int $sessionId,string $message,?int $fallbackOrderId=null): array
+    {
+        $this->assertAdmin($level);
+        $orderId=$this->orderIdFromAccessLink($message)??$this->explicitOrderId($message)??$fallbackOrderId;
+        if(!$orderId)return ['reply'=>'No pude identificar el estimate. Pega su enlace de order-access o indícame el número del estimate.','items'=>[],'facts'=>['draft_prepared'=>false]];
+
+        $this->db->query("SELECT o.id,o.id_client,o.id_contract,o.event_date,o.status_workflow,u.name,u.lastname,u.email FROM orders o LEFT JOIN users u ON u.id=o.id_client AND u.id_owner=o.id_owner WHERE o.id=:id AND o.id_owner=:owner AND COALESCE(o.is_archived,0)=0 LIMIT 1");
+        $this->bind(['id'=>$orderId,'owner'=>$this->ownerId]);$order=$this->db->fetchOne();
+        if(!$order)return ['reply'=>'El enlace no corresponde a un estimate activo de VNV Events. No preparé ningún cambio.','items'=>[],'facts'=>['draft_prepared'=>false,'order_id'=>$orderId]];
+
+        $contractId=(new OrderContractPolicyService($this->ownerId,$this->db))->requiredGeneralConditionsId();
+        $this->db->query('SELECT id,title FROM orders_contracts WHERE id=:id AND id_owner=:owner LIMIT 1');$this->bind(['id'=>$contractId,'owner'=>$this->ownerId]);$contract=$this->db->fetchOne();
+        if(!$contract)throw new \RuntimeException('No encontré el contrato obligatorio General Conditions.');
+        $customer=trim((string)$order->name.' '.(string)$order->lastname)?:((string)$order->email?:'cliente sin nombre');
+        $item=['title'=>'Estimate #'.(int)$order->id.' · '.$customer,'meta'=>(string)$order->event_date.' · '.(string)$order->status_workflow,'detail'=>'Contrato: '.(string)$contract->title,'url'=>'/panel/planner-hub/management/orders/orders/edit?id='.(int)$order->id];
+        if((int)$order->id_contract===$contractId){
+            return ['reply'=>'Estimate #'.(int)$order->id.' ya tiene asignado el contrato “'.(string)$contract->title.'”. No cambié nada.','items'=>[$item],'facts'=>['draft_prepared'=>false,'already_assigned'=>true,'order_id'=>(int)$order->id,'contract_id'=>$contractId]];
+        }
+
+        $payload=['order_id'=>(int)$order->id,'contract_id'=>$contractId,'previous_contract_id'=>$order->id_contract!==null?(int)$order->id_contract:null];
+        $summary='Asignar “'.(string)$contract->title.'” al Estimate #'.(int)$order->id.' de '.$customer.' (evento '.(string)$order->event_date.').';
+        $this->db->query("INSERT INTO mochi_action_drafts(id_owner,site_key,id_user,id_session,action_key,payload_json,summary,expires_at) VALUES(:owner,:site,:user,:session,'ASSIGN_ORDER_CONTRACT',:payload,:summary,DATE_ADD(UTC_TIMESTAMP(),INTERVAL 30 MINUTE))");
+        $this->bind(['owner'=>$this->ownerId,'site'=>$this->siteKey,'user'=>$userId,'session'=>$sessionId,'payload'=>json_encode($payload,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES),'summary'=>$summary]);$this->db->execute();$draftId=(int)$this->db->lastId();
+        return ['reply'=>'Identifiqué el enlace: '.$summary.' Revisa y pulsa Confirmar para aplicarlo.','items'=>[$item],'action_draft'=>['id'=>$draftId,'action'=>'ASSIGN_ORDER_CONTRACT','summary'=>$summary],'facts'=>['draft_prepared'=>true,'order_id'=>(int)$order->id,'contract_id'=>$contractId]];
+    }
 
     public function prepare(int $userId,int $level,int $sessionId,string $message): array
     {
@@ -50,6 +76,13 @@ final class MochiActionService
     private function duplicates(string $a,array $p): array {if($a==='CREATE_CUSTOMER'){$this->db->query("SELECT id,name,lastname,email,phone FROM users WHERE id_owner=:owner AND level=5 AND (LOWER(email)=LOWER(:email) OR (:phone<>'' AND phone=:phone) OR LOWER(CONCAT_WS(' ',name,lastname))=LOWER(:name)) LIMIT 5");$this->bind(['owner'=>$this->ownerId,'email'=>(string)$p['email'],'phone'=>(string)($p['phone']??''),'name'=>(string)$p['full_name']]);return array_map(fn($r)=>['title'=>'Cliente #'.$r->id.' · '.trim($r->name.' '.$r->lastname),'meta'=>$r->email,'detail'=>(string)$r->phone,'url'=>'/panel/planner-hub/management/users/edit?id='.$r->id],$this->db->fetchAll());}if(in_array($a,['CREATE_ESTIMATE','CREATE_ORDER','CREATE_EVENT'],true)){$this->db->query("SELECT id,event_date,status_workflow,address FROM orders WHERE id_owner=:owner AND id_client=:customer AND event_date=:day AND COALESCE(is_archived,0)=0 LIMIT 5");$this->bind(['owner'=>$this->ownerId,'customer'=>(int)$p['customer_id'],'day'=>$p['event_date']]);return array_map(fn($r)=>['title'=>'Orden/evento #'.$r->id,'meta'=>$r->event_date.' · '.$r->status_workflow,'detail'=>(string)$r->address,'url'=>'/panel/planner-hub/management/orders/orders/edit?id='.$r->id],$this->db->fetchAll());}if($a==='UPDATE_CUSTOMER'&&!empty($p['email'])){$this->db->query("SELECT id,name,lastname,email FROM users WHERE id_owner=:owner AND level=5 AND id<>:id AND LOWER(email)=LOWER(:email) LIMIT 5");$this->bind(['owner'=>$this->ownerId,'id'=>(int)$p['customer_id'],'email'=>$p['email']]);return array_map(fn($r)=>['title'=>'Cliente #'.$r->id.' · '.trim($r->name.' '.$r->lastname),'meta'=>$r->email,'detail'=>'Ese email ya pertenece a otro cliente','url'=>'/panel/planner-hub/management/users/edit?id='.$r->id],$this->db->fetchAll());}return [];}
     private function perform(string $a,array $p,int $actor): array
     {
+        if($a==='ASSIGN_ORDER_CONTRACT'){
+            $orderId=(int)($p['order_id']??0);$contractId=(int)($p['contract_id']??0);
+            $this->db->query('SELECT id,id_contract FROM orders WHERE id=:id AND id_owner=:owner AND COALESCE(is_archived,0)=0 FOR UPDATE');$this->bind(['id'=>$orderId,'owner'=>$this->ownerId]);$order=$this->db->fetchOne();if(!$order)throw new \RuntimeException('Estimate not found.');
+            $this->db->query('SELECT id,title FROM orders_contracts WHERE id=:id AND id_owner=:owner LIMIT 1');$this->bind(['id'=>$contractId,'owner'=>$this->ownerId]);$contract=$this->db->fetchOne();if(!$contract)throw new \RuntimeException('Contract not found.');
+            if((int)$order->id_contract!==$contractId){$this->db->query('UPDATE orders SET id_contract=:contract WHERE id=:id AND id_owner=:owner');$this->bind(['contract'=>$contractId,'id'=>$orderId,'owner'=>$this->ownerId]);$this->db->execute();}
+            return $this->result('estimate_contract',$orderId,'Contrato “'.(string)$contract->title.'” asignado','/panel/planner-hub/management/orders/orders/edit?id='.$orderId);
+        }
         if($a==='CREATE_CUSTOMER'){$u=StoreCustomerService::findOrCreateLevel5User($this->ownerId,(string)$p['full_name'],(string)$p['email'],(string)($p['phone']??''));if(!$u)throw new \RuntimeException('Customer create failed.');(new ClientsUsersRepository())->create((int)$u->id,$this->ownerId);return $this->result('customer',(int)$u->id,trim($u->name.' '.$u->lastname),'/panel/planner-hub/management/users/edit?id='.$u->id);}
         if($a==='UPDATE_CUSTOMER'){
             $customer=$this->customer((int)$p['customer_id']);$allowed=[];foreach(['full_name','email','phone'] as $f)if(isset($p[$f]))$allowed[$f]=$p[$f];$fields=[];
@@ -71,6 +104,22 @@ final class MochiActionService
     }
     private function summary(string $a,array $p): string {$visible=array_filter($p,fn($key)=>!in_array($key,['customer_id','service_id'],true),ARRAY_FILTER_USE_KEY);return str_replace('_',' ',ucwords(strtolower($a),'_')).' · '.implode(' · ',array_map(fn($k,$v)=>$this->fieldLabel((string)$k).': '.(is_scalar($v)?$v:'información adjunta'),array_keys($visible),$visible));}
     private function result(string $type,int $id,string $details,string $url): array {return ['entity_type'=>$type,'entity_id'=>(string)$id,'details'=>$details,'url'=>$url,'reply'=>ucfirst(str_replace('_',' ',$type)).' #'.$id.' completado — '.$details.'.'];}
+    private function explicitOrderId(string $message): ?int {return preg_match('/\b(?:estimate|estimado|orden|order)\s*#?\s*(\d+)\b/iu',$message,$match)?(int)$match[1]:null;}
+    private function orderIdFromAccessLink(string $message): ?int
+    {
+        if(!preg_match_all('~https?://[^\s<>"\']+~iu',html_entity_decode($message,ENT_QUOTES|ENT_HTML5,'UTF-8'),$matches))return null;
+        foreach($matches[0] as $url){
+            $parts=parse_url(rtrim((string)$url,".,;!?)\"]}"));if(!is_array($parts))continue;
+            $host=mb_strtolower((string)($parts['host']??''));$path=rtrim((string)($parts['path']??''),'/');
+            if(!in_array($host,['vnvevents.com','www.vnvevents.com'],true)||$path!=='/order-access')continue;
+            parse_str((string)($parts['query']??''),$query);$token=(string)($query['token']??'');$decoded=$token!==''?base64_decode($token,true):false;$data=$decoded!==false?json_decode($decoded,true):null;
+            if(!is_array($data)||empty($data['order_id'])||empty($data['user_id'])||empty($data['exp'])||empty($data['hash']))continue;
+            $signed=['order_id'=>(int)$data['order_id'],'user_id'=>(int)$data['user_id'],'exp'=>(int)$data['exp']];$expected=hash_hmac('sha256',json_encode($signed),$_ENV['VNV_SECRET_KEY']??'mySuperSecretKey');
+            if(!hash_equals($expected,(string)$data['hash']))continue;
+            $this->db->query('SELECT id FROM orders WHERE id=:id AND id_client=:client AND id_owner=:owner AND COALESCE(is_archived,0)=0 LIMIT 1');$this->bind(['id'=>$signed['order_id'],'client'=>$signed['user_id'],'owner'=>$this->ownerId]);if($this->db->fetchOne())return $signed['order_id'];
+        }
+        return null;
+    }
     private function customer(int $id): object {$this->db->query("SELECT id,name,lastname,email,phone,expo_token FROM users WHERE id=:id AND id_owner=:owner AND level=5 AND is_active=1");$this->bind(['id'=>$id,'owner'=>$this->ownerId]);$r=$this->db->fetchOne();if(!$r)throw new \RuntimeException('Customer not found.');return $r;}
     private function order(int $id): object {$this->db->query("SELECT id,id_client FROM orders WHERE id=:id AND id_owner=:owner AND COALESCE(is_archived,0)=0");$this->bind(['id'=>$id,'owner'=>$this->ownerId]);$r=$this->db->fetchOne();if(!$r)throw new \RuntimeException('Order not found.');return $r;}
     private function assertAdmin(int $level): void {if($level!==1)throw new \RuntimeException('Only Level 1 can confirm Mochi write actions.');}
