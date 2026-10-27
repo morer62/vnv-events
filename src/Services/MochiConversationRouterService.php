@@ -6,7 +6,7 @@ final class MochiConversationRouterService
 {
     private const ROUTES=[
         'estimate_workflow','service_workflow','executed_events','weekend_events','collections',
-        'opportunities','requests','contracts','catalog','warehouse','rewards','website',
+        'opportunities','requests','contracts','contract_terms','catalog','warehouse','rewards','website',
         'my_events','my_tasks','customer_orders','write_action','clarify',
     ];
 
@@ -39,6 +39,7 @@ final class MochiConversationRouterService
             .'An active task is only resumable context, never the default destination: select estimate_workflow only when the current message actually continues or changes that estimate. '
             .'Questions about completed/executed events, annual event counts, revenue produced by those events, or follow-ups to those results use executed_events. '
             .'Use weekend_events only for a specific agenda, weekend, date range or upcoming-event request. '
+            .'Use contract_terms when the user asks what a contract, agreement, clause, policy or terms say, including setup access or arrival times. Use contracts only for signature status, missing signatures or contract lists. '
             .'Use write_action only for an explicit request to create or change company data. '
             .'When the intended route cannot be determined safely, select clarify. Never guess that an unrelated message belongs to an active task.';
         $allowedRoutes=$level===1?self::ROUTES:($level===4?['my_events','my_tasks','catalog','website','clarify']:($level===5?['my_events','customer_orders','catalog','website','rewards','clarify']:['clarify']));
