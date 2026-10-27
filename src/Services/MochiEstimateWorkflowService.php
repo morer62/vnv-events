@@ -264,8 +264,10 @@ final class MochiEstimateWorkflowService
         unset($parsed['requested_services'],$parsed['custom_services'],$parsed['remove_services'],$parsed['estimate_identifier']);
         $base=$this->normalize($this->meaningfulParsedValues($parsed));
         if(empty($base['customer_name'])&&!empty($base['email']))$base['customer_name']=ucfirst((string)strtok((string)$base['email'],'@'));
-        if($times=$this->tentativeServiceTimes($message)){$base['start_time']=$times['start'];$base['end_time']=$times['end'];$note='Tentative food-service start between '.$times['label'].'; confirm the final start time with the client. This draft uses '.$times['start'].'–'.$times['end'].' for scheduling.';$base['notes']=trim((string)($base['notes']??'')."\n".$note);}
-        $base['custom_services']=[];$base['discount_type']='amount';$base['discount_value']=0.0;$base['force_separate']=true;$base['uncertain_fields']=array_values(array_diff((array)($base['uncertain_fields']??[]),['requested_services','services']));
+        $times=$this->tentativeServiceTimes($message);
+        if($times){$base['start_time']=$times['start'];$base['end_time']=$times['end'];$note='Tentative food-service start between '.$times['label'].'; confirm the final start time with the client. This draft uses '.$times['start'].'–'.$times['end'].' for scheduling.';$base['notes']=trim((string)($base['notes']??'')."\n".$note);}
+        $resolvedUncertainty=['requested_services','services'];if($times)$resolvedUncertainty=array_merge($resolvedUncertainty,['start_time','end_time']);
+        $base['custom_services']=[];$base['discount_type']='amount';$base['discount_value']=0.0;$base['force_separate']=true;$base['uncertain_fields']=array_values(array_diff((array)($base['uncertain_fields']??[]),$resolvedUncertainty));
 
         $created=[];$allItems=[];$lastResult=null;
         foreach($serviceNames as $index=>$serviceName){
