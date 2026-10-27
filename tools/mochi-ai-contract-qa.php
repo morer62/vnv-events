@@ -42,11 +42,13 @@ $root = dirname(__DIR__);
 $controller = file_get_contents($root.'/src/views/panel/level1/planner-hub/settings/automation/index.php');
 $view = file_get_contents($root.'/src/views/panel/level1/planner-hub/settings/automation/index.twig');
 $concierge = file_get_contents($root.'/src/Services/MochiConciergeService.php');
+$responder = file_get_contents($root.'/src/Services/MochiConversationResponderService.php');
 $images = file_get_contents($root.'/src/Services/CmsImageGenerationService.php');
 $assert(!str_contains($controller, 'transcribe_mochi_audio'), 'Audio transcription endpoint still exists.');
 $assert(!str_contains($view, 'id="mochi-voice"'), 'Voice button still exists.');
 $assert(str_contains($view, 'name="screenshots[]"'), 'Screenshot upload is missing.');
 $assert(str_contains($concierge, 'scope_guard'), 'Editorial scope guard is missing.');
+$assert(str_contains($responder, "'profile'=>'complex','reasoning_effort'=>'medium'"), 'Visible Mochi replies must use GPT-6.1 Sol with medium reasoning.');
 $assert(str_contains($images, "'gpt-image-2'"), 'Retired image model is still the default.');
 
 $estimateWorkflow = (new ReflectionClass(MochiEstimateWorkflowService::class))->newInstanceWithoutConstructor();

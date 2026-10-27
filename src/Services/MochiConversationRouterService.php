@@ -6,14 +6,14 @@ final class MochiConversationRouterService
 {
     private const ROUTES=[
         'estimate_workflow','service_workflow','executed_events','weekend_events','collections',
-        'opportunities','requests','contracts','contract_terms','catalog','warehouse','rewards','website',
-        'my_events','my_tasks','customer_orders','write_action','clarify',
+        'opportunities','requests','contracts','contract_terms','team_members','catalog','knowledge_audit','warehouse','rewards','website',
+        'my_events','my_tasks','customer_orders','write_action','conversation','clarify',
     ];
 
     public function __construct(private ?AiJsonGenerator $ai=null){$this->ai??=new AiJsonGenerator();}
 
     /** @param object[] $recentMessages */
-    public function decide(string $message,array $recentMessages,array $activeTasks,int $level): array
+    public function decide(string $message,array $recentMessages,array $activeTasks,int $level,array $memory=[]): array
     {
         $history=[];$topicIndex=[];$recentStart=max(0,count($recentMessages)-18);
         foreach($recentMessages as $index=>$row){
@@ -40,14 +40,18 @@ final class MochiConversationRouterService
             .'Questions about completed/executed events, annual event counts, revenue produced by those events, or follow-ups to those results use executed_events. '
             .'Use weekend_events only for a specific agenda, weekend, date range or upcoming-event request. '
             .'Use contract_terms when the user asks what a contract, agreement, clause, policy or terms say, including setup access or arrival times. Use contracts only for signature status, missing signatures or contract lists. '
+            .'Use team_members for counts or lists of VNV team users, including a follow-up such as "solo los activos" after asking about Team Members. '
+            .'Use catalog for questions about an offered product or service; it consults the public store, published landing pages and the internal estimate-service catalog together. Use knowledge_audit when the user asks whether those sources contradict, differ or are inconsistent. '
+            .'Use conversation for acknowledgements, corrections, opinions, planning discussion or a natural follow-up that can be answered from the dialogue and persistent memory without a live database lookup. '
             .'Use write_action only for an explicit request to create or change company data. '
             .'When the intended route cannot be determined safely, select clarify. Never guess that an unrelated message belongs to an active task.';
-        $allowedRoutes=$level===1?self::ROUTES:($level===4?['my_events','my_tasks','catalog','website','clarify']:($level===5?['my_events','customer_orders','catalog','website','rewards','clarify']:['clarify']));
+        $allowedRoutes=$level===1?self::ROUTES:($level===4?['my_events','my_tasks','catalog','website','conversation','clarify']:($level===5?['my_events','customer_orders','catalog','website','rewards','conversation','clarify']:['conversation','clarify']));
         $decision=$this->ai->generate($system,[
             'current_message'=>$message,
             'recent_messages'=>$history,
             'earlier_topic_index'=>$topicIndex,
             'active_tasks'=>$activeTasks,
+            'persistent_memory'=>$memory,
             'user_level'=>$level,
             'allowed_routes'=>$allowedRoutes,
         ],[

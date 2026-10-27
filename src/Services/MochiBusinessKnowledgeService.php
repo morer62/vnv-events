@@ -1,0 +1,104 @@
+<?php
+
+namespace App\Services;
+
+use App\Repositories\Connection;
+
+/**
+ * Live VNV business knowledge assembled from the three authoritative sources:
+ * the published agreement, the public catalog/landing pages, and the estimate catalog.
+ */
+final class MochiBusinessKnowledgeService
+{
+    public function __construct(private int $ownerId,private string $siteKey='vnvevents',private ?Connection $db=null){$this->db??=new Connection();}
+
+    public function contract(string $question): array
+    {
+        $sections=$this->contractSections();
+        $tokens=$this->tokens($question.' '.$this->contractSynonyms($question));
+        foreach($sections as &$section){$haystack=$this->normalize($section['title'].' '.$section['text']);$section['score']=array_sum(array_map(fn($token)=>str_contains($haystack,$this->normalize($token))?1:0,$tokens));}unset($section);
+        usort($sections,fn($a,$b)=>$b['score']<=>$a['score']);
+        $matches=array_values(array_filter($sections,fn($section)=>$section['score']>0));
+        $matches=array_slice($matches?:$sections,0,4);
+        $facts=['source'=>'VNV Events General Terms and Conditions','source_url'=>'/terms-and-conditions/','clauses'=>array_map(fn($section)=>['title'=>$section['title'],'text'=>$section['text']],$matches)];
+        $items=array_map(fn($section)=>['title'=>'Contrato · '.$section['title'],'meta'=>'Condiciones generales vigentes','detail'=>mb_substr($section['text'],0,520),'url'=>'/terms-and-conditions/'],$matches);
+        return ['reply'=>'Consulté las condiciones generales vigentes y encontré '.count($matches).' sección(es) relacionadas.','items'=>$items,'facts'=>$facts];
+    }
+
+    public function catalog(string $question): array
+    {
+        $terms=$this->tokens($question);
+        $estimate=$this->estimateServices($terms);
+        $store=$this->storeProducts($terms);
+        $pages=$this->landingPages($terms);
+        $items=[];
+        foreach($estimate as $row)$items[]=['title'=>$row['name'],'meta'=>'Catálogo interno de estimates · $'.number_format((float)$row['price'],2).($row['is_variable']==='YES'?' variable':''),'detail'=>mb_substr(trim($row['description'].' '.$row['requirements']),0,420),'url'=>'/panel/planner-hub/management/orders/services'];
+        foreach($store as $row)$items[]=['title'=>$row['name'],'meta'=>'Tienda pública · '.$row['price_label'],'detail'=>mb_substr(trim($row['description'].' '.($row['variations']??'')),0,420),'url'=>'/vnv-gourmet-express/product/'.$row['slug']];
+        foreach($pages as $row)$items[]=['title'=>$row['title'],'meta'=>'Landing page publicada','detail'=>mb_substr($row['excerpt'],0,420),'url'=>'/'.ltrim($row['route'],'/')];
+        return [
+            'reply'=>'Encontré '.count($estimate).' servicio(s) en el catálogo de estimates, '.count($store).' producto(s) públicos y '.count($pages).' landing page(s) relacionadas.',
+            'items'=>array_slice($items,0,18),
+            'facts'=>['authoritative_sources'=>['general_terms','estimate_services','public_store_and_landings'],'estimate_services'=>$estimate,'store_products'=>$store,'landing_pages'=>$pages],
+        ];
+    }
+
+    public function audit(string $question): array
+    {
+        $catalog=$this->catalog($question);
+        $estimate=$catalog['facts']['estimate_services'];$store=$catalog['facts']['store_products'];$pages=$catalog['facts']['landing_pages'];
+        $matches=[];$priceMismatches=[];
+        foreach($estimate as $internal){foreach($store as $public){$a=$this->normalizeName($internal['name']);$b=$this->normalizeName($public['name']);if($a===''||$b===''||$a!==$b)continue;$match=['estimate_service'=>$internal['name'],'estimate_price'=>(float)$internal['price'],'store_product'=>$public['name'],'store_price'=>$public['effective_price'],'store_price_label'=>$public['price_label']];$matches[]=$match;if($public['effective_price']!==null&&abs((float)$internal['price']-(float)$public['effective_price'])>0.009)$priceMismatches[]=$match;}}
+        $landingMentions=[];
+        foreach($pages as $page){if(!empty($page['price_mentions']))$landingMentions[]=['title'=>$page['title'],'route'=>$page['route'],'price_mentions'=>$page['price_mentions']];}
+        $facts=$catalog['facts']+['matched_catalog_entries'=>$matches,'possible_price_mismatches'=>$priceMismatches,'landing_price_mentions'=>$landingMentions,'interpretation_limit'=>'A price difference is a possible mismatch, not automatically a contradiction; packages, units, guest minimums and variants must also be compared.'];
+        return ['reply'=>'Comparé en vivo el catálogo interno de estimates, la tienda pública y las landing pages. Encontré '.count($matches).' coincidencia(s) de nombre y '.count($priceMismatches).' posible(s) diferencia(s) de precio para revisar.','items'=>$catalog['items'],'facts'=>$facts];
+    }
+
+    private function estimateServices(array $terms): array
+    {
+        [$where,$params]=$this->searchWhere("LOWER(CONCAT_WS(' ',CONVERT(name USING utf8mb4),CONVERT(description USING utf8mb4),CONVERT(requirements USING utf8mb4))) COLLATE utf8mb4_unicode_ci",$terms,['owner'=>$this->ownerId]);
+        $this->db->query("SELECT id,name,description,requirements,price,is_variable FROM orders_services WHERE id_owner=:owner AND COALESCE(is_archived,0)=0 {$where} ORDER BY name LIMIT 12");$this->bind($params);
+        return array_map(fn($r)=>['id'=>(int)$r->id,'name'=>(string)$r->name,'description'=>mb_substr(trim(strip_tags((string)$r->description)),0,700),'requirements'=>mb_substr(trim(strip_tags((string)$r->requirements)),0,900),'price'=>(float)$r->price,'is_variable'=>(string)$r->is_variable],$this->db->fetchAll());
+    }
+
+    private function storeProducts(array $terms): array
+    {
+        [$where,$params]=$this->searchWhere("LOWER(CONCAT_WS(' ',CONVERT(p.name USING utf8mb4),CONVERT(p.short_description USING utf8mb4),CONVERT(p.description USING utf8mb4))) COLLATE utf8mb4_unicode_ci",$terms,['owner'=>$this->ownerId,'site'=>$this->siteKey]);
+        $this->db->query("SELECT p.id,p.name,p.slug,p.short_description,p.description,p.product_type,p.price,p.promo_price,MIN(v.price) min_price,MAX(v.price) max_price,SUBSTRING_INDEX(GROUP_CONCAT(CASE WHEN LOWER(v.name) NOT LIKE '%additional topping%' THEN COALESCE(NULLIF(v.promo_price,0),v.price) END ORDER BY v.sort_order SEPARATOR ','),',',1) primary_price,GROUP_CONCAT(CONCAT(CONVERT(v.name USING utf8mb4),': $',FORMAT(COALESCE(NULLIF(v.promo_price,0),v.price),2)) ORDER BY v.sort_order SEPARATOR ' | ') variations FROM store_products p LEFT JOIN store_product_variations v ON v.id_product=p.id AND v.status='ACTIVE' WHERE p.id_owner=:owner AND p.site_key=:site AND p.status='ACTIVE' AND p.is_public=1 {$where} GROUP BY p.id ORDER BY p.is_featured DESC,p.name LIMIT 12");$this->bind($params);
+        return array_map(function($r){$base=(float)($r->promo_price?:$r->price);$effective=$r->product_type==='VARIABLE'?($base>0?$base:($r->primary_price!==null?(float)$r->primary_price:($r->min_price!==null?(float)$r->min_price:null))):$base;$label=$r->product_type==='VARIABLE'?'$'.number_format((float)$r->min_price,2).' - $'.number_format((float)$r->max_price,2):'$'.number_format($base,2);return ['id'=>(int)$r->id,'name'=>(string)$r->name,'slug'=>(string)$r->slug,'description'=>mb_substr(trim(strip_tags((string)($r->short_description?:$r->description))),0,700),'price_label'=>$label,'effective_price'=>$effective,'variations'=>mb_substr((string)$r->variations,0,900)];},$this->db->fetchAll());
+    }
+
+    private function landingPages(array $terms): array
+    {
+        [$where,$params]=$this->searchWhere("LOWER(CONCAT_WS(' ',CONVERT(c.title USING utf8mb4),CONVERT(c.excerpt USING utf8mb4),CONVERT(c.body_html USING utf8mb4))) COLLATE utf8mb4_unicode_ci",$terms,['owner'=>$this->ownerId,'site'=>$this->siteKey]);
+        $this->db->query("SELECT c.title,c.excerpt,c.body_html,r.route FROM cms_contents c JOIN cms_routes r ON r.id_content=c.id AND r.site_key=c.site_key AND r.status='ACTIVE' AND r.is_main=1 WHERE c.id_owner=:owner AND c.site_key=:site AND c.status='PUBLISHED' AND c.type IN ('page','landing') {$where} ORDER BY c.updated_at DESC LIMIT 10");$this->bind($params);
+        return array_map(function($r){$search=mb_substr(trim(strip_tags((string)$r->body_html)),0,3000);preg_match_all('/\$\s*\d+(?:[.,]\d{1,2})?/u',$search,$amounts);return ['title'=>(string)$r->title,'excerpt'=>mb_substr(trim(strip_tags((string)($r->excerpt?:$r->body_html))),0,700),'route'=>(string)$r->route,'price_mentions'=>array_values(array_unique($amounts[0]??[]))];},$this->db->fetchAll());
+    }
+
+    private function contractSections(): array
+    {
+        $path=dirname(__DIR__).'/views/public/system/terms_and_conditions/index.twig';$html=(string)file_get_contents($path);$sections=[];
+        preg_match_all('/<div class="terms-section">\s*<h3>(.*?)<\/h3>(.*?)<\/div>/si',$html,$matches,PREG_SET_ORDER);
+        foreach($matches as $match){$title=trim(html_entity_decode(strip_tags($match[1]),ENT_QUOTES|ENT_HTML5,'UTF-8'));$body=preg_replace('/<br\s*\/?\s*>/i','; ',$match[2]);$text=trim(preg_replace('/\s+/u',' ',html_entity_decode(strip_tags((string)$body),ENT_QUOTES|ENT_HTML5,'UTF-8'))??'');if($title!==''&&$text!=='')$sections[]=['title'=>$title,'text'=>$text];}
+        return $sections;
+    }
+
+    private function contractSynonyms(string $question): string
+    {
+        $extra='';
+        if(preg_match('/instal|montaje|llegar|decor|acceso|antes/iu',$question))$extra.=' venue access setup equipment decor installation prior hours client responsibilities ';
+        if(preg_match('/pago|balance|retainer|dep[oó]sito|reembolso|refund/iu',$question))$extra.=' booking payment fees retainer final payment refunds ';
+        if(preg_match('/cancel|cambio|modific/iu',$question))$extra.=' cancellation changes modifications scope ';
+        if(preg_match('/foto|video|media|grabar/iu',$question))$extra.=' media release photograph record marketing ';
+        return $extra;
+    }
+
+    private function searchWhere(string $expression,array $terms,array $params): array
+    {
+        $terms=array_slice($terms,0,5);if(!$terms)return ['', $params];$pieces=[];foreach($terms as $i=>$term){$pieces[]="{$expression} LIKE CONVERT(:q{$i} USING utf8mb4) COLLATE utf8mb4_unicode_ci";$params['q'.$i]='%'.$term.'%';}return [' AND ('.implode(' AND ',$pieces).')',$params];
+    }
+    private function tokens(string $text): array {$stop=['puedes','podrias','quiero','dime','indica','revisa','sobre','para','como','cual','cuales','cuanto','cuantos','tiene','tienen','esta','este','estos','estas','incluye','incluir','ofrece','ofrecido','entre','contradiccion','contradicciones','inconsistencia','inconsistencias','diferencia','diferencias','compara','comparar','creados','cargados','estimate','estimates','internos','publicos','vnv','events','servicio','servicios','producto','productos','pagina','pages','landing','tienda','store','contrato','terminos','general'];$map=['estación'=>'station','estacion'=>'station','eventos'=>'event','evento'=>'event','decoración'=>'decor','decoracion'=>'decor','instalación'=>'setup','instalacion'=>'setup'];$words=preg_split('/[^\pL\pN]+/u',mb_strtolower($text),-1,PREG_SPLIT_NO_EMPTY);$words=array_map(fn($word)=>$map[$word]??$word,$words);return array_values(array_unique(array_filter($words,fn($word)=>mb_strlen($word)>3&&!in_array($word,$stop,true))));}
+    private function normalize(string $text): string {$text=mb_strtolower($text);$ascii=iconv('UTF-8','ASCII//TRANSLIT//IGNORE',$text);return preg_replace('/[^a-z0-9]+/',' ',(string)$ascii)??'';}
+    private function normalizeName(string $name): string {$words=array_filter(explode(' ',$this->normalize($name)),fn($w)=>!ctype_digit($w)&&!in_array($w,['from','per','guest','minimum','min','the','and','station','service','price','old'],true));return implode(' ',array_values($words));}
+    private function bind(array $params): void {foreach($params as $key=>$value)$this->db->bind(':'.$key,$value);}
+}

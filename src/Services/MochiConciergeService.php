@@ -21,6 +21,7 @@ final class MochiConciergeService
         // Read the existing daily thread before inserting the new turn. The router must see
         // what "eso", "el anterior" and similar follow-ups refer to.
         $recentMessages=$this->sessions->messages($sessionId,$authorId,120);
+        $memory=(new MochiMemoryService($this->ownerId,$this->siteKey,$this->db))->context($sessionId);
         $this->save($sessionId,$authorId,'HUMAN',$message);
         if($this->isGreeting($message)){$reply='¡Hola! Claro que sí 😊 Soy Mochi y estoy aquí para ayudarte con VNV Events. Puedo revisar eventos, estimates, clientes, pagos pendientes, servicios, productos y tareas. Cuéntame qué necesitas y lo resolvemos juntos.';$this->save($sessionId,null,'AGENT',$reply,['tool'=>'greeting','items'=>[]]);$this->sessions->touch($sessionId);return ['reply'=>$reply,'items'=>[],'tool'=>'greeting','session_id'=>$sessionId];}
         if($this->isEditorialCreationIntent($message)){
@@ -34,7 +35,7 @@ final class MochiConciergeService
             'estimate'=>$activeEstimate?['active'=>true,'mode'=>(string)$activeEstimate->mode,'status'=>(string)$activeEstimate->status,'current_estimate_id'=>$activeEstimate->current_estimate_id? (int)$activeEstimate->current_estimate_id:null]:['active'=>false],
             'service'=>$activeService?['active'=>true,'status'=>(string)$activeService->status,'current_service_id'=>$activeService->current_service_id? (int)$activeService->current_service_id:null,'current_product_id'=>$activeService->current_product_id? (int)$activeService->current_product_id:null]:['active'=>false],
         ];
-        try{$decision=(new MochiConversationRouterService())->decide($message,$recentMessages,$activeTasks,$level);}
+        try{$decision=(new MochiConversationRouterService())->decide($message,$recentMessages,$activeTasks,$level,$memory);}
         catch(\Throwable $e){error_log('[Mochi context router] '.$e->getMessage());$decision=$this->fallbackDecision($message,$recentMessages,$activeEstimate,$activeService,$level);}
         $route=(string)$decision['route'];$resolvedMessage=(string)$decision['resolved_message'];$routerMetadata=['route'=>$route,'confidence'=>(float)$decision['confidence'],'resolved_message'=>$resolvedMessage];
 
@@ -42,6 +43,11 @@ final class MochiConciergeService
             $reply=(string)$decision['clarification'];$metadata=['tool'=>'clarify','items'=>[],'router'=>$routerMetadata];
             $this->save($sessionId,null,'AGENT',$reply,$metadata);$this->sessions->touch($sessionId);
             return ['reply'=>$reply,'items'=>[],'tool'=>'clarify','session_id'=>$sessionId];
+        }
+        if($route==='conversation'){
+            try{$reply=(new MochiConversationResponderService())->compose($resolvedMessage,'conversation',['summary'=>'No live database lookup was requested for this conversational turn.','facts'=>[],'items'=>[]],$recentMessages,$memory);}
+            catch(\Throwable $e){error_log('[Mochi conversation] '.$e->getMessage());$reply='Te sigo. Podemos cambiar de tema sin perder el hilo; dime qué parte quieres retomar o corregir.';}
+            $metadata=['tool'=>'conversation','items'=>[],'router'=>$routerMetadata];$this->save($sessionId,null,'AGENT',$reply,$metadata);$this->sessions->touch($sessionId);return ['reply'=>$reply,'items'=>[],'tool'=>'conversation','session_id'=>$sessionId];
         }
         if($route==='service_workflow'){
             try{$result=$serviceWorkflow->handle($authorId,$level,$sessionId,$resolvedMessage);$metadata=['tool'=>'service_catalog_workflow','items'=>$result['items']??[],'service_workflow'=>$result['service_workflow']??null,'router'=>$routerMetadata];$this->save($sessionId,null,'AGENT',(string)$result['reply'],$metadata);$this->sessions->touch($sessionId);return ['reply'=>$result['reply'],'items'=>$metadata['items'],'service_workflow'=>$metadata['service_workflow'],'tool'=>'service_catalog_workflow','session_id'=>$sessionId];}
@@ -59,7 +65,7 @@ final class MochiConciergeService
         $tool=$route;
         try{$result=$this->tools->run($tool,$authorId,$level,$sessionId,$resolvedMessage);$reply=(string)$result['reply'];$items=$result['items']??[];
             $facts=$result['facts']??[];
-            try{$natural=(new MochiConversationResponderService())->compose($resolvedMessage,$tool,['summary'=>$reply,'facts'=>$facts,'items'=>$items],$recentMessages);if($natural!=='')$reply=$natural;}catch(\Throwable $e){error_log('[Mochi responder] '.$e->getMessage());}
+            try{$natural=(new MochiConversationResponderService())->compose($resolvedMessage,$tool,['summary'=>$reply,'facts'=>$facts,'items'=>$items],$recentMessages,$memory);if($natural!=='')$reply=$natural;}catch(\Throwable $e){error_log('[Mochi responder] '.$e->getMessage());}
             $metadata=['tool'=>$tool,'items'=>$items,'facts'=>$facts,'router'=>$routerMetadata];
         }catch(\Throwable $e){$reply=$e->getMessage();$metadata=['tool'=>$tool,'items'=>[],'error'=>true,'router'=>$routerMetadata];}
         $this->save($sessionId,null,'AGENT',$reply,$metadata);$this->sessions->touch($sessionId);return ['reply'=>$reply,'items'=>$metadata['items'],'tool'=>$tool,'session_id'=>$sessionId];
@@ -70,8 +76,10 @@ final class MochiConciergeService
     {
         $previousTool='';
         foreach(array_reverse($recentMessages) as $row){if(($row->author_type??'')!=='AGENT')continue;$metadata=json_decode((string)($row->metadata_json??''),true)?:[];$previousTool=(string)($metadata['tool']??'');if($previousTool!=='')break;}
-        if(preg_match('/^(?:y\s+)?(?:cu[aá]nto|cu[aá]ntos|cu[aá]l|eso|el anterior|contin[uú]a)\b/iu',$message)&&in_array($previousTool,['executed_events','weekend_events','collections','opportunities','requests','contracts','contract_terms','catalog','warehouse','rewards','website'],true))return ['route'=>$previousTool,'resolved_message'=>$message,'confidence'=>0.65,'clarification'=>''];
+        if(preg_match('/^(?:y\s+)?(?:cu[aá]nto|cu[aá]ntos|cu[aá]l|eso|el anterior|contin[uú]a)\b/iu',$message)&&in_array($previousTool,['executed_events','weekend_events','collections','opportunities','requests','contracts','contract_terms','team_members','catalog','knowledge_audit','warehouse','rewards','website'],true))return ['route'=>$previousTool,'resolved_message'=>$message,'confidence'=>0.65,'clarification'=>''];
         if(preg_match('/\b(contrato|acuerdo|cl[aá]usula|t[eé]rminos?)\b.{0,100}\b(dice|indica|especifica|establece|incluye|revis|cu[aá]nto tiempo|llegar|instalar|montaje|acceso)\b|\b(dice|indica|especifica|establece|revis|cu[aá]nto tiempo|llegar|instalar|montaje|acceso)\b.{0,100}\b(contrato|acuerdo|cl[aá]usula|t[eé]rminos?)\b/iu',$message))return ['route'=>'contract_terms','resolved_message'=>$message,'confidence'=>0.85,'clarification'=>''];
+        if(preg_match('/team\s*members?|miembros? del equipo|personas?.{0,60}(equipo|staff)|equipo.{0,60}(registrad|activ|miembros?|personas?)/iu',$message))return ['route'=>'team_members','resolved_message'=>$message,'confidence'=>0.85,'clarification'=>''];
+        if(preg_match('/contradic|inconsisten|no coincide|diferencias?.{0,80}(cat[aá]logo|servicio|producto|landing|tienda|store)|comparar?.{0,80}(cat[aá]logo|servicio|producto|landing|tienda|store)/iu',$message))return ['route'=>'knowledge_audit','resolved_message'=>$message,'confidence'=>0.85,'clarification'=>''];
         if(preg_match('/\b(eventos?|contratos?)\b.{0,100}\b(ejecutad[oa]s?|realizad[oa]s?|completad[oa]s?|gener[oó]|factur[oó]|produjo|ingresos?)\b|\b(cu[aá]nto dinero|ingresos?|facturaci[oó]n)\b.{0,80}\b(eventos?|contratos?)\b/iu',$message))return ['route'=>'executed_events','resolved_message'=>$message,'confidence'=>0.8,'clarification'=>''];
         if(preg_match('/\b(estimate|estimado|cotizaci[oó]n)\b/iu',$message))return ['route'=>'estimate_workflow','resolved_message'=>$message,'confidence'=>0.8,'clarification'=>''];
         if(preg_match('/\b(crear|agregar|modificar|editar|actualizar)\b.{0,80}\b(servicio|service)\b/iu',$message))return ['route'=>'service_workflow','resolved_message'=>$message,'confidence'=>0.8,'clarification'=>''];
@@ -86,5 +94,5 @@ final class MochiConciergeService
     public function recent(int $authorId,int $limit=60): array {$session=$this->sessions->today($authorId);return $this->sessions->messages((int)$session->id,$authorId,$limit);}
     private function isGreeting(string $message): bool {$plain=mb_strtolower(trim(preg_replace('/[^\pL\pN\s¿?¡!]+/u',' ',$message)??$message));$plain=preg_replace('/\s+/u',' ',$plain)??$plain;return (bool)preg_match('/^(hola|buenos d[ií]as|buenas tardes|buenas noches|hey|hello)(\s+mochi)?([\s¿?¡!]*(puedes|podr[ií]as|me puedes|me podr[ií]as)?\s*(ayudar|ayudarme|orientar|orientarme))?[\s¿?¡!]*$/iu',$plain)||preg_match('/^(puedes|podr[ií]as|me puedes|me podr[ií]as)\s+(ayudar|ayudarme|orientar|orientarme)[\s¿?¡!]*$/iu',$plain);}
     private function isEditorialCreationIntent(string $message): bool {return (bool)preg_match('/\b(crea|crear|escribe|redacta|publica|publicar|genera|generate|write|publish)\b.{0,80}\b(art[ií]culo|blog|blog post|post editorial|contenido editorial)\b|\b(art[ií]culo|blog|blog post|post editorial|contenido editorial)\b.{0,80}\b(crea|crear|escribe|redacta|publica|publicar|genera|generate|write|publish)\b/iu',$message);}
-    private function save(int $sessionId,?int $author,string $type,string $message,array $metadata=[]): void {$this->db->query("INSERT INTO automation_conversations(id_owner,site_key,thread_key,id_mochi_session,id_author,author_type,message,metadata_json) VALUES(:owner,:site,:thread,:session,:author,:type,:message,:metadata)");foreach(['owner'=>$this->ownerId,'site'=>$this->siteKey,'thread'=>'mochi:session:'.$sessionId,'session'=>$sessionId,'author'=>$author,'type'=>$type,'message'=>$message,'metadata'=>$metadata?json_encode($metadata,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES):null] as $k=>$v)$this->db->bind(':'.$k,$v);$this->db->execute();}
+    private function save(int $sessionId,?int $author,string $type,string $message,array $metadata=[]): void {$this->db->query("INSERT INTO automation_conversations(id_owner,site_key,thread_key,id_mochi_session,id_author,author_type,message,metadata_json) VALUES(:owner,:site,:thread,:session,:author,:type,:message,:metadata)");foreach(['owner'=>$this->ownerId,'site'=>$this->siteKey,'thread'=>'mochi:session:'.$sessionId,'session'=>$sessionId,'author'=>$author,'type'=>$type,'message'=>$message,'metadata'=>$metadata?json_encode($metadata,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES):null] as $k=>$v)$this->db->bind(':'.$k,$v);$this->db->execute();if($type==='AGENT'){try{(new MochiMemoryService($this->ownerId,$this->siteKey,$this->db))->capture($sessionId,$message,$metadata);}catch(\Throwable $e){error_log('[Mochi memory save] '.$e->getMessage());}}}
 }

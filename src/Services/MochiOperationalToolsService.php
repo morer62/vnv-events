@@ -6,7 +6,7 @@ use App\Repositories\Connection;
 /** Read-only, role-scoped operational queries used by Mochi. */
 final class MochiOperationalToolsService
 {
-    private const ADMIN_TOOLS=['weekend_events','executed_events','collections','opportunities','requests','contracts','contract_terms','catalog','warehouse','rewards','customer_orders','website'];
+    private const ADMIN_TOOLS=['weekend_events','executed_events','collections','opportunities','requests','contracts','contract_terms','team_members','catalog','knowledge_audit','warehouse','rewards','customer_orders','website'];
     private const TEAM_TOOLS=['my_events','my_tasks','catalog','website'];
     private const CLIENT_TOOLS=['my_events','catalog','website','rewards'];
     public function __construct(private int $ownerId,private string $siteKey='vnvevents',private ?Connection $db=null){$this->db??=new Connection();}
@@ -20,6 +20,8 @@ final class MochiOperationalToolsService
         if(preg_match('/contenedor|warehouse|inventario|almac[eé]n/iu',$m))return 'warehouse';
         if(preg_match('/\b(contrato|acuerdo|cl[aá]usula|t[eé]rminos?)\b.{0,100}\b(dice|indica|especifica|establece|incluye|revis|cu[aá]nto tiempo|llegar|instalar|montaje|acceso)\b|\b(dice|indica|especifica|establece|revis|cu[aá]nto tiempo|llegar|instalar|montaje|acceso)\b.{0,100}\b(contrato|acuerdo|cl[aá]usula|t[eé]rminos?)\b/iu',$m))return 'contract_terms';
         if(preg_match('/contrato|firma/iu',$m))return 'contracts';
+        if(preg_match('/team\s*members?|miembros? del equipo|personas?.{0,60}(equipo|staff)|equipo.{0,60}(registrad|activ|miembros?|personas?)/iu',$m))return 'team_members';
+        if(preg_match('/contradic|inconsisten|no coincide|diferencias?.{0,80}(cat[aá]logo|servicio|producto|landing|tienda|store)|comparar?.{0,80}(cat[aá]logo|servicio|producto|landing|tienda|store)/iu',$m))return 'knowledge_audit';
         if(preg_match('/estimado|lead|oportunidad|seguimiento/iu',$m))return 'opportunities';
         if(preg_match('/solicitud|request|unread|sin leer/iu',$m))return 'requests';
         if(preg_match('/saldo|debe|cobro|pago pendiente|outstanding/iu',$m))return 'collections';
@@ -33,7 +35,7 @@ final class MochiOperationalToolsService
     {
         $allowed=$level===1?self::ADMIN_TOOLS:($level===4?self::TEAM_TOOLS:($level===5?self::CLIENT_TOOLS:[]));$start=microtime(true);
         if(!in_array($tool,$allowed,true)){$this->log($userId,$sessionId,$tool,'DENIED',$start,0,'ROLE_SCOPE');throw new \RuntimeException('Esa información no está disponible para tu nivel de acceso.');}
-        try{$result=match($tool){'weekend_events'=>$this->weekendEvents(),'executed_events'=>$this->executedEvents($message),'my_events'=>$this->myEvents($userId,$level),'my_tasks'=>$this->myTasks($userId),'collections'=>$this->collections(),'opportunities'=>$this->opportunities(),'requests'=>$this->requests(),'contracts'=>$this->contracts(),'contract_terms'=>$this->contractTerms($message),'catalog'=>$this->catalog($message),'warehouse'=>$this->warehouse(),'rewards'=>$this->rewards($userId,$level,$message),'customer_orders'=>$this->myEvents($userId,$level),'website'=>$this->website($message)};$this->log($userId,$sessionId,$tool,'SUCCESS',$start,count($result['items']??[]));return ['tool'=>$tool]+$result;}
+        try{$result=match($tool){'weekend_events'=>$this->weekendEvents(),'executed_events'=>$this->executedEvents($message),'my_events'=>$this->myEvents($userId,$level),'my_tasks'=>$this->myTasks($userId),'collections'=>$this->collections(),'opportunities'=>$this->opportunities(),'requests'=>$this->requests(),'contracts'=>$this->contracts(),'contract_terms'=>$this->contractTerms($message),'team_members'=>$this->teamMembers($message),'catalog'=>$this->catalog($message),'knowledge_audit'=>$this->knowledgeAudit($message),'warehouse'=>$this->warehouse(),'rewards'=>$this->rewards($userId,$level,$message),'customer_orders'=>$this->myEvents($userId,$level),'website'=>$this->website($message)};$this->log($userId,$sessionId,$tool,'SUCCESS',$start,count($result['items']??[]));return ['tool'=>$tool]+$result;}
         catch(\Throwable $e){$this->log($userId,$sessionId,$tool,'FAILED',$start,0,'QUERY_FAILED');error_log('[Mochi tool '.$tool.'] '.$e->getMessage());throw new \RuntimeException('No pude recuperar esos datos ahora mismo. Intenta nuevamente.');}
     }
 
@@ -64,20 +66,29 @@ final class MochiOperationalToolsService
     private function contracts(): array {$this->db->query("SELECT o.id,o.event_date,CONCAT_WS(' ',u.name,u.lastname) customer,CASE WHEN EXISTS(SELECT 1 FROM orders_acceptance_contracts ac WHERE ac.id_order=o.id) THEN 1 ELSE 0 END signed FROM orders o LEFT JOIN users u ON u.id=o.id_client WHERE o.id_owner=:owner AND COALESCE(o.is_archived,0)=0 AND o.event_date>=CURDATE() HAVING signed=0 ORDER BY o.event_date LIMIT 15");$this->db->bind(':owner',$this->ownerId);$items=$this->rows($this->db->fetchAll(),fn($r)=>['title'=>'Evento #'.$r->id.' · '.($r->customer?:'Cliente'),'meta'=>'Evento: '.$r->event_date,'detail'=>'Contrato sin firma registrada','url'=>'/panel/planner-hub/management/orders/orders/edit?id='.(int)$r->id]);return ['reply'=>count($items).' evento(s) próximo(s) sin firma registrada.','items'=>$items];}
     private function contractTerms(string $message): array
     {
-        $facts=[
-            'source'=>'VNV Events Terms and Conditions, section 5.1 (Venue Access and Electrical Requirements)',
-            'venue_access_for_setup'=>'The client must grant venue access at least three (3) hours before the event for setup.',
-            'venue_access_for_breakdown'=>'The client must grant venue access for two (2) hours after the event for breakdown.',
-            'address_and_venue_contact_deadline'=>'The exact address and venue contact must be provided at least 48 hours before the event.',
-            'scope_limit'=>'The clause defines the minimum venue-access window. It does not say every crew member must arrive exactly three hours before every event.',
-        ];
+        return (new MochiBusinessKnowledgeService($this->ownerId,$this->siteKey,$this->db))->contract($message);
+    }
+    private function teamMembers(string $message): array
+    {
+        $activeOnly=(bool)preg_match('/\b(activ[oa]s?|actualmente|vigentes?)\b/iu',$message);
+        $sql="SELECT id,TRIM(CONCAT_WS(' ',name,lastname)) name,email,phone,is_active FROM users WHERE id_owner=:owner AND level=4".($activeOnly?' AND is_active=1':'')." ORDER BY is_active DESC,name,lastname";
+        $this->db->query($sql);$this->db->bind(':owner',$this->ownerId);$rows=$this->db->fetchAll();
+        $listRequested=(bool)preg_match('/\b(lista|listar|qui[eé]nes|nombres?|mu[eé]strame|detalle)\b/iu',$message);
+        $items=$listRequested?$this->rows(array_slice($rows,0,30),fn($r)=>[
+            'title'=>$r->name?:'Team Member #'.$r->id,
+            'meta'=>(int)$r->is_active===1?'Activo':'Inactivo',
+            'detail'=>trim(implode(' · ',array_filter([(string)$r->email,(string)$r->phone]))),
+            'url'=>'/panel/planner-hub/management/users/edit?id='.(int)$r->id,
+        ]):[];
+        $activeCount=count(array_filter($rows,fn($r)=>(int)$r->is_active===1));
         return [
-            'reply'=>'El contrato exige acceso al lugar un mínimo de tres (3) horas antes del evento para el montaje y dos (2) horas después para el desmontaje. También exige la dirección exacta y el contacto del venue al menos 48 horas antes. La cláusula establece acceso disponible; no obliga a que todo el equipo llegue exactamente tres horas antes en todos los eventos.',
-            'items'=>[],
-            'facts'=>$facts,
+            'reply'=>$activeOnly?'Actualmente hay '.$activeCount.' Team Member(s) activos registrados.':'Hay '.count($rows).' Team Member(s) registrados: '.$activeCount.' activos y '.(count($rows)-$activeCount).' inactivos.',
+            'items'=>$items,
+            'facts'=>['active_only'=>$activeOnly,'team_member_count'=>count($rows),'active_team_member_count'=>$activeCount,'role_level'=>4],
         ];
     }
-    private function catalog(string $message): array {$terms=array_values(array_filter(preg_split('/[^\pL\pN]+/u',mb_strtolower($message),-1,PREG_SPLIT_NO_EMPTY),fn($x)=>mb_strlen($x)>3&&!in_array($x,['cuanto','cuánto','precio','personas','puedo','ofrecer','producto','productos','paquete','paquetes','tiene','para','staff'],true)));$where='';$params=['owner'=>$this->ownerId,'site'=>$this->siteKey];if($terms){$search="LOWER(CONCAT_WS(' ',CONVERT(p.name USING utf8mb4),CONVERT(p.short_description USING utf8mb4),CONVERT(p.description USING utf8mb4))) COLLATE utf8mb4_unicode_ci";$where=' AND ('.implode(' OR ',array_map(fn($i)=>"{$search} LIKE CONVERT(:q{$i} USING utf8mb4) COLLATE utf8mb4_unicode_ci",array_keys(array_slice($terms,0,4)))).')';foreach(array_slice($terms,0,4) as $i=>$term)$params['q'.$i]='%'.$term.'%';}$this->db->query("SELECT p.id,p.name,p.slug,p.short_description,p.price,p.promo_price,p.product_type,p.fulfillment_type,p.lead_hours,p.min_purchase_qty,MIN(v.price) min_price,MAX(v.price) max_price,GROUP_CONCAT(CONCAT(CONVERT(v.name USING utf8mb4),': $',FORMAT(v.price,2)) ORDER BY v.sort_order SEPARATOR ' | ') variations FROM store_products p LEFT JOIN store_product_variations v ON v.id_product=p.id AND v.status='ACTIVE' WHERE p.id_owner=:owner AND p.site_key=:site AND p.status='ACTIVE' AND p.is_public=1 {$where} GROUP BY p.id ORDER BY p.is_featured DESC,p.name LIMIT 12");$this->bind($params);$items=$this->rows($this->db->fetchAll(),function($r){$price=$r->product_type==='VARIABLE'?'$'.number_format((float)$r->min_price,2).' - $'.number_format((float)$r->max_price,2):'$'.number_format((float)($r->promo_price?:$r->price),2);return ['title'=>$r->name,'meta'=>$price.' · '.str_replace('_',' ',(string)$r->fulfillment_type),'detail'=>trim(strip_tags((string)$r->short_description)).($r->variations?' · '.$r->variations:''),'url'=>'/vnv-gourmet-express/product/'.$r->slug];});return ['reply'=>count($items).' producto(s) activo(s), con precios consultados ahora mismo.','items'=>$items];}
+    private function catalog(string $message): array {return (new MochiBusinessKnowledgeService($this->ownerId,$this->siteKey,$this->db))->catalog($message);}
+    private function knowledgeAudit(string $message): array {return (new MochiBusinessKnowledgeService($this->ownerId,$this->siteKey,$this->db))->audit($message);}
     private function warehouse(): array {$this->db->query("SELECT c.id,c.name,COUNT(i.id) item_types,COALESCE(SUM(i.quantity),0) units FROM storage_containers c LEFT JOIN storage_items i ON i.id_container=c.id WHERE c.id_owner=:owner GROUP BY c.id ORDER BY c.name LIMIT 30");$this->db->bind(':owner',$this->ownerId);$items=$this->rows($this->db->fetchAll(),fn($r)=>['title'=>$r->name,'meta'=>(int)$r->units.' unidades · '.(int)$r->item_types.' tipos','detail'=>'Contenedor de almacén','url'=>'/panel/planner-hub/storage']);return ['reply'=>count($items).' contenedor(es) registrados. El esquema actual no vincula contenedores directamente con eventos.','items'=>$items];}
     private function rewards(int $userId,int $level,string $message): array {if($level===1){$ids=$this->customerIds($message);if(count($ids)!==1)return ['reply'=>count($ids)>1?'Encontré varios clientes; escribe el nombre completo.':'Indica el nombre del cliente para consultar sus puntos.','items'=>[]];$userId=$ids[0];}$this->db->query("SELECT COALESCE(SUM(CASE WHEN status='AVAILABLE' THEN points ELSE 0 END),0) points,COALESCE(SUM(CASE WHEN status='AVAILABLE' THEN monetary_value ELSE 0 END),0) value FROM loyalty_transactions WHERE id_owner=:owner AND site_key=:site AND id_user=:user");$this->bind(['owner'=>$this->ownerId,'site'=>$this->siteKey,'user'=>$userId]);$r=$this->db->fetchOne();return ['reply'=>'Puntos disponibles: '.number_format((float)$r->points,2).' · Valor registrado: $'.number_format((float)$r->value,2).'. Los rewards no pueden usarse para tips.','items'=>[]];}
     private function website(string $message): array {$terms=array_values(array_filter(preg_split('/[^\pL\pN]+/u',mb_strtolower($message),-1,PREG_SPLIT_NO_EMPTY),fn($x)=>mb_strlen($x)>3&&!in_array($x,['servicio','servicios','ofrece','pagina','página','vnv','events'],true)));$where='';$params=['owner'=>$this->ownerId,'site'=>$this->siteKey];if($terms){$where=' AND ('.implode(' OR ',array_map(fn($i)=>"LOWER(CONCAT_WS(' ',c.title,c.excerpt,c.body_html)) LIKE :q{$i}",array_keys(array_slice($terms,0,3)))).')';foreach(array_slice($terms,0,3) as $i=>$term)$params['q'.$i]='%'.$term.'%';}$this->db->query("SELECT c.title,c.excerpt,r.route FROM cms_contents c JOIN cms_routes r ON r.id_content=c.id AND r.status='ACTIVE' WHERE c.id_owner=:owner AND c.site_key=:site AND c.status='PUBLISHED' {$where} ORDER BY c.updated_at DESC LIMIT 10");$this->bind($params);$items=$this->rows($this->db->fetchAll(),fn($r)=>['title'=>$r->title,'meta'=>'Servicio o contenido público','detail'=>trim(strip_tags((string)$r->excerpt)),'url'=>'/'.ltrim((string)$r->route,'/')]);return ['reply'=>$items?count($items).' página(s) relevante(s) del CMS.':'No encontré una página publicada coincidente. Puedes preguntarme por un servicio o producto concreto.','items'=>$items];}
