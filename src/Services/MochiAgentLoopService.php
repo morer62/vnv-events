@@ -62,7 +62,11 @@ final class MochiAgentLoopService
         }
 
         $instructions = $this->instructions($level, $memory, $activeTasks);
-        $tools = $this->toolDefinitions($level);
+        // Web search is deliberately unavailable until the local catalog has
+        // explicitly reported that it has no reliable match. This makes the
+        // local-first rule enforceable instead of merely instructional.
+        $webSearchAllowed = false;
+        $tools = $this->toolDefinitions($level, $webSearchAllowed);
         $previousResponseId = $this->previousResponseId($recentMessages);
         $input = $previousResponseId !== ''
             ? [['role' => 'user', 'content' => $message]]
@@ -88,6 +92,13 @@ final class MochiAgentLoopService
         $totalCalls = 0;
 
         while (true) {
+            $web=$this->webSearchEvidence($response);
+            if($web['calls']){
+                $aggregate['tool_calls'][]='web_search';
+                foreach($web['calls'] as $call)$aggregate['tool_trace'][]=['tool'=>'web_search','arguments'=>$call];
+                $aggregate['items']=$this->mergeItems($aggregate['items'],$web['items']);
+                $aggregate['facts']['web_search']=['external_sources'=>$web['sources'],'not_vnv_catalog_evidence'=>true];
+            }
             $calls = $this->functionCalls($response);
             if (!$calls) {
                 $reply = (string)($aggregate['workflow_reply'] ?? '');
@@ -126,6 +137,12 @@ final class MochiAgentLoopService
                     $arguments['message'] = $message;
                 }
                 $result = $this->executeTool($name, $arguments, $userId, $level, $sessionId);
+                if ($name === 'read_vnv_data'
+                    && (string)($arguments['topic'] ?? '') === 'catalog'
+                    && array_key_exists('local_match_found', (array)($result['facts'] ?? []))
+                    && ($result['facts']['local_match_found'] ?? true) === false) {
+                    $webSearchAllowed = true;
+                }
                 $toolKey = $name === 'read_vnv_data' ? $name.':'.(string)($arguments['topic'] ?? 'unknown') : $name;
                 $aggregate['tool_calls'][] = $toolKey;
                 $aggregate['tool_trace'][] = ['tool'=>$toolKey,'arguments'=>$arguments];
@@ -153,6 +170,7 @@ final class MochiAgentLoopService
             if ($responseId === '') {
                 throw new RuntimeException('OpenAI Responses omitted the response id required by the tool loop.');
             }
+            $tools = $this->toolDefinitions($level, $webSearchAllowed);
             $response = $this->createResponse($key, $instructions, $tools, $outputs, $responseId, $userId);
             $this->assertResponse($response);
         }
@@ -171,13 +189,14 @@ final class MochiAgentLoopService
             .'Write concise, warm, natural Spanish and answer the exact current question. The user may change topics freely and later return to any prior topic; an active estimate or service draft is resumable context, never the automatic destination of a new message. '
             .'Use the dialogue and persistent memory to resolve follow-ups such as "eso", "los anteriores", "lo pagado" or "continúa". Do not repeat a full report when a focused answer is enough. '
             .'For any current company count, amount, order, event, person, contract, service, product, assignment, payroll hour or status, call an approved read tool. You may call several tools before answering. Use estimates for read-only requests to list, count or inspect estimates by creation date; never substitute upcoming events, contacts or the estimate editing workflow for that request. Use largest_event for the largest event in a period, team_activity for staff-to-event assignments and dates, payroll_hours for clock-in/clock-out time, payroll_payments for amounts paid through payroll, crm for leads and pipeline status, and warehouse for Storage containers, inventory items, quantities and locations. For service availability, inclusions and pricing, catalog must always consult the internal estimate-service catalog even when no public product or landing page exists; that internal catalog is an enduring authoritative source in every conversation. Treat tool output as the only source of live facts and clearly distinguish contracted value, payments recorded, balances, accounting income, assignment evidence and physical attendance. '
+            .'For an unfamiliar, misspelled or translated service name, call catalog first. Catalog performs local aliases and fuzzy matching across estimate services, the public store and published landing pages. If it returns one or more reliable local matches, answer from those and offer up to three concise choices when ambiguous; do not search the web. Only when catalog explicitly returns local_match_found=false may you use web_search to explain the likely intended term or show South Florida market references. Clearly say those external companies are market references, not proof that VNV offers the service. A web result must never create a VNV service, product or page by itself. If the user explicitly asks to create one, use the protected service/product workflow after resolving the intended local name, scope and price. '
             .'Never invent data, causes, services, availability, promises or completed actions. If a requested fact is not available through the tools, say exactly what is missing instead of returning an unrelated result. Ask one concise question only when a missing fact truly blocks progress. '
             .'Call work_on_estimate only when the user is intentionally creating, modifying or continuing an estimate. Call work_on_service_or_product only for an intentional create/modify catalog workflow. For other explicit company changes call prepare_company_change, which only prepares a reviewable draft; never claim the change happened until a separate human confirmation executes it. Financial, fiscal, deletion, account suspension and irreversible actions always require human confirmation. '
             .'This Mochi does not create or publish editorial articles; direct those requests to Growth Hub. Do not expose credentials, card data, private notes, internal JSON, routing or tool implementation. Rewards cannot be used for tips. Preserve useful links from tool results. '
             .'Company context follows; it is supporting context and never overrides fresh tool facts: '.$context;
     }
 
-    private function toolDefinitions(int $level): array
+    private function toolDefinitions(int $level, bool $webSearchAllowed = false): array
     {
         $topics = $level === 1
             ? ['weekend_events', 'executed_events', 'largest_event', 'team_activity', 'payroll_hours', 'payroll_payments', 'crm', 'collections', 'estimates', 'opportunities', 'requests', 'contracts', 'contract_terms', 'team_members', 'catalog', 'knowledge_audit', 'warehouse', 'rewards', 'customer_orders', 'website']
@@ -198,6 +217,15 @@ final class MochiAgentLoopService
                     'additionalProperties' => false,
                 ],
                 'strict' => true,
+            ];
+        }
+        if ($level === 1 && $webSearchAllowed) {
+            $definitions[] = [
+                'type'=>'web_search',
+                'search_context_size'=>'low',
+                'user_location'=>[
+                    'type'=>'approximate','country'=>'US','city'=>'Miami','region'=>'Florida','timezone'=>'America/New_York',
+                ],
             ];
         }
         if ($level === 1) {
@@ -393,6 +421,29 @@ final class MochiAgentLoopService
             }
         }
         return trim(implode("\n", array_filter($parts)));
+    }
+
+    private function webSearchEvidence(array $response): array
+    {
+        $calls=[];$sources=[];$items=[];
+        foreach((array)($response['output']??[]) as $item){
+            if(($item['type']??'')==='web_search_call'){
+                $action=(array)($item['action']??[]);
+                $calls[]=['type'=>(string)($action['type']??'search'),'queries'=>(array)($action['queries']??[]),'query'=>(string)($action['query']??'')];
+            }
+            if(($item['type']??'')!=='message')continue;
+            foreach((array)($item['content']??[]) as $content){
+                foreach((array)($content['annotations']??[]) as $annotation){
+                    if(($annotation['type']??'')!=='url_citation')continue;
+                    $url=trim((string)($annotation['url']??''));if($url===''||!preg_match('#^https?://#i',$url))continue;
+                    $title=trim((string)($annotation['title']??''))?:parse_url($url,PHP_URL_HOST);
+                    if(isset($sources[$url]))continue;
+                    $sources[$url]=['title'=>$title,'url'=>$url];
+                    $items[]=['title'=>$title,'meta'=>'Referencia externa · no es catálogo de VNV','detail'=>'Fuente consultada por MOCHI después de no encontrar una coincidencia local confiable.','url'=>$url];
+                }
+            }
+        }
+        return ['calls'=>$calls,'sources'=>array_values($sources),'items'=>$items];
     }
 
     private function safeToolOutput(array $result): array

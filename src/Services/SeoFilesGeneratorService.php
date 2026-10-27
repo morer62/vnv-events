@@ -307,6 +307,7 @@ class SeoFilesGeneratorService
             '- Pizza Station Catering: ' . $this->absoluteUrl('/pizza-station-catering-south-florida/'),
             '- Paella Catering: ' . $this->absoluteUrl('/paella-catering-south-florida/'),
             '- Taco Station Catering: ' . $this->absoluteUrl('/taco-station-catering-south-florida/'),
+            '- Shawarma Station Catering: ' . $this->absoluteUrl('/shawarma-station-catering-south-florida/'),
             '- Corporate Catering: ' . $this->absoluteUrl('/corporate-catering-south-florida/'),
             '- Store Categories: ' . $this->absoluteUrl('/store-categories/'),
             '',

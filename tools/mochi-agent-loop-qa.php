@@ -176,6 +176,62 @@ $assert(
 
 fwrite(STDOUT, "PASS: estimate-catalog questions retain their literal service name.\n");
 
+$webGateRequests = [];
+$webGateResponses = [
+    [
+        'id' => 'resp_unknown_catalog',
+        'output' => [[
+            'type' => 'function_call',
+            'call_id' => 'call_unknown_catalog',
+            'name' => 'read_vnv_data',
+            'arguments' => json_encode(['topic' => 'catalog', 'query' => 'chaguarma station']),
+        ]],
+    ],
+    [
+        'id' => 'resp_external_reference',
+        'output' => [
+            [
+                'type' => 'web_search_call',
+                'action' => ['type' => 'search', 'query' => 'shawarma station catering South Florida'],
+            ],
+            [
+                'type' => 'message',
+                'content' => [[
+                    'type' => 'output_text',
+                    'text' => '¿Quisiste decir Shawarma Station? No aparece en el catálogo local.',
+                    'annotations' => [[
+                        'type' => 'url_citation',
+                        'title' => 'South Florida Shawarma Catering',
+                        'url' => 'https://example.com/shawarma-catering',
+                    ]],
+                ]],
+            ],
+        ],
+    ],
+];
+$webGateTransport = static function (string $url, array $payload) use (&$webGateRequests, &$webGateResponses): array {
+    $webGateRequests[] = $payload;
+    return ['status' => 200, 'body' => json_encode(array_shift($webGateResponses)), 'error' => ''];
+};
+$webGateExecutor = static function (string $name, array $arguments): array {
+    return [
+        'reply' => 'No local match.',
+        'facts' => ['local_match_found' => false, 'external_research_allowed' => true],
+        'items' => [],
+    ];
+};
+$webGateResult = (new MochiAgentLoopService(2, 'vnvevents', null, $webGateTransport, $webGateExecutor))
+    ->run(99, 1, 123, '¿Ofrecemos una estación de chaguarma?', [], [], []);
+$initialTypes = array_column($webGateRequests[0]['tools'] ?? [], 'type');
+$continuedTypes = array_column($webGateRequests[1]['tools'] ?? [], 'type');
+$assert(!in_array('web_search', $initialTypes, true), 'Web search must not be available before the local catalog check.');
+$assert(in_array('web_search', $continuedTypes, true), 'Web search must become available after an explicit local miss.');
+$assert(in_array('web_search', $webGateResult['tool_calls'] ?? [], true), 'External research must be visible in the tool trace.');
+$assert(($webGateResult['items'][0]['url'] ?? '') === 'https://example.com/shawarma-catering', 'External citations must remain clickable.');
+$assert(($webGateResult['facts']['web_search']['not_vnv_catalog_evidence'] ?? false) === true, 'External references must be labeled as non-catalog evidence.');
+
+fwrite(STDOUT, "PASS: local-first catalog gate and cited external research verified.\n");
+
 $workflowCalls = [];
 $workflowResponses = [
     [
