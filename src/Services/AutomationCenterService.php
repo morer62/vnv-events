@@ -30,7 +30,22 @@ final class AutomationCenterService
         elseif($today->format('m')==='12'){$state='reindeer';$greeting=$greeting?:'Happy holidays from your VNV concierge!';}
         elseif($md==='02-14'){$state='cupid';$greeting='Happy Valentine’s Day!';}
         else{$easter=(new \DateTimeImmutable('@'.easter_date((int)$today->format('Y'))))->setTimezone($this->timezone);if(abs((int)$today->diff($easter)->format('%r%a'))<=1){$state='easter';$greeting='Happy Easter!';}}
-        $rhymes=['Con cafecito y buen humor, hoy avanzamos con mucho primor.','Pasito a paso y con alegría, ponemos bonita la agenda del día.','Con calma, enfoque y una sonrisa, hoy cada pendiente pierde la prisa.','Orden y cariño en cada tarea: hoy VNV avanza y todo se planea.','Agenda clara, mente ligera: hoy sacamos trabajo de primera.','Sin correr y sin tropezar, hoy cada detalle va a brillar.','Con café cerquita y enfoque también, hoy nuestro trabajo nos queda muy bien.','Mochi da un saltito para comenzar; con orden y calma vamos a avanzar.','Un pendiente menos, una sonrisa más; hoy el equipo lo logrará.','Con ideas claras desde temprano, hoy cada evento queda en buenas manos.'];
+        $rhymes=[
+            'Mary guía con ternura y Oriana asiste con dulzura; juntas hacen de cada evento una hermosura.',
+            'Mary marca el compás y Oriana pone magia de más; juntas hacen que VNV brille en paz.',
+            'Mary lleva el timón y Oriana suma el corazón; juntas convierten pendientes en celebración.',
+            'Mary sueña la meta y Oriana la deja completa; juntas hacen que la agenda florezca coqueta.',
+            'Mary, nuestra jefa encantadora; Oriana, nuestra asistente soñadora: juntas iluminan cada hora.',
+            'Mary guía la jornada y Oriana la vuelve encantada; juntas dejan la agenda bonita y ordenada.',
+            'Mary piensa con amor y Oriana ayuda con primor; juntas llenan cada evento de color.',
+            'Mary dirige con alegría y Oriana acompaña cada día; juntas convierten el trabajo en melodía.',
+            'Mary abre el sendero y Oriana cuida cada lucero; juntas forman un equipo verdadero.',
+            'Mary pone la visión y Oriana le da atención; juntas hacen magia en cada celebración.',
+            'Mary guía la misión y Oriana cuida cada ocasión; juntas trabajan con chispa y corazón.',
+            'Mary lleva la corona y Oriana cada detalle entona; juntas hacen que VNV luzca bella y juguetona.',
+            'Mary, jefa de ensueño; Oriana cuida cada empeño: juntas convierten el día en un pequeño sueño.',
+            'Mary inspira el camino y Oriana lo llena de cariño; juntas hacen que VNV brille bonito.',
+        ];
         $rhyme=$rhymes[((int)sprintf('%u',crc32($today->format('Y-m-d'))))%count($rhymes)];
         return ['state'=>$state,'greeting'=>$greeting,'rhyme'=>$rhyme];
     }
