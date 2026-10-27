@@ -193,6 +193,8 @@ final class MochiOperationalToolsService
         $timezone=new \DateTimeZone('America/New_York');$now=new \DateTimeImmutable('now',$timezone);$text=mb_strtolower(trim($message));
         if(preg_match('/\b(?:hoy|today)\b/iu',$text)){$day=$now;return [$day->format('Y-m-d'),$day->format('Y-m-d'),'hoy, '.$day->format('Y-m-d')];}
         if(preg_match('/\b(?:ayer|yesterday)\b/iu',$text)){$day=$now->modify('-1 day');return [$day->format('Y-m-d'),$day->format('Y-m-d'),'ayer, '.$day->format('Y-m-d')];}
+        $explicitRange=$this->namedMonthRange($text,(int)$now->format('Y'));
+        if($explicitRange!==null)return $explicitRange;
         if(preg_match('/\b(20\d{2})-(\d{1,2})-(\d{1,2})\b/',$text,$m)&&checkdate((int)$m[2],(int)$m[3],(int)$m[1])){$day=sprintf('%04d-%02d-%02d',(int)$m[1],(int)$m[2],(int)$m[3]);return [$day,$day,'el '.$day];}
         if(preg_match('/\b(\d{1,2})[\/-](\d{1,2})[\/-](20\d{2})\b/',$text,$m)&&checkdate((int)$m[2],(int)$m[1],(int)$m[3])){$day=sprintf('%04d-%02d-%02d',(int)$m[3],(int)$m[2],(int)$m[1]);return [$day,$day,'el '.$day];}
         $months=['enero'=>1,'january'=>1,'febrero'=>2,'february'=>2,'marzo'=>3,'march'=>3,'abril'=>4,'april'=>4,'mayo'=>5,'may'=>5,'junio'=>6,'june'=>6,'julio'=>7,'july'=>7,'agosto'=>8,'august'=>8,'septiembre'=>9,'setiembre'=>9,'september'=>9,'octubre'=>10,'october'=>10,'noviembre'=>11,'november'=>11,'diciembre'=>12,'december'=>12];
@@ -206,17 +208,34 @@ final class MochiOperationalToolsService
     {
         $now=new \DateTimeImmutable('now',new \DateTimeZone('America/New_York'));$text=mb_strtolower($message);$year=(int)$now->format('Y');
         if(preg_match('/\b(20\d{2})\b/',$text,$m))$year=(int)$m[1];
+        $explicitRange=$this->namedMonthRange($text,$year);
+        if($explicitRange!==null)return $explicitRange;
         if(preg_match('/\b(20\d{2}-\d{2}-\d{2})\b.{0,120}\b(20\d{2}-\d{2}-\d{2})\b/u',$text,$m)){
             $first=new \DateTimeImmutable($m[1],new \DateTimeZone('America/New_York'));$second=new \DateTimeImmutable($m[2],new \DateTimeZone('America/New_York'));if($first>$second)[$first,$second]=[$second,$first];
             return [$first->format('Y-m-d'),$second->format('Y-m-d'),'el período '.$first->format('Y-m-d').' a '.$second->format('Y-m-d')];
         }
         if(preg_match('/\b(?:esta|this)\s+(?:semana|week)\b/iu',$text)){$start=$now->modify('monday this week');$end=$start->modify('+6 days');return [$start->format('Y-m-d'),$end->format('Y-m-d'),'esta semana ('.$start->format('Y-m-d').' a '.$end->format('Y-m-d').')'];}
+        if(preg_match('/\b(?:semana\s+pasada|last\s+week)\b/iu',$text)){$start=$now->modify('monday last week');$end=$start->modify('+6 days');return [$start->format('Y-m-d'),$end->format('Y-m-d'),'la semana pasada ('.$start->format('Y-m-d').' a '.$end->format('Y-m-d').')'];}
         if(preg_match('/\b(?:[uú]ltimos?|last)\s+(30|60|90)\s+(?:d[ií]as|days)\b/iu',$text,$m)){$days=(int)$m[1];$start=$now->modify('-'.($days-1).' days');return [$start->format('Y-m-d'),$now->format('Y-m-d'),'los últimos '.$days.' días'];}
         if(preg_match('/\b(?:a[nñ]o|year)\s+(20\d{2})\b|\b(?:todo|entero|completo|full)\s+(?:el\s+)?(?:a[nñ]o\s+)?(20\d{2})\b/iu',$text,$m)){$fullYear=(int)($m[1]?:$m[2]);return [sprintf('%04d-01-01',$fullYear),sprintf('%04d-12-31',$fullYear),'el año '.$fullYear];}
         $months=['enero'=>1,'january'=>1,'febrero'=>2,'february'=>2,'marzo'=>3,'march'=>3,'abril'=>4,'april'=>4,'mayo'=>5,'may'=>5,'junio'=>6,'june'=>6,'julio'=>7,'july'=>7,'agosto'=>8,'august'=>8,'septiembre'=>9,'setiembre'=>9,'september'=>9,'octubre'=>10,'october'=>10,'noviembre'=>11,'november'=>11,'diciembre'=>12,'december'=>12];
         foreach($months as $name=>$month)if(preg_match('/\b'.preg_quote($name,'/').'\b/iu',$text)){$start=new \DateTimeImmutable(sprintf('%04d-%02d-01',$year,$month),new \DateTimeZone('America/New_York'));$end=$start->modify('last day of this month');return [$start->format('Y-m-d'),$end->format('Y-m-d'),$name.' de '.$year];}
         if($default==='week'){$start=$now->modify('monday this week');$end=$start->modify('+6 days');return [$start->format('Y-m-d'),$end->format('Y-m-d'),'esta semana ('.$start->format('Y-m-d').' a '.$end->format('Y-m-d').')'];}
         return [sprintf('%04d-01-01',$year),sprintf('%04d-12-31',$year),'el año '.$year];
+    }
+
+    /** @return array{0:string,1:string,2:string}|null */
+    private function namedMonthRange(string $text,int $defaultYear): ?array
+    {
+        $months=['enero'=>1,'january'=>1,'febrero'=>2,'february'=>2,'marzo'=>3,'march'=>3,'abril'=>4,'april'=>4,'mayo'=>5,'may'=>5,'junio'=>6,'june'=>6,'julio'=>7,'july'=>7,'agosto'=>8,'august'=>8,'septiembre'=>9,'setiembre'=>9,'september'=>9,'octubre'=>10,'october'=>10,'noviembre'=>11,'november'=>11,'diciembre'=>12,'december'=>12];
+        $monthPattern=implode('|',array_map(static fn(string $name): string=>preg_quote($name,'/'),array_keys($months)));
+        $pattern='/\b(?:del|de|entre|from)?\s*(\d{1,2})\s*(?:de\s+)?(?:('.$monthPattern.')\s*)?(?:al|a|hasta|y|to|through|-)\s*(\d{1,2})\s*(?:de\s+)?('.$monthPattern.')(?:\s+(?:de\s+)?(20\d{2}))?\b/iu';
+        if(!preg_match($pattern,$text,$match))return null;
+        $startDay=(int)$match[1];$endDay=(int)$match[3];$startMonthName=mb_strtolower($match[2]!==''?$match[2]:$match[4]);$endMonthName=mb_strtolower($match[4]);$year=isset($match[5])&&$match[5]!==''?(int)$match[5]:$defaultYear;$startMonth=$months[$startMonthName]??0;$endMonth=$months[$endMonthName]??0;
+        if(!checkdate($startMonth,$startDay,$year)||!checkdate($endMonth,$endDay,$year))return null;
+        $timezone=new \DateTimeZone('America/New_York');$start=new \DateTimeImmutable(sprintf('%04d-%02d-%02d',$year,$startMonth,$startDay),$timezone);$end=new \DateTimeImmutable(sprintf('%04d-%02d-%02d',$year,$endMonth,$endDay),$timezone);
+        if($start>$end)[$start,$end]=[$end,$start];
+        return [$start->format('Y-m-d'),$end->format('Y-m-d'),'del '.$start->format('Y-m-d').' al '.$end->format('Y-m-d')];
     }
 
     /** @return object[] */
