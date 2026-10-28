@@ -45,7 +45,7 @@
                 </div>
                 <div class="col-md-3">
                     <label class="form-label">Date</label>
-                    <input type="date" name="event_date" value="{{ order.event_date|date("Y-m-d") }}" class="form-control" required  min="{{ "now"|date("Y-m-d") }}">
+                    <input type="date" name="event_date" value="{{ order.event_date|date("Y-m-d") }}" class="form-control" required>
                 </div>
 
             
@@ -187,7 +187,7 @@
             <div class="row mb-3">
                 <div class="col-md-4">
                     <label class="form-label">Payment Method</label>
-                    <select name="payment_split_type" class="form-select" id="paymentSplitSelect" {% if limitedEdit %}disabled{% endif %}>
+                    <select name="payment_split_type" class="form-select" id="paymentSplitSelect">
                         <option value="1" {% if order.payment_split_type == 1 %}selected{% endif %}>100% Single Payment</option>
                         <option value="2" {% if order.payment_split_type == 2 %}selected{% endif %}>Split Payment</option>
                     </select>
@@ -197,11 +197,11 @@
                         <div class="row">
                             <div class="col-md-6">
                                 <label class="form-label">First Payment (%)</label>
-                                <input type="number" name="payment_split_percent_1" value="{{ order.payment_split_percent_1 ?? 50 }}" class="form-control" min="1" max="99" {% if limitedEdit %}disabled{% endif %}>
+                                <input type="number" name="payment_split_percent_1" value="{{ order.payment_split_percent_1 ?? 50 }}" class="form-control" min="1" max="99">
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label">Second Payment (%)</label>
-                                <input type="number" name="payment_split_percent_2" id="secondPaymentPercent" value="{{ order.payment_split_percent_2 ?? 50 }}" class="form-control" readonly {% if limitedEdit %}disabled{% endif %}>
+                                <input type="number" name="payment_split_percent_2" id="secondPaymentPercent" value="{{ order.payment_split_percent_2 ?? 50 }}" class="form-control" readonly>
                             </div>
                         </div>
                     </div>

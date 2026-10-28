@@ -85,7 +85,7 @@ $router->get(callback: function () {
     if ($order->status_workflow === 'INVOICE_PARTIAL' || $order->status_workflow === 'INVOICE_PAID') {
         $canModify = false;
         $limitedEdit = true;
-        $modificationMessage = "⚠️ This order has received payments. Only date, address, start time, end time, tip, and notes can be edited. Contract cannot be modified.";
+        $modificationMessage = "⚠️ This order has received payments. Administrative details and the payment schedule remain editable; services, prices, discounts, tax, client, and signed contract stay protected.";
         $contractEditable = false;
     } elseif ($contractSigned) {
         $modificationMessage = "⚠️ The contract has been signed. Contract selection cannot be modified.";
@@ -238,6 +238,19 @@ $router->post(function () {
         $overrideDb=new Connection();$overrideDb->query("INSERT INTO manager_availability_overrides(id_owner,context_type,context_id,check_id,authorized_by,reason,conflict_snapshot_json) VALUES(:owner,'ORDER',:context,:check,:user,:reason,:snapshot)");$overrideDb->bind(':owner',(int)$order->id_owner);$overrideDb->bind(':context',(int)$order->id);$overrideDb->bind(':check',$checkId);$overrideDb->bind(':user',$user->getId());$overrideDb->bind(':reason',$overrideReason);$overrideDb->bind(':snapshot',json_encode($availability,JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE));$overrideDb->execute();
     }
     
+    // A completed event remains administratively editable. Existing payment
+    // rows are never rewritten by this correction.
+    $paymentSplitType = (int)($_POST['payment_split_type'] ?? $order->payment_split_type ?? 1);
+    $paymentSplitType = $paymentSplitType === 2 ? 2 : 1;
+    $paymentSplit1 = (int)($_POST['payment_split_percent_1'] ?? ($paymentSplitType === 1 ? 100 : ($order->payment_split_percent_1 ?? 50)));
+    if ($paymentSplitType === 1) {
+        $paymentSplit1 = 100;
+        $paymentSplit2 = 0;
+    } else {
+        $paymentSplit1 = max(1, min(99, $paymentSplit1));
+        $paymentSplit2 = 100 - $paymentSplit1;
+    }
+
     if ($isLimited) {
         $data = [
             "event_date" => $_POST["event_date"],
@@ -251,21 +264,11 @@ $router->post(function () {
             "manager_assignment_status" => $managerId ? 'ASSIGNED' : 'PENDING',
             "availability_status" => ($availability['status']===ManagerAvailabilityService::AVAILABLE?'AVAILABLE':($overrideReason!==''?'OVERRIDDEN':$availability['status'])),
             "availability_checked_at" => date('Y-m-d H:i:s'),
+            "payment_split_type" => $paymentSplitType,
+            "payment_split_percent_1" => $paymentSplit1,
+            "payment_split_percent_2" => $paymentSplit2,
         ];
     } else {
-        // Normalizar método de pago (split)
-        $paymentSplitType = (int)($_POST['payment_split_type'] ?? $order->payment_split_type ?? 1);
-        $paymentSplit1 = (int)($_POST['payment_split_percent_1'] ?? ($paymentSplitType === 1 ? 100 : 50));
-        if ($paymentSplitType === 1) {
-            $paymentSplit1 = 100;
-            $paymentSplit2 = 0;
-        } else {
-            // Asegurar rango 1..99 y complementar a 100
-            if ($paymentSplit1 < 1) { $paymentSplit1 = 1; }
-            if ($paymentSplit1 > 99) { $paymentSplit1 = 99; }
-            $paymentSplit2 = 100 - $paymentSplit1;
-        }
-
         $data = [
             "id_client" => $_POST["id_client"],
             "event_date" => $_POST["event_date"],
