@@ -5,6 +5,11 @@
 <h2 class="mb-4">✏️ Edit Order</h2>
 {{ macros.breadcrumb2() }}
 
+<form method="post" action="{{ path('panel/planner-hub/management/invoices') }}" class="mb-3">
+  <input type="hidden" name="order_id" value="{{ order.id }}">
+  <button class="btn btn-outline-primary">🧾 Open or create invoice</button>
+</form>
+
 <section class="card">
     <div class="card-body">
     {% if canClose %}

@@ -101,6 +101,8 @@ class PaymentNotificationService
         if ($paymentStatus === 'complete') {
             try { (new LoyaltyRewardsService())->earnForEventOrder($orderId); }
             catch (\Throwable $e) { error_log('[Loyalty] Unable to create reward for order #'.$orderId.': '.$e->getMessage()); }
+            try { (new InvoiceService())->ensureIfFullyPaid((int)$order->id_owner, $orderId, null); }
+            catch (\Throwable $e) { error_log('[Invoices] Unable to auto-create invoice for order #'.$orderId.': '.$e->getMessage()); }
         }
 
         if ($paymentStatus === 'complete' && !$hasCompletePaymentNotification) {

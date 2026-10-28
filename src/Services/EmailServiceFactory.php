@@ -8,6 +8,23 @@ use PHPMailer\PHPMailer\PHPMailer;
 
 class EmailServiceFactory
 {
+    public static function sendWithOwnerProviderAttachment(int $ownerId, string $toEmail, string $subject, string $body, string $attachmentContent, string $attachmentName): array
+    {
+        try {
+            $repo = new SmtpCredentialsRepository();
+            $selected = $repo->getConfiguredForOwner($ownerId, SiteContext::siteKey());
+            if (!$selected) {
+                return ['success'=>false,'message'=>'Configure an SMTP provider before emailing invoice PDFs.','used_fallback'=>1];
+            }
+            $mailer = new PHPMailer(true);
+            $mailer->isSMTP();$mailer->Host=(string)$selected->smtp_host;$mailer->Port=(int)$selected->smtp_port;$mailer->SMTPAuth=true;$mailer->Username=(string)$selected->smtp_username;$mailer->Password=(string)$selected->smtp_password;
+            $mailer->SMTPSecure=match((string)$selected->smtp_encryption){'ssl'=>PHPMailer::ENCRYPTION_SMTPS,'none'=>'',default=>PHPMailer::ENCRYPTION_STARTTLS};
+            $mailer->CharSet='UTF-8';$mailer->Timeout=15;$mailer->SMTPOptions=['ssl'=>['verify_peer'=>false,'verify_peer_name'=>false,'allow_self_signed'=>true]];$mailer->setFrom((string)$selected->from_email,(string)$selected->from_name);if(!empty($selected->reply_to_email))$mailer->addReplyTo((string)$selected->reply_to_email);
+            $mailer->addAddress($toEmail);$mailer->Subject=$subject;$mailer->isHTML(true);$mailer->Body=$body;$mailer->addStringAttachment($attachmentContent,$attachmentName,'base64','application/pdf');$mailer->send();
+            return ['success'=>true,'message'=>'Invoice emailed with PDF attachment.','used_fallback'=>0];
+        } catch (\Throwable $e) { return ['success'=>false,'message'=>'Invoice email failed: '.$e->getMessage(),'used_fallback'=>0]; }
+    }
+
     public static function sendWithOwnerProvider(int $ownerId, string $toEmail, string $subject, string $body, bool $isHtml = true): array
     {
         try {
