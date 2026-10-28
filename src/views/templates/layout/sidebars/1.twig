@@ -1,12 +1,21 @@
 {# Level 1 navigation is intentionally an accordion. Routes remain available;
    only the high-frequency entry points are exposed in the sidebar. #}
+{% set navigation_url = current_canonical_url|default('') %}
+{% set level1_section = 'vnv-events' %}
+{% if '/panel/cms' in navigation_url or '/panel/manager-scheduling' in navigation_url %}
+    {% set level1_section = 'publishing' %}
+{% elseif '/panel/event-invitations' in navigation_url or '/panel/planner-hub/store/' in navigation_url %}
+    {% set level1_section = 'store-events' %}
+{% elseif '/panel/settings' in navigation_url or '/panel/planner-hub/settings/' in navigation_url %}
+    {% set level1_section = 'settings' %}
+{% endif %}
 
 <li class="sidebar-item">
-    <a data-bs-target="#level1-vnv-events" data-bs-toggle="collapse" class="sidebar-link" aria-expanded="true">
+    <a data-bs-target="#level1-vnv-events" data-bs-toggle="collapse" class="sidebar-link{{ level1_section == 'vnv-events' ? '' : ' collapsed' }}" aria-expanded="{{ level1_section == 'vnv-events' ? 'true' : 'false' }}">
         <i class="align-middle" data-feather="briefcase"></i>
         <span class="align-middle">VNV Events</span>
     </a>
-    <ul id="level1-vnv-events" class="sidebar-dropdown list-unstyled collapse show" data-bs-parent="#sidebar">
+    <ul id="level1-vnv-events" class="sidebar-dropdown list-unstyled collapse{{ level1_section == 'vnv-events' ? ' show' : '' }}" data-bs-parent="#sidebar">
         <li class="sidebar-item"><a class="sidebar-link" href="{{ path('panel/home') }}"><i data-feather="home"></i><span>VNV Dashboard</span></a></li>
         <li class="sidebar-item"><a class="sidebar-link" href="{{ path('panel/planner-hub/management/orders/orders/execution') }}"><i data-feather="briefcase"></i><span>Event Orders</span></a></li>
         <li class="sidebar-item"><a class="sidebar-link" href="{{ path('panel/planner-hub/management/invoices') }}"><i data-feather="file-text"></i><span>Invoices</span></a></li>
@@ -20,11 +29,11 @@
 </li>
 
 <li class="sidebar-item">
-    <a data-bs-target="#level1-publishing" data-bs-toggle="collapse" class="sidebar-link collapsed" aria-expanded="false">
+    <a data-bs-target="#level1-publishing" data-bs-toggle="collapse" class="sidebar-link{{ level1_section == 'publishing' ? '' : ' collapsed' }}" aria-expanded="{{ level1_section == 'publishing' ? 'true' : 'false' }}">
         <i class="align-middle" data-feather="edit-3"></i>
         <span class="align-middle">Publishing</span>
     </a>
-    <ul id="level1-publishing" class="sidebar-dropdown list-unstyled collapse" data-bs-parent="#sidebar">
+    <ul id="level1-publishing" class="sidebar-dropdown list-unstyled collapse{{ level1_section == 'publishing' ? ' show' : '' }}" data-bs-parent="#sidebar">
         <li class="sidebar-item"><a class="sidebar-link" href="{{ path('panel/cms/pages/create') }}?mode=ai"><i data-feather="trending-up"></i><span>Content Studio</span></a></li>
         <li class="sidebar-item"><a class="sidebar-link" href="{{ path('panel/manager-scheduling') }}"><i data-feather="users"></i><span>Manager Scheduling</span></a></li>
         <li class="sidebar-item"><a class="sidebar-link" href="{{ path('panel/cms') }}"><i data-feather="database"></i><span>CMS Library</span></a></li>
@@ -32,11 +41,11 @@
 </li>
 
 <li class="sidebar-item">
-    <a data-bs-target="#level1-store-events" data-bs-toggle="collapse" class="sidebar-link collapsed" aria-expanded="false">
+    <a data-bs-target="#level1-store-events" data-bs-toggle="collapse" class="sidebar-link{{ level1_section == 'store-events' ? '' : ' collapsed' }}" aria-expanded="{{ level1_section == 'store-events' ? 'true' : 'false' }}">
         <i class="align-middle" data-feather="shopping-bag"></i>
         <span class="align-middle">Store | Events</span>
     </a>
-    <ul id="level1-store-events" class="sidebar-dropdown list-unstyled collapse" data-bs-parent="#sidebar">
+    <ul id="level1-store-events" class="sidebar-dropdown list-unstyled collapse{{ level1_section == 'store-events' ? ' show' : '' }}" data-bs-parent="#sidebar">
         <li class="sidebar-item"><a class="sidebar-link" href="{{ path('panel/event-invitations') }}"><i data-feather="send"></i><span>Tickets / RSVP</span></a></li>
         <li class="sidebar-item"><a class="sidebar-link" href="{{ path('panel/planner-hub/store/products/home') }}"><i data-feather="package"></i><span>Products / Catalog</span></a></li>
         <li class="sidebar-item"><a class="sidebar-link" href="{{ path('panel/planner-hub/store/gourmet-express') }}"><i data-feather="coffee"></i><span>Gourmet To Go</span></a></li>
@@ -44,11 +53,11 @@
 </li>
 
 <li class="sidebar-item">
-    <a data-bs-target="#level1-settings" data-bs-toggle="collapse" class="sidebar-link collapsed" aria-expanded="false">
+    <a data-bs-target="#level1-settings" data-bs-toggle="collapse" class="sidebar-link{{ level1_section == 'settings' ? '' : ' collapsed' }}" aria-expanded="{{ level1_section == 'settings' ? 'true' : 'false' }}">
         <i class="align-middle" data-feather="settings"></i>
         <span class="align-middle">Settings</span>
     </a>
-    <ul id="level1-settings" class="sidebar-dropdown list-unstyled collapse" data-bs-parent="#sidebar">
+    <ul id="level1-settings" class="sidebar-dropdown list-unstyled collapse{{ level1_section == 'settings' ? ' show' : '' }}" data-bs-parent="#sidebar">
         <li class="sidebar-item"><a class="sidebar-link" href="{{ path('panel/planner-hub/settings/automation') }}"><i data-feather="message-circle"></i><span>Mochi Assistant</span></a></li>
         <li class="sidebar-item"><a class="sidebar-link" href="{{ path('panel/settings') }}"><i data-feather="settings"></i><span>Settings</span></a></li>
         <li class="sidebar-item"><a class="sidebar-link" href="{{ path('panel/planner-hub/settings/payment-providers') }}"><i data-feather="credit-card"></i><span>Payment Providers</span></a></li>

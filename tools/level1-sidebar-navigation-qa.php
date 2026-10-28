@@ -18,13 +18,7 @@ $expect = static function (bool $condition, string $message) use (&$failures): v
 };
 
 $expect(substr_count($sidebar, 'data-bs-parent="#sidebar"') === 4, 'The Level 1 sidebar must expose four accordion groups.');
-$expect(str_contains($sidebar, 'id="level1-vnv-events" class="sidebar-dropdown list-unstyled collapse show"'), 'VNV Events must be the only group open by default.');
-foreach (['level1-publishing', 'level1-store-events', 'level1-settings'] as $closedGroup) {
-    $expect(
-        str_contains($sidebar, 'id="' . $closedGroup . '" class="sidebar-dropdown list-unstyled collapse"'),
-        $closedGroup . ' must be collapsed by default.'
-    );
-}
+$expect(str_contains($sidebar, "{% set level1_section = 'vnv-events' %}"), 'VNV Events must be the fallback group.');
 
 foreach ([
     'panel/home',
@@ -76,6 +70,24 @@ foreach ([$sidebarPath, $gourmetPath, 'panel/level1/planner-hub/store/products/h
         $twig->parse($twig->tokenize(new Twig\Source($source, $templatePath)));
     } catch (Throwable $exception) {
         $failures[] = $templatePath . ' Twig error: ' . $exception->getMessage();
+    }
+}
+
+foreach ([
+    'https://vnvevents.com/panel/home/' => 'level1-vnv-events',
+    'https://vnvevents.com/panel/cms/pages/create/' => 'level1-publishing',
+    'https://vnvevents.com/panel/planner-hub/store/products/home/' => 'level1-store-events',
+    'https://vnvevents.com/panel/planner-hub/settings/payment-providers/' => 'level1-settings',
+] as $url => $expectedOpenGroup) {
+    try {
+        $renderedSidebar = $twig->render($sidebarPath, ['current_canonical_url' => $url]);
+        $expect(substr_count($renderedSidebar, 'collapse show') === 1, $url . ' must open exactly one group.');
+        $expect(
+            str_contains($renderedSidebar, 'id="' . $expectedOpenGroup . '" class="sidebar-dropdown list-unstyled collapse show"'),
+            $url . ' must keep ' . $expectedOpenGroup . ' open.'
+        );
+    } catch (Throwable $exception) {
+        $failures[] = $url . ' rendered navigation error: ' . $exception->getMessage();
     }
 }
 
