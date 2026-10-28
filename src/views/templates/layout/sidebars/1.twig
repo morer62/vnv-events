@@ -1,218 +1,57 @@
-<li class="sidebar-header">VNV Events</li>
+{# Level 1 navigation is intentionally an accordion. Routes remain available;
+   only the high-frequency entry points are exposed in the sidebar. #}
 
 <li class="sidebar-item">
-    <a class="sidebar-link" href="{{ path('panel/home') }}">
-        <i class="align-middle" data-feather="home"></i>
-        <span class="align-middle">VNV Dashboard</span>
-    </a>
-</li>
-<li class="sidebar-item">
-    <a class="sidebar-link" href="{{ path('panel/planner-hub/management/orders/orders/execution') }}">
+    <a data-bs-target="#level1-vnv-events" data-bs-toggle="collapse" class="sidebar-link" aria-expanded="true">
         <i class="align-middle" data-feather="briefcase"></i>
-        <span class="align-middle">Event Orders</span>
+        <span class="align-middle">VNV Events</span>
     </a>
+    <ul id="level1-vnv-events" class="sidebar-dropdown list-unstyled collapse show" data-bs-parent="#sidebar">
+        <li class="sidebar-item"><a class="sidebar-link" href="{{ path('panel/home') }}"><i data-feather="home"></i><span>VNV Dashboard</span></a></li>
+        <li class="sidebar-item"><a class="sidebar-link" href="{{ path('panel/planner-hub/management/orders/orders/execution') }}"><i data-feather="briefcase"></i><span>Event Orders</span></a></li>
+        <li class="sidebar-item"><a class="sidebar-link" href="{{ path('panel/planner-hub/management/invoices') }}"><i data-feather="file-text"></i><span>Invoices</span></a></li>
+        <li class="sidebar-item"><a class="sidebar-link" href="{{ path('panel/planner-hub/management/orders/calendar') }}"><i data-feather="calendar"></i><span>Order Calendar</span></a></li>
+        <li class="sidebar-item"><a class="sidebar-link" href="{{ path('panel/planner-hub/management/orders/contracts') }}"><i data-feather="file-text"></i><span>Contracts</span></a></li>
+        <li class="sidebar-item"><a class="sidebar-link" href="{{ path('panel/planner-hub/management/users?active_tab=clients') }}"><i data-feather="user-check"></i><span>Clients</span></a></li>
+        <li class="sidebar-item"><a class="sidebar-link" href="{{ path('panel/planner-hub/management/users') }}"><i data-feather="users"></i><span>Team</span></a></li>
+        <li class="sidebar-item"><a class="sidebar-link" href="{{ path('panel/planner-hub/management/crm') }}"><i data-feather="target"></i><span>CRM</span></a></li>
+        <li class="sidebar-item"><a class="sidebar-link" href="{{ path('panel/planner-hub/team/chat') }}"><i data-feather="message-circle"></i><span>Team Chat</span></a></li>
+    </ul>
 </li>
 
 <li class="sidebar-item">
-    <a class="sidebar-link" href="{{ path('panel/planner-hub/management/invoices') }}">
-        <i class="align-middle" data-feather="file-text"></i>
-        <span class="align-middle">Invoices</span>
+    <a data-bs-target="#level1-publishing" data-bs-toggle="collapse" class="sidebar-link collapsed" aria-expanded="false">
+        <i class="align-middle" data-feather="edit-3"></i>
+        <span class="align-middle">Publishing</span>
     </a>
+    <ul id="level1-publishing" class="sidebar-dropdown list-unstyled collapse" data-bs-parent="#sidebar">
+        <li class="sidebar-item"><a class="sidebar-link" href="{{ path('panel/cms/pages/create') }}?mode=ai"><i data-feather="trending-up"></i><span>Content Studio</span></a></li>
+        <li class="sidebar-item"><a class="sidebar-link" href="{{ path('panel/manager-scheduling') }}"><i data-feather="users"></i><span>Manager Scheduling</span></a></li>
+        <li class="sidebar-item"><a class="sidebar-link" href="{{ path('panel/cms') }}"><i data-feather="database"></i><span>CMS Library</span></a></li>
+    </ul>
 </li>
 
 <li class="sidebar-item">
-    <a class="sidebar-link" href="{{ path('panel/planner-hub/management/orders/calendar') }}">
-        <i class="align-middle" data-feather="calendar"></i>
-        <span class="align-middle">Order Calendar</span>
-    </a>
-</li>
-
-<li class="sidebar-item">
-    <a class="sidebar-link" href="{{ path('panel/planner-hub/management/orders/contracts') }}">
-        <i class="align-middle" data-feather="file-text"></i>
-        <span class="align-middle">Contracts</span>
-    </a>
-</li>
-
-<li class="sidebar-item">
-    <a class="sidebar-link" href="{{ path('panel/planner-hub/management/users?active_tab=clients') }}">
-        <i class="align-middle" data-feather="user-check"></i>
-        <span class="align-middle">Clients</span>
-    </a>
-</li>
-
-<li class="sidebar-item">
-    <a class="sidebar-link" href="{{ path('panel/planner-hub/management/users') }}">
-        <i class="align-middle" data-feather="users"></i>
-        <span class="align-middle">Team</span>
-    </a>
-</li>
-
-<li class="sidebar-item">
-    <a class="sidebar-link" href="{{ path('panel/planner-hub/management/crm') }}">
-        <i class="align-middle" data-feather="target"></i>
-        <span class="align-middle">CRM</span>
-    </a>
-</li>
-
-<li class="sidebar-item">
-    <a class="sidebar-link" href="{{ path('panel/planner-hub/team/chat') }}">
-        <i class="align-middle" data-feather="message-circle"></i>
-        <span class="align-middle">Team Chat</span>
-    </a>
-</li>
-
-<li class="sidebar-header">Publishing</li>
-
-<li class="sidebar-item">
-    <a class="sidebar-link" href="{{ path('panel/cms/pages/create') }}?mode=ai">
-        <i class="align-middle" data-feather="trending-up"></i>
-        <span class="align-middle">Content Studio</span>
-    </a>
-</li>
-<li class="sidebar-item"><a class="sidebar-link" href="{{ path('panel/manager-scheduling') }}"><i class="align-middle" data-feather="users"></i><span class="align-middle">Manager Scheduling</span></a></li>
-
-<li class="sidebar-item"><a class="sidebar-link" href="{{ path('panel/cms') }}"><i class="align-middle" data-feather="database"></i><span class="align-middle">CMS Library</span></a></li>
-
-<li class="sidebar-header">AI Operations</li>
-
-<li class="sidebar-item">
-    <a class="sidebar-link" href="{{ path('panel/agents') }}">
-        <i class="align-middle" data-feather="cpu"></i>
-        <span class="align-middle">Agents & Automations</span>
-    </a>
-</li>
-<li class="sidebar-item">
-    <a class="sidebar-link" href="{{ path('panel/agents/approvals') }}">
-        <i class="align-middle" data-feather="check-square"></i>
-        <span class="align-middle">Approval Center</span>
-    </a>
-</li>
-<li class="sidebar-item">
-    <a class="sidebar-link" href="{{ path('panel/social-media-agent') }}">
-        <i class="align-middle" data-feather="share-2"></i>
-        <span class="align-middle">Social Media Agent</span>
-    </a>
-</li>
-<li class="sidebar-item">
-    <a class="sidebar-link" href="{{ path('panel/agents/conversations') }}">
-        <i class="align-middle" data-feather="message-circle"></i>
-        <span class="align-middle">Meta Conversations</span>
-    </a>
-</li>
-
-<li class="sidebar-item">
-    <a class="sidebar-link" href="{{ path('panel/multimedia-sessions') }}">
-        <i class="align-middle" data-feather="film"></i>
-        <span class="align-middle">Multimedia Sessions</span>
-    </a>
-</li>
-
-<li class="sidebar-item">
-    <a class="sidebar-link" href="{{ path('panel/forum') }}">
-        <i class="align-middle" data-feather="message-square"></i>
-        <span class="align-middle">Forums</span>
-    </a>
-</li>
-
-<li class="sidebar-item">
-    <a class="sidebar-link" href="{{ path('panel/event-invitations') }}">
-        <i class="align-middle" data-feather="send"></i>
-        <span class="align-middle">Tickets / RSVP</span>
-    </a>
-</li>
-
-<li class="sidebar-header">Store</li>
-
-<li class="sidebar-item">
-    <a class="sidebar-link" href="{{ path('panel/planner-hub/store/gourmet-express') }}">
-        <i class="align-middle" data-feather="coffee"></i>
-        <span class="align-middle">Gourmet Express</span>
-    </a>
-</li>
-
-<li class="sidebar-item">
-    <a class="sidebar-link" href="{{ path('panel/planner-hub/store/orders/home') }}">
+    <a data-bs-target="#level1-store-events" data-bs-toggle="collapse" class="sidebar-link collapsed" aria-expanded="false">
         <i class="align-middle" data-feather="shopping-bag"></i>
-        <span class="align-middle">Store Orders</span>
+        <span class="align-middle">Store | Events</span>
     </a>
+    <ul id="level1-store-events" class="sidebar-dropdown list-unstyled collapse" data-bs-parent="#sidebar">
+        <li class="sidebar-item"><a class="sidebar-link" href="{{ path('panel/event-invitations') }}"><i data-feather="send"></i><span>Tickets / RSVP</span></a></li>
+        <li class="sidebar-item"><a class="sidebar-link" href="{{ path('panel/planner-hub/store/products/home') }}"><i data-feather="package"></i><span>Products / Catalog</span></a></li>
+        <li class="sidebar-item"><a class="sidebar-link" href="{{ path('panel/planner-hub/store/gourmet-express') }}"><i data-feather="coffee"></i><span>Gourmet To Go</span></a></li>
+    </ul>
 </li>
 
 <li class="sidebar-item">
-    <a class="sidebar-link" href="{{ path('panel/planner-hub/store/products/home') }}">
-        <i class="align-middle" data-feather="package"></i>
-        <span class="align-middle">Products</span>
-    </a>
-</li>
-
-<li class="sidebar-item">
-    <a class="sidebar-link" href="{{ path('panel/planner-hub/store/categories/home') }}">
-        <i class="align-middle" data-feather="tag"></i>
-        <span class="align-middle">Product Categories</span>
-    </a>
-</li>
-
-<li class="sidebar-item">
-    <a class="sidebar-link" href="{{ path('panel/planner-hub/store/attributes/home') }}">
-        <i class="align-middle" data-feather="sliders"></i>
-        <span class="align-middle">Attributes</span>
-    </a>
-</li>
-
-<li class="sidebar-item">
-    <a class="sidebar-link" href="{{ path('panel/planner-hub/store/carts/home') }}">
-        <i class="align-middle" data-feather="shopping-cart"></i>
-        <span class="align-middle">Carts</span>
-    </a>
-</li>
-
-<li class="sidebar-item">
-    <a class="sidebar-link" href="{{ path('panel/planner-hub/store/subscriptions/home') }}">
-        <i class="align-middle" data-feather="refresh-cw"></i>
-        <span class="align-middle">Subscriptions</span>
-    </a>
-</li>
-
-<li class="sidebar-item">
-    <a class="sidebar-link" href="{{ path('panel/planner-hub/store/coupons/home') }}">
-        <i class="align-middle" data-feather="percent"></i>
-        <span class="align-middle">Coupons</span>
-    </a>
-</li>
-
-<li class="sidebar-item">
-    <a class="sidebar-link" href="{{ path('panel/planner-hub/store/payments/home') }}">
-        <i class="align-middle" data-feather="credit-card"></i>
-        <span class="align-middle">Store Payments</span>
-    </a>
-</li>
-
-<li class="sidebar-header">Settings</li>
-
-<li class="sidebar-item">
-    <a class="sidebar-link" href="{{ path('panel/planner-hub/settings/automation') }}">
-        <i class="align-middle" data-feather="message-circle"></i>
-        <span class="align-middle">Mochi Assistant</span>
-    </a>
-</li>
-
-<li class="sidebar-item">
-    <a class="sidebar-link" href="{{ path('panel/settings') }}">
+    <a data-bs-target="#level1-settings" data-bs-toggle="collapse" class="sidebar-link collapsed" aria-expanded="false">
         <i class="align-middle" data-feather="settings"></i>
         <span class="align-middle">Settings</span>
     </a>
-</li>
-
-<li class="sidebar-item">
-    <a class="sidebar-link" href="{{ path('panel/planner-hub/settings/payment-providers') }}">
-        <i class="align-middle" data-feather="credit-card"></i>
-        <span class="align-middle">Payment Providers</span>
-    </a>
-</li>
-
-<li class="sidebar-item">
-    <a class="sidebar-link" href="{{ path('panel/planner-hub/settings/smtp') }}">
-        <i class="align-middle" data-feather="mail"></i>
-        <span class="align-middle">SMTP Providers</span>
-    </a>
+    <ul id="level1-settings" class="sidebar-dropdown list-unstyled collapse" data-bs-parent="#sidebar">
+        <li class="sidebar-item"><a class="sidebar-link" href="{{ path('panel/planner-hub/settings/automation') }}"><i data-feather="message-circle"></i><span>Mochi Assistant</span></a></li>
+        <li class="sidebar-item"><a class="sidebar-link" href="{{ path('panel/settings') }}"><i data-feather="settings"></i><span>Settings</span></a></li>
+        <li class="sidebar-item"><a class="sidebar-link" href="{{ path('panel/planner-hub/settings/payment-providers') }}"><i data-feather="credit-card"></i><span>Payment Providers</span></a></li>
+        <li class="sidebar-item"><a class="sidebar-link" href="{{ path('panel/planner-hub/settings/smtp') }}"><i data-feather="mail"></i><span>SMTP Providers</span></a></li>
+    </ul>
 </li>
