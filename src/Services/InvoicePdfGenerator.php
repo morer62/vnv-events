@@ -7,7 +7,7 @@ use Dompdf\Options;
 
 final class InvoicePdfGenerator
 {
-    public static function render(array $data, int $versionNumber): string
+    public static function render(array $data, int|string $versionNumber): string
     {
         $invoice=$data['invoice'];$order=$data['order'];$company=$data['company'];$totals=$data['totals'];
         $e=static fn($v)=>htmlspecialchars((string)$v,ENT_QUOTES,'UTF-8');
