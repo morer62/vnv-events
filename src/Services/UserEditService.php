@@ -27,22 +27,27 @@ class UserEditService
 
     public function logUserChanges(int $userId, array $oldData, array $newData): bool
     {
-        $changes = $this->calculateChanges($oldData, $newData);
-        
-        if (empty($changes)) {
-            return true;
-        }
+        try {
+            $changes = $this->calculateChanges($oldData, $newData);
+            if (empty($changes)) {
+                return true;
+            }
 
-        $sessionUser = LoginService::getSession();
-        $editedBy = $sessionUser ? $sessionUser->getId() : 0;
-        
-        $this->editLogsRepo->logEdit($userId, $editedBy, [
-            'old' => $oldData,
-            'new' => $newData,
-            'changes' => $changes
-        ]);
-        
-        return true;
+            $sessionUser = LoginService::getSession();
+            $editedBy = $sessionUser ? $sessionUser->getId() : 0;
+            $this->editLogsRepo->logEdit($userId, $editedBy, [
+                'old' => $oldData,
+                'new' => $newData,
+                'changes' => $changes
+            ]);
+            return true;
+        } catch (\Throwable $e) {
+            // The profile update has already committed before this audit call.
+            // Record the infrastructure failure without replacing a successful
+            // edit with a misleading application-error page.
+            error_log('[User edit audit] '.$e->getMessage());
+            return false;
+        }
     }
 
     private function calculateChanges(array $oldData, array $newData): array

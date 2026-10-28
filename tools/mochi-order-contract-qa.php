@@ -20,6 +20,8 @@ $token=base64_encode(json_encode($payload));
 $url='https://vnvevents.com/order-access?token='.urlencode($token);
 
 $service=new MochiActionService(2,'vnvevents',$db);
+$context=$service->resolveOrderAccessContext('Revisa este estimate antiguo: '.$url);
+if((int)($context['order_id']??0)!==(int)$order->id||($context['source']??'')!=='verified_order_access_link')throw new RuntimeException('A valid order-access URL was not exposed as generic linked-estimate context.');
 $resolved=$service->prepareOrderContractAssignment(1,1,1,'Asígnale General Conditions a este estimate: '.$url);
 if((int)($resolved['facts']['order_id']??0)!==(int)$order->id)throw new RuntimeException('A valid order-access URL did not resolve to the expected estimate.');
 if(empty($resolved['facts']['already_assigned'])&&empty($resolved['action_draft']))throw new RuntimeException('The contract assignment was neither recognized nor prepared.');

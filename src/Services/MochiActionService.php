@@ -39,6 +39,14 @@ final class MochiActionService
         return ['reply'=>'Identifiqué el enlace: '.$summary.' Revisa y pulsa Confirmar para aplicarlo.','items'=>[$item],'action_draft'=>['id'=>$draftId,'action'=>'ASSIGN_ORDER_CONTRACT','summary'=>$summary],'facts'=>['draft_prepared'=>true,'order_id'=>(int)$order->id,'contract_id'=>$contractId]];
     }
 
+    public function resolveOrderAccessContext(string $message): ?array
+    {
+        $orderId=$this->orderIdFromAccessLink($message);if(!$orderId)return null;
+        $this->db->query("SELECT o.id,o.id_client,o.id_contract,o.event_date,o.start_time,o.end_time,o.address,o.status_workflow,u.name,u.lastname,u.email,u.phone,c.title contract_title FROM orders o LEFT JOIN users u ON u.id=o.id_client AND u.id_owner=o.id_owner LEFT JOIN orders_contracts c ON c.id=o.id_contract AND c.id_owner=o.id_owner WHERE o.id=:id AND o.id_owner=:owner AND COALESCE(o.is_archived,0)=0 LIMIT 1");
+        $this->bind(['id'=>$orderId,'owner'=>$this->ownerId]);$order=$this->db->fetchOne();if(!$order)return null;
+        return ['source'=>'verified_order_access_link','order_id'=>(int)$order->id,'customer_id'=>(int)$order->id_client,'customer_name'=>trim((string)$order->name.' '.(string)$order->lastname),'customer_email'=>(string)$order->email,'customer_phone'=>(string)$order->phone,'event_date'=>(string)$order->event_date,'start_time'=>(string)$order->start_time,'end_time'=>(string)$order->end_time,'address'=>(string)$order->address,'status_workflow'=>(string)$order->status_workflow,'contract_id'=>$order->id_contract!==null?(int)$order->id_contract:null,'contract_title'=>(string)$order->contract_title,'admin_url'=>'/panel/planner-hub/management/orders/orders/edit?id='.(int)$order->id];
+    }
+
     public function prepare(int $userId,int $level,int $sessionId,string $message): array
     {
         $this->assertAdmin($level);$parsed=$this->parse($message);$action=(string)($parsed['action']??'UNKNOWN');if(!in_array($action,self::ACTIONS,true))return ['reply'=>'Puedo crear o actualizar clientes, crear estimates/órdenes/eventos, agregar notas o follow-ups, asociar registros y enviar email o push. Dime exactamente qué deseas hacer.','items'=>[]];

@@ -42,12 +42,22 @@ final class MochiConciergeService
             'estimate'=>$activeEstimate?['active'=>true,'mode'=>(string)$activeEstimate->mode,'status'=>(string)$activeEstimate->status,'current_estimate_id'=>$activeEstimate->current_estimate_id? (int)$activeEstimate->current_estimate_id:null]:['active'=>false],
             'service'=>$activeService?['active'=>true,'status'=>(string)$activeService->status,'current_service_id'=>$activeService->current_service_id? (int)$activeService->current_service_id:null,'current_product_id'=>$activeService->current_product_id? (int)$activeService->current_product_id:null]:['active'=>false],
         ];
+        $actions=new MochiActionService($this->ownerId,$this->siteKey,$this->db);
+        $linkedOrder=$actions->resolveOrderAccessContext($message);
+        if($linkedOrder){
+            // A signed order-access URL is an explicit reference to this exact old
+            // estimate. It outranks any resumable draft and is available to every
+            // conversational/read route, not only contract assignment.
+            $activeTasks['linked_order']=$linkedOrder;
+            $activeTasks['estimate']['linked_order_overrides_active_draft']=true;
+            $memory['linked_order']=$linkedOrder;
+        }
         // An order-access link is a verified identifier for a specific estimate,
         // including old estimates. Never let an active draft reinterpret it.
         if($level===1&&$this->isOrderContractAssignmentIntent($message,$recentMessages)){
             try{
                 $fallback=$activeEstimate&&$activeEstimate->current_estimate_id?(int)$activeEstimate->current_estimate_id:null;
-                $result=(new MochiActionService($this->ownerId,$this->siteKey,$this->db))->prepareOrderContractAssignment($authorId,$level,$sessionId,$message,$fallback);
+                $result=$actions->prepareOrderContractAssignment($authorId,$level,$sessionId,$message,$fallback);
                 $metadata=['tool'=>'order_contract_assignment_prepare','items'=>$result['items']??[],'facts'=>$result['facts']??[],'action_draft'=>$result['action_draft']??null,'deterministic_route'=>'order_contract_assignment'];
                 $this->save($sessionId,null,'AGENT',(string)$result['reply'],$metadata);$this->sessions->touch($sessionId);
                 return ['reply'=>$result['reply'],'items'=>$metadata['items'],'action_draft'=>$metadata['action_draft'],'tool'=>'order_contract_assignment_prepare','session_id'=>$sessionId];
