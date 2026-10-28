@@ -36,7 +36,9 @@
 			#ordersTable th:nth-child(13),
 			#ordersTable td:nth-child(13),
 			#ordersTable th:nth-child(14),
-			#ordersTable td:nth-child(14) {
+			#ordersTable td:nth-child(14),
+			#ordersTable th:nth-child(15),
+			#ordersTable td:nth-child(15) {
 				display: none !important;
 			}
 			#estimatesTable th:nth-child(1),
@@ -169,6 +171,7 @@
 									<th>Basic Actions</th>
 									<th>Team Communication</th> 
 									<th>Payment Plan</th>
+									<th>Invoice</th>
 									<th>Add to Calendar</th>
 									<th>Archive</th>
 								</tr>
@@ -308,6 +311,16 @@
 													<span class="text-muted">N/A</span>
 												{% endif %}
 											</td>
+											<td style="min-width: 170px;">
+												{% if order._invoice_id %}
+													<a class="btn btn-sm btn-outline-primary" href="{{ path('panel/planner-hub/management/invoices/view') }}?id={{ order._invoice_id }}">
+														🧾 Open Invoice
+													</a>
+													<small class="d-block text-success mt-1">Paid in full</small>
+												{% else %}
+													<span class="text-muted small">Available automatically when the order is paid in full.</span>
+												{% endif %}
+											</td>
 											<td style="min-width: 180px;">
 												<button type="button" class="btn btn-outline-success btn-sm" onclick="addToCalendar({{ order.id }}, '{{ order.id_client }}')">
 													📅 Add to Calendar
@@ -323,7 +336,7 @@
 									{% endfor %}
 								{% else %}
 									<tr>
-										<td colspan="14" class="text-center text-muted py-4">
+										<td colspan="15" class="text-center text-muted py-4">
 											<h5>📋 No signed orders</h5>
 											<p class="mb-0">Signed orders will appear here</p>
 										</td>

@@ -11,6 +11,7 @@ use App\Repositories\OrderSuborderServicesAssignedRepository;
 use App\Repositories\OrdersPaymentsRepository;
 use App\Repositories\OrdersServicesAssignedRepository;
 use App\Repositories\ServiceRepository;
+use App\Services\InvoiceService;
 use App\Utils\LocationUtils;
 use App\Utils\MessageUtil;
 
@@ -406,11 +407,31 @@ $router->get(callback: function () {
     }
 
     $eventExecution = new \App\Services\EventExecutionService();
+    $invoiceService = new InvoiceService();
     foreach ($orders as $eventOrder) {
         try {
             $eventOrder->event_access_code = $eventExecution->getOrCreateForOrder((int)$eventOrder->id, (int)$user->getId(), (int)$eventOrder->id_owner)->access_code;
         } catch (\Throwable $e) {
             $eventOrder->event_access_code = null;
+        }
+
+        // A paid invoice belongs to the payment lifecycle, not to the event
+        // date. Upcoming orders paid in full must expose it just like past
+        // orders do. The service verifies the real calculated balance before
+        // creating anything, so a workflow label alone can never create one.
+        $eventOrder->_invoice_id = null;
+        $isMarkedPaid = ($eventOrder->_effective_workflow ?? $eventOrder->status_workflow ?? '') === 'INVOICE_PAID';
+        if (!empty($eventOrder->_main_order_is_paid) || $isMarkedPaid) {
+            try {
+                $invoice = $invoiceService->ensureIfFullyPaid(
+                    (int)$eventOrder->id_owner,
+                    (int)$eventOrder->id,
+                    (int)$user->getId()
+                );
+                $eventOrder->_invoice_id = $invoice ? (int)$invoice->id : null;
+            } catch (\Throwable $e) {
+                error_log('[Invoices current orders] Order #'.(int)$eventOrder->id.': '.$e->getMessage());
+            }
         }
     }
 
