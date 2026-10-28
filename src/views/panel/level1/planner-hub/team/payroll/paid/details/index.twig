@@ -1,48 +1,11 @@
 {% extends 'templates/base.admin.twig' %}
 {% import 'templates/macros.twig' as macros %}
-
 {% block body %}
-    <h1 class="h3 mb-4">🧾 Payroll Payment Details</h1>
-    {{ macros.breadcrumb2() }}
-
-    <a href="{{ path('panel/planner-hub/team/payroll/paid') }}" class="btn btn-sm btn-light mb-3">← Back to Payroll History</a>
-
-    <div class="table-responsive">
-        <table class="table table-bordered text-center align-middle" style="min-width: 700px;">
-            <thead>
-                <tr>
-                    <th>Employee</th>
-                    <th>Start Time</th>
-                    <th>End Time</th>
-                    <th>Total Hours</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for h in hours %}
-                    <tr>
-                        <td>{{ h.email }}</td> 
-                        <td  style="min-width: 200px;">
-                            {{ h.start_time|date_modify("+0 seconds")|date("l, M d, Y h:i A")  }}
-                        </span></td>
-                        <td  style="min-width: 200px;">
-                            {{ h.end_time|date_modify("+0 seconds")|date("l, M d, Y h:i A")  }}
-                        </td> 
- 
-                        <td>{{ h.total_hours }}</td>
-                    </tr>
-                {% else %}
-                    <tr>
-                        <td colspan="4" class="text-muted">No hours linked to this payment.</td>
-                    </tr>
-                {% endfor %}
-
-                {% if hours %}
-                    <tr>
-                        <td colspan="3" class="text-end fw-bold">Total</td>
-                        <td class="fw-bold">{{ total }}</td>
-                    </tr>
-                {% endif %}
-            </tbody>
-        </table>
-    </div>
+<h1 class="h3 mb-4">Paid Hours Details</h1>{{ macros.breadcrumb2() }}
+<a href="{{ path('panel/planner-hub/team/payroll/paid') }}" class="btn btn-sm btn-light mb-3">← Back to Payroll History</a>
+<div class="alert alert-success"><strong>Total paid: {{ payment.paid_amount_calculated is not null ? '$' ~ payment.paid_amount_calculated|number_format(2) : 'Not recorded' }}</strong><br>Rate used: {{ payment.hourly_rate_effective is not null ? '$' ~ payment.hourly_rate_effective|number_format(2) ~ '/hr' : 'Not recorded' }} · {{ payment.total_hours_decimal|number_format(2) }} hours{% if payment.aditional_info %}<br>Payment notes: {{ payment.aditional_info }}{% endif %}</div>
+<div class="table-responsive"><table class="table table-bordered text-center align-middle" style="min-width:900px"><thead><tr><th>Employee</th><th>Work Date</th><th>Start</th><th>End</th><th>Hours</th><th>Notes</th><th>Paid</th></tr></thead><tbody>
+{% for h in hours %}<tr><td>{{ h.email }}</td><td>{{ h.start_time|date("l, M d, Y") }}</td><td>{{ h.start_time|date("h:i A") }}</td><td>{{ h.end_time|date("h:i A") }}</td><td>{{ h.total_hours }}</td><td>{{ h.notes ?: '—' }}</td><td>{{ h.paid_amount is not null ? '$' ~ h.paid_amount|number_format(2) : 'Not recorded' }}</td></tr>{% else %}<tr><td colspan="7" class="text-muted">No hours linked to this payment.</td></tr>{% endfor %}
+{% if hours %}<tr><td colspan="4" class="text-end fw-bold">Totals</td><td class="fw-bold">{{ total }}</td><td></td><td class="fw-bold">{{ payment.paid_amount_calculated is not null ? '$' ~ payment.paid_amount_calculated|number_format(2) : 'Not recorded' }}</td></tr>{% endif %}</tbody></table></div>
+{% if rateHistory %}<div class="card mt-3"><div class="card-body"><h2 class="h6">Recorded rate changes</h2><ul class="mb-0">{% for rate in rateHistory %}<li>Effective from recorded payment on {{ rate.effective_date|date("M d, Y") }}: ${{ rate.rate|number_format(2) }}/hr</li>{% endfor %}</ul></div></div>{% endif %}
 {% endblock %}

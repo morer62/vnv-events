@@ -109,18 +109,20 @@
                     <th>Total Amount:</th>
                     <td class="highlight">$<?php echo number_format($paymentAmount ?? 0, 2); ?></td>
                 </tr>
+                <tr><th>Hourly Rate Used:</th><td><?php echo isset($hourlyRate) && is_numeric($hourlyRate) ? '$'.number_format((float)$hourlyRate, 2).'/hr' : 'Not recorded'; ?></td></tr>
             </table>
 
             <?php if (!empty($paidSessions)): ?>
             <h2>Sessions Included in This Payment:</h2>
             <table class="details-table">
-                <tr><th>Session</th><th>Start</th><th>End</th><th>Hours</th></tr>
+                <tr><th>Session</th><th>Start</th><th>End</th><th>Hours</th><th>Notes</th></tr>
                 <?php foreach ($paidSessions as $session): ?>
                 <tr>
                     <td>#<?php echo (int)($session['id'] ?? 0); ?></td>
                     <td><?php echo htmlspecialchars((string)($session['start'] ?? '')); ?></td>
                     <td><?php echo htmlspecialchars((string)($session['end'] ?? '')); ?></td>
                     <td><?php echo number_format((float)($session['hours'] ?? 0), 2); ?></td>
+                    <td><?php echo htmlspecialchars((string)($session['notes'] ?? '')); ?></td>
                 </tr>
                 <?php endforeach; ?>
             </table>

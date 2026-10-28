@@ -302,6 +302,10 @@ if ($action === "deleteManualHour") {
     $hourlyRate = $userInstitutionData->hourly_rate ?? null;
 
     $totalDiff = [];
+    if (!is_numeric($hourlyRate) || (float)$hourlyRate <= 0) {
+        MessageUtil::setMessage("Set a valid hourly rate before recording this payroll payment.", "Payment not recorded", "error");
+        LocationUtils::reload();
+    }
 
     foreach ($selectedHours as $h) {
         // Verificar que ambos campos de tiempo tengan valores válidos
@@ -393,6 +397,7 @@ if ($action === "deleteManualHour") {
             'employeeName' => $employee->name,
             'paymentAmount' => $totalNet,
             'sessionsCount' => count($ids),
+            'hourlyRate' => $hourlyRate,
             'paidSessions' => array_map(static function ($hour): array {
                 $seconds = max(0, strtotime((string)$hour->end_time) - strtotime((string)$hour->start_time));
                 return [
@@ -400,6 +405,7 @@ if ($action === "deleteManualHour") {
                     'start' => date('M j, Y g:i A', strtotime((string)$hour->start_time)),
                     'end' => date('M j, Y g:i A', strtotime((string)$hour->end_time)),
                     'hours' => round($seconds / 3600, 2),
+                    'notes' => (string)($hour->notes ?? ''),
                 ];
             }, $selectedHours),
             'paymentDate' => date("F j, Y g:i A"),

@@ -27,6 +27,8 @@
                     <tr>
                         <th>Institution</th>
                         <th>Total Hours</th>
+                        <th>Rate Used</th>
+                        <th>Amount Paid</th>
                         <th>Paid Date</th>
                         <th>Proof</th>
                         <th>Details</th>
@@ -37,6 +39,8 @@
                         <tr>
                             <td>{{ p.institution_name ?? 'N/A' }}</td>
                             <td>{{ p.total_hours_readable }}</td>
+                            <td>{{ p.hourly_rate_effective is not null ? '$' ~ p.hourly_rate_effective|number_format(2) ~ '/hr' : 'Not recorded' }}</td>
+                            <td>{{ p.paid_amount_calculated is not null ? '$' ~ p.paid_amount_calculated|number_format(2) : 'Not recorded' }}</td>
                             <td>{{ p.paid_at|date("l, F j, Y") }}</td>
                             <td>
                                 {% if p.proof_url %}
@@ -53,7 +57,7 @@
                         </tr>
                     {% else %}
                         <tr>
-                            <td colspan="5" class="text-muted">No records found.</td>
+                            <td colspan="7" class="text-muted">No records found.</td>
                         </tr>
                     {% endfor %}
                 </tbody>

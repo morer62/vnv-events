@@ -268,12 +268,17 @@ if ($action === "deleteManualHour") {
     }
 
     // Verificar que solo se procesen sesiones completas (con start_time y end_time)
-    $validHours = $repoHours->getUnpaidByUser($userId, $user->getOwner());
+    $validHours = $repoHours->getUnpaidByUser($userId, $currentOwnerId);
     $validIds = [];
+    $selectedHours = [];
+    $requestedIds = array_values(array_unique(array_map('intval', $ids)));
     
     foreach ($validHours as $h) {
-        if ($h->start_time && $h->end_time && in_array($h->id, $ids)) {
-            $validIds[] = $h->id;
+        $startTimestamp = $h->start_time ? strtotime((string)$h->start_time) : false;
+        $endTimestamp = $h->end_time ? strtotime((string)$h->end_time) : false;
+        if ($startTimestamp !== false && $endTimestamp !== false && $endTimestamp > $startTimestamp && in_array((int)$h->id, $requestedIds, true)) {
+            $validIds[] = (int)$h->id;
+            $selectedHours[] = $h;
         }
     }
     
@@ -296,9 +301,11 @@ if ($action === "deleteManualHour") {
     $hourlyRate = $userInstitutionData->hourly_rate ?? null;
 
     $totalDiff = [];
-    $unpaidHours = $repoHours->getUnpaidByUser($userId, $user->getOwner());
-
-    foreach ($unpaidHours as $h) {
+    if (!is_numeric($hourlyRate) || (float)$hourlyRate <= 0) {
+        MessageUtil::setMessage("Set a valid hourly rate before recording this payroll payment.", "Payment not recorded", "error");
+        LocationUtils::reload();
+    }
+    foreach ($selectedHours as $h) {
         // Verificar que ambos campos de tiempo tengan valores válidos
         if ($h->start_time && $h->end_time) {
             $start = new DateTime($h->start_time);
@@ -350,17 +357,15 @@ if ($action === "deleteManualHour") {
 
     $additionalInfo = $_POST['additional_info'] ?? 'No additional message';
 
-    // Guardar pago en la base
-    $save = $repoPayments->add([
-        "id_user" => $userId,
-        "id_owner" => $user->getOwner(),
-        "hours_count" => count($ids),
-        "hours_ids" => json_encode($ids),
-        "proof_url" => $proofUrl,
-        "paid_at" => date("Y-m-d H:i:s"),
-        "hourly_rate_snapshot" => $hourlyRate,
-        "aditional_info" => $additionalInfo
-    ]); 
+    $paidAt = date("Y-m-d H:i:s");
+    try {
+        $selectedHours = $repoPayments->recordSelectedPayment((int)$userId,(int)$currentOwnerId,$ids,$proofUrl,$hourlyRate,$additionalInfo,$paidAt);
+        $ids = array_map(static fn(object $hour): int => (int)$hour->id, $selectedHours);
+    } catch (\Throwable $e) {
+        error_log('Payroll payment rejected: '.$e->getMessage());
+        MessageUtil::setMessage($e->getMessage(), "Payment not recorded", "error");
+        LocationUtils::reload();
+    }
 
  
  
@@ -382,6 +387,11 @@ if ($action === "deleteManualHour") {
             'employeeName' => $employee->name,
             'paymentAmount' => $totalNet,
             'sessionsCount' => count($ids),
+            'hourlyRate' => $hourlyRate,
+            'paidSessions' => array_map(static function ($hour): array {
+                $seconds = max(0, strtotime((string)$hour->end_time) - strtotime((string)$hour->start_time));
+                return ['id'=>(int)$hour->id,'start'=>date('M j, Y g:i A',strtotime((string)$hour->start_time)),'end'=>date('M j, Y g:i A',strtotime((string)$hour->end_time)),'hours'=>round($seconds/3600,2),'notes'=>(string)($hour->notes??'')];
+            }, $selectedHours),
             'paymentDate' => date("F j, Y g:i A"),
             'paymentMethod' => $paymentType === 'card' ? 'Credit Card' : 'Manual Payment',
             'additionalInfo' => $additionalInfo,
@@ -412,14 +422,6 @@ if ($action === "deleteManualHour") {
         "💵 Payment Received",
         "Your work hours have been marked as paid. You can review the details in your Payroll Dashboard. Contact us if you notice anything wrong."
     );
-
-    foreach ($ids as $id) {
-        $repoHours->update([
-            "is_paid" => 1,
-            "paid_at" => date("Y-m-d H:i:s"),
-            "proof_url" => $proofUrl
-        ], ["id" => $id]);
-    }
 
    MessageUtil::setMessage("Hours paid successfully.");
    LocationUtils::redirectInternal("panel/planner-hub/management/payroll/pending");

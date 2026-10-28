@@ -39,7 +39,7 @@ class PayrollPaymentsRepository extends BaseRepository
         $this->db->beginTransaction();
         try {
             $this->db->query(
-                'SELECT id, start_time, end_time FROM payroll_hours '
+                'SELECT id, start_time, end_time, notes FROM payroll_hours '
                 . 'WHERE id_user = :user AND id_owner = :owner AND is_paid = 0 '
                 . 'AND start_time IS NOT NULL AND end_time IS NOT NULL '
                 . 'AND end_time > start_time AND id IN (' . implode(',', $placeholders) . ') '
@@ -137,7 +137,6 @@ class PayrollPaymentsRepository extends BaseRepository
 
     public function getHoursForPayment(int $paymentId): array
 {
-    // Step 1: Get the hours_ids list from payroll_payments
     $sql = "SELECT hours_ids FROM payroll_payments WHERE id = :id";
     $this->db->query($sql);
     $this->db->bind(":id", $paymentId);
@@ -147,11 +146,11 @@ class PayrollPaymentsRepository extends BaseRepository
         return [];
     }
 
-    // Step 2: Clean and explode the list of IDs
-    $ids = explode(",", str_replace(["[", "]", " "], "", $payment->hours_ids));
+    $decoded = json_decode((string)$payment->hours_ids, true);
+    $ids = is_array($decoded) ? array_values(array_filter(array_map('intval', $decoded))) : array_values(array_filter(array_map('intval', explode(",", str_replace(["[", "]", " "], "", $payment->hours_ids)))));
+    if ($ids === []) return [];
     $placeholders = implode(",", array_fill(0, count($ids), "?"));
 
-    // Step 3: Get each hour using IN clause
     $sql = "
         SELECT h.*, u.email
         FROM payroll_hours h
@@ -167,6 +166,43 @@ class PayrollPaymentsRepository extends BaseRepository
 
     return $this->db->fetchAll();
 }
+
+    public function getPaymentDetails(int $paymentId, ?int $ownerId = null, ?int $userId = null): ?object
+    {
+        $conditions = ['pp.id = :id'];
+        if ($ownerId !== null) $conditions[] = 'pp.id_owner = :owner';
+        if ($userId !== null) $conditions[] = 'pp.id_user = :user';
+        $this->db->query('SELECT pp.*,u.email FROM payroll_payments pp LEFT JOIN users u ON u.id=pp.id_user WHERE '.implode(' AND ', $conditions).' LIMIT 1');
+        $this->db->bind(':id', $paymentId);
+        if ($ownerId !== null) $this->db->bind(':owner', $ownerId);
+        if ($userId !== null) $this->db->bind(':user', $userId);
+        $payment = $this->db->fetchOne();
+        return $payment ? $this->withCalculatedTotals($payment) : null;
+    }
+
+    public function withCalculatedTotals(object $payment): object
+    {
+        $hours = $this->getHoursForPayment((int)$payment->id);
+        $seconds = 0;
+        foreach ($hours as $hour) {
+            $start = strtotime((string)$hour->start_time); $end = strtotime((string)$hour->end_time);
+            if ($start !== false && $end !== false && $end > $start) $seconds += $end - $start;
+        }
+        $payment->total_seconds = $seconds;
+        $payment->total_hours_decimal = round($seconds / 3600, 2);
+        $payment->hourly_rate_effective = is_numeric($payment->hourly_rate_snapshot ?? null) ? (float)$payment->hourly_rate_snapshot : null;
+        $payment->paid_amount_calculated = $payment->hourly_rate_effective === null ? null : round(($seconds / 3600) * $payment->hourly_rate_effective, 2);
+        return $payment;
+    }
+
+    public function getRateHistory(int $userId, int $ownerId): array
+    {
+        $this->db->query('SELECT paid_at,hourly_rate_snapshot rate FROM payroll_payments WHERE id_user=:user AND id_owner=:owner AND hourly_rate_snapshot IS NOT NULL ORDER BY paid_at ASC,id ASC');
+        $this->db->bind(':user',$userId); $this->db->bind(':owner',$ownerId);
+        $changes=[];$previous=null;
+        foreach($this->db->fetchAll() as $row){$rate=(float)$row->rate;if($previous===null||abs($rate-$previous)>0.0001){$row->effective_date=substr((string)$row->paid_at,0,10);$changes[]=$row;$previous=$rate;}}
+        return array_reverse($changes);
+    }
 
 
     public function getGroupedPayments(int $idOwner, ?string $userId = null, ?string $from = null, ?string $to = null): array
@@ -208,7 +244,7 @@ class PayrollPaymentsRepository extends BaseRepository
             $this->db->bind($key, $val);
         }
 
-        return $this->db->fetchAll();
+        return array_map(fn (object $payment): object => $this->withCalculatedTotals($payment), $this->db->fetchAll());
     }
 
     public function getAllPaymentsByUser(int $userId, ?string $from = null, ?string $to = null): array
@@ -247,6 +283,6 @@ class PayrollPaymentsRepository extends BaseRepository
             $this->db->bind($key, $val);
         }
 
-        return $this->db->fetchAll();
+        return array_map(fn (object $payment): object => $this->withCalculatedTotals($payment), $this->db->fetchAll());
     }
 }

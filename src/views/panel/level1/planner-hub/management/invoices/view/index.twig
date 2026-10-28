@@ -21,6 +21,7 @@
 
 {{ macros.breadcrumb2() }}
 <div class="alert alert-info">Invoice fields below are a billing snapshot. Editing them does not modify the order, its customer record, service prices, or any payment.</div>
+{% if data.suborders %}<div class="alert alert-success">This is one consolidated invoice: Order #{{ order.id }} plus {{ data.suborders|length }} active suborder(s), with one summarized total and balance.</div>{% endif %}
 
 <div class="row g-3">
     <div class="col-xl-8">
@@ -40,7 +41,8 @@
                 {% for line in data.lines %}
                     <div class="mb-3">
                         <label class="form-label"><strong>{{ line.name }}</strong> · {{ line.quantity }} × ${{ line.unit_price_effective|number_format(2) }}</label>
-                        <textarea class="form-control" name="line_description[{{ line.id }}]" rows="2">{{ line.invoice_description }}</textarea>
+                        <div class="small text-muted mb-1">{{ line.invoice_group }}</div>
+                        <textarea class="form-control" name="line_description[{{ line.invoice_key }}]" rows="2">{{ line.invoice_description }}</textarea>
                     </div>
                 {% endfor %}
                 <label class="form-label">Invoice notes</label>
@@ -58,7 +60,7 @@
                 <div class="d-flex justify-content-between"><span>Discount</span><strong>-${{ totals.discount|number_format(2) }}</strong></div>
                 <div class="d-flex justify-content-between"><span>Sales Tax</span><strong>${{ totals.tax|number_format(2) }}</strong></div>
                 <hr>
-                <div class="d-flex justify-content-between fs-5"><span>Total</span><strong>${{ totals.total|number_format(2) }}</strong></div>
+                <div class="d-flex justify-content-between fs-5"><span>Consolidated total</span><strong>${{ totals.total|number_format(2) }}</strong></div>
                 <div class="d-flex justify-content-between text-success"><span>Net paid</span><strong>${{ totals.net_paid|number_format(2) }}</strong></div>
                 <div class="d-flex justify-content-between"><span>Balance</span><strong>${{ totals.balance|number_format(2) }}</strong></div>
             </div>
@@ -101,11 +103,12 @@
         <h5>Read-only payment history</h5>
         <div class="table-responsive">
             <table class="table">
-                <thead><tr><th>Date</th><th>Method</th><th>Reference</th><th>Card</th><th>Paid</th><th>Refunded</th></tr></thead>
+                <thead><tr><th>Date</th><th>Order source</th><th>Method</th><th>Reference</th><th>Card</th><th>Paid</th><th>Refunded</th></tr></thead>
                 <tbody>
                 {% for payment in data.payments %}
                     <tr>
                         <td>{{ payment.paid_at|date('M j, Y g:i A') }}</td>
+                        <td>{{ payment.source_label }}</td>
                         <td>{{ payment.method|title }}</td>
                         <td><code>{{ payment.reference_id ?: 'Manual' }}</code></td>
                         <td>{{ payment.card_brand }}{% if payment.card_last4 %} •••• {{ payment.card_last4 }}{% endif %}</td>
@@ -113,7 +116,7 @@
                         <td>{% if payment.refunded_amount > 0 %}-${{ payment.refunded_amount|number_format(2) }}{% else %}—{% endif %}</td>
                     </tr>
                 {% else %}
-                    <tr><td colspan="6" class="text-muted">No payments recorded.</td></tr>
+                    <tr><td colspan="7" class="text-muted">No payments recorded.</td></tr>
                 {% endfor %}
                 </tbody>
             </table>
