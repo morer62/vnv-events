@@ -11,11 +11,15 @@ use App\Repositories\Connection;
 use App\Services\MochiActionService;
 
 $template = (string)file_get_contents($root.'/src/views/panel/level1/planner-hub/management/orders/orders/edit/index.twig');
+$historyTemplate = (string)file_get_contents($root.'/src/views/panel/level1/planner-hub/management/orders/orders/previous/index.twig');
 if (str_contains($template, 'min="{{ "now"|date("Y-m-d") }}"')) {
     throw new RuntimeException('The Level 1 edit form still blocks historical event dates.');
 }
 if (!str_contains($template, 'name="payment_split_type" class="form-select" id="paymentSplitSelect">')) {
     throw new RuntimeException('The payment schedule is still disabled for restricted administrative edits.');
+}
+if (!str_contains($historyTemplate, "orders/orders/edit') }}?id={{ order.id }}") || !str_contains($historyTemplate, 'Edit Order')) {
+    throw new RuntimeException('The historical orders list does not expose the exact-order edit action.');
 }
 
 $db = new Connection();
@@ -57,4 +61,4 @@ try {
     $db->rollback();
 }
 
-fwrite(STDOUT, "PASS: a signed link resolves an exact historical order, Level 1 can edit its past date, and Mochi can transactionally correct address/payment schedule without changing live data.\n");
+fwrite(STDOUT, "PASS: history exposes the exact edit action, a signed link resolves an exact historical order, Level 1 can edit its past date, and Mochi can transactionally correct address/payment schedule without changing live data.\n");

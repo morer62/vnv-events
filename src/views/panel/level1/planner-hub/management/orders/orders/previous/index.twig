@@ -205,8 +205,11 @@
                                     Closure Report
                                 </a>
                             </td>
-                            <!-- Delete -->
-                            <td>
+                            <!-- Administrative actions -->
+                            <td style="min-width: 170px;">
+                                <a href="{{ path('/panel/planner-hub/management/orders/orders/edit') }}?id={{ order.id }}" class="btn btn-sm btn-primary mb-2">
+                                    ✏️ Edit Order
+                                </a><br>
                                 <form method="post" style="display:inline;" onsubmit="return confirm('Are you sure you want to archive this order? It will be moved to archived orders.');">
                                     <input type="hidden" name="archive_order_id" value="{{ order.id }}">
                                     <button type="submit" class="btn btn-sm btn-outline-warning">📦 Archive</button>
