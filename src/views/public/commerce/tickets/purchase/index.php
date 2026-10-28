@@ -60,30 +60,51 @@ $router->post(function () {
         // Validar disponibilidad de tickets ANTES del pago
         $ticketInventoryRepo = new \App\Repositories\TicketInventoryRepository();
         $ticketTypesRepo = new \App\Repositories\TicketTypesRepository();
-        
-        foreach ($tickets as $ticketTypeId => $quantity) {
-            if ($quantity > 0) {
-                $available = $ticketInventoryRepo->getAvailableQuantity($ticketTypeId);
-                if ($available < $quantity) {
-                    $ticketType = $ticketTypesRepo->getOne(['id' => $ticketTypeId]);
-                    $ticketName = $ticketType ? $ticketType->name : 'this ticket type';
-                    
-                    return TemplateResponse::render(__DIR__ . "/error.twig", [
-                        "error" => "Not enough tickets available for '{$ticketName}'. Only {$available} tickets left, but you're trying to buy {$quantity}."
-                    ]);
-                }
-            }
+        $ticketsConfigRepo = new \App\Repositories\VenueEventsTicketsRepository();
+        $salesStagesRepo = new \App\Repositories\TicketSalesStagesRepository();
+        $ticketsConfig = $ticketsConfigRepo->getByVenueEvent((int)$eventId);
+
+        if (!$ticketsConfig || !$ticketsConfig->ticket_sales_enabled) {
+            return TemplateResponse::render(__DIR__ . "/error.twig", [
+                "error" => "Ticket sales are not available for this event"
+            ]);
         }
 
-        $totalAmount = 0;
+        $currentStage = $salesStagesRepo->getCurrentStage((int)$ticketsConfig->id);
+        $discountPercentage = $currentStage ? max(0.0, min(100.0, (float)$currentStage->discount_percentage)) : 0.0;
+        $totalAmount = 0.0;
+        
         foreach ($tickets as $ticketTypeId => $quantity) {
-            if ($quantity > 0) {
-                $ticketTypeRepo = new \App\Repositories\TicketTypesRepository();
-                $ticketType = $ticketTypeRepo->getOne(['id' => $ticketTypeId]);
-                if ($ticketType) {
-                    $totalAmount += $ticketType->price * $quantity;
-                }
+            $quantity = (int)$quantity;
+            if ($quantity <= 0) {
+                continue;
             }
+
+            $ticketType = $ticketTypesRepo->getOne(['id' => (int)$ticketTypeId]);
+            if (!$ticketType
+                || (int)$ticketType->id_venue_event_tickets !== (int)$ticketsConfig->id
+                || !(bool)$ticketType->is_active
+            ) {
+                return TemplateResponse::render(__DIR__ . "/error.twig", [
+                    "error" => "One of the selected ticket types is not available for this event"
+                ]);
+            }
+
+            $available = $ticketInventoryRepo->getAvailableQuantity((int)$ticketTypeId);
+            if ($available < $quantity) {
+                return TemplateResponse::render(__DIR__ . "/error.twig", [
+                    "error" => "Not enough tickets available for '{$ticketType->name}'. Only {$available} tickets left, but you're trying to buy {$quantity}."
+                ]);
+            }
+
+            $unitPrice = (float)$ticketType->price * (1 - $discountPercentage / 100);
+            $totalAmount += $unitPrice * $quantity;
+        }
+
+        if ($totalAmount <= 0) {
+            return TemplateResponse::render(__DIR__ . "/error.twig", [
+                "error" => "Choose at least one valid ticket"
+            ]);
         }
 
         $stripeService = new StripeServiceV2();
@@ -123,6 +144,8 @@ $router->post(function () {
 
         $_SESSION['current_event_id'] = $eventId;
         $_SESSION['selected_tickets'] = $tickets;
+        $_SESSION['event_name'] = $event->name ?? 'Event';
+        $_SESSION['venue_name'] = $venue->name ?? 'Unknown Venue';
         
         $ticketSalesService = new TicketSalesService();
         $result = $ticketSalesService->confirmTicketPurchase($charge->id, $buyerInfo);
@@ -130,7 +153,7 @@ $router->post(function () {
         if ($result['success']) {
             $_SESSION['ticket_codes'] = $result['data']['ticket_codes'] ?? [];
             $_SESSION['ticket_total'] = $totalAmount;
-            $_SESSION['event_name'] = $venue->name ?? 'Event';
+            $_SESSION['event_name'] = $event->name ?? 'Event';
             $_SESSION['venue_name'] = $venue->name ?? 'Unknown Venue';
             $_SESSION['current_stage'] = $result['data']['current_stage'] ?? null;
             

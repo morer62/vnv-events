@@ -31,7 +31,6 @@ foreach ([
     'panel/planner-hub/management/crm',
     'panel/planner-hub/team/chat',
     'panel/cms/pages/create',
-    'panel/manager-scheduling',
     'panel/cms',
     'panel/event-invitations',
     'panel/planner-hub/store/products/home',
@@ -44,7 +43,7 @@ foreach ([
     $expect(str_contains($sidebar, $route), 'Sidebar route missing: ' . $route);
 }
 
-foreach (['panel/agents', 'panel/social-media-agent', 'panel/multimedia-sessions', 'panel/forum'] as $hiddenRoute) {
+foreach (['panel/manager-scheduling', 'panel/agents', 'panel/social-media-agent', 'panel/multimedia-sessions', 'panel/forum'] as $hiddenRoute) {
     $expect(!str_contains($sidebar, $hiddenRoute), 'Externalized operation must not remain in the sidebar: ' . $hiddenRoute);
 }
 
@@ -76,6 +75,7 @@ foreach ([$sidebarPath, $gourmetPath, 'panel/level1/planner-hub/store/products/h
 foreach ([
     'https://vnvevents.com/panel/home/' => 'level1-vnv-events',
     'https://vnvevents.com/panel/cms/pages/create/' => 'level1-publishing',
+    'https://vnvevents.com/panel/planner-hub/store/gourmet-express/' => 'level1-vnv-events',
     'https://vnvevents.com/panel/planner-hub/store/products/home/' => 'level1-store-events',
     'https://vnvevents.com/panel/planner-hub/settings/payment-providers/' => 'level1-settings',
 ] as $url => $expectedOpenGroup) {

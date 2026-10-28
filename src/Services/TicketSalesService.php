@@ -177,6 +177,7 @@ class TicketSalesService
                     'sale_ids' => $saleIds,
                     'ticket_codes' => $allTicketCodes,
                     'total_amount' => $totalAmount,
+                    'current_stage' => $currentStage,
                     'message' => 'Tickets purchased successfully!'
                 ]
             ];

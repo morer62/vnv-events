@@ -1,155 +1,17 @@
 {% extends 'templates/base.admin.twig' %}
-
-{% block body %}
-<div class="container-fluid py-4">
-    <div class="row mb-4">
-        <div class="col-md-8">
-            <h1 class="h3 mb-2">🎉 Event Invitations Manager</h1>
-            <p class="text-muted">Create beautiful mini-sites for your events and manage RSVPs</p>
-        </div>
-        <div class="col-md-4 text-end">
-            {% if isWeb %}
-            <a href="{{ path('panel/event-invitations/create') }}" class="btn btn-primary">
-                <i class="bi bi-plus-circle"></i> Create New Event
-            </a>
-            {% endif %}
-        </div>
-    </div>
-
-    {% if message %}
-    <div class="alert alert-{{ message.type|default('success') }} alert-dismissible fade show" role="alert">
-        {{ message.message }}
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    </div>
-    {% endif %}
-
-    <!-- Stats Cards -->
-    <div class="row mb-4">
-        <div class="col-md-3">
-            <div class="card bg-primary shadow">
-                <div class="card-body text-center text-white">
-                    <h6 class="card-title mb-3 text-white opacity-75">Total Events</h6>
-                    <h1 class="display-3 fw-bold mb-0 text-white">{{ events|length }}</h1>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card bg-success shadow">
-                <div class="card-body text-center text-white">
-                    <h6 class="card-title mb-3 text-white opacity-75">Active Events</h6>
-                    <h1 class="display-3 fw-bold mb-0 text-white">{{ events|filter(e => e.status == 'active')|length }}</h1>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card bg-info shadow">
-                <div class="card-body text-center text-white">
-                    <h6 class="card-title mb-3 text-white opacity-75">Total Guests</h6>
-                    <h1 class="display-3 fw-bold mb-0 text-white">{{ events|reduce((carry, e) => carry + e.total_guests, 0) }}</h1>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card bg-warning shadow">
-                <div class="card-body text-center text-white">
-                    <h6 class="card-title mb-3 text-white opacity-75">Confirmed</h6>
-                    <h1 class="display-3 fw-bold mb-0 text-white">{{ events|reduce((carry, e) => carry + e.confirmed_guests, 0) }}</h1>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Events List -->
-    <div class="card shadow-sm">
-        <div class="card-header bg-white">
-            <h5 class="mb-0">Your Events</h5>
-        </div>
-        <div class="card-body">
-            {% if events|length > 0 %}
-            <div class="table-responsive">
-                <table class="table table-hover">
-                    <thead>
-                        <tr>
-                            <th>Event Name</th>
-                            <th>Date</th>
-                            <th>Type</th>
-                            <th>Guests</th>
-                            <th>Confirmed</th>
-                            <th>Status</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for event in events %}
-                        <tr>
-                            <td>
-                                <strong>{{ event.event_name }}</strong>
-                                <br>
-                                <small class="text-muted">{{ event.venue_name }}</small>
-                            </td>
-                            <td>{{ event.event_date|date('M d, Y') }}</td>
-                            <td>
-                                <span class="badge bg-secondary">{{ event.event_type|title }}</span>
-                            </td>
-                            <td>{{ event.total_guests }}</td>
-                            <td>
-                                <span class="badge bg-success">{{ event.confirmed_guests }}</span>
-                            </td>
-                            <td>
-                                {% if event.status == 'active' %}
-                                    <span class="badge bg-success">Active</span>
-                                {% elseif event.status == 'draft' %}
-                                    <span class="badge bg-warning">Draft</span>
-                                {% elseif event.status == 'closed' %}
-                                    <span class="badge bg-secondary">Closed</span>
-                                {% else %}
-                                    <span class="badge bg-danger">Cancelled</span>
-                                {% endif %}
-                            </td>
-                            <td>
-                                <div class="d-flex gap-1">
-                                    <a href="{{ path('panel/event-invitations/guests') }}?id={{ event.id }}" class="btn btn-sm btn-success" title="Manage Guests">
-                                        👥 Guests
-                                    </a>
-                                    <a href="{{ path('event') }}?slug={{ event.slug }}" target="_blank" class="btn btn-sm btn-info text-white" title="View Mini-Site">
-                                        👁️ View
-                                    </a>
-                                    <a href="{{ path('panel/event-invitations/manage') }}?id={{ event.id }}" class="btn btn-sm btn-primary" title="Settings">
-                                        ⚙️
-                                    </a>
-                                </div>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-            {% else %}
-            <div class="text-center py-5">
-                <i class="bi bi-calendar-event" style="font-size: 4rem; color: #ccc;"></i>
-                <h4 class="mt-3">No events yet</h4>
-                <p class="text-muted">Create your first event to start sending invitations</p>
-                {% if isWeb %}
-                    <a href="{{ path('panel/event-invitations/create') }}" class="btn btn-primary mt-3">
-                        Create Your First Event
-                    </a>
-                {% endif %}
-            </div>
-            {% endif %}
-        </div>
-    </div>
-
-    <!-- Pricing Info -->
-    {% if isWeb %}
-        <div class="alert alert-info mt-4">
-            <h5>💰 Pricing</h5>
-            <p class="mb-0">
-                Each event creation costs <strong>${{ env.EVENT_CREATION_PRICE }}</strong> and includes:
-                unlimited guests, custom mini-site, email invitations, RSVP management, 
-                seating chart, and advanced calculators.
-            </p>
-        </div>
-    {% endif %}
-</div>
+{% block title %}Events, Tickets & RSVP · VNV Events{% endblock %}
+{% block style %}
+<style>
+.vnv-events-hub{max-width:1460px;margin:0 auto;color:#10231f}.vnv-events-hero{position:relative;overflow:hidden;display:flex;justify-content:space-between;align-items:flex-end;gap:28px;padding:36px;border-radius:28px;color:#fff;background:linear-gradient(115deg,rgba(5,19,17,.98),rgba(10,62,54,.88)),url('{{ asset_for("assets/images/vnv-core-brunch-mansion-hero.png") }}') center/cover;box-shadow:0 26px 70px rgba(8,30,27,.18)}.vnv-events-hero:after{content:"";position:absolute;right:-90px;top:-120px;width:330px;height:330px;border:1px solid rgba(255,255,255,.16);border-radius:50%}.vnv-events-copy,.vnv-events-actions{position:relative;z-index:1}.vnv-kicker{display:inline-flex;align-items:center;gap:9px;padding:9px 14px;border:1px solid rgba(100,244,215,.35);border-radius:999px;background:rgba(60,221,190,.1);color:#79f4dc;font-size:.76rem;font-weight:900;letter-spacing:.14em;text-transform:uppercase}.vnv-events-hero h1{max-width:760px;margin:16px 0 10px;color:#fff!important;font-size:clamp(2rem,4.4vw,4.4rem);font-weight:950;line-height:.98}.vnv-events-hero p{max-width:720px;margin:0;color:rgba(255,255,255,.77);font-size:1.02rem;line-height:1.65}.vnv-events-actions{display:flex;flex-wrap:wrap;gap:10px;justify-content:flex-end}.vnv-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:46px;padding:11px 18px;border:0;border-radius:999px;text-decoration:none;font-weight:900}.vnv-btn-primary{background:#43ddbd;color:#06221c}.vnv-btn-primary:hover{background:#78f0d8;color:#06221c}.vnv-btn-ghost{border:1px solid rgba(255,255,255,.28);background:rgba(255,255,255,.08);color:#fff}.vnv-btn-ghost:hover{background:#fff;color:#0a2a24}.vnv-metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin:18px 0}.vnv-metric{padding:19px 20px;border:1px solid #d9e7e2;border-radius:20px;background:#fff;box-shadow:0 12px 32px rgba(13,54,46,.06)}.vnv-metric span{display:block;color:#6c7d77;font-size:.78rem;font-weight:850;letter-spacing:.08em;text-transform:uppercase}.vnv-metric strong{display:block;margin-top:5px;color:#0a3029;font-size:2rem;line-height:1}.vnv-hub-bar{display:flex;justify-content:space-between;align-items:center;gap:18px;margin:28px 0 15px}.vnv-hub-bar h2{margin:0;font-size:1.45rem;font-weight:950}.vnv-hub-bar p{margin:4px 0 0;color:#71817c}.vnv-event-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(330px,1fr));gap:18px}.vnv-event-card{overflow:hidden;border:1px solid #d9e7e2;border-radius:24px;background:#fff;box-shadow:0 18px 48px rgba(13,54,46,.08)}.vnv-event-accent{height:8px;background:linear-gradient(90deg,#0b6e5e,#4de0bf,#d8ad3d)}.vnv-event-body{padding:23px}.vnv-event-badges{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:15px}.vnv-badge{display:inline-flex;align-items:center;gap:6px;padding:7px 10px;border-radius:999px;background:#e3f8f3;color:#087363;font-size:.72rem;font-weight:900;letter-spacing:.06em;text-transform:uppercase}.vnv-badge.is-draft{background:#fff5d8;color:#7b5b05}.vnv-badge.is-closed{background:#edf0ef;color:#4d5c58}.vnv-event-card h3{margin:0;color:#0b2722;font-size:1.25rem;font-weight:950}.vnv-event-venue{margin:5px 0 0;color:#71817c}.vnv-event-meta{display:grid;gap:9px;margin:18px 0;padding:16px;border-radius:16px;background:#f3f8f6;color:#425a54}.vnv-event-meta div{display:flex;gap:10px;align-items:center}.vnv-event-meta i{width:18px;color:#098572}.vnv-event-counts{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:18px}.vnv-event-counts div{padding:12px;border:1px solid #e2ece8;border-radius:14px}.vnv-event-counts span{display:block;color:#71817c;font-size:.75rem}.vnv-event-counts strong{font-size:1.15rem}.vnv-card-actions{display:flex;flex-wrap:wrap;gap:9px;padding-top:17px;border-top:1px solid #e6efec}.vnv-card-actions .vnv-btn{min-height:40px;padding:9px 13px;font-size:.86rem}.vnv-card-actions .manage{background:#0a6f5f;color:#fff}.vnv-card-actions .preview{background:#e7f7f3;color:#086b5c}.vnv-card-actions .settings{border:1px solid #cbdad5;background:#fff;color:#263b36}.vnv-empty{padding:62px 24px;border:1px dashed #bcd1ca;border-radius:26px;background:#fff;text-align:center}.vnv-empty-icon{display:inline-flex;align-items:center;justify-content:center;width:74px;height:74px;margin-bottom:16px;border-radius:24px;background:#e0f7f1;color:#087463;font-size:1.8rem}.vnv-help{display:flex;align-items:flex-start;gap:14px;margin-top:20px;padding:18px;border:1px solid #d5e6e0;border-radius:18px;background:#f3faf8}.vnv-help i{color:#0b806d;font-size:1.25rem}.vnv-help strong{display:block;margin-bottom:3px}.vnv-help p{margin:0;color:#657772}@media(max-width:900px){.vnv-events-hero{align-items:flex-start;flex-direction:column;padding:27px 22px}.vnv-events-actions{justify-content:flex-start}.vnv-metrics{grid-template-columns:repeat(2,1fr)}}@media(max-width:540px){.vnv-metrics{grid-template-columns:1fr 1fr}.vnv-event-grid{grid-template-columns:1fr}.vnv-hub-bar{align-items:flex-start;flex-direction:column}.vnv-btn{width:100%}}
+</style>
 {% endblock %}
-
+{% block body %}
+<main class="container-fluid py-4"><div class="vnv-events-hub">
+<section class="vnv-events-hero"><div class="vnv-events-copy"><span class="vnv-kicker"><i class="fa-solid fa-ticket"></i> VNV Events · Guest Experience</span><h1>Events, tickets and RSVP in one place.</h1><p>Create an event experience, organize its guest list, publish the invitation and follow every response without leaving the VNV workflow.</p></div><div class="vnv-events-actions"><a class="vnv-btn vnv-btn-ghost" href="{{ path('panel/venues/home') }}"><i class="fa-solid fa-chart-simple"></i> Ticketed venues</a>{% if isWeb %}<a class="vnv-btn vnv-btn-primary" href="{{ path('panel/event-invitations/create') }}"><i class="fa-solid fa-plus"></i> Create event</a>{% endif %}</div></section>
+{% if message %}<div class="alert alert-{{ message.type|default('success') }} alert-dismissible fade show mt-3" role="alert">{{ message.message }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>{% endif %}
+<section class="vnv-metrics" aria-label="Event summary"><div class="vnv-metric"><span>Total events</span><strong>{{ events|length }}</strong></div><div class="vnv-metric"><span>Active events</span><strong>{{ events|filter(e => e.status == 'active')|length }}</strong></div><div class="vnv-metric"><span>Invited guests</span><strong>{{ events|reduce((carry, e) => carry + e.total_guests, 0) }}</strong></div><div class="vnv-metric"><span>Confirmed</span><strong>{{ events|reduce((carry, e) => carry + e.confirmed_guests, 0) }}</strong></div></section>
+<div class="vnv-hub-bar"><div><h2>Your event experiences</h2><p>Open the guest list, preview the public page or adjust each event.</p></div>{% if isWeb %}<a class="vnv-btn vnv-btn-primary" href="{{ path('panel/event-invitations/create') }}"><i class="fa-solid fa-plus"></i> New event</a>{% endif %}</div>
+{% if events|length > 0 %}<section class="vnv-event-grid">{% for event in events %}<article class="vnv-event-card"><div class="vnv-event-accent"></div><div class="vnv-event-body"><div class="vnv-event-badges"><span class="vnv-badge {{ event.status == 'draft' ? 'is-draft' : (event.status == 'active' ? '' : 'is-closed') }}"><i class="fa-solid fa-circle-check"></i> {{ event.status|default('draft')|title }}</span><span class="vnv-badge"><i class="fa-solid fa-champagne-glasses"></i> {{ event.event_type|default('event')|title }}</span></div><h3>{{ event.event_name }}</h3><p class="vnv-event-venue">{{ event.venue_name|default('Venue to be confirmed') }}</p><div class="vnv-event-meta"><div><i class="fa-regular fa-calendar"></i><span>{{ event.event_date|date('M d, Y') }}{% if event.event_time %} · {{ event.event_time|date('g:i A') }}{% endif %}</span></div>{% if event.venue_city or event.venue_state %}<div><i class="fa-solid fa-location-dot"></i><span>{{ event.venue_city }}{% if event.venue_city and event.venue_state %}, {% endif %}{{ event.venue_state }}</span></div>{% endif %}</div><div class="vnv-event-counts"><div><span>Guests</span><strong>{{ event.total_guests|default(0) }}</strong></div><div><span>Confirmed</span><strong>{{ event.confirmed_guests|default(0) }}</strong></div></div><div class="vnv-card-actions"><a class="vnv-btn manage" href="{{ path('panel/event-invitations/guests') }}?id={{ event.id }}"><i class="fa-solid fa-users"></i> Guests</a><a class="vnv-btn preview" href="{{ path('event') }}?slug={{ event.slug }}" target="_blank" rel="noopener"><i class="fa-solid fa-arrow-up-right-from-square"></i> Preview</a><a class="vnv-btn settings" href="{{ path('panel/event-invitations/manage') }}?id={{ event.id }}"><i class="fa-solid fa-sliders"></i> Manage</a></div></div></article>{% endfor %}</section>{% else %}<section class="vnv-empty"><span class="vnv-empty-icon"><i class="fa-solid fa-calendar-plus"></i></span><h2>No events yet</h2><p class="text-muted">Create the first VNV event experience and start organizing invitations and responses.</p>{% if isWeb %}<a class="vnv-btn vnv-btn-primary" href="{{ path('panel/event-invitations/create') }}"><i class="fa-solid fa-plus"></i> Create first event</a>{% endif %}</section>{% endif %}
+<aside class="vnv-help"><i class="fa-solid fa-circle-info"></i><div><strong>Invitations and ticket sales remain separate controls.</strong><p>This area manages event pages and RSVPs. Ticket inventory, sales stages and entrance validation remain available in Ticket operations.</p></div></aside>
+</div></main>
+{% endblock %}
