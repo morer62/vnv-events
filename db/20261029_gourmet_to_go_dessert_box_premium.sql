@@ -40,6 +40,12 @@ UPDATE store_products SET name='Dessert Box',sku='GTG-DESSERT-BOX',brand_name='V
   is_featured=1,is_public=1,status='ACTIVE',updated_at=NOW()
 WHERE id=@p_dessert;
 
+-- Keep only the two launch sizes public. Earlier draft runs created 36- and
+-- 54-piece variations; leaving them active makes them reappear in the selector.
+UPDATE store_product_variations
+SET status='INACTIVE',updated_at=NOW()
+WHERE id_product=@p_dessert AND slug NOT IN ('24-pieces','48-pieces');
+
 DELETE FROM store_products_categories WHERE id_product=@p_dessert;
 INSERT INTO store_products_categories (id_owner,id_product,id_category)
 SELECT @owner,@p_dessert,@cat_dessert WHERE @p_dessert IS NOT NULL AND @cat_dessert IS NOT NULL;
@@ -79,7 +85,8 @@ ON DUPLICATE KEY UPDATE
 DELETE FROM store_product_variation_option_rules WHERE id_group=@dessert_group;
 INSERT INTO store_product_variation_option_rules (id_group,id_product_variation,required_count,pieces_per_option)
 SELECT @dessert_group,id,CASE piece_count WHEN 24 THEN 2 ELSE 4 END,12
-FROM store_product_variations WHERE id_product=@p_dessert AND status='ACTIVE';
+FROM store_product_variations
+WHERE id_product=@p_dessert AND status='ACTIVE' AND slug IN ('24-pieces','48-pieces');
 
 -- Preserve historical order rows while replacing the two public product pages.
 UPDATE store_products SET status='INACTIVE',is_public=0,updated_at=NOW()

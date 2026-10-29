@@ -53,6 +53,9 @@ $assert($appetizerModifier === 15.0, 'Expected one premium block to add $15.');
 $assert($appetizerTotal === 130.0, 'Expected 45-piece premium box total to be $130.');
 
 $dessert = $product('dessert-box');
+$dessertVariationCount = $pdo->prepare('SELECT COUNT(*) FROM store_product_variations WHERE id_product=:product AND status=\'ACTIVE\'');
+$dessertVariationCount->execute(['product' => (int)$dessert['id']]);
+$assert((int)$dessertVariationCount->fetchColumn() === 2, 'Expected only the 24- and 48-piece Dessert Box variations to remain active.');
 $dessertVariation = $variation((int)$dessert['id'], 48);
 $dessertGroups = $options->groupsForProduct(2, 'vnvevents', (int)$dessert['id']);
 $dessertChoices = $dessertGroups[0]['choices'] ?? [];
