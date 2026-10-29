@@ -75,6 +75,7 @@ function sendCheckoutOrderDetailsEmail(
     float $discount,
     float $total,
     string $paymentMethod,
+    bool $pickupWarm,
     string $billingAddress1,
     string $billingAddress2,
     string $billingCity,
@@ -99,6 +100,7 @@ function sendCheckoutOrderDetailsEmail(
     }
 
     $rows = '';
+    $reheatItems = [];
     foreach ($cartItems as $item) { 
         $name = htmlspecialchars((string)($item->product_name_snapshot ?? 'Item'));
         $qty = (int)($item->quantity ?? 0);
@@ -108,7 +110,10 @@ function sendCheckoutOrderDetailsEmail(
         foreach (($configuration['option_groups'] ?? []) as $group) {
             foreach (($group['selections'] ?? []) as $choice) {
                 $label = trim((string)($choice['name'] ?? ''));
-                if ($label !== '') $choiceLabels[] = htmlspecialchars($label);
+                if ($label !== '') {
+                    $choiceLabels[] = htmlspecialchars($label);
+                    $reheatItems[$label] = trim((string)($choice['serve_label'] ?? ''));
+                }
             }
         }
         $configuredChoices = $choiceLabels
@@ -121,6 +126,14 @@ function sendCheckoutOrderDetailsEmail(
         </tr>";
     }
 
+    $warmNotice = $pickupWarm ? '<div style="margin:16px 0;padding:12px 14px;background:#fff3e6;border:1px solid #e8892b;border-radius:8px;"><strong>Pick up warm — ready to serve.</strong><br>Please enjoy within 1–2 hours. Our kitchen will target completion 15–30 minutes before pickup.</div>' : '';
+    $reheatRows = '';
+    foreach ($reheatItems as $name => $serveLabel) {
+        $instruction = stripos($serveLabel, 'READY TO SERVE') !== false ? 'Serve as is.' : ($serveLabel !== '' ? $serveLabel : 'OVEN 8–10 MIN');
+        if (stripos($name, 'empanad') !== false || stripos($name, 'quiche') !== false) $instruction .= ' Also great at room temperature.';
+        $reheatRows .= '<li><strong>' . htmlspecialchars($name) . ':</strong> ' . htmlspecialchars($instruction) . '</li>';
+    }
+    $reheatCard = $reheatRows !== '' ? '<div style="margin:16px 0;padding:14px;background:#fffaf3;border:1px solid #e6c38e;border-radius:8px;"><h3 style="margin:0 0 8px;">Serving &amp; reheating</h3><p>Preheat oven to 350°F. Bake uncovered in a single layer on an open tray. Never microwave and never cover with foil.</p><ul>' . $reheatRows . '</ul><p><strong>Air fryer:</strong> 350°F for 4–5 minutes in a single layer.</p></div>' : '';
     $subject = "Order #{$orderId} confirmation";
     $message = '
         <div style="font-family:Arial,sans-serif;color:#222;line-height:1.6;max-width:700px;margin:0 auto;">
@@ -146,6 +159,7 @@ function sendCheckoutOrderDetailsEmail(
                 <p style="margin:2px 0;"><strong>Discount:</strong> $ ' . number_format($discount, 2) . '</p>
                 <p style="margin:2px 0;font-size:16px;"><strong>Total paid:</strong> $ ' . number_format($total, 2) . '</p>
             </div>
+            ' . $warmNotice . $reheatCard . '
             <div style="display:flex;gap:18px;flex-wrap:wrap;margin-top:16px;">
                 <div style="flex:1;min-width:250px;">
                     <h4 style="margin:0 0 6px;">Billing address</h4>
@@ -1115,6 +1129,7 @@ $router->post(function () {
     $shippingZip = trim($payload['shipping_zip'] ?? '');
     $fulfillmentMethod = strtoupper(trim((string)($payload['fulfillment_method'] ?? 'PICKUP')));
     if (!in_array($fulfillmentMethod, ['DELIVERY', 'PICKUP'], true)) $fulfillmentMethod = 'DELIVERY';
+    $pickupWarm = $fulfillmentMethod === 'PICKUP' && filter_var($payload['pickup_warm'] ?? false, FILTER_VALIDATE_BOOLEAN);
     if ($fulfillmentMethod === 'PICKUP' && !(int)($gourmetSettings['pickup_enabled'] ?? 1)) {
         echo json_encode(['success' => false, 'message' => 'Pickup is not available for this order.']);
         return;
@@ -1529,6 +1544,7 @@ $router->post(function () {
         'meal_style' => $cart->meal_style ?: null,
         'pricing_mode' => $isRecurringOrder ? StoreOrdersRepository::PRICING_SUBSCRIPTION : ($cart->pricing_mode ?: StoreOrdersRepository::PRICING_PAYG),
         'fulfillment_method' => $fulfillmentMethod,
+        'pickup_warm' => $pickupWarm ? 1 : 0,
         'pickup_window' => $pickupWindow,
         'delivery_timing' => $deliveryTiming,
         'requested_delivery_at' => $requestedDeliveryAt,
@@ -1710,6 +1726,7 @@ $router->post(function () {
                 (float)$discount,
                 (float)$total,
                 $providerType,
+                $pickupWarm,
                 $billingAddress1,
                 $billingAddress2,
                 $billingCity,

@@ -417,6 +417,7 @@ body{
                 </div>
 
                 <h2 class="order-section-title">Items purchased</h2>
+                {% if order.pickup_warm %}<div class="notice-box" style="background:#fff3e6;border-color:#e8892b"><strong>Pick up warm — ready to serve</strong><br>Enjoy within 1–2 hours. The kitchen targets completion 15–30 minutes before pickup.</div>{% endif %}
 
                 <div class="order-items">
                     {% for item in order.items %}
@@ -472,6 +473,8 @@ body{
                         </div>
                     {% endfor %}
                 </div>
+                {% set has_appetizer_choices = false %}{% for item in order.items %}{% if item.configuration.option_groups %}{% set has_appetizer_choices = true %}{% endif %}{% endfor %}
+                {% if has_appetizer_choices %}<div class="notice-box notice-soft" style="margin-top:18px"><h3 style="margin-top:0">Serving &amp; reheating</h3><p>Preheat oven to 350°F. Bake uncovered in a single layer on an open tray. Never microwave and never cover with foil.</p><ul>{% for item in order.items %}{% for group in item.configuration.option_groups|default([]) %}{% for choice in group.selections %}<li><strong>{{ choice.name }}:</strong> {{ 'READY TO SERVE' in choice.serve_label ? 'Serve as is.' : choice.serve_label }}{% if 'empanad' in choice.name|lower or 'quiche' in choice.name|lower %} Also great at room temperature.{% endif %}</li>{% endfor %}{% endfor %}{% endfor %}</ul><p><strong>Air fryer:</strong> 350°F for 4–5 minutes in a single layer.</p></div>{% endif %}
             </div>
         </div>
 

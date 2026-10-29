@@ -55,6 +55,7 @@ class StoreOrdersRepository extends BaseRepository
         'meal_style',
         'pricing_mode',
         'fulfillment_method',
+        'pickup_warm',
         'delivery_timing',
         'requested_delivery_at',
         'requested_delivery_at_utc',
@@ -191,6 +192,7 @@ class StoreOrdersRepository extends BaseRepository
             'shipping_state' => 'VARCHAR(120) NULL AFTER `shipping_city`',
             'shipping_zip' => 'VARCHAR(60) NULL AFTER `shipping_state`'
             ,'fulfillment_method' => "VARCHAR(24) NOT NULL DEFAULT 'DELIVERY' AFTER `pricing_mode`"
+            ,'pickup_warm' => 'TINYINT(1) NOT NULL DEFAULT 0 AFTER `fulfillment_method`'
             ,'delivery_timing' => "VARCHAR(24) NOT NULL DEFAULT 'SCHEDULED' AFTER `fulfillment_method`"
             ,'requested_delivery_at' => 'DATETIME NULL AFTER `delivery_timing`'
             ,'promised_delivery_at' => 'DATETIME NULL AFTER `requested_delivery_at`'

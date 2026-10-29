@@ -111,6 +111,7 @@
                                     <td class="small text-nowrap">
                                         <strong>{{ o.delivery_timing == 'ASAP' ? 'ASAP' : 'Scheduled' }}</strong><br>
                                         <span class="text-muted">{{ (o.promised_delivery_at ?: o.requested_delivery_at) ? (o.promised_delivery_at ?: o.requested_delivery_at)|date('D, M j · g:i A') : 'Not set' }}</span>
+                                        {% if o.pickup_warm %}<div class="badge bg-warning text-dark mt-1">PICKUP WARM · finish 15–30 min before pickup</div>{% endif %}
                                     </td>
                                     <td class="text-center text-md-start">
                                         <button type="button"

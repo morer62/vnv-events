@@ -446,6 +446,7 @@ body{
                     <div class="checkout-section-title" style="font-size:1.05rem">Delivery or pickup?</div>
                     {% if gourmet_settings.pickup_enabled|default(1) %}<label class="payment-consent-option"><input type="radio" name="fulfillment_method" value="PICKUP" checked><span><strong>Free pickup</strong><span class="payment-consent-copy">{{ gourmet_settings.pickup_address_1|default('10258 NW 47th St') }}, {{ gourmet_settings.pickup_city|default('Sunrise') }}, FL {{ gourmet_settings.pickup_zip|default('33351') }}</span></span></label>{% endif %}
                     <label class="payment-consent-option"><input type="radio" name="fulfillment_method" value="DELIVERY"{% if not gourmet_settings.pickup_enabled|default(1) %} checked{% endif %}><span><strong>Delivery</strong><span class="payment-consent-copy">Available for an address-based fee shown before payment.</span></span></label>
+                    <label class="payment-consent-option" id="pickupWarmOption"><input type="checkbox" id="pickup_warm" value="1"><span><strong>Pick up warm — ready to serve</strong><span class="payment-consent-copy">No charge. Enjoy within 1–2 hours.</span></span></label>
                 </div>
 
                 <div class="summary-box" id="deliveryTimingBox">
@@ -621,6 +622,8 @@ document.addEventListener('DOMContentLoaded', function () {
     const deliveryQuoteBox = document.getElementById('deliveryQuoteBox');
     const shippingChoiceField = document.getElementById('shipping_same_as_billing')?.closest('.field');
     const fulfillmentTimingTitle = document.getElementById('fulfillmentTimingTitle');
+    const pickupWarmOption = document.getElementById('pickupWarmOption');
+    const pickupWarmInput = document.getElementById('pickup_warm');
     const requestedTimeLabel = document.getElementById('requestedTimeLabel');
 
     const guestNameInput = document.getElementById('guest_name');
@@ -689,6 +692,8 @@ document.addEventListener('DOMContentLoaded', function () {
     }
     function syncFulfillment() {
         const pickup = selectedFulfillment() === 'PICKUP';
+        if (pickupWarmOption) pickupWarmOption.style.display = pickup ? '' : 'none';
+        if (!pickup && pickupWarmInput) pickupWarmInput.checked = false;
         if (deliveryQuoteBox) deliveryQuoteBox.style.display = pickup ? 'none' : '';
         if (shippingChoiceField) shippingChoiceField.style.display = pickup ? 'none' : '';
         if (shippingFieldsBlock) shippingFieldsBlock.style.display = pickup ? 'none' : '';
@@ -1203,6 +1208,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     delivery_timing: deliveryTiming,
                     requested_delivery_at: requestedDeliveryInput.value,
                     fulfillment_method: fulfillmentMethod,
+                    pickup_warm: fulfillmentMethod === 'PICKUP' && !!pickupWarmInput?.checked,
                     order_frequency: orderFrequency,
                     recurrence_type: recurrenceTypeInput?.value || 'WEEKLY',
                     recurrence_interval: Number(document.getElementById('recurrence_interval')?.value || 1),
