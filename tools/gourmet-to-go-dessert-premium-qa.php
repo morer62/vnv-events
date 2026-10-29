@@ -9,6 +9,7 @@ require dirname(__DIR__) . '/vendor/autoload.php';
 Dotenv::createImmutable(dirname(__DIR__))->load();
 
 $pdo = new PDO((string)$_ENV['DATABASE_URL'], null, null, [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]);
+$pdo->exec("SET NAMES 'utf8mb4'");
 $options = new StoreProductOptionsService();
 
 $product = static function (string $slug) use ($pdo): array {
