@@ -451,7 +451,7 @@ body{
                                         <div class="mt-1">
                                             {% for group in item.configuration.option_groups %}
                                                 {% for choice in group.selections %}
-                                                    <span class="order-item-chip">{{ choice.name }}</span>
+                                                    <span class="order-item-chip">{{ choice.name }}{% if choice.price_modifier|default(0) > 0 %} · Premium +${{ choice.price_modifier|number_format(0) }}{% endif %}</span>
                                                 {% endfor %}
                                             {% endfor %}
                                         </div>
@@ -460,6 +460,9 @@ body{
                                     <div class="mt-1">
                                         {{ item.quantity }} × ${{ item.unit_price|number_format(2, '.', ',') }}
                                     </div>
+                                    {% if item.configuration.option_price_modifier_total|default(0) > 0 %}
+                                    <div class="mt-1">Box ${{ item.configuration.base_unit_price|number_format(2, '.', ',') }} + Premium ${{ item.configuration.option_price_modifier_total|number_format(2, '.', ',') }} = ${{ item.unit_price|number_format(2, '.', ',') }}</div>
+                                    {% endif %}
                                 </div>
                             </div>
 
@@ -473,8 +476,8 @@ body{
                         </div>
                     {% endfor %}
                 </div>
-                {% set has_appetizer_choices = false %}{% for item in order.items %}{% if item.configuration.option_groups %}{% set has_appetizer_choices = true %}{% endif %}{% endfor %}
-                {% if has_appetizer_choices %}<div class="notice-box notice-soft" style="margin-top:18px"><h3 style="margin-top:0">Serving &amp; reheating</h3><p>Preheat oven to 350°F. Bake uncovered in a single layer on an open tray. Never microwave and never cover with foil.</p><ul>{% for item in order.items %}{% for group in item.configuration.option_groups|default([]) %}{% for choice in group.selections %}<li><strong>{{ choice.name }}:</strong> {{ 'READY TO SERVE' in choice.serve_label ? 'Serve as is.' : choice.serve_label }}{% if 'empanad' in choice.name|lower or 'quiche' in choice.name|lower %} Also great at room temperature.{% endif %}</li>{% endfor %}{% endfor %}{% endfor %}</ul><p><strong>Air fryer:</strong> 350°F for 4–5 minutes in a single layer.</p></div>{% endif %}
+                {% set has_configured_choices = false %}{% set has_heated_choices = false %}{% for item in order.items %}{% if item.configuration.option_groups %}{% set has_configured_choices = true %}{% endif %}{% for group in item.configuration.option_groups|default([]) %}{% for choice in group.selections %}{% if 'READY TO SERVE' not in choice.serve_label %}{% set has_heated_choices = true %}{% endif %}{% endfor %}{% endfor %}{% endfor %}
+                {% if has_configured_choices %}<div class="notice-box notice-soft" style="margin-top:18px"><h3 style="margin-top:0">Serving{% if has_heated_choices %} &amp; reheating{% endif %}</h3>{% if has_heated_choices %}<p>Preheat oven to 350°F. Bake uncovered in a single layer on an open tray. Never microwave and never cover with foil.</p>{% endif %}<ul>{% for item in order.items %}{% for group in item.configuration.option_groups|default([]) %}{% for choice in group.selections %}<li><strong>{{ choice.name }}:</strong> {{ choice.serving_instructions|default('') ?: ('READY TO SERVE' in choice.serve_label ? 'Serve as is.' : choice.serve_label) }}{% if not choice.serving_instructions and ('empanad' in choice.name|lower or 'quiche' in choice.name|lower) %} Also great at room temperature.{% endif %}</li>{% endfor %}{% endfor %}{% endfor %}</ul>{% if has_heated_choices %}<p><strong>Air fryer:</strong> 350°F for 4–5 minutes in a single layer.</p>{% endif %}</div>{% endif %}
             </div>
         </div>
 

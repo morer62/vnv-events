@@ -14,6 +14,40 @@ use App\Utils\MessageUtil;
 
 $router = new Router();
 
+/** @return array<int,array{name:string,pieces:int,serve_label:string,price_modifier:float}> */
+function storeOrderConfiguredChoices(object $item): array
+{
+    $configuration = json_decode((string)($item->configuration_snapshot ?? ''), true);
+    if (!is_array($configuration)) return [];
+    $choices = [];
+    foreach (($configuration['option_groups'] ?? []) as $group) {
+        foreach (($group['selections'] ?? []) as $selection) {
+            $name = trim((string)($selection['name'] ?? ''));
+            if ($name === '') continue;
+            $choices[] = [
+                'name' => $name,
+                'pieces' => max(0, (int)($selection['pieces'] ?? 0)),
+                'serve_label' => trim((string)($selection['serve_label'] ?? '')),
+                'price_modifier' => round((float)($selection['price_modifier'] ?? 0), 2),
+            ];
+        }
+    }
+    return $choices;
+}
+
+function storeOrderKitchenDisplayName(object $item): string
+{
+    $name = trim((string)($item->product_name_snapshot ?? 'Meal')) ?: 'Meal';
+    $variation = trim((string)($item->variation_name_snapshot ?? ''));
+    $choices = storeOrderConfiguredChoices($item);
+    $details = array_map(static function (array $choice): string {
+        return $choice['name']
+            . ($choice['pieces'] > 0 ? ' × ' . $choice['pieces'] . ' pcs' : '')
+            . ($choice['price_modifier'] > 0 ? ' · Premium +$' . number_format($choice['price_modifier'], 2) : '');
+    }, $choices);
+    return $name . ($variation !== '' ? ' · ' . $variation : '') . ($details ? ' — ' . implode('; ', $details) : '');
+}
+
 function downloadStoreOrderLabelPdf(int $orderId): void
 {
     $ordersRepo = new StoreOrdersRepository();
@@ -108,7 +142,7 @@ function downloadStoreOrderLabelPdf(int $orderId): void
 
     $pdf->SetFont('helvetica', '', 7.2);
     foreach ($items as $item) {
-        $name = (string)($item->product_name_snapshot ?? 'Meal');
+        $name = storeOrderKitchenDisplayName($item);
         $qty = (int)($item->quantity ?? 0);
         $unit = '$' . number_format((float)($item->unit_price ?? 0), 2);
         $line = '$' . number_format((float)($item->line_total ?? 0), 2);
@@ -190,14 +224,33 @@ $router->get(function () {
         }
         foreach ($orders as &$order) {
             $order->items = $itemsRepo->getByOrder((int)$order->id);
+            foreach ($order->items as $item) $item->display_name = storeOrderKitchenDisplayName($item);
             $order->items_json = json_encode($order->items);
             $deliveryUserId = (int)($order->delivery_user_id ?? 0);
             $order->delivery_assignee_name = $deliveryUserId > 0 ? ($deliveryUsersById[$deliveryUserId] ?? '') : '';
         }
         unset($order);
 
-        $orderIds = array_map(fn($o) => (int)$o->id, $orders);
-        $preparationTotals = $itemsRepo->getPreparationTotalsByOrders($orderIds);
+        $preparationMap = [];
+        foreach ($orders as $order) {
+            foreach (($order->items ?? []) as $item) {
+                $quantity = max(0, (int)($item->quantity ?? 0));
+                $choices = storeOrderConfiguredChoices($item);
+                if ($choices) {
+                    foreach ($choices as $choice) {
+                        $key = $choice['name'];
+                        $preparationMap[$key] ??= (object)['product_name' => $choice['name'] . ' (pieces)', 'total_qty' => 0];
+                        $preparationMap[$key]->total_qty += $quantity * max(1, $choice['pieces']);
+                    }
+                } else {
+                    $key = trim((string)($item->product_name_snapshot ?? 'Meal')) ?: 'Meal';
+                    $preparationMap[$key] ??= (object)['product_name' => $key, 'total_qty' => 0];
+                    $preparationMap[$key]->total_qty += $quantity;
+                }
+            }
+        }
+        ksort($preparationMap, SORT_NATURAL | SORT_FLAG_CASE);
+        $preparationTotals = array_values($preparationMap);
     }
 
     return TemplateResponse::render(__DIR__ . '/index.twig', [

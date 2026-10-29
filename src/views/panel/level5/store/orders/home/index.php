@@ -134,15 +134,20 @@ $router->get(function () {
             $detailParts = [];
             if (!empty($item->servings)) $detailParts[] = (int)$item->servings . ' servings';
             foreach ($configuration as $label => $value) {
+                if (in_array((string)$label, ['base_unit_price', 'option_price_modifier_total'], true)) continue;
                 if (is_scalar($value) && trim((string)$value) !== '') $detailParts[] = ucwords(str_replace('_', ' ', (string)$label)) . ': ' . (string)$value;
             }
             foreach (($configuration['option_groups'] ?? []) as $group) {
                 foreach (($group['selections'] ?? []) as $selection) {
                     $detailParts[] = (string)($selection['name'] ?? 'Selection')
                         . (!empty($selection['pieces']) ? ' × ' . (int)$selection['pieces'] . ' pcs' : '')
-                        . (!empty($selection['serve_label']) ? ' · ' . (string)$selection['serve_label'] : '');
+                        . (!empty($selection['serve_label']) ? ' · ' . (string)$selection['serve_label'] : '')
+                        . ((float)($selection['price_modifier'] ?? 0) > 0 ? ' · Premium +$' . number_format((float)$selection['price_modifier'], 2) : '');
                 }
             }
+            $baseUnitPrice = (float)($configuration['base_unit_price'] ?? 0);
+            $premiumTotal = (float)($configuration['option_price_modifier_total'] ?? 0);
+            if ($baseUnitPrice > 0 && $premiumTotal > 0) $detailParts[] = 'Price: $' . number_format($baseUnitPrice, 2) . ' + Premium $' . number_format($premiumTotal, 2) . ' = $' . number_format($baseUnitPrice + $premiumTotal, 2);
             $modalItems[] = [
                 'name' => ($item->product_name_snapshot ?? ('#' . $item->id_product)) . ($detailParts ? ' — ' . implode(' · ', $detailParts) : ''),
                 'quantity' => (int)($item->quantity ?? 0),

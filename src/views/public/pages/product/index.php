@@ -27,7 +27,8 @@ $legacyProductRedirects = [
     'extra-hallaca' => 'hallacas-by-the-dozen',
     'signature-appetizer-box' => null,
     'latin-bites-box' => null,
-    'dessert-box' => null,
+    'cream-profiteroles' => 'dessert-box',
+    'pastry-cream-tartlets' => 'dessert-box',
     'charcuterie-to-go' => null,
     'chicken-chorizo-paella' => null,
     'seafood-paella' => null,
@@ -287,7 +288,7 @@ $categoryAnchorMap = [
     'desserts-add-ons' => ['desserts', 'Desserts'],
     'seasonal-holiday-packages' => ['desserts', 'Desserts'],
 ];
-$dessertSlugs = ['ensaimada-family-recipe', 'brazo-gitano', 'cream-profiteroles', 'pastry-cream-tartlets', 'boca-abierta'];
+$dessertSlugs = ['dessert-box', 'ensaimada-family-recipe', 'brazo-gitano', 'boca-abierta'];
 $gourmetCategory = in_array((string)$product->slug, $dessertSlugs, true)
     ? ['desserts', 'Desserts']
     : ['appetizer-boxes', 'Appetizer Boxes'];

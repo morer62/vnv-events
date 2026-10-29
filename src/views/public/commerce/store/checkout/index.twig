@@ -829,8 +829,20 @@ document.addEventListener('DOMContentLoaded', function () {
         let config = item.configuration || item.configuration_snapshot || {};
         if (typeof config === 'string') { try { config = JSON.parse(config); } catch (e) { config = {}; } }
         return (config.option_groups || []).flatMap(group => group.selections || []).map(choice =>
-            `<span class="checkout-item-chip">${choice.name}${choice.pieces ? ` × ${choice.pieces} pcs` : ''}${choice.serve_label ? ` · ${choice.serve_label}` : ''}</span>`
+            `<span class="checkout-item-chip">${choice.name}${choice.pieces ? ` × ${choice.pieces} pcs` : ''}${choice.serve_label ? ` · ${choice.serve_label}` : ''}${Number(choice.price_modifier || 0) > 0 ? ` · Premium +$${Number(choice.price_modifier).toFixed(0)}` : ''}</span>`
         ).join('');
+    }
+
+    function optionPriceBreakdownHtml(item) {
+        let config = item.configuration || item.configuration_snapshot || {};
+        if (typeof config === 'string') { try { config = JSON.parse(config); } catch (e) { config = {}; } }
+        const base = Number(config.base_unit_price || 0);
+        const modifier = Number(config.option_price_modifier_total || 0);
+        if (base <= 0 || modifier <= 0) return '';
+        const premiumNames = (config.option_groups || []).flatMap(group => group.selections || [])
+            .filter(choice => Number(choice.price_modifier || 0) > 0)
+            .map(choice => `${choice.name} +$${Number(choice.price_modifier).toFixed(0)}`);
+        return `<div>Box $${base.toFixed(2)} + ${premiumNames.join(' + ')} = $${(base + modifier).toFixed(2)}</div>`;
     }
 
     function renderItems(items) {
@@ -858,6 +870,7 @@ document.addEventListener('DOMContentLoaded', function () {
                                         : ''
                                 }
                                 ${optionSelectionHtml(item)}
+                                ${optionPriceBreakdownHtml(item)}
                                 <div>${item.quantity} × $${Number(item.unit_price || 0).toFixed(2)}</div>
                             </div>
                         </div>

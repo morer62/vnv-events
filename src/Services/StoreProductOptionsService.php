@@ -41,6 +41,8 @@ final class StoreProductOptionsService
                     $tags = array_values(array_filter(array_map('trim', explode(',', (string)($choice['tags'] ?? '')))));
                     $choice['tag_list'] = $tags;
                     $choice['is_preferred'] = $preferredTag !== '' && in_array($preferredTag, $tags, true);
+                    $choice['is_premium'] = in_array('premium', $tags, true) || (float)($choice['price_modifier'] ?? 0) > 0;
+                    $choice['price_modifier'] = round((float)($choice['price_modifier'] ?? 0), 2);
                 }
                 unset($choice);
                 $this->db->query("SELECT id_product_variation,required_count,pieces_per_option FROM store_product_variation_option_rules WHERE id_group=:group_id");
@@ -102,14 +104,18 @@ final class StoreProductOptionsService
                     'slug' => (string)$choice['slug'],
                     'pieces' => $pieces,
                     'serve_label' => (string)($choice['serve_label'] ?? ''),
+                    'price_modifier' => round((float)($choice['price_modifier'] ?? 0), 2),
+                    'serving_instructions' => (string)($choice['serving_instructions'] ?? ''),
                 ];
             }
+            $modifierTotal = round(array_sum(array_map(static fn(array $choice): float => (float)$choice['price_modifier'], $clean)), 2);
             $snapshot[] = [
                 'group_id' => (int)$group['id'],
                 'group_name' => (string)$group['name'],
                 'option_type' => (string)$group['option_type'],
                 'required_count' => $required,
                 'pieces_per_option' => $pieces,
+                'price_modifier_total' => $modifierTotal,
                 'selections' => $clean,
             ];
         }

@@ -111,16 +111,25 @@ function sendCheckoutOrderDetailsEmail(
             foreach (($group['selections'] ?? []) as $choice) {
                 $label = trim((string)($choice['name'] ?? ''));
                 if ($label !== '') {
-                    $choiceLabels[] = htmlspecialchars($label);
-                    $reheatItems[$label] = trim((string)($choice['serve_label'] ?? ''));
+                    $modifier = round((float)($choice['price_modifier'] ?? 0), 2);
+                    $choiceLabels[] = htmlspecialchars($label . ($modifier > 0 ? ' (Premium +$' . number_format($modifier, 0) . ')' : ''));
+                    $reheatItems[$label] = [
+                        'serve_label' => trim((string)($choice['serve_label'] ?? '')),
+                        'instructions' => trim((string)($choice['serving_instructions'] ?? '')),
+                    ];
                 }
             }
         }
         $configuredChoices = $choiceLabels
             ? '<div style="margin-top:4px;color:#4b635b;font-size:12px;">Choices: ' . implode(', ', $choiceLabels) . '</div>'
             : '';
+        $baseUnitPrice = round((float)($configuration['base_unit_price'] ?? 0), 2);
+        $modifierTotal = round((float)($configuration['option_price_modifier_total'] ?? 0), 2);
+        $priceBreakdown = $baseUnitPrice > 0 && $modifierTotal > 0
+            ? '<div style="margin-top:4px;color:#7a4b00;font-size:12px;">Box $' . number_format($baseUnitPrice, 2) . ' + Premium $' . number_format($modifierTotal, 2) . ' = $' . number_format($baseUnitPrice + $modifierTotal, 2) . '</div>'
+            : '';
         $rows .= "<tr>
-            <td style=\"padding:8px;border-bottom:1px solid #eee;\">{$name}{$configuredChoices}</td>
+            <td style=\"padding:8px;border-bottom:1px solid #eee;\">{$name}{$configuredChoices}{$priceBreakdown}</td>
             <td style=\"padding:8px;border-bottom:1px solid #eee;text-align:center;\">{$qty}</td>
             <td style=\"padding:8px;border-bottom:1px solid #eee;text-align:right;\">$ {$line}</td>
         </tr>";
@@ -128,12 +137,18 @@ function sendCheckoutOrderDetailsEmail(
 
     $warmNotice = $pickupWarm ? '<div style="margin:16px 0;padding:12px 14px;background:#fff3e6;border:1px solid #e8892b;border-radius:8px;"><strong>Pick up warm — ready to serve.</strong><br>Please enjoy within 1–2 hours. Our kitchen will target completion 15–30 minutes before pickup.</div>' : '';
     $reheatRows = '';
-    foreach ($reheatItems as $name => $serveLabel) {
-        $instruction = stripos($serveLabel, 'READY TO SERVE') !== false ? 'Serve as is.' : ($serveLabel !== '' ? $serveLabel : 'OVEN 8–10 MIN');
+    $hasHeatedItems = false;
+    foreach ($reheatItems as $name => $serving) {
+        $serveLabel = (string)($serving['serve_label'] ?? '');
+        $instruction = (string)($serving['instructions'] ?? '');
+        if ($instruction === '') $instruction = stripos($serveLabel, 'READY TO SERVE') !== false ? 'Serve as is.' : ($serveLabel !== '' ? $serveLabel : 'OVEN 8–10 MIN');
+        if (stripos($serveLabel, 'READY TO SERVE') === false) $hasHeatedItems = true;
         if (stripos($name, 'empanad') !== false || stripos($name, 'quiche') !== false) $instruction .= ' Also great at room temperature.';
         $reheatRows .= '<li><strong>' . htmlspecialchars($name) . ':</strong> ' . htmlspecialchars($instruction) . '</li>';
     }
-    $reheatCard = $reheatRows !== '' ? '<div style="margin:16px 0;padding:14px;background:#fffaf3;border:1px solid #e6c38e;border-radius:8px;"><h3 style="margin:0 0 8px;">Serving &amp; reheating</h3><p>Preheat oven to 350°F. Bake uncovered in a single layer on an open tray. Never microwave and never cover with foil.</p><ul>' . $reheatRows . '</ul><p><strong>Air fryer:</strong> 350°F for 4–5 minutes in a single layer.</p></div>' : '';
+    $reheatIntro = $hasHeatedItems ? '<p>Preheat oven to 350°F. Bake uncovered in a single layer on an open tray. Never microwave and never cover with foil.</p>' : '';
+    $reheatOutro = $hasHeatedItems ? '<p><strong>Air fryer:</strong> 350°F for 4–5 minutes in a single layer.</p>' : '';
+    $reheatCard = $reheatRows !== '' ? '<div style="margin:16px 0;padding:14px;background:#fffaf3;border:1px solid #e6c38e;border-radius:8px;"><h3 style="margin:0 0 8px;">Serving' . ($hasHeatedItems ? ' &amp; reheating' : '') . '</h3>' . $reheatIntro . '<ul>' . $reheatRows . '</ul>' . $reheatOutro . '</div>' : '';
     $subject = "Order #{$orderId} confirmation";
     $message = '
         <div style="font-family:Arial,sans-serif;color:#222;line-height:1.6;max-width:700px;margin:0 auto;">

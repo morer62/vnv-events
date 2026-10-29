@@ -155,7 +155,17 @@ $router->post(function () {
                 $resolvedVariationId,
                 $submittedConfiguration
             );
-            if ($validatedGroups !== []) $configuration['option_groups'] = $validatedGroups;
+            if ($validatedGroups !== []) {
+                $baseUnitPrice = $unitPrice;
+                $optionPriceModifier = round(array_sum(array_map(
+                    static fn(array $group): float => (float)($group['price_modifier_total'] ?? 0),
+                    $validatedGroups
+                )), 2);
+                $configuration['option_groups'] = $validatedGroups;
+                $configuration['base_unit_price'] = round($baseUnitPrice, 2);
+                $configuration['option_price_modifier_total'] = $optionPriceModifier;
+                $unitPrice = round($baseUnitPrice + $optionPriceModifier, 2);
+            }
         } catch (Throwable $e) {
             http_response_code(422);
             echo json_encode(['success' => false, 'message' => $e->getMessage()]);

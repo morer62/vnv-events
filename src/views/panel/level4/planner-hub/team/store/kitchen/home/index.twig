@@ -235,7 +235,7 @@
                         {% for it in o.items %}
                           <div class="small">
                             <span class="badge bg-light text-dark border me-1">x{{ it.quantity ?: 0 }}</span>
-                            {{ it.product_name_snapshot ?: 'Meal' }}
+                            {{ it.display_name ?: it.product_name_snapshot ?: 'Meal' }}
                           </div>
                         {% endfor %}
                       </div>
@@ -498,7 +498,7 @@
             return;
           }
           body.innerHTML = items.map(function (it) {
-            const name = it.product_name_snapshot || it.name || 'Meal';
+            const name = it.display_name || it.product_name_snapshot || it.name || 'Meal';
             const qty = it.quantity || 0;
             return '<tr><td>' + escHtml(name) + '</td><td class="text-end">' + escHtml(qty) + '</td></tr>';
           }).join('');
