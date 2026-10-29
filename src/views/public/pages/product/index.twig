@@ -663,7 +663,7 @@
 
                                 {% if product_option_groups|length %}
                                 <style>
-                                .pp-option-group{margin:1.1rem 0;padding:1.1rem;border:1px solid #cfe0da;border-radius:18px;background:#f7fbf9}.pp-option-head{display:flex;justify-content:space-between;gap:1rem;align-items:center;margin-bottom:.8rem}.pp-option-counter{font-weight:900;color:#0c6d59}.pp-option-section-title{margin:1rem 0 .55rem;font-size:.9rem;text-transform:uppercase;letter-spacing:.06em;color:#385c51}.pp-option-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.65rem}.pp-option-choice{display:grid;grid-template-columns:56px minmax(0,1fr) auto;gap:.75rem;align-items:center;padding:.7rem;border:1px solid #d7e4df;border-radius:14px;background:#fff;cursor:pointer}.pp-option-choice img{width:56px;height:56px;object-fit:cover;border-radius:10px;background:#eee}.pp-option-choice input{width:22px;height:22px}.pp-option-choice.is-disabled{opacity:.45}.pp-option-serve,.pp-option-instructions{font-size:.72rem;color:#4f665e;display:block;margin-top:.2rem}.pp-option-serve{font-weight:900}.pp-option-premium{display:inline-flex;margin-top:.28rem;padding:.18rem .42rem;border-radius:999px;background:#fff1cf;color:#7a4b00;font-size:.72rem;font-weight:900}@media(max-width:650px){.pp-option-grid{grid-template-columns:1fr}.pp-option-head{align-items:flex-start;flex-direction:column}}
+                                .pp-option-group{margin:1.1rem 0;padding:1.1rem;border:1px solid #cfe0da;border-radius:18px;background:#f7fbf9}.pp-option-head{display:flex;justify-content:space-between;gap:1rem;align-items:center;margin-bottom:.8rem}.pp-option-counter{font-weight:900;color:#0c6d59}.pp-option-section-title{margin:1rem 0 .55rem;font-size:.9rem;text-transform:uppercase;letter-spacing:.06em;color:#385c51}.pp-option-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.65rem}.pp-option-choice{display:grid;grid-template-columns:56px minmax(0,1fr) auto;gap:.75rem;align-items:center;padding:.7rem;border:1px solid #d7e4df;border-radius:14px;background:#fff;cursor:pointer}.pp-option-choice .pp-option-image{width:56px;height:56px;object-fit:cover;border-radius:10px;background:#eee;cursor:zoom-in;outline-offset:3px}.pp-option-choice input{width:22px;height:22px}.pp-option-choice.is-disabled{opacity:.45}.pp-option-serve,.pp-option-instructions{font-size:.72rem;color:#4f665e;display:block;margin-top:.2rem}.pp-option-serve{font-weight:900}.pp-option-premium{display:inline-flex;margin-top:.28rem;padding:.18rem .42rem;border-radius:999px;background:#fff1cf;color:#7a4b00;font-size:.72rem;font-weight:900}.pp-image-modal[hidden]{display:none}.pp-image-modal{position:fixed;inset:0;z-index:10050;display:grid;place-items:center;padding:1rem;background:rgba(5,20,16,.82);backdrop-filter:blur(5px)}.pp-image-dialog{position:relative;width:min(680px,100%);max-height:calc(100dvh - 2rem);overflow:auto;padding:1rem;border-radius:20px;background:#fff;box-shadow:0 24px 70px rgba(0,0,0,.38)}.pp-image-dialog img{display:block;width:100%;max-height:75dvh;object-fit:contain;border-radius:14px;background:#f4f1eb}.pp-image-dialog p{margin:.8rem .25rem .15rem;font-weight:850;text-align:center;color:#173f34}.pp-image-close{position:absolute;top:1.55rem;right:1.55rem;z-index:1;width:42px;height:42px;border:0;border-radius:50%;background:rgba(15,39,32,.92);color:#fff;font-size:1.6rem;line-height:1;cursor:pointer;box-shadow:0 5px 18px rgba(0,0,0,.25)}@media(max-width:650px){.pp-option-grid{grid-template-columns:1fr}.pp-option-head{align-items:flex-start;flex-direction:column}.pp-image-modal{padding:.6rem}.pp-image-dialog{padding:.65rem;border-radius:16px}.pp-image-dialog img{max-height:78dvh}.pp-image-close{top:1rem;right:1rem}}
                                 </style>
                                 {% for group in product_option_groups %}
                                 <section class="pp-option-group" data-option-group="{{ group.id }}" data-rules='{{ group.variation_rules|json_encode|e('html_attr') }}' data-default-required="{{ group.required_count_default }}" data-default-pieces="{{ group.pieces_per_option_default }}">
@@ -673,15 +673,22 @@
                                     <div class="pp-option-grid">
                                     {% for choice in group.choices %}{% if choice.is_preferred or not group.preferred_tag %}
                                         <label class="pp-option-choice"{% if choice.serving_instructions %} title="{{ choice.serving_instructions|e('html_attr') }}"{% endif %}>
-                                            {% if choice.image_url %}<img src="{{ choice.image_url }}" alt="{{ choice.name }}" loading="lazy">{% else %}<span></span>{% endif %}
+                                            {% if choice.image_url %}<img class="pp-option-image" src="{{ choice.image_url }}" data-full-image="{{ choice.image_url }}" alt="{{ choice.name }}" loading="lazy" tabindex="0" role="button" aria-label="View larger photo of {{ choice.name }}">{% else %}<span></span>{% endif %}
                                             <span><strong>{{ choice.name }}</strong>{% if choice.serve_label %}<span class="pp-option-serve">{{ choice.serve_label }}</span>{% endif %}{% if choice.price_modifier > 0 %}<span class="pp-option-premium">Premium +${{ choice.price_modifier|number_format(0) }}</span>{% endif %}{% if choice.serving_instructions %}<span class="pp-option-instructions">{{ choice.serving_instructions }}</span>{% endif %}</span>
                                             <input type="checkbox" value="{{ choice.id }}" data-name="{{ choice.name|e('html_attr') }}" data-serve-label="{{ choice.serve_label|default('')|e('html_attr') }}" data-price-modifier="{{ choice.price_modifier|default(0) }}" data-serving-instructions="{{ choice.serving_instructions|default('')|e('html_attr') }}" aria-label="{{ choice.name }}">
                                         </label>
                                     {% endif %}{% endfor %}
                                     </div>
-                                    {% if has_other and group.preferred_tag %}<h4 class="pp-option-section-title">{{ group.preferred_tag == 'breakfast' ? 'All-day favorites' : 'Also great for breakfast' }}</h4><div class="pp-option-grid">{% for choice in group.choices %}{% if not choice.is_preferred %}<label class="pp-option-choice"{% if choice.serving_instructions %} title="{{ choice.serving_instructions|e('html_attr') }}"{% endif %}>{% if choice.image_url %}<img src="{{ choice.image_url }}" alt="{{ choice.name }}" loading="lazy">{% else %}<span></span>{% endif %}<span><strong>{{ choice.name }}</strong>{% if choice.serve_label %}<span class="pp-option-serve">{{ choice.serve_label }}</span>{% endif %}{% if choice.price_modifier > 0 %}<span class="pp-option-premium">Premium +${{ choice.price_modifier|number_format(0) }}</span>{% endif %}{% if choice.serving_instructions %}<span class="pp-option-instructions">{{ choice.serving_instructions }}</span>{% endif %}</span><input type="checkbox" value="{{ choice.id }}" data-name="{{ choice.name|e('html_attr') }}" data-serve-label="{{ choice.serve_label|default('')|e('html_attr') }}" data-price-modifier="{{ choice.price_modifier|default(0) }}" data-serving-instructions="{{ choice.serving_instructions|default('')|e('html_attr') }}" aria-label="{{ choice.name }}"></label>{% endif %}{% endfor %}</div>{% endif %}
+                                    {% if has_other and group.preferred_tag %}<h4 class="pp-option-section-title">{{ group.preferred_tag == 'breakfast' ? 'All-day favorites' : 'Also great for breakfast' }}</h4><div class="pp-option-grid">{% for choice in group.choices %}{% if not choice.is_preferred %}<label class="pp-option-choice"{% if choice.serving_instructions %} title="{{ choice.serving_instructions|e('html_attr') }}"{% endif %}>{% if choice.image_url %}<img class="pp-option-image" src="{{ choice.image_url }}" data-full-image="{{ choice.image_url }}" alt="{{ choice.name }}" loading="lazy" tabindex="0" role="button" aria-label="View larger photo of {{ choice.name }}">{% else %}<span></span>{% endif %}<span><strong>{{ choice.name }}</strong>{% if choice.serve_label %}<span class="pp-option-serve">{{ choice.serve_label }}</span>{% endif %}{% if choice.price_modifier > 0 %}<span class="pp-option-premium">Premium +${{ choice.price_modifier|number_format(0) }}</span>{% endif %}{% if choice.serving_instructions %}<span class="pp-option-instructions">{{ choice.serving_instructions }}</span>{% endif %}</span><input type="checkbox" value="{{ choice.id }}" data-name="{{ choice.name|e('html_attr') }}" data-serve-label="{{ choice.serve_label|default('')|e('html_attr') }}" data-price-modifier="{{ choice.price_modifier|default(0) }}" data-serving-instructions="{{ choice.serving_instructions|default('')|e('html_attr') }}" aria-label="{{ choice.name }}"></label>{% endif %}{% endfor %}</div>{% endif %}
                                 </section>
                                 {% endfor %}
+                                <div class="pp-image-modal" id="option-image-modal" hidden aria-hidden="true">
+                                    <div class="pp-image-dialog" role="dialog" aria-modal="true" aria-labelledby="option-image-caption">
+                                        <button type="button" class="pp-image-close" aria-label="Close enlarged photo">&times;</button>
+                                        <img id="option-image-large" src="" alt="">
+                                        <p id="option-image-caption"></p>
+                                    </div>
+                                </div>
                                 {% endif %}
 
                                 {% if is_gourmet_express %}
@@ -1092,6 +1099,50 @@ document.addEventListener('DOMContentLoaded', function () {
 
     const optionGroups = Array.from(document.querySelectorAll('[data-option-group]'));
     const selectedServingInstructions = document.getElementById('selected-serving-instructions');
+    const optionImageModal = document.getElementById('option-image-modal');
+    const optionImageLarge = document.getElementById('option-image-large');
+    const optionImageCaption = document.getElementById('option-image-caption');
+    const optionImageClose = optionImageModal?.querySelector('.pp-image-close');
+    let optionImageReturnFocus = null;
+    function closeOptionImage() {
+        if (!optionImageModal) return;
+        optionImageModal.hidden = true;
+        optionImageModal.setAttribute('aria-hidden', 'true');
+        document.documentElement.style.removeProperty('overflow');
+        optionImageReturnFocus?.focus();
+        optionImageReturnFocus = null;
+    }
+    function openOptionImage(trigger) {
+        if (!optionImageModal || !optionImageLarge || !optionImageCaption) return;
+        optionImageReturnFocus = trigger;
+        optionImageLarge.src = trigger.dataset.fullImage || trigger.currentSrc || trigger.src;
+        optionImageLarge.alt = trigger.alt || '';
+        optionImageCaption.textContent = trigger.alt || '';
+        optionImageModal.hidden = false;
+        optionImageModal.setAttribute('aria-hidden', 'false');
+        document.documentElement.style.overflow = 'hidden';
+        optionImageClose?.focus();
+    }
+    document.querySelectorAll('.pp-option-image').forEach(image => {
+        image.addEventListener('click', event => {
+            event.preventDefault();
+            event.stopPropagation();
+            openOptionImage(image);
+        });
+        image.addEventListener('keydown', event => {
+            if (event.key !== 'Enter' && event.key !== ' ') return;
+            event.preventDefault();
+            event.stopPropagation();
+            openOptionImage(image);
+        });
+    });
+    optionImageClose?.addEventListener('click', closeOptionImage);
+    optionImageModal?.addEventListener('click', event => {
+        if (event.target === optionImageModal) closeOptionImage();
+    });
+    document.addEventListener('keydown', event => {
+        if (event.key === 'Escape' && optionImageModal && !optionImageModal.hidden) closeOptionImage();
+    });
     function updateSelectedServingInstructions() {
         if (!selectedServingInstructions) return;
         const instructions = [...new Set(optionGroups.flatMap(group => Array.from(group.querySelectorAll('input[type="checkbox"]:checked')))
