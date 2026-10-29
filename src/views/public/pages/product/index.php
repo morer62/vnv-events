@@ -19,6 +19,11 @@ $url = trim($_GET['url'] ?? '', '/');
 $parts = $url !== '' ? explode('/', $url) : [];
 $slug = $parts[1] ?? null;
 
+if ($slug === 'ensaimada-family-recipe') {
+    header('Location: /gourmet-to-go#desserts', true, 301);
+    exit;
+}
+
 $legacyProductRedirects = [
     'pasta-al-horno' => 'baked-ziti',
     'latin-holiday-dinner' => 'nochebuena-dinner',
@@ -288,7 +293,7 @@ $categoryAnchorMap = [
     'desserts-add-ons' => ['desserts', 'Desserts'],
     'seasonal-holiday-packages' => ['desserts', 'Desserts'],
 ];
-$dessertSlugs = ['dessert-box', 'ensaimada-family-recipe', 'brazo-gitano', 'boca-abierta'];
+$dessertSlugs = ['dessert-box', 'brazo-gitano'];
 $gourmetCategory = in_array((string)$product->slug, $dessertSlugs, true)
     ? ['desserts', 'Desserts']
     : ['appetizer-boxes', 'Appetizer Boxes'];
@@ -309,7 +314,12 @@ if ($isGourmet) {
             $pieceCount = (int)($variation->piece_count ?? 0);
             $guestsMin = (int)($variation->guests_min ?? 0);
             $guestsMax = (int)($variation->guests_max ?? 0);
-            $sizeLabel = $pieceCount > 0 ? $pieceCount . ' pcs' : trim((string)($variation->name ?? $sizeCode));
+            $servesLabel = $guestsMin > 0
+                ? ($guestsMax > 0 && $guestsMax !== $guestsMin ? $guestsMin . '–' . $guestsMax : (string)$guestsMin)
+                : '';
+            $sizeLabel = $pieceCount > 0
+                ? $pieceCount . ' pieces' . ($servesLabel !== '' ? ' · serves ' . $servesLabel : '')
+                : trim((string)($variation->name ?? $sizeCode));
             $variationSizes[$sizeCode] = [
                 'code' => $sizeCode,
                 'label' => $sizeLabel,
@@ -322,6 +332,10 @@ if ($isGourmet) {
         }
     }
 }
+
+$gourmetSeoDescription = (string)$product->slug === 'brazo-gitano'
+    ? 'Light sponge rolled with pastry cream, topped with fresh strawberries. Serves 10–12. Pickup in Sunrise.'
+    : html_entity_decode(strip_tags((string)$product->short_description), ENT_QUOTES | ENT_HTML5, 'UTF-8');
 
 echo TemplateResponse::render(__DIR__ . "/index.twig", [
     'product' => $product,
@@ -341,7 +355,7 @@ echo TemplateResponse::render(__DIR__ . "/index.twig", [
     'variation_sizes' => array_values($variationSizes),
     'service_area_label' => 'Broward, Miami-Dade and south Palm Beach (Boca Raton, Delray Beach, Boynton Beach)',
     'seo' => $isGourmet
-        ? ['title' => $product->name . ' | VNV Gourmet To Go', 'description' => html_entity_decode(strip_tags((string)$product->short_description), ENT_QUOTES | ENT_HTML5, 'UTF-8'), 'canonical' => $canonicalUrl, 'og_type' => 'product', 'og_image' => $imageUrl, 'og_image_alt' => $product->name . ' from VNV Gourmet To Go', 'site_name' => 'VNV Gourmet To Go']
+        ? ['title' => $product->name . ' | VNV Gourmet To Go', 'description' => $gourmetSeoDescription, 'canonical' => $canonicalUrl, 'og_type' => 'product', 'og_image' => $imageUrl, 'og_image_alt' => $product->name . ' from VNV Gourmet To Go', 'site_name' => 'VNV Gourmet To Go']
         : ($isVnvGourmetService
             ? ['title' => $product->name . ' | VNV Gourmet', 'description' => html_entity_decode(strip_tags((string)$product->short_description), ENT_QUOTES | ENT_HTML5, 'UTF-8'), 'canonical' => $canonicalUrl, 'og_type' => 'product', 'og_image' => $imageUrl, 'og_image_alt' => $product->name, 'site_name' => 'VNV Gourmet']
             : []),

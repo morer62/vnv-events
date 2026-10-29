@@ -61,15 +61,14 @@ final class GourmetStorefrontService
             LEFT JOIN store_product_variations v ON v.id_product=p.id AND v.status='ACTIVE'
             WHERE p.id_owner=:owner AND p.site_key=:site AND p.status='ACTIVE' AND p.is_public=1
               AND p.purchase_mode='DIRECT' AND p.fulfillment_type='DELIVERY'
-              AND p.slug IN ('appetizer-box','appetizer-box-breakfast-brunch','dessert-box','ensaimada-family-recipe','brazo-gitano')
+              AND p.slug IN ('appetizer-box','appetizer-box-breakfast-brunch','dessert-box','brazo-gitano')
               AND COALESCE(p.is_addon_only,0)=0 AND COALESCE(p.product_role,'MAIN')<>'ADDON'
             GROUP BY p.id ORDER BY
               CASE p.slug
                 WHEN 'appetizer-box' THEN 10
                 WHEN 'appetizer-box-breakfast-brunch' THEN 20
                 WHEN 'dessert-box' THEN 30
-                WHEN 'ensaimada-family-recipe' THEN 40
-                WHEN 'brazo-gitano' THEN 50
+                WHEN 'brazo-gitano' THEN 40
                 ELSE 100 END,
               p.name";
         $this->db->query($sql);
@@ -95,7 +94,7 @@ final class GourmetStorefrontService
     private function categorySlug(string $categorySlugs, string $name): string
     {
         $value = strtolower($categorySlugs . ' ' . $name);
-        if (preg_match('/dessert|sweet|cake|pie|ensaimada|natilla|buñuelo/', $value)) return 'desserts';
+        if (preg_match('/dessert|sweet|cake|pie|brazo|tartlet|profiterole/', $value)) return 'desserts';
         return 'appetizer-boxes';
     }
 

@@ -13,7 +13,7 @@ $pdo->exec("SET NAMES 'utf8mb4'");
 $options = new StoreProductOptionsService();
 
 $product = static function (string $slug) use ($pdo): array {
-    $statement = $pdo->prepare('SELECT id,name,status,is_public FROM store_products WHERE id_owner=2 AND site_key=\'vnvevents\' AND slug=:slug LIMIT 1');
+    $statement = $pdo->prepare('SELECT id,name,status,is_public,short_description,description,main_image FROM store_products WHERE id_owner=2 AND site_key=\'vnvevents\' AND slug=:slug LIMIT 1');
     $statement->execute(['slug' => $slug]);
     $row = $statement->fetch(PDO::FETCH_ASSOC);
     if (!$row) throw new RuntimeException("Missing product: {$slug}");
@@ -70,14 +70,32 @@ $dessertSnapshot = $options->validate(2, 'vnvevents', (int)$dessert['id'], (int)
 $assert((int)$dessertSnapshot[0]['required_count'] === 4, 'Expected the 48-piece Dessert Box to require four choices.');
 $assert((int)$dessertSnapshot[0]['pieces_per_option'] === 12, 'Expected twelve pieces of each dessert choice.');
 $assert((float)$dessertVariation['price'] === 89.0, 'Expected the 48-piece Dessert Box to cost $89.');
+$dessertRows = $pdo->prepare('SELECT COUNT(*) FROM store_products WHERE id_owner=2 AND site_key=\'vnvevents\' AND slug=\'dessert-box\'');
+$dessertRows->execute();
+$assert((int)$dessertRows->fetchColumn() === 1, 'Expected one canonical dessert-box slug.');
+$oldDessertProfile = $pdo->prepare('SELECT COUNT(*) FROM store_product_food_profiles WHERE id_product=:product');
+$oldDessertProfile->execute(['product' => (int)$dessert['id']]);
+$assert((int)$oldDessertProfile->fetchColumn() === 0, 'Expected the obsolete Dessert Box food profile to be removed.');
 
 foreach (['cream-profiteroles', 'pastry-cream-tartlets'] as $legacySlug) {
     $legacy = $product($legacySlug);
     $assert($legacy['status'] === 'INACTIVE' && (int)$legacy['is_public'] === 0, "Expected {$legacySlug} to be inactive and private.");
 }
 
+$ensaimada = $product('ensaimada-family-recipe');
+$assert($ensaimada['status'] === 'INACTIVE' && (int)$ensaimada['is_public'] === 0, 'Expected Ensaimada to be inactive and private.');
+$bocaCount = $pdo->query("SELECT COUNT(*) FROM store_products WHERE id_owner=2 AND site_key='vnvevents' AND slug='boca-abierta'");
+$assert((int)$bocaCount->fetchColumn() === 0, 'Expected the unapproved Boca Abierta draft to be absent.');
+
+$brazo = $product('brazo-gitano');
+$assert($brazo['short_description'] === 'Light sponge rolled with pastry cream, topped with fresh strawberries.', 'Unexpected Brazo Gitano short description.');
+$assert(strip_tags((string)$brazo['description']) === 'Our family-recipe brazo gitano: light sponge rolled with pastry cream and finished with fresh strawberries. Slice and serve, no heating needed. Keep refrigerated until serving.', 'Unexpected Brazo Gitano long description.');
+$assert($brazo['main_image'] === '/assets/images/gourmet-to-go/gtg-brazo-gitano.webp', 'Unexpected Brazo Gitano image path.');
+
 echo json_encode([
     'premium_appetizer' => ['base' => (float)$appetizerVariation['price'], 'modifier' => $appetizerModifier, 'total' => $appetizerTotal],
     'dessert_box' => ['choices' => count($dessertChoices), 'required' => (int)$dessertSnapshot[0]['required_count'], 'pieces_each' => (int)$dessertSnapshot[0]['pieces_per_option'], 'price' => (float)$dessertVariation['price']],
-    'legacy_products' => 'inactive',
+    'legacy_products' => 'inactive/removed as specified',
+    'anonymous_cleanup' => 'one Dessert Box slug; obsolete food profile removed',
+    'brazo_gitano' => 'approved copy and image',
 ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . PHP_EOL;
