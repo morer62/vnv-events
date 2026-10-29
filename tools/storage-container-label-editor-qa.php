@@ -27,6 +27,7 @@ try {
 
 $expectations = [
     'title size control' => 'id="tagTitleSize"',
+    'title size overrides the panel heading style' => 'font-size: var(--tag-title-size) !important',
     'QR size control' => 'id="tagQrSize"',
     'table width control' => 'id="tagTableWidth"',
     'item text size control' => 'id="tagItemsSize"',
