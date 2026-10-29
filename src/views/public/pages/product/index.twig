@@ -209,7 +209,7 @@
         box-shadow:0 0 0 3px rgba(17,24,39,.08);
     }
 
-    .pp-size-buttons{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.65rem}.pp-size-button{min-height:74px;padding:.75rem;border:1px solid var(--pp-border);border-radius:14px;background:#fff;color:var(--pp-text);text-align:left;cursor:pointer}.pp-size-button strong,.pp-size-button span{display:block}.pp-size-button strong{text-transform:capitalize}.pp-size-button span{margin-top:.25rem;font-size:.78rem;color:var(--pp-muted);line-height:1.35}.pp-size-button.is-selected{border-color:#173f35;background:#eff8f4;box-shadow:0 0 0 2px rgba(23,63,53,.12)}.pp-selection-hint{min-height:1.25rem;margin-top:.35rem;color:#a43f2f;font-size:.82rem;font-weight:800}.pp-selection-hint.is-complete{visibility:hidden}.pp-btn:disabled{opacity:.5;cursor:not-allowed}@media(max-width:700px){.pp-size-buttons{grid-template-columns:1fr}.pp-actions{position:sticky;bottom:8px;z-index:30;background:#fff;padding:8px;border-radius:16px;box-shadow:0 10px 30px rgba(0,0,0,.18)}}
+    .pp-size-buttons{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.65rem}.pp-size-button{min-height:74px;padding:.75rem;border:1px solid var(--pp-border);border-radius:14px;background:#fff;color:var(--pp-text);text-align:left;cursor:pointer}.pp-size-button strong,.pp-size-button span{display:block}.pp-size-button strong{text-transform:none}.pp-size-button span{margin-top:.25rem;font-size:.78rem;color:var(--pp-muted);line-height:1.35}.pp-size-button.is-selected{border-color:#173f35;background:#eff8f4;box-shadow:0 0 0 2px rgba(23,63,53,.12)}.pp-selection-hint{min-height:1.25rem;margin-top:.35rem;color:#a43f2f;font-size:.82rem;font-weight:800}.pp-selection-hint.is-complete{visibility:hidden}.pp-btn:disabled{opacity:.5;cursor:not-allowed}@media(max-width:700px){.pp-size-buttons{grid-template-columns:1fr}.pp-actions{position:sticky;bottom:8px;z-index:30;background:#fff;padding:8px;border-radius:16px;box-shadow:0 10px 30px rgba(0,0,0,.18)}}
     .pp-gallery-thumbs{display:grid;grid-template-columns:repeat(3,1fr);gap:.55rem;margin-top:.7rem}.pp-gallery-thumb{padding:0;border:1px solid var(--pp-border);border-radius:12px;overflow:hidden;background:#fff;cursor:pointer}.pp-gallery-thumb img{display:block;width:100%;aspect-ratio:1/1;object-fit:cover}.pp-gallery-thumb.is-active{border-color:#173f35;box-shadow:0 0 0 2px rgba(23,63,53,.14)}
 
     .pp-purchase-grid{
@@ -490,7 +490,7 @@
                                     From ${{ product.min_price|number_format(2, '.', ',') }}
                                 {% endif %}
                             {% else %}
-                                ${{ product.display_price|number_format(2, '.', ',') }}{% if is_gourmet_express and product.slug == 'brazo-gitano' %} · 10–12 slices{% endif %}
+                                {% if is_gourmet_express and product.slug == 'brazo-gitano' %}${{ product.display_price|number_format(0, '.', ',') }} · 10–12 slices{% else %}${{ product.display_price|number_format(2, '.', ',') }}{% endif %}
                             {% endif %}
                         </div>
 
@@ -529,7 +529,7 @@
                                         {% if product.product_type == 'VARIABLE' %}
                                             <label class="pp-form-label">Choose an option</label>
                                             {% if is_gourmet_express and variation_axes.flavor|default([])|length %}<label class="pp-form-label">Flavor</label><div class="pp-size-buttons pp-flavor-buttons" role="group" aria-label="Choose a flavor">{% for slug,label in variation_axes.flavor %}<button type="button" class="pp-size-button pp-axis-button" data-axis="flavor" data-axis-value="{{ slug }}"><strong>{{ label }}</strong></button>{% endfor %}</div><div class="pp-selection-hint" id="flavor-hint">Choose a flavor</div>{% endif %}
-                                            {% if is_gourmet_express %}<label class="pp-form-label" style="margin-top:.8rem">Size</label><div class="pp-size-buttons" id="variation-buttons" role="group" aria-label="Choose a size">{% for size in variation_sizes %}<button type="button" class="pp-size-button pp-axis-button" data-axis="size" data-axis-value="{{ size.slug }}" data-price="{{ size.price }}" data-guests-min="{{ size.guests_min }}" data-guests-max="{{ size.guests_max }}"><strong>{{ size.label|default(size.code) }}</strong><span>{% if size.piece_count %}{{ size.piece_count }} pieces · {% endif %}{% if size.guests_max %}Serves {{ size.guests_min }}{% if size.guests_max != size.guests_min %}–{{ size.guests_max }}{% endif %} · {% endif %}${{ size.price|number_format(2,'.',',') }}</span></button>{% endfor %}</div><div class="pp-selection-hint" id="size-hint">Choose a size</div>{% endif %}
+                                            {% if is_gourmet_express %}<label class="pp-form-label" style="margin-top:.8rem">Size</label><div class="pp-size-buttons" id="variation-buttons" role="group" aria-label="Choose a size">{% for size in variation_sizes %}<button type="button" class="pp-size-button pp-axis-button" data-axis="size" data-axis-value="{{ size.slug }}" data-price="{{ size.price }}" data-guests-min="{{ size.guests_min }}" data-guests-max="{{ size.guests_max }}"><strong>{{ size.label|default(size.code) }}</strong><span>${{ size.price|number_format(2,'.',',') }}</span></button>{% endfor %}</div><div class="pp-selection-hint" id="size-hint">Choose a size</div>{% endif %}
                                             <select class="pp-select" id="variation-select"{% if is_gourmet_express %} hidden aria-hidden="true"{% endif %}>
                                                 <option value="">Select a variation</option>
                                                 {% for variation in product.variations|default([]) %}
@@ -550,7 +550,7 @@
                                                     </option>
                                                 {% endfor %}
                                             </select>
-                                        {% else %}
+                                        {% elseif not is_gourmet_express %}
                                             <label class="pp-form-label">Product</label>
                                             <input type="text" class="pp-input" value="{{ product.name }}" disabled>
                                         {% endif %}
@@ -641,7 +641,7 @@
                                 <aside class="pp-staff-cta">
                                     <div><strong>Need help during your event?</strong><br><span>Our full-service team can set up, serve and run your event.</span></div>
                                     <div class="pp-staff-actions">
-                                        <a href="tel:+1{{ gourmet_settings.staff_phone|default('3052042547') }}" data-staff-method="call">Call VNV Events: (305) 204-2547</a>
+                                        <a href="tel:+1{{ gourmet_settings.staff_phone|default('3052045427') }}" data-staff-method="call">Call VNV Events: (305) 204-5427</a>
                                         <a href="https://wa.me/{{ gourmet_settings.staff_whatsapp|default('13053761210') }}" rel="noopener" data-staff-method="whatsapp">WhatsApp</a>
                                         <a href="{{ path('gourmet-to-go') }}" data-staff-method="link">Back to Gourmet To Go →</a>
                                     </div>
@@ -673,7 +673,7 @@
                                     <a href="{{ path('store/cart') }}" class="pp-btn pp-btn-light">Go to cart</a>
                                 </div>
 
-                                <div class="pp-helper">{% if is_gourmet_express %}Choose a tray size and the number of trays you need. Add-ons stay attached to this selection.{% else %}Choose quantity and, if needed, a variation. {% if product.allow_recurring_purchase|default(0) %}This product also supports recurring purchases at checkout.{% endif %}{% endif %}</div>
+                                {% if not is_gourmet_express %}<div class="pp-helper">Choose quantity and, if needed, a variation. {% if product.allow_recurring_purchase|default(0) %}This product also supports recurring purchases at checkout.{% endif %}</div>{% endif %}
                             </form>
                         </div>
                     {% else %}

@@ -70,7 +70,12 @@ CREATE TABLE IF NOT EXISTS store_product_media (
 ALTER TABLE store_gourmet_settings
   ADD COLUMN IF NOT EXISTS hero_image_url VARCHAR(900) NULL,
   ADD COLUMN IF NOT EXISTS dropoff_disclaimer TEXT NULL,
-  ADD COLUMN IF NOT EXISTS food_arrival_policy TEXT NULL;
+  ADD COLUMN IF NOT EXISTS food_arrival_policy TEXT NULL,
+  ADD COLUMN IF NOT EXISTS staff_phone VARCHAR(40) NULL,
+  ADD COLUMN IF NOT EXISTS staff_whatsapp VARCHAR(40) NULL,
+  ADD COLUMN IF NOT EXISTS store_paused TINYINT(1) NOT NULL DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS pause_message VARCHAR(300) NULL,
+  ADD COLUMN IF NOT EXISTS reopen_at DATETIME NULL;
 
 INSERT INTO store_categories (id_owner,site_key,name,slug,description,status)
 SELECT @owner,@site,'Appetizer Boxes','appetizer-boxes','Build-your-own appetizer boxes for pickup or delivery.','ACTIVE'
@@ -93,7 +98,7 @@ INSERT INTO store_products (id_owner,site_key,name,slug,sku,brand_name,short_des
 SELECT @owner,@site,'Ensaimada','ensaimada-family-recipe','GTG-ENSAIMADA','VNV Gourmet To Go','Our family-recipe ensaimada: soft, buttery spiral pastry finished with powdered sugar. Made to slice at the table.','<p>Our family-recipe ensaimada: soft, buttery spiral pastry finished with powdered sugar. Made to slice at the table.</p>','VARIABLE','DIRECT',1,'DELIVERY',24,55,'USD','/assets/images/gourmet-to-go/gtg-ensaimada.webp',999,1,1,'ACTIVE'
 WHERE NOT EXISTS (SELECT 1 FROM store_products WHERE id_owner=@owner AND site_key=@site AND slug='ensaimada-family-recipe');
 INSERT INTO store_products (id_owner,site_key,name,slug,sku,brand_name,short_description,description,product_type,purchase_mode,allow_immediate_payment,fulfillment_type,lead_hours,price,currency_code,main_image,stock_quantity,min_purchase_qty,is_public,status)
-SELECT @owner,@site,'Brazo Gitano','brazo-gitano','GTG-BRAZO','VNV Gourmet To Go','Light sponge rolled with pastry cream. Slices into 10–12 pieces.','<p>Light sponge rolled with pastry cream. Slices into 10–12 pieces.</p>','FIXED','DIRECT',1,'DELIVERY',24,49,'USD','/assets/images/gourmet-to-go/gtg-brazo-gitano.webp',999,1,1,'ACTIVE'
+SELECT @owner,@site,'Brazo Gitano','brazo-gitano','GTG-BRAZO','VNV Gourmet To Go','Light sponge rolled with pastry cream.','<p>Light sponge rolled with pastry cream.</p>','FIXED','DIRECT',1,'DELIVERY',24,49,'USD','/assets/images/gourmet-to-go/gtg-brazo-gitano.webp',999,1,1,'ACTIVE'
 WHERE NOT EXISTS (SELECT 1 FROM store_products WHERE id_owner=@owner AND site_key=@site AND slug='brazo-gitano');
 INSERT INTO store_products (id_owner,site_key,name,slug,sku,brand_name,short_description,description,product_type,purchase_mode,allow_immediate_payment,fulfillment_type,lead_hours,price,currency_code,main_image,stock_quantity,min_purchase_qty,is_public,status)
 SELECT @owner,@site,'Cream Profiteroles','cream-profiteroles','GTG-PROFITEROLES','VNV Gourmet To Go','Choux puffs filled with pastry cream.','<p>Choux puffs filled with pastry cream.</p>','VARIABLE','DIRECT',1,'DELIVERY',24,49,'USD','/assets/images/gourmet-to-go/gtg-profiteroles-white-box-v1.webp',999,1,1,'ACTIVE'
@@ -172,7 +177,10 @@ INSERT INTO store_product_variation_option_rules (id_group,id_product_variation,
 SELECT @group,id,CASE size_code WHEN 'S' THEN 2 WHEN 'M' THEN 3 ELSE 4 END,15 FROM store_product_variations WHERE id_product=@p_box AND status='ACTIVE';
 
 UPDATE store_gourmet_settings SET minimum_order_notice_hours=24,pickup_minimum=65,delivery_minimum=65,
- pickup_name='VNV Events',pickup_address_1='10258 NW 47th St',pickup_city='Sunrise',pickup_state='FL',pickup_zip='33351',pickup_country='US',hero_image_url='/assets/images/gourmet-to-go/gtg-appetizer-box-white-v1.webp',updated_at=NOW()
+ pickup_name='VNV Events',pickup_address_1='10258 NW 47th St',pickup_city='Sunrise',pickup_state='FL',pickup_zip='33351',pickup_country='US',
+ staff_phone='3052045427',staff_whatsapp='13053761210',store_paused=1,
+ pause_message='VNV Gourmet To Go is temporarily pausing new orders. You can still browse the menu.',reopen_at=NULL,
+ hero_image_url='/assets/images/gourmet-to-go/gtg-appetizer-box-white-v1.webp',updated_at=NOW()
 WHERE id_owner=@owner AND site_key=@site;
 
 -- Final corrections shared with the production follow-up migration.
@@ -180,6 +188,11 @@ UPDATE store_products SET status='INACTIVE',is_public=0,updated_at=NOW()
 WHERE id_owner=@owner AND site_key=@site AND slug='chocolate-truffles';
 UPDATE store_products SET status='DRAFT',is_public=0,allow_immediate_payment=0,price=0,updated_at=NOW()
 WHERE id_owner=@owner AND site_key=@site AND slug='boca-abierta';
+UPDATE store_products
+SET product_type='FIXED',price=49,
+    short_description='Light sponge rolled with pastry cream.',
+    description='<p>Light sponge rolled with pastry cream.</p>',updated_at=NOW()
+WHERE id_owner=@owner AND site_key=@site AND slug='brazo-gitano';
 UPDATE store_products
 SET main_image=CASE slug
  WHEN 'appetizer-box' THEN '/assets/images/gourmet-to-go/gtg-appetizer-box-white-v1.webp'

@@ -7,7 +7,12 @@ SET @site := 'vnvevents';
 
 ALTER TABLE store_gourmet_settings
   ADD COLUMN IF NOT EXISTS dropoff_disclaimer TEXT NULL,
-  ADD COLUMN IF NOT EXISTS food_arrival_policy TEXT NULL;
+  ADD COLUMN IF NOT EXISTS food_arrival_policy TEXT NULL,
+  ADD COLUMN IF NOT EXISTS staff_phone VARCHAR(40) NULL,
+  ADD COLUMN IF NOT EXISTS staff_whatsapp VARCHAR(40) NULL,
+  ADD COLUMN IF NOT EXISTS store_paused TINYINT(1) NOT NULL DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS pause_message VARCHAR(300) NULL,
+  ADD COLUMN IF NOT EXISTS reopen_at DATETIME NULL;
 
 INSERT INTO store_categories (id_owner,site_key,name,slug,description,status)
 SELECT @owner,@site,'Appetizer Boxes','appetizer-boxes','Build-your-own appetizer boxes for pickup or delivery.','ACTIVE'
@@ -85,7 +90,10 @@ SET v.name=CASE v.size_code WHEN 'M' THEN 'Medium · serves 8–10' WHEN 'L' THE
 WHERE p.id_owner=@owner AND p.site_key=@site AND p.slug='ensaimada-family-recipe';
 
 UPDATE store_products
-SET product_type='FIXED',price=49,short_description='Light sponge rolled with pastry cream. $49 · 10–12 slices.',updated_at=NOW()
+SET product_type='FIXED',price=49,
+    short_description='Light sponge rolled with pastry cream.',
+    description='<p>Light sponge rolled with pastry cream.</p>',
+    updated_at=NOW()
 WHERE id_owner=@owner AND site_key=@site AND slug='brazo-gitano';
 
 -- Only the two public catalog categories remain attached to relaunch products.
@@ -101,6 +109,11 @@ WHERE id_owner=@owner AND site_key=@site
 
 UPDATE store_gourmet_settings
 SET minimum_order_notice_hours=24,
+    staff_phone='3052045427',
+    staff_whatsapp='13053761210',
+    store_paused=1,
+    pause_message='VNV Gourmet To Go is temporarily pausing new orders. You can still browse the menu.',
+    reopen_at=NULL,
     hero_image_url='/assets/images/gourmet-to-go/gtg-appetizer-box-white-v1.webp',
     dropoff_disclaimer='<strong>Free pickup in Sunrise</strong> or delivery for a fee. Order 24h ahead.',
     food_arrival_policy='Free pickup in Sunrise or delivery for a fee. Order 24h ahead.',

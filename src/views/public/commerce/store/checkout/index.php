@@ -87,7 +87,7 @@ function sendCheckoutOrderDetailsEmail(
     string $shippingZip
 ): bool {
     $gourmetSettings = (new GourmetExpressService())->settings($ownerId, 'vnvevents');
-    $staffPhone = preg_replace('/\D+/', '', (string)($gourmetSettings->staff_phone ?? '3052042547'));
+    $staffPhone = preg_replace('/\D+/', '', (string)($gourmetSettings->staff_phone ?? '3052045427'));
     $staffWhatsapp = preg_replace('/\D+/', '', (string)($gourmetSettings->staff_whatsapp ?? '13053761210'));
     $baseUrl = rtrim($_ENV['APP_URL'] ?? '', '/');
     $accessPath = (string)LocationUtils::pathFor("store/order-access?token=" . urlencode($publicToken));
