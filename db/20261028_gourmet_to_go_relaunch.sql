@@ -86,7 +86,7 @@ UPDATE store_products SET status='INACTIVE',is_public=0,updated_at=NOW()
 WHERE id_owner=@owner AND site_key=@site AND brand_name IN ('VNV Gourmet Express','VNV Gourmet To Go');
 
 INSERT INTO store_products (id_owner,site_key,name,slug,sku,brand_name,short_description,description,product_type,purchase_mode,allow_immediate_payment,fulfillment_type,lead_hours,price,currency_code,main_image,stock_quantity,min_purchase_qty,is_featured,is_public,status)
-SELECT @owner,@site,'Appetizer Box','appetizer-box','GTG-APP-BOX','VNV Gourmet To Go','Choose your bites — 15 pieces of each. Baked to order by the VNV Events kitchen.','<p>Choose your bites — 15 pieces of each. Baked to order by the VNV Events kitchen.</p>','VARIABLE','DIRECT',1,'DELIVERY',24,79,'USD','/assets/images/gourmet-to-go/gtg-box-hero.webp',999,1,1,1,'ACTIVE'
+SELECT @owner,@site,'Appetizer Box','appetizer-box','GTG-APP-BOX','VNV Gourmet To Go','Choose your bites — 15 pieces of each. Baked to order by the VNV Events kitchen.','<p>Choose your bites — 15 pieces of each. Baked to order by the VNV Events kitchen.</p>','VARIABLE','DIRECT',1,'DELIVERY',24,79,'USD','/assets/images/gourmet-to-go/gtg-appetizer-box-white-v1.webp',999,1,1,1,'ACTIVE'
 WHERE NOT EXISTS (SELECT 1 FROM store_products WHERE id_owner=@owner AND site_key=@site AND slug='appetizer-box');
 
 INSERT INTO store_products (id_owner,site_key,name,slug,sku,brand_name,short_description,description,product_type,purchase_mode,allow_immediate_payment,fulfillment_type,lead_hours,price,currency_code,main_image,stock_quantity,min_purchase_qty,is_public,status)
@@ -96,10 +96,10 @@ INSERT INTO store_products (id_owner,site_key,name,slug,sku,brand_name,short_des
 SELECT @owner,@site,'Brazo Gitano','brazo-gitano','GTG-BRAZO','VNV Gourmet To Go','Light sponge rolled with pastry cream. Slices into 10–12 pieces.','<p>Light sponge rolled with pastry cream. Slices into 10–12 pieces.</p>','FIXED','DIRECT',1,'DELIVERY',24,49,'USD','/assets/images/gourmet-to-go/gtg-brazo-gitano.webp',999,1,1,'ACTIVE'
 WHERE NOT EXISTS (SELECT 1 FROM store_products WHERE id_owner=@owner AND site_key=@site AND slug='brazo-gitano');
 INSERT INTO store_products (id_owner,site_key,name,slug,sku,brand_name,short_description,description,product_type,purchase_mode,allow_immediate_payment,fulfillment_type,lead_hours,price,currency_code,main_image,stock_quantity,min_purchase_qty,is_public,status)
-SELECT @owner,@site,'Cream Profiteroles','cream-profiteroles','GTG-PROFITEROLES','VNV Gourmet To Go','Choux puffs filled with pastry cream.','<p>Choux puffs filled with pastry cream.</p>','VARIABLE','DIRECT',1,'DELIVERY',24,49,'USD','/assets/images/gourmet-to-go/gtg-profiteroles.webp',999,1,1,'ACTIVE'
+SELECT @owner,@site,'Cream Profiteroles','cream-profiteroles','GTG-PROFITEROLES','VNV Gourmet To Go','Choux puffs filled with pastry cream.','<p>Choux puffs filled with pastry cream.</p>','VARIABLE','DIRECT',1,'DELIVERY',24,49,'USD','/assets/images/gourmet-to-go/gtg-profiteroles-white-box-v1.webp',999,1,1,'ACTIVE'
 WHERE NOT EXISTS (SELECT 1 FROM store_products WHERE id_owner=@owner AND site_key=@site AND slug='cream-profiteroles');
 INSERT INTO store_products (id_owner,site_key,name,slug,sku,brand_name,short_description,description,product_type,purchase_mode,allow_immediate_payment,fulfillment_type,lead_hours,price,currency_code,main_image,stock_quantity,min_purchase_qty,is_public,status)
-SELECT @owner,@site,'Pastry Cream Tartlets','pastry-cream-tartlets','GTG-TARTLETS','VNV Gourmet To Go','Crisp tartlet shells filled with silky pastry cream.','<p>Crisp tartlet shells filled with silky pastry cream.</p>','VARIABLE','DIRECT',1,'DELIVERY',24,49,'USD','/assets/images/gourmet-to-go/gtg-tartlets.webp',999,1,1,'ACTIVE'
+SELECT @owner,@site,'Pastry Cream Tartlets','pastry-cream-tartlets','GTG-TARTLETS','VNV Gourmet To Go','Crisp tartlet shells filled with silky pastry cream.','<p>Crisp tartlet shells filled with silky pastry cream.</p>','VARIABLE','DIRECT',1,'DELIVERY',24,49,'USD','/assets/images/gourmet-to-go/gtg-tartlets-white-box-v1.webp',999,1,1,'ACTIVE'
 WHERE NOT EXISTS (SELECT 1 FROM store_products WHERE id_owner=@owner AND site_key=@site AND slug='pastry-cream-tartlets');
 INSERT INTO store_products (id_owner,site_key,name,slug,sku,brand_name,short_description,description,product_type,purchase_mode,allow_immediate_payment,fulfillment_type,lead_hours,price,currency_code,main_image,stock_quantity,min_purchase_qty,is_public,status)
 SELECT @owner,@site,'Chocolate Truffles','chocolate-truffles','GTG-TRUFFLES','VNV Gourmet To Go','Hand-rolled chocolate truffles made for sharing at the dessert table.','<p>Hand-rolled chocolate truffles made for sharing at the dessert table.</p>','VARIABLE','DIRECT',1,'DELIVERY',24,49,'USD','/assets/images/gourmet-to-go/gtg-chocolate-truffles.webp',999,1,1,'ACTIVE'
@@ -113,11 +113,11 @@ UPDATE store_products SET brand_name='VNV Gourmet To Go',purchase_mode='DIRECT',
 WHERE id_owner=@owner AND site_key=@site AND slug IN ('appetizer-box','ensaimada-family-recipe','brazo-gitano','cream-profiteroles','pastry-cream-tartlets','chocolate-truffles');
 
 UPDATE store_products SET main_image=CASE slug
- WHEN 'appetizer-box' THEN '/assets/images/gourmet-to-go/gtg-box-hero.webp'
+ WHEN 'appetizer-box' THEN '/assets/images/gourmet-to-go/gtg-appetizer-box-white-v1.webp'
  WHEN 'ensaimada-family-recipe' THEN '/assets/images/gourmet-to-go/gtg-ensaimada.webp'
  WHEN 'brazo-gitano' THEN '/assets/images/gourmet-to-go/gtg-brazo-gitano.webp'
- WHEN 'cream-profiteroles' THEN '/assets/images/gourmet-to-go/gtg-profiteroles.webp'
- WHEN 'pastry-cream-tartlets' THEN '/assets/images/gourmet-to-go/gtg-tartlets.webp'
+ WHEN 'cream-profiteroles' THEN '/assets/images/gourmet-to-go/gtg-profiteroles-white-box-v1.webp'
+ WHEN 'pastry-cream-tartlets' THEN '/assets/images/gourmet-to-go/gtg-tartlets-white-box-v1.webp'
  WHEN 'chocolate-truffles' THEN '/assets/images/gourmet-to-go/gtg-chocolate-truffles.webp'
  ELSE main_image END,updated_at=NOW()
 WHERE id_owner=@owner AND site_key=@site AND slug IN ('appetizer-box','ensaimada-family-recipe','brazo-gitano','cream-profiteroles','pastry-cream-tartlets','chocolate-truffles');
@@ -130,7 +130,7 @@ SET @p_tart := (SELECT id FROM store_products WHERE id_owner=@owner AND site_key
 SET @p_truf := (SELECT id FROM store_products WHERE id_owner=@owner AND site_key=@site AND slug='chocolate-truffles' LIMIT 1);
 
 INSERT INTO store_product_media (id_owner,site_key,id_product,slot,image_url,alt_text,width_px,height_px,is_real_photo,status,sort_order) VALUES
-(@owner,@site,@p_box,'HERO','/assets/images/gourmet-to-go/gtg-box-hero.webp','VNV Gourmet To Go appetizer box assortment',1600,2000,0,'ACTIVE',10),
+(@owner,@site,@p_box,'HERO','/assets/images/gourmet-to-go/gtg-appetizer-box-white-v1.webp','White VNV Gourmet To Go appetizer box with assorted savory bites',1122,1402,0,'ACTIVE',10),
 (@owner,@site,@p_box,'IN_THE_BOX','/assets/images/gourmet-to-go/gtg-box-30.webp','Small 30-piece appetizer box',1200,1500,0,'ACTIVE',20),
 (@owner,@site,@p_box,'SCALE_CONTEXT','/assets/images/gourmet-to-go/gtg-box-45.webp','Medium 45-piece appetizer box',1200,1500,0,'ACTIVE',30),
 (@owner,@site,@p_box,'OG','/assets/images/gourmet-to-go/gtg-box-60.webp','Large 60-piece appetizer box',1600,2000,0,'ACTIVE',40)
@@ -172,7 +172,7 @@ INSERT INTO store_product_variation_option_rules (id_group,id_product_variation,
 SELECT @group,id,CASE size_code WHEN 'S' THEN 2 WHEN 'M' THEN 3 ELSE 4 END,15 FROM store_product_variations WHERE id_product=@p_box AND status='ACTIVE';
 
 UPDATE store_gourmet_settings SET minimum_order_notice_hours=24,pickup_minimum=65,delivery_minimum=65,
- pickup_name='VNV Events',pickup_address_1='10258 NW 47th St',pickup_city='Sunrise',pickup_state='FL',pickup_zip='33351',pickup_country='US',hero_image_url='/assets/images/gourmet-to-go/gtg-box-hero.webp',updated_at=NOW()
+ pickup_name='VNV Events',pickup_address_1='10258 NW 47th St',pickup_city='Sunrise',pickup_state='FL',pickup_zip='33351',pickup_country='US',hero_image_url='/assets/images/gourmet-to-go/gtg-appetizer-box-white-v1.webp',updated_at=NOW()
 WHERE id_owner=@owner AND site_key=@site;
 
 -- Final corrections shared with the production follow-up migration.
@@ -180,8 +180,19 @@ UPDATE store_products SET status='INACTIVE',is_public=0,updated_at=NOW()
 WHERE id_owner=@owner AND site_key=@site AND slug='chocolate-truffles';
 UPDATE store_products SET status='DRAFT',is_public=0,allow_immediate_payment=0,price=0,updated_at=NOW()
 WHERE id_owner=@owner AND site_key=@site AND slug='boca-abierta';
-UPDATE store_products SET main_image='/assets/images/gourmet-to-go/gtg-dessert-assortment-black-box-v2.webp',updated_at=NOW()
-WHERE id_owner=@owner AND site_key=@site AND slug IN ('cream-profiteroles','pastry-cream-tartlets');
+UPDATE store_products
+SET main_image=CASE slug
+ WHEN 'appetizer-box' THEN '/assets/images/gourmet-to-go/gtg-appetizer-box-white-v1.webp'
+ WHEN 'cream-profiteroles' THEN '/assets/images/gourmet-to-go/gtg-profiteroles-white-box-v1.webp'
+ WHEN 'pastry-cream-tartlets' THEN '/assets/images/gourmet-to-go/gtg-tartlets-white-box-v1.webp'
+ ELSE main_image END,updated_at=NOW()
+WHERE id_owner=@owner AND site_key=@site AND slug IN ('appetizer-box','cream-profiteroles','pastry-cream-tartlets');
+UPDATE store_product_media
+SET image_url='/assets/images/gourmet-to-go/gtg-appetizer-box-white-v1.webp',
+    alt_text='White VNV Gourmet To Go appetizer box with assorted savory bites',status='ACTIVE',updated_at=NOW()
+WHERE id_owner=@owner AND site_key=@site AND id_product=@p_box AND slot='HERO';
+UPDATE store_product_media SET status='INACTIVE',updated_at=NOW()
+WHERE id_owner=@owner AND site_key=@site AND id_product=@p_box AND slot<>'HERO';
 UPDATE store_product_variations v JOIN store_products p ON p.id=v.id_product
 SET v.name=CASE v.piece_count WHEN 24 THEN '24 pieces · serves 8–12' WHEN 48 THEN '48 pieces · serves 16–24' ELSE v.name END,
     v.guests_min=CASE v.piece_count WHEN 24 THEN 8 WHEN 48 THEN 16 ELSE v.guests_min END,

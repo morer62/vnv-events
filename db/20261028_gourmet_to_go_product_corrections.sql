@@ -32,8 +32,25 @@ UPDATE store_products
 SET status='DRAFT',is_public=0,allow_immediate_payment=0,price=0,updated_at=NOW()
 WHERE id_owner=@owner AND site_key=@site AND slug='boca-abierta';
 UPDATE store_products
-SET main_image='/assets/images/gourmet-to-go/gtg-dessert-assortment-black-box-v2.webp',updated_at=NOW()
-WHERE id_owner=@owner AND site_key=@site AND slug IN ('cream-profiteroles','pastry-cream-tartlets');
+SET main_image=CASE slug
+        WHEN 'appetizer-box' THEN '/assets/images/gourmet-to-go/gtg-appetizer-box-white-v1.webp'
+        WHEN 'cream-profiteroles' THEN '/assets/images/gourmet-to-go/gtg-profiteroles-white-box-v1.webp'
+        WHEN 'pastry-cream-tartlets' THEN '/assets/images/gourmet-to-go/gtg-tartlets-white-box-v1.webp'
+        ELSE main_image END,
+    updated_at=NOW()
+WHERE id_owner=@owner AND site_key=@site
+  AND slug IN ('appetizer-box','cream-profiteroles','pastry-cream-tartlets');
+
+-- Keep only the approved white-box hero in the appetizer gallery. This prevents
+-- the previous green/black package photos from resurfacing in thumbnails.
+UPDATE store_product_media
+SET image_url='/assets/images/gourmet-to-go/gtg-appetizer-box-white-v1.webp',
+    alt_text='White VNV Gourmet To Go appetizer box with assorted savory bites',
+    status='ACTIVE',updated_at=NOW()
+WHERE id_owner=@owner AND site_key=@site AND id_product=@p_box AND slot='HERO';
+UPDATE store_product_media
+SET status='INACTIVE',updated_at=NOW()
+WHERE id_owner=@owner AND site_key=@site AND id_product=@p_box AND slot<>'HERO';
 
 -- Exact pieces and servings shown in the selector and retained in cart snapshots.
 UPDATE store_product_variations v
@@ -84,6 +101,7 @@ WHERE id_owner=@owner AND site_key=@site
 
 UPDATE store_gourmet_settings
 SET minimum_order_notice_hours=24,
+    hero_image_url='/assets/images/gourmet-to-go/gtg-appetizer-box-white-v1.webp',
     dropoff_disclaimer='<strong>Free pickup in Sunrise</strong> or delivery for a fee. Order 24h ahead.',
     food_arrival_policy='Free pickup in Sunrise or delivery for a fee. Order 24h ahead.',
     updated_at=NOW()
