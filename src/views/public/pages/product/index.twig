@@ -564,9 +564,12 @@
                     {% if is_gourmet_express and product.slug in ['appetizer-box','appetizer-box-breakfast-brunch'] %}
                     <aside class="pp-serving-tip" aria-label="Serving tip">
                         <span class="pp-serving-tip__icon" aria-hidden="true">♨</span>
-                        <div><strong>Serving Tip</strong><br>For the best experience, pick up warm and enjoy within 1–2 hours. If serving later, reheat at 350°F using the instructions included with your order.</div>
+                        <div>
+                            <strong>Serving Tip</strong><br>For the best experience, pick up warm and enjoy within 1–2 hours. If serving later, reheat at 350°F using the instructions included with your order.
+                            <div class="pp-serving-tip__selected" id="selected-serving-instructions" hidden></div>
+                        </div>
                     </aside>
-                    <style>.pp-serving-tip{display:flex;gap:.8rem;align-items:flex-start;margin:0 0 1rem;padding:1rem;border:2px solid #E8892B;border-radius:16px;background:#FFF3E6;color:#2d2118}.pp-serving-tip__icon{font-size:1.45rem;line-height:1}.pp-serving-tip strong{font-size:1.05rem}@media(max-width:650px){.pp-serving-tip{width:100%}}</style>
+                    <style>.pp-serving-tip{display:flex;gap:.8rem;align-items:flex-start;margin:0 0 1rem;padding:1rem;border:2px solid #E8892B;border-radius:16px;background:#FFF3E6;color:#2d2118}.pp-serving-tip__icon{font-size:1.45rem;line-height:1}.pp-serving-tip strong{font-size:1.05rem}.pp-serving-tip__selected{margin-top:.75rem;padding-top:.75rem;border-top:1px solid rgba(122,75,0,.25)}.pp-serving-tip__selected ul{margin:.35rem 0 0;padding-left:1.15rem}.pp-serving-tip__selected li+li{margin-top:.3rem}@media(max-width:650px){.pp-serving-tip{width:100%}}</style>
                     {% endif %}
 
                     {% if is_gourmet_express and product.slug == 'dessert-box' %}
@@ -1088,6 +1091,25 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     const optionGroups = Array.from(document.querySelectorAll('[data-option-group]'));
+    const selectedServingInstructions = document.getElementById('selected-serving-instructions');
+    function updateSelectedServingInstructions() {
+        if (!selectedServingInstructions) return;
+        const instructions = [...new Set(optionGroups.flatMap(group => Array.from(group.querySelectorAll('input[type="checkbox"]:checked')))
+            .map(input => (input.dataset.servingInstructions || '').trim())
+            .filter(Boolean))];
+        selectedServingInstructions.replaceChildren();
+        selectedServingInstructions.hidden = instructions.length === 0;
+        if (!instructions.length) return;
+        const heading = document.createElement('strong');
+        heading.textContent = 'Selected variety care';
+        const list = document.createElement('ul');
+        instructions.forEach(instruction => {
+            const item = document.createElement('li');
+            item.textContent = instruction;
+            list.appendChild(item);
+        });
+        selectedServingInstructions.append(heading, list);
+    }
     function selectedOptionModifierTotal() {
         return Number(optionGroups.reduce((sum, group) => sum + Array.from(group.querySelectorAll('input[type="checkbox"]:checked')).reduce(
             (groupSum, input) => groupSum + toFloat(input.dataset.priceModifier, 0), 0
@@ -1138,7 +1160,7 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
     optionGroups.forEach(group => {
-        group.addEventListener('change', () => { refreshOptionGroup(group); updateSelectionState(); updateRunningTotal(); });
+        group.addEventListener('change', () => { refreshOptionGroup(group); updateSelectionState(); updateRunningTotal(); updateSelectedServingInstructions(); });
         refreshOptionGroup(group);
     });
 
@@ -1190,6 +1212,7 @@ document.addEventListener('DOMContentLoaded', function () {
         variationSelect.addEventListener('change', function () {
             renderVariation(this.options[this.selectedIndex]);
             optionGroups.forEach(group => refreshOptionGroup(group, true));
+            updateSelectedServingInstructions();
             addonChecks.filter(check => check.checked).forEach(matchAddonSize);
             updateRunningTotal();
         });
@@ -1330,6 +1353,7 @@ document.addEventListener('DOMContentLoaded', function () {
         window.dataLayer.push({event:'AddToCart',content_ids:[String(productId)],content_name:addBtn.dataset.name || '',content_type:'product',currency:'USD',value:Number((unitPrice * quantity).toFixed(2)),quantity:quantity});
         if (buildAnother) {
             optionGroups.forEach(group => refreshOptionGroup(group, true));
+            updateSelectedServingInstructions();
             if (qtyInput) qtyInput.value = 1;
             updateSelectionState();
             updateRunningTotal();
