@@ -10,15 +10,17 @@ class EventsRepository extends BaseRepository
     const STATUS_CANCELLED = 'cancelled';
 
     const EVENT_TYPES = [
-        'wedding' => 'Wedding',
-        'birthday' => 'Birthday Party',
-        'sweet_16' => 'Sweet 16',
-        'graduation' => 'Graduation',
-        'corporate' => 'Corporate Event',
-        'anniversary' => 'Anniversary',
-        'baby_shower' => 'Baby Shower',
-        'bridal_shower' => 'Bridal Shower',
-        'retirement' => 'Retirement Party',
+        'nightlife_parties' => 'Nightlife & Parties',
+        'live_music_concerts' => 'Live Music & Concerts',
+        'dj_events' => 'DJ Events',
+        'food_drink_experiences' => 'Food & Drink Experiences',
+        'festivals_fairs' => 'Festivals & Fairs',
+        'networking_social' => 'Networking & Social',
+        'workshops_classes' => 'Workshops & Classes',
+        'corporate_experiences' => 'Corporate Experiences',
+        'family_community' => 'Family & Community',
+        'seasonal_holiday_events' => 'Seasonal & Holiday Events',
+        'shows_entertainment' => 'Shows & Entertainment',
         'other' => 'Other'
     ];
 

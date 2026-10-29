@@ -90,6 +90,25 @@ $expect(substr_count($sidebar, 'panel/planner-hub/store/gourmet-express') === 2,
 $expect(str_contains($purchase, "\$_SESSION['event_name'] = \$event->name"), 'Ticket confirmation must retain the event name.');
 $expect(str_contains($purchase, '$discountPercentage'), 'The payment endpoint must charge the same active-stage discount shown at checkout.');
 
+$expectedCategories = [
+    'Nightlife & Parties',
+    'Live Music & Concerts',
+    'DJ Events',
+    'Food & Drink Experiences',
+    'Festivals & Fairs',
+    'Networking & Social',
+    'Workshops & Classes',
+    'Corporate Experiences',
+    'Family & Community',
+    'Seasonal & Holiday Events',
+    'Shows & Entertainment',
+    'Other',
+];
+$expect(
+    array_values(App\Repositories\EventsRepository::EVENT_TYPES) === $expectedCategories,
+    'The event category taxonomy must exactly match the approved public categories.'
+);
+
 if ($failures !== []) {
     fwrite(STDERR, implode(PHP_EOL, $failures) . PHP_EOL);
     exit(1);
