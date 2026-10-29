@@ -550,10 +550,10 @@
                             </div>
                         {% endif %}
 
-                        {% if store_active and not is_gourmet_express %}
+                        {% if store_active and (not is_gourmet_express or product_option_groups|length) %}
                             <div class="pp-price-note" id="product-price-note">
                                 {% if product.product_type == 'VARIABLE' %}
-                                    Select an option to see the exact price.
+                                    {% if is_gourmet_express %}Select a size and varieties to see the exact price.{% else %}Select an option to see the exact price.{% endif %}
                                 {% else %}
                                     Ready to purchase.
                                 {% endif %}
