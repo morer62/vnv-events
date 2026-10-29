@@ -61,6 +61,7 @@ final class GourmetStorefrontService
             LEFT JOIN store_product_variations v ON v.id_product=p.id AND v.status='ACTIVE'
             WHERE p.id_owner=:owner AND p.site_key=:site AND p.status='ACTIVE' AND p.is_public=1
               AND p.purchase_mode='DIRECT' AND p.fulfillment_type='DELIVERY'
+              AND p.slug IN ('appetizer-box','ensaimada-family-recipe','brazo-gitano','cream-profiteroles','pastry-cream-tartlets')
               AND COALESCE(p.is_addon_only,0)=0 AND COALESCE(p.product_role,'MAIN')<>'ADDON'
             GROUP BY p.id ORDER BY p.is_featured DESC,
               CASE p.slug WHEN 'chicken-chorizo-paella' THEN 10 WHEN 'homemade-lasagna-pasticho' THEN 20 WHEN 'baked-ziti' THEN 30 WHEN 'seafood-paella' THEN 40 ELSE 100 END,

@@ -68,7 +68,9 @@ CREATE TABLE IF NOT EXISTS store_product_media (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 ALTER TABLE store_gourmet_settings
-  ADD COLUMN IF NOT EXISTS hero_image_url VARCHAR(900) NULL;
+  ADD COLUMN IF NOT EXISTS hero_image_url VARCHAR(900) NULL,
+  ADD COLUMN IF NOT EXISTS dropoff_disclaimer TEXT NULL,
+  ADD COLUMN IF NOT EXISTS food_arrival_policy TEXT NULL;
 
 INSERT INTO store_categories (id_owner,site_key,name,slug,description,status)
 SELECT @owner,@site,'Appetizer Boxes','appetizer-boxes','Build-your-own appetizer boxes for pickup or delivery.','ACTIVE'
@@ -171,4 +173,22 @@ SELECT @group,id,CASE size_code WHEN 'S' THEN 2 WHEN 'M' THEN 3 ELSE 4 END,15 FR
 
 UPDATE store_gourmet_settings SET minimum_order_notice_hours=24,pickup_minimum=65,delivery_minimum=65,
  pickup_name='VNV Events',pickup_address_1='10258 NW 47th St',pickup_city='Sunrise',pickup_state='FL',pickup_zip='33351',pickup_country='US',hero_image_url='/assets/images/gourmet-to-go/gtg-box-hero.webp',updated_at=NOW()
+WHERE id_owner=@owner AND site_key=@site;
+
+-- Final corrections shared with the production follow-up migration.
+UPDATE store_products SET status='INACTIVE',is_public=0,updated_at=NOW()
+WHERE id_owner=@owner AND site_key=@site AND slug='chocolate-truffles';
+UPDATE store_products SET status='DRAFT',is_public=0,allow_immediate_payment=0,price=0,updated_at=NOW()
+WHERE id_owner=@owner AND site_key=@site AND slug='boca-abierta';
+UPDATE store_products SET main_image='/assets/images/gourmet-to-go/gtg-dessert-assortment-black-box-v2.webp',updated_at=NOW()
+WHERE id_owner=@owner AND site_key=@site AND slug IN ('cream-profiteroles','pastry-cream-tartlets');
+UPDATE store_product_variations v JOIN store_products p ON p.id=v.id_product
+SET v.name=CASE v.piece_count WHEN 24 THEN '24 pieces · serves 8–12' WHEN 48 THEN '48 pieces · serves 16–24' ELSE v.name END,
+    v.guests_min=CASE v.piece_count WHEN 24 THEN 8 WHEN 48 THEN 16 ELSE v.guests_min END,
+    v.guests_max=CASE v.piece_count WHEN 24 THEN 12 WHEN 48 THEN 24 ELSE v.guests_max END,
+    v.updated_at=NOW()
+WHERE p.id_owner=@owner AND p.site_key=@site AND p.slug IN ('cream-profiteroles','pastry-cream-tartlets');
+UPDATE store_gourmet_settings
+SET dropoff_disclaimer='<strong>Free pickup in Sunrise</strong> or delivery for a fee. Order 24h ahead.',
+    food_arrival_policy='Free pickup in Sunrise or delivery for a fee. Order 24h ahead.',updated_at=NOW()
 WHERE id_owner=@owner AND site_key=@site;

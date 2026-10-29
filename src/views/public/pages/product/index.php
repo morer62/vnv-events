@@ -279,11 +279,18 @@ $imageUrl = trim((string)($productMedia[0]->image_url ?? $product->main_image ??
 if ($imageUrl !== '' && !preg_match('#^https?://#i', $imageUrl)) $imageUrl = 'https://vnvevents.com/' . ltrim($imageUrl, '/');
 $canonicalUrl = 'https://vnvevents.com/product/' . rawurlencode((string)$product->slug);
 $categoryAnchorMap = [
-    'party-trays' => ['family-dinners', 'Family Occasion Meals'], 'family-meals' => ['family-dinners', 'Family Occasion Meals'],
-    'party-boxes' => ['party-boxes', 'Party Boxes'], 'desserts-add-ons' => ['desserts', 'Desserts'],
-    'seasonal-holiday-packages' => ['holidays', 'Seasonal'],
+    'appetizer-boxes' => ['appetizer-boxes', 'Appetizer Boxes'],
+    'party-trays' => ['appetizer-boxes', 'Appetizer Boxes'],
+    'family-meals' => ['appetizer-boxes', 'Appetizer Boxes'],
+    'party-boxes' => ['appetizer-boxes', 'Appetizer Boxes'],
+    'desserts' => ['desserts', 'Desserts'],
+    'desserts-add-ons' => ['desserts', 'Desserts'],
+    'seasonal-holiday-packages' => ['desserts', 'Desserts'],
 ];
-$gourmetCategory = ['family-dinners', 'Family Occasion Meals'];
+$dessertSlugs = ['ensaimada-family-recipe', 'brazo-gitano', 'cream-profiteroles', 'pastry-cream-tartlets', 'boca-abierta'];
+$gourmetCategory = in_array((string)$product->slug, $dessertSlugs, true)
+    ? ['desserts', 'Desserts']
+    : ['appetizer-boxes', 'Appetizer Boxes'];
 foreach (($product->categories ?? []) as $category) {
     if (isset($categoryAnchorMap[(string)$category->slug])) { $gourmetCategory = $categoryAnchorMap[(string)$category->slug]; break; }
 }
@@ -298,11 +305,17 @@ if ($isGourmet) {
         }
         $sizeCode = (string)($variation->size_code ?? '');
         if ($sizeCode !== '' && !isset($variationSizes[$sizeCode])) {
+            $pieceCount = (int)($variation->piece_count ?? 0);
+            $guestsMin = (int)($variation->guests_min ?? 0);
+            $guestsMax = (int)($variation->guests_max ?? 0);
+            $sizeLabel = $pieceCount > 0 ? $pieceCount . ' pcs' : trim((string)($variation->name ?? $sizeCode));
             $variationSizes[$sizeCode] = [
                 'code' => $sizeCode,
+                'label' => $sizeLabel,
                 'slug' => strtolower($sizeCode === 'S' ? 'small' : ($sizeCode === 'M' ? 'medium' : ($sizeCode === 'L' ? 'large' : $sizeCode))),
-                'guests_min' => (int)($variation->guests_min ?? 0),
-                'guests_max' => (int)($variation->guests_max ?? 0),
+                'piece_count' => $pieceCount,
+                'guests_min' => $guestsMin,
+                'guests_max' => $guestsMax,
                 'price' => (float)($variation->effective_price ?? $variation->price ?? 0),
             ];
         }
@@ -327,7 +340,7 @@ echo TemplateResponse::render(__DIR__ . "/index.twig", [
     'variation_sizes' => array_values($variationSizes),
     'service_area_label' => 'Broward, Miami-Dade and south Palm Beach (Boca Raton, Delray Beach, Boynton Beach)',
     'seo' => $isGourmet
-        ? ['title' => $product->name . ' | VNV Gourmet To Go', 'description' => html_entity_decode(strip_tags((string)$product->short_description), ENT_QUOTES | ENT_HTML5, 'UTF-8'), 'canonical' => $canonicalUrl, 'og_type' => 'product', 'og_image' => $imageUrl, 'og_image_alt' => $product->name, 'site_name' => 'VNV Gourmet To Go']
+        ? ['title' => $product->name . ' | VNV Gourmet To Go', 'description' => html_entity_decode(strip_tags((string)$product->short_description), ENT_QUOTES | ENT_HTML5, 'UTF-8'), 'canonical' => $canonicalUrl, 'og_type' => 'product', 'og_image' => $imageUrl, 'og_image_alt' => $product->name . ' from VNV Gourmet To Go', 'site_name' => 'VNV Gourmet To Go']
         : ($isVnvGourmetService
             ? ['title' => $product->name . ' | VNV Gourmet', 'description' => html_entity_decode(strip_tags((string)$product->short_description), ENT_QUOTES | ENT_HTML5, 'UTF-8'), 'canonical' => $canonicalUrl, 'og_type' => 'product', 'og_image' => $imageUrl, 'og_image_alt' => $product->name, 'site_name' => 'VNV Gourmet']
             : []),
