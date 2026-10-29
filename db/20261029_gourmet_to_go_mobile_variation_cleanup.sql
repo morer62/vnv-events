@@ -10,8 +10,5 @@ UPDATE store_product_variations
 SET status='INACTIVE',updated_at=NOW()
 WHERE id_product=@p_dessert AND slug NOT IN ('24-pieces','48-pieces');
 
-SET @dessert_group := (SELECT id FROM store_product_option_groups WHERE id_owner=@owner AND site_key=@site AND id_product=@p_dessert AND slug='dessert-varieties' LIMIT 1);
-DELETE r
-FROM store_product_variation_option_rules r
-JOIN store_product_variations v ON v.id=r.id_product_variation
-WHERE r.id_group=@dessert_group AND v.slug NOT IN ('24-pieces','48-pieces');
+-- Historical option rules are intentionally retained. Inactive variations are
+-- excluded by the storefront and keeping the rows avoids destructive cleanup.
