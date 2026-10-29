@@ -15,10 +15,10 @@ SET @app_group := (SELECT id FROM store_product_option_groups WHERE id_owner=@ow
 INSERT INTO store_product_option_choices
   (id_group,name,slug,serve_label,tags,price_modifier,serving_instructions,image_url,status,sort_order)
 VALUES
-  (@app_group,'Chicken & avocado mini sliders','chicken-avocado-mini-sliders','READY TO SERVE','all_day,premium',15.00,'Keep refrigerated. Serve chilled or at room temperature within 6 hours. No heating needed.','/assets/images/gourmet-to-go/choice-slider-chicken-avocado.webp','ACTIVE',140),
-  (@app_group,'Turkey & Swiss mini sliders','turkey-swiss-mini-sliders','READY TO SERVE','all_day,premium',15.00,'Keep refrigerated. Serve chilled or at room temperature within 6 hours. No heating needed.','/assets/images/gourmet-to-go/choice-slider-turkey-swiss.webp','ACTIVE',150),
-  (@app_group,'Breakfast brioche sliders, egg & avocado','breakfast-brioche-sliders','READY TO SERVE','breakfast,premium',15.00,'Keep refrigerated. Serve chilled or at room temperature within 6 hours. No heating needed.','/assets/images/gourmet-to-go/choice-slider-breakfast.webp','ACTIVE',160),
-  (@app_group,'Yogurt & granola parfait cups with fresh fruit','yogurt-granola-parfait-cups','READY TO SERVE','breakfast',0.00,'Keep refrigerated. Granola is added the day of pickup. Serve chilled.','/assets/images/gourmet-to-go/choice-parfait.webp','ACTIVE',170)
+  (@app_group,'Chicken & avocado mini sliders','chicken-avocado-mini-sliders','READY TO SERVE','all_day,premium',15.00,'Keep refrigerated. Serve chilled or at room temperature within 6 hours. No heating needed.','/assets/images/gourmet-to-go/choice-slider-chicken-avocado-v2.webp','ACTIVE',140),
+  (@app_group,'Turkey & Swiss mini sliders','turkey-swiss-mini-sliders','READY TO SERVE','all_day,premium',15.00,'Keep refrigerated. Serve chilled or at room temperature within 6 hours. No heating needed.','/assets/images/gourmet-to-go/choice-slider-turkey-swiss-v2.webp','ACTIVE',150),
+  (@app_group,'Breakfast brioche sliders, egg & avocado','breakfast-brioche-sliders','READY TO SERVE','breakfast,premium',15.00,'Keep refrigerated. Serve chilled or at room temperature within 6 hours. No heating needed.','/assets/images/gourmet-to-go/choice-slider-breakfast-v2.webp','ACTIVE',160),
+  (@app_group,'Yogurt & granola parfait cups with fresh fruit','yogurt-granola-parfait-cups','READY TO SERVE','breakfast',0.00,'Keep refrigerated. Granola is added the day of pickup. Serve chilled.','/assets/images/gourmet-to-go/choice-parfait-v2.webp','ACTIVE',170)
 ON DUPLICATE KEY UPDATE
   name=VALUES(name),serve_label=VALUES(serve_label),tags=VALUES(tags),price_modifier=VALUES(price_modifier),
   serving_instructions=VALUES(serving_instructions),image_url=VALUES(image_url),status='ACTIVE',sort_order=VALUES(sort_order);
