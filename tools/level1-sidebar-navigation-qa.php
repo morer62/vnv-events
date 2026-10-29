@@ -25,6 +25,7 @@ foreach ([
     'panel/planner-hub/management/orders/orders/execution',
     'panel/planner-hub/management/invoices',
     'panel/planner-hub/management/orders/calendar',
+    'panel/planner-hub/management/storage',
     'panel/planner-hub/management/orders/contracts',
     'panel/planner-hub/management/users?active_tab=clients',
     'panel/planner-hub/management/users',
@@ -74,6 +75,7 @@ foreach ([$sidebarPath, $gourmetPath, 'panel/level1/planner-hub/store/products/h
 
 foreach ([
     'https://vnvevents.com/panel/home/' => 'level1-vnv-events',
+    'https://vnvevents.com/panel/planner-hub/management/storage/' => 'level1-vnv-events',
     'https://vnvevents.com/panel/cms/pages/create/' => 'level1-publishing',
     'https://vnvevents.com/panel/planner-hub/store/gourmet-express/' => 'level1-vnv-events',
     'https://vnvevents.com/panel/planner-hub/store/products/home/' => 'level1-store-events',
