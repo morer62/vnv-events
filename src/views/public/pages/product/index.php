@@ -4,6 +4,7 @@ use App\Repositories\StoreProductsRepository;
 use App\Repositories\Connection;
 use App\Services\PublicSeoService;
 use App\Services\GourmetExpressService;
+use App\Services\StoreProductOptionsService;
 use App\Utils\AvomealContext;
 use App\Utils\SiteContext;
 use App\Utils\TemplateResponse;
@@ -24,6 +25,15 @@ $legacyProductRedirects = [
     'thanksgiving-feast' => null,
     'extra-dessert-add-on' => null,
     'extra-hallaca' => 'hallacas-by-the-dozen',
+    'signature-appetizer-box' => null,
+    'latin-bites-box' => null,
+    'dessert-box' => null,
+    'charcuterie-to-go' => null,
+    'chicken-chorizo-paella' => null,
+    'seafood-paella' => null,
+    'homemade-lasagna-pasticho' => null,
+    'nochebuena-dinner' => null,
+    'thanksgiving-dinner' => null,
 ];
 if ($slug !== null && array_key_exists($slug, $legacyProductRedirects)) {
     $target = $legacyProductRedirects[$slug];
@@ -172,6 +182,10 @@ $productBase = $productsRepository->getPublicBySlug($slug, $ownerId, $siteKey);
 
 if (!$productBase) {
     $rawProduct = $productsRepository->getBySlug($slug, $ownerId, $siteKey);
+    if ($rawProduct && in_array((string)($rawProduct->brand_name ?? ''), ['VNV Gourmet Express', 'VNV Gourmet To Go'], true)) {
+        header('Location: ' . \App\Utils\LocationUtils::pathFor('gourmet-to-go'), true, 301);
+        exit;
+    }
     $reason = $rawProduct
         ? 'public_visibility_or_public_status_failed_for_product_id_' . (int)$rawProduct->id
         : 'slug_owner_site_lookup_failed';
@@ -212,6 +226,7 @@ $foodProfile = null;
 $productRecommendations = [];
 $productAddons = [];
 $productMedia = [];
+$productOptionGroups = [];
 try {
     $db = new Connection();
     $db->query('SELECT * FROM store_product_food_profiles WHERE id_owner=:owner AND site_key=:site AND id_product=:product LIMIT 1');
@@ -246,6 +261,7 @@ try {
     } catch (Throwable $mediaError) {
         $productMedia = [];
     }
+    $productOptionGroups = (new StoreProductOptionsService($db))->groupsForProduct($ownerId, $siteKey, (int)$product->id);
 } catch (Throwable $e) {
     error_log('[Product food profile] ' . $e->getMessage());
 }
@@ -300,6 +316,7 @@ echo TemplateResponse::render(__DIR__ . "/index.twig", [
     'product_recommendations' => $productRecommendations,
     'product_addons' => $productAddons,
     'product_media' => $productMedia,
+    'product_option_groups' => $productOptionGroups,
     'store_active' => $storeActive,
     'gourmet_settings' => (new GourmetExpressService())->settings($ownerId, $siteKey),
     'is_gourmet_express' => $isGourmet,

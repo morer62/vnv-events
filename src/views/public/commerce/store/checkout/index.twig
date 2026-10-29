@@ -444,8 +444,8 @@ body{
 
                 <div class="summary-box">
                     <div class="checkout-section-title" style="font-size:1.05rem">Delivery or pickup?</div>
-                    <label class="payment-consent-option"><input type="radio" name="fulfillment_method" value="DELIVERY" checked><span><strong>Delivery</strong><span class="payment-consent-copy">We deliver within the configured service area. The fee is shown before payment.</span></span></label>
-                    {% if gourmet_settings.pickup_enabled|default(1) %}<label class="payment-consent-option"><input type="radio" name="fulfillment_method" value="PICKUP"><span><strong>Pickup</strong><span class="payment-consent-copy">{{ gourmet_settings.pickup_address_1|default('10258 NW 47th St') }}, {{ gourmet_settings.pickup_city|default('Sunrise') }}, FL {{ gourmet_settings.pickup_zip|default('33351') }}</span></span></label>{% endif %}
+                    {% if gourmet_settings.pickup_enabled|default(1) %}<label class="payment-consent-option"><input type="radio" name="fulfillment_method" value="PICKUP" checked><span><strong>Free pickup</strong><span class="payment-consent-copy">{{ gourmet_settings.pickup_address_1|default('10258 NW 47th St') }}, {{ gourmet_settings.pickup_city|default('Sunrise') }}, FL {{ gourmet_settings.pickup_zip|default('33351') }}</span></span></label>{% endif %}
+                    <label class="payment-consent-option"><input type="radio" name="fulfillment_method" value="DELIVERY"{% if not gourmet_settings.pickup_enabled|default(1) %} checked{% endif %}><span><strong>Delivery</strong><span class="payment-consent-copy">Available for an address-based fee shown before payment.</span></span></label>
                 </div>
 
                 <div class="summary-box" id="deliveryTimingBox">
@@ -685,7 +685,7 @@ document.addEventListener('DOMContentLoaded', function () {
     let deliveryQuoteReady = false;
 
     function selectedFulfillment() {
-        return document.querySelector('input[name="fulfillment_method"]:checked')?.value || 'DELIVERY';
+        return document.querySelector('input[name="fulfillment_method"]:checked')?.value || 'PICKUP';
     }
     function syncFulfillment() {
         const pickup = selectedFulfillment() === 'PICKUP';
@@ -820,6 +820,14 @@ document.addEventListener('DOMContentLoaded', function () {
     }
     calculateDeliveryBtn.addEventListener('click',()=>{hideMessages();calculateDelivery().catch(e=>{deliveryQuoteStatus.textContent=e.message;showError(e.message)})});
 
+    function optionSelectionHtml(item) {
+        let config = item.configuration || item.configuration_snapshot || {};
+        if (typeof config === 'string') { try { config = JSON.parse(config); } catch (e) { config = {}; } }
+        return (config.option_groups || []).flatMap(group => group.selections || []).map(choice =>
+            `<span class="checkout-item-chip">${choice.name}${choice.pieces ? ` × ${choice.pieces} pcs` : ''}${choice.serve_label ? ` · ${choice.serve_label}` : ''}</span>`
+        ).join('');
+    }
+
     function renderItems(items) {
         if (!items || !items.length) {
             itemsWrap.innerHTML = `<div class="checkout-empty">Your cart is empty.</div>`;
@@ -844,6 +852,7 @@ document.addEventListener('DOMContentLoaded', function () {
                                         ? item.variation_options.map(opt => `<span class="checkout-item-chip">${opt.attribute_name}: ${opt.attribute_value}</span>`).join('')
                                         : ''
                                 }
+                                ${optionSelectionHtml(item)}
                                 <div>${item.quantity} × $${Number(item.unit_price || 0).toFixed(2)}</div>
                             </div>
                         </div>

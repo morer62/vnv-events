@@ -17,40 +17,21 @@ final class GourmetStorefrontService
         $settings = (new GourmetExpressService($this->db))->settings($ownerId, $siteKey);
         $products = $this->products($ownerId, $siteKey);
         $categories = [
-            'family-dinners' => ['title' => 'Family Occasion Meals', 'products' => []],
-            'party-boxes' => ['title' => 'Party Boxes', 'products' => []],
-            'weeknight-dinners' => ['title' => 'Weeknight Dinners', 'products' => []],
+            'appetizer-boxes' => ['title' => 'Appetizer Boxes', 'products' => []],
             'desserts' => ['title' => 'Desserts', 'products' => []],
-            'holidays' => ['title' => 'Seasonal', 'products' => []],
         ];
 
         foreach ($products as $product) {
             $slug = $this->categorySlug((string)$product->category_slugs, (string)$product->name);
             $categories[$slug]['products'][] = $product;
         }
-        if (count($categories['weeknight-dinners']['products']) < 3) {
-            unset($categories['weeknight-dinners']);
-        }
 
         $zones = $this->rows('SELECT zone_name,county_name,delivery_fee,free_delivery_threshold,zip_codes_json FROM store_gourmet_delivery_zones WHERE id_owner=:owner AND site_key=:site AND status=\'ACTIVE\' ORDER BY id', $ownerId, $siteKey);
         $windows = $this->rows('SELECT label,start_time,end_time,capacity FROM store_gourmet_windows WHERE id_owner=:owner AND site_key=:site AND status=\'ACTIVE\' ORDER BY start_time', $ownerId, $siteKey);
-        $party = $categories['party-boxes']['products'] ?? [];
-        $family = $categories['family-dinners']['products'] ?? [];
+        $party = $categories['appetizer-boxes']['products'] ?? [];
+        $family = $categories['desserts']['products'] ?? [];
 
-        $holidayDeadlines = json_decode((string)($settings['holiday_deadlines_json'] ?? '[]'), true);
-        if (!is_array($holidayDeadlines)) $holidayDeadlines = [];
         $seasonalProducts = [];
-        $month = (int)date('n');
-        if ($month >= 10 && $month <= 12) {
-            foreach ($categories['holidays']['products'] ?? [] as $product) {
-                $config = $holidayDeadlines[(string)$product->slug] ?? null;
-                if (!is_array($config)) continue;
-                $deadline = trim((string)($config['order_deadline'] ?? ''));
-                $product->holiday_config = $config;
-                $product->holiday_sold_out = $deadline !== '' && strtotime($deadline . ' 23:59:59') < time();
-                $seasonalProducts[] = $product;
-            }
-        }
 
         return [
             'settings' => $settings,
@@ -107,11 +88,8 @@ final class GourmetStorefrontService
     private function categorySlug(string $categorySlugs, string $name): string
     {
         $value = strtolower($categorySlugs . ' ' . $name);
-        if (preg_match('/holiday|seasonal|thanksgiving|christmas|nochebuena|hallaca/', $value)) return 'holidays';
         if (preg_match('/dessert|sweet|cake|pie|ensaimada|natilla|buñuelo/', $value)) return 'desserts';
-        if (preg_match('/party-box|appetizer|charcuterie|latin-bites|signature-appetizer/', $value)) return 'party-boxes';
-        if (preg_match('/weeknight/', $value)) return 'weeknight-dinners';
-        return 'family-dinners';
+        return 'appetizer-boxes';
     }
 
     /** @param object[] $products */

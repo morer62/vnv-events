@@ -117,6 +117,13 @@ $router->get(function () {
             foreach ($configuration as $label => $value) {
                 if (is_scalar($value) && trim((string)$value) !== '') $detailParts[] = ucwords(str_replace('_', ' ', (string)$label)) . ': ' . (string)$value;
             }
+            foreach (($configuration['option_groups'] ?? []) as $group) {
+                foreach (($group['selections'] ?? []) as $selection) {
+                    $detailParts[] = (string)($selection['name'] ?? 'Selection')
+                        . (!empty($selection['pieces']) ? ' × ' . (int)$selection['pieces'] . ' pcs' : '')
+                        . (!empty($selection['serve_label']) ? ' · ' . (string)$selection['serve_label'] : '');
+                }
+            }
             $modalItems[] = [
                 'name' => ($item->product_name_snapshot ?? ('#' . $item->id_product)) . ($detailParts ? ' — ' . implode(' · ', $detailParts) : ''),
                 'quantity' => (int)($item->quantity ?? 0),

@@ -446,6 +446,16 @@ body{
                                         {% endif %}
                                     {% endif %}
 
+                                    {% if item.configuration.option_groups %}
+                                        <div class="mt-1">
+                                            {% for group in item.configuration.option_groups %}
+                                                {% for choice in group.selections %}
+                                                    <span class="order-item-chip">{{ choice.name }}</span>
+                                                {% endfor %}
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+
                                     <div class="mt-1">
                                         {{ item.quantity }} × ${{ item.unit_price|number_format(2, '.', ',') }}
                                     </div>

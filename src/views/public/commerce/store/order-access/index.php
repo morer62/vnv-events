@@ -45,6 +45,11 @@ $router->get(function () {
         ]);
     }
 
+    foreach (($order->items ?? []) as $item) {
+        $configuration = json_decode((string)($item->configuration_snapshot ?? ''), true);
+        $item->configuration = is_array($configuration) ? $configuration : [];
+    }
+
     $existingUser = null;
     if (!empty($order->guest_email)) {
         $existingUser = $userRepo->getOne(['email' => $order->guest_email]);

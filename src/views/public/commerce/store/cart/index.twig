@@ -668,6 +668,9 @@ document.addEventListener('DOMContentLoaded', function () {
                                 ${(Array.isArray(item.variation_options) ? item.variation_options : []).map(opt => `
                                     <span class="cart-item-chip">${opt.attribute_name}: ${opt.attribute_value}</span>
                                 `).join('')}
+                                ${(item.configuration?.option_groups || []).flatMap(group => group.selections || []).map(choice => `
+                                    <span class="cart-item-chip">${choice.name}${choice.pieces ? ` × ${choice.pieces} pcs` : ''}${choice.serve_label ? ` · ${choice.serve_label}` : ''}</span>
+                                `).join('')}
                             </div>
 
                             <div class="cart-item-price">$${toFloat(item.unit_price || item.price || 0, 0).toFixed(2)} each</div>
@@ -783,7 +786,8 @@ document.addEventListener('DOMContentLoaded', function () {
             items: state.items.map(item => ({
                 id_product: item.id_product || item.id,
                 id_product_variation: item.id_product_variation || null,
-                quantity: item.quantity
+                quantity: item.quantity,
+                configuration: item.configuration || {}
             }))
         };
     }

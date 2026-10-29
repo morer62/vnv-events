@@ -103,8 +103,19 @@ function sendCheckoutOrderDetailsEmail(
         $name = htmlspecialchars((string)($item->product_name_snapshot ?? 'Item'));
         $qty = (int)($item->quantity ?? 0);
         $line = number_format((float)($item->line_total ?? 0), 2);
+        $configuration = json_decode((string)($item->configuration_snapshot ?? ''), true);
+        $choiceLabels = [];
+        foreach (($configuration['option_groups'] ?? []) as $group) {
+            foreach (($group['selections'] ?? []) as $choice) {
+                $label = trim((string)($choice['name'] ?? ''));
+                if ($label !== '') $choiceLabels[] = htmlspecialchars($label);
+            }
+        }
+        $configuredChoices = $choiceLabels
+            ? '<div style="margin-top:4px;color:#4b635b;font-size:12px;">Choices: ' . implode(', ', $choiceLabels) . '</div>'
+            : '';
         $rows .= "<tr>
-            <td style=\"padding:8px;border-bottom:1px solid #eee;\">{$name}</td>
+            <td style=\"padding:8px;border-bottom:1px solid #eee;\">{$name}{$configuredChoices}</td>
             <td style=\"padding:8px;border-bottom:1px solid #eee;text-align:center;\">{$qty}</td>
             <td style=\"padding:8px;border-bottom:1px solid #eee;text-align:right;\">$ {$line}</td>
         </tr>";
@@ -735,14 +746,13 @@ $router->post(function () {
     $deliveryFee=max(0,(float)($cart->delivery_fee??0));
     $tax=round(($preTaxTotal+$deliveryFee)*$taxRate/100,2);
     $total=round($preTaxTotal+$deliveryFee+$tax,2);
-    $requestedFulfillment = strtoupper(trim((string)($payload['fulfillment_method'] ?? 'DELIVERY')));
+    $requestedFulfillment = strtoupper(trim((string)($payload['fulfillment_method'] ?? 'PICKUP')));
     $configuredMinimum = $requestedFulfillment === 'PICKUP'
         ? (float)($gourmetSettings['pickup_minimum'] ?? 80)
         : (float)($gourmetSettings['delivery_minimum'] ?? 150);
-    $minimumOrderAmount = max(
-        AvomealContext::minimumOrderAmount(),
-        $configuredMinimum
-    );
+    $minimumOrderAmount = $configuredMinimum > 0
+        ? $configuredMinimum
+        : AvomealContext::minimumOrderAmount();
     $couponCodeFromCart = trim((string)($cart->coupon_code ?? ''));
     $couponIdFromCart = (int)($cart->id_coupon ?? 0);
 
@@ -1103,7 +1113,7 @@ $router->post(function () {
     $shippingCity = trim($payload['shipping_city'] ?? '');
     $shippingState = trim($payload['shipping_state'] ?? '');
     $shippingZip = trim($payload['shipping_zip'] ?? '');
-    $fulfillmentMethod = strtoupper(trim((string)($payload['fulfillment_method'] ?? 'DELIVERY')));
+    $fulfillmentMethod = strtoupper(trim((string)($payload['fulfillment_method'] ?? 'PICKUP')));
     if (!in_array($fulfillmentMethod, ['DELIVERY', 'PICKUP'], true)) $fulfillmentMethod = 'DELIVERY';
     if ($fulfillmentMethod === 'PICKUP' && !(int)($gourmetSettings['pickup_enabled'] ?? 1)) {
         echo json_encode(['success' => false, 'message' => 'Pickup is not available for this order.']);

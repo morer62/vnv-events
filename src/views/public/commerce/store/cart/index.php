@@ -8,6 +8,7 @@ use App\Repositories\Connection;
 use App\Services\StoreCouponService;
 use App\Services\GourmetExpressService;
 use App\Services\GourmetDeliveryAreaService;
+use App\Services\StoreProductOptionsService;
 use App\Services\LoginService;
 use App\Utils\AvomealContext;
 use App\Utils\Router;
@@ -47,6 +48,7 @@ $router->post(function () {
     $guestPhone = trim($payload['guest_phone'] ?? '');
     $city = trim($payload['city'] ?? '');
     $deliveryAddress = trim((string)($payload['delivery_address'] ?? ''));
+    $requestedFulfillment = strtoupper(trim((string)($payload['fulfillment_method'] ?? 'PICKUP')));
     $couponCode = trim((string)($payload['coupon_code'] ?? ''));
     $pricingMode = StoreCartsRepository::PRICING_PAYG;
     $sessionToken = trim($payload['session_token'] ?? '');
@@ -84,7 +86,7 @@ $router->post(function () {
         }
 
         $productType = $product->product_type ?? StoreProductsRepository::PRODUCT_TYPE_FIXED;
-        $containsGourmetExpress = $containsGourmetExpress || (string)($product->brand_name ?? '') === 'VNV Gourmet Express';
+        $containsGourmetExpress = $containsGourmetExpress || in_array((string)($product->brand_name ?? ''), ['VNV Gourmet Express', 'VNV Gourmet To Go'], true);
 
         $unitPrice = 0.00;
         $stockQuantity = 0;
@@ -145,6 +147,20 @@ $router->post(function () {
                 $configuration['cooking_preference'] = mb_substr($preference, 0, 80);
             }
         }
+        try {
+            $validatedGroups = (new StoreProductOptionsService($db))->validate(
+                $ownerId,
+                (string)($product->site_key ?? 'vnvevents'),
+                (int)$product->id,
+                $resolvedVariationId,
+                $submittedConfiguration
+            );
+            if ($validatedGroups !== []) $configuration['option_groups'] = $validatedGroups;
+        } catch (Throwable $e) {
+            http_response_code(422);
+            echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+            return '';
+        }
 
         if ($quantity < $minPurchaseQty) {
             $quantity = $minPurchaseQty;
@@ -198,7 +214,9 @@ $router->post(function () {
         $express = new GourmetExpressService($db);
         $express->assertStoreOpen($ownerId, 'vnvevents');
         $express->assertCartComposition($compositionItems);
-        if ($containsGourmetExpress) (new GourmetDeliveryAreaService())->validate($ownerId, 'vnvevents', $deliveryAddress);
+        if ($containsGourmetExpress && $requestedFulfillment === 'DELIVERY') {
+            (new GourmetDeliveryAreaService())->validate($ownerId, 'vnvevents', $deliveryAddress);
+        }
     } catch (Throwable $e) {
         http_response_code(422);
         echo json_encode(['success' => false, 'message' => $e->getMessage()]);
