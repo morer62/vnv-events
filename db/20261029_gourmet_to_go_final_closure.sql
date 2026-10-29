@@ -96,3 +96,10 @@ SET c.image_url=CASE c.slug
   ELSE c.image_url END,
   c.updated_at=NOW()
 WHERE g.id_owner=@owner AND g.site_key=@site AND g.choice_set_key='dessert-varieties';
+
+-- One verified contact pair across product pages, checkout and messages.
+UPDATE store_gourmet_settings
+SET staff_phone='3052045427',
+    staff_whatsapp='13053761210',
+    updated_at=NOW()
+WHERE id_owner=@owner AND site_key=@site;
