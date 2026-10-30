@@ -957,6 +957,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const boxModalBody = document.getElementById('box-modal-body');
     const boxModalPrimary = document.getElementById('box-modal-primary');
     const boxModalEdit = document.getElementById('box-modal-edit');
+    const boxModalCheckout = document.getElementById('box-modal-checkout');
     const isBoxBuilder = !!buildAnotherBtn;
     let editingCartIndex = null;
     let boxCompletionSignature = '';
@@ -1033,7 +1034,7 @@ document.addEventListener('DOMContentLoaded', function () {
         boxActionModal.setAttribute('aria-hidden', 'true');
         document.documentElement.style.removeProperty('overflow');
     }
-    function openBoxModal(title, body, primaryLabel, primaryAction, editLabel = '', editAction = null) {
+    function openBoxModal(title, body, primaryLabel, primaryAction, editLabel = '', editAction = null, showCheckout = true) {
         if (!boxActionModal || !boxModalTitle || !boxModalBody || !boxModalPrimary) return;
         boxModalTitle.textContent = title;
         boxModalBody.innerHTML = body;
@@ -1045,10 +1046,11 @@ document.addEventListener('DOMContentLoaded', function () {
             boxModalEdit.textContent = editLabel || 'Modify this item';
             boxModalEdit.onclick = editAction || null;
         }
+        if (boxModalCheckout) boxModalCheckout.hidden = !showCheckout;
         boxActionModal.hidden = false;
         boxActionModal.setAttribute('aria-hidden', 'false');
         document.documentElement.style.overflow = 'hidden';
-        (primaryAction ? boxModalPrimary : (boxModalEdit || boxActionModal.querySelector('#box-modal-checkout')))?.focus();
+        (primaryAction ? boxModalPrimary : (editAction ? boxModalEdit : boxModalCheckout))?.focus();
     }
     function openBoxEditModal(cartIndex) {
         const item = readCart().items?.[cartIndex];
@@ -1536,7 +1538,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function maybeCompleteBox() {
-        if (!isBoxBuilder || gourmetStorePaused || !optionGroupsValid() || (productIsVariable && !variationSelect?.value)) {
+        if (!isBoxBuilder || !optionGroupsValid() || (productIsVariable && !variationSelect?.value)) {
             if (!optionGroupsValid()) boxCompletionSignature = '';
             return;
         }
@@ -1544,6 +1546,26 @@ document.addEventListener('DOMContentLoaded', function () {
         if (!signature || signature === boxCompletionSignature) return;
         boxCompletionSignature = signature;
         window.clearTimeout(boxCompletionTimer);
+        if (gourmetStorePaused) {
+            boxCompletionTimer = window.setTimeout(() => {
+                const choices = selectedOptionGroups().flatMap(group => group.selections || []).map(choice =>
+                    `${choice.name}${Number(choice.quantity || 1) > 1 ? ` x${Number(choice.quantity)}` : ''}`
+                ).join(' · ');
+                openBoxModal(
+                    'Box ready',
+                    `<p>Your four selections are complete.</p><p>${escapeHtml(choices)}</p><p><strong>Preview only:</strong> new orders are still paused, so this box was not added to the cart.</p>`,
+                    'Build another preview',
+                    resetBoxBuilder,
+                    'Modify this box',
+                    () => {
+                        closeBoxModal();
+                        document.querySelector('[data-option-group]')?.scrollIntoView({behavior:'smooth',block:'start'});
+                    },
+                    false
+                );
+            }, 180);
+            return;
+        }
         boxCompletionTimer = window.setTimeout(() => addConfiguredProduct({currentTarget:addBtn, autoTriggered:true}), 180);
     }
 
