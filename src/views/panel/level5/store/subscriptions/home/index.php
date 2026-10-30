@@ -155,7 +155,7 @@ $router->post(function () {
                 'skip_occurrence'=>$service->skipOccurrence($occurrenceId,$sessionUserId),
                 'cancel_occurrence'=>$service->cancelOccurrence($occurrenceId,$sessionUserId),
                 'reschedule_occurrence'=>$service->rescheduleOccurrence($occurrenceId,$sessionUserId,(string)($_POST['local_scheduled_at']??'')),
-                'reschedule_future'=>$service->rescheduleFuture($recurrenceId,$sessionUserId,(string)($_POST['effective_date']??''),(string)($_POST['local_delivery_time']??''),(array)($_POST['weekdays']??[]))>0,
+                'reschedule_future'=>$service->rescheduleFuture($recurrenceId,$sessionUserId,(string)($_POST['effective_date']??''),(string)($_POST['local_delivery_time']??''),(array)($_POST['weekdays']??[]),(string)($_POST['recurrence_type']??'SELECTED_WEEKDAYS'),(int)($_POST['interval_value']??1))>0,
                 default=>false,
             };
             MessageUtil::setMessage($ok?'Recurring delivery updated.':'That delivery can no longer be changed.');

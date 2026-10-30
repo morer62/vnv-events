@@ -60,7 +60,7 @@ $assert($appetizerTotal === 160.0, 'Expected the 48-piece box with three premium
 $dessert = $product('dessert-box');
 $dessertVariationCount = $pdo->prepare('SELECT COUNT(*) FROM store_product_variations WHERE id_product=:product AND status=\'ACTIVE\'');
 $dessertVariationCount->execute(['product' => (int)$dessert['id']]);
-$assert((int)$dessertVariationCount->fetchColumn() === 2, 'Expected only the 24- and 48-piece Dessert Box variations to remain active.');
+$assert((int)$dessertVariationCount->fetchColumn() === 3, 'Expected the 24-, 48- and 64-piece Dessert Box variations to remain active.');
 $dessertVariation = $variation((int)$dessert['id'], 48);
 $dessertGroups = $options->groupsForProduct(2, 'vnvevents', (int)$dessert['id']);
 $dessertChoices = $dessertGroups[0]['choices'] ?? [];
@@ -88,6 +88,16 @@ $dessertSmallSnapshot = $options->validate(2, 'vnvevents', (int)$dessert['id'], 
 $assert((int)$dessertSmallSnapshot[0]['required_count'] === 4, 'Expected the 24-piece Dessert Box to require four choices.');
 $assert((int)$dessertSmallSnapshot[0]['pieces_per_option'] === 6, 'Expected six pieces per selection in the 24-piece Dessert Box.');
 $assert((int)$dessertSmallSnapshot[0]['selections'][0]['pieces'] === 18, 'Expected repeated small Dessert Box variety to total 18 pieces.');
+$dessertLargeVariation = $variation((int)$dessert['id'], 64);
+$dessertLargeSnapshot = $options->validate(2, 'vnvevents', (int)$dessert['id'], (int)$dessertLargeVariation['id'], [
+    'option_groups' => [[
+        'group_id' => (int)$dessertGroups[0]['id'],
+        'selected_choice_quantities' => $dessertChoiceQuantities,
+    ]],
+]);
+$assert((int)$dessertLargeSnapshot[0]['required_count'] === 4, 'Expected the 64-piece Dessert Box to require four choices.');
+$assert((int)$dessertLargeSnapshot[0]['pieces_per_option'] === 16, 'Expected sixteen pieces per selection in the 64-piece Dessert Box.');
+$assert((float)$dessertLargeVariation['price'] === 115.0, 'Expected the 64-piece Dessert Box to cost $115.');
 $dessertRows = $pdo->prepare('SELECT COUNT(*) FROM store_products WHERE id_owner=2 AND site_key=\'vnvevents\' AND slug=\'dessert-box\'');
 $dessertRows->execute();
 $assert((int)$dessertRows->fetchColumn() === 1, 'Expected one canonical dessert-box slug.');
@@ -112,7 +122,7 @@ $assert($brazo['main_image'] === '/assets/images/gourmet-to-go/gtg-brazo-gitano.
 
 echo json_encode([
     'repeatable_appetizer' => ['pieces' => 48, 'selections' => '3 + 1', 'base' => (float)$appetizerVariation['price'], 'modifier' => $appetizerModifier, 'total' => $appetizerTotal],
-    'dessert_box' => ['choices' => count($dessertChoices), 'required' => (int)$dessertSnapshot[0]['required_count'], 'pieces_each' => (int)$dessertSnapshot[0]['pieces_per_option'], 'price' => (float)$dessertVariation['price']],
+    'dessert_box' => ['choices' => count($dessertChoices), 'sizes' => [24, 48, 64], 'required' => (int)$dessertSnapshot[0]['required_count'], 'pieces_each_64' => (int)$dessertLargeSnapshot[0]['pieces_per_option'], 'price_64' => (float)$dessertLargeVariation['price']],
     'legacy_products' => 'inactive/removed as specified',
     'anonymous_cleanup' => 'one Dessert Box slug; obsolete food profile removed',
     'brazo_gitano' => 'approved copy and image',

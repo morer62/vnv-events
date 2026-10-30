@@ -118,28 +118,43 @@ final class GourmetRecurringOrderService
     }
 
     /** Change the schedule for pending deliveries only; paid/history rows never move. */
-    public function rescheduleFuture(int $recurrenceId,int $userId,string $effectiveDate,string $localTime,array $weekdays): int
+    public function rescheduleFuture(int $recurrenceId,int $userId,string $effectiveDate,string $localTime,array $weekdays,string $recurrenceType='SELECTED_WEEKDAYS',int $intervalValue=1): int
     {
         $this->db->query("SELECT * FROM store_recurring_orders WHERE id=:id AND id_user=:user AND status IN ('ACTIVE','PAUSED') LIMIT 1");
         $this->db->bind(':id',$recurrenceId,\PDO::PARAM_INT);$this->db->bind(':user',$userId,\PDO::PARAM_INT);$parent=$this->db->fetchOne();
         if(!$parent) throw new \DomainException('Recurring order not found or cannot be changed.');
+        $recurrenceType=strtoupper(trim($recurrenceType));
+        if($recurrenceType==='BIWEEKLY'){$recurrenceType='INTERVAL_WEEKS';$intervalValue=2;}
+        if(!in_array($recurrenceType,['WEEKLY','INTERVAL_WEEKS','SELECTED_WEEKDAYS'],true)) throw new \InvalidArgumentException('Choose a valid recurring schedule.');
+        $intervalValue=$recurrenceType==='WEEKLY'?1:max(1,min(12,$intervalValue));
         $weekdays=array_values(array_unique(array_filter(array_map('intval',$weekdays),fn($day)=>$day>=1&&$day<=7)));
-        if(!$weekdays) throw new \InvalidArgumentException('Select at least one delivery weekday.');
+        if($recurrenceType==='SELECTED_WEEKDAYS'&&!$weekdays) throw new \InvalidArgumentException('Select at least one delivery weekday.');
         $timezone=new \DateTimeZone((string)$parent->timezone); $cursor=new \DateTimeImmutable($effectiveDate.' '.$localTime,$timezone);
+        if($recurrenceType!=='SELECTED_WEEKDAYS') $weekdays=[(int)$cursor->format('N')];
+        $anchor=$cursor->setTime(0,0);
         $this->db->query("SELECT * FROM store_recurring_occurrences WHERE recurring_order_id=:parent AND status='SCHEDULED' AND payment_status='PENDING' AND local_scheduled_at>=:effective ORDER BY sequence_number");
         $this->db->bind(':parent',$recurrenceId,\PDO::PARAM_INT);$this->db->bind(':effective',$cursor->format('Y-m-d 00:00:00'));$rows=$this->db->fetchAll()?:[];
         if(!$rows) return 0;
         $this->db->beginTransaction();
         try{
             foreach($rows as $row){
-                while(!in_array((int)$cursor->format('N'),$weekdays,true)) $cursor=$cursor->modify('+1 day');
+                while(true){
+                    $days=(int)$anchor->diff($cursor->setTime(0,0))->format('%a');
+                    $weeks=intdiv($days,7);
+                    $weekday=(int)$cursor->format('N');
+                    $matches=$recurrenceType==='SELECTED_WEEKDAYS'
+                        ? in_array($weekday,$weekdays,true)
+                        : ($weekday===$weekdays[0] && $weeks%$intervalValue===0);
+                    if($matches) break;
+                    $cursor=$cursor->modify('+1 day');
+                }
                 $utc=$cursor->setTimezone(new \DateTimeZone('UTC'));$charge=$utc->modify('-'.max(1,(int)$parent->payment_lead_hours).' hours');
                 $this->db->query("UPDATE store_recurring_occurrences SET local_scheduled_at=:local,scheduled_at_utc=:utc,charge_at_utc=:charge,updated_at=UTC_TIMESTAMP() WHERE id=:id AND status='SCHEDULED' AND payment_status='PENDING'");
                 $this->db->bind(':local',$cursor->format('Y-m-d H:i:s'));$this->db->bind(':utc',$utc->format('Y-m-d H:i:s'));$this->db->bind(':charge',$charge->format('Y-m-d H:i:s'));$this->db->bind(':id',(int)$row->id,\PDO::PARAM_INT);$this->db->execute();
                 $cursor=$cursor->modify('+1 day');
             }
-            $this->db->query("UPDATE store_recurring_orders SET recurrence_type='SELECTED_WEEKDAYS',interval_value=1,weekdays_json=:weekdays,local_delivery_time=:time,updated_at=UTC_TIMESTAMP() WHERE id=:id AND id_user=:user");
-            $this->db->bind(':weekdays',json_encode($weekdays));$this->db->bind(':time',$localTime);$this->db->bind(':id',$recurrenceId,\PDO::PARAM_INT);$this->db->bind(':user',$userId,\PDO::PARAM_INT);$this->db->execute();
+            $this->db->query("UPDATE store_recurring_orders SET recurrence_type=:type,interval_value=:interval_value,weekdays_json=:weekdays,local_delivery_time=:time,updated_at=UTC_TIMESTAMP() WHERE id=:id AND id_user=:user");
+            $this->db->bind(':type',$recurrenceType);$this->db->bind(':interval_value',$intervalValue,\PDO::PARAM_INT);$this->db->bind(':weekdays',json_encode($weekdays));$this->db->bind(':time',$localTime);$this->db->bind(':id',$recurrenceId,\PDO::PARAM_INT);$this->db->bind(':user',$userId,\PDO::PARAM_INT);$this->db->execute();
             $this->db->commit();return count($rows);
         }catch(\Throwable $e){$this->db->rollback();throw $e;}
     }

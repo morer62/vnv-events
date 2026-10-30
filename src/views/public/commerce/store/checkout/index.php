@@ -1117,6 +1117,10 @@ $router->post(function () {
     $isRecurringOrder = $orderFrequency === 'RECURRING';
     $recurrenceType = strtoupper(trim((string)($payload['recurrence_type'] ?? 'WEEKLY')));
     $recurrenceInterval = max(1, min(12, (int)($payload['recurrence_interval'] ?? 1)));
+    if ($recurrenceType === 'BIWEEKLY') {
+        $recurrenceType = 'INTERVAL_WEEKS';
+        $recurrenceInterval = 2;
+    }
     if (!in_array($recurrenceType, ['WEEKLY', 'SELECTED_WEEKDAYS', 'INTERVAL_WEEKS'], true)) {
         $recurrenceType = 'WEEKLY';
     }

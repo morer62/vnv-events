@@ -412,6 +412,14 @@
         }
     }
 
+    .pp-box-modal[hidden]{display:none}
+    .pp-box-modal{position:fixed;inset:0;z-index:10050;display:grid;place-items:center;padding:1rem;background:rgba(5,20,16,.82);backdrop-filter:blur(5px)}
+    .pp-box-dialog{position:relative;width:min(680px,100%);max-height:calc(100dvh - 2rem);overflow:auto;padding:1.35rem;border-radius:20px;background:#fff;box-shadow:0 24px 70px rgba(0,0,0,.38)}
+    .pp-box-dialog h3{margin:0 3rem .55rem 0}
+    .pp-box-close{position:absolute;top:1rem;right:1rem;z-index:1;width:42px;height:42px;border:0;border-radius:50%;background:rgba(15,39,32,.92);color:#fff;font-size:1.6rem;line-height:1;cursor:pointer;box-shadow:0 5px 18px rgba(0,0,0,.25)}
+    .pp-box-modal-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.6rem;margin-top:1rem}
+    .pp-box-modal-actions .pp-btn{text-align:center;justify-content:center}
+
     @media (max-width: 640px){
         html,
         body{
@@ -486,6 +494,11 @@
         .pp-related-grid{
             grid-template-columns:1fr;
         }
+
+        .pp-box-modal{padding:.6rem}
+        .pp-box-dialog{padding:.9rem;border-radius:16px}
+        .pp-box-close{top:.75rem;right:.75rem}
+        .pp-box-modal-actions{grid-template-columns:1fr}
     }
 </style>
 
@@ -667,8 +680,8 @@
 
                                 {% if product_option_groups|length %}
                                 <style>
-                                .pp-option-group{margin:1.1rem 0;padding:1.1rem;border:1px solid #cfe0da;border-radius:18px;background:#f7fbf9}.pp-option-head{display:flex;justify-content:space-between;gap:1rem;align-items:center;margin-bottom:.8rem}.pp-option-counter{font-weight:900;color:#0c6d59}.pp-option-section-title{margin:1rem 0 .55rem;font-size:.9rem;text-transform:uppercase;letter-spacing:.06em;color:#385c51}.pp-option-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.65rem}.pp-option-choice{display:grid;grid-template-columns:74px minmax(0,1fr) auto;gap:.75rem;align-items:center;padding:.7rem;border:1px solid #d7e4df;border-radius:14px;background:#fff;cursor:pointer}.pp-option-media{display:grid;gap:.35rem}.pp-option-choice .pp-option-image{width:74px;height:64px;object-fit:cover;border-radius:10px;background:#eee;cursor:zoom-in;outline-offset:3px}.pp-option-photo{width:100%;padding:.28rem .25rem;border:1px solid #8a9d96;border-radius:8px;background:#fff;color:#173f34;font-size:.68rem;font-weight:900;cursor:pointer}.pp-option-photo:hover,.pp-option-photo:focus-visible{background:#edf7f3;outline:2px solid #0c6d59;outline-offset:2px}.pp-option-choice input[type="checkbox"]{width:22px;height:22px}.pp-option-quantity{width:62px!important;height:44px!important;padding:.45rem .25rem;border:1px solid #8a9d96;border-radius:10px;background:#fff;text-align:center;font-size:1rem;font-weight:900;color:#173f34}.pp-option-choice.is-disabled{opacity:.45}.pp-option-serve,.pp-option-instructions{font-size:.72rem;color:#4f665e;display:block;margin-top:.2rem}.pp-option-serve{font-weight:900}.pp-option-premium{display:inline-flex;margin-top:.28rem;padding:.18rem .42rem;border-radius:999px;background:#fff1cf;color:#7a4b00;font-size:.72rem;font-weight:900}.pp-image-modal[hidden],.pp-box-modal[hidden]{display:none}.pp-image-modal,.pp-box-modal{position:fixed;inset:0;z-index:10050;display:grid;place-items:center;padding:1rem;background:rgba(5,20,16,.82);backdrop-filter:blur(5px)}.pp-image-dialog,.pp-box-dialog{position:relative;width:min(680px,100%);max-height:calc(100dvh - 2rem);overflow:auto;padding:1rem;border-radius:20px;background:#fff;box-shadow:0 24px 70px rgba(0,0,0,.38)}.pp-image-dialog img{display:block;width:100%;max-height:75dvh;object-fit:contain;border-radius:14px;background:#f4f1eb}.pp-image-dialog p{margin:.8rem .25rem .15rem;font-weight:850;text-align:center;color:#173f34}.pp-image-close,.pp-box-close{position:absolute;top:1rem;right:1rem;z-index:1;width:42px;height:42px;border:0;border-radius:50%;background:rgba(15,39,32,.92);color:#fff;font-size:1.6rem;line-height:1;cursor:pointer;box-shadow:0 5px 18px rgba(0,0,0,.25)}.pp-box-dialog{padding:1.35rem}.pp-box-dialog h3{margin:0 3rem .55rem 0}.pp-box-modal-actions{display:flex;flex-wrap:wrap;gap:.6rem;margin-top:1rem}.pp-box-summary{display:grid;gap:.65rem;margin:.8rem 0 1.2rem}.pp-box-card{padding:.8rem;border:1px solid #cfe0da;border-radius:14px;background:#f7fbf9;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:.65rem;align-items:center}.pp-box-card strong,.pp-box-card span{display:block}.pp-box-card span{font-size:.8rem;color:#4f665e;margin-top:.2rem}.pp-box-edit{border:1px solid #0c6d59;border-radius:10px;background:#fff;color:#0c6d59;padding:.5rem .7rem;font-weight:900;cursor:pointer}@media(max-width:650px){.pp-option-grid{grid-template-columns:1fr}.pp-option-head{align-items:flex-start;flex-direction:column}.pp-image-modal,.pp-box-modal{padding:.6rem}.pp-image-dialog,.pp-box-dialog{padding:.85rem;border-radius:16px}.pp-image-dialog img{max-height:72dvh}.pp-image-close,.pp-box-close{top:.75rem;right:.75rem}.pp-box-modal-actions>*{flex:1 1 100%;text-align:center}.pp-box-card{grid-template-columns:1fr}.pp-box-edit{width:100%}}
-                                .pp-option-stepper{display:grid;grid-template-columns:44px 38px 44px;align-items:center;border:1px solid #8a9d96;border-radius:999px;overflow:hidden;background:#fff}.pp-option-step{width:44px;height:44px;border:0;background:#edf7f3;color:#173f34;font-size:1.45rem;font-weight:900;cursor:pointer}.pp-option-step:disabled{opacity:.35;cursor:not-allowed}.pp-option-stepper .pp-option-quantity{width:38px!important;height:44px!important;padding:0!important;border:0!important;border-radius:0!important;background:#fff;text-align:center;font-size:1.05rem;font-weight:900;color:#173f34;pointer-events:none}.pp-box-card-actions{display:flex;gap:.45rem}.pp-box-remove{border:1px solid #b42318;border-radius:10px;background:#fff;color:#b42318;padding:.5rem .7rem;font-weight:900;cursor:pointer}@media(max-width:650px){.pp-option-choice{grid-template-columns:64px minmax(0,1fr)}.pp-option-choice .pp-option-image{width:64px;height:60px}.pp-option-stepper{grid-column:1/-1;grid-template-columns:48px minmax(0,1fr) 48px;width:100%}.pp-option-step{width:48px;height:48px}.pp-option-stepper .pp-option-quantity{width:100%!important;height:48px!important}.pp-box-card-actions{display:grid;grid-template-columns:1fr 1fr}.pp-box-remove{width:100%}}
+                                .pp-option-group{margin:1.1rem 0;padding:1.1rem;border:1px solid #cfe0da;border-radius:18px;background:#f7fbf9}.pp-option-head{display:flex;justify-content:space-between;gap:1rem;align-items:center;margin-bottom:.8rem}.pp-option-counter{font-weight:900;color:#0c6d59}.pp-option-section-title{margin:1rem 0 .55rem;font-size:.9rem;text-transform:uppercase;letter-spacing:.06em;color:#385c51}.pp-option-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.65rem}.pp-option-choice{display:grid;grid-template-columns:74px minmax(0,1fr) auto;gap:.75rem;align-items:center;padding:.7rem;border:1px solid #d7e4df;border-radius:14px;background:#fff;cursor:pointer}.pp-option-media{display:grid;gap:.35rem}.pp-option-choice .pp-option-image{width:74px;height:64px;object-fit:cover;border-radius:10px;background:#eee;cursor:zoom-in;outline-offset:3px}.pp-option-photo{width:100%;padding:.28rem .25rem;border:1px solid #8a9d96;border-radius:8px;background:#fff;color:#173f34;font-size:.68rem;font-weight:900;cursor:pointer}.pp-option-photo:hover,.pp-option-photo:focus-visible{background:#edf7f3;outline:2px solid #0c6d59;outline-offset:2px}.pp-option-choice input[type="checkbox"]{width:22px;height:22px}.pp-option-quantity{width:62px!important;height:44px!important;padding:.45rem .25rem;border:1px solid #8a9d96;border-radius:10px;background:#fff;text-align:center;font-size:1rem;font-weight:900;color:#173f34}.pp-option-choice.is-disabled{opacity:.45}.pp-option-serve,.pp-option-instructions{font-size:.72rem;color:#4f665e;display:block;margin-top:.2rem}.pp-option-serve{font-weight:900}.pp-option-premium{display:inline-flex;margin-top:.28rem;padding:.18rem .42rem;border-radius:999px;background:#fff1cf;color:#7a4b00;font-size:.72rem;font-weight:900}.pp-image-modal[hidden]{display:none}.pp-image-modal{position:fixed;inset:0;z-index:10050;display:grid;place-items:center;padding:1rem;background:rgba(5,20,16,.82);backdrop-filter:blur(5px)}.pp-image-dialog{position:relative;width:min(680px,100%);max-height:calc(100dvh - 2rem);overflow:auto;padding:1rem;border-radius:20px;background:#fff;box-shadow:0 24px 70px rgba(0,0,0,.38)}.pp-image-dialog img{display:block;width:100%;max-height:75dvh;object-fit:contain;border-radius:14px;background:#f4f1eb}.pp-image-dialog p{margin:.8rem .25rem .15rem;font-weight:850;text-align:center;color:#173f34}.pp-image-close{position:absolute;top:1rem;right:1rem;z-index:1;width:42px;height:42px;border:0;border-radius:50%;background:rgba(15,39,32,.92);color:#fff;font-size:1.6rem;line-height:1;cursor:pointer;box-shadow:0 5px 18px rgba(0,0,0,.25)}.pp-box-summary{display:grid;gap:.65rem;margin:.8rem 0 1.2rem}.pp-box-card{padding:.8rem;border:1px solid #cfe0da;border-radius:14px;background:#f7fbf9;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:.65rem;align-items:center}.pp-box-card strong,.pp-box-card span{display:block}.pp-box-card span{font-size:.8rem;color:#4f665e;margin-top:.2rem}.pp-box-edit{border:1px solid #0c6d59;border-radius:10px;background:#fff;color:#0c6d59;padding:.5rem .7rem;font-weight:900;cursor:pointer}@media(max-width:900px){.pp-option-grid{grid-template-columns:1fr}.pp-option-head{align-items:flex-start;flex-direction:column}.pp-box-card{grid-template-columns:1fr}.pp-box-edit{width:100%}}
+                                .pp-option-stepper{display:grid;grid-template-columns:44px 38px 44px;align-items:center;border:1px solid #8a9d96;border-radius:999px;overflow:hidden;background:#fff}.pp-option-step{width:44px;height:44px;border:0;background:#edf7f3;color:#173f34;font-size:1.45rem;font-weight:900;cursor:pointer}.pp-option-step:disabled{opacity:.35;cursor:not-allowed}.pp-option-stepper .pp-option-quantity{width:38px!important;height:44px!important;padding:0!important;border:0!important;border-radius:0!important;background:#fff;text-align:center;font-size:1.05rem;font-weight:900;color:#173f34;pointer-events:none}.pp-box-card-actions{display:flex;gap:.45rem}.pp-box-remove{border:1px solid #b42318;border-radius:10px;background:#fff;color:#b42318;padding:.5rem .7rem;font-weight:900;cursor:pointer}@media(max-width:900px){.pp-option-choice{grid-template-columns:64px minmax(0,1fr)}.pp-option-choice .pp-option-image{width:64px;height:60px}.pp-option-stepper{grid-column:1/-1;grid-template-columns:48px minmax(0,1fr) 48px;width:100%}.pp-option-step{width:48px;height:48px}.pp-option-stepper .pp-option-quantity{width:100%!important;height:48px!important}.pp-box-card-actions{display:grid;grid-template-columns:1fr 1fr}.pp-box-remove{width:100%}}
                                 </style>
                                 {% for group in product_option_groups %}
                                 <section class="pp-option-group" data-option-group="{{ group.id }}" data-rules='{{ group.variation_rules|json_encode|e('html_attr') }}' data-default-required="{{ group.required_count_default }}" data-default-pieces="{{ group.pieces_per_option_default }}" data-allow-repeats="{{ group.allow_choice_repeats|default(0) }}">
@@ -758,7 +771,6 @@
                                     <a href="{{ path('store/cart') }}" class="pp-btn pp-btn-light">Go to cart</a>
                                 </div>
                                 {% if is_box_builder %}<div id="box-cart-summary" class="pp-helper" aria-live="polite"></div>{% endif %}
-                                {% if is_box_builder %}
                                 <div class="pp-box-modal" id="box-action-modal" hidden aria-hidden="true">
                                     <div class="pp-box-dialog" role="dialog" aria-modal="true" aria-labelledby="box-modal-title">
                                         <button type="button" class="pp-box-close" aria-label="Close">&times;</button>
@@ -766,11 +778,12 @@
                                         <div id="box-modal-body"></div>
                                         <div class="pp-box-modal-actions">
                                             <button type="button" class="pp-btn pp-btn-main" id="box-modal-primary">Add another box</button>
-                                            <a href="{{ path('store/cart') }}" class="pp-btn pp-btn-light">Go to cart</a>
+                                            <button type="button" class="pp-btn pp-btn-light" id="box-modal-edit">Modify this item</button>
+                                            <a href="{{ path('store/checkout') }}" class="pp-btn pp-btn-main" id="box-modal-checkout">Pay / checkout</a>
+                                            <a href="{{ path('gourmet-to-go') }}" class="pp-btn pp-btn-light">Continue exploring menu</a>
                                         </div>
                                     </div>
                                 </div>
-                                {% endif %}
 
                                 {% if not is_gourmet_express %}<div class="pp-helper">Choose quantity and, if needed, a variation. {% if product.allow_recurring_purchase|default(0) %}This product also supports recurring purchases at checkout.{% endif %}</div>{% endif %}
                             </form>
@@ -943,8 +956,11 @@ document.addEventListener('DOMContentLoaded', function () {
     const boxModalTitle = document.getElementById('box-modal-title');
     const boxModalBody = document.getElementById('box-modal-body');
     const boxModalPrimary = document.getElementById('box-modal-primary');
+    const boxModalEdit = document.getElementById('box-modal-edit');
     const isBoxBuilder = !!buildAnotherBtn;
     let editingCartIndex = null;
+    let boxCompletionSignature = '';
+    let boxCompletionTimer = null;
     const variationSelect = document.getElementById('variation-select');
     const variationButtons = document.querySelectorAll('[data-variation-id]');
     const axisButtons = Array.from(document.querySelectorAll('.pp-axis-button'));
@@ -1017,16 +1033,22 @@ document.addEventListener('DOMContentLoaded', function () {
         boxActionModal.setAttribute('aria-hidden', 'true');
         document.documentElement.style.removeProperty('overflow');
     }
-    function openBoxModal(title, body, primaryLabel, primaryAction) {
+    function openBoxModal(title, body, primaryLabel, primaryAction, editLabel = '', editAction = null) {
         if (!boxActionModal || !boxModalTitle || !boxModalBody || !boxModalPrimary) return;
         boxModalTitle.textContent = title;
         boxModalBody.innerHTML = body;
-        boxModalPrimary.textContent = primaryLabel;
-        boxModalPrimary.onclick = primaryAction;
+        boxModalPrimary.hidden = !primaryAction;
+        boxModalPrimary.textContent = primaryLabel || '';
+        boxModalPrimary.onclick = primaryAction || null;
+        if (boxModalEdit) {
+            boxModalEdit.hidden = !editAction;
+            boxModalEdit.textContent = editLabel || 'Modify this item';
+            boxModalEdit.onclick = editAction || null;
+        }
         boxActionModal.hidden = false;
         boxActionModal.setAttribute('aria-hidden', 'false');
         document.documentElement.style.overflow = 'hidden';
-        boxModalPrimary.focus();
+        (primaryAction ? boxModalPrimary : (boxModalEdit || boxActionModal.querySelector('#box-modal-checkout')))?.focus();
     }
     function openBoxEditModal(cartIndex) {
         const item = readCart().items?.[cartIndex];
@@ -1392,6 +1414,7 @@ document.addEventListener('DOMContentLoaded', function () {
     document.querySelectorAll('.pp-option-quantity').forEach(installOptionStepper);
     function resetBoxBuilder() {
         editingCartIndex = null;
+        boxCompletionSignature = '';
         optionGroups.forEach(group => refreshOptionGroup(group, true));
         updateSelectedServingInstructions();
         if (qtyInput) qtyInput.value = 1;
@@ -1443,7 +1466,13 @@ document.addEventListener('DOMContentLoaded', function () {
         document.querySelector('[data-option-group]')?.scrollIntoView({behavior:'smooth',block:'start'});
     }
     optionGroups.forEach(group => {
-        group.addEventListener('change', () => { refreshOptionGroup(group); updateSelectionState(); updateRunningTotal(); updateSelectedServingInstructions(); });
+        group.addEventListener('change', () => {
+            refreshOptionGroup(group);
+            updateSelectionState();
+            updateRunningTotal();
+            updateSelectedServingInstructions();
+            maybeCompleteBox();
+        });
         refreshOptionGroup(group);
     });
     if (isBoxBuilder && optionGroups.length) {
@@ -1499,6 +1528,25 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
+    function currentBoxCompletionSignature() {
+        return JSON.stringify({
+            variation: variationSelect?.value || '',
+            groups: selectedOptionGroups().map(group => ({group_id:group.group_id, quantities:group.selected_choice_quantities}))
+        });
+    }
+
+    function maybeCompleteBox() {
+        if (!isBoxBuilder || gourmetStorePaused || !optionGroupsValid() || (productIsVariable && !variationSelect?.value)) {
+            if (!optionGroupsValid()) boxCompletionSignature = '';
+            return;
+        }
+        const signature = currentBoxCompletionSignature();
+        if (!signature || signature === boxCompletionSignature) return;
+        boxCompletionSignature = signature;
+        window.clearTimeout(boxCompletionTimer);
+        boxCompletionTimer = window.setTimeout(() => addConfiguredProduct({currentTarget:addBtn, autoTriggered:true}), 180);
+    }
+
     const productIsVariable = (addBtn?.dataset.productType || 'FIXED') === 'VARIABLE';
     updateSelectionState();
     qtyInput?.addEventListener('input', updateRunningTotal);
@@ -1519,6 +1567,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
     async function addConfiguredProduct(event) {
         const buildAnother = event.currentTarget === buildAnotherBtn;
+        window.clearTimeout(boxCompletionTimer);
+        boxCompletionTimer = null;
+        if (isBoxBuilder && optionGroupsValid()) boxCompletionSignature = currentBoxCompletionSignature();
         if (gourmetStorePaused) {
             let message = gourmetClosedMessage;
             if (gourmetReopenAt) message += ' We expect to reopen ' + new Date(gourmetReopenAt.replace(' ', 'T')).toLocaleString() + '.';
@@ -1655,16 +1706,30 @@ document.addEventListener('DOMContentLoaded', function () {
         editingCartIndex = null;
         if (isBoxBuilder) {
             const savedChoices = boxChoiceText(savedBoxItem);
+            const savedIndex = cart.items.indexOf(savedBoxItem);
             updateBoxCartSummary(wasEditing ? 'Box updated.' : 'Box added.');
             openBoxModal(
                 wasEditing ? 'Box updated' : 'Box added',
-                `<p>${escapeHtml(savedChoices)}</p><p><strong>$${Number(savedBoxItem?.line_total || 0).toFixed(2)}</strong></p>`,
+                `<p>Your completed box is now in the cart.</p><p>${escapeHtml(savedChoices)}</p><p><strong>$${Number(savedBoxItem?.line_total || 0).toFixed(2)}</strong></p>`,
                 'Add another box',
-                resetBoxBuilder
+                resetBoxBuilder,
+                'Modify this box',
+                () => loadBoxForEditing(savedIndex)
             );
             return;
         }
-        window.location.href = '{{ path("store/cart") }}';
+        openBoxModal(
+            'Item added to cart',
+            `<p><strong>${escapeHtml(savedBoxItem?.product_name || addBtn.dataset.name || 'Item')}</strong></p><p>Choose the next step without searching or scrolling.</p>`,
+            '',
+            null,
+            'Modify this item',
+            () => {
+                closeBoxModal();
+                if (qtyInput) qtyInput.focus();
+                addBtn.closest('.pp-purchase-box')?.scrollIntoView({behavior:'smooth',block:'center'});
+            }
+        );
     }
     addBtn.addEventListener('click', addConfiguredProduct);
     buildAnotherBtn?.addEventListener('click', addConfiguredProduct);
