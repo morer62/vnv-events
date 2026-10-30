@@ -1,5 +1,6 @@
 {% extends "templates/base.store.twig" %}
 {% set product_brand_label = is_vnv_gourmet_service|default(false) ? 'VNV Gourmet' : 'VNV Gourmet To Go' %}
+{% set is_box_builder = product and product.slug in ['appetizer-box','appetizer-box-breakfast-brunch','dessert-box'] %}
 {% set brazo_meta_description = 'Light sponge rolled with pastry cream, topped with fresh strawberries. Serves 10–12. Pickup in Sunrise.' %}
 
 {% block title %}
@@ -625,7 +626,7 @@
                                         {% endif %}
                                     </div>
 
-                                    <div>
+                                    <div{% if is_box_builder %} hidden aria-hidden="true"{% endif %}>
                                         <label class="pp-form-label">Quantity</label>
                                         <input
                                             type="number"
@@ -667,6 +668,7 @@
                                 {% if product_option_groups|length %}
                                 <style>
                                 .pp-option-group{margin:1.1rem 0;padding:1.1rem;border:1px solid #cfe0da;border-radius:18px;background:#f7fbf9}.pp-option-head{display:flex;justify-content:space-between;gap:1rem;align-items:center;margin-bottom:.8rem}.pp-option-counter{font-weight:900;color:#0c6d59}.pp-option-section-title{margin:1rem 0 .55rem;font-size:.9rem;text-transform:uppercase;letter-spacing:.06em;color:#385c51}.pp-option-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.65rem}.pp-option-choice{display:grid;grid-template-columns:74px minmax(0,1fr) auto;gap:.75rem;align-items:center;padding:.7rem;border:1px solid #d7e4df;border-radius:14px;background:#fff;cursor:pointer}.pp-option-media{display:grid;gap:.35rem}.pp-option-choice .pp-option-image{width:74px;height:64px;object-fit:cover;border-radius:10px;background:#eee;cursor:zoom-in;outline-offset:3px}.pp-option-photo{width:100%;padding:.28rem .25rem;border:1px solid #8a9d96;border-radius:8px;background:#fff;color:#173f34;font-size:.68rem;font-weight:900;cursor:pointer}.pp-option-photo:hover,.pp-option-photo:focus-visible{background:#edf7f3;outline:2px solid #0c6d59;outline-offset:2px}.pp-option-choice input[type="checkbox"]{width:22px;height:22px}.pp-option-quantity{width:62px!important;height:44px!important;padding:.45rem .25rem;border:1px solid #8a9d96;border-radius:10px;background:#fff;text-align:center;font-size:1rem;font-weight:900;color:#173f34}.pp-option-choice.is-disabled{opacity:.45}.pp-option-serve,.pp-option-instructions{font-size:.72rem;color:#4f665e;display:block;margin-top:.2rem}.pp-option-serve{font-weight:900}.pp-option-premium{display:inline-flex;margin-top:.28rem;padding:.18rem .42rem;border-radius:999px;background:#fff1cf;color:#7a4b00;font-size:.72rem;font-weight:900}.pp-image-modal[hidden],.pp-box-modal[hidden]{display:none}.pp-image-modal,.pp-box-modal{position:fixed;inset:0;z-index:10050;display:grid;place-items:center;padding:1rem;background:rgba(5,20,16,.82);backdrop-filter:blur(5px)}.pp-image-dialog,.pp-box-dialog{position:relative;width:min(680px,100%);max-height:calc(100dvh - 2rem);overflow:auto;padding:1rem;border-radius:20px;background:#fff;box-shadow:0 24px 70px rgba(0,0,0,.38)}.pp-image-dialog img{display:block;width:100%;max-height:75dvh;object-fit:contain;border-radius:14px;background:#f4f1eb}.pp-image-dialog p{margin:.8rem .25rem .15rem;font-weight:850;text-align:center;color:#173f34}.pp-image-close,.pp-box-close{position:absolute;top:1rem;right:1rem;z-index:1;width:42px;height:42px;border:0;border-radius:50%;background:rgba(15,39,32,.92);color:#fff;font-size:1.6rem;line-height:1;cursor:pointer;box-shadow:0 5px 18px rgba(0,0,0,.25)}.pp-box-dialog{padding:1.35rem}.pp-box-dialog h3{margin:0 3rem .55rem 0}.pp-box-modal-actions{display:flex;flex-wrap:wrap;gap:.6rem;margin-top:1rem}.pp-box-summary{display:grid;gap:.65rem;margin:.8rem 0 1.2rem}.pp-box-card{padding:.8rem;border:1px solid #cfe0da;border-radius:14px;background:#f7fbf9;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:.65rem;align-items:center}.pp-box-card strong,.pp-box-card span{display:block}.pp-box-card span{font-size:.8rem;color:#4f665e;margin-top:.2rem}.pp-box-edit{border:1px solid #0c6d59;border-radius:10px;background:#fff;color:#0c6d59;padding:.5rem .7rem;font-weight:900;cursor:pointer}@media(max-width:650px){.pp-option-grid{grid-template-columns:1fr}.pp-option-head{align-items:flex-start;flex-direction:column}.pp-image-modal,.pp-box-modal{padding:.6rem}.pp-image-dialog,.pp-box-dialog{padding:.85rem;border-radius:16px}.pp-image-dialog img{max-height:72dvh}.pp-image-close,.pp-box-close{top:.75rem;right:.75rem}.pp-box-modal-actions>*{flex:1 1 100%;text-align:center}.pp-box-card{grid-template-columns:1fr}.pp-box-edit{width:100%}}
+                                .pp-option-stepper{display:grid;grid-template-columns:44px 38px 44px;align-items:center;border:1px solid #8a9d96;border-radius:999px;overflow:hidden;background:#fff}.pp-option-step{width:44px;height:44px;border:0;background:#edf7f3;color:#173f34;font-size:1.45rem;font-weight:900;cursor:pointer}.pp-option-step:disabled{opacity:.35;cursor:not-allowed}.pp-option-stepper .pp-option-quantity{width:38px!important;height:44px!important;padding:0!important;border:0!important;border-radius:0!important;background:#fff;text-align:center;font-size:1.05rem;font-weight:900;color:#173f34;pointer-events:none}.pp-box-card-actions{display:flex;gap:.45rem}.pp-box-remove{border:1px solid #b42318;border-radius:10px;background:#fff;color:#b42318;padding:.5rem .7rem;font-weight:900;cursor:pointer}@media(max-width:650px){.pp-option-choice{grid-template-columns:64px minmax(0,1fr)}.pp-option-choice .pp-option-image{width:64px;height:60px}.pp-option-stepper{grid-column:1/-1;grid-template-columns:48px minmax(0,1fr) 48px;width:100%}.pp-option-step{width:48px;height:48px}.pp-option-stepper .pp-option-quantity{width:100%!important;height:48px!important}.pp-box-card-actions{display:grid;grid-template-columns:1fr 1fr}.pp-box-remove{width:100%}}
                                 </style>
                                 {% for group in product_option_groups %}
                                 <section class="pp-option-group" data-option-group="{{ group.id }}" data-rules='{{ group.variation_rules|json_encode|e('html_attr') }}' data-default-required="{{ group.required_count_default }}" data-default-pieces="{{ group.pieces_per_option_default }}" data-allow-repeats="{{ group.allow_choice_repeats|default(0) }}">
@@ -678,7 +680,7 @@
                                         <label class="pp-option-choice"{% if choice.serving_instructions %} title="{{ choice.serving_instructions|e('html_attr') }}"{% endif %}>
                                             {% if choice.image_url %}<span class="pp-option-media"><img class="pp-option-image" src="{{ choice.image_url }}" alt="{{ choice.name }}" loading="lazy"><button type="button" class="pp-option-photo" data-full-image="{{ choice.image_url }}" data-photo-name="{{ choice.name|e('html_attr') }}" data-serve-label="{{ choice.serve_label|default('')|e('html_attr') }}" aria-label="View photo of {{ choice.name }}">◉ View photo</button></span>{% else %}<span></span>{% endif %}
                                             <span><strong>{{ choice.name }}</strong>{% if choice.serve_label %}<span class="pp-option-serve">{{ choice.serve_label }}</span>{% endif %}{% if choice.price_modifier > 0 %}<span class="pp-option-premium">Premium +${{ choice.price_modifier|number_format(0) }}</span>{% endif %}{% if choice.serving_instructions %}<span class="pp-option-instructions">{{ choice.serving_instructions }}</span>{% endif %}</span>
-                                            {% if group.allow_choice_repeats|default(0) %}<input type="number" class="pp-option-quantity" value="0" min="0" max="4" inputmode="numeric" data-choice-id="{{ choice.id }}" data-name="{{ choice.name|e('html_attr') }}" data-serve-label="{{ choice.serve_label|default('')|e('html_attr') }}" data-price-modifier="{{ choice.price_modifier|default(0) }}" data-serving-instructions="{{ choice.serving_instructions|default('')|e('html_attr') }}" aria-label="Quantity of {{ choice.name }} selections">{% else %}<input type="checkbox" value="{{ choice.id }}" data-name="{{ choice.name|e('html_attr') }}" data-serve-label="{{ choice.serve_label|default('')|e('html_attr') }}" data-price-modifier="{{ choice.price_modifier|default(0) }}" data-serving-instructions="{{ choice.serving_instructions|default('')|e('html_attr') }}" aria-label="{{ choice.name }}">{% endif %}
+                                            {% if group.allow_choice_repeats|default(0) %}<span class="pp-option-stepper" aria-label="Quantity of {{ choice.name }} selections"><button type="button" class="pp-option-step" data-step="-1" aria-label="Remove one {{ choice.name }}">&minus;</button><input type="text" class="pp-option-quantity" value="0" readonly tabindex="-1" data-choice-id="{{ choice.id }}" data-name="{{ choice.name|e('html_attr') }}" data-serve-label="{{ choice.serve_label|default('')|e('html_attr') }}" data-price-modifier="{{ choice.price_modifier|default(0) }}" data-serving-instructions="{{ choice.serving_instructions|default('')|e('html_attr') }}" aria-label="Selected quantity of {{ choice.name }}"><button type="button" class="pp-option-step" data-step="1" aria-label="Add one {{ choice.name }}">&plus;</button></span>{% else %}<input type="checkbox" value="{{ choice.id }}" data-name="{{ choice.name|e('html_attr') }}" data-serve-label="{{ choice.serve_label|default('')|e('html_attr') }}" data-price-modifier="{{ choice.price_modifier|default(0) }}" data-serving-instructions="{{ choice.serving_instructions|default('')|e('html_attr') }}" aria-label="{{ choice.name }}">{% endif %}
                                         </label>
                                     {% endif %}{% endfor %}
                                     </div>
@@ -749,14 +751,14 @@
                                         Add to cart
                                     </button>
 
-                                    {% if product.slug in ['appetizer-box','appetizer-box-breakfast-brunch','dessert-box'] %}
-                                    <button type="button" class="pp-btn pp-btn-light" id="add-build-another-btn">Add &amp; build another box</button>
+                                    {% if is_box_builder %}
+                                    <button type="button" class="pp-btn pp-btn-light" id="add-build-another-btn">Save &amp; add another box</button>
                                     {% endif %}
 
                                     <a href="{{ path('store/cart') }}" class="pp-btn pp-btn-light">Go to cart</a>
                                 </div>
-                                {% if product.slug in ['appetizer-box','appetizer-box-breakfast-brunch','dessert-box'] %}<div id="box-cart-summary" class="pp-helper" aria-live="polite"></div>{% endif %}
-                                {% if product.slug in ['appetizer-box','appetizer-box-breakfast-brunch','dessert-box'] %}
+                                {% if is_box_builder %}<div id="box-cart-summary" class="pp-helper" aria-live="polite"></div>{% endif %}
+                                {% if is_box_builder %}
                                 <div class="pp-box-modal" id="box-action-modal" hidden aria-hidden="true">
                                     <div class="pp-box-dialog" role="dialog" aria-modal="true" aria-labelledby="box-modal-title">
                                         <button type="button" class="pp-box-close" aria-label="Close">&times;</button>
@@ -1037,6 +1039,29 @@ document.addEventListener('DOMContentLoaded', function () {
             () => loadBoxForEditing(cartIndex)
         );
     }
+    function removeBoxFromCart(cartIndex) {
+        const cart = readCart();
+        if (!cart.items?.[cartIndex]) return;
+        cart.items.splice(cartIndex, 1);
+        cart.items_count = cart.items.length;
+        cart.quantity_total = cart.items.reduce((sum, item) => sum + Math.max(0, toInt(item.quantity, 0)), 0);
+        cart.subtotal = Number(cart.items.reduce((sum, item) => sum + Number(item.line_total || 0), 0).toFixed(2));
+        cart.total = cart.subtotal;
+        cart.updated_at = new Date().toISOString();
+        saveCart(cart);
+        closeBoxModal();
+        updateBoxCartSummary('Box removed.');
+    }
+    function openBoxRemoveModal(cartIndex) {
+        const item = readCart().items?.[cartIndex];
+        if (!item) return;
+        openBoxModal(
+            'Remove this box?',
+            `<p><strong>${escapeHtml(item.product_name || 'Box')}</strong><br>${escapeHtml(item.variation_name || '')}</p><p>${escapeHtml(boxChoiceText(item))}</p>`,
+            'Remove box',
+            () => removeBoxFromCart(cartIndex)
+        );
+    }
     function updateBoxCartSummary(message = '') {
         if (!boxCartSummary) return;
         const cart = readCart();
@@ -1044,9 +1069,10 @@ document.addEventListener('DOMContentLoaded', function () {
         const total = boxes.reduce((sum, entry) => sum + Number(entry.item.line_total || 0), 0);
         boxCartSummary.classList.toggle('pp-box-summary', boxes.length > 0);
         boxCartSummary.innerHTML = (message ? `<strong>${escapeHtml(message)}</strong>` : '') + (boxes.length
-            ? boxes.map((entry, position) => `<div class="pp-box-card"><div><strong>Box ${position + 1}: ${escapeHtml(entry.item.product_name || 'Custom box')}</strong><span>${escapeHtml(entry.item.variation_name || '')}</span><span>${escapeHtml(boxChoiceText(entry.item))}</span><span>$${Number(entry.item.line_total || 0).toFixed(2)}</span></div><button type="button" class="pp-box-edit" data-edit-box-index="${entry.index}">Edit</button></div>`).join('') + `<div><strong>${boxes.length} box${boxes.length === 1 ? '' : 'es'} · $${total.toFixed(2)}</strong> · <a href="{{ path('store/cart') }}">Go to cart</a></div>`
+            ? boxes.map((entry, position) => `<div class="pp-box-card"><div><strong>Box ${position + 1}: ${escapeHtml(entry.item.product_name || 'Custom box')}</strong><span>${escapeHtml(entry.item.variation_name || '')}</span><span>${escapeHtml(boxChoiceText(entry.item))}</span><span>$${Number(entry.item.line_total || 0).toFixed(2)}</span></div><div class="pp-box-card-actions"><button type="button" class="pp-box-edit" data-edit-box-index="${entry.index}">Edit</button><button type="button" class="pp-box-remove" data-remove-box-index="${entry.index}">Remove</button></div></div>`).join('') + `<div><strong>${boxes.length} box${boxes.length === 1 ? '' : 'es'} · $${total.toFixed(2)}</strong> · <a href="{{ path('store/cart') }}">Go to cart</a></div>`
             : 'Build each box separately; every selection stays attached to its own cart line.');
         boxCartSummary.querySelectorAll('[data-edit-box-index]').forEach(button => button.addEventListener('click', () => openBoxEditModal(toInt(button.dataset.editBoxIndex, -1))));
+        boxCartSummary.querySelectorAll('[data-remove-box-index]').forEach(button => button.addEventListener('click', () => openBoxRemoveModal(toInt(button.dataset.removeBoxIndex, -1))));
     }
     updateBoxCartSummary();
     boxActionModal?.querySelector('.pp-box-close')?.addEventListener('click', closeBoxModal);
@@ -1280,6 +1306,11 @@ document.addEventListener('DOMContentLoaded', function () {
             if (repeats) {
                 const current = inputQuantity(input);
                 input.max = String(Math.max(current, required - selected + current));
+                const stepper = input.closest('.pp-option-stepper');
+                const minus = stepper?.querySelector('[data-step="-1"]');
+                const plus = stepper?.querySelector('[data-step="1"]');
+                if (minus) minus.disabled = current <= 0;
+                if (plus) plus.disabled = selected >= required;
                 input.closest('.pp-option-choice')?.classList.toggle('is-disabled', selected >= required && current === 0);
             } else {
                 const disabled = selected >= required && !input.checked;
@@ -1315,6 +1346,50 @@ document.addEventListener('DOMContentLoaded', function () {
             };
         });
     }
+    function installOptionStepper(input) {
+        input.type = 'text';
+        input.readOnly = true;
+        input.tabIndex = -1;
+        let stepper = input.closest('.pp-option-stepper');
+        if (!stepper) {
+            stepper = document.createElement('span');
+            stepper.className = 'pp-option-stepper';
+            stepper.setAttribute('aria-label', `Quantity of ${input.dataset.name || 'this selection'}`);
+            const minus = document.createElement('button');
+            minus.type = 'button';
+            minus.className = 'pp-option-step';
+            minus.dataset.step = '-1';
+            minus.setAttribute('aria-label', `Remove one ${input.dataset.name || 'selection'}`);
+            minus.textContent = '−';
+            const plus = document.createElement('button');
+            plus.type = 'button';
+            plus.className = 'pp-option-step';
+            plus.dataset.step = '1';
+            plus.setAttribute('aria-label', `Add one ${input.dataset.name || 'selection'}`);
+            plus.textContent = '+';
+            input.before(stepper);
+            stepper.append(minus, input, plus);
+        }
+        stepper.querySelectorAll('.pp-option-step').forEach(button => {
+            if (button.dataset.bound === '1') return;
+            button.dataset.bound = '1';
+            button.addEventListener('click', event => {
+                event.preventDefault();
+                event.stopPropagation();
+                const group = button.closest('[data-option-group]');
+                if (!group) return;
+                const delta = toInt(button.dataset.step, 0);
+                const current = inputQuantity(input);
+                const required = toInt(currentOptionRule(group).required_count, 0);
+                const selected = selectedGroupUnits(group);
+                if (delta > 0 && selected >= required) return;
+                if (delta < 0 && current <= 0) return;
+                input.value = String(Math.max(0, Math.min(required, current + delta)));
+                input.dispatchEvent(new Event('change', {bubbles:true}));
+            });
+        });
+    }
+    document.querySelectorAll('.pp-option-quantity').forEach(installOptionStepper);
     function resetBoxBuilder() {
         editingCartIndex = null;
         optionGroups.forEach(group => refreshOptionGroup(group, true));
@@ -1394,7 +1469,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function updateRunningTotal() {
         if (!addBtn) return;
-        if (productIsVariable && !variationSelect?.value) { addBtn.textContent = 'Add to cart'; return; }
+        if (productIsVariable && !variationSelect?.value) { addBtn.textContent = isBoxBuilder ? 'Save this box' : 'Add to cart'; return; }
         const option = variationSelect?.value ? variationSelect.options[variationSelect.selectedIndex] : null;
         const baseUnit = toFloat(option?.dataset.price ?? addBtn.dataset.price, 0);
         const optionModifier = selectedOptionModifierTotal();
@@ -1408,7 +1483,7 @@ document.addEventListener('DOMContentLoaded', function () {
             const addonPrice = addonSelect?.value ? toFloat(addonSelect.options[addonSelect.selectedIndex].dataset.price, 0) : toFloat(check.dataset.price, 0);
             total += addonPrice * addonQty;
         });
-        addBtn.textContent = 'Add to cart — $' + total.toFixed(2);
+        addBtn.textContent = (isBoxBuilder ? 'Save this box — $' : 'Add to cart — $') + total.toFixed(2);
         if (priceDisplay) priceDisplay.textContent = '$' + unit.toFixed(2);
         if (priceNote && option?.value) {
             const premiumNames = optionGroups.flatMap(group => selectedGroupInputs(group))
