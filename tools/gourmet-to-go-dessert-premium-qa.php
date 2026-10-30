@@ -65,16 +65,29 @@ $dessertVariation = $variation((int)$dessert['id'], 48);
 $dessertGroups = $options->groupsForProduct(2, 'vnvevents', (int)$dessert['id']);
 $dessertChoices = $dessertGroups[0]['choices'] ?? [];
 $assert(count($dessertChoices) === 6, 'Expected six Dessert Box varieties.');
-$dessertChoiceIds = array_map(static fn(array $choice): int => (int)$choice['id'], array_slice($dessertChoices, 0, 4));
+$assert((int)($dessertGroups[0]['allow_choice_repeats'] ?? 0) === 1, 'Expected Dessert Box choices to allow repeats.');
+$dessertChoiceQuantities = [(int)$dessertChoices[0]['id'] => 3, (int)$dessertChoices[1]['id'] => 1];
 $dessertSnapshot = $options->validate(2, 'vnvevents', (int)$dessert['id'], (int)$dessertVariation['id'], [
     'option_groups' => [[
         'group_id' => (int)$dessertGroups[0]['id'],
-        'selected_choice_ids' => $dessertChoiceIds,
+        'selected_choice_quantities' => $dessertChoiceQuantities,
     ]],
 ]);
 $assert((int)$dessertSnapshot[0]['required_count'] === 4, 'Expected the 48-piece Dessert Box to require four choices.');
 $assert((int)$dessertSnapshot[0]['pieces_per_option'] === 12, 'Expected twelve pieces of each dessert choice.');
+$assert((int)$dessertSnapshot[0]['selections'][0]['quantity'] === 3, 'Expected repeated Dessert Box variety quantity three.');
+$assert((int)$dessertSnapshot[0]['selections'][0]['pieces'] === 36, 'Expected repeated Dessert Box variety to total 36 pieces.');
 $assert((float)$dessertVariation['price'] === 89.0, 'Expected the 48-piece Dessert Box to cost $89.');
+$dessertSmallVariation = $variation((int)$dessert['id'], 24);
+$dessertSmallSnapshot = $options->validate(2, 'vnvevents', (int)$dessert['id'], (int)$dessertSmallVariation['id'], [
+    'option_groups' => [[
+        'group_id' => (int)$dessertGroups[0]['id'],
+        'selected_choice_quantities' => $dessertChoiceQuantities,
+    ]],
+]);
+$assert((int)$dessertSmallSnapshot[0]['required_count'] === 4, 'Expected the 24-piece Dessert Box to require four choices.');
+$assert((int)$dessertSmallSnapshot[0]['pieces_per_option'] === 6, 'Expected six pieces per selection in the 24-piece Dessert Box.');
+$assert((int)$dessertSmallSnapshot[0]['selections'][0]['pieces'] === 18, 'Expected repeated small Dessert Box variety to total 18 pieces.');
 $dessertRows = $pdo->prepare('SELECT COUNT(*) FROM store_products WHERE id_owner=2 AND site_key=\'vnvevents\' AND slug=\'dessert-box\'');
 $dessertRows->execute();
 $assert((int)$dessertRows->fetchColumn() === 1, 'Expected one canonical dessert-box slug.');
