@@ -829,7 +829,7 @@ document.addEventListener('DOMContentLoaded', function () {
         let config = item.configuration || item.configuration_snapshot || {};
         if (typeof config === 'string') { try { config = JSON.parse(config); } catch (e) { config = {}; } }
         return (config.option_groups || []).flatMap(group => group.selections || []).map(choice =>
-            `<span class="checkout-item-chip">${choice.name}${choice.pieces ? ` × ${choice.pieces} pcs` : ''}${choice.serve_label ? ` · ${choice.serve_label}` : ''}${Number(choice.price_modifier || 0) > 0 ? ` · Premium +$${Number(choice.price_modifier).toFixed(0)}` : ''}</span>`
+            `<span class="checkout-item-chip">${choice.name}${Number(choice.quantity || 1) > 1 ? ` ×${Number(choice.quantity)}` : ''}${choice.pieces ? ` · ${choice.pieces} pcs` : ''}${choice.serve_label ? ` · ${choice.serve_label}` : ''}${Number(choice.price_modifier || 0) > 0 ? ` · Premium +$${Number(choice.price_modifier).toFixed(0)}` : ''}</span>`
         ).join('');
     }
 

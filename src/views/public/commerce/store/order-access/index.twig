@@ -451,7 +451,7 @@ body{
                                         <div class="mt-1">
                                             {% for group in item.configuration.option_groups %}
                                                 {% for choice in group.selections %}
-                                                    <span class="order-item-chip">{{ choice.name }}{% if choice.price_modifier|default(0) > 0 %} · Premium +${{ choice.price_modifier|number_format(0) }}{% endif %}</span>
+                                                    <span class="order-item-chip">{{ choice.name }}{% if choice.quantity|default(1) > 1 %} ×{{ choice.quantity }}{% endif %}{% if choice.pieces|default(0) > 0 %} · {{ choice.pieces }} pcs{% endif %}{% if choice.price_modifier|default(0) > 0 %} · Premium +${{ choice.price_modifier|number_format(0) }}{% endif %}</span>
                                                 {% endfor %}
                                             {% endfor %}
                                         </div>

@@ -34,23 +34,28 @@ $appetizer = $product('appetizer-box');
 $breakfast = $product('appetizer-box-breakfast-brunch');
 $assert($appetizer['name'] === 'Appetizer Box — All Day', 'Expected the All Day appetizer product name.');
 $assert($breakfast['name'] === 'Appetizer Box — Breakfast & Brunch', 'Expected the Breakfast & Brunch product name.');
-$appetizerVariation = $variation((int)$appetizer['id'], 45);
+$appetizerVariation = $variation((int)$appetizer['id'], 48);
 $appetizerGroups = $options->groupsForProduct(2, 'vnvevents', (int)$appetizer['id']);
 $appetizerChoices = $appetizerGroups[0]['choices'] ?? [];
 $premium = array_values(array_filter($appetizerChoices, static fn(array $choice): bool => (float)$choice['price_modifier'] > 0));
 $standard = array_values(array_filter($appetizerChoices, static fn(array $choice): bool => (float)$choice['price_modifier'] === 0.0));
 $assert(count($premium) >= 3, 'Expected three premium slider choices.');
 $assert(count($standard) >= 2, 'Expected standard appetizer choices.');
+$assert((int)($appetizerGroups[0]['allow_choice_repeats'] ?? 0) === 1, 'Expected appetizer choices to allow repeats.');
 $appetizerSnapshot = $options->validate(2, 'vnvevents', (int)$appetizer['id'], (int)$appetizerVariation['id'], [
     'option_groups' => [[
         'group_id' => (int)$appetizerGroups[0]['id'],
-        'selected_choice_ids' => [(int)$premium[0]['id'], (int)$standard[0]['id'], (int)$standard[1]['id']],
+        'selected_choice_quantities' => [(int)$premium[0]['id'] => 3, (int)$standard[0]['id'] => 1],
     ]],
 ]);
 $appetizerModifier = (float)$appetizerSnapshot[0]['price_modifier_total'];
 $appetizerTotal = (float)$appetizerVariation['price'] + $appetizerModifier;
-$assert($appetizerModifier === 15.0, 'Expected one premium block to add $15.');
-$assert($appetizerTotal === 130.0, 'Expected 45-piece premium box total to be $130.');
+$assert((int)$appetizerSnapshot[0]['required_count'] === 4, 'Expected every appetizer size to require four selections.');
+$assert((int)$appetizerSnapshot[0]['pieces_per_option'] === 12, 'Expected twelve pieces per selection in the 48-piece box.');
+$assert((int)$appetizerSnapshot[0]['selections'][0]['quantity'] === 3, 'Expected the repeated premium variety to retain quantity three.');
+$assert((int)$appetizerSnapshot[0]['selections'][0]['pieces'] === 36, 'Expected the repeated premium variety to total 36 pieces.');
+$assert($appetizerModifier === 45.0, 'Expected three premium blocks to add $45.');
+$assert($appetizerTotal === 160.0, 'Expected the 48-piece box with three premium blocks to total $160.');
 
 $dessert = $product('dessert-box');
 $dessertVariationCount = $pdo->prepare('SELECT COUNT(*) FROM store_product_variations WHERE id_product=:product AND status=\'ACTIVE\'');
@@ -93,7 +98,7 @@ $assert(strip_tags((string)$brazo['description']) === 'Our family-recipe brazo g
 $assert($brazo['main_image'] === '/assets/images/gourmet-to-go/gtg-brazo-gitano.webp', 'Unexpected Brazo Gitano image path.');
 
 echo json_encode([
-    'premium_appetizer' => ['base' => (float)$appetizerVariation['price'], 'modifier' => $appetizerModifier, 'total' => $appetizerTotal],
+    'repeatable_appetizer' => ['pieces' => 48, 'selections' => '3 + 1', 'base' => (float)$appetizerVariation['price'], 'modifier' => $appetizerModifier, 'total' => $appetizerTotal],
     'dessert_box' => ['choices' => count($dessertChoices), 'required' => (int)$dessertSnapshot[0]['required_count'], 'pieces_each' => (int)$dessertSnapshot[0]['pieces_per_option'], 'price' => (float)$dessertVariation['price']],
     'legacy_products' => 'inactive/removed as specified',
     'anonymous_cleanup' => 'one Dessert Box slug; obsolete food profile removed',

@@ -14,7 +14,7 @@ use App\Utils\MessageUtil;
 
 $router = new Router();
 
-/** @return array<int,array{name:string,pieces:int,serve_label:string,price_modifier:float}> */
+/** @return array<int,array{name:string,quantity:int,pieces:int,serve_label:string,price_modifier:float}> */
 function storeOrderConfiguredChoices(object $item): array
 {
     $configuration = json_decode((string)($item->configuration_snapshot ?? ''), true);
@@ -26,6 +26,7 @@ function storeOrderConfiguredChoices(object $item): array
             if ($name === '') continue;
             $choices[] = [
                 'name' => $name,
+                'quantity' => max(1, (int)($selection['quantity'] ?? 1)),
                 'pieces' => max(0, (int)($selection['pieces'] ?? 0)),
                 'serve_label' => trim((string)($selection['serve_label'] ?? '')),
                 'price_modifier' => round((float)($selection['price_modifier'] ?? 0), 2),
@@ -42,6 +43,7 @@ function storeOrderKitchenDisplayName(object $item): string
     $choices = storeOrderConfiguredChoices($item);
     $details = array_map(static function (array $choice): string {
         return $choice['name']
+            . ($choice['quantity'] > 1 ? ' ×' . $choice['quantity'] : '')
             . ($choice['pieces'] > 0 ? ' × ' . $choice['pieces'] . ' pcs' : '')
             . ($choice['price_modifier'] > 0 ? ' · Premium +$' . number_format($choice['price_modifier'], 2) : '');
     }, $choices);

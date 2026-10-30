@@ -111,8 +111,9 @@ function sendCheckoutOrderDetailsEmail(
             foreach (($group['selections'] ?? []) as $choice) {
                 $label = trim((string)($choice['name'] ?? ''));
                 if ($label !== '') {
+                    $selectionQuantity = max(1, (int)($choice['quantity'] ?? 1));
                     $modifier = round((float)($choice['price_modifier'] ?? 0), 2);
-                    $choiceLabels[] = htmlspecialchars($label . ($modifier > 0 ? ' (Premium +$' . number_format($modifier, 0) . ')' : ''));
+                    $choiceLabels[] = htmlspecialchars($label . ($selectionQuantity > 1 ? ' ×' . $selectionQuantity : '') . ($modifier > 0 ? ' (Premium +$' . number_format($modifier, 0) . ')' : ''));
                     $reheatItems[$label] = [
                         'serve_label' => trim((string)($choice['serve_label'] ?? '')),
                         'instructions' => trim((string)($choice['serving_instructions'] ?? '')),

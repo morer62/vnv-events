@@ -140,6 +140,7 @@ $router->get(function () {
             foreach (($configuration['option_groups'] ?? []) as $group) {
                 foreach (($group['selections'] ?? []) as $selection) {
                     $detailParts[] = (string)($selection['name'] ?? 'Selection')
+                        . ((int)($selection['quantity'] ?? 1) > 1 ? ' ×' . (int)$selection['quantity'] : '')
                         . (!empty($selection['pieces']) ? ' × ' . (int)$selection['pieces'] . ' pcs' : '')
                         . (!empty($selection['serve_label']) ? ' · ' . (string)$selection['serve_label'] : '')
                         . ((float)($selection['price_modifier'] ?? 0) > 0 ? ' · Premium +$' . number_format((float)$selection['price_modifier'], 2) : '');

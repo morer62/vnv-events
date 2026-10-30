@@ -88,23 +88,45 @@ final class StoreProductOptionsService
             $required = (int)($rule['required_count'] ?? $group['required_count_default'] ?? 0);
             $pieces = (int)($rule['pieces_per_option'] ?? $group['pieces_per_option_default'] ?? 0);
             $submittedGroup = $byGroup[(int)$group['id']] ?? [];
-            $selectedIds = array_values(array_unique(array_filter(array_map('intval', (array)($submittedGroup['selected_choice_ids'] ?? [])))));
-            if (count($selectedIds) !== $required) {
+            $allowRepeats = (int)($group['allow_choice_repeats'] ?? 0) === 1;
+            $selectedQuantities = [];
+            if ($allowRepeats) {
+                foreach ((array)($submittedGroup['selected_choice_quantities'] ?? []) as $choiceId => $quantity) {
+                    $choiceId = (int)$choiceId;
+                    $quantity = max(0, min($required, (int)$quantity));
+                    if ($choiceId > 0 && $quantity > 0) $selectedQuantities[$choiceId] = $quantity;
+                }
+                if ($selectedQuantities === []) {
+                    foreach ((array)($submittedGroup['selected_choice_ids'] ?? []) as $choiceId) {
+                        $choiceId = (int)$choiceId;
+                        if ($choiceId > 0) $selectedQuantities[$choiceId] = ($selectedQuantities[$choiceId] ?? 0) + 1;
+                    }
+                }
+            } else {
+                foreach (array_values(array_unique(array_filter(array_map('intval', (array)($submittedGroup['selected_choice_ids'] ?? []))))) as $choiceId) {
+                    $selectedQuantities[$choiceId] = 1;
+                }
+            }
+            if (array_sum($selectedQuantities) !== $required) {
                 throw new RuntimeException(sprintf('Choose exactly %d %s before adding this item.', $required, strtolower((string)$group['name'])));
             }
             $choices = [];
             foreach ($group['choices'] as $choice) $choices[(int)$choice['id']] = $choice;
             $clean = [];
-            foreach ($selectedIds as $choiceId) {
+            foreach ($selectedQuantities as $choiceId => $quantity) {
                 if (!isset($choices[$choiceId])) throw new RuntimeException('One selected product option is no longer available.');
                 $choice = $choices[$choiceId];
+                $modifierEach = round((float)($choice['price_modifier'] ?? 0), 2);
                 $clean[] = [
                     'choice_id' => $choiceId,
                     'name' => (string)$choice['name'],
                     'slug' => (string)$choice['slug'],
-                    'pieces' => $pieces,
+                    'quantity' => $quantity,
+                    'pieces' => $pieces * $quantity,
+                    'pieces_per_selection' => $pieces,
                     'serve_label' => (string)($choice['serve_label'] ?? ''),
-                    'price_modifier' => round((float)($choice['price_modifier'] ?? 0), 2),
+                    'price_modifier_each' => $modifierEach,
+                    'price_modifier' => round($modifierEach * $quantity, 2),
                     'serving_instructions' => (string)($choice['serving_instructions'] ?? ''),
                 ];
             }
@@ -113,6 +135,7 @@ final class StoreProductOptionsService
                 'group_id' => (int)$group['id'],
                 'group_name' => (string)$group['name'],
                 'option_type' => (string)$group['option_type'],
+                'allow_choice_repeats' => $allowRepeats,
                 'required_count' => $required,
                 'pieces_per_option' => $pieces,
                 'price_modifier_total' => $modifierTotal,
