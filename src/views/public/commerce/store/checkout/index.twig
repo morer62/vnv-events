@@ -749,6 +749,46 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
+    async function syncLocalCartToServer() {
+        const localCart = readLocalCart();
+        const localItems = Array.isArray(localCart?.items) ? localCart.items : [];
+        if (!localItems.length) return false;
+
+        const response = await fetch('{{ path("store/cart") }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: JSON.stringify({
+                guest_name: localCart.guest_name || '',
+                guest_email: localCart.guest_email || '',
+                guest_phone: localCart.guest_phone || '',
+                city: localCart.city || '',
+                delivery_address: localCart.delivery_address || '',
+                fulfillment_method: localCart.fulfillment_method || 'PICKUP',
+                coupon_code: localCart.coupon_code || '',
+                pricing_mode: 'PAYG',
+                session_token: sessionToken,
+                items: localItems.map(item => ({
+                    id_product: item.id_product || item.id,
+                    id_product_variation: item.id_product_variation || null,
+                    quantity: Math.max(1, Number(item.quantity || 1)),
+                    servings: item.servings || null,
+                    configuration: item.configuration || {}
+                }))
+            })
+        });
+        const data = await response.json();
+        if (!response.ok || !data.success || !data.session_token) {
+            throw new Error(data.message || 'Could not prepare your cart for checkout.');
+        }
+
+        sessionToken = data.session_token;
+        localStorage.setItem(SESSION_KEY, sessionToken);
+        return true;
+    }
+
     function applyShippingToggle() {
         const same = !!shippingSameAsBillingInput.checked;
         shippingFieldsBlock.classList.toggle('hidden', same);
@@ -1258,7 +1298,27 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     (async function init() {
-        const loaded = await loadSummary();
+        if (!sessionToken && !RECOVERY_TOKEN) {
+            try {
+                await syncLocalCartToServer();
+            } catch (error) {
+                showError(error.message || 'Could not prepare your cart for checkout.');
+                return;
+            }
+        }
+
+        let loaded = await loadSummary();
+        if (!loaded && !RECOVERY_TOKEN && readLocalCart()?.items?.length) {
+            sessionToken = '';
+            localStorage.removeItem(SESSION_KEY);
+            try {
+                const synced = await syncLocalCartToServer();
+                if (synced) loaded = await loadSummary();
+            } catch (error) {
+                showError(error.message || 'Could not prepare your cart for checkout.');
+                return;
+            }
+        }
         if (!loaded) return;
         await loadSavedCards();
         await mountPaymentFields();
