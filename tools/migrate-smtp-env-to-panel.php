@@ -33,6 +33,19 @@ foreach ($required as $key) {
 
 $ownerId = SiteContext::businessOwnerId();
 $siteKey = SiteContext::siteKey();
+$smtpHost = strtolower(trim((string)$_ENV['MAIL_HOST']));
+$providerType = match (true) {
+    str_contains($smtpHost, 'brevo.com'),
+    str_contains($smtpHost, 'sendinblue.com') => 'brevo',
+    str_contains($smtpHost, 'amazonaws.com') => 'aws_ses',
+    str_contains($smtpHost, 'sendgrid.net') => 'sendgrid',
+    str_contains($smtpHost, 'mailgun.org') => 'mailgun',
+    str_contains($smtpHost, 'gmail.com') => 'gmail',
+    str_contains($smtpHost, 'office365.com'),
+    str_contains($smtpHost, 'outlook.com') => 'outlook',
+    default => 'custom',
+};
+$providerLabel = $providerType === 'brevo' ? 'VNV Events Brevo Production' : 'VNV Events Production';
 $repository = new SmtpCredentialsRepository();
 $existing = $repository->getConfiguredForOwner($ownerId, $siteKey);
 
@@ -44,9 +57,9 @@ if ($existing) {
 $created = $repository->add([
     'id_owner' => $ownerId,
     'site_key' => $siteKey,
-    'provider_name' => 'VNV Events Production',
-    'provider_type' => 'aws_ses',
-    'smtp_host' => trim((string)$_ENV['MAIL_HOST']),
+    'provider_name' => $providerLabel,
+    'provider_type' => $providerType,
+    'smtp_host' => $smtpHost,
     'smtp_port' => (int)$_ENV['MAIL_PORT'],
     'smtp_encryption' => strtolower(trim((string)$_ENV['MAIL_ENCRYPTION'])),
     'smtp_username' => (string)$_ENV['MAIL_USERNAME'],
