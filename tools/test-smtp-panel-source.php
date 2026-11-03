@@ -45,6 +45,8 @@ if (!$selected) throw new RuntimeException('Test SMTP panel provider could not b
 $_ENV['MAIL_HOST'] = 'env-credentials-must-not-be-used.invalid';
 $_ENV['MAIL_USERNAME'] = 'env-user-must-not-be-used';
 $_ENV['MAIL_PASSWORD'] = 'env-password-must-not-be-used';
+$_ENV['MAIL_REPLY_TO'] = 'legacy-reply@example.test';
+unset($_ENV['MAIL_REPLY_TO_EMAIL']);
 
 try {
     $service = new EmailService($ownerId);
@@ -57,7 +59,17 @@ try {
     if ($mailer->Username !== (string)$selected->smtp_username) throw new RuntimeException('SMTP username did not come from the panel provider.');
     if ($mailer->Password !== (string)$selected->smtp_password) throw new RuntimeException('SMTP password did not come from the encrypted panel provider.');
     if ($mailer->Host === $_ENV['MAIL_HOST'] || $mailer->Username === $_ENV['MAIL_USERNAME']) {
-        throw new RuntimeException('EmailService still used SMTP credentials from .env.');
+        throw new RuntimeException('EmailService did not keep the panel provider as the primary transport.');
+    }
+
+    $setsProperty = new ReflectionProperty(EmailService::class, 'credentialSets');
+    $setsProperty->setAccessible(true);
+    $sets = $setsProperty->getValue($service);
+    if (($sets[0]['source'] ?? '') !== 'panel' || ($sets[1]['source'] ?? '') !== 'env') {
+        throw new RuntimeException('SMTP failover must try the panel provider before the environment emergency fallback.');
+    }
+    if (($sets[1]['credentials']->reply_to_email ?? '') !== 'legacy-reply@example.test') {
+        throw new RuntimeException('The environment fallback must preserve the historical MAIL_REPLY_TO setting.');
     }
 
     $transportMethod = new ReflectionMethod(EmailService::class, 'transportCandidates');
@@ -70,6 +82,11 @@ try {
         throw new RuntimeException('Legacy TLS compatibility must be the final transport only.');
     }
 
+    $envCandidates = $transportMethod->invoke($service, $sets[1]['credentials'], 'env');
+    if (($envCandidates[0]['legacy_tls'] ?? false) !== true) {
+        throw new RuntimeException('The emergency environment transport must preserve the historical VNV TLS compatibility behavior.');
+    }
+
     $factoryTransportMethod = new ReflectionMethod(EmailServiceFactory::class, 'transportCandidates');
     $factoryTransportMethod->setAccessible(true);
     $factoryCandidates = $factoryTransportMethod->invoke(null, 'smtp-relay.brevo.com', 587, 'tls');
@@ -78,7 +95,9 @@ try {
         throw new RuntimeException('SMTP panel tests must use the same strict-first transport order.');
     }
 
-    echo "PASS SMTP credentials are loaded exclusively from the encrypted panel provider\n";
+    echo "PASS encrypted panel credentials remain the primary SMTP transport\n";
+    echo "PASS historical environment SMTP remains available only as emergency fallback\n";
+    echo "PASS historical environment reply-to configuration remains compatible\n";
     echo "PASS strict TLS is attempted before the final compatibility fallback\n";
     echo "PASS panel connection tests use the same strict-first transport order\n";
 } finally {

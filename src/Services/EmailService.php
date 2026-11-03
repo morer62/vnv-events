@@ -11,24 +11,55 @@ class EmailService
 {
     private PHPMailer $mailer;
     private object $credentials;
-    private string $fromEmail;
-    private string $fromName;
+    /** @var array<int,array{source:string,credentials:object}> */
+    private array $credentialSets = [];
 
     public function __construct(?int $ownerId = null)
     {
         $ownerId = $this->resolveOwnerId($ownerId);
-        $credentials = (new SmtpCredentialsRepository())->getConfiguredForOwner($ownerId, SiteContext::siteKey());
-        if (!$credentials) {
-            throw new Exception('No active SMTP provider is configured for this account and site.');
+        $panelCredentials = (new SmtpCredentialsRepository())->getConfiguredForOwner($ownerId, SiteContext::siteKey());
+        if ($panelCredentials) {
+            $this->credentialSets[] = ['source' => 'panel', 'credentials' => $panelCredentials];
         }
 
-        $this->credentials = $credentials;
-        $this->fromEmail = (string)$credentials->from_email;
-        $this->fromName = (string)$credentials->from_name;
+        $envCredentials = $this->environmentCredentials();
+        if ($envCredentials) {
+            // Keep the pre-panel VNV transport as an emergency fallback. This is
+            // intentionally second: Level 1 remains the normal source of truth,
+            // while payment, password-reset and order emails retain a proven
+            // delivery path if a panel credential or provider is unavailable.
+            $this->credentialSets[] = ['source' => 'env', 'credentials' => $envCredentials];
+        }
+
+        if (!$this->credentialSets) {
+            throw new Exception('No active SMTP provider or emergency environment SMTP transport is configured.');
+        }
+
+        $this->credentials = $this->credentialSets[0]['credentials'];
         $this->mailer = $this->createMailer(
-            (int)$credentials->smtp_port,
-            (string)$credentials->smtp_encryption
+            $this->credentials,
+            (int)$this->credentials->smtp_port,
+            (string)$this->credentials->smtp_encryption
         );
+    }
+
+    private function environmentCredentials(): ?object
+    {
+        $username = trim((string)($_ENV['MAIL_USERNAME'] ?? ''));
+        $password = trim((string)($_ENV['MAIL_PASSWORD'] ?? ''));
+        if ($username === '' || $password === '') return null;
+
+        return (object)[
+            'provider_name' => 'VNV environment emergency fallback',
+            'smtp_host' => (string)($_ENV['MAIL_HOST'] ?? 'smtp-relay.brevo.com'),
+            'smtp_port' => (int)($_ENV['MAIL_PORT'] ?? 587),
+            'smtp_encryption' => strtolower((string)($_ENV['MAIL_ENCRYPTION'] ?? 'tls')),
+            'smtp_username' => $username,
+            'smtp_password' => $password,
+            'from_email' => (string)($_ENV['MAIL_FROM_EMAIL'] ?? 'info@vnvevents.com'),
+            'from_name' => (string)($_ENV['MAIL_FROM_NAME'] ?? 'VNV Events'),
+            'reply_to_email' => (string)($_ENV['MAIL_REPLY_TO_EMAIL'] ?? $_ENV['MAIL_REPLY_TO'] ?? ''),
+        ];
     }
 
     private function resolveOwnerId(?int $ownerId): int
@@ -47,14 +78,14 @@ class EmailService
         return SiteContext::businessOwnerId();
     }
 
-    private function createMailer(int $port, string $encryption, bool $legacyTls = false): PHPMailer
+    private function createMailer(object $credentials, int $port, string $encryption, bool $legacyTls = false): PHPMailer
     {
         $mailer = new PHPMailer(true);
         $mailer->isSMTP();
-        $mailer->Host = (string)$this->credentials->smtp_host;
+        $mailer->Host = (string)$credentials->smtp_host;
         $mailer->SMTPAuth = true;
-        $mailer->Username = (string)$this->credentials->smtp_username;
-        $mailer->Password = (string)$this->credentials->smtp_password;
+        $mailer->Username = (string)$credentials->smtp_username;
+        $mailer->Password = (string)$credentials->smtp_password;
         $mailer->SMTPSecure = match (strtolower($encryption)) {
             'ssl' => PHPMailer::ENCRYPTION_SMTPS,
             'none' => '',
@@ -76,24 +107,34 @@ class EmailService
                 ],
             ];
         }
-        $mailer->setFrom($this->fromEmail, $this->fromName);
-        if (!empty($this->credentials->reply_to_email)) {
-            $mailer->addReplyTo((string)$this->credentials->reply_to_email);
+        $mailer->setFrom((string)$credentials->from_email, (string)$credentials->from_name);
+        if (!empty($credentials->reply_to_email)) {
+            $mailer->addReplyTo((string)$credentials->reply_to_email);
         }
         return $mailer;
     }
 
-    private function transportCandidates(): array
+    private function transportCandidates(?object $credentials = null, string $source = 'panel'): array
     {
-        $port = (int)$this->credentials->smtp_port;
-        $encryption = strtolower((string)$this->credentials->smtp_encryption);
+        $credentials ??= $this->credentials;
+        $port = (int)$credentials->smtp_port;
+        $encryption = strtolower((string)$credentials->smtp_encryption);
+
+        if ($source === 'env') {
+            $candidates = [['port' => $port, 'encryption' => $encryption, 'legacy_tls' => true]];
+            if (!($port === 465 && $encryption === 'ssl')) {
+                $candidates[] = ['port' => 465, 'encryption' => 'ssl', 'legacy_tls' => true];
+            }
+            return $candidates;
+        }
+
         $candidates = [['port' => $port, 'encryption' => $encryption, 'legacy_tls' => false]];
 
         if (!($port === 465 && $encryption === 'ssl')) {
             $candidates[] = ['port' => 465, 'encryption' => 'ssl', 'legacy_tls' => false];
         }
 
-        if (strcasecmp((string)$this->credentials->smtp_host, 'smtp-relay.brevo.com') === 0
+        if (strcasecmp((string)$credentials->smtp_host, 'smtp-relay.brevo.com') === 0
             && !($port === 2525 && $encryption === 'tls')) {
             $candidates[] = ['port' => 2525, 'encryption' => 'tls', 'legacy_tls' => false];
         }
@@ -108,17 +149,22 @@ class EmailService
     private function trySendFallback(callable $sendAction): bool
     {
         $lastException = null;
-        foreach ($this->transportCandidates() as $transport) {
-            $this->mailer = $this->createMailer(
-                $transport['port'],
-                $transport['encryption'],
-                (bool)$transport['legacy_tls']
-            );
-            try {
-                return $sendAction();
-            } catch (\Throwable $exception) {
-                $lastException = $exception;
-                try { $this->mailer->smtpClose(); } catch (\Throwable) {}
+        foreach ($this->credentialSets as $set) {
+            $credentials = $set['credentials'];
+            foreach ($this->transportCandidates($credentials, $set['source']) as $transport) {
+                $this->credentials = $credentials;
+                $this->mailer = $this->createMailer(
+                    $credentials,
+                    $transport['port'],
+                    $transport['encryption'],
+                    (bool)$transport['legacy_tls']
+                );
+                try {
+                    return $sendAction();
+                } catch (\Throwable $exception) {
+                    $lastException = $exception;
+                    try { $this->mailer->smtpClose(); } catch (\Throwable) {}
+                }
             }
         }
 
@@ -241,19 +287,24 @@ class EmailService
 
     public function testSMTPConnection(): bool
     {
-        foreach ($this->transportCandidates() as $transport) {
-            $this->mailer = $this->createMailer(
-                $transport['port'],
-                $transport['encryption'],
-                (bool)$transport['legacy_tls']
-            );
-            try {
-                if ($this->mailer->smtpConnect()) {
-                    $this->mailer->smtpClose();
-                    return true;
+        foreach ($this->credentialSets as $set) {
+            $credentials = $set['credentials'];
+            foreach ($this->transportCandidates($credentials, $set['source']) as $transport) {
+                $this->credentials = $credentials;
+                $this->mailer = $this->createMailer(
+                    $credentials,
+                    $transport['port'],
+                    $transport['encryption'],
+                    (bool)$transport['legacy_tls']
+                );
+                try {
+                    if ($this->mailer->smtpConnect()) {
+                        $this->mailer->smtpClose();
+                        return true;
+                    }
+                } catch (\Throwable) {
+                    try { $this->mailer->smtpClose(); } catch (\Throwable) {}
                 }
-            } catch (\Throwable) {
-                try { $this->mailer->smtpClose(); } catch (\Throwable) {}
             }
         }
         return false;
