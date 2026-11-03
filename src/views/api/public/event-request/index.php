@@ -353,7 +353,7 @@ $router->post(function () {
 
     $emailDelivered = false;
     try {
-        $emailService = new EmailService();
+        $emailService = new EmailService($ownerId);
         $results = $emailService->sendBulkEmail([
             ['email' => 'info@vnvevents.com', 'name' => 'VNV Events'],
             ['email' => 'contact@vnvevents.com', 'name' => 'VNV Events'],

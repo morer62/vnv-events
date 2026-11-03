@@ -2,70 +2,127 @@
 
 namespace App\Services;
 
+use App\Repositories\SmtpCredentialsRepository;
+use App\Utils\SiteContext;
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 
 class EmailService
 {
     private PHPMailer $mailer;
+    private object $credentials;
     private string $fromEmail;
     private string $fromName;
 
-    public function __construct()
+    public function __construct(?int $ownerId = null)
     {
-        $this->mailer = new PHPMailer(true);
-        $this->fromEmail = (string)($_ENV['MAIL_FROM_EMAIL'] ?? 'info@vnvevents.com');
-        $this->fromName  = (string)($_ENV['MAIL_FROM_NAME'] ?? 'VNV Events');
+        $ownerId = $this->resolveOwnerId($ownerId);
+        $credentials = (new SmtpCredentialsRepository())->getConfiguredForOwner($ownerId, SiteContext::siteKey());
+        if (!$credentials) {
+            throw new Exception('No active SMTP provider is configured for this account and site.');
+        }
 
-        $this->configureSMTP();
+        $this->credentials = $credentials;
+        $this->fromEmail = (string)$credentials->from_email;
+        $this->fromName = (string)$credentials->from_name;
+        $this->mailer = $this->createMailer(
+            (int)$credentials->smtp_port,
+            (string)$credentials->smtp_encryption
+        );
     }
 
-    private function configureSMTP(): void
+    private function resolveOwnerId(?int $ownerId): int
     {
-        try {
-            $this->mailer->isSMTP();
-            $this->mailer->Host       = (string)($_ENV['MAIL_HOST'] ?? 'smtp-relay.brevo.com');
-            $this->mailer->SMTPAuth   = true;
-            $this->mailer->Username   = (string)($_ENV['MAIL_USERNAME'] ?? '');
-            $this->mailer->Password   = (string)($_ENV['MAIL_PASSWORD'] ?? '');
-            $this->mailer->SMTPSecure = match (strtolower((string)($_ENV['MAIL_ENCRYPTION'] ?? 'tls'))) {
-                'ssl' => PHPMailer::ENCRYPTION_SMTPS,
-                'none' => '',
-                default => PHPMailer::ENCRYPTION_STARTTLS
-            };
-            $this->mailer->Port       = (int)($_ENV['MAIL_PORT'] ?? 587);
-            $this->mailer->CharSet    = 'UTF-8';
-            $this->mailer->Timeout    = 15;
-            $this->mailer->SMTPKeepAlive = false;
-            $this->mailer->SMTPOptions = [
-                'ssl' => [
-                    'verify_peer'       => false,
-                    'verify_peer_name'  => false,
-                    'allow_self_signed' => true,
-                ]
-            ];
-            $this->mailer->SMTPDebug   = 0;
-            $this->mailer->setFrom($this->fromEmail, $this->fromName);
+        if ($ownerId !== null && $ownerId > 0) return $ownerId;
 
-        } catch (Exception $e) {
-            throw new Exception("Failed to configure email service: " . $e->getMessage());
+        try {
+            $session = LoginService::getSession();
+            if ($session && (int)$session->getOwner() > 0) {
+                return (int)$session->getOwner();
+            }
+        } catch (\Throwable) {
+            // Public and cron requests may not have a session.
         }
+
+        return SiteContext::businessOwnerId();
+    }
+
+    private function createMailer(int $port, string $encryption, bool $legacyTls = false): PHPMailer
+    {
+        $mailer = new PHPMailer(true);
+        $mailer->isSMTP();
+        $mailer->Host = (string)$this->credentials->smtp_host;
+        $mailer->SMTPAuth = true;
+        $mailer->Username = (string)$this->credentials->smtp_username;
+        $mailer->Password = (string)$this->credentials->smtp_password;
+        $mailer->SMTPSecure = match (strtolower($encryption)) {
+            'ssl' => PHPMailer::ENCRYPTION_SMTPS,
+            'none' => '',
+            default => PHPMailer::ENCRYPTION_STARTTLS,
+        };
+        $mailer->Port = $port;
+        $mailer->CharSet = 'UTF-8';
+        $mailer->Timeout = 15;
+        $mailer->SMTPKeepAlive = false;
+        $mailer->SMTPDebug = 0;
+        if ($legacyTls) {
+            // Compatibility fallback for hosting networks with a mismatched SMTP
+            // certificate chain. Strict verification is always attempted first.
+            $mailer->SMTPOptions = [
+                'ssl' => [
+                    'verify_peer' => false,
+                    'verify_peer_name' => false,
+                    'allow_self_signed' => true,
+                ],
+            ];
+        }
+        $mailer->setFrom($this->fromEmail, $this->fromName);
+        if (!empty($this->credentials->reply_to_email)) {
+            $mailer->addReplyTo((string)$this->credentials->reply_to_email);
+        }
+        return $mailer;
+    }
+
+    private function transportCandidates(): array
+    {
+        $port = (int)$this->credentials->smtp_port;
+        $encryption = strtolower((string)$this->credentials->smtp_encryption);
+        $candidates = [['port' => $port, 'encryption' => $encryption, 'legacy_tls' => false]];
+
+        if (!($port === 465 && $encryption === 'ssl')) {
+            $candidates[] = ['port' => 465, 'encryption' => 'ssl', 'legacy_tls' => false];
+        }
+
+        if (strcasecmp((string)$this->credentials->smtp_host, 'smtp-relay.brevo.com') === 0
+            && !($port === 2525 && $encryption === 'tls')) {
+            $candidates[] = ['port' => 2525, 'encryption' => 'tls', 'legacy_tls' => false];
+        }
+
+        // Preserve the long-running VNV hosting compatibility path, but only
+        // after every certificate-validating transport has failed.
+        $candidates[] = ['port' => $port, 'encryption' => $encryption, 'legacy_tls' => true];
+
+        return $candidates;
     }
 
     private function trySendFallback(callable $sendAction): bool
     {
-        try {
-            return $sendAction();
-        } catch (Exception $e) {
-            $this->mailer->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
-            $this->mailer->Port = 465;
-            $this->mailer->Timeout = 15;
+        $lastException = null;
+        foreach ($this->transportCandidates() as $transport) {
+            $this->mailer = $this->createMailer(
+                $transport['port'],
+                $transport['encryption'],
+                (bool)$transport['legacy_tls']
+            );
             try {
                 return $sendAction();
-            } catch (Exception $ex) {
-                throw new Exception($this->mailer->ErrorInfo ?: $ex->getMessage());
+            } catch (\Throwable $exception) {
+                $lastException = $exception;
+                try { $this->mailer->smtpClose(); } catch (\Throwable) {}
             }
         }
+
+        throw new Exception($this->mailer->ErrorInfo ?: ($lastException?->getMessage() ?? 'SMTP delivery failed.'));
     }
 
     public function sendSimpleEmail(string $to, string $subject, string $body, bool $isHTML = true): bool
@@ -125,6 +182,20 @@ class EmailService
         });
     }
 
+    public function sendEmailWithStringAttachment(string $to, string $subject, string $body, string $content, string $filename, string $mime = 'application/pdf'): bool
+    {
+        return $this->trySendFallback(function () use ($to, $subject, $body, $content, $filename, $mime) {
+            $this->mailer->clearAddresses();
+            $this->mailer->clearAttachments();
+            $this->mailer->addAddress($to);
+            $this->mailer->Subject = $subject;
+            $this->mailer->Body = $body;
+            $this->mailer->isHTML(true);
+            $this->mailer->addStringAttachment($content, $filename, 'base64', $mime);
+            return $this->mailer->send();
+        });
+    }
+
     public function sendBulkEmail(array $recipients, string $subject, string $body, bool $isHTML = true): array
     {
         $results = [];
@@ -134,20 +205,16 @@ class EmailService
             $name  = is_array($recipient) ? ($recipient['name'] ?? '') : '';
 
             try {
-                $this->mailer->clearAddresses();
-                $this->mailer->clearAttachments();
-
-                $this->mailer->addAddress($email, $name);
-                $this->mailer->Subject = $subject;
-                $this->mailer->Body    = $body;
-                $this->mailer->isHTML($isHTML);
-
-                if (!$this->mailer->send()) {
-                    throw new Exception($this->mailer->ErrorInfo);
-                }
-
-                $results[$email] = true;
-            } catch (Exception $e) {
+                $results[$email] = $this->trySendFallback(function () use ($email, $name, $subject, $body, $isHTML) {
+                    $this->mailer->clearAddresses();
+                    $this->mailer->clearAttachments();
+                    $this->mailer->addAddress($email, $name);
+                    $this->mailer->Subject = $subject;
+                    $this->mailer->Body = $body;
+                    $this->mailer->isHTML($isHTML);
+                    return $this->mailer->send();
+                });
+            } catch (\Throwable $e) {
                 $results[$email] = false;
             }
         }
@@ -174,16 +241,21 @@ class EmailService
 
     public function testSMTPConnection(): bool
     {
-        try {
-            return $this->mailer->smtpConnect([
-                'ssl' => [
-                    'verify_peer'       => false,
-                    'verify_peer_name'  => false,
-                    'allow_self_signed' => true
-                ]
-            ]);
-        } catch (Exception $e) {
-            return false;
+        foreach ($this->transportCandidates() as $transport) {
+            $this->mailer = $this->createMailer(
+                $transport['port'],
+                $transport['encryption'],
+                (bool)$transport['legacy_tls']
+            );
+            try {
+                if ($this->mailer->smtpConnect()) {
+                    $this->mailer->smtpClose();
+                    return true;
+                }
+            } catch (\Throwable) {
+                try { $this->mailer->smtpClose(); } catch (\Throwable) {}
+            }
         }
+        return false;
     }
 }

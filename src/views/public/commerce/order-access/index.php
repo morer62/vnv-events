@@ -114,7 +114,7 @@ $router->get(function () {
                     ]);
                     
                     try {
-                        $emailService = new EmailService();
+                        $emailService = new EmailService((int)$order->id_owner);
                         $userRepo = new \App\Repositories\UserRepository();
                         $client = $userRepo->getOne(["id" => $decoded["user_id"]]);
                         

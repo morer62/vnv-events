@@ -8,19 +8,57 @@ use PHPMailer\PHPMailer\PHPMailer;
 
 class EmailServiceFactory
 {
+    private static function transportCandidates(string $host, int $port, string $encryption): array
+    {
+        $encryption = strtolower($encryption);
+        $candidates = [['port' => $port, 'encryption' => $encryption, 'legacy_tls' => false]];
+
+        if (!($port === 465 && $encryption === 'ssl')) {
+            $candidates[] = ['port' => 465, 'encryption' => 'ssl', 'legacy_tls' => false];
+        }
+
+        if (strcasecmp($host, 'smtp-relay.brevo.com') === 0
+            && !($port === 2525 && $encryption === 'tls')) {
+            $candidates[] = ['port' => 2525, 'encryption' => 'tls', 'legacy_tls' => false];
+        }
+
+        $candidates[] = ['port' => $port, 'encryption' => $encryption, 'legacy_tls' => true];
+        return $candidates;
+    }
+
+    private static function buildMailer(object $smtp, array $transport, int $timeout = 15): PHPMailer
+    {
+        $mailer = new PHPMailer(true);
+        $mailer->isSMTP();
+        $mailer->Host = (string)$smtp->smtp_host;
+        $mailer->Port = (int)$transport['port'];
+        $mailer->SMTPAuth = true;
+        $mailer->Username = (string)$smtp->smtp_username;
+        $mailer->Password = (string)$smtp->smtp_password;
+        $mailer->SMTPSecure = match ((string)$transport['encryption']) {
+            'ssl' => PHPMailer::ENCRYPTION_SMTPS,
+            'none' => '',
+            default => PHPMailer::ENCRYPTION_STARTTLS,
+        };
+        $mailer->CharSet = 'UTF-8';
+        $mailer->Timeout = $timeout;
+        if ((bool)$transport['legacy_tls']) {
+            $mailer->SMTPOptions = [
+                'ssl' => [
+                    'verify_peer' => false,
+                    'verify_peer_name' => false,
+                    'allow_self_signed' => true,
+                ],
+            ];
+        }
+        return $mailer;
+    }
+
     public static function sendWithOwnerProviderAttachment(int $ownerId, string $toEmail, string $subject, string $body, string $attachmentContent, string $attachmentName): array
     {
         try {
-            $repo = new SmtpCredentialsRepository();
-            $selected = $repo->getConfiguredForOwner($ownerId, SiteContext::siteKey());
-            if (!$selected) {
-                return ['success'=>false,'message'=>'Configure an SMTP provider before emailing invoice PDFs.','used_fallback'=>1];
-            }
-            $mailer = new PHPMailer(true);
-            $mailer->isSMTP();$mailer->Host=(string)$selected->smtp_host;$mailer->Port=(int)$selected->smtp_port;$mailer->SMTPAuth=true;$mailer->Username=(string)$selected->smtp_username;$mailer->Password=(string)$selected->smtp_password;
-            $mailer->SMTPSecure=match((string)$selected->smtp_encryption){'ssl'=>PHPMailer::ENCRYPTION_SMTPS,'none'=>'',default=>PHPMailer::ENCRYPTION_STARTTLS};
-            $mailer->CharSet='UTF-8';$mailer->Timeout=15;$mailer->SMTPOptions=['ssl'=>['verify_peer'=>false,'verify_peer_name'=>false,'allow_self_signed'=>true]];$mailer->setFrom((string)$selected->from_email,(string)$selected->from_name);if(!empty($selected->reply_to_email))$mailer->addReplyTo((string)$selected->reply_to_email);
-            $mailer->addAddress($toEmail);$mailer->Subject=$subject;$mailer->isHTML(true);$mailer->Body=$body;$mailer->addStringAttachment($attachmentContent,$attachmentName,'base64','application/pdf');$mailer->send();
+            $service = new EmailService($ownerId);
+            $service->sendEmailWithStringAttachment($toEmail, $subject, $body, $attachmentContent, $attachmentName);
             return ['success'=>true,'message'=>'Invoice emailed with PDF attachment.','used_fallback'=>0];
         } catch (\Throwable $e) { return ['success'=>false,'message'=>'Invoice email failed: '.$e->getMessage(),'used_fallback'=>0]; }
     }
@@ -28,55 +66,11 @@ class EmailServiceFactory
     public static function sendWithOwnerProvider(int $ownerId, string $toEmail, string $subject, string $body, bool $isHtml = true): array
     {
         try {
-            $repo = new SmtpCredentialsRepository();
-            $selected = $repo->getConfiguredForOwner($ownerId, SiteContext::siteKey());
-
-            if (!$selected) {
-                $fallback = new EmailService();
-                $ok = $fallback->sendSimpleEmail($toEmail, $subject, $body, $isHtml);
-                return ['success' => $ok, 'message' => $ok ? 'Sent with fallback provider.' : 'Fallback email failed.', 'used_fallback' => 1];
-            }
-
-            $mailer = new PHPMailer(true);
-            $mailer->isSMTP();
-            $mailer->Host = (string)$selected->smtp_host;
-            $mailer->Port = (int)$selected->smtp_port;
-            $mailer->SMTPAuth = true;
-            $mailer->Username = (string)$selected->smtp_username;
-            $mailer->Password = (string)$selected->smtp_password;
-            $mailer->SMTPSecure = match ((string)$selected->smtp_encryption) {
-                'ssl' => PHPMailer::ENCRYPTION_SMTPS,
-                'none' => '',
-                default => PHPMailer::ENCRYPTION_STARTTLS
-            };
-            $mailer->CharSet = 'UTF-8';
-            $mailer->Timeout = 15;
-            $mailer->SMTPOptions = [
-                'ssl' => [
-                    'verify_peer' => false,
-                    'verify_peer_name' => false,
-                    'allow_self_signed' => true
-                ]
-            ];
-            $mailer->setFrom((string)$selected->from_email, (string)$selected->from_name);
-            if (!empty($selected->reply_to_email)) {
-                $mailer->addReplyTo((string)$selected->reply_to_email);
-            }
-            $mailer->addAddress($toEmail);
-            $mailer->Subject = $subject;
-            $mailer->isHTML($isHtml);
-            $mailer->Body = $body;
-            $mailer->send();
-
-            return ['success' => true, 'message' => 'Email sent using configured SMTP provider.', 'used_fallback' => 0];
+            $service = new EmailService($ownerId);
+            $ok = $service->sendSimpleEmail($toEmail, $subject, $body, $isHtml);
+            return ['success' => $ok, 'message' => $ok ? 'Email sent using configured SMTP provider.' : 'Configured SMTP provider failed.', 'used_fallback' => 0];
         } catch (\Throwable $e) {
-            try {
-                $fallback = new EmailService();
-                $ok = $fallback->sendSimpleEmail($toEmail, $subject, $body, $isHtml);
-                return ['success' => $ok, 'message' => $ok ? 'Sent with fallback provider after SMTP failure.' : ('SMTP and fallback failed: ' . $e->getMessage()), 'used_fallback' => 1];
-            } catch (\Throwable $e2) {
-                return ['success' => false, 'message' => 'Email send failed: ' . $e2->getMessage(), 'used_fallback' => 1];
-            }
+            return ['success' => false, 'message' => 'Email send failed: ' . $e->getMessage(), 'used_fallback' => 0];
         }
     }
 
@@ -95,36 +89,31 @@ class EmailServiceFactory
 
     public static function testSmtpConnection(array $credentials): array
     {
-        try {
-            $mailer = new PHPMailer(true);
-            $mailer->isSMTP();
-            $mailer->Host = (string)($credentials['smtp_host'] ?? '');
-            $mailer->Port = (int)($credentials['smtp_port'] ?? 587);
-            $mailer->SMTPAuth = true;
-            $mailer->Username = (string)($credentials['smtp_username'] ?? '');
-            $mailer->Password = (string)($credentials['smtp_password'] ?? '');
-            $mailer->SMTPSecure = match ((string)($credentials['smtp_encryption'] ?? 'tls')) {
-                'ssl' => PHPMailer::ENCRYPTION_SMTPS,
-                'none' => '',
-                default => PHPMailer::ENCRYPTION_STARTTLS
-            };
-            $mailer->Timeout = 10;
-            $mailer->SMTPOptions = [
-                'ssl' => [
-                    'verify_peer' => false,
-                    'verify_peer_name' => false,
-                    'allow_self_signed' => true
-                ]
-            ];
-            $ok = $mailer->smtpConnect();
-            if ($ok) {
-                $mailer->smtpClose();
-                return ['success' => true, 'message' => 'SMTP connection successful.'];
+        $smtp = (object)$credentials;
+        $host = (string)($smtp->smtp_host ?? '');
+        $lastError = 'SMTP connection failed.';
+
+        foreach (self::transportCandidates(
+            $host,
+            (int)($smtp->smtp_port ?? 587),
+            (string)($smtp->smtp_encryption ?? 'tls')
+        ) as $transport) {
+            $mailer = null;
+            try {
+                $mailer = self::buildMailer($smtp, $transport, 10);
+                if ($mailer->smtpConnect()) {
+                    $mailer->smtpClose();
+                    return ['success' => true, 'message' => 'SMTP connection successful.'];
+                }
+                $lastError = $mailer->ErrorInfo ?: $lastError;
+            } catch (\Throwable $e) {
+                $lastError = $mailer?->ErrorInfo ?: $e->getMessage();
+            } finally {
+                try { $mailer?->smtpClose(); } catch (\Throwable) {}
             }
-            return ['success' => false, 'message' => 'SMTP connection failed: ' . $mailer->ErrorInfo];
-        } catch (\Throwable $e) {
-            return ['success' => false, 'message' => 'SMTP test failed: ' . $e->getMessage()];
         }
+
+        return ['success' => false, 'message' => 'SMTP test failed: ' . $lastError];
     }
 
     public static function sendTestEmail(int $ownerId, int $smtpId, string $testEmail): array
@@ -136,46 +125,40 @@ class EmailServiceFactory
                 return ['success' => false, 'message' => 'SMTP configuration not found or inactive.'];
             }
 
-            $mailer = new PHPMailer(true);
-            $mailer->isSMTP();
-            $mailer->Host = (string)$smtp->smtp_host;
-            $mailer->Port = (int)$smtp->smtp_port;
-            $mailer->SMTPAuth = true;
-            $mailer->Username = (string)$smtp->smtp_username;
-            $mailer->Password = (string)$smtp->smtp_password;
-            $mailer->SMTPSecure = match ((string)$smtp->smtp_encryption) {
-                'ssl' => PHPMailer::ENCRYPTION_SMTPS,
-                'none' => '',
-                default => PHPMailer::ENCRYPTION_STARTTLS
-            };
-            $mailer->CharSet = 'UTF-8';
-            $mailer->Timeout = 15;
-            $mailer->SMTPOptions = [
-                'ssl' => [
-                    'verify_peer' => false,
-                    'verify_peer_name' => false,
-                    'allow_self_signed' => true
-                ]
-            ];
-
             $fromEmail = (string)($smtp->from_email ?? '');
             $fromName = (string)($smtp->from_name ?? 'VNV Events');
             if ($fromEmail === '') {
                 return ['success' => false, 'message' => 'From email is missing in SMTP config.'];
             }
 
-            $mailer->setFrom($fromEmail, $fromName);
-            if (!empty($smtp->reply_to_email)) {
-                $mailer->addReplyTo((string)$smtp->reply_to_email);
+            $lastError = 'SMTP delivery failed.';
+            foreach (self::transportCandidates(
+                (string)$smtp->smtp_host,
+                (int)$smtp->smtp_port,
+                (string)$smtp->smtp_encryption
+            ) as $transport) {
+                $mailer = null;
+                try {
+                    $mailer = self::buildMailer($smtp, $transport);
+                    $mailer->setFrom($fromEmail, $fromName);
+                    if (!empty($smtp->reply_to_email)) {
+                        $mailer->addReplyTo((string)$smtp->reply_to_email);
+                    }
+                    $mailer->addAddress($testEmail);
+                    $mailer->Subject = 'SMTP Test Email';
+                    $mailer->isHTML(true);
+                    $mailer->Body = '<h3>SMTP configuration test</h3><p>This confirms your SMTP settings are working.</p>';
+                    $mailer->send();
+                    $repo->markAsVerified($smtpId, $ownerId);
+                    return ['success' => true, 'message' => 'Test email sent successfully to ' . $testEmail];
+                } catch (\Throwable $e) {
+                    $lastError = $mailer?->ErrorInfo ?: $e->getMessage();
+                } finally {
+                    try { $mailer?->smtpClose(); } catch (\Throwable) {}
+                }
             }
-            $mailer->addAddress($testEmail);
-            $mailer->Subject = 'SMTP Test Email';
-            $mailer->isHTML(true);
-            $mailer->Body = '<h3>SMTP configuration test</h3><p>This confirms your SMTP settings are working.</p>';
 
-            $mailer->send();
-            $repo->markAsVerified($smtpId, $ownerId);
-            return ['success' => true, 'message' => 'Test email sent successfully to ' . $testEmail];
+            return ['success' => false, 'message' => 'Failed to send test email: ' . $lastError];
         } catch (\Throwable $e) {
             return ['success' => false, 'message' => 'Failed to send test email: ' . $e->getMessage()];
         }

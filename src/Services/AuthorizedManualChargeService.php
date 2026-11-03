@@ -194,7 +194,7 @@ class AuthorizedManualChargeService
             $body = '<p>Hello,</p>'
                 . '<p>A pending balance payment of <strong>$' . number_format($amount, 2) . '</strong> was processed for order <strong>VNV-341' . (int)$order->id . '</strong> using your authorized saved payment method.</p>'
                 . '<p>Provider: ' . htmlspecialchars(ucfirst($provider), ENT_QUOTES, 'UTF-8') . '</p>';
-            (new EmailService())->sendSimpleEmail((string)$client->email, 'Your authorized payment was processed', $body, true);
+            (new EmailService((int)$order->id_owner))->sendSimpleEmail((string)$client->email, 'Your authorized payment was processed', $body, true);
         } catch (\Throwable $e) {
             error_log('Authorized payment email failed: ' . $e->getMessage());
         }

@@ -166,7 +166,7 @@ class PaymentNotificationService
                 return;
             }
             
-            $emailService = new EmailService();
+            $emailService = new EmailService((int)$order->id_owner);
             
             // Determinar el tipo de pago y el mensaje
             $subject = "";
