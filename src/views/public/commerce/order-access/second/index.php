@@ -18,6 +18,7 @@ use App\Utils\TemplateResponse;
 use App\Utils\LocationUtils;
 use App\Services\NotificationService;
 use App\Services\PaymentNotificationService;
+use App\Services\PostResponseTaskService;
 use App\Utils\Router;
 use App\Repositories\DocumentsLogsRepository;
 use App\Services\PaymentReceiptPdfGenerator;
@@ -417,7 +418,8 @@ $router->post(function () {
     ]);
 
     // Generar notificaciones de pagos
-    PaymentNotificationService::generatePaymentNotifications($orderId);
+    // Never keep the payment response waiting for SMTP retries.
+    PaymentNotificationService::generatePaymentNotifications($orderId, true);
 
     // Generar recibo PDF y guardar en document_logs
     try {
@@ -443,16 +445,15 @@ $router->post(function () {
     }
 
     try {
-        PaymentNotificationService::generatePaymentNotifications($orderId);
-
-        NotificationService::sendToUsers(
-            [$order->id_owner, $order->id_client],
-            '💳 ' . TranslationService::trans('planner_hub.payment_received'),
-            TranslationService::trans('planner_hub.payment_processed_notification', [
-                'amount' => number_format($amountInput, 2),
-                'order_id' => $order->id
-            ])
-        );
+        $pushRecipients = [$order->id_owner, $order->id_client];
+        $pushTitle = '💳 ' . TranslationService::trans('planner_hub.payment_received');
+        $pushBody = TranslationService::trans('planner_hub.payment_processed_notification', [
+            'amount' => number_format($amountInput, 2),
+            'order_id' => $order->id
+        ]);
+        PostResponseTaskService::enqueue(static function () use ($pushRecipients, $pushTitle, $pushBody): void {
+            NotificationService::sendToUsers($pushRecipients, $pushTitle, $pushBody);
+        });
     } catch (Exception $e) {
     }
 

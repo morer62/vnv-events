@@ -12,6 +12,7 @@ use App\Utils\LocationUtils;
 use App\Utils\TemplateResponse;
 use App\Services\NotificationService;
 use App\Services\PaymentNotificationService;
+use App\Services\PostResponseTaskService;
 use App\Utils\Router;
 use App\Repositories\DocumentsLogsRepository;
 use App\Services\PaymentReceiptPdfGenerator;
@@ -354,7 +355,9 @@ $router->post(function () {
         "created_at" => date("Y-m-d H:i:s")
     ]);
 
-    PaymentNotificationService::generatePaymentNotifications($orderId);
+    // Persist/in-app notifications now; SMTP runs only after the success
+    // redirect has reached the browser.
+    PaymentNotificationService::generatePaymentNotifications($orderId, true);
 
     $providerName = $activeProvider->provider_type === 'stripe' ? 'Stripe' : ($activeProvider->provider_type === 'square' ? 'Square' : $activeProvider->provider_type);
     try {
@@ -384,14 +387,14 @@ $router->post(function () {
             $recipients[] = $order->id_user_client;
         }
 
-        NotificationService::sendToUsers(
-            $recipients,
-            '💳 ' . TranslationService::trans('planner_hub.payment_received'),
-            TranslationService::trans('planner_hub.payment_processed_notification', [
-                'amount' => number_format($totalAmount, 2),
-                'order_id' => $order->id
-            ])
-        );
+        $pushTitle = '💳 ' . TranslationService::trans('planner_hub.payment_received');
+        $pushBody = TranslationService::trans('planner_hub.payment_processed_notification', [
+            'amount' => number_format($totalAmount, 2),
+            'order_id' => $order->id
+        ]);
+        PostResponseTaskService::enqueue(static function () use ($recipients, $pushTitle, $pushBody): void {
+            NotificationService::sendToUsers($recipients, $pushTitle, $pushBody);
+        });
     } catch (Exception $e) {
     }
 

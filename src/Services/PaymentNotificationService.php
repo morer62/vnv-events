@@ -14,7 +14,7 @@ class PaymentNotificationService
     /**
      * Genera notificaciones de pagos para una orden específica
      */
-    public static function generatePaymentNotifications(int $orderId): void
+    public static function generatePaymentNotifications(int $orderId, bool $deferEmail = false): void
     {
         $notificationsRepo = new NotificationsRepository();
         $paymentRepo = new OrdersPaymentsRepository();
@@ -85,14 +85,16 @@ class PaymentNotificationService
                 "leido" => 0
             ]);
             
-            NotificationService::sendToUsers(
+            self::deliverPushNotification(
                 [$order->id_owner],
                 '💰 First Payment Received',
-                'Payment #1 received for order #VNV341' . $orderId
+                'Payment #1 received for order #VNV341' . $orderId,
+                $deferEmail
             );
             
-            // Enviar email de confirmación de pago al cliente
-            self::sendPaymentConfirmationEmail($order, 'first', $firstPayment);
+            // SMTP is not part of the payment transaction. Public payment
+            // endpoints defer it until after their success redirect is flushed.
+            self::deliverPaymentConfirmationEmail($order, 'first', $firstPayment, $deferEmail);
         }
         
         // Generar notificación para pago completo
@@ -122,15 +124,39 @@ class PaymentNotificationService
                 "leido" => 0
             ]);
             
-            NotificationService::sendToUsers(
+            self::deliverPushNotification(
                 [$order->id_owner],
                 '🎉 Payment Complete',
-                'All payments received for order #VNV341' . $orderId
+                'All payments received for order #VNV341' . $orderId,
+                $deferEmail
             );
             
-            // Enviar email de confirmación de pago completo al cliente
-            self::sendPaymentConfirmationEmail($order, 'complete', $amounts["total"]);
+            self::deliverPaymentConfirmationEmail($order, 'complete', $amounts["total"], $deferEmail);
         }
+    }
+
+    private static function deliverPaymentConfirmationEmail(object $order, string $paymentType, float $amount, bool $defer): void
+    {
+        if (!$defer) {
+            self::sendPaymentConfirmationEmail($order, $paymentType, $amount);
+            return;
+        }
+
+        PostResponseTaskService::enqueue(static function () use ($order, $paymentType, $amount): void {
+            self::sendPaymentConfirmationEmail($order, $paymentType, $amount);
+        });
+    }
+
+    private static function deliverPushNotification(array $userIds, string $title, string $body, bool $defer): void
+    {
+        if (!$defer) {
+            NotificationService::sendToUsers($userIds, $title, $body);
+            return;
+        }
+
+        PostResponseTaskService::enqueue(static function () use ($userIds, $title, $body): void {
+            NotificationService::sendToUsers($userIds, $title, $body);
+        });
     }
     
     /**
