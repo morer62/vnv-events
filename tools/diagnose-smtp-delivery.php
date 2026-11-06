@@ -126,5 +126,30 @@ if ($mode === 'send-panel') {
     }
 }
 
-fwrite(STDERR, "Unknown mode. Use status, send-env or send-panel.\n");
+if ($mode === 'send-payment-template') {
+    try {
+        (new EmailService($ownerId))->sendTemplateEmail(
+            $recipient,
+            'VNV Events payment confirmation template test (no charge)',
+            dirname(__DIR__) . '/src/views/templates/emails/payment_confirmation.php',
+            [
+                'orderId' => 'TEST',
+                'paymentType' => 'SMTP template test — no charge',
+                'amount' => 0,
+                'eventDate' => 'Test only',
+                'eventTime' => 'No live event',
+                'location' => 'No live order was created',
+                'orderUrl' => 'https://vnvevents.com/',
+                'remainingMessage' => 'This message only verifies the payment-confirmation email template and SMTP delivery. No payment was processed.',
+            ]
+        );
+        echo "PASS payment template delivery.\n";
+        exit(0);
+    } catch (Throwable $exception) {
+        fwrite(STDERR, 'FAIL payment template delivery: ' . $exception->getMessage() . PHP_EOL);
+        exit(1);
+    }
+}
+
+fwrite(STDERR, "Unknown mode. Use status, send-env, send-panel or send-payment-template.\n");
 exit(2);
