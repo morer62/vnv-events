@@ -35,19 +35,39 @@ $handlers = [
 
 foreach ($handlers as $handler) {
     $source = (string)file_get_contents($handler);
+    $queuePosition = strpos($source, 'PostResponseTaskService::enqueue');
+    $notificationPosition = strpos($source, 'PaymentNotificationService::generatePaymentNotifications($orderId);');
+    $receiptPosition = strpos($source, 'PaymentReceiptPdfGenerator::generateAndSave');
     assertPaymentContract(
-        substr_count($source, 'PaymentNotificationService::generatePaymentNotifications($orderId, true)') === 1,
-        basename(dirname($handler)) . ' defers payment email exactly once'
+        substr_count($source, 'PostResponseTaskService::enqueue') === 1,
+        basename(dirname($handler)) . ' has one post-response payment task'
     );
     assertPaymentContract(
-        !str_contains($source, 'PaymentNotificationService::generatePaymentNotifications($orderId);'),
-        basename(dirname($handler)) . ' has no synchronous payment-email call'
+        $queuePosition !== false && $notificationPosition !== false && $notificationPosition > $queuePosition,
+        basename(dirname($handler)) . ' defers all payment notification work'
     );
     assertPaymentContract(
-        str_contains($source, 'PostResponseTaskService::enqueue'),
-        basename(dirname($handler)) . ' also defers remote push delivery'
+        $receiptPosition !== false && $receiptPosition > $queuePosition,
+        basename(dirname($handler)) . ' defers receipt PDF generation'
+    );
+    assertPaymentContract(
+        !str_contains($source, 'PaymentNotificationService::generatePaymentNotifications($orderId, true)')
+        && !str_contains($source, 'NotificationService::sendToUsers'),
+        basename(dirname($handler)) . ' has no duplicate or partially deferred delivery path'
     );
 }
+
+$paymentPage = (string)file_get_contents($root . '/src/views/public/commerce/order-access/index.twig');
+assertPaymentContract(
+    str_contains($paymentPage, 'withTimeout') && str_contains($paymentPage, "window.addEventListener('pageshow'"),
+    'payment form recovers from provider timeouts and mobile back/forward cache'
+);
+
+$savedPaymentService = (string)file_get_contents($root . '/src/Services/OrderAccessSavedPaymentMethodService.php');
+assertPaymentContract(
+    str_contains($savedPaymentService, '$provider->getLastError()'),
+    'safe provider decline reason is returned to the customer'
+);
 
 $notificationService = (string)file_get_contents($root . '/src/Services/PaymentNotificationService.php');
 assertPaymentContract(

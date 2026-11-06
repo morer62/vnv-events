@@ -6,7 +6,6 @@ use App\Repositories\OrdersStatusHistoryRepository;
 use App\Repositories\PaymentProvidersRepository;
 use App\Repositories\TipsRepository;
 use App\Services\OrderCalculatorService;
-use App\Services\NotificationService;
 use App\Services\PaymentNotificationService;
 use App\Services\PostResponseTaskService;
 use App\Services\Payment\PaymentProviderFactory;
@@ -388,45 +387,47 @@ $router->post(function () {
         "created_at" => date("Y-m-d H:i:s")
     ]);
 
-    // Generar notificaciones de pagos
-    // Never keep the payment response waiting for SMTP retries.
-    PaymentNotificationService::generatePaymentNotifications($orderId, true);
+    $providerName = $activeProvider->provider_type === 'stripe' ? 'Stripe' : ($activeProvider->provider_type === 'square' ? 'Square' : $activeProvider->provider_type);
+    $receiptOrderId = (int)$order->id;
+    $receiptClientId = (int)$order->id_client;
+    $receiptAmount = (float)$firstAmount;
+    $receiptChargeId = $charge->id ?? null;
+    $receiptIp = $_SERVER["REMOTE_ADDR"] ?? null;
+    $receiptUserAgent = $_SERVER["HTTP_USER_AGENT"] ?? null;
 
-    // Generar recibo PDF y guardar en document_logs
-    try {
-        $docRepo = new DocumentsLogsRepository();
-        $providerName = $activeProvider->provider_type === 'stripe' ? 'Stripe' : ($activeProvider->provider_type === 'square' ? 'Square' : $activeProvider->provider_type);
-        $receiptPath = PaymentReceiptPdfGenerator::generateAndSave($order->id, null, (float)$firstAmount, $providerName, TranslationService::trans('planner_hub.first_installment_payment'));
-        error_log("Receipt PDF generated successfully: " . $receiptPath);
-        
-        $docRepo->add([
-            "id_order" => $order->id,
-            "id_user" => $order->id_client,
-            "doc_type" => "pay_first",
-            "file_path" => $receiptPath,
-            "hash" => hash_file("sha256", $receiptPath),
-            "ip" => $_SERVER["REMOTE_ADDR"] ?? null,
-            "user_agent" => $_SERVER["HTTP_USER_AGENT"] ?? null,
-            "extra" => json_encode(["order_id" => $order->id, "charge_id" => $charge->id ?? null, "payment_type" => "first"]),
-        ]);
-        error_log("Receipt saved to document_logs successfully");
-    } catch (\Throwable $e) {
-        error_log("Failed to generate payment receipt: " . $e->getMessage());
-        error_log("Stack trace: " . $e->getTraceAsString());
-    }
+    PostResponseTaskService::enqueue(static function () use (
+        $orderId,
+        $receiptOrderId,
+        $receiptClientId,
+        $receiptAmount,
+        $receiptChargeId,
+        $providerName,
+        $receiptIp,
+        $receiptUserAgent
+    ): void {
+        try {
+            PaymentNotificationService::generatePaymentNotifications($orderId);
+        } catch (\Throwable $e) {
+            error_log("Failed to generate payment notifications: " . $e->getMessage());
+        }
 
-    try {
-        $pushRecipients = [$order->id_owner];
-        $pushTitle = '💳 ' . TranslationService::trans('planner_hub.payment_received');
-        $pushBody = TranslationService::trans('planner_hub.payment_processed_notification', [
-            'amount' => number_format($firstAmount, 2),
-            'order_id' => $order->id
-        ]);
-        PostResponseTaskService::enqueue(static function () use ($pushRecipients, $pushTitle, $pushBody): void {
-            NotificationService::sendToUsers($pushRecipients, $pushTitle, $pushBody);
-        });
-    } catch (Exception $e) {
-    }
+        try {
+            $docRepo = new DocumentsLogsRepository();
+            $receiptPath = PaymentReceiptPdfGenerator::generateAndSave($receiptOrderId, null, $receiptAmount, $providerName, TranslationService::trans('planner_hub.first_installment_payment'));
+            $docRepo->add([
+                "id_order" => $receiptOrderId,
+                "id_user" => $receiptClientId,
+                "doc_type" => "pay_first",
+                "file_path" => $receiptPath,
+                "hash" => hash_file("sha256", $receiptPath),
+                "ip" => $receiptIp,
+                "user_agent" => $receiptUserAgent,
+                "extra" => json_encode(["order_id" => $receiptOrderId, "charge_id" => $receiptChargeId, "payment_type" => "first"]),
+            ]);
+        } catch (\Throwable $e) {
+            error_log("Failed to generate payment receipt: " . $e->getMessage());
+        }
+    });
 
     LocationUtils::redirectInternal("/order-access/success/?token=" . urlencode($token) . "&next=second");
 });

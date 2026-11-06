@@ -143,7 +143,9 @@ class OrderAccessSavedPaymentMethodService
                 'charge' => $charge,
                 'saved_payment_method_id' => $charge === false ? null : $savedMethodId,
                 'auto_charge_consent_id' => null,
-                'error' => $charge === false ? 'Payment could not be processed with the saved payment method.' : null,
+                'error' => $charge === false
+                    ? ($provider->getLastError() ?: 'Payment could not be processed with the saved payment method.')
+                    : null,
                 'charged_amount' => $amountToCharge,
                 'loyalty' => $rewards,
             ];
@@ -183,7 +185,10 @@ class OrderAccessSavedPaymentMethodService
         }
         if ($charge === false) {
             $this->releaseRewards($rewards['token']);
-            return ['charge' => false, 'error' => 'Payment could not be processed.'];
+            return [
+                'charge' => false,
+                'error' => $provider->getLastError() ?: 'Payment could not be processed.'
+            ];
         }
 
         $card = $this->extractCardDetails($charge);

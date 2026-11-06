@@ -1064,8 +1064,27 @@
 				setProcessingState(false);
 			}
 
-			return { begin, reset };
+			function withTimeout(promise, timeoutMs) {
+				return Promise.race([
+					promise,
+					new Promise(function (_resolve, reject) {
+						window.setTimeout(function () {
+							reject(new Error('payment_token_timeout'));
+						}, timeoutMs);
+					})
+				]);
+			}
+
+			return { begin, reset, withTimeout };
 		})();
+
+		// Mobile browsers may restore a page from their back/forward cache with
+		// the previous disabled button and modal still visible. Always restore a
+		// usable payment form when the page becomes active again.
+		window.addEventListener('pageshow', function () {
+			window.VnvOrderAccessPayment.reset();
+			window.VnvProcessingModal.hide('orderAccessProcessingModal');
+		});
 
 		{% if activeProvider.provider_type == 'stripe' and stripe_publishable_key %}
 		// Stripe
@@ -1090,17 +1109,28 @@
 					return;
 				}
 				errorDiv.textContent = '';
-				window.VnvProcessingModal.show('orderAccessProcessingModal', { title: '{{ trans('planner_hub.processing_payment')|e('js') }}', message: '{{ trans('planner_hub.confirming_payment')|e('js') }}' });
 
-				const { token, error } = await stripe.createToken(cardElement);
-				if (error) {
-					errorDiv.textContent = error.message || '{{ trans('planner_hub.payment_failed_try_again')|e('js') }}';
+				try {
+					const { token, error } = await window.VnvOrderAccessPayment.withTimeout(
+						stripe.createToken(cardElement),
+						25000
+					);
+					if (error) {
+						errorDiv.textContent = error.message || '{{ trans('planner_hub.payment_failed_try_again')|e('js') }}';
+						window.VnvOrderAccessPayment.reset();
+						return;
+					}
+
+					tokenInput.value = token.id;
+					window.VnvProcessingModal.show('orderAccessProcessingModal', { title: '{{ trans('planner_hub.processing_payment')|e('js') }}', message: '{{ trans('planner_hub.confirming_payment')|e('js') }}' });
+					form.submit();
+				} catch (error) {
+					errorDiv.textContent = error && error.message === 'payment_token_timeout'
+						? 'The secure payment form took too long. Check your connection and try again.'
+						: '{{ trans('planner_hub.payment_failed_try_again')|e('js') }}';
 					window.VnvOrderAccessPayment.reset();
 					window.VnvProcessingModal.hide('orderAccessProcessingModal');
-					return;
 				}
-				tokenInput.value = token.id;
-				form.submit();
 			});
 		})();
 		{% elseif activeProvider.provider_type == 'square' %}
@@ -1132,12 +1162,11 @@
 						return;
 					}
 					errorDiv.textContent = '';
-					window.VnvProcessingModal.show('orderAccessProcessingModal', { title: '{{ trans('planner_hub.processing_payment')|e('js') }}', message: '{{ trans('planner_hub.confirming_payment')|e('js') }}' });
-
 					try {
-						const tokenResult = await card.tokenize();
+						const tokenResult = await window.VnvOrderAccessPayment.withTimeout(card.tokenize(), 25000);
 						if (tokenResult.status === 'OK') {
 							tokenInput.value = tokenResult.token;
+							window.VnvProcessingModal.show('orderAccessProcessingModal', { title: '{{ trans('planner_hub.processing_payment')|e('js') }}', message: '{{ trans('planner_hub.confirming_payment')|e('js') }}' });
 							form.submit();
 						} else {
 							errorDiv.textContent = (tokenResult.errors && tokenResult.errors[0]) ? tokenResult.errors[0].detail : '{{ trans('planner_hub.payment_failed_try_again')|e('js') }}';
@@ -1145,7 +1174,9 @@
 							window.VnvProcessingModal.hide('orderAccessProcessingModal');
 						}
 					} catch (error) {
-						errorDiv.textContent = '{{ trans('planner_hub.error_occurred_try_again')|e('js') }}';
+						errorDiv.textContent = error && error.message === 'payment_token_timeout'
+							? 'The secure payment form took too long. Check your connection and try again.'
+							: '{{ trans('planner_hub.error_occurred_try_again')|e('js') }}';
 						window.VnvOrderAccessPayment.reset();
 						window.VnvProcessingModal.hide('orderAccessProcessingModal');
 					}

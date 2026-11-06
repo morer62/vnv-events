@@ -14,6 +14,7 @@ abstract class AbstractPaymentProvider
     protected object $credentials;
     protected string $currency;
     protected string $environment;
+    protected ?string $lastError = null;
 
     /**
      * Initialize provider with credentials
@@ -134,6 +135,22 @@ abstract class AbstractPaymentProvider
     }
 
     /**
+     * Safe, customer-facing reason for the most recent failed payment.
+     * Provider implementations must never place credentials or raw payloads
+     * in this value.
+     */
+    public function getLastError(): ?string
+    {
+        return $this->lastError;
+    }
+
+    protected function setLastError(?string $message): void
+    {
+        $message = trim((string)$message);
+        $this->lastError = $message !== '' ? $message : null;
+    }
+
+    /**
      * Convert amount to cents/minor units (for APIs that require it)
      */
     protected function toCents(float $amount): int
@@ -239,6 +256,7 @@ abstract class AbstractPaymentProvider
         $minAmount = $this->getMinimumAmount();
         
         if ($amount < $minAmount) {
+            $this->setLastError('The payment amount is below the minimum allowed by the payment provider.');
             $this->logError("Amount $amount is below minimum $minAmount for {$this->currency}");
             return false;
         }

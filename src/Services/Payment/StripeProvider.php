@@ -4,6 +4,7 @@ namespace App\Services\Payment;
 
 use Stripe\StripeClient;
 use Stripe\Exception\ApiErrorException;
+use Stripe\Exception\CardException;
 
 /**
  * Stripe Payment Provider
@@ -37,6 +38,7 @@ class StripeProvider extends AbstractPaymentProvider
      */
     public function chargeCustomer(string $token, float $amount, array $metadata = []): object|false
     {
+        $this->setLastError(null);
         try {
             if (!$this->validateAmount($amount)) {
                 return false;
@@ -95,10 +97,20 @@ class StripeProvider extends AbstractPaymentProvider
                 'raw' => $charge
             ];
 
+        } catch (CardException $e) {
+            $stripeError = $e->getError();
+            $customerMessage = trim((string)($stripeError->message ?? $e->getMessage()));
+            $this->setLastError($customerMessage !== ''
+                ? $customerMessage
+                : 'Your card was declined. Please use another payment method.');
+            $this->logError("Card declined for amount $amount", $e);
+            return false;
         } catch (ApiErrorException $e) {
+            $this->setLastError('The payment provider could not process this payment. Please try again.');
             $this->logError("Charge failed for amount $amount", $e);
             return false;
         } catch (\Exception $e) {
+            $this->setLastError('The payment could not be processed. Please try again.');
             $this->logError("Unexpected error during charge", $e);
             return false;
         }
