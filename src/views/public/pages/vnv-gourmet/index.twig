@@ -1206,28 +1206,19 @@ h1, h2, h3, h4, h5, .luxury-font {
             <div class="section-heading">
                 <span class="vnv-badge">VNV Gourmet Best Sellers</span>
                 <h2 id="top-catering-heading">The stations South Florida keeps <span class="text-gold">asking for</span></h2>
-                <p>Seven catering experiences clients request or can now add to their event. Explore each service, see what is included and open its current menu before requesting availability.</p>
+                <p>Start with the four catering experiences VNV is prioritizing for South Florida events. Each service has its own page, current base price and menu.</p>
             </div>
-            <div class="top-catering-count" aria-hidden="true">07</div>
+            <div class="top-catering-count" aria-hidden="true">04</div>
         </div>
         <div class="top-catering-grid">
-            {% set top_services = [
-                {n:'No. 1 Best Seller', name:'Crepes Station', price:'From $19 p/p · min. 25', copy:'Sweet and savory crepes prepared live in a guest-facing station that feels personal, elegant and highly visual.', image:'assets/images/service_photos/crepes_station_1_lite.webp', url:path('/crepes-catering-south-florida/')},
-                {n:'No. 2 Favorite', name:'Pasta Station', price:'From $19 p/p · min. 25', copy:'Three pastas, three sauces and two proteins create a flexible live station with broad guest appeal.', image:'assets/images/service_photos/pasta_station_1.webp', url:path('/pasta-station-catering-south-florida/')},
-                {n:'No. 3 Favorite', name:'Pizza Station', price:'From $19 p/p · min. 25', copy:'Fresh pizza prepared on-site with customizable crust, sauces and toppings.', image:'assets/images/service_photos/pizza_station_lite.webp', url:path('/pizza-station-catering-south-florida/')},
-                {n:'No. 4 Favorite', name:'Paella Station', price:'From $19 p/p · min. 25', copy:'A Spanish-inspired centerpiece cooked live with seafood, chicken or vegetarian menu directions.', image:'assets/images/service_photos/paella_station_lite.webp', url:path('/paella-catering-south-florida/')},
-                {n:'No. 5 Favorite', name:'Taco Station', price:'From $19 p/p · min. 25', copy:'A fast, colorful taco and burrito bar with two proteins and customizable accompaniments.', image:'assets/images/service_photos/tacos.webp', url:path('/taco-station-catering-south-florida/')},
-                {n:'No. 6 Business Favorite', name:'Corporate Catering', price:'Stations from $17 · meal boxes from $12.50', copy:'Staffed food stations or customizable breakfast and lunch boxes made for efficient company service.', image:'assets/images/service_photos/brunch_tation_lite.webp', url:path('/corporate-catering-south-florida/')},
-                {n:'New Station', name:'Shawarma Station', price:'From $19 p/p · min. 25', copy:'Freshly prepared chicken and beef shawarma with warm pita, fresh toppings, signature sauces, Mediterranean rice and tabbouleh, served by a professional chef and staff.', image:'assets/images/services/shawarma-station.webp', url:path('/shawarma-station-catering-south-florida/')}
-            ] %}
-            {% for service in top_services %}
+            {% for service in gourmet_catalog %}
                 <article class="top-catering-card">
                     <div class="top-catering-media"><img src="{{ asset_for(service.image) }}" alt="{{ service.name }} by VNV Gourmet" loading="lazy" decoding="async"></div>
                     <div class="top-catering-content">
-                        <span class="top-rank">{{ service.n }}</span>
+                        <span class="top-rank">Priority {{ loop.index }}</span>
                         <h3>{{ service.name }}</h3>
-                        <p>{{ service.copy }}</p>
-                        <div class="top-catering-bottom"><strong>{{ service.price }}</strong><a href="{{ service.url }}">Explore service →</a></div>
+                        <p>{{ service.summary }}</p>
+                        <div class="top-catering-bottom"><strong>{{ service.price }} · {{ service.minimum }}</strong><a href="{{ path(service.landing_url) }}">Explore service →</a></div>
                     </div>
                 </article>
             {% endfor %}

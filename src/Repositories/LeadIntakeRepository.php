@@ -4,7 +4,7 @@ namespace App\Repositories;
 final class LeadIntakeRepository
 {
     public Connection $db;
-    public function __construct(){ $this->db=new Connection(); }
+    public function __construct(?Connection $connection=null){ $this->db=$connection ?? new Connection(); }
     public function all(int $owner): array{$this->db->query("SELECT li.*,CONCAT(u.name,' ',u.lastname) manager_name FROM lead_intake li LEFT JOIN users u ON u.id=li.suggested_manager_id WHERE li.id_owner=:owner ORDER BY li.created_at DESC LIMIT 200");$this->db->bind(':owner',$owner);return $this->db->fetchAll();}
     public function find(int $owner,int $id): ?object{$this->db->query("SELECT * FROM lead_intake WHERE id_owner=:owner AND id=:id");$this->db->bind(':owner',$owner);$this->db->bind(':id',$id);return $this->db->fetchOne()?:null;}
     public function upsert(int $owner,array $d): int

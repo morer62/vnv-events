@@ -24,10 +24,10 @@ class EventRequestRepository extends BaseRepository
         'updated_at',
     ];
 
-    public function __construct()
+    public function __construct(?Connection $connection = null)
     {
         $this->table = 'event_requests';
-        $this->db = new Connection();
+        $this->db = $connection ?? new Connection();
     }
 
     public function createFromPublicForm(array $data): int
