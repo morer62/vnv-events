@@ -8,9 +8,10 @@ $router = new Router();
 
 $router->get(function () {
     $catalog = CateringLandingProductService::catalog();
+    $context = CateringLandingProductService::comparisonContext();
     return TemplateResponse::render(__DIR__ . '/index.twig', [
         'gourmet_catalog' => $catalog,
-        'ads_mode' => CateringLandingProductService::adsMode(),
+        ...$context,
         'corporate_overview' => CateringLandingProductService::corporateOverview(),
         'comparison_schema' => CateringLandingProductService::comparisonSchema($catalog),
         'seo' => [

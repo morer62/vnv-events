@@ -48,7 +48,8 @@ $router->post(function (): void {
         'service' => $service,
         'landing_url' => GourmetLandingAttributionService::safeLandingPath((string)($data['landing_url'] ?? '')),
         'attribution' => GourmetLandingAttributionService::sanitize($data),
-        'conversion_time' => gmdate('c'),
+        'is_test' => (string)($data['vnv_test'] ?? '') === '1',
+        'conversion_time' => GourmetLandingAttributionService::conversionTime(),
     ];
     try {
         (new LeadIntakeRepository())->upsert(AvomealContext::ownerId(), [
@@ -61,7 +62,7 @@ $router->post(function (): void {
             'end_time' => null, 'setup_minutes' => 0,
             'availability_status' => 'CLICK_ONLY',
             'suggested_manager_id' => null, 'availability_checked_at' => null,
-            'status' => 'NEW',
+            'status' => $payload['is_test'] ? 'TEST' : 'NEW',
             'payload_json' => json_encode($payload, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE),
         ]);
     } catch (\Throwable $e) {

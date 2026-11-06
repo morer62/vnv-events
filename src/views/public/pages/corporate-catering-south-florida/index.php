@@ -6,25 +6,23 @@ use App\Utils\TemplateResponse;
 
 $page = [
     'slug' => 'corporate-catering-south-florida',
-    'meta_title' => 'Corporate Catering & Meal Boxes South Florida | VNV Events',
-    'meta_keywords' => 'corporate catering South Florida, office catering Miami, boxed lunches Broward, employee appreciation catering, corporate breakfast boxes',
+    'meta_title' => 'Corporate Food Stations & Meal Boxes South Florida | VNV Events',
+    'meta_keywords' => 'corporate catering South Florida, office catering Miami, boxed lunches Broward, employee appreciation catering, corporate food stations',
     'eyebrow' => 'Corporate Catering',
-    'h1' => 'Corporate catering built for teams, meetings and appreciation events',
-    'hero_copy' => 'Choose a polished staffed station for a company experience or individually packed breakfast and lunch boxes designed for efficient distribution.',
+    'h1' => 'Corporate food stations for teams, meetings and company events',
+    'hero_copy' => 'Choose Pasta, Appetizers, Crepes or Taco for a polished staffed experience. Corporate station pricing begins at 50 guests.',
     'hero_image' => 'assets/images/service_photos/pasta_station_2_lite.webp',
     'secondary_image' => 'assets/images/service_photos/brunch_tation_lite.webp',
     'image_alt' => 'Professional corporate catering setup by VNV Events',
-    'section_title' => 'Two practical ways to feed a company',
-    'section_copy' => 'Use a live food station when the meal should feel like an event, or choose customizable meal boxes when speed, distribution and individual portions matter most.',
+    'section_title' => 'A focused corporate station program',
+    'section_copy' => 'Build the main experience around Pasta or Taco, then use Appetizers or Crepes as complementary stations when the event needs another service moment.',
     'included' => [
-        'Food-station program for 50 or more guests',
-        'Choice of pasta, paella, pizza, brunch or Mexican station',
-        'Professional buffet presentation and décor',
-        'One hour of on-site chef service with the station package',
-        'Customizable breakfast and lunch meal boxes',
-        'Optional warming support',
+        'Corporate station program for 50 or more guests',
+        'Choice of Pasta, Appetizers, Crepes or Taco',
+        'Professional station presentation',
+        'Published inclusions from the selected Store service',
     ],
-    'inclusion_note' => 'Meal-box menus, minimum quantities, delivery, equipment and dietary accommodations must be confirmed in the proposal.',
+    'inclusion_note' => 'Final menu, service hours, equipment, delivery and dietary accommodations are confirmed in the proposal.',
     'best_for' => [
         'Recurring office breakfasts and lunches',
         'Employee appreciation programs',
@@ -32,20 +30,26 @@ $page = [
         'Product launches, mixers and company celebrations',
     ],
     'choices' => [
-        ['title' => 'Meal boxes', 'copy' => 'Customizable breakfast or lunch options packed for quick, organized distribution.'],
-        ['title' => 'Food stations', 'copy' => 'Choose one curated live station for a professional company gathering of 50 or more guests.'],
-        ['title' => 'Warming support', 'copy' => 'Add the recommended warming station when the selected menu benefits from heated holding and service.'],
+        ['title' => 'Pasta or Taco', 'copy' => 'Use one of these stations as the main corporate food experience.'],
+        ['title' => 'Appetizers', 'copy' => 'Add a reception-style service moment before the main program.'],
+        ['title' => 'Crepes', 'copy' => 'Add a dessert station for employee appreciation or company celebrations.'],
     ],
     'faqs' => [
-        ['question' => 'How much are corporate meal boxes?', 'answer' => 'The current published meal-box price appears above. Final pricing depends on menu, quantity, packaging and delivery.'],
+        ['question' => 'How much are corporate meal boxes?', 'answer' => 'The current published meal-box price appears above when configured. Final pricing depends on menu, quantity, packaging and delivery.'],
         ['question' => 'How much is the corporate food-station package?', 'answer' => 'The current Store price and minimum appear above.'],
-        ['question' => 'What is the optional warming station?', 'answer' => 'It is heated-holding support recommended for menus that need to remain warm during distribution or service.'],
-        ['question' => 'Can breakfast and lunch menus be customized?', 'answer' => 'Yes. The meal-box program is intended to be customizable; final selections and dietary needs must be approved in advance.'],
+        ['question' => 'What if we have 25 to 49 guests?', 'answer' => 'Choose the regular Pasta, Appetizer, Crepes or Taco station program. Corporate station pricing begins at 50 guests.'],
+        ['question' => 'Can breakfast and lunch boxes be customized?', 'answer' => 'Yes. Meal boxes are a separate format; final selections, quantities, packaging, delivery and dietary needs must be approved in advance.'],
     ],
-    'cta_title' => 'Create a repeatable food program for your team',
-    'cta_copy' => 'Send the headcount, schedule and service format, and VNV can build the appropriate company proposal.',
+    'cta_title' => 'Create a focused food program for your team',
+    'cta_copy' => 'Send the headcount, schedule and preferred station, and VNV can build the appropriate company proposal.',
 ];
 
 $router = new Router();
-$router->get(fn() => TemplateResponse::render(dirname(__DIR__, 3) . DIRECTORY_SEPARATOR . 'templates' . DIRECTORY_SEPARATOR . 'pages' . DIRECTORY_SEPARATOR . 'cateringServiceLanding.twig', CateringLandingProductService::viewData($page)));
+$router->get(function () use ($page) {
+    $page['campaign_stations'] = CateringLandingProductService::catalog();
+    return TemplateResponse::render(
+        dirname(__DIR__, 3) . DIRECTORY_SEPARATOR . 'templates' . DIRECTORY_SEPARATOR . 'pages' . DIRECTORY_SEPARATOR . 'cateringServiceLanding.twig',
+        CateringLandingProductService::viewData($page)
+    );
+});
 $router->run();

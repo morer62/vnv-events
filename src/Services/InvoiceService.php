@@ -104,6 +104,12 @@ final class InvoiceService
         return $data;
     }
 
+    /** Read-only order financial snapshot used by conversion reporting. */
+    public function orderSnapshotForConversion(int $ownerId, int $orderId): array
+    {
+        return $this->buildOrderSnapshot($ownerId, $orderId, null);
+    }
+
     public function issueVersion(int $ownerId, int $invoiceId, int $actorId): array
     {
         $invoice=$this->owned($ownerId,$invoiceId);

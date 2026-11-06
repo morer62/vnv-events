@@ -1,11 +1,14 @@
 <?php
 
+use App\Repositories\Connection;
 use App\Repositories\EventRequestRepository;
 use App\Repositories\LeadIntakeRepository;
-use App\Repositories\Connection;
 use App\Services\GourmetLandingAttributionService;
+use App\Services\GourmetLeadRateLimiter;
+use App\Services\CateringLandingProductService;
 use App\Utils\AvomealContext;
 use App\Utils\Router;
+use App\Utils\SiteContext;
 
 $router = new Router();
 
@@ -13,6 +16,16 @@ $router->post(function (): void {
     $landing = GourmetLandingAttributionService::safeLandingPath((string)($_POST['landing_url'] ?? ''));
     $redirect = static function (string $query) use ($landing): void {
         header('Location: ' . $landing . '?' . $query . '#quote', true, 303);
+        exit;
+    };
+    $rateLimited = static function () use ($landing): void {
+        http_response_code(429);
+        header('Content-Type: text/html; charset=utf-8');
+        header('Retry-After: 600');
+        $safeLanding = htmlspecialchars($landing, ENT_QUOTES, 'UTF-8');
+        $whatsapp = htmlspecialchars((string)(CateringLandingProductService::comparisonContext()['whatsapp_number'] ?? ''), ENT_QUOTES, 'UTF-8');
+        $whatsappLink = $whatsapp !== '' ? ' or <a href="https://wa.me/' . $whatsapp . '">message us on WhatsApp</a>' : '';
+        echo '<!doctype html><html lang="en"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Please wait</title><body style="font-family:system-ui;max-width:42rem;margin:4rem auto;padding:1rem"><main><h1>Please wait a few minutes</h1><p>We received several requests from this connection. Please try again in 10 minutes.</p><p><a href="' . $safeLanding . '#quote">Return to the quote form</a>, <a href="tel:+13052045427">call VNV Events</a>' . $whatsappLink . '.</p></main></body></html>';
         exit;
     };
 
@@ -28,15 +41,24 @@ $router->post(function (): void {
     }
 
     $now = time();
-    $attempts = array_values(array_filter((array)($_SESSION['gourmet_lead_attempts'] ?? []), fn($stamp) => (int)$stamp > $now - 900));
-    if (count($attempts) >= 5) {
-        $redirect('lead_error=rate');
+    $attempts = array_values(array_filter(
+        (array)($_SESSION['gourmet_lead_attempts'] ?? []),
+        static fn($stamp): bool => (int)$stamp > $now - 600
+    ));
+    if (count($attempts) >= GourmetLeadRateLimiter::TEN_MINUTE_LIMIT) {
+        $rateLimited();
     }
     $attempts[] = $now;
     $_SESSION['gourmet_lead_attempts'] = $attempts;
 
+    $ownerId = AvomealContext::ownerId();
+    $sharedDecision = (new GourmetLeadRateLimiter())->consume($ownerId, SiteContext::siteKey());
+    if (!$sharedDecision['allowed']) {
+        $rateLimited();
+    }
+
     $service = preg_replace('/[^a-z-]/', '', strtolower((string)($_POST['service'] ?? '')));
-    $allowedServices = ['pasta', 'appetizer', 'crepes', 'taco', 'corporate'];
+    $allowedServices = ['pasta', 'appetizer', 'crepes', 'taco', 'corporate', 'not-sure-yet'];
     if (!in_array($service, $allowedServices, true)) {
         $redirect('lead_error=service');
     }
@@ -50,32 +72,43 @@ $router->post(function (): void {
     $email = mb_substr(trim((string)($_POST['email'] ?? '')), 0, 190);
     $phone = mb_substr(trim((string)($_POST['phone'] ?? '')), 0, 80);
     $refCode = mb_substr(preg_replace('/[^A-Za-z0-9-]/', '', (string)($_POST['ref_code'] ?? '')), 0, 40);
+    $isTest = (string)($_POST['vnv_test'] ?? '') === '1';
 
-    $date = \DateTimeImmutable::createFromFormat('!Y-m-d', $eventDate);
     $emailValid = $email !== '' && filter_var($email, FILTER_VALIDATE_EMAIL);
     $phoneValid = strlen(preg_replace('/\D+/', '', $phone)) >= 10;
-    if (!$date || $date < new \DateTimeImmutable('today') || $guestCount <= 0 || !preg_match('/^\d{5}$/', $zip) || (!$emailValid && !$phoneValid)) {
+    if (!GourmetLandingAttributionService::isFutureEventDate($eventDate)
+        || $guestCount <= 0
+        || !preg_match('/^\d{5}$/', $zip)
+        || (!$emailValid && !$phoneValid)
+    ) {
         $redirect('lead_error=validation');
     }
 
     $attribution = GourmetLandingAttributionService::sanitize($_POST);
     $minimumGuests = $service === 'corporate' ? 50 : 25;
     $qualified = GourmetLandingAttributionService::isQualified($eventDate, $guestBucket, $minimumGuests, $zip, $email, $phone);
-    $underMinimum = $guestBucket === 'fewer-than-25';
+    $underMinimum = $guestBucket === 'fewer-than-25' || $guestCount < $minimumGuests;
+    $zipClassification = GourmetLandingAttributionService::classifyZip($zip);
+    $qualificationStatus = $qualified ? 'QUALIFIED' : match ($zipClassification['in_area']) {
+        false => 'OUTSIDE_SERVICE_AREA',
+        null => 'ZIP_NEEDS_MANUAL_REVIEW',
+        default => $underMinimum ? 'UNDER_MINIMUM' : 'NEEDS_MANUAL_REVIEW',
+    };
     $payload = [
         'ref_code' => $refCode,
         'service' => $service,
         'landing_url' => $landing,
         'guest_bucket' => $guestBucket,
         'zip' => $zip,
+        'zip_classification' => $zipClassification,
         'qualified_lead' => $qualified,
-        'qualification_status' => $qualified ? 'QUALIFIED' : 'NEEDS_MANUAL_REVIEW',
+        'qualification_status' => $qualificationStatus,
         'gourmet_to_go_alternative' => $underMinimum,
         'attribution' => $attribution,
-        'conversion_time' => gmdate('c'),
+        'is_test' => $isTest,
+        'conversion_time' => GourmetLandingAttributionService::conversionTime(),
     ];
 
-    $ownerId = AvomealContext::ownerId();
     $connection = new Connection();
     try {
         $connection->beginTransaction();
@@ -111,10 +144,10 @@ $router->post(function (): void {
             'start_time' => null,
             'end_time' => null,
             'setup_minutes' => 0,
-            'availability_status' => $qualified ? 'QUALIFIED' : 'NEEDS_MANUAL_REVIEW',
+            'availability_status' => $qualificationStatus,
             'suggested_manager_id' => null,
             'availability_checked_at' => null,
-            'status' => 'NEW',
+            'status' => $isTest ? 'TEST' : 'NEW',
             'payload_json' => json_encode($payload, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE),
         ]);
         $connection->commit();

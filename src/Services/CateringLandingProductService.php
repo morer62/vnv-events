@@ -59,7 +59,6 @@ final class CateringLandingProductService
             'landing_slug' => 'corporate-catering-south-florida',
             'product_slug' => 'corporate-team-appreciation-catering-22-5-p-p-min-50',
             'fallback_price' => 17.00, 'minimum_guests' => 50,
-            'meal_box_price' => 12.50,
             'base_variations' => ['Food Station'],
             'image' => 'assets/images/service_photos/brunch_tation_lite.webp',
             'summary' => 'Staffed stations for company events; meal boxes are a separate format.',
@@ -87,10 +86,14 @@ final class CateringLandingProductService
         $page['store_price_value'] = (float)$config['fallback_price'];
         $page['store_price_label'] = self::priceLabel((float)$config['fallback_price']);
         $page['store_price_updated'] = false;
-        $page['whatsapp_number'] = self::tenantWhatsappNumber();
+        $tenantSettings = self::tenantSettings();
+        $page['whatsapp_number'] = $tenantSettings['whatsapp_number'];
         $page['phone_number'] = '+13052045427';
         $page['ads_mode'] = self::isAdsMode();
-        $page['ref_code'] = self::refCode($config['code'], $page['ads_mode']);
+        $page['paid_attribution'] = self::hasPaidAttribution();
+        $page['ref_code'] = self::refCode($config['code']);
+        $page['minimum_event_date'] = GourmetLandingAttributionService::minimumEventDate();
+        $page['is_test'] = (string)($_GET['vnv_test'] ?? '') === '1';
         $page['landing_notice'] = self::landingNotice();
 
         try {
@@ -120,8 +123,11 @@ final class CateringLandingProductService
 
         if ($serviceKey === 'corporate') {
             $page['store_price_label'] = 'Stations from ' . self::money($page['store_price_value']);
-            $page['meal_box_price_value'] = (float)$config['meal_box_price'];
-            $page['meal_box_price_label'] = 'Meal boxes from ' . self::money((float)$config['meal_box_price']);
+            $mealBoxPrice = (float)($tenantSettings['corporate_meal_box_price'] ?? 0);
+            $page['meal_box_price_value'] = $mealBoxPrice > 0 ? $mealBoxPrice : null;
+            $page['meal_box_price_label'] = $mealBoxPrice > 0
+                ? 'Meal boxes from ' . self::money($mealBoxPrice)
+                : null;
         }
 
         $page = self::applyDynamicPriceCopy($page, $serviceKey);
@@ -158,6 +164,7 @@ final class CateringLandingProductService
             $catalog[] = [
                 'key' => $key, 'name' => $config['name'],
                 'price' => $page['store_price_label'],
+                'price_value' => (float)$page['store_price_value'],
                 'minimum_guests' => $config['minimum_guests'],
                 'minimum' => $page['minimum'], 'image' => $config['image'],
                 'summary' => $config['summary'],
@@ -184,6 +191,21 @@ final class CateringLandingProductService
     public static function adsMode(): bool
     {
         return self::isAdsMode();
+    }
+
+    public static function comparisonContext(): array
+    {
+        $settings = self::tenantSettings();
+        return [
+            'ads_mode' => self::isAdsMode(),
+            'paid_attribution' => self::hasPaidAttribution(),
+            'ref_code' => self::refCode('STATIONS'),
+            'phone_number' => '+13052045427',
+            'whatsapp_number' => $settings['whatsapp_number'],
+            'minimum_event_date' => GourmetLandingAttributionService::minimumEventDate(),
+            'is_test' => (string)($_GET['vnv_test'] ?? '') === '1',
+            'landing_notice' => self::landingNotice(),
+        ];
     }
 
     public static function comparisonSchema(array $catalog): array
@@ -332,16 +354,12 @@ final class CateringLandingProductService
                 $page['price_note'] = 'The published menu starts at ' . $price . ' per guest. Appetizers, desserts and other combinations are priced separately.';
                 break;
             case 'corporate':
-                $mealBoxPrice = self::money((float)$page['meal_box_price_value']);
-                $page['meta_description'] = 'Corporate catering in South Florida with staffed food stations from ' . $price . ' per guest for ' . $minimum . '+ guests and separate meal-box service from ' . $mealBoxPrice . '.';
-                $page['price_note'] = 'Meal boxes from ' . $mealBoxPrice . ' and staffed stations from ' . $price . ' are separate service formats. Taxes, delivery, staffing, packaging and menu upgrades may affect the final total.';
-                if (isset($page['choices'][0])) {
-                    $page['choices'][0]['title'] = 'Meal boxes · from ' . $mealBoxPrice;
-                }
-                if (isset($page['choices'][1])) {
-                    $page['choices'][1]['title'] = 'Food stations · from ' . $price;
-                }
-                if (isset($page['faqs'][0])) {
+                $mealBoxValue = (float)($page['meal_box_price_value'] ?? 0);
+                $mealBoxPrice = $mealBoxValue > 0 ? self::money($mealBoxValue) : null;
+                $page['meta_description'] = 'Corporate catering in South Florida with staffed food stations from ' . $price . ' per guest for ' . $minimum . '+ guests.'
+                    . ($mealBoxPrice !== null ? ' Separate meal boxes start at ' . $mealBoxPrice . '.' : '');
+                $page['price_note'] = 'Staffed stations from ' . $price . ' and meal boxes are separate service formats. Taxes, delivery, staffing, packaging and menu upgrades may affect the final total.';
+                if ($mealBoxPrice !== null && isset($page['faqs'][0])) {
                     $page['faqs'][0]['answer'] = 'VNV corporate breakfast and lunch meal boxes start at ' . $mealBoxPrice . ' per person. Final pricing depends on menu, quantity, packaging and delivery.';
                 }
                 if (isset($page['faqs'][1])) {
@@ -353,37 +371,71 @@ final class CateringLandingProductService
         return $page;
     }
 
-    private static function tenantWhatsappNumber(): string
+    /** @return array{whatsapp_number:string,corporate_meal_box_price:?float} */
+    private static function tenantSettings(): array
     {
+        $settings = ['whatsapp_number' => '13053761210', 'corporate_meal_box_price' => null];
         try {
             $db = new Connection();
-            $db->query("SELECT staff_whatsapp FROM store_gourmet_settings WHERE id_owner=:owner AND site_key=:site ORDER BY id LIMIT 1");
+            $db->query("SELECT staff_whatsapp,corporate_meal_box_price FROM store_gourmet_settings WHERE id_owner=:owner AND site_key=:site ORDER BY id LIMIT 1");
             $db->bind(':owner', AvomealContext::ownerId());
             $db->bind(':site', SiteContext::siteKey());
             $row = $db->fetchOne();
             $number = preg_replace('/\D+/', '', (string)($row->staff_whatsapp ?? ''));
             if ($number !== '') {
-                return $number;
+                $settings['whatsapp_number'] = $number;
+            }
+            if ((float)($row->corporate_meal_box_price ?? 0) > 0) {
+                $settings['corporate_meal_box_price'] = (float)$row->corporate_meal_box_price;
             }
         } catch (Throwable $e) {
-            error_log('Catering landing WhatsApp config fallback: ' . $e->getMessage());
+            error_log('Catering landing tenant settings fallback: ' . $e->getMessage());
+            try {
+                $db = new Connection();
+                $db->query("SELECT staff_whatsapp FROM store_gourmet_settings WHERE id_owner=:owner AND site_key=:site ORDER BY id LIMIT 1");
+                $db->bind(':owner', AvomealContext::ownerId());
+                $db->bind(':site', SiteContext::siteKey());
+                $row = $db->fetchOne();
+                $number = preg_replace('/\D+/', '', (string)($row->staff_whatsapp ?? ''));
+                if ($number !== '') {
+                    $settings['whatsapp_number'] = $number;
+                }
+            } catch (Throwable $fallbackError) {
+                error_log('Catering landing WhatsApp fallback failed: ' . $fallbackError->getMessage());
+            }
         }
-        return '13053761210';
+        return $settings;
     }
 
     private static function isAdsMode(): bool
     {
-        $source = strtolower(trim((string)($_GET['utm_source'] ?? $_COOKIE['vnv_utm_source'] ?? '')));
-        return trim((string)($_GET['gclid'] ?? $_COOKIE['vnv_gclid'] ?? '')) !== '' || $source === 'google';
+        $source = strtolower(trim((string)($_GET['utm_source'] ?? '')));
+        foreach (['gclid', 'gbraid', 'wbraid'] as $key) {
+            if (trim((string)($_GET[$key] ?? '')) !== '') {
+                return true;
+            }
+        }
+        return $source === 'google' || (string)($_COOKIE['vnv_ads_session'] ?? '') === '1';
     }
 
-    private static function refCode(string $serviceCode, bool $adsMode): string
+    private static function hasPaidAttribution(): bool
+    {
+        foreach (['gclid', 'gbraid', 'wbraid'] as $key) {
+            if (trim((string)($_GET[$key] ?? $_COOKIE['vnv_' . $key] ?? '')) !== '') {
+                return true;
+            }
+        }
+        $source = strtolower(trim((string)($_GET['utm_source'] ?? $_COOKIE['vnv_utm_source'] ?? '')));
+        return $source === 'google';
+    }
+
+    private static function refCode(string $serviceCode): string
     {
         if (session_status() === PHP_SESSION_ACTIVE && empty($_SESSION['vnv_gourmet_ref_suffix'])) {
             $_SESSION['vnv_gourmet_ref_suffix'] = strtoupper(substr(bin2hex(random_bytes(3)), 0, 3));
         }
         $suffix = (string)($_SESSION['vnv_gourmet_ref_suffix'] ?? strtoupper(substr(hash('sha256', session_id() ?: 'web'), 0, 3)));
-        return ($adsMode ? 'GA' : 'WEB') . '-' . $serviceCode . '-' . $suffix;
+        return (self::hasPaidAttribution() ? 'GA' : 'WEB') . '-' . $serviceCode . '-' . $suffix;
     }
 
     private static function landingNotice(): array
