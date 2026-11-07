@@ -519,6 +519,15 @@ class Kernel
 
             if (
                 count($urlViews) === 2 &&
+                $urlViews[0] === 'pages' &&
+                $urlViews[1] === 'catering-services'
+            ) {
+                header('Location: ' . LocationUtils::pathFor('vnv-gourmet'), true, 301);
+                exit;
+            }
+
+            if (
+                count($urlViews) === 2 &&
                 in_array($urlViews[0], ['pages', 'blog', 'locations'], true) &&
                 !empty($urlViews[1])
             ) {

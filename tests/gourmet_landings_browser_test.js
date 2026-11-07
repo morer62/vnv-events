@@ -116,10 +116,10 @@ async function assertNoBarOverlap(page, label) {
 
         if (route === 'catering-stations-south-florida') {
           const cardKeys = await page.locator('[data-station-card]').evaluateAll((cards) => cards.slice(0, 4).map((card) => card.getAttribute('data-station-card')));
-          assert.deepEqual(cardKeys, ['pasta', 'appetizer', 'crepes', 'taco'], `${label}: campaign-card priority order changed`);
+          assert.deepEqual(cardKeys, ['pasta', 'appetizer', 'crepes', 'taco'], `${label}: service-card priority order changed`);
         }
         if (route === 'corporate-catering-south-florida') {
-          assert(await page.getByText('Corporate stations first', { exact: true }).count(), `${label}: Corporate must lead with stations`);
+          assert(await page.getByText('Corporate catering stations', { exact: true }).count(), `${label}: Corporate must lead with stations`);
           assert(await page.getByText('Pasta or Taco', { exact: true }).count(), `${label}: Corporate main-station choice is missing`);
           assert.equal(await page.locator('.cl-hero').getByText(/Meal boxes from/i).count(), 0, `${label}: meal boxes must remain outside the hero`);
         }

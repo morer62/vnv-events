@@ -1,7 +1,8 @@
 {% extends "templates/base.twig" %}
 
-{% block title %}Locations | VNV Events{% endblock %}
-{% block meta_description %}Explore VNV Events service locations and city pages across South Florida.{% endblock %}
+{% block title %}South Florida Event Service Locations | VNV Events{% endblock %}
+{% block meta_description %}Explore VNV Events planning, catering and production service areas across Miami-Dade, Broward and Palm Beach cities.{% endblock %}
+{% block canonical %}https://vnvevents.com/locations/{% endblock %}
 
 {% block body %}
 {% include "templates/layout/publicHeaderVnv.html.twig" %}
@@ -243,7 +244,7 @@
             {% for p in pages %}
                 {% set q = (p.title|default('') ~ ' ' ~ p.city|default('') ~ ' ' ~ p.county|default('') ~ ' ' ~ p.state|default('') ~ ' ' ~ p.excerpt|default('') ~ ' ' ~ p.category|default(''))|lower|trim %}
                 {% set cardImage = p.hero_image|default('') ?: placeholderImage %}
-                {% set cardHref = path(p.public_path|default('/locations/' ~ p.slug ~ '/')|trim('/')) %}
+                {% set cardHref = path(p.public_path|default('/locations/' ~ p.slug ~ '/')) %}
                 <article class="loc-card" data-loc-card data-loc-category="{{ p.category_slug|default('location')|e('html_attr') }}" data-loc-search="{{ q|e('html_attr') }}">
                     <a class="loc-card-image-wrap" href="{{ cardHref }}" tabindex="-1" aria-hidden="true">
                         <img class="loc-card-image" src="{{ cardImage }}" alt="">

@@ -1,3 +1,4 @@
 <?php
-header('Location: /gourmet-to-go', true, 301);
+
+header('Location: ' . \App\Utils\LocationUtils::pathFor('vnv-gourmet'), true, 301);
 exit;

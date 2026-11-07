@@ -63,6 +63,31 @@ final class CateringLandingProductService
             'image' => 'assets/images/service_photos/brunch_tation_lite.webp',
             'summary' => 'Staffed stations for company events; meal boxes are a separate format.',
         ],
+        'pizza' => [
+            'code' => 'PIZZA', 'name' => 'Pizza Station',
+            'landing_slug' => 'pizza-station-catering-south-florida',
+            'product_slug' => 'pizza-station', 'fallback_price' => 19.00,
+            'minimum_guests' => 25, 'base_variations' => [],
+            'image' => 'assets/images/service_photos/pizza_station_lite.webp',
+            'summary' => 'Fresh pizza prepared on-site with selected crusts, sauces and toppings.',
+        ],
+        'paella' => [
+            'code' => 'PAELLA', 'name' => 'Paella Station',
+            'landing_slug' => 'paella-catering-south-florida',
+            'product_slug' => 'paella-tapas-station-from-27-77-per-guest-min-25',
+            'fallback_price' => 19.00, 'minimum_guests' => 25,
+            'base_variations' => [],
+            'image' => 'assets/images/service_photos/paella_station_lite.webp',
+            'summary' => 'Live paella preparation with seafood, chicken or vegetarian directions.',
+        ],
+        'shawarma' => [
+            'code' => 'SHAWARMA', 'name' => 'Shawarma Station',
+            'landing_slug' => 'shawarma-station-catering-south-florida',
+            'product_slug' => 'shawarma-station', 'fallback_price' => 19.00,
+            'minimum_guests' => 25, 'base_variations' => [],
+            'image' => 'assets/images/services/shawarma-station.webp',
+            'summary' => 'Freshly carved shawarma with Mediterranean toppings, sides and sauces.',
+        ],
     ];
 
     public static function hydrate(array $page): array

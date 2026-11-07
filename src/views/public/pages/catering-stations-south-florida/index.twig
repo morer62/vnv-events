@@ -4,7 +4,7 @@
 {% set skip_public_gtm_initial = true %}
 
 {% block title %}Live Catering Stations in South Florida | VNV Events{% endblock %}
-{% block meta_description %}Compare VNV Events' priority catering services in South Florida: Pasta, Appetizers, Crepes and Taco, with current base prices and minimums.{% endblock %}
+{% block meta_description %}Compare VNV Events catering stations in South Florida: Pasta, Appetizers, Crepes and Taco, with current base prices and minimums.{% endblock %}
 {% block meta_keywords %}live catering stations South Florida, appetizer catering Miami, pasta station Broward, crepe station, taco station Palm Beach{% endblock %}
 {% block canonical %}https://vnvevents.com/catering-stations-south-florida/{% endblock %}
 {% block head %}
@@ -22,13 +22,13 @@
 {% block body %}
 {% if not ads_mode %}{% include "templates/layout/publicHeaderVnv.html.twig" %}{% endif %}
 <main>
-<section class="cs-hero"><div class="cs-wrap"><span class="cs-eyebrow">VNV Gourmet · South Florida</span><h1>Compare the four catering experiences built for this campaign</h1><p>Pasta, Appetizers, Crepes and Taco each have a dedicated landing, a current base price from the VNV Store and a short path to request availability.</p><div class="cs-actions"><a class="cs-btn" href="#priorities">Compare services</a><a class="cs-btn alt" href="tel:{{ phone_number }}" data-cs-call>Call VNV</a>{% if ads_mode %}<a class="cs-btn dark" href="https://wa.me/{{ whatsapp_number }}" target="_blank" rel="noopener" data-cs-whatsapp>WhatsApp</a><a class="cs-btn alt" href="#quote">Get a quote</a>{% endif %}</div></div></section>
+<section class="cs-hero"><div class="cs-wrap"><span class="cs-eyebrow">VNV Gourmet · South Florida</span><h1>Compare four live catering stations for South Florida events</h1><p>Pasta, Appetizers, Crepes and Taco each have a dedicated service page, a current base price from the VNV Store and a short path to request availability.</p><div class="cs-actions"><a class="cs-btn" href="#services">Compare services</a><a class="cs-btn alt" href="tel:{{ phone_number }}" data-cs-call>Call VNV</a>{% if ads_mode %}<a class="cs-btn dark" href="https://wa.me/{{ whatsapp_number }}" target="_blank" rel="noopener" data-cs-whatsapp>WhatsApp</a><a class="cs-btn alt" href="#quote">Get a quote</a>{% endif %}</div></div></section>
 
-<section class="cs-section cs-light" id="priorities"><div class="cs-wrap"><div class="cs-heading"><span class="cs-eyebrow">Campaign priorities</span><h2>Four clear choices</h2><p>Add-ons and combinations are excluded from every From price shown here.</p></div><div class="cs-grid">
+<section class="cs-section cs-light" id="services"><div class="cs-wrap"><div class="cs-heading"><span class="cs-eyebrow">Popular catering experiences</span><h2>Four clear choices</h2><p>Add-ons and combinations are excluded from every From price shown here.</p></div><div class="cs-grid">
 {% for station in gourmet_catalog %}<article class="cs-card" data-station-card="{{ station.key }}" data-price="{{ station.price }}"><img loading="lazy" decoding="async" src="{{ asset_for(station.image) }}" alt="{{ station.name }} by VNV Events" width="700" height="520"><div class="cs-card-body"><div class="cs-rank"><span>Priority {{ '%02d'|format(loop.index) }}</span><span class="cs-price">{{ station.price }} · {{ station.minimum }}</span></div><h2>{{ station.name }}</h2><p>{{ station.summary }}</p><div class="cs-actions"><a class="cs-btn" href="{{ path(station.landing_url) }}">Explore service</a>{% if not ads_mode %}<a class="cs-btn alt" style="color:#087e79;border-color:#087e79" href="{{ station.product_url }}">Menu &amp; options</a>{% endif %}</div></div></article>{% endfor %}
 </div></div></section>
 
-<section class="cs-section"><div class="cs-wrap"><div class="cs-corporate"><span class="cs-eyebrow">Corporate &amp; holiday occasion</span><h2>Use the same four services for company events</h2><p>Corporate is an occasion, not a fifth campaign product. VNV can build a proposal around Pasta, Appetizers, Crepes or Taco without inventing a combo price.</p><div class="cs-options"><div class="cs-option"><strong>{{ corporate_overview.station_price }} per guest</strong><p>Published corporate station format for 50 or more guests.</p></div>{% if corporate_overview.meal_box_price %}<div class="cs-option"><strong>{{ corporate_overview.meal_box_price }}</strong><p>A separate breakfast or lunch format, not the price of a live station.</p></div>{% endif %}</div><div class="cs-actions"><a class="cs-btn" href="{{ path(corporate_overview.landing_url) }}">Corporate options</a></div></div>
+<section class="cs-section"><div class="cs-wrap"><div class="cs-corporate"><span class="cs-eyebrow">Corporate &amp; holiday occasions</span><h2>Bring these catering stations to company events</h2><p>VNV can build a company-event proposal around Pasta, Appetizers, Crepes or Taco while keeping live stations and meal boxes as clearly separate formats.</p><div class="cs-options"><div class="cs-option"><strong>{{ corporate_overview.station_price }} per guest</strong><p>Published corporate station format for 50 or more guests.</p></div>{% if corporate_overview.meal_box_price %}<div class="cs-option"><strong>{{ corporate_overview.meal_box_price }}</strong><p>A separate breakfast or lunch format, not the price of a live station.</p></div>{% endif %}</div><div class="cs-actions"><a class="cs-btn" href="{{ path(corporate_overview.landing_url) }}">Corporate options</a></div></div>
 {% if not ads_mode %}<div class="cs-more"><a href="{{ path('/pizza-station-catering-south-florida/') }}">More stations: Pizza</a><a href="{{ path('/paella-catering-south-florida/') }}">Paella</a><a href="{{ path('/shawarma-station-catering-south-florida/') }}">Shawarma</a><a href="{{ path('/store-categories/') }}">Full catalog</a></div>{% endif %}</div></section>
 
 {% if ads_mode %}
@@ -49,7 +49,7 @@
   <div class="cs-field"><label for="cs-name">Name <span class="cs-help">(optional)</span></label><input class="cs-input" id="cs-name" name="full_name" autocomplete="name"></div>
   <div class="cs-field"><label for="cs-phone">Phone</label><input class="cs-input" id="cs-phone" name="phone" type="tel" autocomplete="tel"></div>
   <div class="cs-field"><label for="cs-email">Email</label><input class="cs-input" id="cs-email" name="email" type="email" autocomplete="email"></div>
-  <div class="cs-field full"><p class="cs-help">For groups under 25, we will also show Gourmet To Go as an alternative; your request is still saved.</p><button class="cs-btn dark" type="submit">Send request</button></div>
+  <div class="cs-field full"><p class="cs-help">For groups under 25, submit the request and our team will confirm the smaller-format options currently available.</p><button class="cs-btn dark" type="submit">Send request</button></div>
 </form></div></section>
 {% endif %}
 

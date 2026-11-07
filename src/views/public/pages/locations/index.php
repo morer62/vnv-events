@@ -17,6 +17,15 @@ foreach (get_growth_hub_location_pages() as $page) {
     $pagesByRoute[$page['public_path']] = $page;
 }
 
+// Reconcile the database with the environment's generated location sitemap.
+// Database records keep their richer content; sitemap-only canonical routes fill
+// deployment gaps without creating, redirecting or removing indexable pages.
+foreach (get_sitemap_location_pages() as $page) {
+    if (!isset($pagesByRoute[$page['public_path']])) {
+        $pagesByRoute[$page['public_path']] = $page;
+    }
+}
+
 $allPages = array_values($pagesByRoute);
 $categories = get_location_categories($allPages);
 $perPage = 20;
@@ -132,6 +141,101 @@ function get_growth_hub_location_pages(): array
         error_log('Growth Hub location list failed: ' . $e->getMessage());
         return [];
     }
+}
+
+function get_sitemap_location_pages(): array
+{
+    $sitemapPath = dirname(__DIR__, 5) . DIRECTORY_SEPARATOR . 'public' . DIRECTORY_SEPARATOR . 'sitemap-locations.xml';
+    if (!is_file($sitemapPath) || !function_exists('simplexml_load_file')) {
+        return [];
+    }
+
+    $previousSetting = libxml_use_internal_errors(true);
+    try {
+        $xml = simplexml_load_file($sitemapPath);
+        if ($xml === false) {
+            return [];
+        }
+
+        $items = [];
+        foreach ($xml->url ?? [] as $entry) {
+            $url = trim((string)($entry->loc ?? ''));
+            $path = (string)(parse_url($url, PHP_URL_PATH) ?: '');
+            if (!preg_match('#^/locations/([^/]+)/?$#i', $path, $matches)) {
+                continue;
+            }
+
+            $slug = strtolower(trim((string)$matches[1]));
+            if ($slug === '') {
+                continue;
+            }
+
+            $category = sitemap_location_category($slug);
+            $items[] = [
+                'title' => sitemap_location_title($slug),
+                'slug' => $slug,
+                'public_path' => '/locations/' . $slug . '/',
+                'category' => $category,
+                'category_slug' => slugify_location_value($category),
+                'category_image_url' => '',
+                'hero_image' => '',
+                'excerpt' => 'Explore VNV Events services available for celebrations in this South Florida area.',
+                'city' => '',
+                'county' => '',
+                'state' => 'FL',
+                'source' => 'published_location_sitemap',
+            ];
+        }
+
+        return $items;
+    } catch (\Throwable $e) {
+        error_log('Location sitemap fallback failed: ' . $e->getMessage());
+        return [];
+    } finally {
+        libxml_clear_errors();
+        libxml_use_internal_errors($previousSetting);
+    }
+}
+
+function sitemap_location_category(string $slug): string
+{
+    $categories = [
+        'pasta' => 'Pasta Station',
+        'crepe' => 'Crepes Station',
+        'taco' => 'Taco Station',
+        'appetizer' => 'Appetizer Station',
+        'catering' => 'Catering',
+        'dj' => 'DJ & Karaoke',
+        'karaoke' => 'DJ & Karaoke',
+        'flower' => 'Decor & Flowers',
+        'floral' => 'Decor & Flowers',
+        'decor' => 'Decor & Flowers',
+        'photo' => 'Photo & Video',
+        'video' => 'Photo & Video',
+        'rental' => 'Event Rentals',
+        'staff' => 'Event Staffing',
+        'planner' => 'Event Planning',
+        'production' => 'Event Production',
+    ];
+
+    foreach ($categories as $needle => $category) {
+        if (str_contains($slug, $needle)) {
+            return $category;
+        }
+    }
+
+    return 'Service Area';
+}
+
+function sitemap_location_title(string $slug): string
+{
+    $title = ucwords(str_replace('-', ' ', $slug));
+
+    return str_replace(
+        ['Vnv ', 'Dj ', 'Miami Dade'],
+        ['VNV ', 'DJ ', 'Miami-Dade'],
+        $title
+    );
 }
 
 function get_location_categories(array $pages): array

@@ -48,6 +48,7 @@ $router->get(function () {
     $seo = [
         'title' => 'VNV Events | South Florida Event Planning, Catering and Production',
         'description' => 'VNV Events is a full-service luxury event planning, catering, production, entertainment and event rental studio serving Miami, Broward, Palm Beach and South Florida.',
+        'canonical' => 'https://vnvevents.com/',
     ];
 
     return TemplateResponse::render(__DIR__ . "/index.twig", [

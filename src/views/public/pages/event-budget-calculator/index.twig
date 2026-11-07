@@ -1,0 +1,202 @@
+{% extends "templates/base.twig" %}
+
+{% block title %}Event Budget Calculator for South Florida | VNV Events{% endblock %}
+{% block meta_description %}Plan an event budget by guest count and category. Estimate per-guest spending, reserve funds and allocations for catering, venue, production, décor and media.{% endblock %}
+{% block canonical %}https://vnvevents.com/event-budget-calculator/{% endblock %}
+
+{% block head %}
+{{ parent() }}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebApplication",
+      "name": "VNV Events Event Budget Calculator",
+      "url": "https://vnvevents.com/event-budget-calculator/",
+      "applicationCategory": "BusinessApplication",
+      "operatingSystem": "Any",
+      "isAccessibleForFree": true,
+      "description": "A planning calculator for allocating an event budget by guest count and service category."
+    },
+    {
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "Does this calculator provide a VNV Events quote?",
+          "acceptedAnswer": {"@type": "Answer", "text": "No. It is a planning tool based on the total budget and percentages you enter. A VNV Events proposal is prepared from the date, location, guest count and services requested."}
+        },
+        {
+          "@type": "Question",
+          "name": "Why should an event budget include a reserve?",
+          "acceptedAnswer": {"@type": "Answer", "text": "A reserve keeps part of the budget available for taxes, gratuities, delivery, permits, overtime or changes that may apply to the final event plan."}
+        },
+        {
+          "@type": "Question",
+          "name": "What areas does VNV Events serve?",
+          "acceptedAnswer": {"@type": "Answer", "text": "VNV Events serves events across Miami-Dade, Broward and Palm Beach counties, with planning for destination events in South Florida."}
+        }
+      ]
+    }
+  ]
+}
+</script>
+<style>
+  .budget-page{background:#fbf8f3;color:#261b12;padding:4.5rem 0 5.5rem}.budget-wrap{width:min(1120px,calc(100% - 32px));margin:0 auto}.budget-hero{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(300px,.85fr);gap:2.25rem;align-items:center;margin-bottom:2rem}.budget-kicker{color:#8a5a24;font-size:.78rem;font-weight:800;letter-spacing:.14em;text-transform:uppercase}.budget-hero h1{font-family:Georgia,serif;font-size:clamp(2.45rem,6vw,5.1rem);line-height:.98;margin:.65rem 0 1rem}.budget-hero p{font-size:1.1rem;line-height:1.75;max-width:720px}.budget-note{background:#261b12;color:#fff;border-radius:24px;padding:1.6rem;box-shadow:0 18px 45px rgba(38,27,18,.14)}.budget-note strong{display:block;color:#e9be7b;font-size:1.05rem;margin-bottom:.5rem}.budget-grid{display:grid;grid-template-columns:minmax(0,.95fr) minmax(340px,1.05fr);gap:1.5rem;align-items:start}.budget-card{background:#fff;border:1px solid #eadfce;border-radius:24px;padding:clamp(1.25rem,3vw,2rem);box-shadow:0 16px 36px rgba(69,45,23,.08)}.budget-card h2{font-family:Georgia,serif;font-size:2rem;margin:0 0 .55rem}.budget-field{margin-top:1.15rem}.budget-field label,.budget-allocation label{display:flex;justify-content:space-between;gap:1rem;font-weight:750;margin-bottom:.45rem}.budget-field input,.budget-field select{width:100%;border:1px solid #cdbda8;border-radius:12px;padding:.82rem .9rem;background:#fff;color:#261b12;font-size:1rem}.budget-field input:focus,.budget-field select:focus,.budget-allocation input:focus{outline:3px solid rgba(177,120,50,.2);border-color:#9a6428}.budget-allocation{margin-top:1rem}.budget-allocation input{width:100%;accent-color:#9a6428}.budget-allocation small{color:#6a5b4d}.budget-status{margin-top:1rem;padding:.85rem 1rem;border-radius:12px;background:#f4ecdf;font-weight:700}.budget-status.is-warning{background:#fff0df;color:#8d3d00}.budget-summary{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.8rem;margin:1.15rem 0}.budget-metric{border:1px solid #eadfce;border-radius:16px;padding:1rem;background:#fffaf3}.budget-metric span{display:block;color:#766657;font-size:.78rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em}.budget-metric strong{display:block;font-size:1.55rem;margin-top:.25rem}.budget-results{list-style:none;padding:0;margin:0}.budget-results li{display:grid;grid-template-columns:1fr auto;gap:1rem;padding:.85rem 0;border-bottom:1px solid #eee3d4}.budget-results li:last-child{border-bottom:0}.budget-results span{font-weight:700}.budget-results b{font-variant-numeric:tabular-nums}.budget-actions{display:flex;flex-wrap:wrap;gap:.75rem;margin-top:1.2rem}.budget-btn{display:inline-flex;align-items:center;justify-content:center;min-height:48px;border-radius:999px;padding:.78rem 1.15rem;text-decoration:none!important;font-weight:800}.budget-btn-primary{background:#9a6428;color:#fff!important}.budget-btn-secondary{border:1px solid #9a6428;color:#754817!important}.budget-content{margin-top:2.5rem;display:grid;grid-template-columns:1fr 1fr;gap:1.5rem}.budget-content h2{font-family:Georgia,serif;font-size:2rem}.budget-content p,.budget-content li{line-height:1.72}.budget-links{display:grid;gap:.65rem;margin-top:1rem}.budget-links a{color:#754817;font-weight:800}.budget-faq{margin-top:2.5rem}.budget-faq details{background:#fff;border:1px solid #eadfce;border-radius:15px;padding:1rem 1.15rem;margin:.7rem 0}.budget-faq summary{cursor:pointer;font-weight:800}.budget-faq p{margin:.8rem 0 0;line-height:1.7}@media(max-width:820px){.budget-page{padding-top:2.5rem}.budget-hero,.budget-grid,.budget-content{grid-template-columns:1fr}.budget-note{order:2}}@media(max-width:520px){.budget-wrap{width:min(100% - 20px,1120px)}.budget-summary{grid-template-columns:1fr}.budget-card{border-radius:18px}.budget-btn{width:100%}}
+</style>
+{% endblock %}
+
+{% block body %}
+<main class="budget-page">
+  <div class="budget-wrap">
+    <section class="budget-hero" aria-labelledby="budget-title">
+      <div>
+        <div class="budget-kicker">Free planning tool · South Florida events</div>
+        <h1 id="budget-title">Event Budget Calculator</h1>
+        <p>Turn one total number into a clearer planning framework. Enter your own budget, guest count and priorities to see a per-guest target and category allocations before requesting a formal proposal.</p>
+      </div>
+      <aside class="budget-note">
+        <strong>This is a planning estimate, not a price quote.</strong>
+        Your event date, venue, location, service time, menu and production requirements determine the actual proposal. The calculator never substitutes generic market prices for VNV Events pricing.
+      </aside>
+    </section>
+
+    <section class="budget-grid" aria-label="Event budget calculator">
+      <form class="budget-card" data-budget-form>
+        <h2>Build your plan</h2>
+        <p>Adjust the percentages to match what matters most for your event.</p>
+
+        <div class="budget-field">
+          <label for="budget-total">Total working budget</label>
+          <input id="budget-total" name="budget_total" type="number" min="500" step="100" value="15000" inputmode="decimal">
+        </div>
+        <div class="budget-field">
+          <label for="budget-guests">Expected guests</label>
+          <input id="budget-guests" name="guest_count" type="number" min="1" step="1" value="75" inputmode="numeric">
+        </div>
+        <div class="budget-field">
+          <label for="budget-occasion">Event type</label>
+          <select id="budget-occasion" name="occasion">
+            <option>Wedding or social celebration</option>
+            <option>Corporate event</option>
+            <option>Birthday or milestone</option>
+            <option>Destination event in South Florida</option>
+            <option>Other event</option>
+          </select>
+        </div>
+
+        {% set allocations = [
+          {id:'reserve', label:'Reserve', value:10},
+          {id:'catering', label:'Catering & beverages', value:35},
+          {id:'venue', label:'Venue & rentals', value:20},
+          {id:'production', label:'Planning, entertainment & production', value:18},
+          {id:'decor', label:'Décor & flowers', value:12},
+          {id:'media', label:'Photo & video', value:5}
+        ] %}
+        {% for item in allocations %}
+          <div class="budget-allocation">
+            <label for="allocation-{{ item.id }}"><span>{{ item.label }}</span><output for="allocation-{{ item.id }}" data-allocation-output="{{ item.id }}">{{ item.value }}%</output></label>
+            <input id="allocation-{{ item.id }}" name="{{ item.id }}" type="range" min="0" max="70" step="1" value="{{ item.value }}" data-allocation="{{ item.id }}" data-label="{{ item.label }}">
+          </div>
+        {% endfor %}
+        <div class="budget-status" data-budget-status aria-live="polite">Your plan allocates 100% of the working budget.</div>
+      </form>
+
+      <section class="budget-card" aria-labelledby="budget-results-title">
+        <h2 id="budget-results-title">Planning snapshot</h2>
+        <p>Use these amounts as conversation targets while comparing scope and priorities.</p>
+        <div class="budget-summary">
+          <div class="budget-metric"><span>Total budget</span><strong data-result-total>$15,000</strong></div>
+          <div class="budget-metric"><span>Budget per guest</span><strong data-result-per-guest>$200</strong></div>
+        </div>
+        <ul class="budget-results" data-budget-results></ul>
+        <div class="budget-actions">
+          <a class="budget-btn budget-btn-primary" href="#" data-vnv-open-request>Plan with VNV Events</a>
+          <a class="budget-btn budget-btn-secondary" href="{{ path('/vnv-gourmet') }}">Explore catering</a>
+          <a class="budget-btn budget-btn-secondary" href="tel:+13052045427">Call 305-204-5427</a>
+        </div>
+      </section>
+    </section>
+
+    <section class="budget-content">
+      <article class="budget-card">
+        <h2>How to use the estimate</h2>
+        <ol>
+          <li>Start with the amount you can responsibly invest, not a generic online average.</li>
+          <li>Protect a reserve before distributing the rest across services.</li>
+          <li>Move percentages toward the guest experience elements that matter most.</li>
+          <li>Share the result with your planner so scope, tradeoffs and priorities are clear.</li>
+        </ol>
+      </article>
+      <article class="budget-card">
+        <h2>Continue planning</h2>
+        <p>VNV Events coordinates planning, catering and event production across Miami-Dade, Broward and Palm Beach. These guides help turn the budget into an executable plan.</p>
+        <div class="budget-links">
+          <a href="{{ path('/event-planners') }}">Event planning in South Florida →</a>
+          <a href="{{ path('/corporate-events') }}">Corporate events and dinners →</a>
+          <a href="{{ path('/catering-stations-south-florida') }}">Compare live catering stations →</a>
+          <a href="{{ path('/locations') }}">Explore service locations →</a>
+        </div>
+      </article>
+    </section>
+
+    <section class="budget-faq" aria-labelledby="budget-faq-title">
+      <h2 id="budget-faq-title">Event budget questions</h2>
+      <details><summary>Does this calculator provide a VNV Events quote?</summary><p>No. It organizes the numbers you enter. A formal proposal requires your date, venue or ZIP, guest count, service duration and selected services.</p></details>
+      <details><summary>Why include a reserve?</summary><p>A reserve leaves room for items that may depend on the final plan, including taxes, gratuities, delivery, permits, overtime or venue requirements.</p></details>
+      <details><summary>Can I use it for a destination event?</summary><p>Yes. Use it to organize priorities before speaking with the team. VNV Events plans destination celebrations taking place in South Florida and will confirm logistics for the specific venue and county.</p></details>
+    </section>
+  </div>
+</main>
+
+{% include 'templates/components/publicEventRequestModal.html.twig' with {request_form_source: 'event_budget_calculator'} %}
+
+<script>
+(function () {
+  var form = document.querySelector('[data-budget-form]');
+  if (!form) return;
+  var money = new Intl.NumberFormat('en-US', {style:'currency', currency:'USD', maximumFractionDigits:0});
+  var totalInput = document.getElementById('budget-total');
+  var guestInput = document.getElementById('budget-guests');
+  var sliders = Array.prototype.slice.call(form.querySelectorAll('[data-allocation]'));
+  var list = document.querySelector('[data-budget-results]');
+  var status = document.querySelector('[data-budget-status]');
+
+  function numberValue(input, fallback) {
+    var value = Number(input && input.value);
+    return Number.isFinite(value) && value > 0 ? value : fallback;
+  }
+
+  function render() {
+    var total = numberValue(totalInput, 0);
+    var guests = Math.max(1, numberValue(guestInput, 1));
+    var percentTotal = 0;
+    var rows = sliders.map(function (slider) {
+      var percent = Math.max(0, Number(slider.value) || 0);
+      percentTotal += percent;
+      var output = form.querySelector('[data-allocation-output="' + slider.dataset.allocation + '"]');
+      if (output) output.textContent = percent + '%';
+      return {label: slider.dataset.label, percent: percent, amount: total * percent / 100};
+    });
+
+    document.querySelector('[data-result-total]').textContent = money.format(total);
+    document.querySelector('[data-result-per-guest]').textContent = money.format(total / guests);
+    list.innerHTML = rows.map(function (row) {
+      return '<li><span>' + row.label + ' <small>(' + row.percent + '%)</small></span><b>' + money.format(row.amount) + '</b></li>';
+    }).join('');
+
+    var difference = 100 - percentTotal;
+    status.classList.toggle('is-warning', difference !== 0);
+    status.textContent = difference === 0
+      ? 'Your plan allocates 100% of the working budget.'
+      : (difference > 0
+          ? difference + '% remains unallocated.'
+          : 'Your allocations exceed the budget by ' + Math.abs(difference) + '%.');
+  }
+
+  form.addEventListener('input', render);
+  render();
+})();
+</script>
+{% endblock %}

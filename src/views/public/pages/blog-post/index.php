@@ -98,6 +98,7 @@ echo TemplateResponse::render(__DIR__ . "/index.twig", [
     "route" => $route,
     "category" => $category,
     "content_json" => $contentJson,
+    "post_body_html" => PublicSeoService::normalizeArticleBodyHeadings($post->body_html ?? ''),
     "internal_links" => PublicSeoService::defaultInternalLinks(),
     "seo" => PublicSeoService::contentSeo($post, $route, 'post'),
     "schemaJson" => PublicSeoService::blogSchema($post, $route, $category),

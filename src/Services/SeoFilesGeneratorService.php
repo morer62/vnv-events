@@ -316,7 +316,7 @@ class SeoFilesGeneratorService
             '',
         ];
 
-        $serviceAreas = array_slice($locations, 0, $full ? 80 : 15);
+        $serviceAreas = array_slice($this->rankLlmsEntries($locations, true), 0, $full ? 80 : 15);
         if (empty($serviceAreas)) {
             foreach (['South Florida', 'Miami-Dade', 'Broward', 'Palm Beach', 'Miami', 'Doral', 'Fort Lauderdale', 'West Palm Beach'] as $area) {
                 $lines[] = '- ' . $area;
@@ -345,7 +345,8 @@ class SeoFilesGeneratorService
             $lines[] = '';
             $lines[] = 'Do not use private panel, order, customer, or administrative data as public context.';
         } else {
-            $this->appendSection($lines, 'Featured Public Content', array_slice(array_merge($products, $productCategories, $posts, $locations), 0, 12), 12);
+            $featured = $this->rankLlmsEntries(array_merge($pages, $products, $productCategories, $posts, $locations));
+            $this->appendSection($lines, 'Featured Public Content', $featured, 12);
         }
 
         $filename = $full ? 'llms-full.txt' : 'llms.txt';
@@ -451,11 +452,13 @@ class SeoFilesGeneratorService
         $excluded = [
             'blog-post',
             'blog-category',
+            'catering-delivery',
             'cms-content',
             'growth-content',
             'location-page',
             'product',
             'product-category',
+            'sucess-request',
             'vnv-events-to-go',
             'vnv-gourmet-express',
         ];
@@ -477,6 +480,11 @@ class SeoFilesGeneratorService
 
             $segments = array_values(array_filter(explode('/', $directory)));
             if (!$segments || in_array($segments[0], $excluded, true)) {
+                continue;
+            }
+
+            $templatePath = $file->getPath() . DIRECTORY_SEPARATOR . 'index.twig';
+            if (!$this->isIndexablePhysicalTemplate($templatePath)) {
                 continue;
             }
 
@@ -912,9 +920,92 @@ class SeoFilesGeneratorService
         $lines[] = '## ' . $title;
         $lines[] = '';
 
-        foreach (array_slice($entries, 0, $limit) as $entry) {
+        foreach (array_slice($this->rankLlmsEntries($entries), 0, $limit) as $entry) {
             $lines[] = '- ' . $entry['title'] . ': ' . $entry['loc'];
         }
+    }
+
+    private function isIndexablePhysicalTemplate(string $templatePath): bool
+    {
+        if (!is_file($templatePath)) {
+            return false;
+        }
+
+        $template = trim((string)file_get_contents($templatePath));
+        if ($template === '') {
+            return false;
+        }
+
+        return preg_match('/<meta\s+name=["\']robots["\'][^>]*noindex/i', $template) !== 1;
+    }
+
+    /**
+     * llms.txt should surface authoritative commercial and research content,
+     * not whichever URL happens to sort first alphabetically in the sitemap.
+     */
+    private function rankLlmsEntries(array $entries, bool $preferCoreLocations = false): array
+    {
+        $curatedPaths = [
+            '/' => 1200,
+            '/vnv-gourmet/' => 1190,
+            '/catering-stations-south-florida/' => 1180,
+            '/pasta-station-catering-south-florida/' => 1170,
+            '/appetizer-catering-south-florida/' => 1160,
+            '/crepes-catering-south-florida/' => 1150,
+            '/taco-station-catering-south-florida/' => 1140,
+            '/corporate-catering-south-florida/' => 1130,
+            '/event-planners/' => 1120,
+            '/corporate-events/' => 1110,
+            '/locations/' => 1100,
+            '/event-budget-calculator/' => 1090,
+            '/balloon-decoration-pricing-calculator/' => 1080,
+            '/finger-food-appetizer-and-meal-event-calculator/' => 1070,
+            '/dj-sound-system-requirements-calculator/' => 1060,
+        ];
+
+        $coreLocationTerms = [
+            'miami' => 90,
+            'fort-lauderdale' => 80,
+            'fort lauderdale' => 80,
+            'broward' => 70,
+            'palm-beach' => 60,
+            'palm beach' => 60,
+            'doral' => 50,
+            'sunrise' => 40,
+        ];
+
+        usort($entries, static function (array $left, array $right) use ($curatedPaths, $coreLocationTerms, $preferCoreLocations): int {
+            $score = static function (array $entry) use ($curatedPaths, $coreLocationTerms, $preferCoreLocations): float {
+                $path = (string)(parse_url((string)($entry['loc'] ?? ''), PHP_URL_PATH) ?: '/');
+                $path = $path !== '/' ? rtrim($path, '/') . '/' : '/';
+                $value = (float)($entry['priority'] ?? 0) * 100;
+                $value += $curatedPaths[$path] ?? 0;
+
+                if ($preferCoreLocations) {
+                    $haystack = strtolower($path . ' ' . (string)($entry['title'] ?? ''));
+                    foreach ($coreLocationTerms as $term => $bonus) {
+                        if (str_contains($haystack, $term)) {
+                            $value += $bonus;
+                            break;
+                        }
+                    }
+                }
+
+                return $value;
+            };
+
+            $scoreComparison = $score($right) <=> $score($left);
+            if ($scoreComparison !== 0) {
+                return $scoreComparison;
+            }
+
+            $dateComparison = strcmp((string)($right['lastmod'] ?? ''), (string)($left['lastmod'] ?? ''));
+            return $dateComparison !== 0
+                ? $dateComparison
+                : strcmp((string)($left['title'] ?? ''), (string)($right['title'] ?? ''));
+        });
+
+        return $entries;
     }
 
     private function titleFromPath(string $path): string
@@ -986,6 +1077,17 @@ class SeoFilesGeneratorService
         }
 
         $path = parse_url($url, PHP_URL_PATH) ?: '/';
+        $redirectOrNoindexPaths = [
+            '/catering-delivery/',
+            '/pages/catering-services/',
+            '/sucess-request/',
+            '/vnv-events-to-go/',
+            '/vnv-gourmet-express/',
+        ];
+        if (in_array('/' . trim($path, '/') . '/', $redirectOrNoindexPaths, true)) {
+            return false;
+        }
+
         foreach (['/panel/', '/api/', '/storage/private/', '/login', '/signup'] as $blocked) {
             if (str_starts_with($path, $blocked)) {
                 return false;

@@ -72,7 +72,7 @@ $page['schema'] = [
 $router = new Router();
 $router->get(fn () => TemplateResponse::render(
     dirname(__DIR__, 3).DIRECTORY_SEPARATOR.'templates'.DIRECTORY_SEPARATOR.'pages'.DIRECTORY_SEPARATOR.'cateringServiceLanding.twig',
-    ['page' => \App\Services\CateringLandingProductService::hydrate($page)]
+    \App\Services\CateringLandingProductService::viewData($page)
 ));
 
 try {

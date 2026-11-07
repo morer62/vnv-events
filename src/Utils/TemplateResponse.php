@@ -109,9 +109,15 @@ class TemplateResponse
         }
 
         $currentCanonicalUrl = self::getCurrentCanonicalUrl();
+        if (empty($data['seo']) || !is_array($data['seo'])) {
+            $staticSeo = self::extractStaticSeoBlocks($templateLocation);
+            if ($staticSeo !== []) {
+                $data['seo'] = $staticSeo;
+            }
+        }
         if (empty($data['schemaJson'])) {
             $data['schemaJson'] = PublicSeoService::defaultSchema(
-                $currentCanonicalUrl,
+                (string)($data['seo']['canonical'] ?? $currentCanonicalUrl),
                 is_array($data['seo'] ?? null) ? $data['seo'] : [],
                 $templateChild
             );
@@ -327,6 +333,39 @@ class TemplateResponse
         }
 
         return $baseUrl . $path;
+    }
+
+    private static function extractStaticSeoBlocks(string $templateLocation): array
+    {
+        if (!is_file($templateLocation)) {
+            return [];
+        }
+
+        $source = (string)file_get_contents($templateLocation);
+        $blocks = [
+            'title' => 'title',
+            'description' => 'meta_description',
+            'canonical' => 'canonical',
+        ];
+        $seo = [];
+
+        foreach ($blocks as $key => $blockName) {
+            if (preg_match('#\{%\s*block\s+' . preg_quote($blockName, '#') . '\s*%\}(.*?)\{%\s*endblock\s*%\}#si', $source, $match) !== 1) {
+                continue;
+            }
+
+            $value = trim((string)$match[1]);
+            if ($value === '' || str_contains($value, '{{') || str_contains($value, '{%')) {
+                continue;
+            }
+
+            $value = trim(html_entity_decode(strip_tags($value), ENT_QUOTES | ENT_HTML5, 'UTF-8'));
+            if ($value !== '') {
+                $seo[$key] = $value;
+            }
+        }
+
+        return $seo;
     }
 
 }

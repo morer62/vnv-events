@@ -11,6 +11,27 @@ class PublicSeoService
     private const WEBSITE_ID = 'https://vnvevents.com/#website';
     private const GOOGLE_BUSINESS_PROFILE_URL = 'https://share.google/dQqX7hhKBHLVaZaqQ';
 
+    /**
+     * The public article template owns the page H1. CMS editors occasionally
+     * paste a second H1 into body_html, which weakens the document outline.
+     * Demote embedded H1 elements at render time without rewriting CMS data.
+     */
+    public static function normalizeArticleBodyHeadings(?string $html): string
+    {
+        $html = (string)$html;
+        if ($html === '') {
+            return '';
+        }
+
+        return (string)preg_replace_callback(
+            '#</?h1\b[^>]*>#i',
+            static function (array $match): string {
+                return preg_replace('#h1#i', 'h2', $match[0], 1) ?? $match[0];
+            },
+            $html
+        );
+    }
+
     public static function locationSeo(object $page): array
     {
         $canonical = self::canonical($page->canonical_url ?? null, '/locations/' . trim((string)($page->slug ?? ''), '/') . '/');
@@ -448,10 +469,6 @@ class PublicSeoService
                 'postalCode' => '33351',
                 'addressCountry' => 'US',
             ],
-            'geo' => [
-                '@type' => 'GeoCoordinates',
-                'address' => '10258 NW 47th St, Sunrise, FL 33351',
-            ],
             'areaServed' => self::defaultAreaServed(true),
             'openingHoursSpecification' => [
                 [
@@ -485,7 +502,7 @@ class PublicSeoService
                 ['@type' => 'Offer', 'itemOffered' => ['@type' => 'Service', 'name' => 'Bartending and event staffing']],
             ],
             'sameAs' => [
-                'https://www.instagram.com/vnvevents/',
+                'https://www.instagram.com/vnv_events/',
                 self::GOOGLE_BUSINESS_PROFILE_URL,
             ],
         ];
@@ -527,7 +544,7 @@ class PublicSeoService
             'image' => self::absoluteUrl(self::firstFilled([$page->hero_image ?? null, $page->og_image ?? null, self::LOGO_URL])),
             'sameAs' => [
                 self::GOOGLE_BUSINESS_PROFILE_URL,
-                'https://www.instagram.com/vnvevents/',
+                'https://www.instagram.com/vnv_events/',
             ],
         ];
     }

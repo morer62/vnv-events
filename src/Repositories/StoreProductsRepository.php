@@ -515,7 +515,7 @@ class StoreProductsRepository extends BaseRepository
         $ownerSql = $ownerId !== null && $ownerId > 0 ? "AND id_owner = :id_owner" : "";
         $siteSql = $this->publicProductVisibilitySql($siteKey);
         $this->db->query("
-            SELECT id, name, slug, short_description, updated_at, created_at
+            SELECT id, name, slug, short_description, product_role, is_addon_only, updated_at, created_at
             FROM {$this->table}
             WHERE status = :status
               AND is_public = 1
