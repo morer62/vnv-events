@@ -14,6 +14,17 @@ Public domain:
 vnvevents.com
 ```
 
+Production deployment procedure:
+
+```text
+docs/VNV_EVENTS_PRODUCTION_DEPLOYMENT.md
+```
+
+VNV Events production is updated from cPanel Terminal with Git. The canonical
+server path is `/home/ophyra/public_html/vnvevents.com`, the production branch
+is `main`, and the update command is `git pull --ff-only origin main`. Do not
+deploy this project with ZIP replacement or loose-file uploads.
+
 VNV Events should not be understood as merely an Ophyra module. It is a separate operating business that can be monitored and administered from Ophyra Level 1 where the database and operational architecture are shared.
 
 ## Repositories And Apps
