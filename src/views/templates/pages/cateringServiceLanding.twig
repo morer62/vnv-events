@@ -77,6 +77,11 @@
 </main>
 {% if not page.ads_mode %}{% include "templates/layout/publicFooterVnv.html.twig" %}{% endif %}
 <div class="cl-mobile-bar" aria-label="Quick contact"><a class="cl-mobile-call" href="tel:{{ page.phone_number }}" data-cl-call>Call</a><a class="cl-mobile-wa" href="{{ initial_whatsapp_url }}" target="_blank" rel="noopener" data-cl-whatsapp>WhatsApp</a></div>
+{% if not page.ads_mode %}
+{% include "templates/components/publicEventRequestModal.html.twig" with {
+  request_form_source: 'gourmet_landing_' ~ page.service_key
+} %}
+{% endif %}
 {% endblock %}
 
 {% block scripts %}

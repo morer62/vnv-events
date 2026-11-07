@@ -934,6 +934,7 @@ body.vnv-request-lock{
     let requestAutocomplete = null;
     let lastLatLng = null;
     let vnvRecaptchaSubmitting = false;
+    let lastFocusedElement = null;
 
     function setFieldError(field, message) {
         if (!field) return false;
@@ -948,6 +949,7 @@ body.vnv-request-lock{
     }
 
     function openModal() {
+        lastFocusedElement = document.activeElement instanceof HTMLElement ? document.activeElement : null;
         modal.classList.add('is-open');
         modal.setAttribute('aria-hidden', 'false');
         document.body.classList.add('vnv-request-lock');
@@ -957,6 +959,8 @@ body.vnv-request-lock{
         waitForGoogleAndInit(60);
         setTimeout(function () {
             ensureMapVisible();
+            const closeButton = modal.querySelector('[data-vnv-request-close]');
+            if (closeButton) closeButton.focus();
         }, 80);
     }
 
@@ -964,6 +968,10 @@ body.vnv-request-lock{
         modal.classList.remove('is-open');
         modal.setAttribute('aria-hidden', 'true');
         document.body.classList.remove('vnv-request-lock');
+        if (lastFocusedElement && document.contains(lastFocusedElement)) {
+            lastFocusedElement.focus();
+        }
+        lastFocusedElement = null;
     }
 
     function isRootPath() {
@@ -1300,8 +1308,8 @@ body.vnv-request-lock{
         btn.addEventListener('click', closeModal);
     });
 
-    modal.addEventListener('keydown', function (e) {
-        if (e.key === 'Escape') closeModal();
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && modal.classList.contains('is-open')) closeModal();
     });
 
     nextButtons.forEach(btn => {

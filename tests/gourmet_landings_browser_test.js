@@ -1,7 +1,7 @@
 const { chromium } = require('playwright');
 const assert = require('node:assert/strict');
 
-const base = process.env.GOURMET_QA_BASE || 'http://127.0.0.1:8765/index.php?url=';
+const base = process.env.GOURMET_QA_BASE || 'http://localhost:8765/index.php?url=';
 const routes = [
   'pasta-station-catering-south-florida',
   'appetizer-catering-south-florida',
@@ -74,6 +74,16 @@ async function assertNoBarOverlap(page, label) {
         assert.equal(await page.locator('.vnvx-header').count(), isAds ? 0 : 1, `${label}: navigation visibility mismatch`);
         const formSelector = route === 'catering-stations-south-florida' ? 'form[data-cs-form]' : 'form[data-cl-form]';
         assert.equal(await page.locator(formSelector).count(), route === 'catering-stations-south-florida' && !isAds ? 0 : 1, `${label}: short-form visibility mismatch`);
+
+        if (!isAds) {
+          const requestModal = page.locator('#vnvRequestModal');
+          assert.equal(await requestModal.count(), 1, `${label}: New Request modal is missing`);
+          await page.locator('[data-vnv-open-request]:visible').first().click();
+          assert.equal(await requestModal.getAttribute('aria-hidden'), 'false', `${label}: New Request did not open the modal`);
+          assert.equal(await requestModal.evaluate((modal) => modal.classList.contains('is-open')), true, `${label}: New Request modal is not visible`);
+          await page.keyboard.press('Escape');
+          assert.equal(await requestModal.getAttribute('aria-hidden'), 'true', `${label}: Escape did not close New Request modal`);
+        }
 
         if (isAds) {
           const prohibited = await page.locator('a[href]').evaluateAll(

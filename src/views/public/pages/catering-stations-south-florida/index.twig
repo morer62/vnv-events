@@ -57,6 +57,11 @@
 </main>
 {% if not ads_mode %}{% include "templates/layout/publicFooterVnv.html.twig" %}{% endif %}
 {% if ads_mode %}<div class="cs-mobile-bar" aria-label="Quick contact"><a class="cs-mobile-call" href="tel:{{ phone_number }}" data-cs-call>Call</a><a class="cs-mobile-wa" href="https://wa.me/{{ whatsapp_number }}" target="_blank" rel="noopener" data-cs-whatsapp>WhatsApp</a></div>{% endif %}
+{% if not ads_mode %}
+{% include "templates/components/publicEventRequestModal.html.twig" with {
+  request_form_source: 'gourmet_comparison_landing'
+} %}
+{% endif %}
 {% endblock %}
 
 {% block scripts %}

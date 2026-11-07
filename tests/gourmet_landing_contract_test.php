@@ -100,10 +100,20 @@ $template = file_get_contents(dirname(__DIR__) . '/src/views/templates/pages/cat
 foreach (['call_click', 'whatsapp_click', 'generate_lead', 'gclid', 'gbraid', 'wbraid', 'SameSite=Lax', 'vnv_ads_session', 'minimum_event_date', 'data-cl-form'] as $needle) {
     $assert(str_contains($template, $needle), 'Landing template missing contract: ' . $needle);
 }
+$assert(
+    str_contains($template, 'templates/components/publicEventRequestModal.html.twig')
+    && str_contains($template, "request_form_source: 'gourmet_landing_' ~ page.service_key"),
+    'Organic Gourmet landings must load the New Request modal used by the shared header.'
+);
 $comparison = file_get_contents(dirname(__DIR__) . '/src/views/public/pages/catering-stations-south-florida/index.twig');
 foreach (['data-cs-form', 'not-sure-yet', 'vnv_ads_session', 'minimum_event_date'] as $needle) {
     $assert(str_contains($comparison, $needle), 'Comparison Ads mode missing contract: ' . $needle);
 }
+$assert(
+    str_contains($comparison, 'templates/components/publicEventRequestModal.html.twig')
+    && str_contains($comparison, "request_form_source: 'gourmet_comparison_landing'"),
+    'Organic comparison landing must load the New Request modal used by the shared header.'
+);
 $assert(is_file(dirname(__DIR__) . '/src/views/public/pages/appetizer-catering-south-florida/index.php'), 'Appetizer landing is missing.');
 
 $leadEndpoint = file_get_contents(dirname(__DIR__) . '/src/views/api/public/gourmet-lead/index.php');
