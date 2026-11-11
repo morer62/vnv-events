@@ -20,14 +20,20 @@ function eventRequestRedirectBack(): void
     LocationUtils::redirectTo($fallback);
 }
 
-function eventRequestRedirectSuccess(): void
+function eventRequestRedirectSuccess(int $requestId = 0, string $formSource = 'public_event_request'): void
 {
     $session = LoginService::getSession();
     if ($session && (int)$session->getLevel() === 5) {
         LocationUtils::redirectInternal('panel/home');
     }
 
-    LocationUtils::redirectTo(LocationUtils::pathFor('sucess-request'));
+    $safeSource = preg_replace('/[^a-zA-Z0-9_-]/', '', $formSource) ?: 'public_event_request';
+    $query = http_build_query([
+        'lead' => 'success',
+        'lead_id' => $requestId,
+        'source' => mb_substr($safeSource, 0, 80),
+    ]);
+    LocationUtils::redirectTo(LocationUtils::pathFor('sucess-request') . '?' . $query);
 }
 
 function eventRequestMailTo(): string
@@ -374,7 +380,7 @@ $router->post(function () {
         'Success',
         'success'
     );
-    eventRequestRedirectSuccess();
+    eventRequestRedirectSuccess((int)$requestId, $formSource);
 });
 
 $router->run();

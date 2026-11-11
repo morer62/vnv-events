@@ -161,7 +161,12 @@ $router->post(function (): void {
         $redirect('lead_error=persistence');
     }
 
-    $redirect('lead=success');
+    $redirect(http_build_query([
+        'lead' => 'success',
+        'lead_id' => $requestId,
+        'lead_qualified' => $qualified ? '1' : '0',
+        'service' => $service,
+    ]));
 });
 
 $router->run();

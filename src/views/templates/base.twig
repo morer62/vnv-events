@@ -63,6 +63,15 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
   function gtag(){dataLayer.push(arguments);}
   gtag('js', new Date());
   gtag('config', 'G-LKJ6553K3Q');
+
+  window.vnvTrackMarketingEvent = function (eventName, parameters) {
+    const payload = Object.assign({
+      page_path: window.location.pathname
+    }, parameters || {});
+
+    window.dataLayer.push(Object.assign({ event: eventName }, payload));
+    window.gtag('event', eventName, payload);
+  };
 </script>
 
     {# -------------------------------------------------------
@@ -764,18 +773,21 @@ body::before{
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-    const bodyText = (document.body && document.body.innerText ? document.body.innerText : '').trim();
+    const query = new URLSearchParams(window.location.search);
+    const leadId = (query.get('lead_id') || '').replace(/[^0-9]/g, '');
+    const source = (query.get('source') || 'public_event_request').replace(/[^a-zA-Z0-9_-]/g, '').slice(0, 80);
 
-    if (bodyText.includes('request was sent successfully')) {
-        window.dataLayer = window.dataLayer || [];
-        window.dataLayer.push({
-            event: 'vnv_form_submit_success',
+    if (query.get('lead') === 'success' && leadId) {
+        const eventId = 'event-request-' + leadId;
+        const storageKey = 'vnv_tracked_generate_lead_' + eventId;
+        if (window.sessionStorage.getItem(storageKey)) return;
+
+        window.vnvTrackMarketingEvent('generate_lead', {
+            event_id: eventId,
             form_name: 'public_event_request',
-            form_source: 'public_home_modal',
-            page_path: window.location.pathname
+            form_source: source
         });
-
-        console.log('âœ… VNV form success tracked');
+        window.sessionStorage.setItem(storageKey, '1');
     }
 });
 </script>

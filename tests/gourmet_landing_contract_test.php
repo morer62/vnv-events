@@ -100,6 +100,8 @@ $template = file_get_contents(dirname(__DIR__) . '/src/views/templates/pages/cat
 foreach (['call_click', 'whatsapp_click', 'generate_lead', 'gclid', 'gbraid', 'wbraid', 'SameSite=Lax', 'vnv_ads_session', 'minimum_event_date', 'data-cl-form'] as $needle) {
     $assert(str_contains($template, $needle), 'Landing template missing contract: ' . $needle);
 }
+$assert(str_contains($template, "q.get('lead')==='success'&&leadId"), 'Lead conversion must require a persisted lead ID.');
+$assert(!str_contains($template, "submit',function(event){const phone=form.phone.value.replace(/\\D/g,''),email=form.email.value.trim();if(phone.length<10&&!email){event.preventDefault();alert('Please enter a phone number or email address.');return;}track('generate_lead')"), 'Lead conversion is still emitted before persistence.');
 $assert(
     str_contains($template, 'templates/components/publicEventRequestModal.html.twig')
     && str_contains($template, "request_form_source: 'gourmet_landing_' ~ page.service_key"),
@@ -117,8 +119,16 @@ $assert(
 $assert(is_file(dirname(__DIR__) . '/src/views/public/pages/appetizer-catering-south-florida/index.php'), 'Appetizer landing is missing.');
 
 $leadEndpoint = file_get_contents(dirname(__DIR__) . '/src/views/api/public/gourmet-lead/index.php');
-foreach (['beginTransaction', 'commit()', 'rollback()', 'GourmetLeadRateLimiter', 'http_response_code(429)', "'setup_minutes' => 0", "'is_test' =>"] as $needle) {
+foreach (['beginTransaction', 'commit()', 'rollback()', 'GourmetLeadRateLimiter', 'http_response_code(429)', "'setup_minutes' => 0", "'is_test' =>", "'lead_id' => \$requestId", "'lead_qualified' => \$qualified"] as $needle) {
     $assert(str_contains($leadEndpoint, $needle), 'Lead endpoint missing contract: ' . $needle);
+}
+$baseTemplate = file_get_contents(dirname(__DIR__) . '/src/views/templates/base.twig');
+foreach (['vnvTrackMarketingEvent', "window.gtag('event', eventName, payload)", "query.get('lead') === 'success' && leadId", "window.vnvTrackMarketingEvent('generate_lead'"] as $needle) {
+    $assert(str_contains($baseTemplate, $needle), 'Global marketing measurement missing contract: ' . $needle);
+}
+$eventRequestEndpoint = file_get_contents(dirname(__DIR__) . '/src/views/api/public/event-request/index.php');
+foreach (["'lead' => 'success'", "'lead_id' => \$requestId", "'source' => mb_substr"] as $needle) {
+    $assert(str_contains($eventRequestEndpoint, $needle), 'Public event request conversion redirect missing contract: ' . $needle);
 }
 $clickEndpoint = file_get_contents(dirname(__DIR__) . '/src/views/api/public/gourmet-track/index.php');
 $assert(str_contains($clickEndpoint, "'setup_minutes' => 0"), 'WhatsApp tracking must satisfy Ophyra setup_minutes.');
