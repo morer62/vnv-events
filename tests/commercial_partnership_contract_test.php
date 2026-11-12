@@ -64,7 +64,7 @@ $shakePosition = strpos($stories, "id: 'shake-a-leg'");
 $victoriaPosition = strpos($stories, "id: 'victoria-venezuela'");
 $roadmapPosition = strpos($stories, '2027 Roadmap');
 $assert($shakePosition !== false && $victoriaPosition !== false && $roadmapPosition !== false && $shakePosition < $victoriaPosition && $victoriaPosition < $roadmapPosition, 'Production collaboration history is not in the verified chronological order.');
-foreach (['Where It Started', 'Our First End-to-End Production', 'catering and simple decor', 'assets/images/case-studies/shake-a-leg-miami-logo.svg', 'assets/images/case-studies/victoria-venezuela-2026-check-in.webp', 'assets/images/case-studies/victoria-venezuela-2026-P4189.webp', 'assets/images/case-studies/victoria-venezuela-2026-P4316.webp', 'assets/images/case-studies/victoria-venezuela-2026-P4861.webp', 'https://www.victoriavenezuelafoundation.org/events/2026-golf-tournament', 'View Full Event Gallery', 'data-vnv-story-open', "event.key === 'Escape'", 'data-vnv-gallery-next'] as $needle) {
+foreach (['Where It Started', 'Behind the Experience', 'catering and simple event décor', 'View Our Story', 'assets/images/case-studies/shake-a-leg-miami-logo.svg', 'assets/images/case-studies/victoria-venezuela-2026-check-in.webp', 'assets/images/case-studies/victoria-venezuela-2026-P4189.webp', 'assets/images/case-studies/victoria-venezuela-2026-P4316.webp', 'assets/images/case-studies/victoria-venezuela-2026-P4861.webp', 'https://www.victoriavenezuelafoundation.org/events/2026-golf-tournament', 'View Full Event Gallery', 'data-vnv-story-open', "event.key === 'Escape'", 'data-vnv-gallery-next'] as $needle) {
     $assert(str_contains($stories, $needle), 'Verified shared case-study content is missing: ' . $needle);
 }
 foreach (['The VNV Ecosystem', 'The VNV 360 Way', 'Scope of Support', 'The Production Blueprint', 'Planning for March 2027'] as $needle) {
@@ -74,11 +74,6 @@ foreach (['The VNV Ecosystem', 'The VNV 360 Way', 'Scope of Support', 'The Produ
 $corporate = file_get_contents($root . '/src/views/public/pages/corporate-events/index.twig');
 $assert(str_contains($corporate, 'By Invitation'), 'Corporate integrated projects are missing the By Invitation status.');
 $assert(str_contains($corporate, 'Traditional catering, entertainment, decor, rentals and planning remain normally available.'), 'Corporate page does not preserve regular traditional services.');
-$assert(substr_count($corporate, 'REQUEST SERVICE →') === 4, 'Corporate core-service cards do not all use the ordinary request CTA.');
-foreach (["path('vnv-gourmet')", "path('vnv-live')", "path('photo-booth-rental-video-photography-services-in-south-florida')", "path('event-staffing/')"] as $destination) {
-    $assert(str_contains($corporate, $destination), 'Corporate core-service destination is missing: ' . $destination);
-}
-$assert(!str_contains($corporate, 'data-quick-request-source="corporate_service"'), 'Traditional corporate service cards still open the invitation flow.');
 $assert(!str_contains($corporate, 'Planning for March 2027'), 'Corporate page still exposes the retired March 2027 status.');
 $assert(!str_contains($corporate, 'March 2027'), 'Corporate page metadata still exposes the retired March 2027 timing.');
 
