@@ -47,9 +47,28 @@ foreach (['Full Production', 'Nonprofit Partnerships', 'Corporate &amp; Brand Ex
 }
 
 $home = file_get_contents($root . '/src/views/public/app/planner-hub/index.twig');
-foreach (['Event Planning, Production &amp;', 'Plan My Event', 'Explore Production', 'Now Accepting Partners', 'Planning for March 2027', 'Upcoming Original Experiences'] as $needle) {
+foreach (['Event Planning, Production &amp;', 'Plan My Event', 'Explore Production', 'Now Accepting', 'By Invitation', 'Upcoming Original Experiences'] as $needle) {
     $assert(str_contains($home, $needle), 'Home contract is missing: ' . $needle);
 }
+$assert(!str_contains($home, 'Planning for March 2027'), 'Home still exposes the retired March 2027 commercial status.');
+
+$production = file_get_contents($root . '/src/views/public/pages/event-production/index.twig');
+foreach (['From creative concepts to seamless execution.', 'Support 20 organizations', 'Now Accepting', 'By Invitation', 'Our Production Method'] as $needle) {
+    $assert(str_contains($production, $needle), 'Event Production polish is missing: ' . $needle);
+}
+foreach (['The VNV Ecosystem', 'The VNV 360 Way', 'Scope of Support', 'The Production Blueprint', 'Planning for March 2027'] as $needle) {
+    $assert(!str_contains($production, $needle), 'Event Production still contains retired/redundant copy: ' . $needle);
+}
+
+$corporate = file_get_contents($root . '/src/views/public/pages/corporate-events/index.twig');
+$assert(str_contains($corporate, 'By Invitation'), 'Corporate integrated projects are missing the By Invitation status.');
+$assert(str_contains($corporate, 'Traditional catering, entertainment, decor, rentals and planning remain normally available.'), 'Corporate page does not preserve regular traditional services.');
+$assert(!str_contains($corporate, 'Planning for March 2027'), 'Corporate page still exposes the retired March 2027 status.');
+$assert(!str_contains($corporate, 'March 2027'), 'Corporate page metadata still exposes the retired March 2027 timing.');
+
+$publicFooter = file_get_contents($root . '/src/views/templates/layout/publicFooterVnv.html.twig');
+$assert(str_contains($publicFooter, 'VNV Events technology'), 'Public footer is missing VNV Events technology branding.');
+$assert(!str_contains($publicFooter, 'Ophyra'), 'Public footer still exposes an internal software brand.');
 
 $originals = file_get_contents($root . '/src/views/public/pages/vnv-events-productions/index.twig');
 foreach (['Retro Glam', 'Mommy &amp; Daddy Break', 'does not provide or promise childcare', 'Join Priority List'] as $needle) {

@@ -43,6 +43,26 @@ function url(route) {
       assert.equal(errors.length, 0, `${label}: page errors: ${errors.join('; ')}`);
       const canonical = await page.locator('link[rel="canonical"]').getAttribute('href');
       assert.equal(canonical, route === '' ? 'https://vnvevents.com/' : `https://vnvevents.com/${route}/`, `${label}: canonical`);
+      assert.equal(await page.locator('body').innerText().then((text) => /Ophyra/i.test(text)), false, `${label}: internal software brand is publicly visible`);
+
+      if (route === '') {
+        for (const status of ['Now Accepting', 'By Invitation', 'Coming Soon']) {
+          assert.equal(await page.getByText(status, { exact: true }).count() > 0, true, `${label}: missing commercial status ${status}`);
+        }
+      }
+      if (route === 'event-production') {
+        assert.equal(await page.getByText(/From creative concepts to seamless execution\./).count(), 1, `${label}: final hero copy missing`);
+        assert.equal(await page.locator('.process-step').count(), 5, `${label}: production method must contain five steps`);
+        assert.equal(await page.getByText(/The VNV Ecosystem|The VNV 360 Way|Scope of Support|The Production Blueprint/).count(), 0, `${label}: redundant production block remains`);
+        assert.equal(await page.getByText(/Support 20 organizations/).count(), 1, `${label}: 2027 roadmap goal missing`);
+      }
+      if (route === 'nonprofit-partnerships') {
+        assert.equal(await page.getByText(/Now Accepting/).count() > 0, true, `${label}: nonprofit status missing`);
+      }
+      if (route === 'sponsor-activation-production' || route === 'corporate-events') {
+        assert.equal(await page.getByText(/By Invitation/).count() > 0, true, `${label}: invitation status missing`);
+        assert.equal(await page.getByText(/Planning for March 2027/).count(), 0, `${label}: retired March 2027 status remains`);
+      }
 
       if (viewport.width < 860) {
         await page.locator('[data-vnvx-toggle]').first().click();
