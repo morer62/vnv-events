@@ -17,11 +17,12 @@ document.addEventListener('DOMContentLoaded', function () {
       ['Calendar', '{{ path('panel/planner-hub/management/orders/calendar') }}'],
       ['Contracts', '{{ path('panel/planner-hub/management/orders/contracts') }}']
     ]});
-  } else if ((level === 1 || level === 4) && current.includes('/panel/planner-hub/management/crm')) {
+  } else if ((level === 1 || level === 3 || level === 4) && current.includes('/panel/planner-hub/management/crm')) {
     groups.push({label: 'Customer relationships', links: [
       ['Customers', '{{ path('panel/planner-hub/management/crm') }}'],
       ['Categories', '{{ path('panel/planner-hub/management/crm/categories') }}'],
-      ['New customer', '{{ path('panel/planner-hub/management/crm/lead/create') }}']
+      ['New customer', '{{ path('panel/planner-hub/management/crm/lead/create') }}'],
+      ['Partnership pipelines', '{{ path('panel/planner-hub/management/crm/partnerships') }}']
     ]});
   } else if ((level === 1 || level === 4) && current.includes('/panel/planner-hub/management/storage')) {
     groups.push({label: 'Inventory & storage', links: [

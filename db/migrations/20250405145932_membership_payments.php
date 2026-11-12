@@ -4,10 +4,14 @@ declare(strict_types=1);
 
 use Phinx\Migration\AbstractMigration;
 
-final class CreateMembershipPaymentsTable extends AbstractMigration
+final class MembershipPayments extends AbstractMigration
 {
     public function up(): void
     {
+        if ($this->hasTable('membership_payments')) {
+            return;
+        }
+
         $this->table('membership_payments')
             ->addColumn('id_user', 'integer')
             ->addColumn('payment_date', 'date')
@@ -21,6 +25,8 @@ final class CreateMembershipPaymentsTable extends AbstractMigration
 
     public function down(): void
     {
-        $this->table('membership_payments')->drop()->save();
+        if ($this->hasTable('membership_payments')) {
+            $this->table('membership_payments')->drop()->save();
+        }
     }
 }

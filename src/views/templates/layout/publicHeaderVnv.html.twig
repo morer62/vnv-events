@@ -102,6 +102,22 @@
     transform: scaleX(1);
 }
 
+.vnvx-nav-group{position:relative;display:flex;align-items:center;}
+.vnvx-nav-group__trigger{gap:7px;}
+.vnvx-nav-group__trigger i{font-size:.7rem;transition:transform .2s ease;}
+.vnvx-nav-group__menu{position:absolute;top:calc(100% + 10px);left:50%;width:300px;padding:10px;border:1px solid rgba(17,24,26,.1);border-radius:18px;background:rgba(255,255,255,.98);box-shadow:0 24px 60px rgba(10,20,22,.18);opacity:0;visibility:hidden;transform:translate(-50%,-6px);transition:opacity .2s ease,transform .2s ease,visibility .2s ease;}
+.vnvx-nav-group__menu a{display:flex;justify-content:flex-start;min-height:42px;padding:10px 13px;border-radius:12px;text-transform:none;letter-spacing:0;font-size:.86rem;overflow:visible;}
+.vnvx-nav-group__menu a::before,.vnvx-nav-group__menu a::after{display:none;}
+.vnvx-nav-group:hover .vnvx-nav-group__menu,.vnvx-nav-group:focus-within .vnvx-nav-group__menu{opacity:1;visibility:visible;transform:translate(-50%,0);}
+.vnvx-nav-group:hover .vnvx-nav-group__trigger i,.vnvx-nav-group:focus-within .vnvx-nav-group__trigger i{transform:rotate(180deg);}
+.vnvx-mobile-production{border-bottom:1px solid rgba(255,255,255,.08);}
+.vnvx-mobile-production summary{display:flex;align-items:center;justify-content:space-between;min-height:50px;padding:12px 0;color:rgba(255,255,255,.86);font-weight:800;cursor:pointer;list-style:none;}
+.vnvx-mobile-production summary::-webkit-details-marker{display:none;}
+.vnvx-mobile-production summary::after{content:'+';color:#5eead4;font-size:1.2rem;}
+.vnvx-mobile-production[open] summary::after{content:'−';}
+.vnvx-mobile-production__links{display:grid;gap:4px;padding:0 0 12px 14px;}
+.vnvx-mobile-production__links a{padding:10px 12px;border-left:2px solid rgba(94,234,212,.4);color:rgba(255,255,255,.72);text-decoration:none;font-size:.9rem;}
+
 .vnvx-header__right{
     display: flex;
     align-items: center;
@@ -537,6 +553,16 @@
             <nav class="vnvx-header__nav" aria-label="Main navigation">
                 <a href="{{ path('/') }}">Home</a>
                 <a href="{{ path('/#services') }}">Services</a>
+                <div class="vnvx-nav-group">
+                    <a class="vnvx-nav-group__trigger" href="{{ path('/event-production') }}" aria-haspopup="true">Event Production <i class="fa-solid fa-chevron-down" aria-hidden="true"></i></a>
+                    <div class="vnvx-nav-group__menu">
+                        <a href="{{ path('/event-production') }}">Full Production</a>
+                        <a href="{{ path('/nonprofit-partnerships') }}">Nonprofit Partnerships</a>
+                        <a href="{{ path('/corporate-events') }}">Corporate &amp; Brand Experiences</a>
+                        <a href="{{ path('/sponsor-activation-production') }}">Sponsor Activation Production</a>
+                        <a href="{{ path('/vnv-events-productions') }}">Original Experiences</a>
+                    </div>
+                </div>
                 <a href="{{ path('/vnv-gourmet') }}">Catering</a>
                 <a href="https://www.instagram.com/vnv_events/" target="_blank" rel="noopener">Portfolio</a>
                 <a href="{{ path('/blog') }}">Blog</a>
@@ -582,6 +608,16 @@
 
                 <a href="{{ path('/') }}">Home</a>
                 <a href="{{ path('/#services') }}">Services</a>
+                <details class="vnvx-mobile-production">
+                    <summary>Event Production</summary>
+                    <div class="vnvx-mobile-production__links">
+                        <a href="{{ path('/event-production') }}">Full Production</a>
+                        <a href="{{ path('/nonprofit-partnerships') }}">Nonprofit Partnerships</a>
+                        <a href="{{ path('/corporate-events') }}">Corporate &amp; Brand Experiences</a>
+                        <a href="{{ path('/sponsor-activation-production') }}">Sponsor Activation Production</a>
+                        <a href="{{ path('/vnv-events-productions') }}">Original Experiences</a>
+                    </div>
+                </details>
                 <a href="{{ path('/vnv-gourmet') }}">Catering</a>
                 <a href="https://www.instagram.com/vnv_events/" target="_blank" rel="noopener">Portfolio</a>
                 <a href="{{ path('/blog') }}">Blog</a>

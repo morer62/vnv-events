@@ -1,0 +1,84 @@
+{% extends "templates/base.twig" %}
+{% block title %}{{ seo.title }}{% endblock %}
+{% block meta_description %}{{ seo.description }}{% endblock %}
+{% block canonical %}{{ seo.canonical }}{% endblock %}
+
+{% block styles %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ asset_for('assets/css/vnv-partnerships.css') }}">
+{% endblock %}
+
+{% block body %}
+{% include "templates/layout/publicHeaderVnv.html.twig" %}
+<main class="vnv-partnership-page">
+  <section class="vnvp-hero" style="--vnvp-hero-image:url('{{ asset_for('assets/images/production3.jpg') }}')">
+    <div class="vnvp-container"><div class="vnvp-hero__copy">
+      <span class="vnvp-eyebrow">VNV Event Production</span>
+      <h1>Sponsor Activation Production in South Florida</h1>
+      <p>Already sponsoring an event? VNV Events can design and produce the physical brand experience—from lounges and photo moments to hospitality, sampling and branded installations—inside an organizer's approved event environment.</p>
+      <div class="vnvp-actions"><a class="vnvp-button vnvp-button--gold" href="#activation-brief">Request an Activation Proposal</a><a class="vnvp-button vnvp-button--ghost" href="#formats">Explore Activation Formats</a></div>
+    </div></div>
+  </section>
+
+  <section class="vnvp-section" id="formats"><div class="vnvp-container">
+    <div class="vnvp-heading"><span class="vnvp-eyebrow">Built around the event and the audience</span><h2>Brand presence guests can actually experience.</h2><p>Every activation begins with the sponsor's goals, venue rules, organizer approvals, available footprint and production reality. Pricing is custom to the approved scope.</p></div>
+    <div class="vnvp-grid">
+      <article class="vnvp-card"><span class="vnvp-card__icon"><i class="fa-solid fa-couch"></i></span><h3>Lounges & hospitality</h3><p>Designed spaces for conversation, hosting, rest, VIP moments or sponsor-led hospitality.</p></article>
+      <article class="vnvp-card"><span class="vnvp-card__icon"><i class="fa-solid fa-camera"></i></span><h3>Photo moments</h3><p>Branded, event-appropriate visual moments planned around footprint, lighting and guest flow.</p></article>
+      <article class="vnvp-card"><span class="vnvp-card__icon"><i class="fa-solid fa-box-open"></i></span><h3>Sampling & product experience</h3><p>Operational planning for permitted product sampling, demonstrations or guided interactions.</p></article>
+      <article class="vnvp-card"><span class="vnvp-card__icon"><i class="fa-solid fa-wand-magic-sparkles"></i></span><h3>Branded installations</h3><p>Scenic, decor and display builds aligned with supplied brand standards and organizer approvals.</p></article>
+      <article class="vnvp-card"><span class="vnvp-card__icon"><i class="fa-solid fa-people-roof"></i></span><h3>Activation staffing</h3><p>Guest-facing and operational staff assigned to the written activation scope and event schedule.</p></article>
+      <article class="vnvp-card"><span class="vnvp-card__icon"><i class="fa-solid fa-clipboard-check"></i></span><h3>Recap deliverables</h3><p>Agreed documentation and closeout deliverables based on the contract—without unsupported ROI promises.</p></article>
+    </div>
+  </div></section>
+
+  <section class="vnvp-section vnvp-section--dark"><div class="vnvp-container">
+    <div class="vnvp-heading"><span class="vnvp-eyebrow">A controlled production workflow</span><h2>Brief. Design. Approval. Build. Live. Recap.</h2><p>Nothing proceeds as an assumed sponsorship benefit. The organizer, venue and brand approvals are recorded before production moves forward.</p></div>
+    <div class="vnvp-grid">
+      <article class="vnvp-card"><h3>01 · Brief & feasibility</h3><p>We review audience, footprint, venue utilities, event access, timeline, staffing and the sponsor's current agreement.</p></article>
+      <article class="vnvp-card"><h3>02 · Design & proposal</h3><p>VNV defines the concept, build, staffing, logistics and deliverables in a custom written proposal.</p></article>
+      <article class="vnvp-card"><h3>03 · Written approvals</h3><p>Organizer, venue and brand approvals are confirmed before purchasing, fabrication or installation.</p></article>
+      <article class="vnvp-card"><h3>04 · Production & recap</h3><p>The approved activation is built, operated, closed and documented according to the agreed scope.</p></article>
+    </div>
+  </div></section>
+
+  <section class="vnvp-section" id="activation-brief"><div class="vnvp-container vnvp-form-wrap">
+    <div class="vnvp-form-intro"><span class="vnvp-eyebrow">Planning for March 2027 and beyond</span><h2>Start with the activation brief.</h2><p>This is for brands already sponsoring an event or organizers coordinating a sponsor's physical activation. It is not a promise of audience size, sales, impressions or ROI.</p><p><strong>Representing a nonprofit?</strong><br><a href="{{ path('nonprofit-partnerships') }}">Apply for Nonprofit Support</a>.</p></div>
+    <form class="vnvp-form" action="{{ path('api/public/partnership-request') }}" method="post">
+      {% if submitted %}<div class="vnvp-success" role="status"><strong>Brief received.</strong> We sent an acknowledgment with your reference number.</div>{% endif %}
+      <input type="hidden" name="program" value="ACTIVATION"><input type="hidden" name="_token" value="{{ partnership_csrf }}">
+      <div class="vnvp-hidden" aria-hidden="true"><label>Website confirmation<input type="text" name="website_confirm" tabindex="-1" autocomplete="off"></label></div>
+      {% for key in ['gclid','gbraid','wbraid','utm_source','utm_medium','utm_campaign','utm_term','utm_content','landing_url'] %}<input type="hidden" name="{{ key }}" data-attribution="{{ key }}">{% endfor %}
+      <div class="vnvp-fields">
+        <div class="vnvp-field"><label for="act-brand">Brand name *</label><input id="act-brand" name="brand_name" required maxlength="191"></div>
+        <div class="vnvp-field"><label for="act-event">Event or organizer *</label><input id="act-event" name="event_organizer" required maxlength="220"></div>
+        <div class="vnvp-field"><label for="act-status">Sponsorship status *</label><select id="act-status" name="sponsor_status" required><option value="">Select</option><option>Contracted sponsor</option><option>Approved sponsor, contract in progress</option><option>Event organizer requesting for a sponsor</option><option>Exploring before sponsor commitment</option></select></div>
+        <div class="vnvp-field"><label for="act-date">Event date</label><input id="act-date" name="event_date" type="date"></div>
+        <div class="vnvp-field"><label for="act-venue">Venue</label><input id="act-venue" name="venue" maxlength="255"></div>
+        <div class="vnvp-field"><label for="act-city">City</label><input id="act-city" name="city" maxlength="120"></div>
+        <div class="vnvp-field"><label for="act-type">Activation type</label><input id="act-type" name="activation_type" maxlength="150" placeholder="Lounge, photo moment, sampling..."></div>
+        <div class="vnvp-field"><label for="act-size">Available dimensions</label><input id="act-size" name="dimensions" maxlength="150"></div>
+        <div class="vnvp-field vnvp-field--full"><label for="act-audience">Audience and expected attendance</label><textarea id="act-audience" name="audience" maxlength="500"></textarea></div>
+        <div class="vnvp-field"><label for="act-budget">Budget range</label><input id="act-budget" name="budget_range" maxlength="120"></div>
+        <div class="vnvp-field"><label for="act-art">Who owns/provides final artwork?</label><input id="act-art" name="artwork_owner" maxlength="150"></div>
+        <div class="vnvp-field vnvp-field--full"><label for="act-approval">Organizer, venue and brand approval requirements</label><textarea id="act-approval" name="approval_requirements" maxlength="1000"></textarea></div>
+        <div class="vnvp-field"><label for="act-power">Electricity / utility access</label><input id="act-power" name="electricity" maxlength="120"></div>
+        <div class="vnvp-field"><label for="act-staff">Staffing needs</label><input id="act-staff" name="staffing" maxlength="500"></div>
+        <fieldset class="vnvp-group"><legend>Requested deliverables</legend><div class="vnvp-checks">{% for option in ['Concept design','Fabrication / install','Decor / scenic','Hospitality','Sampling operations','Activation staffing','Photo / video documentation','Event recap'] %}<label class="vnvp-check"><input type="checkbox" name="deliverables[]" value="{{ option }}"><span>{{ option }}</span></label>{% endfor %}</div></fieldset>
+        <div class="vnvp-field"><label for="act-name">Contact name *</label><input id="act-name" name="contact_name" required maxlength="191"></div>
+        <div class="vnvp-field"><label for="act-role">Role</label><input id="act-role" name="contact_role" maxlength="150"></div>
+        <div class="vnvp-field"><label for="act-email">Email *</label><input id="act-email" name="email" type="email" required maxlength="191"></div>
+        <div class="vnvp-field"><label for="act-phone">Phone *</label><input id="act-phone" name="phone" type="tel" required maxlength="80"></div>
+        <div class="vnvp-field vnvp-field--full"><label for="act-notes">Anything else we should know?</label><textarea id="act-notes" name="notes" maxlength="2500"></textarea></div>
+      </div>
+      <label class="vnvp-consent"><input type="checkbox" name="consent" value="1" required><span>I agree that VNV Events may contact me about this brief. I understand that submission does not guarantee availability, organizer approval, event performance or ROI.</span></label>
+      <button class="vnvp-button vnvp-button--gold" type="submit">Request an Activation Proposal</button>
+      <p class="vnvp-form-note">Final pricing depends on approved scope, footprint, venue rules, labor, fabrication, utilities, access and deliverables.</p>
+    </form>
+  </div></section>
+</main>
+{% include "templates/layout/publicFooterVnv.html.twig" %}
+{% endblock %}
+
+{% block scripts %}<script>(function(){const params=new URLSearchParams(location.search);document.querySelectorAll('[data-attribution]').forEach(function(input){input.value=input.dataset.attribution==='landing_url'?location.href:(params.get(input.dataset.attribution)||'');});})();</script>{% endblock %}

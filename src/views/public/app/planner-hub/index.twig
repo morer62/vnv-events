@@ -1695,8 +1695,12 @@ h1, h2, h3, h4, .luxury-font {
 .gourmet-express-banner h2 { margin:0 0 14px; color:#fff; font-size:clamp(2.35rem,5vw,4.9rem); font-weight:900; line-height:.98; }
 .gourmet-express-banner p { margin:0; max-width:680px; color:rgba(255,255,255,.82); font-size:clamp(1rem,2vw,1.2rem); }
 .gourmet-express-actions { display:flex; flex:0 0 auto; flex-wrap:wrap; gap:12px; }
+.vnv-programs{margin-top:38px;padding-top:38px;border-top:1px solid rgba(255,255,255,.12)}
+.vnv-programs__heading{max-width:760px;margin:0 auto 26px;text-align:center}.vnv-programs__heading h3{color:#fff;font-size:clamp(1.9rem,4vw,3.1rem);font-weight:900}.vnv-program-status{display:inline-flex;margin-bottom:14px;padding:7px 10px;border-radius:999px;color:#08201f;background:#8ffff1;font-size:.72rem;font-weight:900;letter-spacing:.08em;text-transform:uppercase}.vnv-program-status--future{color:#fff;background:rgba(255,255,255,.12)}
+.vnv-upcoming-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:22px}.vnv-upcoming-card{position:relative;min-height:440px;display:flex;align-items:flex-end;overflow:hidden;border:1px solid rgba(255,255,255,.12);border-radius:28px;background:#0d1718}.vnv-upcoming-card::before{content:"";position:absolute;inset:0;background:var(--event-image) center/cover no-repeat;transition:transform .4s ease}.vnv-upcoming-card::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(7,14,15,.05),rgba(7,14,15,.94) 76%)}.vnv-upcoming-card__body{position:relative;z-index:1;padding:clamp(24px,4vw,38px);color:#fff}.vnv-upcoming-card h3{color:#fff;font-size:clamp(1.7rem,3vw,2.7rem);font-weight:900}.vnv-upcoming-card p{color:rgba(255,255,255,.78);line-height:1.65}.vnv-upcoming-card:hover::before{transform:scale(1.04)}
 @media (max-width: 900px) {
     .gourmet-express-banner-inner { align-items:flex-start; flex-direction:column; }
+    .vnv-upcoming-grid{grid-template-columns:1fr}.vnv-upcoming-card{min-height:390px}
 }
 </style>
 {% endblock %}
@@ -1709,14 +1713,13 @@ h1, h2, h3, h4, .luxury-font {
     <div class="hero-split-container">
         <div class="hero-info-pane">
             <span class="vnv-badge">Welcome to VNV Events</span>
-            <h1>Full-Service Luxury Event Planning & <span class="text-gold">Catering Studio in South Florida</span></h1>
+            <h1>Event Planning, Production &amp; <span class="text-gold">Catering in South Florida</span></h1>
             <p class="fs-5 mb-5 hero-description">
-               The event you imagine come to life
+               One partner for private celebrations, nonprofit galas, corporate experiences and full event execution.
             </p>
             <div class="d-flex flex-wrap gap-4 justify-content-center justify-content-lg-start">
-                <a href="{{ path('login') }}" class="vnv-btn btn-outline-vnv">Login to your account</a>
-                <a href="tel:+13052045427" class="vnv-btn btn-gold-vnv">Call (305)204-5427</a>
-                <button type="button" data-vnv-open-request class="vnv-btn btn-outline-vnv hero-mobile-request-cta">Plan My Event</button>
+                <button type="button" data-vnv-open-request class="vnv-btn btn-gold-vnv">Plan My Event</button>
+                <a href="{{ path('event-production') }}" class="vnv-btn btn-outline-vnv">Explore Production</a>
             </div>
             <br><br>
         </div>
@@ -1879,6 +1882,15 @@ h1, h2, h3, h4, .luxury-font {
                     <p>Whether it be a holiday party, fundraiser, marketing event, celebration, seminar, off-site meeting or shopping event.</p>
                     <a href="{{ path('corporate-events') }}" class="vnv-link-gold">REQUEST SERVICE -></a>
                 </div>
+            </div>
+        </div>
+
+        <div class="vnv-programs">
+            <div class="vnv-programs__heading"><span class="vnv-badge-request">Production &amp; Partnerships</span><h3>Structured support for missions, brands and original experiences.</h3></div>
+            <div class="row g-4">
+                <div class="col-lg-4"><div class="vnv-service-grid-card h-100"><span class="vnv-program-status">Now Accepting Partners</span><div class="service-icon-box"><i class="fa-solid fa-hand-holding-heart"></i></div><h3>Nonprofit Partnerships</h3><p>Event concept, planning, hospitality, technology and approved support plans for nonprofit organizations.</p><a href="{{ path('nonprofit-partnerships') }}" class="vnv-link-gold">APPLY FOR SUPPORT -&gt;</a></div></div>
+                <div class="col-lg-4"><div class="vnv-service-grid-card h-100"><span class="vnv-program-status vnv-program-status--future">Planning for March 2027</span><div class="service-icon-box"><i class="fa-solid fa-building"></i></div><h3>Corporate &amp; Brand Experiences</h3><p>One-time production, annual event partnerships and carefully scoped brand experiences.</p><a href="{{ path('corporate-events') }}" class="vnv-link-gold">EXPLORE CORPORATE -&gt;</a></div></div>
+                <div class="col-lg-4"><div class="vnv-service-grid-card h-100"><span class="vnv-program-status vnv-program-status--future">Coming Soon</span><div class="service-icon-box"><i class="fa-solid fa-star"></i></div><h3>Original Experiences</h3><p>VNV-created social concepts designed around hospitality, community and memorable moments.</p><a href="{{ path('vnv-events-productions') }}" class="vnv-link-gold">VIEW EXPERIENCES -&gt;</a></div></div>
             </div>
         </div>
 
@@ -2292,28 +2304,10 @@ h1, h2, h3, h4, .luxury-font {
 
 <section class="section-plan-vnv" id="upcoming-events">
     <div class="container">
-        <div class="plan-vnv-card">
-            <div class="row align-items-center">
-                <div class="col-lg-7">
-                    <span class="vnv-badge-request">Upcoming Events</span>
-                    <h2 class="display-3 fw-bold text-white mb-4">We design experiences<br>people remember.</h2>
-                    <p class="fs-5 mb-5">
-                        Discover upcoming VNV productions, immersive concepts and community-driven experiences across South Florida.
-                        Explore what's next, view event details and secure your tickets before they sell out.
-                    </p>
-                </div>
-
-                <div class="col-lg-5 text-center text-lg-end">
-                    <div class="d-flex flex-column flex-lg-row gap-3 justify-content-end">
-                        <a href="{{ path('vnv-events-productions') }}" class="vnv-btn btn-gold-vnv vnv-btn-fixed">
-                            View Events <i class="fa-solid fa-arrow-right ms-2"></i>
-                        </a>
-                        <a href="{{ path('vnv-events-productions') }}" class="vnv-btn btn-ghost-white vnv-btn-fixed">
-                            Get Tickets
-                        </a>
-                    </div>
-                </div>
-            </div>
+        <div class="text-center mb-5"><span class="vnv-badge-request">Upcoming Original Experiences</span><h2 class="display-3 fw-bold text-white mt-3">Two concepts currently in development.</h2><p class="fs-5 text-white-50">Join a priority list to receive future announcements. No ticket sale is open on this page.</p></div>
+        <div class="vnv-upcoming-grid">
+            <article class="vnv-upcoming-card" style="--event-image:url('{{ asset_for('assets/images/productions/retro-glam.jpg') }}')"><div class="vnv-upcoming-card__body"><span class="vnv-program-status vnv-program-status--future">Elegant night gala · Coming soon</span><h3>Retro Glam</h3><p>A polished night inspired by the music, fashion and visual energy of the 1970s through the 1990s.</p><div class="d-flex flex-wrap gap-2"><a href="{{ path('vnv-events-productions/retro-glam') }}" class="vnv-btn btn-ghost-white">View Concept</a><a href="{{ path('vnv-events-productions') }}#priority-list" class="vnv-btn btn-gold-vnv">Join Priority List</a></div></div></article>
+            <article class="vnv-upcoming-card" style="--event-image:url('{{ asset_for('assets/images/productions/mommy-and-daddy-break.jpg') }}')"><div class="vnv-upcoming-card__body"><span class="vnv-program-status vnv-program-status--future">Approx. 3-hour morning social · Coming soon</span><h3>Mommy &amp; Daddy Break</h3><p>A relaxed morning social with hospitality, music, conversation and restorative moments. This concept does not include childcare.</p><div class="d-flex flex-wrap gap-2"><a href="{{ path('vnv-events-productions/mommy-and-daddy-break') }}" class="vnv-btn btn-ghost-white">View Concept</a><a href="{{ path('vnv-events-productions') }}#priority-list" class="vnv-btn btn-gold-vnv">Join Priority List</a></div></div></article>
         </div>
     </div>
 </section>

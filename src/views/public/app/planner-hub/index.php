@@ -46,8 +46,8 @@ $router->get(function () {
     ];
 
     $seo = [
-        'title' => 'VNV Events | South Florida Event Planning, Catering and Production',
-        'description' => 'VNV Events is a full-service luxury event planning, catering, production, entertainment and event rental studio serving Miami, Broward, Palm Beach and South Florida.',
+        'title' => 'Event Planning, Production & Catering in South Florida | VNV Events',
+        'description' => 'One South Florida event partner for private celebrations, nonprofit galas, corporate experiences, catering and full event production across Miami-Dade, Broward and Palm Beach.',
         'canonical' => 'https://vnvevents.com/',
     ];
 

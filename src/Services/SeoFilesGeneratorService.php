@@ -489,6 +489,12 @@ class SeoFilesGeneratorService
             }
 
             $path = '/' . implode('/', $segments) . '/';
+            if (in_array($path, [
+                '/vnv-events-productions/vanguard-business-gala/',
+                '/vnv-events-productions/flavor-fusion-fest/',
+            ], true)) {
+                continue;
+            }
             $entries[] = $this->entry(
                 $path,
                 $this->titleFromPath($path),
@@ -954,8 +960,12 @@ class SeoFilesGeneratorService
             '/crepes-catering-south-florida/' => 1150,
             '/taco-station-catering-south-florida/' => 1140,
             '/corporate-catering-south-florida/' => 1130,
+            '/event-production/' => 1128,
+            '/nonprofit-partnerships/' => 1126,
+            '/sponsor-activation-production/' => 1124,
             '/event-planners/' => 1120,
             '/corporate-events/' => 1110,
+            '/vnv-events-productions/' => 1105,
             '/locations/' => 1100,
             '/event-budget-calculator/' => 1090,
             '/balloon-decoration-pricing-calculator/' => 1080,

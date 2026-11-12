@@ -2,6 +2,7 @@
 
 use App\Repositories\EventRequestRepository;
 use App\Repositories\LeadIntakeRepository;
+use App\Repositories\CommercialPartnershipRepository;
 use App\Services\EmailService;
 use App\Services\LoginService;
 use App\Utils\LocationUtils;
@@ -218,9 +219,15 @@ $router->post(function () {
     $formSource = trim((string)($_POST['form_source'] ?? 'public_home_modal'));
     $servicesRaw = (string)($_POST['selected_services'] ?? '[]');
     $recaptchaToken = trim((string)($_POST['recaptcha_token'] ?? ''));
+    $contactConsent = (string)($_POST['contact_consent'] ?? '');
 
     if ($eventAddress === '' || $eventDate === '' || $eventTime === '' || $fullName === '' || $email === '' || $phone === '') {
         MessageUtil::setMessage('Please complete required fields before sending your request.', 'Validation', 'warning');
+        eventRequestRedirectBack();
+    }
+
+    if ($contactConsent !== '1') {
+        MessageUtil::setMessage('Please confirm that VNV Events may contact you about this request.', 'Consent', 'warning');
         eventRequestRedirectBack();
     }
 
@@ -323,6 +330,31 @@ $router->post(function () {
         ]);
     } catch (\Throwable $e) {
         error_log('Public event request Lead Intake sync error for request #' . $requestId . ': ' . $e->getMessage());
+    }
+
+    // Preserve the proven Event Request and Lead Intake workflows while also
+    // representing corporate enquiries in the commercial pipeline.
+    if ($formSource === 'corporate_events') {
+        try {
+            (new CommercialPartnershipRepository())->createPublicOpportunity($ownerId, 'vnvevents', 'CORPORATE', [
+                'contact_name' => $fullName,
+                'email' => $email,
+                'phone' => $phone,
+                'event_name' => 'Corporate event request #' . $requestId,
+                'event_date' => $eventDate,
+                'venue' => $eventAddress,
+                'guest_count' => $guestCount > 0 ? $guestCount : null,
+                'requested_services' => $services,
+                'desired_outcomes' => $details,
+                'source' => $formSource,
+                'consent_text' => 'I agree that VNV Events may contact me about this event request.',
+                '_remote_ip' => (string)($_SERVER['REMOTE_ADDR'] ?? ''),
+                '_ip_salt' => (string)($_ENV['APP_KEY'] ?? 'vnv-events'),
+                '_user_agent' => (string)($_SERVER['HTTP_USER_AGENT'] ?? ''),
+            ]);
+        } catch (\Throwable $e) {
+            error_log('Corporate commercial pipeline sync error for request #' . $requestId . ': ' . $e->getMessage());
+        }
     }
 
     $subject = 'New VNV Event Request #' . $requestId . ' - ' . $fullName;

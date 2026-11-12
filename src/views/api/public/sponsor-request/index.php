@@ -1,6 +1,7 @@
 <?php
 
 use App\Services\EmailService;
+use App\Repositories\CommercialPartnershipRepository;
 use App\Utils\LocationUtils;
 use App\Utils\MessageUtil;
 use App\Utils\Router;
@@ -198,6 +199,7 @@ $router->post(function () {
     $selectedEventsRaw = (string)($_POST['selected_events'] ?? '[]');
     $selectedPackagesRaw = (string)($_POST['selected_packages'] ?? '[]');
     $recaptchaToken = trim((string)($_POST['recaptcha_token'] ?? ''));
+    $contactConsent = (string)($_POST['contact_consent'] ?? '');
 
     if (
         $company === '' ||
@@ -212,6 +214,11 @@ $router->post(function () {
 
     if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
         MessageUtil::setMessage('Please enter a valid email address.', 'Validation', 'warning');
+        sponsorRequestRedirectBack();
+    }
+
+    if ($contactConsent !== '1') {
+        MessageUtil::setMessage('Please confirm that VNV Events may contact you about this sponsorship request.', 'Consent', 'warning');
         sponsorRequestRedirectBack();
     }
 
@@ -245,13 +252,32 @@ $router->post(function () {
         sponsorRequestRedirectBack();
     }
 
-    $mailTo = sponsorRequestMailTo();
-    if ($mailTo === '') {
-        MessageUtil::setMessage('No destination email configured for sponsor requests. Set SPONSOR_REQUEST_EMAIL in .env.', 'Configuration', 'error');
+    $ownerId = max(1, (int)($_ENV['VNV_EVENTS_OWNER_ID'] ?? 2));
+    try {
+        $opportunityId = (new CommercialPartnershipRepository())->createPublicOpportunity($ownerId, 'vnvevents', 'SPONSORSHIP', [
+            'organization_name' => $company,
+            'contact_name' => $fullName,
+            'contact_role' => $role,
+            'email' => $email,
+            'phone' => $phone,
+            'event_name' => implode(', ', $selectedEvents),
+            'requested_services' => $selectedPackages,
+            'desired_outcomes' => $details,
+            'source' => $formSource,
+            'consent_text' => 'I agree that VNV Events may contact me about this sponsorship request.',
+            '_remote_ip' => (string)($_SERVER['REMOTE_ADDR'] ?? ''),
+            '_ip_salt' => (string)($_ENV['APP_KEY'] ?? 'vnv-events'),
+            '_user_agent' => (string)($_SERVER['HTTP_USER_AGENT'] ?? ''),
+        ]);
+    } catch (\Throwable $e) {
+        error_log('Public sponsor CRM save error: ' . $e->getMessage());
+        MessageUtil::setMessage('Could not save your sponsor request. Please try again.', 'Request', 'error');
         sponsorRequestRedirectBack();
     }
 
-    $subject = 'New Sponsor Request - ' . $company . ' - ' . $fullName;
+    $mailTo = sponsorRequestMailTo();
+
+    $subject = 'New Sponsor Request #' . $opportunityId . ' - ' . $company . ' - ' . $fullName;
 
     $eventsHtml = '<ul style="margin:8px 0 0;padding-left:18px;"><li>' .
         implode('</li><li>', array_map('htmlspecialchars', $selectedEvents)) .
@@ -313,21 +339,25 @@ $router->post(function () {
         </div>
     </div>';
 
-    try {
-        $emailService = new EmailService();
-        $sent = $emailService->sendSimpleEmail($mailTo, $subject, $body, true);
-
-        if (!$sent) {
-            MessageUtil::setMessage('Could not send your sponsor request email. Please try again.', 'Email', 'error');
-            sponsorRequestRedirectBack();
+    $emailDelivered = false;
+    if ($mailTo !== '') {
+        try {
+            $emailService = new EmailService();
+            $emailDelivered = $emailService->sendSimpleEmail($mailTo, $subject, $body, true);
+        } catch (\Throwable $e) {
+            error_log('Public sponsor request email error: ' . $e->getMessage());
         }
-    } catch (\Throwable $e) {
-        error_log('Public sponsor request email error: ' . $e->getMessage());
-        MessageUtil::setMessage('Could not send your sponsor request email. Please try again.', 'Email', 'error');
-        sponsorRequestRedirectBack();
+    } else {
+        error_log('Public sponsor request #' . $opportunityId . ' saved without a configured notification recipient.');
     }
 
-    MessageUtil::setMessage('Your sponsor request was sent successfully.', 'Success', 'success');
+    MessageUtil::setMessage(
+        $emailDelivered
+            ? 'Your sponsor request was sent successfully. Reference VNV-' . $opportunityId . '.'
+            : 'Your sponsor request was saved successfully. Reference VNV-' . $opportunityId . '.',
+        'Success',
+        'success'
+    );
     sponsorRequestRedirectSuccess();
 });
 

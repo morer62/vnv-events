@@ -1,12 +1,13 @@
 <?php
 
 use App\Utils\Router;
-use App\Utils\TemplateResponse;
+use App\Utils\LocationUtils;
 
 $router = new Router();
 
 $router->get(function () {
-    return TemplateResponse::render(__DIR__ . '/index.twig');
+    header('Location: ' . LocationUtils::pathFor('vnv-events-productions'), true, 301);
+    exit;
 });
 
 try {
