@@ -9,6 +9,9 @@ $router->get(function () {
     if (empty($_SESSION['partnership_csrf'])) {
         $_SESSION['partnership_csrf'] = bin2hex(random_bytes(24));
     }
+    if (empty($_SESSION['quick_request_csrf'])) {
+        $_SESSION['quick_request_csrf'] = bin2hex(random_bytes(24));
+    }
 
     $seo = [
         'title' => 'Nonprofit Event Partnerships in South Florida | VNV Events',
@@ -20,6 +23,8 @@ $router->get(function () {
         'seo' => $seo,
         'partnership_csrf' => $_SESSION['partnership_csrf'],
         'submitted' => isset($_GET['submitted']),
+        'quick_request_csrf' => $_SESSION['quick_request_csrf'],
+        'quick_submitted' => isset($_GET['quick_submitted']),
         'schemaJson' => [
             '@context' => 'https://schema.org',
             '@graph' => [

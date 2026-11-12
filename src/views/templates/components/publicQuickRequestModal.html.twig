@@ -1,0 +1,91 @@
+{% set quick_request_type = quick_request_type|default('EVENT') %}
+{% set quick_request_source = quick_request_source|default('public_quick_request') %}
+{% set quick_request_title = quick_request_title|default('Tell us what you are planning') %}
+{% set quick_request_cta = quick_request_cta|default('Send Request') %}
+
+<div class="vnv-quick-request" id="vnvQuickRequestModal" aria-hidden="true">
+  <button class="vnv-quick-request__backdrop" type="button" data-vnv-quick-close tabindex="-1" aria-label="Close request form"></button>
+  <div class="vnv-quick-request__dialog" role="dialog" aria-modal="true" aria-labelledby="vnvQuickRequestTitle" aria-describedby="vnvQuickRequestDescription">
+    <button class="vnv-quick-request__close" type="button" data-vnv-quick-close aria-label="Close request form"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>
+    <span class="vnv-quick-request__eyebrow">VNV Events · Quick request</span>
+    <h2 id="vnvQuickRequestTitle">{{ quick_request_title }}</h2>
+    <p id="vnvQuickRequestDescription">Start with the essentials. Our team will request technical details only if they are needed for the next step.</p>
+
+    {% if quick_submitted|default(false) %}<div class="vnv-quick-request__success" id="quick-request-result" role="status"><strong>Request received.</strong> Check your email for the reference number.</div>{% endif %}
+
+    <form action="{{ path('api/public/quick-request') }}" method="post" class="vnv-quick-request__form" data-vnv-quick-form>
+      <input type="hidden" name="_token" value="{{ quick_request_csrf }}">
+      <input type="hidden" name="form_source" value="{{ quick_request_source }}" data-vnv-quick-source>
+      <input type="hidden" name="return_path" value="" data-vnv-quick-return>
+      <div class="vnv-quick-request__honeypot" aria-hidden="true"><label>Website confirmation<input name="website_confirm" tabindex="-1" autocomplete="off"></label></div>
+      {% for key in ['gclid','gbraid','wbraid','utm_source','utm_medium','utm_campaign','utm_term','utm_content','landing_url'] %}<input type="hidden" name="{{ key }}" data-quick-attribution="{{ key }}">{% endfor %}
+
+      <div class="vnv-quick-request__grid">
+        <div class="vnv-quick-request__field vnv-quick-request__field--full">
+          <label for="vnv-quick-type">What can we help with?</label>
+          <select id="vnv-quick-type" name="request_type" required data-vnv-quick-type>
+            <option value="EVENT" {{ quick_request_type == 'EVENT' ? 'selected' : '' }}>Plan an event</option>
+            <option value="PRODUCTION" {{ quick_request_type == 'PRODUCTION' ? 'selected' : '' }}>Full event production</option>
+            <option value="NONPROFIT" {{ quick_request_type == 'NONPROFIT' ? 'selected' : '' }}>Nonprofit support</option>
+            <option value="CORPORATE" {{ quick_request_type == 'CORPORATE' ? 'selected' : '' }}>Corporate event · by invitation</option>
+            <option value="ACTIVATION" {{ quick_request_type == 'ACTIVATION' ? 'selected' : '' }}>Sponsor activation · by invitation</option>
+          </select>
+        </div>
+        <div class="vnv-quick-request__field vnv-quick-request__field--full" data-vnv-quick-organization hidden>
+          <label for="vnv-quick-organization">Organization or brand</label>
+          <input id="vnv-quick-organization" name="organization_name" maxlength="191" autocomplete="organization">
+        </div>
+        <div class="vnv-quick-request__field">
+          <label for="vnv-quick-name">Name</label>
+          <input id="vnv-quick-name" name="contact_name" required maxlength="191" autocomplete="name">
+        </div>
+        <div class="vnv-quick-request__field">
+          <label for="vnv-quick-email">Email</label>
+          <input id="vnv-quick-email" name="email" type="email" required maxlength="191" autocomplete="email">
+        </div>
+        <div class="vnv-quick-request__field vnv-quick-request__field--full">
+          <label for="vnv-quick-phone">Phone <span>(optional)</span></label>
+          <input id="vnv-quick-phone" name="phone" type="tel" maxlength="80" autocomplete="tel">
+        </div>
+        <div class="vnv-quick-request__field vnv-quick-request__field--full">
+          <label for="vnv-quick-brief">Briefly describe the project</label>
+          <textarea id="vnv-quick-brief" name="project_brief" required minlength="10" maxlength="1800" rows="4" placeholder="What are you planning, and what kind of help do you need?"></textarea>
+        </div>
+      </div>
+      <label class="vnv-quick-request__consent"><input type="checkbox" name="consent" value="1" required><span>I agree that VNV Events may contact me about this request. See our <a href="{{ path('privacy-policy') }}" target="_blank" rel="noopener">Privacy Policy</a>.</span></label>
+      <div class="vnv-quick-request__actions"><button type="button" class="vnv-quick-request__secondary" data-vnv-quick-close>Cancel</button><button type="submit" class="vnv-quick-request__submit" data-vnv-quick-submit><span>{{ quick_request_cta }}</span></button></div>
+      <p class="vnv-quick-request__note">This first contact does not require dimensions, utilities, permits or a complete service list.</p>
+    </form>
+  </div>
+</div>
+
+<style>
+.vnv-quick-request{position:fixed;inset:0;z-index:4100;display:none;padding:16px;color:#142326}.vnv-quick-request.is-open{display:grid;place-items:center}.vnv-quick-request__backdrop{position:absolute;inset:0;width:100%;height:100%;border:0;background:rgba(3,12,16,.78);backdrop-filter:blur(8px)}.vnv-quick-request__dialog{position:relative;width:min(720px,100%);max-height:calc(100dvh - 32px);overflow:auto;padding:clamp(24px,5vw,44px);border:1px solid rgba(94,198,196,.28);border-radius:28px;background:#fff;box-shadow:0 35px 100px rgba(0,0,0,.38)}.vnv-quick-request__close{position:absolute;top:16px;right:16px;width:46px;height:46px;display:grid;place-items:center;border:1px solid #cbd8d9;border-radius:50%;color:#fff;background:#123d43;font-size:1.2rem;cursor:pointer}.vnv-quick-request__eyebrow{display:block;margin:0 56px 12px 0;color:#176b6b;font-size:.76rem;font-weight:900;letter-spacing:.15em;text-transform:uppercase}.vnv-quick-request h2{max-width:580px;margin:0;color:#102b3f;font:850 clamp(2rem,6vw,3.5rem)/1.02 "Plus Jakarta Sans",sans-serif;letter-spacing:-.04em}.vnv-quick-request__dialog>p{max-width:620px;margin:14px 0 24px;color:#475b5f;line-height:1.65}.vnv-quick-request__success{margin:0 0 18px;padding:14px 16px;border:1px solid #62bb8c;border-radius:14px;color:#123c29;background:#e8fbf1}.vnv-quick-request__grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}.vnv-quick-request__field--full{grid-column:1/-1}.vnv-quick-request__field label{display:block;margin-bottom:7px;color:#1a3034;font-size:.9rem;font-weight:800}.vnv-quick-request__field label span{color:#637578;font-weight:600}.vnv-quick-request input,.vnv-quick-request select,.vnv-quick-request textarea{width:100%;min-height:50px;padding:12px 14px;border:1px solid #bfcfd1;border-radius:12px;color:#122124;background:#fff;font:inherit}.vnv-quick-request textarea{min-height:112px;resize:vertical}.vnv-quick-request input:focus,.vnv-quick-request select:focus,.vnv-quick-request textarea:focus,.vnv-quick-request button:focus-visible,.vnv-quick-request a:focus-visible{outline:3px solid #176b6b;outline-offset:3px}.vnv-quick-request__consent{display:flex;align-items:flex-start;gap:10px;margin:18px 0;color:#46595d;font-size:.86rem;line-height:1.55}.vnv-quick-request__consent input{width:19px;height:19px;min-height:0;flex:0 0 auto;margin-top:2px;accent-color:#176b6b}.vnv-quick-request__consent a{color:#125f67;font-weight:800}.vnv-quick-request__actions{display:flex;justify-content:flex-end;gap:12px}.vnv-quick-request__secondary,.vnv-quick-request__submit{min-height:48px;padding:12px 20px;border-radius:999px;font-weight:850;cursor:pointer}.vnv-quick-request__secondary{border:1px solid #b8c8ca;color:#253d41;background:#fff}.vnv-quick-request__submit{border:1px solid #9a793b;color:#10191b;background:#c5a059}.vnv-quick-request__submit:hover{background:#d2af69}.vnv-quick-request__submit:disabled{opacity:.65;cursor:wait}.vnv-quick-request__note{margin:13px 0 0;color:#647578;font-size:.78rem;line-height:1.5}.vnv-quick-request__honeypot{position:absolute!important;left:-10000px!important;width:1px!important;height:1px!important;overflow:hidden!important}body.vnv-quick-request-lock{overflow:hidden}body.vnv-quick-request-lock .floating-whatsapp{opacity:0;pointer-events:none;transform:translateY(12px)}
+@media(max-width:640px){.vnv-quick-request{padding:8px}.vnv-quick-request__dialog{max-height:calc(100dvh - 16px);padding:24px 18px calc(24px + env(safe-area-inset-bottom,0px));border-radius:20px}.vnv-quick-request__grid{grid-template-columns:1fr}.vnv-quick-request__field--full{grid-column:auto}.vnv-quick-request__actions{flex-direction:column-reverse}.vnv-quick-request__secondary,.vnv-quick-request__submit{width:100%;min-height:52px}}
+</style>
+
+<script>
+(function(){
+  const modal=document.getElementById('vnvQuickRequestModal');
+  if(!modal)return;
+  const form=modal.querySelector('[data-vnv-quick-form]');
+  const type=modal.querySelector('[data-vnv-quick-type]');
+  const source=modal.querySelector('[data-vnv-quick-source]');
+  const returnPath=modal.querySelector('[data-vnv-quick-return]');
+  const organizationWrap=modal.querySelector('[data-vnv-quick-organization]');
+  const organizationInput=organizationWrap?organizationWrap.querySelector('input'):null;
+  const submit=modal.querySelector('[data-vnv-quick-submit]');
+  let lastFocus=null;
+  function syncOrganization(){const required=['NONPROFIT','CORPORATE','ACTIVATION'].includes(type.value);organizationWrap.hidden=!required;organizationInput.required=required;if(!required)organizationInput.value='';}
+  function focusable(){return Array.from(modal.querySelectorAll('button:not([disabled]),a[href],input:not([type="hidden"]):not([disabled]),select:not([disabled]),textarea:not([disabled])')).filter(el=>!el.closest('[hidden]'));}
+  function open(trigger){lastFocus=document.activeElement;const requested=trigger&&trigger.dataset.quickRequestType;if(requested&&Array.from(type.options).some(o=>o.value===requested))type.value=requested;if(trigger&&trigger.dataset.quickRequestSource)source.value=trigger.dataset.quickRequestSource;const localRoute=new URLSearchParams(location.search).get('url');returnPath.value=localRoute?('/'+localRoute.replace(/^\/+|\/+$/g,'')+'/'):location.pathname;syncOrganization();modal.classList.add('is-open');modal.setAttribute('aria-hidden','false');document.body.classList.add('vnv-quick-request-lock');setTimeout(()=>modal.querySelector('.vnv-quick-request__close').focus(),20);}
+  function close(){modal.classList.remove('is-open');modal.setAttribute('aria-hidden','true');document.body.classList.remove('vnv-quick-request-lock');if(lastFocus&&document.contains(lastFocus))lastFocus.focus();lastFocus=null;}
+  document.querySelectorAll('[data-vnv-open-quick-request]').forEach(trigger=>trigger.addEventListener('click',event=>{event.preventDefault();event.stopPropagation();open(trigger);}));
+  modal.querySelectorAll('[data-vnv-quick-close]').forEach(button=>button.addEventListener('click',close));
+  type.addEventListener('change',syncOrganization);
+  document.addEventListener('keydown',event=>{if(!modal.classList.contains('is-open'))return;if(event.key==='Escape'){event.preventDefault();close();return;}if(event.key!=='Tab')return;const items=focusable();if(!items.length)return;const first=items[0],last=items[items.length-1];if(event.shiftKey&&document.activeElement===first){event.preventDefault();last.focus();}else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first.focus();}});
+  const params=new URLSearchParams(location.search);modal.querySelectorAll('[data-quick-attribution]').forEach(input=>{const key=input.dataset.quickAttribution;input.value=key==='landing_url'?location.href:(params.get(key)||'');});
+  form.addEventListener('submit',()=>{submit.disabled=true;submit.querySelector('span').textContent='Sending…';});
+  syncOrganization();
+})();
+</script>

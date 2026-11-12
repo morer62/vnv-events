@@ -84,7 +84,7 @@ $router->post(function () {
     if ($contactName === '') $errors[] = 'contact name';
     if ($program !== 'ORIGINAL' && $organizationName === '') $errors[] = $program === 'NONPROFIT' ? 'organization name' : 'brand name';
     if (!filter_var($email, FILTER_VALIDATE_EMAIL)) $errors[] = 'valid email';
-    if ($phone === '') $errors[] = 'phone';
+    if ($program !== 'ORIGINAL' && $phone === '') $errors[] = 'phone';
     if (!$consent) $errors[] = 'consent';
     if ($program === 'NONPROFIT' && partnershipField('event_name', 220) === '') $errors[] = 'event name';
     if ($program === 'ACTIVATION' && partnershipField('event_organizer', 220) === '') $errors[] = 'event or organizer';

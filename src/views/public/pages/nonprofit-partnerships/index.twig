@@ -2,6 +2,7 @@
 {% block title %}{{ seo.title }}{% endblock %}
 {% block meta_description %}{{ seo.description }}{% endblock %}
 {% block canonical %}{{ seo.canonical }}{% endblock %}
+{% set show_whatsapp = true %}
 
 {% block styles %}
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
@@ -17,9 +18,9 @@
       <div class="vnvp-hero__copy">
         <span class="vnvp-eyebrow">VNV Nonprofit Partnerships</span>
         <h1>Your Mission. Our Expertise.</h1>
-        <p>We help nonprofits create extraordinary fundraising and community experiences — from concept development and visual design to logistics, event technology and on-site execution.</p>
+        <p>Planning, technology, hospitality and production support for South Florida nonprofits with an approved, clearly documented scope.</p>
         <div class="vnvp-actions">
-          <a class="vnvp-button vnvp-button--gold" href="#application">Apply for Nonprofit Support</a>
+          <a class="vnvp-button vnvp-button--gold" href="#" data-vnv-open-quick-request data-quick-request-type="NONPROFIT" data-quick-request-source="nonprofit_hero">Apply for Nonprofit Support</a>
           <a class="vnvp-button vnvp-button--ghost" href="#support">See How We Can Help</a>
         </div>
       </div>
@@ -34,12 +35,22 @@
         <p>VNV combines planning, production, hospitality and technology in one operating team. Applications are reviewed individually so approved support is useful, documented and financially responsible.</p>
       </div>
       <div class="vnvp-grid">
-        <article class="vnvp-card"><span class="vnvp-card__icon"><i class="fa-solid fa-compass-drafting"></i></span><h3>Creative direction</h3><p>Theme, visual storytelling, moodboard, palette, stage concepts, guest journey, VIP areas, atmosphere, lighting and sponsor-visibility opportunities. Renderings are conceptual and every deliverable remains subject to approved scope.</p></article>
-        <article class="vnvp-card"><span class="vnvp-card__icon"><i class="fa-solid fa-list-check"></i></span><h3>Planning & production</h3><p>Budget direction, venue and vendor sourcing, negotiation, staffing, run of show, setup and breakdown coordination, accountable owners and incident management according to the approved package.</p></article>
-        <article class="vnvp-card"><span class="vnvp-card__icon"><i class="fa-solid fa-laptop-code"></i></span><h3>Event technology</h3><p>Standard configuration of VNV modules for registration, RSVP, invitations, companions, attendee lists, QR check-in and attendance reporting, within the documented limits of the support plan.</p></article>
-        <article class="vnvp-card"><span class="vnvp-card__icon"><i class="fa-solid fa-handshake-angle"></i></span><h3>Sponsor guidance</h3><p>Package architecture, sponsor inventory, presentation guidance and possible consented introductions. Funding and meetings are never guaranteed; physical brand activations are quoted and paid separately.</p></article>
+        <article class="vnvp-card"><span class="vnvp-card__icon"><i class="fa-solid fa-compass-drafting"></i></span><h3>Creative direction</h3><p>Theme, visual story, guest journey and sponsor-visibility ideas within the approved scope.</p></article>
+        <article class="vnvp-card"><span class="vnvp-card__icon"><i class="fa-solid fa-list-check"></i></span><h3>Planning & production</h3><p>Budget direction, vendors, staffing, run of show and coordinated event-day execution.</p></article>
+        <article class="vnvp-card"><span class="vnvp-card__icon"><i class="fa-solid fa-laptop-code"></i></span><h3>Event technology</h3><p>Registration, RSVP, invitations, attendee lists, QR check-in and reporting within the support plan.</p></article>
+        <article class="vnvp-card"><span class="vnvp-card__icon"><i class="fa-solid fa-handshake-angle"></i></span><h3>Sponsor guidance</h3><p>Package structure, inventory and presentation guidance without promises of funding or meetings.</p></article>
         <article class="vnvp-card"><span class="vnvp-card__icon"><i class="fa-solid fa-people-group"></i></span><h3>Hospitality resources</h3><p>Selected food, staffing and service resources may qualify for preferential nonprofit terms when capacity and scope allow.</p></article>
         <article class="vnvp-card"><span class="vnvp-card__icon"><i class="fa-solid fa-camera-retro"></i></span><h3>Event & recap</h3><p>Execution support and documented deliverables can help your team close the event with a clearer operational record.</p></article>
+      </div>
+    </div>
+  </section>
+
+  <section class="vnvp-section vnvp-section--soft" aria-labelledby="nonprofit-collaborations-title">
+    <div class="vnvp-container">
+      <div class="vnvp-heading"><span class="vnvp-eyebrow">Collaboration in practice</span><h2 id="nonprofit-collaborations-title">Built around each organization’s real needs.</h2><p>These collaborations show how planning and technology can adapt to different nonprofit missions without forcing the same package on every team.</p></div>
+      <div class="vnvp-case-grid">
+        <article class="vnvp-case"><img src="{{ asset_for('assets/images/production3.jpg') }}" alt="Victoria Venezuela Foundation event collaboration" loading="lazy" width="900" height="600"><div class="vnvp-case__copy"><span>Featured collaboration</span><h3>Victoria Venezuela Foundation</h3><p>A focused event experience connecting attendee information, RSVP, check-in and production operations.</p></div></article>
+        <article class="vnvp-case"><img src="{{ asset_for('assets/images/production4.jpg') }}" alt="Shake-A-Leg Miami nonprofit collaboration" loading="lazy" width="900" height="600"><div class="vnvp-case__copy"><span>Community collaboration</span><h3>Shake-A-Leg Miami</h3><p>A simple example of adapting support to the organization, event format and approved operating scope.</p></div></article>
       </div>
     </div>
   </section>
@@ -88,10 +99,11 @@
       <div class="vnvp-form-intro">
         <span class="vnvp-eyebrow">Now accepting applications</span>
         <h2>Tell us about the mission and the event.</h2>
-        <p>Submitting this application starts a review. It does not promise approval, donated services, a discount, sponsorship revenue or availability.</p>
+        <p>Start with the quick application. Use the detailed form only when your team is ready to share the complete event scope.</p>
+        <button class="vnvp-button vnvp-button--gold" type="button" data-vnv-open-quick-request data-quick-request-type="NONPROFIT" data-quick-request-source="nonprofit_application">Start Quick Application</button>
         <p><strong>Already sponsoring an event?</strong><br><a href="{{ path('sponsor-activation-production') }}">Explore Sponsor Activation Production</a>.</p>
       </div>
-      <form class="vnvp-form" action="{{ path('api/public/partnership-request') }}" method="post">
+      <details class="vnvp-advanced"><summary>Complete detailed application</summary><form class="vnvp-form" action="{{ path('api/public/partnership-request') }}" method="post">
         {% if submitted %}<div class="vnvp-success" role="status"><strong>Application received.</strong> We sent an acknowledgment with your reference number.</div>{% endif %}
         <input type="hidden" name="program" value="NONPROFIT">
         <input type="hidden" name="_token" value="{{ partnership_csrf }}">
@@ -123,10 +135,16 @@
         <label class="vnvp-consent"><input type="checkbox" name="consent" value="1" required><span>I agree that VNV Events may contact me about this request. I understand that submission does not guarantee approval, funding, sponsorship results, discounts or availability.</span></label>
         <button class="vnvp-button vnvp-button--gold" type="submit">Submit Nonprofit Application</button>
         <p class="vnvp-form-note">Your information is used to review this request and coordinate follow-up. It is not added to an unrelated prospect list without consent.</p>
-      </form>
+      </form></details>
     </div>
   </section>
 </main>
+{% include "templates/components/publicQuickRequestModal.html.twig" with {
+  quick_request_type: 'NONPROFIT',
+  quick_request_source: 'nonprofit_quick_request',
+  quick_request_title: 'Apply for nonprofit support',
+  quick_request_cta: 'Send Application'
+} %}
 {% include "templates/layout/publicFooterVnv.html.twig" %}
 {% endblock %}
 

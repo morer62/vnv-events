@@ -2,6 +2,7 @@
 {% block title %}VNV Original Experiences | Retro Glam & Mommy and Daddy Break{% endblock %}
 {% block meta_description %}Join the priority list for Retro Glam or Mommy and Daddy Break, two original South Florida social experiences currently in development by VNV Events.{% endblock %}
 {% block canonical %}https://vnvevents.com/vnv-events-productions/{% endblock %}
+{% set show_whatsapp = true %}
 
 {% block styles %}
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
@@ -15,7 +16,7 @@
 {% block body %}
 {% include "templates/layout/publicHeaderVnv.html.twig" %}
 <main class="vnv-partnership-page">
-  <section class="originals-hero"><div class="vnvp-container"><span class="vnvp-eyebrow">VNV Original Experiences</span><h1>Two concepts. Thoughtfully in development.</h1><p>VNV creates hospitality-led social experiences for South Florida. Retro Glam and Mommy &amp; Daddy Break are currently in development; join a priority list for future announcements, venue collaboration or brand-partner opportunities.</p></div></section>
+  <section class="originals-hero"><div class="vnvp-container"><span class="vnvp-eyebrow">VNV Original Experiences · Coming Soon</span><h1>Two concepts. Thoughtfully in development.</h1><p>Join the priority list for Retro Glam or Mommy &amp; Daddy Break. No tickets or confirmed dates are available yet.</p></div></section>
   <section class="vnvp-section"><div class="vnvp-container originals-grid">
     <article class="original-card"><div class="original-card__image"><img src="{{ asset_for('assets/images/productions/retro-glam.jpg') }}" alt="Retro Glam original experience concept by VNV Events" width="900" height="562"></div><div class="original-card__body"><span class="original-label">Elegant night gala · Coming soon</span><h2>Retro Glam</h2><p>A polished South Florida night inspired by the music, fashion and visual energy of the 1970s through the 1990s.</p><ul><li>Interest options: attendee, VIP, sponsor or venue partner</li><li>Concept and date are still in development</li><li>No ticket sale is open on this page</li></ul><a class="vnvp-button" href="{{ path('vnv-events-productions/retro-glam') }}">Explore Retro Glam</a></div></article>
     <article class="original-card"><div class="original-card__image"><img src="{{ asset_for('assets/images/productions/mommy-and-daddy-break.jpg') }}" alt="Mommy and Daddy Break original morning social concept by VNV Events" width="900" height="562"></div><div class="original-card__body"><span class="original-label">Approx. 3-hour morning social · Coming soon</span><h2>Mommy &amp; Daddy Break</h2><p>A relaxed morning experience with hospitality, music, conversation and restorative moments for adults.</p><ul><li>Interest options: attending, venue partner or brand partner</li><li>This concept does not provide or promise childcare</li><li>No ticket sale is open on this page</li></ul><a class="vnvp-button" href="{{ path('vnv-events-productions/mommy-and-daddy-break') }}">Explore the Morning Social</a></div></article>
@@ -30,12 +31,10 @@
       {% for key in ['gclid','gbraid','wbraid','utm_source','utm_medium','utm_campaign','utm_term','utm_content','landing_url'] %}<input type="hidden" name="{{ key }}" data-attribution="{{ key }}">{% endfor %}
       <div class="vnvp-fields">
         <div class="vnvp-field vnvp-field--full"><label for="original-event">Experience *</label><select id="original-event" name="event_name" required><option value="">Select</option><option>Retro Glam</option><option>Mommy and Daddy Break</option></select></div>
-        <fieldset class="vnvp-group"><legend>I am interested in</legend><div class="vnvp-checks">{% for option in ['Attending','VIP updates','Sponsor / brand partner','Venue partner'] %}<label class="vnvp-check"><input type="checkbox" name="requested_services[]" value="{{ option }}"><span>{{ option }}</span></label>{% endfor %}</div></fieldset>
+        <input type="hidden" name="requested_services[]" value="Priority list updates">
         <div class="vnvp-field"><label for="original-name">Name *</label><input id="original-name" name="contact_name" required maxlength="191"></div>
-        <div class="vnvp-field"><label for="original-role">Company / role</label><input id="original-role" name="contact_role" maxlength="150"></div>
         <div class="vnvp-field"><label for="original-email">Email *</label><input id="original-email" name="email" type="email" required maxlength="191"></div>
-        <div class="vnvp-field"><label for="original-phone">Phone *</label><input id="original-phone" name="phone" type="tel" required maxlength="80"></div>
-        <div class="vnvp-field vnvp-field--full"><label for="original-notes">Notes</label><textarea id="original-notes" name="notes" maxlength="1000"></textarea></div>
+        <div class="vnvp-field"><label for="original-phone">Phone (optional)</label><input id="original-phone" name="phone" type="tel" maxlength="80"></div>
       </div>
       <label class="vnvp-consent"><input type="checkbox" name="consent" value="1" required><span>I agree that VNV Events may contact me about the selected original experience. I understand this is not a ticket, invitation or confirmed event date.</span></label>
       <button class="vnvp-button vnvp-button--gold" type="submit">Join Priority List</button>

@@ -19,6 +19,8 @@ $requiredFiles = [
     'src/views/public/pages/sponsor-activation-production/index.php',
     'src/views/public/pages/sponsor-activation-production/index.twig',
     'src/views/api/public/partnership-request/index.php',
+    'src/views/api/public/quick-request/index.php',
+    'src/views/templates/components/publicQuickRequestModal.html.twig',
     'src/Repositories/CommercialPartnershipRepository.php',
     'src/Services/CommercialFinanceService.php',
     'src/views/panel/level1/planner-hub/management/crm/partnerships/index.php',
@@ -32,7 +34,7 @@ foreach (['Your Mission. Our Expertise.', 'Apply for Nonprofit Support', 'up to 
 $assert(!preg_match('/guaranteed\s+(?:sponsorship|funding|approval)/i', $nonprofit), 'Nonprofit page contains a prohibited guarantee.');
 
 $activation = file_get_contents($root . '/src/views/public/pages/sponsor-activation-production/index.twig');
-foreach (['Sponsor Activation Production in South Florida', 'Request an Activation Proposal', 'Brief. Design. Approval. Build. Live. Recap.', 'does not guarantee availability'] as $needle) {
+foreach (['Sponsor Activation Production in South Florida', 'Request an Invitation', 'Brief. Design. Approval. Build. Live. Recap.', 'Complete technical activation brief'] as $needle) {
     $assert(stripos($activation, $needle) !== false, 'Activation landing is missing: ' . $needle);
 }
 foreach (['$2,500', '$5,000', '$10,000', '$2500', '$5000', '$10000'] as $price) {
@@ -60,6 +62,15 @@ foreach (['Vanguard Business Gala', 'Flavor Fusion Fest', 'Get Tickets'] as $nee
 $endpoint = file_get_contents($root . '/src/views/api/public/partnership-request/index.php');
 foreach (['hash_equals', 'website_confirm', 'CommercialPartnershipRepository', 'LeadIntakeRepository', 'consent', 'sendSimpleEmail'] as $needle) {
     $assert(str_contains($endpoint, $needle), 'Partnership endpoint is missing: ' . $needle);
+}
+
+$quickEndpoint = file_get_contents($root . '/src/views/api/public/quick-request/index.php');
+foreach (['hash_equals', 'website_confirm', 'LeadIntakeRepository', 'quick_request_last_submit', 'sendSimpleEmail'] as $needle) {
+    $assert(str_contains($quickEndpoint, $needle), 'Quick request endpoint is missing: ' . $needle);
+}
+$quickModal = file_get_contents($root . '/src/views/templates/components/publicQuickRequestModal.html.twig');
+foreach (['data-vnv-open-quick-request', 'project_brief', 'Privacy Policy', "event.key==='Escape'", 'data-vnv-quick-organization'] as $needle) {
+    $assert(str_contains($quickModal, $needle), 'Quick request modal is missing: ' . $needle);
 }
 
 $stages = CommercialPartnershipRepository::allowedStages();

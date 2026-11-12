@@ -7,6 +7,9 @@ use App\Utils\TemplateResponse;
 $router = new Router();
 
 $router->get(function () {
+    if (empty($_SESSION['quick_request_csrf'])) {
+        $_SESSION['quick_request_csrf'] = bin2hex(random_bytes(24));
+    }
     $audiencesRepo = new StoreProductsAudiencesRepository();
 
     $professionalProducts = $audiencesRepo->getProductsByAudience('professional') ?: [];
@@ -55,6 +58,8 @@ $router->get(function () {
         "audienceBlocks" => $audienceBlocks,
         "seo" => $seo,
         "schemaJson" => PublicSeoService::homepageSchema($seo),
+        'quick_request_csrf' => $_SESSION['quick_request_csrf'],
+        'quick_submitted' => isset($_GET['quick_submitted']),
     ]);
 });
 

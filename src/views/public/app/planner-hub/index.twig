@@ -1715,10 +1715,10 @@ h1, h2, h3, h4, .luxury-font {
             <span class="vnv-badge">Welcome to VNV Events</span>
             <h1>Event Planning, Production &amp; <span class="text-gold">Catering in South Florida</span></h1>
             <p class="fs-5 mb-5 hero-description">
-               One partner for private celebrations, nonprofit galas, corporate experiences and full event execution.
+               One South Florida team for private events, nonprofit galas, corporate experiences and complete production.
             </p>
             <div class="d-flex flex-wrap gap-4 justify-content-center justify-content-lg-start">
-                <button type="button" data-vnv-open-request class="vnv-btn btn-gold-vnv">Plan My Event</button>
+                <button type="button" data-vnv-open-quick-request data-quick-request-type="EVENT" data-quick-request-source="homepage_quick_request" class="vnv-btn btn-gold-vnv">Plan My Event</button>
                 <a href="{{ path('event-production') }}" class="vnv-btn btn-outline-vnv">Explore Production</a>
             </div>
             <br><br>
@@ -2314,6 +2314,13 @@ h1, h2, h3, h4, .luxury-font {
 
 {% include "templates/components/publicEventRequestModal.html.twig" with {
     request_form_action: "/api/public/event-request"
+} %}
+
+{% include "templates/components/publicQuickRequestModal.html.twig" with {
+    quick_request_type: 'EVENT',
+    quick_request_source: 'homepage_quick_request',
+    quick_request_title: 'Tell us what you are planning',
+    quick_request_cta: 'Start My Request'
 } %}
 
 {% include "templates/layout/publicFooterVnv.html.twig" %}

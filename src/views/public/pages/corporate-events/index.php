@@ -6,7 +6,13 @@ use App\Utils\TemplateResponse;
 $router = new Router();
 
 $router->get(function () {
-    return TemplateResponse::render(__DIR__ . "/index.twig");
+    if (empty($_SESSION['quick_request_csrf'])) {
+        $_SESSION['quick_request_csrf'] = bin2hex(random_bytes(24));
+    }
+    return TemplateResponse::render(__DIR__ . "/index.twig", [
+        'quick_request_csrf' => $_SESSION['quick_request_csrf'],
+        'quick_submitted' => isset($_GET['quick_submitted']),
+    ]);
 });
 
 try {
