@@ -1,0 +1,214 @@
+{% set story_heading_id = story_heading_id|default('vnv-nonprofit-stories-title') %}
+{% set story_section_class = story_section_class|default('section-vnv section-white') %}
+{% set story_container_class = story_container_class|default('container') %}
+{% set story_eyebrow = story_eyebrow|default('Collaboration in Practice') %}
+{% set story_heading = story_heading|default('Built around each organization’s real needs.') %}
+{% set story_intro = story_intro|default('Explore how our nonprofit support evolved from focused services to a connected event experience.') %}
+{% set story_include_roadmap = story_include_roadmap|default(false) %}
+
+{% set nonprofit_stories = [
+    {
+        id: 'shake-a-leg',
+        label: 'Where It Started',
+        name: 'Shake-A-Leg Miami',
+        card_copy: 'An early community collaboration supported through catering and simple decor.',
+        modal_title: 'Shake-A-Leg Miami — Where Our Community Journey Began',
+        logo: asset_for('assets/images/case-studies/shake-a-leg-miami-logo.svg'),
+        external_url: 'https://www.shakealegmiami.org/'
+    },
+    {
+        id: 'victoria-venezuela',
+        label: 'Our First End-to-End Production',
+        name: 'Victoria Venezuela Foundation',
+        card_copy: 'Technology, logistics, audiovisual support and guest experience connected in one charity tournament.',
+        modal_title: 'Victoria Venezuela Foundation — Behind the Experience',
+        event_meta: '2026 Charity Golf Tournament · November 9, 2026 · The Club at Weston Hills',
+        image: asset_for('assets/images/case-studies/victoria-venezuela-2026-check-in.webp'),
+        image_alt: 'Guests arriving at the Victoria Venezuela Foundation 2026 golf tournament check-in',
+        external_url: 'https://www.victoriavenezuelafoundation.org/events/2026-golf-tournament',
+        gallery: [
+            {
+                src: asset_for('assets/images/case-studies/victoria-venezuela-2026-check-in.webp'),
+                alt: 'Guests and junior golfers arriving at the Victoria Venezuela Foundation tournament check-in',
+                caption: 'Guest arrival and technology-assisted check-in.'
+            },
+            {
+                src: asset_for('assets/images/case-studies/victoria-venezuela-2026-P4189.webp'),
+                alt: 'The event registration team working at laptops during the 2026 charity golf tournament',
+                caption: 'Registration and attendee operations at the welcome desk.'
+            },
+            {
+                src: asset_for('assets/images/case-studies/victoria-venezuela-2026-P4316.webp'),
+                alt: 'A tournament speaker using the event sound system outside The Club at Weston Hills',
+                caption: 'Sound and audiovisual support for event communications.'
+            },
+            {
+                src: asset_for('assets/images/case-studies/victoria-venezuela-2026-P4861.webp'),
+                alt: 'Junior golfers with the Miami mascot inside the tournament photo opportunity',
+                caption: 'Decor and a branded photo opportunity for guests.'
+            }
+        ]
+    }
+] %}
+
+<style>
+.vnv-story-heading{max-width:850px;margin:0 0 42px}.vnv-story-heading__eyebrow{color:#a9782c;display:inline-block;font-size:.72rem;font-weight:800;letter-spacing:.16em;margin-bottom:12px;text-transform:uppercase}.vnv-story-heading h2{color:#152326;font-size:clamp(2rem,4vw,3.35rem);line-height:1.04;margin:0 0 16px}.vnv-story-heading p{color:#56666a;font-size:1.05rem;line-height:1.7;margin:0}.vnv-story-grid{display:grid;gap:26px;grid-template-columns:repeat(2,minmax(0,1fr))}.vnv-story-card{background:#fff;border:1px solid rgba(18,46,50,.12);border-radius:24px;box-shadow:0 18px 45px rgba(14,38,42,.09);display:flex;flex-direction:column;min-width:0;overflow:hidden;transition:transform .22s ease,box-shadow .22s ease}.vnv-story-card:hover{box-shadow:0 24px 60px rgba(14,38,42,.14);transform:translateY(-4px)}.vnv-story-card__media{background:#eef4f3;height:255px;overflow:hidden}.vnv-story-card__media img{display:block;height:100%;object-fit:cover;width:100%}.vnv-story-card__media--logo{align-items:center;display:flex;justify-content:center;padding:54px}.vnv-story-card__media--logo img{height:auto;max-height:130px;max-width:435px;object-fit:contain;width:82%}.vnv-story-card__copy{align-items:flex-start;display:flex;flex:1;flex-direction:column;padding:28px}.vnv-story-card__label{color:#a9782c;font-size:.68rem;font-weight:800;letter-spacing:.14em;margin-bottom:11px;text-transform:uppercase}.vnv-story-card h3{color:#132326;font-size:1.45rem;margin:0 0 10px}.vnv-story-card p{color:#56666a;line-height:1.65;margin:0 0 22px}.vnv-story-card__button{align-items:center;background:transparent;border:0;color:#8b651f;cursor:pointer;display:inline-flex;font:inherit;font-size:.76rem;font-weight:800;gap:8px;letter-spacing:.1em;margin-top:auto;padding:7px 0;text-align:left;text-transform:uppercase}.vnv-story-card__button:hover,.vnv-story-card__button:focus-visible{color:#153f40}.vnv-story-card__button:focus-visible,.vnv-story-modal button:focus-visible,.vnv-story-modal a:focus-visible{outline:3px solid #d8a84d;outline-offset:4px}.vnv-story-roadmap{align-items:center;background:#153f40;border-radius:20px;color:#fff;display:flex;gap:22px;justify-content:space-between;margin-top:26px;padding:24px 28px}.vnv-story-roadmap__label{color:#e8c781;display:block;font-size:.68rem;font-weight:800;letter-spacing:.14em;margin-bottom:4px;text-transform:uppercase}.vnv-story-roadmap h3{color:#fff;font-size:1.3rem;margin:0}.vnv-story-roadmap p{color:rgba(255,255,255,.78);margin:4px 0 0}.vnv-story-roadmap a{color:#f0cf85;font-size:.76rem;font-weight:800;letter-spacing:.08em;white-space:nowrap}.vnv-story-modal[hidden]{display:none}.vnv-story-modal{align-items:center;background:rgba(5,18,21,.78);display:flex;inset:0;justify-content:center;padding:24px;position:fixed;z-index:10050}.vnv-story-modal__dialog{background:#fff;border-radius:26px;box-shadow:0 26px 90px rgba(0,0,0,.34);max-height:calc(100dvh - 48px);max-width:980px;overflow-y:auto;overscroll-behavior:contain;position:relative;width:100%}.vnv-story-modal__close{align-items:center;background:#fff;border:1px solid rgba(17,48,51,.18);border-radius:999px;color:#153f40;cursor:pointer;display:flex;font-size:1.4rem;height:44px;justify-content:center;position:absolute;right:18px;top:18px;width:44px;z-index:2}.vnv-story-modal__header{background:#eef4f3;border-radius:26px 26px 0 0;padding:38px 76px 28px 38px}.vnv-story-modal__header span{color:#9a7127;font-size:.7rem;font-weight:800;letter-spacing:.13em;text-transform:uppercase}.vnv-story-modal__header h2{color:#132326;font-size:clamp(1.7rem,4vw,2.7rem);line-height:1.08;margin:9px 0 8px}.vnv-story-modal__meta{color:#526568;margin:0}.vnv-story-modal__body{padding:34px 38px 40px}.vnv-story-modal__blocks{display:grid;gap:20px;grid-template-columns:repeat(2,minmax(0,1fr));margin-bottom:28px}.vnv-story-modal__block{background:#f7f9f8;border:1px solid rgba(19,63,64,.1);border-radius:18px;padding:22px}.vnv-story-modal__block--wide{grid-column:1/-1}.vnv-story-modal__block h3{color:#153f40;font-size:1.15rem;margin:0 0 9px}.vnv-story-modal__block p{color:#536467;line-height:1.7;margin:0}.vnv-story-contributions{display:grid;gap:12px;grid-template-columns:repeat(3,minmax(0,1fr));margin-top:15px}.vnv-story-contribution{align-items:flex-start;color:#31484b;display:flex;font-size:.9rem;gap:9px;line-height:1.4}.vnv-story-contribution i{color:#b18432;margin-top:3px;width:18px}.vnv-story-gallery{background:#102f32;border-radius:20px;color:#fff;padding:20px}.vnv-story-gallery__stage{border-radius:14px;margin:0;overflow:hidden}.vnv-story-gallery__stage img{aspect-ratio:3/2;display:block;object-fit:cover;width:100%}.vnv-story-gallery__stage figcaption{color:rgba(255,255,255,.86);font-size:.92rem;line-height:1.5;padding:12px 4px 2px}.vnv-story-gallery__controls{align-items:center;display:flex;gap:10px;justify-content:flex-end;margin:12px 0}.vnv-story-gallery__controls button{background:transparent;border:1px solid rgba(255,255,255,.55);border-radius:999px;color:#fff;cursor:pointer;height:44px;width:44px}.vnv-story-gallery__thumbs{display:grid;gap:9px;grid-template-columns:repeat(4,minmax(0,1fr))}.vnv-story-gallery__thumb{background:transparent;border:2px solid transparent;border-radius:10px;cursor:pointer;overflow:hidden;padding:0}.vnv-story-gallery__thumb.is-active{border-color:#e4bf72}.vnv-story-gallery__thumb img{aspect-ratio:4/3;display:block;object-fit:cover;width:100%}.vnv-story-modal__link{align-items:center;color:#8b651f;display:inline-flex;font-size:.78rem;font-weight:800;gap:8px;letter-spacing:.09em;margin-top:24px;text-transform:uppercase}.vnv-story-modal-open{overflow:hidden}.vnv-story-shake{align-items:center;display:grid;gap:34px;grid-template-columns:minmax(220px,.75fr) minmax(0,1.25fr)}.vnv-story-shake__logo{align-items:center;background:#eef4f3;border-radius:20px;display:flex;justify-content:center;min-height:250px;padding:50px}.vnv-story-shake__logo img{height:auto;max-width:435px;width:100%}.vnv-story-shake__copy p{color:#536467;font-size:1.03rem;line-height:1.75;margin:0 0 16px}
+@media(max-width:767px){.vnv-story-grid{grid-template-columns:1fr}.vnv-story-card__media{height:220px}.vnv-story-roadmap{align-items:flex-start;flex-direction:column}.vnv-story-modal{align-items:flex-start;padding:12px}.vnv-story-modal__dialog{border-radius:20px;max-height:calc(100dvh - 24px)}.vnv-story-modal__header{border-radius:20px 20px 0 0;padding:64px 20px 22px}.vnv-story-modal__close{right:14px;top:12px}.vnv-story-modal__body{padding:22px 18px 28px}.vnv-story-modal__blocks,.vnv-story-shake{grid-template-columns:1fr}.vnv-story-contributions{grid-template-columns:1fr}.vnv-story-gallery{padding:12px}.vnv-story-gallery__thumbs{gap:6px}.vnv-story-shake__logo{min-height:190px;padding:36px}}
+</style>
+
+<div data-vnv-story-component>
+    <section class="{{ story_section_class }}" aria-labelledby="{{ story_heading_id }}">
+        <div class="{{ story_container_class }}">
+            <div class="vnv-story-heading">
+                <span class="vnv-story-heading__eyebrow">{{ story_eyebrow }}</span>
+                <h2 id="{{ story_heading_id }}">{{ story_heading }}</h2>
+                <p>{{ story_intro }}</p>
+            </div>
+            <div class="vnv-story-grid">
+                {% for story in nonprofit_stories %}
+                    <article class="vnv-story-card">
+                        {% if story.logo is defined %}
+                            <div class="vnv-story-card__media vnv-story-card__media--logo"><img src="{{ story.logo }}" alt="Shake-A-Leg Miami official logo" loading="lazy" width="435" height="120"></div>
+                        {% else %}
+                            <div class="vnv-story-card__media"><img src="{{ story.image }}" alt="{{ story.image_alt }}" loading="lazy" width="1200" height="800"></div>
+                        {% endif %}
+                        <div class="vnv-story-card__copy">
+                            <span class="vnv-story-card__label">{{ story.label }}</span>
+                            <h3>{{ story.name }}</h3>
+                            <p>{{ story.card_copy }}</p>
+                            <button class="vnv-story-card__button" type="button" data-vnv-story-open="{{ story.id }}" aria-haspopup="dialog" aria-controls="vnv-story-modal-{{ story.id }}">Explore Our Collaboration <span aria-hidden="true">→</span></button>
+                        </div>
+                    </article>
+                {% endfor %}
+            </div>
+            {% if story_include_roadmap %}
+                <article class="vnv-story-roadmap">
+                    <div><span class="vnv-story-roadmap__label">2027 Roadmap</span><h3>Support 20 organizations</h3><p>Our goal is to build practical, documented production relationships with up to 20 nonprofit organizations during 2027.</p></div>
+                    <a href="{{ path('nonprofit-partnerships') }}">Explore nonprofit support →</a>
+                </article>
+            {% endif %}
+        </div>
+    </section>
+
+    {% for story in nonprofit_stories %}
+        <div class="vnv-story-modal" id="vnv-story-modal-{{ story.id }}" role="dialog" aria-modal="true" aria-labelledby="vnv-story-title-{{ story.id }}" hidden>
+            <div class="vnv-story-modal__dialog" role="document">
+                <button class="vnv-story-modal__close" type="button" data-vnv-story-close aria-label="Close collaboration story">×</button>
+                <header class="vnv-story-modal__header">
+                    <span>{{ story.label }}</span>
+                    <h2 id="vnv-story-title-{{ story.id }}">{{ story.modal_title }}</h2>
+                    {% if story.event_meta is defined %}<p class="vnv-story-modal__meta">{{ story.event_meta }}</p>{% endif %}
+                </header>
+                <div class="vnv-story-modal__body">
+                    {% if story.id == 'victoria-venezuela' %}
+                        <div class="vnv-story-modal__blocks">
+                            <section class="vnv-story-modal__block"><h3>The Challenge</h3><p>Coordinate the technical, operational and guest-experience needs of a charity event within one reliable event-day plan.</p></section>
+                            <section class="vnv-story-modal__block"><h3>The Experience</h3><p>VNV integrated digital tools with production services so registration, access, event communications and guest-facing moments could support the same operating flow.</p></section>
+                            <section class="vnv-story-modal__block vnv-story-modal__block--wide"><h3>Our Contribution</h3><p>VNV Events supported the tournament through the following confirmed services:</p><div class="vnv-story-contributions">
+                                <span class="vnv-story-contribution"><i class="fa-solid fa-volume-high" aria-hidden="true"></i>Sound and audiovisual support</span>
+                                <span class="vnv-story-contribution"><i class="fa-solid fa-diagram-project" aria-hidden="true"></i>Event logistics management system</span>
+                                <span class="vnv-story-contribution"><i class="fa-solid fa-envelope-circle-check" aria-hidden="true"></i>Attendee registration and confirmation</span>
+                                <span class="vnv-story-contribution"><i class="fa-solid fa-qrcode" aria-hidden="true"></i>VNV access control and check-in technology</span>
+                                <span class="vnv-story-contribution"><i class="fa-solid fa-people-arrows" aria-hidden="true"></i>Operational coordination support</span>
+                                <span class="vnv-story-contribution"><i class="fa-solid fa-camera-retro" aria-hidden="true"></i>Decor and photo opportunities</span>
+                            </div></section>
+                        </div>
+                        <div class="vnv-story-gallery" data-vnv-story-gallery>
+                            <figure class="vnv-story-gallery__stage"><img src="{{ story.gallery[0].src }}" alt="{{ story.gallery[0].alt }}" width="1200" height="800" data-vnv-gallery-main><figcaption data-vnv-gallery-caption>{{ story.gallery[0].caption }}</figcaption></figure>
+                            <div class="vnv-story-gallery__controls"><button type="button" data-vnv-gallery-prev aria-label="Previous photograph">←</button><button type="button" data-vnv-gallery-next aria-label="Next photograph">→</button></div>
+                            <div class="vnv-story-gallery__thumbs" aria-label="Victoria Venezuela event photographs">
+                                {% for photo in story.gallery %}<button class="vnv-story-gallery__thumb{{ loop.first ? ' is-active' : '' }}" type="button" data-vnv-gallery-thumb data-index="{{ loop.index0 }}" data-src="{{ photo.src }}" data-alt="{{ photo.alt }}" data-caption="{{ photo.caption }}" aria-label="Show photograph {{ loop.index }}"><img src="{{ photo.src }}" alt="" width="240" height="180" loading="lazy"></button>{% endfor %}
+                            </div>
+                        </div>
+                        <a class="vnv-story-modal__link" href="{{ story.external_url }}" target="_blank" rel="noopener noreferrer">View Full Event Gallery <span aria-hidden="true">→</span></a>
+                    {% else %}
+                        <div class="vnv-story-shake">
+                            <div class="vnv-story-shake__logo"><img src="{{ story.logo }}" alt="Shake-A-Leg Miami official logo" width="435" height="120"></div>
+                            <div class="vnv-story-shake__copy"><p>VNV contributed catering and simple decor to this community collaboration.</p><p>The project became one of our first steps in supporting nonprofit organizations and helped shape the foundation-assistance initiative we continue developing today.</p><p>VNV did not serve as the event’s full producer, sponsorship manager or technology provider.</p><a class="vnv-story-modal__link" href="{{ story.external_url }}" target="_blank" rel="noopener noreferrer">Visit Shake-A-Leg Miami <span aria-hidden="true">→</span></a></div>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    {% endfor %}
+</div>
+
+<script>
+(() => {
+    document.querySelectorAll('[data-vnv-story-component]').forEach((root) => {
+        if (root.dataset.vnvStoryReady === '1') return;
+        root.dataset.vnvStoryReady = '1';
+        let activeModal = null;
+        let opener = null;
+
+        const focusable = (modal) => Array.from(modal.querySelectorAll('a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])')).filter((element) => !element.hidden);
+        const closeModal = () => {
+            if (!activeModal) return;
+            const previousOpener = opener;
+            activeModal.hidden = true;
+            activeModal = null;
+            opener = null;
+            document.body.classList.remove('vnv-story-modal-open');
+            if (previousOpener) previousOpener.focus();
+        };
+        const openModal = (id, trigger) => {
+            const modal = root.querySelector(`#vnv-story-modal-${id}`);
+            if (!modal) return;
+            activeModal = modal;
+            opener = trigger;
+            modal.hidden = false;
+            document.body.classList.add('vnv-story-modal-open');
+            modal.querySelector('[data-vnv-story-close]').focus();
+        };
+
+        root.addEventListener('click', (event) => {
+            const trigger = event.target.closest('[data-vnv-story-open]');
+            if (trigger) {
+                openModal(trigger.dataset.vnvStoryOpen, trigger);
+                return;
+            }
+            if (event.target.closest('[data-vnv-story-close]') || (activeModal && event.target === activeModal)) closeModal();
+        });
+
+        document.addEventListener('keydown', (event) => {
+            if (!activeModal) return;
+            if (event.key === 'Escape') {
+                event.preventDefault();
+                closeModal();
+                return;
+            }
+            if (event.key === 'Tab') {
+                const items = focusable(activeModal);
+                if (!items.length) return;
+                const first = items[0];
+                const last = items[items.length - 1];
+                if (event.shiftKey && document.activeElement === first) {
+                    event.preventDefault();
+                    last.focus();
+                } else if (!event.shiftKey && document.activeElement === last) {
+                    event.preventDefault();
+                    first.focus();
+                }
+            }
+        });
+
+        root.querySelectorAll('[data-vnv-story-gallery]').forEach((gallery) => {
+            const main = gallery.querySelector('[data-vnv-gallery-main]');
+            const caption = gallery.querySelector('[data-vnv-gallery-caption]');
+            const thumbs = Array.from(gallery.querySelectorAll('[data-vnv-gallery-thumb]'));
+            let index = 0;
+            const show = (next) => {
+                index = (next + thumbs.length) % thumbs.length;
+                const thumb = thumbs[index];
+                main.src = thumb.dataset.src;
+                main.alt = thumb.dataset.alt;
+                caption.textContent = thumb.dataset.caption;
+                thumbs.forEach((button, buttonIndex) => button.classList.toggle('is-active', buttonIndex === index));
+            };
+            thumbs.forEach((thumb) => thumb.addEventListener('click', () => show(Number(thumb.dataset.index))));
+            gallery.querySelector('[data-vnv-gallery-prev]').addEventListener('click', () => show(index - 1));
+            gallery.querySelector('[data-vnv-gallery-next]').addEventListener('click', () => show(index + 1));
+        });
+    });
+})();
+</script>

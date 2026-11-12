@@ -55,6 +55,41 @@ function url(route) {
         assert.equal(await page.locator('.process-step').count(), 5, `${label}: production method must contain five steps`);
         assert.equal(await page.getByText(/The VNV Ecosystem|The VNV 360 Way|Scope of Support|The Production Blueprint/).count(), 0, `${label}: redundant production block remains`);
         assert.equal(await page.getByText(/Support 20 organizations/).count(), 1, `${label}: 2027 roadmap goal missing`);
+        const cases = page.locator('[data-vnv-story-component] .vnv-story-card');
+        assert.equal(await cases.count(), 2, `${label}: production collaboration card count`);
+        assert.equal((await cases.nth(0).innerText()).includes('Shake-A-Leg Miami'), true, `${label}: Shake-A-Leg must be first`);
+        assert.equal((await cases.nth(1).innerText()).includes('Victoria Venezuela Foundation'), true, `${label}: Victoria must be second`);
+        assert.equal(await page.locator('.vnv-story-roadmap').getByText('2027 Roadmap', { exact: true }).count(), 1, `${label}: roadmap must follow the collaboration cards`);
+        assert.equal(await cases.nth(0).getByText('Where It Started', { exact: true }).count(), 1, `${label}: Shake-A-Leg label`);
+        assert.equal(await cases.nth(1).getByText('Our First End-to-End Production', { exact: true }).count(), 1, `${label}: Victoria label`);
+        for (const image of await page.locator('.vnv-story-card img').all()) {
+          assert.equal(await image.evaluate((node) => node.complete && node.naturalWidth > 0), true, `${label}: case-study image failed to load`);
+        }
+      }
+      if (route === 'event-production' || route === 'nonprofit-partnerships') {
+        const storyCards = page.locator('[data-vnv-story-component] .vnv-story-card');
+        assert.equal(await storyCards.count(), 2, `${label}: shared collaboration cards`);
+        const shakeTrigger = storyCards.nth(0).getByRole('button', { name: /Explore Our Collaboration/ });
+        await shakeTrigger.click();
+        const shakeModal = page.locator('#vnv-story-modal-shake-a-leg');
+        assert.equal(await shakeModal.isVisible(), true, `${label}: Shake-A-Leg modal did not open`);
+        assert.equal(await shakeModal.getByText(/catering and simple decor/).count(), 1, `${label}: verified Shake-A-Leg scope missing`);
+        assert.equal(await shakeModal.getByText(/full producer, sponsorship manager or technology provider/).count(), 1, `${label}: Shake-A-Leg scope guard missing`);
+        assert.equal(await shakeModal.locator('img').count(), 1, `${label}: Shake-A-Leg must use only its official logo`);
+        await page.keyboard.press('Escape');
+        assert.equal(await shakeModal.isHidden(), true, `${label}: Escape did not close Shake-A-Leg modal`);
+        assert.equal(await shakeTrigger.evaluate((node) => document.activeElement === node), true, `${label}: story focus was not restored`);
+
+        await storyCards.nth(1).getByRole('button', { name: /Explore Our Collaboration/ }).click();
+        const victoriaModal = page.locator('#vnv-story-modal-victoria-venezuela');
+        assert.equal(await victoriaModal.isVisible(), true, `${label}: Victoria modal did not open`);
+        assert.equal(await victoriaModal.locator('[data-vnv-gallery-thumb]').count(), 4, `${label}: Victoria verified gallery size`);
+        assert.equal(await victoriaModal.getByText('View Full Event Gallery', { exact: false }).getAttribute('href'), 'https://www.victoriavenezuelafoundation.org/events/2026-golf-tournament', `${label}: official Victoria gallery link`);
+        const firstGallerySrc = await victoriaModal.locator('[data-vnv-gallery-main]').getAttribute('src');
+        await victoriaModal.locator('[data-vnv-gallery-next]').click();
+        assert.notEqual(await victoriaModal.locator('[data-vnv-gallery-main]').getAttribute('src'), firstGallerySrc, `${label}: Victoria gallery did not advance`);
+        await victoriaModal.click({ position: { x: 4, y: 4 } });
+        assert.equal(await victoriaModal.isHidden(), true, `${label}: backdrop did not close Victoria modal`);
       }
       if (route === 'nonprofit-partnerships') {
         assert.equal(await page.getByText(/Now Accepting/).count() > 0, true, `${label}: nonprofit status missing`);
@@ -62,6 +97,16 @@ function url(route) {
       if (route === 'sponsor-activation-production' || route === 'corporate-events') {
         assert.equal(await page.getByText(/By Invitation/).count() > 0, true, `${label}: invitation status missing`);
         assert.equal(await page.getByText(/Planning for March 2027/).count(), 0, `${label}: retired March 2027 status remains`);
+      }
+      if (route === 'corporate-events') {
+        const serviceCards = page.locator('.vnv-service-grid-card').filter({ has: page.locator('a', { hasText: 'REQUEST SERVICE' }) });
+        assert.equal(await serviceCards.count(), 4, `${label}: four ordinary service cards expected`);
+        for (const [service, destination] of [['Sound', 'vnv-live'], ['Multimedia', 'photo-booth-rental-video-photography-services-in-south-florida'], ['Staffing', 'event-staffing/']]) {
+          const card = page.locator('.vnv-service-grid-card').filter({ has: page.getByRole('heading', { name: service, exact: true }) });
+          assert.equal(await card.count(), 1, `${label}: ${service} card`);
+          assert.match(await card.locator('a').getAttribute('href'), new RegExp(destination.replace('/', '\\/')), `${label}: ${service} ordinary service destination`);
+          assert.equal(await card.locator('[data-vnv-open-quick-request]').count(), 0, `${label}: ${service} still opens invitation flow`);
+        }
       }
 
       if (viewport.width < 860) {

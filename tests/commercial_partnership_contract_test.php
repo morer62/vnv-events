@@ -21,6 +21,7 @@ $requiredFiles = [
     'src/views/api/public/partnership-request/index.php',
     'src/views/api/public/quick-request/index.php',
     'src/views/templates/components/publicQuickRequestModal.html.twig',
+    'src/views/templates/components/publicNonprofitStories.html.twig',
     'src/Repositories/CommercialPartnershipRepository.php',
     'src/Services/CommercialFinanceService.php',
     'src/views/panel/level1/planner-hub/management/crm/partnerships/index.php',
@@ -54,7 +55,17 @@ $assert(!str_contains($home, 'Planning for March 2027'), 'Home still exposes the
 
 $production = file_get_contents($root . '/src/views/public/pages/event-production/index.twig');
 foreach (['From creative concepts to seamless execution.', 'Support 20 organizations', 'Now Accepting', 'By Invitation', 'Our Production Method'] as $needle) {
-    $assert(str_contains($production, $needle), 'Event Production polish is missing: ' . $needle);
+    $source = $needle === 'Support 20 organizations' ? file_get_contents($root . '/src/views/templates/components/publicNonprofitStories.html.twig') : $production;
+    $assert(str_contains($source, $needle), 'Event Production polish is missing: ' . $needle);
+}
+$stories = file_get_contents($root . '/src/views/templates/components/publicNonprofitStories.html.twig');
+$assert(str_contains($production, 'templates/components/publicNonprofitStories.html.twig'), 'Event Production does not use the shared nonprofit stories component.');
+$shakePosition = strpos($stories, "id: 'shake-a-leg'");
+$victoriaPosition = strpos($stories, "id: 'victoria-venezuela'");
+$roadmapPosition = strpos($stories, '2027 Roadmap');
+$assert($shakePosition !== false && $victoriaPosition !== false && $roadmapPosition !== false && $shakePosition < $victoriaPosition && $victoriaPosition < $roadmapPosition, 'Production collaboration history is not in the verified chronological order.');
+foreach (['Where It Started', 'Our First End-to-End Production', 'catering and simple decor', 'assets/images/case-studies/shake-a-leg-miami-logo.svg', 'assets/images/case-studies/victoria-venezuela-2026-check-in.webp', 'assets/images/case-studies/victoria-venezuela-2026-P4189.webp', 'assets/images/case-studies/victoria-venezuela-2026-P4316.webp', 'assets/images/case-studies/victoria-venezuela-2026-P4861.webp', 'https://www.victoriavenezuelafoundation.org/events/2026-golf-tournament', 'View Full Event Gallery', 'data-vnv-story-open', "event.key === 'Escape'", 'data-vnv-gallery-next'] as $needle) {
+    $assert(str_contains($stories, $needle), 'Verified shared case-study content is missing: ' . $needle);
 }
 foreach (['The VNV Ecosystem', 'The VNV 360 Way', 'Scope of Support', 'The Production Blueprint', 'Planning for March 2027'] as $needle) {
     $assert(!str_contains($production, $needle), 'Event Production still contains retired/redundant copy: ' . $needle);
@@ -63,8 +74,16 @@ foreach (['The VNV Ecosystem', 'The VNV 360 Way', 'Scope of Support', 'The Produ
 $corporate = file_get_contents($root . '/src/views/public/pages/corporate-events/index.twig');
 $assert(str_contains($corporate, 'By Invitation'), 'Corporate integrated projects are missing the By Invitation status.');
 $assert(str_contains($corporate, 'Traditional catering, entertainment, decor, rentals and planning remain normally available.'), 'Corporate page does not preserve regular traditional services.');
+$assert(substr_count($corporate, 'REQUEST SERVICE →') === 4, 'Corporate core-service cards do not all use the ordinary request CTA.');
+foreach (["path('vnv-gourmet')", "path('vnv-live')", "path('photo-booth-rental-video-photography-services-in-south-florida')", "path('event-staffing/')"] as $destination) {
+    $assert(str_contains($corporate, $destination), 'Corporate core-service destination is missing: ' . $destination);
+}
+$assert(!str_contains($corporate, 'data-quick-request-source="corporate_service"'), 'Traditional corporate service cards still open the invitation flow.');
 $assert(!str_contains($corporate, 'Planning for March 2027'), 'Corporate page still exposes the retired March 2027 status.');
 $assert(!str_contains($corporate, 'March 2027'), 'Corporate page metadata still exposes the retired March 2027 timing.');
+
+$nonprofitStoriesPage = file_get_contents($root . '/src/views/public/pages/nonprofit-partnerships/index.twig');
+$assert(str_contains($nonprofitStoriesPage, 'templates/components/publicNonprofitStories.html.twig'), 'Nonprofit Partnerships does not use the shared nonprofit stories component.');
 
 $publicFooter = file_get_contents($root . '/src/views/templates/layout/publicFooterVnv.html.twig');
 $assert(str_contains($publicFooter, 'VNV Events technology'), 'Public footer is missing VNV Events technology branding.');

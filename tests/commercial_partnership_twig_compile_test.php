@@ -26,6 +26,7 @@ $templates = [
     'panel/level1/planner-hub/management/crm/partnerships/index.twig',
     'templates/components/publicEventRequestModal.html.twig',
     'templates/components/publicQuickRequestModal.html.twig',
+    'templates/components/publicNonprofitStories.html.twig',
     'templates/components/publicSponsorRequestModal.html.twig',
     'templates/layout/publicHeaderVnv.html.twig',
 ];
