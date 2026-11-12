@@ -73,8 +73,8 @@ function url(route) {
         await shakeTrigger.click();
         const shakeModal = page.locator('#vnv-story-modal-shake-a-leg');
         assert.equal(await shakeModal.isVisible(), true, `${label}: Shake-A-Leg modal did not open`);
-        assert.equal(await shakeModal.getByText(/catering and simple event décor/).count(), 1, `${label}: verified Shake-A-Leg scope missing`);
-        assert.equal(await shakeModal.getByText(/full producer, sponsorship manager or technology provider/).count(), 1, `${label}: Shake-A-Leg scope guard missing`);
+        assert.equal(await shakeModal.getByText(/Our role: catering and event décor/).count(), 1, `${label}: verified Shake-A-Leg scope missing`);
+        assert.equal(await shakeModal.getByText(/positive impact in the community/).count(), 1, `${label}: Shake-A-Leg community impact missing`);
         assert.equal(await shakeModal.locator('img').count(), 1, `${label}: Shake-A-Leg must use only its official logo`);
         await page.keyboard.press('Escape');
         assert.equal(await shakeModal.isHidden(), true, `${label}: Escape did not close Shake-A-Leg modal`);
@@ -83,7 +83,7 @@ function url(route) {
         await storyCards.nth(1).getByRole('button', { name: /View Our Story/ }).click();
         const victoriaModal = page.locator('#vnv-story-modal-victoria-venezuela');
         assert.equal(await victoriaModal.isVisible(), true, `${label}: Victoria modal did not open`);
-        assert.equal(await victoriaModal.locator('[data-vnv-gallery-thumb]').count(), 4, `${label}: Victoria verified gallery size`);
+        assert.equal(await victoriaModal.locator('[data-vnv-gallery-thumb]').count(), 15, `${label}: Victoria verified gallery size`);
         assert.equal(await victoriaModal.getByText('View Full Event Gallery', { exact: false }).getAttribute('href'), 'https://www.victoriavenezuelafoundation.org/events/2026-golf-tournament', `${label}: official Victoria gallery link`);
         const firstGallerySrc = await victoriaModal.locator('[data-vnv-gallery-main]').getAttribute('src');
         await victoriaModal.locator('[data-vnv-gallery-next]').click();
@@ -93,6 +93,16 @@ function url(route) {
       }
       if (route === 'nonprofit-partnerships') {
         assert.equal(await page.getByText(/Now Accepting/).count() > 0, true, `${label}: nonprofit status missing`);
+      }
+      if (route === 'corporate-events') {
+        const serviceCards = page.locator('.vnv-service-grid-card').filter({ has: page.locator('a', { hasText: 'REQUEST SERVICE' }) });
+        assert.equal(await serviceCards.count(), 4, `${label}: four ordinary service cards expected`);
+        for (const [service, destination] of [['Sound', 'vnv-live'], ['Multimedia', 'photo-booth-rental-video-photography-services-in-south-florida'], ['Staffing', 'event-staffing/']]) {
+          const card = page.locator('.vnv-service-grid-card').filter({ has: page.getByRole('heading', { name: service, exact: true }) });
+          assert.equal(await card.count(), 1, `${label}: ${service} card`);
+          assert.match(await card.locator('a').getAttribute('href'), new RegExp(destination.replace('/', '\\/')), `${label}: ${service} ordinary service destination`);
+          assert.equal(await card.locator('[data-vnv-open-quick-request]').count(), 0, `${label}: ${service} still opens invitation flow`);
+        }
       }
       if (route === 'sponsor-activation-production' || route === 'corporate-events') {
         assert.equal(await page.getByText(/By Invitation/).count() > 0, true, `${label}: invitation status missing`);
