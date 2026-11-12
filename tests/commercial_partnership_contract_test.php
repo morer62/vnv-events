@@ -86,6 +86,8 @@ foreach (['commercial_organizations', 'commercial_contacts', 'commercial_opportu
 }
 
 $seoGenerator = file_get_contents($root . '/src/Services/SeoFilesGeneratorService.php');
+$assert(substr_count($seoGenerator, "'/nonprofit-partnerships/'") >= 2, 'Nonprofit landing is not included in sitemap collection and SEO priority.');
+$assert(substr_count($seoGenerator, "'/sponsor-activation-production/'") >= 2, 'Sponsor activation landing is not included in sitemap collection and SEO priority.');
 $assert(str_contains($seoGenerator, '/vnv-events-productions/vanguard-business-gala/'), 'Archived Vanguard SEO exclusion is missing.');
 $assert(str_contains($seoGenerator, '/vnv-events-productions/flavor-fusion-fest/'), 'Archived Flavor Fusion SEO exclusion is missing.');
 $vanguardController = file_get_contents($root . '/src/views/public/pages/vnv-events-productions/vanguard-business-gala/index.php');

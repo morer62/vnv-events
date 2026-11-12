@@ -369,6 +369,8 @@ class SeoFilesGeneratorService
             ['/event-planners/', 'Event Planners', 'weekly', 0.9],
             ['/corporate-events/', 'Corporate Events', 'weekly', 0.8],
             ['/event-production/', 'Event Production', 'weekly', 0.8],
+            ['/nonprofit-partnerships/', 'Nonprofit Partnerships', 'weekly', 0.8],
+            ['/sponsor-activation-production/', 'Sponsor Activation Production', 'weekly', 0.8],
             ['/event-staffing/', 'Event Staffing', 'weekly', 0.7],
             ['/locations/', 'VNV Events Locations', 'weekly', 0.8],
             ['/blog/', 'VNV Events Blog', 'weekly', 0.7],
@@ -1030,7 +1032,7 @@ class SeoFilesGeneratorService
 
     private function priorityForPhysicalPath(string $path): float
     {
-        foreach (['/vnv-gourmet/', '/catering-stations-south-florida/', '/appetizer-catering-south-florida/', '/crepes-catering-south-florida/', '/pasta-station-catering-south-florida/', '/pizza-station-catering-south-florida/', '/paella-catering-south-florida/', '/taco-station-catering-south-florida/', '/corporate-catering-south-florida/', '/event-planners/', '/corporate-events/', '/event-production/', '/event-staffing/', '/locations/', '/blog/'] as $important) {
+        foreach (['/vnv-gourmet/', '/catering-stations-south-florida/', '/appetizer-catering-south-florida/', '/crepes-catering-south-florida/', '/pasta-station-catering-south-florida/', '/pizza-station-catering-south-florida/', '/paella-catering-south-florida/', '/taco-station-catering-south-florida/', '/corporate-catering-south-florida/', '/event-planners/', '/corporate-events/', '/event-production/', '/nonprofit-partnerships/', '/sponsor-activation-production/', '/event-staffing/', '/locations/', '/blog/'] as $important) {
             if ($path === $important) {
                 return 0.8;
             }
