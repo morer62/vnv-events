@@ -53,11 +53,13 @@ $router->get(function () {
         'description' => 'One South Florida event partner for private celebrations, nonprofit galas, corporate experiences, catering and full event production across Miami-Dade, Broward and Palm Beach.',
         'canonical' => 'https://vnvevents.com/',
     ];
+    $podcastPrograms = require dirname(__DIR__, 5) . '/config/podcasts.php';
 
     return TemplateResponse::render(__DIR__ . "/index.twig", [
         "audienceBlocks" => $audienceBlocks,
         "seo" => $seo,
         "schemaJson" => PublicSeoService::homepageSchema($seo),
+        'podcastPrograms' => $podcastPrograms,
         'quick_request_csrf' => $_SESSION['quick_request_csrf'],
         'quick_submitted' => isset($_GET['quick_submitted']),
     ]);

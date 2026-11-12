@@ -376,6 +376,7 @@ class SeoFilesGeneratorService
             ['/blog/', 'VNV Events Blog', 'weekly', 0.7],
             ['/faq/', 'VNV Events FAQ', 'weekly', 0.8],
             ['/vnv-sessions/', 'VNV Sessions', 'weekly', 0.7],
+            ['/podcasts/', 'VNV Podcasts', 'weekly', 0.7],
         ];
 
         foreach ($static as [$path, $title, $freq, $priority]) {

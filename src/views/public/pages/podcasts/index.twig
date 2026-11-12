@@ -1,0 +1,153 @@
+{% extends "templates/base.twig" %}
+
+{% set show_whatsapp = true %}
+{% set defer_public_third_party = true %}
+{% set skip_public_gtm_initial = true %}
+{% set skip_public_app_bundle = true %}
+{% set skip_public_google_maps = true %}
+{% set skip_public_stripe = true %}
+{% set skip_public_bootstrap_js = true %}
+{% set skip_base_inter_font = true %}
+{% set skip_base_app_css = true %}
+
+{% block title %}VNV Podcasts | Local Tech Lab & The Ground Floor{% endblock %}
+{% block meta_description %}Watch every published episode of Local Tech Lab by Tech Lab Miami and The Ground Floor by VNV Events in one official catalog.{% endblock %}
+{% block canonical %}https://vnvevents.com/podcasts/{% endblock %}
+
+{% block styles %}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ asset_for('assets/css/podcasts.css') }}">
+{% endblock %}
+
+{% block body %}
+{% include "templates/layout/publicHeaderVnv.html.twig" %}
+
+<main class="podcasts-page">
+    <section class="podcasts-hero">
+        <div class="podcasts-wrap podcasts-hero__grid">
+            <div>
+                <span class="podcasts-eyebrow"><i class="fa-solid fa-microphone-lines" aria-hidden="true"></i> VNV Studios</span>
+                <h1>Conversations from<br><span>the ground up.</span></h1>
+                <p class="podcasts-hero__lede">Two original programs. Practical technology for local business, and honest conversations about the work behind memorable events.</p>
+                <div class="podcasts-hero__actions">
+                    <a class="podcasts-button podcasts-button--primary" href="#local-tech-lab">Explore the episodes</a>
+                    <a class="podcasts-button podcasts-button--ghost" href="{{ path('/vnv-sessions') }}">Keep listening to DJ Sessions</a>
+                </div>
+            </div>
+            <div class="podcasts-hero__brands" aria-label="Featured podcast programs">
+                {% for program in programs %}
+                    <a class="podcasts-brand podcasts-brand--{{ program.identity }}" href="#{{ program.key }}">
+                        <img src="{{ asset_for(program.logo) }}" alt="{{ program.logo_alt }}" width="{{ program.logo_width }}" height="{{ program.logo_height }}"{% if not loop.first %} loading="lazy"{% endif %}>
+                        <span>{{ program.episodes|length }} published episode{{ program.episodes|length == 1 ? '' : 's' }}</span>
+                    </a>
+                {% endfor %}
+            </div>
+        </div>
+    </section>
+
+    {% for program in programs %}
+        <section class="podcasts-program podcasts-program--{{ program.identity }}" id="{{ program.key }}" aria-labelledby="{{ program.key }}-title">
+            <div class="podcasts-wrap">
+                <div class="podcasts-program__head">
+                    <div class="podcasts-program__identity">
+                        <img src="{{ asset_for(program.logo) }}" alt="{{ program.logo_alt }}" width="{{ program.logo_width }}" height="{{ program.logo_height }}" loading="lazy">
+                    </div>
+                    <div class="podcasts-program__copy">
+                        <span>{{ program.publisher }} original</span>
+                        <h2 id="{{ program.key }}-title">{{ program.name }}</h2>
+                        <p>{{ program.summary }}</p>
+                    </div>
+                    <div class="podcasts-program__actions">
+                        <a href="{{ program.source_url }}" target="_blank" rel="noopener noreferrer">{{ program.source_label }} <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i></a>
+                        <button type="button" data-vnv-open-quick-request data-quick-request-type="PRODUCTION" data-quick-request-source="{{ program.request_source }}">{{ program.request_label }}</button>
+                    </div>
+                </div>
+
+                <div class="podcasts-grid">
+                    {% for episode in program.episodes %}
+                        <article class="podcasts-card">
+                            <button
+                                class="podcasts-card__media"
+                                type="button"
+                                data-podcast-open
+                                data-video-id="{{ episode.video_id }}"
+                                data-video-title="{{ episode.title }}"
+                                data-video-description="{{ episode.description }}"
+                                data-video-credit="{{ episode.credit }}"
+                                data-video-source="{{ episode.youtube_url }}"
+                                aria-label="Play {{ episode.title }}">
+                                <img src="{{ asset_for(episode.thumbnail) }}" alt="{{ episode.thumbnail_alt }}" width="1280" height="720" loading="lazy" decoding="async">
+                                <span class="podcasts-card__play" aria-hidden="true"><i class="fa-solid fa-play"></i></span>
+                                <span class="podcasts-card__duration">{{ episode.duration }}</span>
+                            </button>
+                            <div class="podcasts-card__body">
+                                <div class="podcasts-card__meta"><span>{{ episode.published }}</span><span>{{ episode.credit }}</span></div>
+                                <h3>{{ episode.title }}</h3>
+                                <p>{{ episode.description }}</p>
+                                <button
+                                    class="podcasts-card__watch"
+                                    type="button"
+                                    data-podcast-open
+                                    data-video-id="{{ episode.video_id }}"
+                                    data-video-title="{{ episode.title }}"
+                                    data-video-description="{{ episode.description }}"
+                                    data-video-credit="{{ episode.credit }}"
+                                    data-video-source="{{ episode.youtube_url }}">
+                                    Watch episode <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+                                </button>
+                            </div>
+                        </article>
+                    {% endfor %}
+                </div>
+            </div>
+        </section>
+    {% endfor %}
+
+    <section class="podcasts-participate">
+        <div class="podcasts-wrap podcasts-participate__box">
+            <div>
+                <span class="podcasts-eyebrow">Join the conversation</span>
+                <h2>Have a story worth sharing?</h2>
+                <p>Tell us which program fits your experience and what you would bring to the conversation.</p>
+            </div>
+            <button class="podcasts-button podcasts-button--primary" type="button" data-vnv-open-quick-request data-quick-request-type="PRODUCTION" data-quick-request-source="podcasts_catalog_final">Request participation</button>
+        </div>
+    </section>
+</main>
+
+<div class="podcast-modal" id="podcastEpisodeModal" aria-hidden="true">
+    <button class="podcast-modal__backdrop" type="button" data-podcast-close tabindex="-1" aria-label="Close video"></button>
+    <div class="podcast-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="podcastModalTitle" aria-describedby="podcastModalDescription">
+        <button class="podcast-modal__close" type="button" data-podcast-close aria-label="Close episode"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>
+        <div class="podcast-modal__video">
+            <iframe title="" src="about:blank" loading="lazy" referrerpolicy="strict-origin-when-cross-origin" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+        </div>
+        <div class="podcast-modal__content">
+            <span data-podcast-credit></span>
+            <h2 id="podcastModalTitle" data-podcast-title></h2>
+            <p id="podcastModalDescription" data-podcast-description></p>
+            <a href="#" data-podcast-source target="_blank" rel="noopener noreferrer">Open original on YouTube <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i></a>
+        </div>
+    </div>
+</div>
+
+{% include "templates/components/publicEventRequestModal.html.twig" with {
+    request_form_action: "/api/public/event-request",
+    request_form_source: "podcasts_header_request"
+} %}
+
+{% include "templates/components/publicQuickRequestModal.html.twig" with {
+    quick_request_type: 'PRODUCTION',
+    quick_request_source: 'podcasts_catalog',
+    quick_request_title: 'Request to join a VNV podcast',
+    quick_request_cta: 'Send Participation Request'
+} %}
+
+{% include "templates/layout/publicFooterVnv.html.twig" %}
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ asset_for('assets/js/podcasts.js') }}" defer></script>
+{% endblock %}

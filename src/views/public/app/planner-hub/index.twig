@@ -1102,6 +1102,61 @@ h1, h2, h3, h4, .luxury-font {
     display:block;
 }
 
+.vnv-podcast-programs {
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:14px;
+}
+
+.vnv-podcast-program {
+    min-width:0;
+    padding:16px;
+    border:1px solid rgba(255,255,255,.1);
+    border-radius:18px;
+    background:rgba(255,255,255,.045);
+}
+
+.vnv-podcast-program img {
+    width:100%;
+    height:54px;
+    display:block;
+    margin-bottom:12px;
+    border-radius:9px;
+    object-fit:cover;
+    object-position:left center;
+}
+
+.vnv-podcast-program strong {
+    display:block;
+    margin-bottom:6px;
+    color:#fff;
+    font-size:.98rem;
+}
+
+.vnv-podcast-program p {
+    margin:0;
+    font-size:.82rem;
+    line-height:1.55;
+}
+
+.vnv-podcast-catalog-link {
+    min-height:46px;
+    display:inline-flex;
+    align-items:center;
+    gap:9px;
+    margin-top:16px;
+    color:var(--vnv-primary);
+    font-size:.76rem;
+    font-weight:900;
+    letter-spacing:.08em;
+    text-decoration:none;
+    text-transform:uppercase;
+}
+
+@media (max-width: 560px) {
+    .vnv-podcast-programs { grid-template-columns:1fr; }
+}
+
 /* INSTAGRAM */
 .section-instagram-vnv {
     background:
@@ -2223,27 +2278,27 @@ h1, h2, h3, h4, .luxury-font {
                         </div>
                     </div>
 
-                    <div class="vnv-media-card">
+                    <div class="vnv-media-card" id="podcast-programs">
                         <div class="vnv-media-card-header">
                             <div>
                                 <span class="vnv-media-pill alt">Podcast</span>
-                                <h3 class="mb-1">Event Ideas, Tips & Creative Conversations</h3>
+                                <h3 class="mb-1">Local Tech Lab & The Ground Floor</h3>
                                 <p class="m-0">
-                                    Listen to practical content created to help clients, creatives and event lovers think through the details that shape a great experience.
+                                    Two original programs recorded for practical business ideas and honest conversations about the work behind memorable events.
                                 </p>
                             </div>
                         </div>
 
-                        <div class="vnv-audio-frame">
-                            <iframe
-                                data-src="https://widget.spreaker.com/player?show_id=5869072&theme=light&playlist=show&playlist-continuous=true&chapters-image=true"
-                                title="VNV Events podcast player"
-                                width="100%"
-                                height="420"
-                                loading="lazy"
-                                frameborder="0">
-                            </iframe>
+                        <div class="vnv-podcast-programs">
+                            {% for program in podcastPrograms %}
+                                <article class="vnv-podcast-program">
+                                    <img src="{{ asset_for(program.logo) }}" alt="{{ program.logo_alt }}" width="{{ program.logo_width }}" height="{{ program.logo_height }}" loading="lazy" decoding="async">
+                                    <strong>{{ program.name }}</strong>
+                                    <p>{{ program.summary }}</p>
+                                </article>
+                            {% endfor %}
                         </div>
+                        <a class="vnv-podcast-catalog-link" href="{{ path('/podcasts') }}">Explore all podcast episodes <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
                     </div>
                 </div>
             </div>
