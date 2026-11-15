@@ -101,8 +101,10 @@ $assert(!preg_match('/(?:from|starting at)\s*\$\d+/i', $budgetTemplate), 'Budget
 $sessionsTemplate = file_get_contents($root . '/src/views/public/pages/vnv-sessions/index.twig');
 $assert(str_contains($sessionsTemplate, 'youtube-nocookie.com/embed/videoseries?list=PL8hdMpm11FxmEz_1IrnoN3DpbOoMHtFkP'), 'VNV Sessions does not use the official playlist embed.');
 $assert(!str_contains(strtolower($sessionsTemplate), 'spreaker.com'), 'VNV Sessions still renders the legacy podcast player.');
-$assert(!str_contains($sessionsTemplate, 'id="podcast"'), 'VNV Sessions still exposes a podcast section.');
-$assert(substr_count(strtolower($sessionsTemplate), '<h1') === 1, 'VNV Sessions must render exactly one H1.');
+$assert(str_contains($sessionsTemplate, 'id="podcasts"'), 'VNV Studio does not introduce its podcast programs.');
+$assert(str_contains($sessionsTemplate, "path('/podcasts')"), 'VNV Studio does not link to the verified podcast catalog.');
+$assert(str_contains($sessionsTemplate, 'VNV <span>Studio</span>'), 'VNV Studio hero identity is missing.');
+$assert(substr_count(strtolower($sessionsTemplate), '<h1') === 1, 'VNV Studio must render exactly one H1.');
 
 $staticSeo = $extractSeo->invoke(null, $root . '/src/views/public/pages/event-budget-calculator/index.twig');
 $assert(($staticSeo['title'] ?? '') === 'Event Budget Calculator for South Florida | VNV Events', 'Static title was not shared with structured data.');

@@ -6,7 +6,11 @@ use App\Utils\TemplateResponse;
 $router = new Router();
 
 $router->get(function () {
-    return TemplateResponse::render(__DIR__ . '/index.twig');
+    $programs = require dirname(__DIR__, 5) . '/config/podcasts.php';
+
+    return TemplateResponse::render(__DIR__ . '/index.twig', [
+        'programs' => $programs,
+    ]);
 });
 
 try {

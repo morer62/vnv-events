@@ -70,6 +70,31 @@ function url(route) {
     await context.close();
   }
 
+  for (const viewport of [{ name: 'mobile', width: 390, height: 844 }, { name: 'desktop', width: 1440, height: 900 }]) {
+    const context = await browser.newContext({ viewport });
+    const page = await context.newPage();
+    const pageErrors = [];
+    page.on('pageerror', (error) => pageErrors.push(error.message));
+    await page.route('https://www.youtube-nocookie.com/**', (route) => route.fulfill({ status: 200, contentType: 'text/html', body: '<!doctype html><title>YouTube embed QA</title>' }));
+    const response = await page.goto(url('vnv-sessions'), { waitUntil: 'domcontentloaded' });
+    const label = `studio/${viewport.name}`;
+    assert.equal(response.status(), 200, `${label}: status`);
+    assert.equal(await page.locator('h1').count(), 1, `${label}: one H1`);
+    assert.match(await page.locator('h1').innerText(), /VNV\s+Studio/i, `${label}: Studio identity`);
+    assert.equal(await page.locator('link[rel="canonical"]').getAttribute('href'), 'https://vnvevents.com/vnv-sessions/', `${label}: canonical`);
+    assert.equal(await page.locator('#music iframe[title="VNV Sessions Playlist"]').count(), 1, `${label}: official playlist`);
+    assert.equal(await page.locator('#podcasts .sessions-podcast-card').count(), 2, `${label}: podcast program count`);
+    assert.equal(await page.locator('#podcasts a[href*="/podcasts"]').count() >= 3, true, `${label}: podcast catalog paths`);
+    assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1), true, `${label}: horizontal overflow`);
+    for (const image of await page.locator('#podcasts img').all()) {
+      await image.scrollIntoViewIfNeeded();
+      assert.equal(await image.evaluate((node) => node.complete && node.naturalWidth > 0), true, `${label}: program logo did not load`);
+    }
+    assert.equal(pageErrors.length, 0, `${label}: page errors: ${pageErrors.join('; ')}`);
+    checks++;
+    await context.close();
+  }
+
   const homeContext = await browser.newContext({ viewport: { width: 390, height: 844 } });
   const home = await homeContext.newPage();
   const homeResponse = await home.goto(url(''), { waitUntil: 'domcontentloaded' });
@@ -81,7 +106,7 @@ function url(route) {
   await homeContext.close();
 
   await browser.close();
-  console.log(`Podcast catalog browser QA OK: ${checks} catalog viewports + homepage`);
+  console.log(`Podcast and VNV Studio browser QA OK: ${checks} responsive views + homepage`);
 })().catch((error) => {
   console.error(error);
   process.exit(1);

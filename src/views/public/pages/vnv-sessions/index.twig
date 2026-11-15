@@ -12,10 +12,10 @@
 {% set skip_base_app_css = true %}
 {% set skip_base_bootstrap_css = true %}
 
-{% block title %}VNV Sessions by DJ Jonny in the Mix | VNV Events{% endblock %}
+{% block title %}VNV Studio | DJ Sessions, Local Tech Lab & The Ground Floor{% endblock %}
 
 {% block meta_description %}
-    Watch VNV Sessions by DJ Jonny in the Mix: curated open-format DJ sets created for events, drives, workouts and creative inspiration.
+    Explore VNV Studio: open-format DJ Sessions by DJ Jonny in the Mix plus Local Tech Lab and The Ground Floor podcasts from VNV Events.
 {% endblock %}
 {% block canonical %}https://vnvevents.com/vnv-sessions/{% endblock %}
 
@@ -139,6 +139,13 @@ body {
     box-shadow: none;
 }
 
+.sessions-btn:focus-visible,
+.sessions-mini-card:focus-visible,
+.sessions-podcast-card__link:focus-visible {
+    outline: 3px solid var(--sessions-gold);
+    outline-offset: 4px;
+}
+
 .sessions-intro-card {
     display: flex;
     gap: 16px;
@@ -217,16 +224,27 @@ body {
 
 .sessions-mini-grid {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 14px;
     margin-top: 18px;
 }
 
 .sessions-mini-card {
+    display: block;
     border: 1px solid var(--sessions-line);
     border-radius: 8px;
     padding: 18px;
+    color: inherit;
     background: rgba(255, 255, 255, .76);
+    text-decoration: none;
+    transition: transform .22s ease, border-color .22s ease, box-shadow .22s ease;
+}
+
+.sessions-mini-card:hover {
+    color: inherit;
+    transform: translateY(-3px);
+    border-color: rgba(15, 118, 110, .32);
+    box-shadow: 0 18px 42px rgba(17, 24, 26, .08);
 }
 
 .sessions-mini-card strong {
@@ -317,6 +335,119 @@ body {
     color: var(--sessions-muted);
 }
 
+.sessions-section--podcasts {
+    position: relative;
+    overflow: hidden;
+    background:
+        radial-gradient(circle at 9% 12%, rgba(69, 227, 207, .18), transparent 26rem),
+        radial-gradient(circle at 91% 86%, rgba(216, 173, 69, .15), transparent 24rem),
+        #f4f7f7;
+}
+
+.sessions-podcast-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 22px;
+}
+
+.sessions-podcast-card {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    padding: clamp(26px, 4vw, 40px);
+    border: 1px solid var(--sessions-line);
+    border-radius: 18px;
+    background: rgba(255, 255, 255, .9);
+    box-shadow: 0 24px 70px rgba(17, 24, 26, .09);
+}
+
+.sessions-podcast-card--ground {
+    color: #fff;
+    background: linear-gradient(145deg, #0b1214, #152326);
+    border-color: rgba(255, 255, 255, .1);
+}
+
+.sessions-podcast-card__logo {
+    height: 94px;
+    display: flex;
+    align-items: center;
+    margin-bottom: 26px;
+    padding: 14px;
+    border-radius: 14px;
+    background: #071416;
+    overflow: hidden;
+}
+
+.sessions-podcast-card__logo img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    object-position: left center;
+}
+
+.sessions-podcast-card__eyebrow {
+    color: var(--sessions-teal-dark);
+    font-size: .72rem;
+    font-weight: 900;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+}
+
+.sessions-podcast-card--ground .sessions-podcast-card__eyebrow,
+.sessions-podcast-card--ground .sessions-podcast-card__link {
+    color: var(--sessions-teal);
+}
+
+.sessions-podcast-card h3 {
+    margin: 10px 0 12px;
+    font-family: "Playfair Display", Georgia, serif;
+    font-size: clamp(2rem, 4vw, 3.25rem);
+    line-height: 1;
+}
+
+.sessions-podcast-card p {
+    margin: 0 0 24px;
+    color: var(--sessions-muted);
+    line-height: 1.72;
+}
+
+.sessions-podcast-card--ground p {
+    color: rgba(255, 255, 255, .68);
+}
+
+.sessions-podcast-card__meta {
+    margin-top: auto;
+    color: #6a7779;
+    font-size: .78rem;
+    font-weight: 800;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+}
+
+.sessions-podcast-card--ground .sessions-podcast-card__meta {
+    color: rgba(255, 255, 255, .48);
+}
+
+.sessions-podcast-card__link {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    margin-top: 17px;
+    color: var(--sessions-teal-dark);
+    font-size: .78rem;
+    font-weight: 900;
+    letter-spacing: .08em;
+    text-decoration: none;
+    text-transform: uppercase;
+}
+
+.sessions-podcast-catalog {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 26px;
+}
+
 .sessions-player {
     overflow: hidden;
     border-radius: 8px;
@@ -396,6 +527,13 @@ body {
     box-shadow: 0 22px 70px rgba(17, 24, 26, .1);
 }
 
+.sessions-cta__actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 12px;
+}
+
 .sessions-cta h2 {
     margin: 0 0 8px;
     font-family: "Playfair Display", Georgia, serif;
@@ -415,6 +553,10 @@ body {
     .sessions-media-grid,
     .sessions-cta__box {
         grid-template-columns: 1fr;
+    }
+
+    .sessions-cta__actions {
+        justify-content: flex-start;
     }
 
     .sessions-feature {
@@ -448,8 +590,18 @@ body {
     }
 
     .sessions-mini-grid,
+    .sessions-podcast-grid,
     .sessions-details-grid {
         grid-template-columns: 1fr;
+    }
+
+    .sessions-podcast-catalog {
+        justify-content: stretch;
+    }
+
+    .sessions-podcast-catalog .sessions-btn,
+    .sessions-cta__actions .sessions-btn {
+        width: 100%;
     }
 
     .sessions-section {
@@ -472,48 +624,52 @@ body {
         <div class="sessions-wrap">
             <div class="sessions-hero__grid">
                 <div>
-                    <span class="sessions-kicker"><i class="fa-solid fa-headphones"></i> Listen & Watch</span>
-                    <h1>VNV <span>Sessions</span></h1>
+                    <span class="sessions-kicker"><i class="fa-solid fa-headphones" aria-hidden="true"></i> Listen, watch &amp; discover</span>
+                    <h1>VNV <span>Studio</span></h1>
                     <p class="sessions-lede">
-                        Curated open-format DJ sessions by <strong>DJ Jonny in the Mix</strong>, created to bring the sound, rhythm and energy of VNV Events wherever you press play.
+                        One creative home for <strong>VNV Sessions</strong>, <strong>Local Tech Lab</strong> and <strong>The Ground Floor</strong>—music, practical ideas and honest conversations connected to events and local business.
                     </p>
 
                     <div class="sessions-intro-card">
-                        <i class="fa-solid fa-wave-square"></i>
+                        <i class="fa-solid fa-layer-group" aria-hidden="true"></i>
                         <div>
-                            <h2>The sound behind the VNV experience.</h2>
+                            <h2>Three formats. One VNV point of view.</h2>
                             <p>
-                                Move from elegant atmosphere to dance-floor momentum through one official playlist curated for celebrations, drives, workouts and creative planning.
+                                Start with curated DJ sets, move into useful technology conversations, or hear the real stories and systems behind memorable events.
                             </p>
                         </div>
                     </div>
 
                     <div class="sessions-actions">
-                        <a class="sessions-btn" href="#music"><i class="fa-solid fa-play"></i> Play Sessions</a>
-                        <a class="sessions-btn sessions-btn--ghost" href="https://www.youtube.com/playlist?list=PL8hdMpm11FxmEz_1IrnoN3DpbOoMHtFkP" target="_blank" rel="noopener noreferrer"><i class="fa-brands fa-youtube"></i> Open on YouTube</a>
+                        <a class="sessions-btn" href="#music"><i class="fa-solid fa-play" aria-hidden="true"></i> Play DJ Sessions</a>
+                        <a class="sessions-btn sessions-btn--ghost" href="#podcasts"><i class="fa-solid fa-microphone-lines" aria-hidden="true"></i> Explore Podcasts</a>
                     </div>
                 </div>
 
-                <div class="sessions-feature" aria-label="VNV Sessions event music">
+                <div class="sessions-feature" aria-label="VNV Studio music and conversations">
                     <div class="sessions-feature__content">
-                        <div class="sessions-feature__tag">DJ Jonny in the Mix</div>
-                        <h2>Curated sound for events, drives, workouts and creative planning.</h2>
+                        <div class="sessions-feature__tag">Music · Podcasts · Conversations</div>
+                        <h2>The VNV experience, in sound and on camera.</h2>
                         <p>
-                            Open-format mixes, stylish sound and event-ready energy designed to move between elegant atmosphere and dance-floor momentum.
+                            A growing media space for the energy, ideas and people shaping VNV Events and the businesses around it.
                         </p>
                     </div>
                 </div>
             </div>
 
             <div class="sessions-mini-grid">
-                <div class="sessions-mini-card">
-                    <strong>Open-format mixes</strong>
-                    <p>Open-format mixes, live energy, stylish sound and curated vibes for events, workouts, drives or inspiration.</p>
-                </div>
-                <div class="sessions-mini-card">
-                    <strong>Event-ready energy</strong>
-                    <p>Hear how VNV moves between elegant atmosphere, multicultural selections and dance-floor momentum.</p>
-                </div>
+                <a class="sessions-mini-card" href="#music">
+                    <strong>VNV Sessions</strong>
+                    <p>Open-format DJ sets and event-ready energy by DJ Jonny in the Mix.</p>
+                </a>
+                <a class="sessions-mini-card" href="{{ path('/podcasts') }}#local-tech-lab">
+                    <strong>Local Tech Lab</strong>
+                    <p>Practical conversations about technology, automation, marketing and local business.</p>
+                </a>
+                <a class="sessions-mini-card" href="{{ path('/podcasts') }}#the-ground-floor">
+                    <strong>The Ground Floor</strong>
+                    <p>Honest conversations about events, service businesses and the work behind the experience.</p>
+                </a>
             </div>
         </div>
     </section>
@@ -550,24 +706,35 @@ body {
         </div>
     </section>
 
-    <section class="sessions-section sessions-section--dark">
+    <section class="sessions-section sessions-section--podcasts" id="podcasts" aria-labelledby="studio-podcasts-title">
         <div class="sessions-wrap">
-            <div class="sessions-details-grid">
-                <div class="sessions-detail-card">
-                    <i class="fa-solid fa-record-vinyl"></i>
-                    <h3>Music Direction</h3>
-                    <p>Sets that help clients understand tone, rhythm and transition before the event day arrives.</p>
-                </div>
-                <div class="sessions-detail-card">
-                    <i class="fa-solid fa-headphones"></i>
-                    <h3>Open-Format Sessions</h3>
-                    <p>Multicultural selections and smooth transitions designed to move naturally between moments and audiences.</p>
-                </div>
-                <div class="sessions-detail-card">
-                    <i class="fa-solid fa-wand-magic-sparkles"></i>
-                    <h3>Creative Energy</h3>
-                    <p>A living media space for the VNV point of view: polished, useful, musical and easy to share.</p>
-                </div>
+            <div class="sessions-heading">
+                <span class="sessions-pill"><i class="fa-solid fa-microphone-lines" aria-hidden="true"></i> Podcasts</span>
+                <h2 id="studio-podcasts-title">Two programs. Different conversations.</h2>
+                <p>
+                    Local Tech Lab explores practical tools for local business. The Ground Floor shares honest conversations about events, relationships and the systems behind service businesses.
+                </p>
+            </div>
+
+            <div class="sessions-podcast-grid">
+                {% for program in programs %}
+                    <article class="sessions-podcast-card sessions-podcast-card--{{ program.identity }}">
+                        <div class="sessions-podcast-card__logo">
+                            <img src="{{ asset_for(program.logo) }}" alt="{{ program.logo_alt }}" width="{{ program.logo_width }}" height="{{ program.logo_height }}" loading="lazy" decoding="async">
+                        </div>
+                        <span class="sessions-podcast-card__eyebrow">{{ program.publisher }} original</span>
+                        <h3>{{ program.name }}</h3>
+                        <p>{{ program.summary }}</p>
+                        <span class="sessions-podcast-card__meta">{{ program.episodes|length }} published episode{{ program.episodes|length == 1 ? '' : 's' }}</span>
+                        <a class="sessions-podcast-card__link" href="{{ path('/podcasts') }}#{{ program.key }}">
+                            Explore {{ program.name }} <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+                        </a>
+                    </article>
+                {% endfor %}
+            </div>
+
+            <div class="sessions-podcast-catalog">
+                <a class="sessions-btn" href="{{ path('/podcasts') }}"><i class="fa-solid fa-circle-play" aria-hidden="true"></i> View All Podcast Episodes</a>
             </div>
         </div>
     </section>
@@ -576,12 +743,15 @@ body {
         <div class="sessions-wrap">
             <div class="sessions-cta__box">
                 <div>
-                    <h2>Want this energy at your event?</h2>
+                    <h2>Choose what you want to play next.</h2>
                     <p>
-                        Bring VNV music direction and event-ready energy into the room. Start a new request and tell us the atmosphere you want guests to feel.
+                        Start with DJ Sessions, explore both podcast programs, or open a new request when you want VNV music direction at your event.
                     </p>
                 </div>
-                <a class="sessions-btn" href="#" data-vnv-open-request><i class="fa-solid fa-paper-plane"></i> New Request</a>
+                <div class="sessions-cta__actions">
+                    <a class="sessions-btn sessions-btn--ghost" href="{{ path('/podcasts') }}"><i class="fa-solid fa-microphone-lines" aria-hidden="true"></i> Podcast Catalog</a>
+                    <a class="sessions-btn" href="#" data-vnv-open-request><i class="fa-solid fa-paper-plane" aria-hidden="true"></i> New Request</a>
+                </div>
             </div>
         </div>
     </section>

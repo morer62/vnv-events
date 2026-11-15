@@ -45,7 +45,15 @@ $assert(str_contains($homepage, 'Local Tech Lab & The Ground Floor'), 'Homepage 
 $assert(str_contains($homepage, "path('/podcasts')"), 'Homepage is missing the podcast catalog link.');
 $assert(str_contains($homepage, 'PL8hdMpm11FxmEz_1IrnoN3DpbOoMHtFkP'), 'DJ Sessions playlist was modified or removed.');
 
+$studio = file_get_contents($root . '/src/views/public/pages/vnv-sessions/index.twig');
+foreach (['VNV <span>Studio</span>', 'id="music"', 'id="podcasts"', 'programs', "path('/podcasts')"] as $needle) {
+    $assert(str_contains($studio, $needle), 'VNV Studio contract is missing: ' . $needle);
+}
+$assert(str_contains($studio, 'PL8hdMpm11FxmEz_1IrnoN3DpbOoMHtFkP'), 'VNV Studio is missing the official DJ Sessions playlist.');
+$assert(substr_count(strtolower($studio), '<h1') === 1, 'VNV Studio must render exactly one H1.');
+
 $footer = file_get_contents($root . '/src/views/templates/layout/publicFooterVnv.html.twig');
 $assert(str_contains($footer, "path('/podcasts')"), 'Podcast catalog is missing from the public footer.');
+$assert(str_contains($footer, ">Studio</a>"), 'VNV Studio label is not aligned in the public footer.');
 
 echo "Podcast catalog contract assertions passed: {$assertions}\n";
