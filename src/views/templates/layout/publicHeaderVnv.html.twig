@@ -36,9 +36,11 @@
 .vnvx-header__nav{
     display: flex;
     align-items: center;
-    flex-wrap: wrap;
-    gap: 8px;
-    padding: 8px;
+    flex: 0 1 auto;
+    min-width: 0;
+    flex-wrap: nowrap;
+    gap: clamp(2px, .35vw, 8px);
+    padding: 6px;
     border-radius: 999px;
     background: rgba(255,255,255,0.34);
     border: 1px solid rgba(17,24,26,0.06);
@@ -51,7 +53,7 @@
     align-items: center;
     justify-content: center;
     min-height: 44px;
-    padding: 10px 17px;
+    padding: 10px clamp(10px, 1vw, 17px);
     border-radius: 999px;
     text-decoration: none;
     color: #11181a;
@@ -59,6 +61,7 @@
     font-weight: 900;
     letter-spacing: 0.075em;
     text-transform: uppercase;
+    white-space: nowrap;
     overflow: hidden;
     transition: color .22s ease, background .22s ease, transform .22s ease, box-shadow .22s ease;
 }
@@ -354,8 +357,8 @@
 /* Tablet / laptop */
 @media (max-width: 1100px){
     .vnvx-header__nav a{
-        padding: 10px 12px;
-        font-size: 0.9rem;
+        padding: 10px 9px;
+        font-size: 0.78rem;
     }
 
     .vnvx-header__socials{
@@ -554,7 +557,7 @@
                 <a href="{{ path('/') }}">Home</a>
                 <a href="{{ path('/#services') }}">Services</a>
                 <div class="vnvx-nav-group">
-                    <a class="vnvx-nav-group__trigger" href="{{ path('/event-production') }}" aria-haspopup="true">Event Production <i class="fa-solid fa-chevron-down" aria-hidden="true"></i></a>
+                    <a class="vnvx-nav-group__trigger" href="{{ path('/event-production') }}" aria-haspopup="true">Productions <i class="fa-solid fa-chevron-down" aria-hidden="true"></i></a>
                     <div class="vnvx-nav-group__menu">
                         <a href="{{ path('/event-production') }}">Full Production</a>
                         <a href="{{ path('/nonprofit-partnerships') }}">Nonprofit Partnerships</a>
@@ -566,7 +569,7 @@
                 <a href="{{ path('/vnv-gourmet') }}">Catering</a>
                 <a href="https://www.instagram.com/vnv_events/" target="_blank" rel="noopener">Portfolio</a>
                 <a href="{{ path('/blog') }}">Blog</a>
-                <a href="{{ path('/vnv-sessions') }}">VNV Sessions</a>
+                <a href="{{ path('/vnv-sessions') }}">Studio</a>
             </nav>
 
             <div class="vnvx-header__right">
@@ -609,7 +612,7 @@
                 <a href="{{ path('/') }}">Home</a>
                 <a href="{{ path('/#services') }}">Services</a>
                 <details class="vnvx-mobile-production">
-                    <summary>Event Production</summary>
+                    <summary>Productions</summary>
                     <div class="vnvx-mobile-production__links">
                         <a href="{{ path('/event-production') }}">Full Production</a>
                         <a href="{{ path('/nonprofit-partnerships') }}">Nonprofit Partnerships</a>
@@ -621,7 +624,7 @@
                 <a href="{{ path('/vnv-gourmet') }}">Catering</a>
                 <a href="https://www.instagram.com/vnv_events/" target="_blank" rel="noopener">Portfolio</a>
                 <a href="{{ path('/blog') }}">Blog</a>
-                <a href="{{ path('/vnv-sessions') }}">VNV Sessions</a>
+                <a href="{{ path('/vnv-sessions') }}">Studio</a>
 
                 <div class="vnvx-mobile__meta">
 <a href="{{ path('/login') }}" class="vnvx-mobile__account-link">
