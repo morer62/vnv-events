@@ -51,6 +51,9 @@ $home = file_get_contents($root . '/src/views/public/app/planner-hub/index.twig'
 foreach (['Event Planning, Production &amp;', 'Plan My Event', 'Explore Production', 'Now Accepting', 'By Invitation', 'Upcoming Original Experiences'] as $needle) {
     $assert(str_contains($home, $needle), 'Home contract is missing: ' . $needle);
 }
+$assert(str_contains($home, '<button type="button" data-vnv-open-request class="vnv-btn btn-gold-vnv">Plan My Event</button>'), 'Home hero Plan My Event is not connected to the global New Request flow.');
+$assert(!str_contains($home, 'homepage_quick_request'), 'Home still mounts the retired event/production quick request flow.');
+$assert(!str_contains($home, 'publicQuickRequestModal.html.twig'), 'Home still mounts an unused quick request modal.');
 $assert(!str_contains($home, 'Planning for March 2027'), 'Home still exposes the retired March 2027 commercial status.');
 
 $production = file_get_contents($root . '/src/views/public/pages/event-production/index.twig');
@@ -58,6 +61,7 @@ foreach (['From creative concepts to seamless execution.', 'Support 20 organizat
     $source = $needle === 'Support 20 organizations' ? file_get_contents($root . '/src/views/templates/components/publicNonprofitStories.html.twig') : $production;
     $assert(str_contains($source, $needle), 'Event Production polish is missing: ' . $needle);
 }
+$assert(str_contains($production, 'data-quick-request-type="PRODUCTION"'), 'Event Production no longer opens its specialized production request flow.');
 $stories = file_get_contents($root . '/src/views/templates/components/publicNonprofitStories.html.twig');
 $assert(str_contains($production, 'templates/components/publicNonprofitStories.html.twig'), 'Event Production does not use the shared nonprofit stories component.');
 $shakePosition = strpos($stories, "id: 'shake-a-leg'");

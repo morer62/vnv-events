@@ -18,7 +18,7 @@ const viewports = [
   { name: 'mobile-430', width: 430, height: 932 },
   { name: 'desktop', width: 1440, height: 900 },
 ];
-const quickRequestRoutes = new Set(['', 'nonprofit-partnerships', 'sponsor-activation-production', 'event-production', 'corporate-events']);
+const quickRequestRoutes = new Set(['nonprofit-partnerships', 'sponsor-activation-production', 'event-production', 'corporate-events']);
 
 function url(route) {
   const result = new URL(base);
@@ -49,6 +49,17 @@ function url(route) {
         for (const status of ['Now Accepting', 'By Invitation', 'Coming Soon']) {
           assert.equal(await page.getByText(status, { exact: true }).count() > 0, true, `${label}: missing commercial status ${status}`);
         }
+        const planMyEvent = page.getByRole('button', { name: 'Plan My Event', exact: true });
+        assert.equal(await planMyEvent.count(), 1, `${label}: Plan My Event hero button missing`);
+        assert.equal(await planMyEvent.getAttribute('data-vnv-open-request'), '', `${label}: Plan My Event is not connected to New Request`);
+        assert.equal(await page.locator('#vnvQuickRequestModal').count(), 0, `${label}: unused quick request modal remains mounted on home`);
+        await planMyEvent.click();
+        const requestModal = page.locator('#vnvRequestModal');
+        assert.equal(await requestModal.getAttribute('aria-hidden'), 'false', `${label}: Plan My Event did not open the global New Request form`);
+        assert.equal(await requestModal.locator('form').count(), 1, `${label}: New Request form is missing`);
+        await page.keyboard.press('Escape');
+        assert.equal(await requestModal.getAttribute('aria-hidden'), 'true', `${label}: Escape did not close New Request`);
+        assert.equal(await planMyEvent.evaluate((node) => document.activeElement === node), true, `${label}: New Request focus was not restored to Plan My Event`);
       }
       if (route === 'event-production') {
         assert.equal(await page.getByText(/From creative concepts to seamless execution\./).count(), 1, `${label}: final hero copy missing`);
@@ -65,6 +76,8 @@ function url(route) {
         for (const image of await page.locator('.vnv-story-card img').all()) {
           assert.equal(await image.evaluate((node) => node.complete && node.naturalWidth > 0), true, `${label}: case-study image failed to load`);
         }
+        const productionTrigger = page.locator('[data-vnv-open-quick-request][data-quick-request-type="PRODUCTION"]').first();
+        assert.equal(await productionTrigger.count(), 1, `${label}: specialized production request trigger missing`);
       }
       if (route === 'event-production' || route === 'nonprofit-partnerships') {
         const storyCards = page.locator('[data-vnv-story-component] .vnv-story-card');
@@ -128,6 +141,9 @@ function url(route) {
         assert.equal(await modal.locator('input[name="_token"]').inputValue().then(Boolean), true, `${label}: quick request CSRF token missing`);
         assert.equal(await modal.locator('textarea[name="project_brief"]').count(), 1, `${label}: quick brief missing`);
         assert.equal(await modal.locator('input[name="consent"]').count(), 1, `${label}: quick consent missing`);
+        if (route === 'event-production') {
+          assert.equal(await modal.locator('select[name="request_type"]').inputValue(), 'PRODUCTION', `${label}: production request type was not preserved`);
+        }
         assert.equal(await page.locator('body').evaluate((node) => node.classList.contains('vnv-quick-request-lock')), true, `${label}: body lock missing`);
         if (await page.locator('.floating-whatsapp').count()) {
           assert.equal(await page.locator('.floating-whatsapp').evaluate((node) => getComputedStyle(node).pointerEvents), 'none', `${label}: WhatsApp overlaps modal`);
