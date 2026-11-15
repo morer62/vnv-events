@@ -46,6 +46,9 @@ $header = file_get_contents($root . '/src/views/templates/layout/publicHeaderVnv
 foreach (['Full Production', 'Nonprofit Partnerships', 'Corporate &amp; Brand Experiences', 'Sponsor Activation Production', 'Original Experiences', 'vnvx-mobile-production'] as $needle) {
     $assert(str_contains($header, $needle), 'Public navigation is missing: ' . $needle);
 }
+$assert(str_contains($header, 'class="vnvx-header__login"'), 'Desktop Login / Access action is missing from the public header.');
+$assert(str_contains($header, '<span>Login / Access</span>'), 'Desktop account action has the wrong label.');
+$assert(substr_count($header, "path('/login')") >= 2, 'Public header must link desktop and mobile account access to login.');
 
 $home = file_get_contents($root . '/src/views/public/app/planner-hub/index.twig');
 foreach (['Event Planning, Production &amp;', 'Plan My Event', 'Explore Production', 'Now Accepting', 'By Invitation', 'Upcoming Original Experiences'] as $needle) {

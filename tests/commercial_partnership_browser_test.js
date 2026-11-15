@@ -16,6 +16,7 @@ const viewports = [
   { name: 'mobile-360', width: 360, height: 800 },
   { name: 'mobile-390', width: 390, height: 844 },
   { name: 'mobile-430', width: 430, height: 932 },
+  { name: 'tablet-1024', width: 1024, height: 768 },
   { name: 'desktop', width: 1440, height: 900 },
 ];
 const quickRequestRoutes = new Set(['nonprofit-partnerships', 'sponsor-activation-production', 'event-production', 'corporate-events']);
@@ -124,11 +125,17 @@ function url(route) {
       if (viewport.width < 860) {
         await page.locator('[data-vnvx-toggle]').first().click();
         assert.equal(await page.locator('[data-vnvx-panel]').evaluate((node) => node.classList.contains('is-open')), true, `${label}: mobile menu did not open`);
+        const mobileAccount = page.locator('[data-vnvx-panel] .vnvx-mobile__account-link');
+        assert.equal(await mobileAccount.isVisible(), true, `${label}: mobile Login / Client Access is not visible`);
+        assert.match(await mobileAccount.getAttribute('href'), /login/, `${label}: mobile account access does not lead to login`);
         await page.locator('.vnvx-mobile-production summary').click();
         assert.equal(await page.locator('.vnvx-mobile-production__links a').count(), 5, `${label}: mobile production accordion`);
         await page.locator('[data-vnvx-toggle]').first().click();
       } else {
         assert.equal(await page.locator('.vnvx-nav-group__menu a').count(), 5, `${label}: desktop production submenu`);
+        const desktopAccount = page.locator('.vnvx-header__login');
+        assert.equal(await desktopAccount.isVisible(), true, `${label}: desktop Login / Access is not visible`);
+        assert.match(await desktopAccount.getAttribute('href'), /login/, `${label}: desktop account access does not lead to login`);
       }
 
       if (quickRequestRoutes.has(route)) {
