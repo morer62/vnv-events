@@ -32,6 +32,7 @@ $assert(str_contains($rootHtaccess, 'E=HTTP_AUTHORIZATION:%1'), 'Root rewrite do
 foreach (['management_modules', 'UserPermissions::managementModules()', 'hasPermissionForModule'] as $needle) {
     $assert(str_contains($apiAuth, $needle), "Mobile user permissions payload missing: {$needle}");
 }
+$assert(str_contains($apiAuth, 'HTTP_X_VNV_MOBILE_TOKEN'), 'Custom mobile auth header is not supported.');
 foreach (['pending_proposals', 'mobileDashboardManagementModules', 'management_modules'] as $needle) {
     $assert(str_contains($dashboard, $needle), "Mobile dashboard contract missing: {$needle}");
 }

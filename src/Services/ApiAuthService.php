@@ -14,8 +14,11 @@ class ApiAuthService
         $candidates = [
             $headers['Authorization'] ?? null,
             $headers['authorization'] ?? null,
+            $headers['X-VNV-Mobile-Token'] ?? null,
+            $headers['x-vnv-mobile-token'] ?? null,
             $_SERVER['HTTP_AUTHORIZATION'] ?? null,
             $_SERVER['REDIRECT_HTTP_AUTHORIZATION'] ?? null,
+            $_SERVER['HTTP_X_VNV_MOBILE_TOKEN'] ?? null,
             $body['api_token'] ?? null,
             $body['token'] ?? null,
             $_POST['api_token'] ?? null,
