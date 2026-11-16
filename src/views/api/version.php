@@ -11,9 +11,9 @@ $router = new Router();
 $router->get(function () {
     return JsonResponse::createResponse([
         // Older iOS releases only read `version`, so keep it at the oldest
-        // supported build until 4.0.14 is available in the App Store.
+        // supported build until 4.0.15 is available in both app stores.
         "version" => "4.0.11",
-        "current_version" => "4.0.14",
+        "current_version" => "4.0.15",
         "minimum_supported_version" => "4.0.11",
         "update_url" => [
             "android" => "https://play.google.com/store/apps/details?id=com.vnvevents.eplannerhub",
