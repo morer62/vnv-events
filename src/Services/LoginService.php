@@ -370,7 +370,7 @@ class LoginService
 
         $permissions = $userRoleRepository->getUserRoleAndPermissions($data->id);
 
-        return new User(
+        $user = new User(
             $data->id,
             $data->name,
             $data->lastname,
@@ -387,6 +387,11 @@ class LoginService
             $data->membership_type,
             $data->is_active
         );
+
+        // API/mobile authentication bypasses getSession(), so explicitly add
+        // the Level 4 feature grants used by the dynamic Management menu.
+        self::synchronizeManagementModules($user);
+        return $user;
     }
 
     public static function verifyMany(array $callbacks): void

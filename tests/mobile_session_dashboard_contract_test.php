@@ -23,6 +23,7 @@ foreach (['getOrCreateApiToken', "api_token IS NULL OR TRIM(api_token) = ''", 'r
 $assert(str_contains($login, 'getOrCreateApiToken'), 'Login still does not reuse the durable mobile token.');
 $assert(str_contains($loginService, 'getOneWithoutOwnership(["api_token" => $token])'), 'Token validation still inherits stale owner scope.');
 $assert(str_contains($loginService, 'is_active'), 'Inactive accounts are not rejected during token validation.');
+$assert(str_contains($loginService, 'self::synchronizeManagementModules($user);'), 'Token validation does not load Level 4 management grants.');
 
 foreach (['management_modules', 'UserPermissions::managementModules()', 'hasPermissionForModule'] as $needle) {
     $assert(str_contains($apiAuth, $needle), "Mobile user permissions payload missing: {$needle}");
