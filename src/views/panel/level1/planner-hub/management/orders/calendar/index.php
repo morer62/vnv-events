@@ -2,6 +2,7 @@
 
 use App\Repositories\OrdersRepository;
 use App\Repositories\UserRepository;
+use App\Repositories\OrderProposalRepository;
 use App\Services\LoginService;
 use App\Services\OrdersCalendarService;
 use App\Utils\Router;
@@ -30,6 +31,7 @@ $router->get(callback: function () {
         'id_owner' => $ownerId,
         'is_archived' => 0,
     ], null, $weekStart->format('Y-m-d'), $weekEnd->format('Y-m-d'));
+    $orders = (new OrderProposalRepository())->attachSummaries($orders);
 
     $clients = $clientRepo->getAllAssociatedClients($ownerId);
     $calendar = $calendarService->buildWeek($orders, $clients, $weekStart->format('Y-m-d'), $status, paymentFilter: $payment);

@@ -367,6 +367,9 @@ class OrdersCalendarService
             'staff_url' => $staffRoutePrefix . $id,
             'payments_url' => 'panel/planner-hub/management/orders/orders/payments?id=' . $id,
             'status_url' => 'panel/planner-hub/management/orders/orders/status?id=' . $id,
+            'proposal_status' => $this->stringValue($order, 'proposal_status', ''),
+            'proposal_pending' => (bool)($order->proposal_pending ?? false),
+            'proposal_url' => 'panel/planner-hub/management/orders/orders/proposal?id=' . $id,
         ];
     }
 

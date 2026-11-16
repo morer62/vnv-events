@@ -10,6 +10,7 @@ use App\Repositories\OrdersPaymentsRepository;
 use App\Repositories\OrdersTeamTasksRepository;
 use App\Repositories\DocumentsLogsRepository;
 use App\Repositories\OrdersAcceptanceContractsRepository;
+use App\Repositories\OrderProposalRepository;
 use App\Services\UserWorkspaceContextService;
 use App\Services\TranslationService;
 use App\Services\EventExecutionService;
@@ -28,6 +29,7 @@ $router->get(callback: function () {
     $workspaceContextService = new UserWorkspaceContextService();
     $clientContext = $workspaceContextService->getClientContext($user);
     $orders = $repo->getOrdersForClientWithCompany((int)$user->getId());
+    $orders = (new OrderProposalRepository())->attachSummaries($orders);
     $eventExecution = new EventExecutionService();
 
     $secret = $_ENV["VNV_SECRET_KEY"] ?? "mySuperSecretKey";

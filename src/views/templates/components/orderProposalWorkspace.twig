@@ -1,0 +1,219 @@
+{% extends 'templates/base.admin.twig' %}
+
+{% set status = proposal.status|default('NOT_STARTED') %}
+{% set status_labels = {
+    'NOT_STARTED': 'Not started',
+    'DRAFT': 'Draft',
+    'PENDING_APPROVAL': 'Awaiting client approval',
+    'APPROVED': 'Approved and signed',
+    'CHANGES_REQUESTED': 'Changes requested'
+} %}
+
+{% block style %}
+<style>
+    .proposal-shell { max-width: 1120px; margin: 0 auto; }
+    .proposal-header { display:flex; justify-content:space-between; align-items:flex-start; gap:1rem; flex-wrap:wrap; }
+    .proposal-status { display:inline-flex; align-items:center; min-height:38px; padding:.45rem .8rem; border-radius:999px; font-weight:700; background:#e9f1f4; color:#17384a; }
+    .proposal-status--approved { background:#dff5e8; color:#11633b; }
+    .proposal-status--pending { background:#fff0c9; color:#805b00; }
+    .proposal-status--changes { background:#ffe3e3; color:#8c2727; }
+    .proposal-card { border:1px solid #dbe3e8; border-radius:18px; background:#fff; box-shadow:0 12px 32px rgba(19,45,60,.07); overflow:hidden; }
+    .proposal-toolbar { display:flex; gap:.4rem; flex-wrap:wrap; padding:.75rem; border-bottom:1px solid #dbe3e8; background:#f5f8fa; position:sticky; top:0; z-index:2; }
+    .proposal-toolbar button, .proposal-toolbar select, .proposal-toolbar label { min-height:42px; }
+    .proposal-editor, .proposal-document { min-height:520px; padding:clamp(1.25rem, 4vw, 3.5rem); font:17px/1.65 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; color:#17242c; outline:none; }
+    .proposal-editor:empty::before { content:'Write the proposal or menu here…'; color:#8a98a2; }
+    .proposal-editor h2, .proposal-document h2 { font-size:1.9rem; margin:1.4rem 0 .7rem; }
+    .proposal-editor h3, .proposal-document h3 { font-size:1.35rem; margin:1.2rem 0 .55rem; }
+    .proposal-editor p, .proposal-document p { margin:0 0 1rem; }
+    .proposal-editor ul, .proposal-editor ol, .proposal-document ul, .proposal-document ol { padding-left:1.7rem; margin:0 0 1rem; }
+    .proposal-editor img, .proposal-document img { display:block; max-width:100%; height:auto; margin:1rem auto; border-radius:12px; }
+    .proposal-page-break { border-top:2px dashed #8ca3af; margin:2rem 0; height:0; position:relative; page-break-after:always; break-after:page; }
+    .proposal-editor .proposal-page-break::after { content:'Page break'; position:absolute; top:-.8rem; left:50%; transform:translateX(-50%); background:#fff; color:#647780; padding:0 .65rem; font-size:.78rem; }
+    .proposal-actions { display:flex; align-items:end; gap:.75rem; flex-wrap:wrap; padding:1rem; border-top:1px solid #dbe3e8; background:#fbfcfd; }
+    .proposal-actions .form-group { flex:1 1 260px; }
+    .proposal-history { list-style:none; padding:0; margin:0; }
+    .proposal-history li { border-left:3px solid #20a7a0; padding:.2rem 0 1rem 1rem; margin-left:.4rem; }
+    .proposal-signature-card { border:1px solid #cfe5e2; border-radius:16px; background:#f4fbfa; padding:1.25rem; }
+    .proposal-alert { border-radius:14px; padding:1rem; background:#f1f6f8; border:1px solid #d7e3e8; }
+    @media (max-width: 767px) {
+        .proposal-editor, .proposal-document { min-height:380px; padding:1rem; font-size:16px; }
+        .proposal-toolbar { position:static; }
+        .proposal-toolbar .btn { padding:.45rem .65rem; }
+        .proposal-actions > * { width:100%; }
+    }
+    @media print {
+        .proposal-toolbar, .proposal-actions, .proposal-screen-only, nav, aside, header { display:none !important; }
+        .proposal-card { border:0; box-shadow:none; }
+        .proposal-document { padding:0; }
+        .proposal-page-break { border:0; page-break-after:always; }
+    }
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="proposal-shell">
+    <nav aria-label="breadcrumb" class="mb-3 proposal-screen-only">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ manager_mode ? path('panel/planner-hub/management/orders/orders') : path('panel/planner-hub/orders/orders') }}">Orders</a></li>
+            <li class="breadcrumb-item active">Menu / Proposal</li>
+        </ol>
+    </nav>
+
+    <div class="proposal-header mb-4">
+        <div>
+            <div class="text-uppercase small fw-bold text-primary mb-1">Order VNV-341{{ order.id }}</div>
+            <h1 class="h2 mb-2">Proposal – {{ manager_mode ? 'View / Edit proposal / menu' : 'Review proposal / menu' }}</h1>
+            <div class="text-muted">Event {{ order.event_date|date('F j, Y') }} · Revision {{ proposal.revision_number|default('—') }}</div>
+        </div>
+        <span class="proposal-status {{ status == 'APPROVED' ? 'proposal-status--approved' : (status == 'PENDING_APPROVAL' ? 'proposal-status--pending' : (status == 'CHANGES_REQUESTED' ? 'proposal-status--changes' : '')) }}">
+            {{ status_labels[status]|default(status) }}
+        </span>
+    </div>
+
+    {% if manager_mode %}
+        {% if status == 'APPROVED' %}
+            <div class="proposal-alert mb-3"><strong>This revision is locked.</strong> Reopen the approval with a reason before making any change. The signed PDF and approval history will remain preserved.</div>
+        {% endif %}
+        <form method="post" id="proposalEditorForm" class="proposal-card" enctype="multipart/form-data">
+            <input type="hidden" name="id_order" value="{{ order.id }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+            <input type="hidden" name="action" value="save_draft">
+            <input type="hidden" name="content_html" id="proposalContentInput">
+            <div class="proposal-toolbar" role="toolbar" aria-label="Proposal formatting tools">
+                <select id="proposalBlockFormat" class="form-select form-select-sm w-auto" aria-label="Text style" {{ status == 'APPROVED' ? 'disabled' : '' }}>
+                    <option value="p">Paragraph</option>
+                    <option value="h2">Title</option>
+                    <option value="h3">Subtitle</option>
+                </select>
+                <button type="button" class="btn btn-sm btn-outline-secondary" data-command="bold" {{ status == 'APPROVED' ? 'disabled' : '' }}><strong>B</strong><span class="visually-hidden">Bold</span></button>
+                <button type="button" class="btn btn-sm btn-outline-secondary" data-command="italic" {{ status == 'APPROVED' ? 'disabled' : '' }}><em>I</em><span class="visually-hidden">Italic</span></button>
+                <button type="button" class="btn btn-sm btn-outline-secondary" data-command="insertUnorderedList" {{ status == 'APPROVED' ? 'disabled' : '' }}>• Bullets</button>
+                <button type="button" class="btn btn-sm btn-outline-secondary" data-command="insertOrderedList" {{ status == 'APPROVED' ? 'disabled' : '' }}>1. List</button>
+                <label class="btn btn-sm btn-outline-primary mb-0 {{ status == 'APPROVED' ? 'disabled' : '' }}">
+                    Insert image <input type="file" id="proposalImageInput" accept="image/jpeg,image/png,image/webp" hidden {{ status == 'APPROVED' ? 'disabled' : '' }}>
+                </label>
+                <button type="button" class="btn btn-sm btn-outline-primary" id="proposalPageBreak" {{ status == 'APPROVED' ? 'disabled' : '' }}>Page break</button>
+                <span id="proposalUploadStatus" class="small align-self-center" role="status" aria-live="polite"></span>
+            </div>
+            <div id="proposalEditor" class="proposal-editor" contenteditable="{{ status == 'APPROVED' ? 'false' : 'true' }}" role="textbox" aria-multiline="true" aria-label="Proposal content">{{ proposal.content_html|default('')|raw }}</div>
+            {% if status != 'APPROVED' %}
+                <div class="proposal-actions">
+                    <div class="form-group">
+                        <label for="proposalChangeNote" class="form-label">Revision note <span class="text-muted">(optional)</span></label>
+                        <input id="proposalChangeNote" name="change_note" class="form-control" maxlength="500" placeholder="What changed in this revision?">
+                    </div>
+                    <button type="submit" class="btn btn-primary">Save new revision</button>
+                </div>
+            {% endif %}
+        </form>
+
+        {% if proposal.current_revision_id and status != 'APPROVED' %}
+            <form method="post" class="mt-3 text-end">
+                <input type="hidden" name="id_order" value="{{ order.id }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                <input type="hidden" name="action" value="send_for_approval">
+                <button class="btn btn-success">Send current revision for client approval</button>
+            </form>
+        {% endif %}
+    {% else %}
+        {% if not proposal or not proposal.current_revision_id or status == 'DRAFT' or status == 'CHANGES_REQUESTED' %}
+            <div class="proposal-alert">The event team is preparing the next menu / proposal revision. You will be notified when it is ready to review.</div>
+        {% else %}
+            <article class="proposal-card">
+                <div class="proposal-document">{{ proposal.content_html|raw }}</div>
+            </article>
+        {% endif %}
+
+        {% if status == 'PENDING_APPROVAL' %}
+            <form method="post" enctype="multipart/form-data" class="proposal-signature-card mt-4" id="proposalApprovalForm">
+                <input type="hidden" name="id_order" value="{{ order.id }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                <input type="hidden" name="action" value="approve">
+                <input type="hidden" name="user_local_timestamp" id="proposalLocalTimestamp">
+                <h2 class="h5">Approve and sign this exact revision</h2>
+                <p class="text-muted">Your signature creates a dated PDF copy and locks revision {{ proposal.revision_number }}.</p>
+                <div class="row g-3">
+                    <div class="col-md-6"><label class="form-label" for="typedInitials">Typed initials</label><input id="typedInitials" name="typed_initials" class="form-control" maxlength="30" autocomplete="off"></div>
+                    <div class="col-md-6"><label class="form-label" for="signatureImage">Or upload signature image</label><input id="signatureImage" type="file" name="signature_image" class="form-control" accept="image/jpeg,image/png,image/webp"></div>
+                </div>
+                <button class="btn btn-success mt-3">Approve and sign proposal</button>
+            </form>
+        {% endif %}
+    {% endif %}
+
+    {% if status == 'APPROVED' %}
+        <section class="proposal-signature-card mt-4">
+            <h2 class="h5">Approved revision</h2>
+            <p>This proposal is signed and locked. If a correction is needed, reopen it below; the previous approval and PDF will remain in the history.</p>
+            <form method="post" class="row g-2 align-items-end">
+                <input type="hidden" name="id_order" value="{{ order.id }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                <input type="hidden" name="action" value="revoke">
+                <div class="col-md-9"><label class="form-label" for="revokeReason">Reason for reopening <span class="text-danger">required</span></label><input id="revokeReason" name="reason" class="form-control" required minlength="5" maxlength="500"></div>
+                <div class="col-md-3"><button class="btn btn-outline-danger w-100">Reopen approval</button></div>
+            </form>
+        </section>
+    {% endif %}
+
+    {% if history %}
+        <section class="card mt-4">
+            <div class="card-body">
+                <h2 class="h5">Revision and approval history</h2>
+                <ul class="proposal-history mt-3">
+                    {% for entry in history %}
+                        <li>
+                            <strong>{{ entry.event_type|replace({'_':' '})|title }}</strong>
+                            <div class="small text-muted">{{ entry.created_at|date('M j, Y g:i A') }}{% if entry.actor_name %} · {{ entry.actor_name }}{% endif %}</div>
+                            {% if entry.reason %}<div class="mt-1">{{ entry.reason }}</div>{% endif %}
+                            {% if entry.metadata.signed_pdf_path %}<a href="{{ entry.metadata.signed_pdf_path }}" target="_blank" rel="noopener" class="btn btn-sm btn-outline-primary mt-2">Open signed PDF copy</a>{% endif %}
+                        </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </section>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ parent() }}
+<script>
+(() => {
+    const editor = document.getElementById('proposalEditor');
+    const form = document.getElementById('proposalEditorForm');
+    const contentInput = document.getElementById('proposalContentInput');
+    const format = document.getElementById('proposalBlockFormat');
+    if (editor && editor.contentEditable === 'true') {
+        document.querySelectorAll('[data-command]').forEach(button => button.addEventListener('click', () => {
+            editor.focus(); document.execCommand(button.dataset.command, false);
+        }));
+        format?.addEventListener('change', () => { editor.focus(); document.execCommand('formatBlock', false, format.value); });
+        document.getElementById('proposalPageBreak')?.addEventListener('click', () => {
+            editor.focus();
+            document.execCommand('insertHTML', false, '<div class="proposal-page-break" data-page-break="true" contenteditable="false"></div><p><br></p>');
+        });
+        form?.addEventListener('submit', () => { contentInput.value = editor.innerHTML; });
+
+        const imageInput = document.getElementById('proposalImageInput');
+        const uploadStatus = document.getElementById('proposalUploadStatus');
+        imageInput?.addEventListener('change', async () => {
+            const file = imageInput.files?.[0]; if (!file) return;
+            uploadStatus.textContent = 'Uploading…';
+            const payload = new FormData();
+            payload.append('id_order', '{{ order.id }}'); payload.append('csrf_token', '{{ csrf_token|e('js') }}');
+            payload.append('action', 'upload_image'); payload.append('proposal_image', file);
+            try {
+                const response = await fetch(window.location.href, {method:'POST', body:payload, credentials:'same-origin'});
+                const result = await response.json();
+                if (!response.ok || !result.ok) throw new Error(result.error || 'Upload failed');
+                editor.focus(); document.execCommand('insertHTML', false, `<figure><img src="${result.url}" alt="Proposal image"><figcaption>Proposal image</figcaption></figure><p><br></p>`);
+                uploadStatus.textContent = 'Image inserted.';
+            } catch (error) { uploadStatus.textContent = error.message; }
+            imageInput.value = '';
+        });
+    }
+    const timestamp = document.getElementById('proposalLocalTimestamp');
+    if (timestamp) timestamp.value = new Date().toISOString().slice(0, 19).replace('T', ' ');
+})();
+</script>
+{% endblock %}

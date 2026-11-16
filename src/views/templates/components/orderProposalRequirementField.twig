@@ -1,0 +1,16 @@
+{% if not isSubOrder|default(false) %}
+<section class="card border-primary-subtle mb-4">
+    <div class="card-body d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+        <div>
+            <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" role="switch" id="proposalRequiresApproval" name="proposal_requires_approval" value="1" {{ order.proposal_requires_approval|default(false) ? 'checked' : '' }}>
+                <label class="form-check-label fw-bold" for="proposalRequiresApproval">El cliente debe aprobar menú / propuesta</label>
+            </div>
+            <div class="small text-muted mt-1">When enabled, the client receives the versioned proposal and must approve and sign it.</div>
+        </div>
+        {% if order.id|default(false) %}
+            <a class="btn btn-outline-primary" href="{{ path('panel/planner-hub/management/orders/orders/proposal') }}?id={{ order.id }}">Propuesta – Ver / Editar propuesta / menú</a>
+        {% endif %}
+    </div>
+</section>
+{% endif %}

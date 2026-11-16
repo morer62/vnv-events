@@ -301,7 +301,8 @@ $router->post(function () {
             "payment_split_type" => $_POST["payment_split_type"] ?? 2,
             "payment_split_percent_1" => $_POST["payment_split_percent_1"] ?? 50,
             "payment_split_percent_2" => $_POST["payment_split_percent_2"] ?? 50,
-            "total_team_needed" => $totalTeamNeeded
+            "total_team_needed" => $totalTeamNeeded,
+            "proposal_requires_approval" => isset($_POST["proposal_requires_approval"]) ? 1 : 0
         ];
 
         if ($userLocalTimestamp) {

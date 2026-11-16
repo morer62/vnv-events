@@ -228,6 +228,7 @@ $router->post(function () {
             "end_time" => $_POST["end_time"],
             "address" => $_POST["address"],
             "notes" => $_POST["notes"] ?? "",
+            "proposal_requires_approval" => isset($_POST["proposal_requires_approval"]) ? 1 : 0,
             "id_tip" => $id_tip,
         ];
     } else {
@@ -255,6 +256,7 @@ $router->post(function () {
             "tax_percentage" => $_POST["tax_percentage"] ?? 0,
             "id_tip" => $id_tip,
             "notes" => $_POST["notes"] ?? "",
+            "proposal_requires_approval" => isset($_POST["proposal_requires_approval"]) ? 1 : 0,
             "total_team_needed" => $totalTeamNeeded,
             "payment_split_type" => $paymentSplitType,
             "payment_split_percent_1" => $paymentSplit1,

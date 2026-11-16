@@ -179,9 +179,11 @@
 			display: none;
 		}
 		.orders-calendar-print-heading,
-		.orders-calendar-print-url {
+		.orders-calendar-print-url,
+		.orders-calendar-print-agenda {
 			display: none;
 		}
+		.orders-calendar-proposal-badge { display:inline-block; margin-top:.35rem; padding:.18rem .42rem; border-radius:999px; background:#fff0c9; color:#805b00; font-size:.68rem; font-weight:800; }
 		.orders-agenda-day {
 			background: #fff;
 			border: 1px solid #dde4ee;
@@ -321,9 +323,13 @@
 				text-align: right;
 				overflow-wrap: anywhere;
 			}
-			.orders-week-view {
-				display: block !important;
-			}
+			.orders-week-view { display: none !important; }
+			.orders-calendar-print-agenda { display:block !important; }
+			.orders-calendar-print-day { margin:0 0 .12in; break-inside:auto; }
+			.orders-calendar-print-day h3 { margin:0 0 .05in; padding:.05in .08in; background:#e2e8f0; border:1px solid #94a3b8; font-size:9pt; }
+			.orders-calendar-print-row { display:grid; grid-template-columns:.9in 1.25in 1.5in 1fr 1.25in; gap:.08in; align-items:start; padding:.045in .08in; border:1px solid #cbd5e1; border-top:0; break-inside:avoid; font-size:7pt; line-height:1.25; }
+			.orders-calendar-print-row strong { font-size:7.2pt; }
+			.orders-calendar-print-pending { color:#805b00; font-weight:800; }
 			.orders-calendar-grid {
 				display: grid !important;
 				grid-template-columns: repeat(7, minmax(0, 1fr)) !important;
@@ -483,6 +489,7 @@
 										{% endif %}
 									</div>
 									<span class="orders-calendar-status">{{ order.status_label }}</span>
+									{% if order.proposal_pending %}<span class="orders-calendar-proposal-badge">Proposal approval pending</span>{% endif %}
 									<span class="orders-calendar-detail-hint">{{ trans('planner_hub.view_details') }} <i data-feather="arrow-right"></i></span>
 									<span class="orders-calendar-print-url" data-print-event-url="{{ path(order.edit_url)|e('html_attr') }}"></span>
 								</button>
@@ -497,6 +504,7 @@
 											<div class="orders-calendar-title">{{ order.title }}</div>
 											<div class="orders-calendar-meta">{{ order.code }} - {{ order.client_name }}</div>
 											<span class="orders-calendar-status">{{ order.status_label }}</span>
+											{% if order.proposal_pending %}<span class="orders-calendar-proposal-badge">Proposal approval pending</span>{% endif %}
 											<span class="orders-calendar-detail-hint">{{ trans('planner_hub.view_details') }} <i data-feather="arrow-right"></i></span>
 											<span class="orders-calendar-print-url" data-print-event-url="{{ path(order.edit_url)|e('html_attr') }}"></span>
 										</button>
@@ -513,6 +521,26 @@
 			</div>
 		</section>
 
+		<section class="orders-calendar-print-agenda" aria-label="Complete printable weekly event list">
+			{% for day in calendar.days %}
+				{% set printable_orders = day.orders|merge(day.no_time_orders) %}
+				{% if printable_orders|length > 0 %}
+					<div class="orders-calendar-print-day">
+						<h3>{{ day.day_name }}, {{ day.month }} {{ day.day_number }}</h3>
+						{% for order in printable_orders %}
+							<div class="orders-calendar-print-row">
+								<div><strong>{{ order.range_label }}</strong></div>
+								<div>{{ order.code }}<br>{{ order.status_label }}</div>
+								<div><strong>{{ order.client_name }}</strong><br>{{ order.title }}</div>
+								<div>{{ order.address|default('No address') }}</div>
+								<div>{% if order.proposal_pending %}<span class="orders-calendar-print-pending">Proposal approval pending</span>{% else %}Proposal: {{ order.proposal_status|default('not required')|replace({'_':' '})|lower }}{% endif %}</div>
+							</div>
+						{% endfor %}
+					</div>
+				{% endif %}
+			{% endfor %}
+		</section>
+
 		<section class="orders-agenda-view">
 			{% for day in calendar.days %}
 				<div class="orders-agenda-day">
@@ -526,6 +554,7 @@
 								{% if order.address %}<br>{{ order.address }}{% endif %}
 							</div>
 							<span class="orders-calendar-status">{{ order.status_label }}</span>
+							{% if order.proposal_pending %}<span class="orders-calendar-proposal-badge">Proposal approval pending</span>{% endif %}
 							<span class="orders-calendar-detail-hint">{{ trans('planner_hub.view_details') }} <i data-feather="arrow-right"></i></span>
 						</button>
 					{% endfor %}
@@ -537,6 +566,7 @@
 									<div class="orders-calendar-title">{{ order.title }}</div>
 									<div class="orders-calendar-meta">{{ order.code }} - Client: {{ order.client_name }}</div>
 									<span class="orders-calendar-status">{{ order.status_label }}</span>
+									{% if order.proposal_pending %}<span class="orders-calendar-proposal-badge">Proposal approval pending</span>{% endif %}
 									<span class="orders-calendar-detail-hint">{{ trans('planner_hub.view_details') }} <i data-feather="arrow-right"></i></span>
 								</button>
 							{% endfor %}
