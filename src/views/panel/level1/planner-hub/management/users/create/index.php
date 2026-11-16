@@ -92,6 +92,7 @@ $router->get(function () {
 
     return TemplateResponse::render(__DIR__ . "/index.twig", [
         "allowPermissions" => UserPermissions::PERMISSIONS,
+        "managementModules" => UserPermissions::managementModules(),
         "roles" => $rolesRepo->getAll(),
         "categories" => $categories,
         "candidate" => $candidate,
@@ -453,6 +454,10 @@ $router->post(function () {
             $managerDb->query("INSERT INTO event_manager_profiles(id_owner,manager_id,is_event_manager,updated_by) VALUES(:owner,:manager,:enabled,:user) ON DUPLICATE KEY UPDATE is_event_manager=VALUES(is_event_manager),updated_by=VALUES(updated_by)");
             foreach (['owner'=>(int)$currentOwnerId,'manager'=>(int)$inactiveUser->id,'enabled'=>!empty($_POST['is_event_manager'])?1:0,'user'=>(int)$sessionUser->getId()] as $key=>$value) $managerDb->bind(':'.$key,$value);
             $managerDb->execute();
+            $permissionsRepo->replaceManagementModules(
+                (int)$inactiveUser->id,
+                is_array($_POST['management_modules'] ?? null) ? $_POST['management_modules'] : []
+            );
             sendAccountPasswordEmail((int)$currentOwnerId, $_POST["email"], $_POST["name"], $password, $_POST["level"]);
             MessageUtil::setMessage("Team member reactivated and assigned to you.");
         } elseif ((int)$inactiveUser->level === 5) {
@@ -526,6 +531,10 @@ $router->post(function () {
         $managerDb->query("INSERT INTO event_manager_profiles(id_owner,manager_id,is_event_manager,updated_by) VALUES(:owner,:manager,:enabled,:user) ON DUPLICATE KEY UPDATE is_event_manager=VALUES(is_event_manager),updated_by=VALUES(updated_by)");
         foreach (['owner'=>(int)$currentOwnerId,'manager'=>(int)$userId,'enabled'=>!empty($_POST['is_event_manager'])?1:0,'user'=>(int)$sessionUser->getId()] as $key=>$value) $managerDb->bind(':'.$key,$value);
         $managerDb->execute();
+        $permissionsRepo->replaceManagementModules(
+            (int)$userId,
+            is_array($_POST['management_modules'] ?? null) ? $_POST['management_modules'] : []
+        );
     }
 
     if ($_POST["level"] == 5) {

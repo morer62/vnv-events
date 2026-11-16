@@ -331,6 +331,20 @@
                             </a>
                         </div>
 
+                        <input type="hidden" name="management_modules_configured" value="1">
+                        <div class="card border-secondary mb-3">
+                            <div class="card-body d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3">
+                                <div>
+                                    <h6 class="mb-1">Management access</h6>
+                                    <p class="text-muted mb-0">Enable complete administrative modules for this Level 4 user.</p>
+                                    <small class="text-primary" id="create-management-module-summary">No management modules selected</small>
+                                </div>
+                                <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#managementModulesModal">
+                                    Choose modules
+                                </button>
+                            </div>
+                        </div>
+
                         <div class="form-check form-switch mb-3">
                             <input class="form-check-input" type="checkbox" role="switch" id="is-event-manager" name="is_event_manager" value="1">
                             <label class="form-check-label fw-bold" for="is-event-manager">Event Manager</label>
@@ -407,6 +421,47 @@
     </section>
 </section>
 
+<div class="modal fade" id="managementModulesModal" tabindex="-1" aria-labelledby="managementModulesModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div>
+                    <h5 class="modal-title" id="managementModulesModalLabel">Management modules</h5>
+                    <p class="text-muted small mb-0">Each selection grants full access to that module. There are no separate edit/delete switches.</p>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row g-3">
+                    {% for module in managementModules %}
+                        <div class="col-md-6">
+                            <label class="card h-100 border module-access-option" for="management-module-{{ module.slug }}">
+                                <span class="card-body d-flex gap-3 align-items-start">
+                                    <input
+                                        class="form-check-input mt-1 js-management-module"
+                                        type="checkbox"
+                                        id="management-module-{{ module.slug }}"
+                                        name="management_modules[]"
+                                        value="{{ module.slug }}"
+                                        form="create-user-form"
+                                    >
+                                    <span>
+                                        <strong class="d-block">{{ module.label }}</strong>
+                                        <small class="text-muted">{{ module.description }}</small>
+                                    </span>
+                                </span>
+                            </label>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Apply selection</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <div class="modal fade" id="createCategoryModal" tabindex="-1" aria-labelledby="createCategoryModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -461,6 +516,20 @@
 {{ parent() }}
 <script>
 let selectedUserType = null;
+
+function updateCreateManagementModuleSummary() {
+    const selected = Array.from(document.querySelectorAll('.js-management-module:checked'));
+    const summary = document.getElementById('create-management-module-summary');
+    if (!summary) return;
+    summary.textContent = selected.length
+        ? `${selected.length} management module${selected.length === 1 ? '' : 's'} selected`
+        : 'No management modules selected';
+}
+
+document.querySelectorAll('.js-management-module').forEach((input) => {
+    input.addEventListener('change', updateCreateManagementModuleSummary);
+});
+updateCreateManagementModuleSummary();
 
 function startUserCreationFlow() {
     document.getElementById('startFlowCard').style.display = 'none';

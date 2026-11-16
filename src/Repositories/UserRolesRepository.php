@@ -17,6 +17,7 @@ class UserRolesRepository extends BaseRepository
     public function getUserRoleAndPermissions(int $userId, ?int $institutionId = null): array|null
     {
         $roleId = null;
+        $permissions = [];
 
         if ($institutionId !== null) {
             $this->db->query("
@@ -39,26 +40,36 @@ class UserRolesRepository extends BaseRepository
 
         if (!$roleId) {
             $userRole = $this->getOne(["user_id" => $userId]);
-            
-            if (!$userRole) {
-                return [];
+            if ($userRole) {
+                $roleId = $userRole->role_id;
             }
-            
-            $roleId = $userRole->role_id;
         }
 
-        $this->db->query("
-            SELECT p.* 
-            FROM role_permissions rp 
-            INNER JOIN permissions p ON rp.permission_id = p.id 
-            WHERE rp.role_id = :roleId
-        ");
-        $this->db->bind(":roleId", $roleId);
+        if ($roleId) {
+            $this->db->query("
+                SELECT p.*
+                FROM role_permissions rp
+                INNER JOIN permissions p ON rp.permission_id = p.id
+                WHERE rp.role_id = :roleId
+            ");
+            $this->db->bind(":roleId", $roleId);
+            foreach ($this->db->fetchAll() as $item) {
+                $permissions[] = new UserPermissions2($item->module, $item->action);
+            }
+        }
 
-        $data = $this->db->fetchAll();
+        // Per-user management access supplements the operational role. The
+        // feature_full marker lets User distinguish explicit Level 1 grants
+        // from older role permissions and keeps existing accounts compatible.
+        try {
+            $featureRepository = new UserFeaturePermissionsRepository();
+            foreach ($featureRepository->getSlugsByUserId($userId) as $slug) {
+                $permissions[] = new UserPermissions2((string)$slug, 'feature_full');
+            }
+        } catch (\Throwable $exception) {
+            error_log('Unable to load user management modules: ' . $exception->getMessage());
+        }
 
-        return array_map(function ($item) {
-            return new UserPermissions2($item->module, $item->action);
-        }, $data);
+        return $permissions;
     }
 }

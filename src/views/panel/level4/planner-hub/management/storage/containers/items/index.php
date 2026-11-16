@@ -58,7 +58,7 @@ $router->post(function () {
 
     $container = $containerRepo->getOne([
         "id" => $containerId,
-        "id_owner" => $user->getId()
+        "id_owner" => $user->getOwner()
     ]);
 
     if (!$container) {

@@ -1,10 +1,14 @@
 <li class="sidebar-header">{{ trans('ui.my_dashboard') }}</li>
 
 {% set canOrders = user.hasPermissionForModule('orders') %}
-{% set canCrm = user.hasPermissionForModule('crm') %}
+{% set canCrmClients = user.hasPermissionForModule('crm_clients') %}
+{% set canCrmSponsors = user.hasPermissionForModule('crm_sponsors') %}
 {% set canStorage = user.hasPermissionForModule('storage') %}
+{% set canPayroll = user.hasPermissionForModule('payroll') %}
+{% set canMochi = user.hasPermissionForModule('mochi') %}
+{% set canGrowthHub = user.hasPermissionForModule('growth_hub') %}
 {% set canUsers = user.hasPermissionForModule('users') %}
-{% set canManagement = canOrders or canCrm or canStorage or canUsers %}
+{% set canManagement = canOrders or canCrmClients or canCrmSponsors or canStorage or canPayroll or canMochi or canGrowthHub or canUsers %}
 
 <li class="sidebar-item">
     <a class="sidebar-link" href="{{ path('panel/home') }}">
@@ -66,7 +70,16 @@
 </li>
 
 {% if canManagement %}
-<li class="sidebar-header">{{ trans('level4_access_center.sidebar_approved_tools') }}</li>
+<li class="sidebar-header">Management</li>
+{% endif %}
+
+{% if canMochi %}
+<li class="sidebar-item">
+    <a class="sidebar-link" href="{{ path('panel/planner-hub/settings/automation') }}">
+        <i class="align-middle" data-feather="message-circle"></i>
+        <span class="align-middle">AI (Mochi)</span>
+    </a>
+</li>
 {% endif %}
 
 {% if canOrders %}
@@ -78,11 +91,20 @@
 </li>
 {% endif %}
 
-{% if canCrm %}
+{% if canCrmClients %}
 <li class="sidebar-item">
-    <a class="sidebar-link" href="{{ path('panel/planner-hub/management/crm') }}">
+    <a class="sidebar-link" href="{{ path('panel/planner-hub/management/crm/lead') }}">
         <i class="align-middle" data-feather="users"></i>
-        <span class="align-middle">{{ trans('ui.crm') }}</span>
+        <span class="align-middle">Client CRM</span>
+    </a>
+</li>
+{% endif %}
+
+{% if canCrmSponsors %}
+<li class="sidebar-item">
+    <a class="sidebar-link" href="{{ path('panel/planner-hub/management/crm/partnerships') }}">
+        <i class="align-middle" data-feather="target"></i>
+        <span class="align-middle">Sponsors CRM</span>
     </a>
 </li>
 {% endif %}
@@ -92,6 +114,24 @@
     <a class="sidebar-link" href="{{ path('panel/planner-hub/management/storage') }}">
         <i class="align-middle" data-feather="box"></i>
         <span class="align-middle">{{ trans('ui.inventory_storage') }}</span>
+    </a>
+</li>
+{% endif %}
+
+{% if canPayroll %}
+<li class="sidebar-item">
+    <a class="sidebar-link" href="{{ path('panel/planner-hub/management/payroll') }}">
+        <i class="align-middle" data-feather="dollar-sign"></i>
+        <span class="align-middle">Payroll</span>
+    </a>
+</li>
+{% endif %}
+
+{% if canGrowthHub %}
+<li class="sidebar-item">
+    <a class="sidebar-link" href="{{ path('panel/growth-hub') }}">
+        <i class="align-middle" data-feather="trending-up"></i>
+        <span class="align-middle">Growth Hub</span>
     </a>
 </li>
 {% endif %}

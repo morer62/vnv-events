@@ -10,6 +10,7 @@
   <div class="vnv-request-list">
     {% for request in eventRequests|default([]) %}
       {% set services = request.selected_services ? request.selected_services|json_decode : [] %}
+      {% set requestMeta = request.details ? request.details|json_decode : [] %}
       <article class="vnv-request-card{% if request.status == 'NEW' %} vnv-request-card--new{% endif %}">
         <div class="vnv-request-card__top">
           <div>
@@ -22,7 +23,21 @@
         {% if services %}
           <div class="vnv-request-card__services">{{ services|join(', ') }}</div>
         {% endif %}
-        {% if request.details %}
+        {% if requestMeta %}
+          <div class="vnv-request-card__metadata" aria-label="Request details">
+            {% if requestMeta.ref_code|default('') %}<span>Ref {{ requestMeta.ref_code }}</span>{% endif %}
+            {% if requestMeta.guest_bucket|default('') %}<span>{{ requestMeta.guest_bucket }} guests</span>{% endif %}
+            {% if requestMeta.zip|default('') %}
+              <span>
+                ZIP {{ requestMeta.zip }}
+                {% if requestMeta.zip_classification.county|default('') %} · {{ requestMeta.zip_classification.county }}{% endif %}
+              </span>
+            {% endif %}
+            {% if requestMeta.qualification_status|default('') %}
+              <span class="{% if requestMeta.qualified_lead|default(false) %}is-qualified{% endif %}">{{ requestMeta.qualification_status|replace({'_':' '})|title }}</span>
+            {% endif %}
+          </div>
+        {% elseif request.details %}
           <small>{{ request.details }}</small>
         {% endif %}
         <div class="d-flex flex-wrap gap-2">

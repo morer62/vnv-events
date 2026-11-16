@@ -3,6 +3,8 @@
 namespace App\Services;
 
 use App\Entity\User;
+use App\Entity\UserPermissions2;
+use App\Repositories\UserFeaturePermissionsRepository;
 use App\Repositories\UserRepository;
 use App\Repositories\UserRolesRepository;
 use App\Utils\LocationUtils;
@@ -12,6 +14,22 @@ use Exception;
 class LoginService
 {
     private static ?User $cachedSession = null;
+
+    private static function synchronizeManagementModules(User $user): void
+    {
+        try {
+            $permissions = array_values(array_filter(
+                $user->getPermissions2(),
+                static fn ($permission) => strtolower($permission->getAction()) !== 'feature_full'
+            ));
+            foreach ((new UserFeaturePermissionsRepository())->getSlugsByUserId((int)$user->getId()) as $slug) {
+                $permissions[] = new UserPermissions2((string)$slug, 'feature_full');
+            }
+            $user->setPermissions2($permissions);
+        } catch (\Throwable $exception) {
+            error_log('Unable to refresh management modules: ' . $exception->getMessage());
+        }
+    }
 
     /**
      * Verify credentials without creating session
@@ -126,6 +144,8 @@ class LoginService
 
     if (isset($_SESSION['user'])) {
         self::$cachedSession = $_SESSION['user'];
+        self::synchronizeManagementModules(self::$cachedSession);
+        $_SESSION['user'] = self::$cachedSession;
         return self::$cachedSession;
     }
 

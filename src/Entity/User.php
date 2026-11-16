@@ -305,8 +305,47 @@ public const EXTERNAL_USER_LEVEL = [4,5,6];
 
 
     public function hasPermissionForModule(string $module): bool {
+        $module = strtolower($module);
+        $configured = false;
+        $featureModules = [];
+
+        foreach ($this->permissions2 as $permission) {
+            if (strtolower($permission->getAction()) !== 'feature_full') {
+                continue;
+            }
+            $featureModule = strtolower($permission->getModule());
+            $featureModules[$featureModule] = true;
+            if ($featureModule === UserPermissions::MANAGEMENT_CONFIGURED) {
+                $configured = true;
+            }
+        }
+
+        $managedModules = UserPermissions::managementModuleSlugs();
+        if ($module === UserPermissions::CRM) {
+            $managedModules[] = UserPermissions::CRM;
+        }
+
+        if ($configured && in_array($module, $managedModules, true)) {
+            if ($module === UserPermissions::CRM) {
+                return isset($featureModules[UserPermissions::CRM])
+                    || isset($featureModules[UserPermissions::CRM_CLIENTS])
+                    || isset($featureModules[UserPermissions::CRM_SPONSORS]);
+            }
+
+            return isset($featureModules[$module])
+                || (($module === UserPermissions::CRM_CLIENTS || $module === UserPermissions::CRM_SPONSORS)
+                    && isset($featureModules[UserPermissions::CRM]));
+        }
+
         foreach ($this->permissions2 as $perm) {
-            if ($perm->getModule() === $module) {
+            $permissionModule = strtolower($perm->getModule());
+            if ($permissionModule === $module) {
+                return true;
+            }
+            if (!$configured
+                && in_array($module, [UserPermissions::CRM_CLIENTS, UserPermissions::CRM_SPONSORS], true)
+                && $permissionModule === UserPermissions::CRM
+            ) {
                 return true;
             }
         }
@@ -323,7 +362,9 @@ public const EXTERNAL_USER_LEVEL = [4,5,6];
         }
 
         foreach ($permissions as $permission) {
-            if (strtolower($permission->getModule()) === strtolower($module) && strtolower($permission->getAction()) === strtolower($action)) {
+            if (strtolower($permission->getModule()) === strtolower($module)
+                && in_array(strtolower($permission->getAction()), [strtolower($action), 'feature_full', 'full', '*'], true)
+            ) {
                 return true;
             }
         }

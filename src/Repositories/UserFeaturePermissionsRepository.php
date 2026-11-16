@@ -2,6 +2,8 @@
 
 namespace App\Repositories;
 
+use App\Entity\UserPermissions;
+
 class UserFeaturePermissionsRepository extends BaseRepository
 {
     public function __construct()
@@ -32,6 +34,31 @@ class UserFeaturePermissionsRepository extends BaseRepository
         $this->db->bind(':id_user', $userId);
         $this->db->bind(':slug', $slug);
         $this->db->execute();
+    }
+
+    public function replaceManagementModules(int $userId, array $slugs): void
+    {
+        $allowed = array_flip(UserPermissions::managementModuleSlugs());
+        $selected = [];
+        foreach ($slugs as $slug) {
+            $slug = strtolower(trim((string)$slug));
+            if (isset($allowed[$slug])) {
+                $selected[$slug] = true;
+            }
+        }
+
+        $this->db->beginTransaction();
+        try {
+            $this->removeAllByUserId($userId);
+            $this->addPermission($userId, UserPermissions::MANAGEMENT_CONFIGURED);
+            foreach (array_keys($selected) as $slug) {
+                $this->addPermission($userId, $slug);
+            }
+            $this->db->commit();
+        } catch (\Throwable $exception) {
+            $this->db->rollback();
+            throw $exception;
+        }
     }
 
     public function removeAllByUserId(int $userId): void

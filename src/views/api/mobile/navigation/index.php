@@ -83,12 +83,15 @@ function mobileNavigationForUser($user): array
             ['key' => 'clock', 'label' => 'Clock In / Out', 'icon' => 'clock', 'route' => 'panel/planner-hub/team/payroll/clock', 'group' => 'Time'],
             ['key' => 'event_area', 'label' => 'Event Area', 'icon' => 'camera', 'route' => 'panel/event-execution', 'group' => 'My Work'],
         ];
-        $items[]=['key'=>'mochi','label'=>'Ask Mochi','icon'=>'comments','route'=>'panel/planner-hub/settings/automation','group'=>'My Work'];
         $approvedTools = [
-            'orders' => ['key' => 'approved_orders', 'label' => 'Orders', 'icon' => 'briefcase', 'route' => 'panel/planner-hub/management/orders', 'group' => 'Approved Tools'],
-            'crm' => ['key' => 'approved_crm', 'label' => 'CRM', 'icon' => 'users', 'route' => 'panel/planner-hub/management/crm', 'group' => 'Approved Tools'],
-            'storage' => ['key' => 'approved_storage', 'label' => 'Inventory / Storage', 'icon' => 'boxes', 'route' => 'panel/planner-hub/management/storage', 'group' => 'Approved Tools'],
-            'users' => ['key' => 'approved_team', 'label' => 'Team', 'icon' => 'user-check', 'route' => 'panel/planner-hub/management/users', 'group' => 'Approved Tools'],
+            'mochi' => ['key' => 'management_mochi', 'label' => 'AI (Mochi)', 'icon' => 'comments', 'route' => 'panel/planner-hub/settings/automation', 'group' => 'Management'],
+            'orders' => ['key' => 'management_orders', 'label' => 'Orders', 'icon' => 'briefcase', 'route' => 'panel/planner-hub/management/orders', 'group' => 'Management'],
+            'crm_clients' => ['key' => 'management_client_crm', 'label' => 'Client CRM', 'icon' => 'users', 'route' => 'panel/planner-hub/management/crm/lead', 'group' => 'Management'],
+            'crm_sponsors' => ['key' => 'management_sponsors_crm', 'label' => 'Sponsors CRM', 'icon' => 'target', 'route' => 'panel/planner-hub/management/crm/partnerships', 'group' => 'Management'],
+            'storage' => ['key' => 'management_storage', 'label' => 'Inventory / Storage', 'icon' => 'boxes', 'route' => 'panel/planner-hub/management/storage', 'group' => 'Management'],
+            'payroll' => ['key' => 'management_payroll', 'label' => 'Payroll', 'icon' => 'dollar-sign', 'route' => 'panel/planner-hub/management/payroll', 'group' => 'Management'],
+            'growth_hub' => ['key' => 'management_growth_hub', 'label' => 'Growth Hub', 'icon' => 'chart-line', 'route' => 'panel/growth-hub', 'group' => 'Management'],
+            'users' => ['key' => 'management_team', 'label' => 'Team', 'icon' => 'user-check', 'route' => 'panel/planner-hub/management/users', 'group' => 'Management'],
         ];
         foreach ($approvedTools as $module => $item) {
             if ($user->hasPermissionForModule($module)) {

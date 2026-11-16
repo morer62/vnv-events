@@ -14,6 +14,12 @@ $router->get(function () {
     $user = LoginService::getSession();
     $containerId = $_GET["container_id"] ?? null;
 
+    if ($containerId && $user->hasPermissionForModule('storage')) {
+        LocationUtils::redirectInternal(
+            "panel/planner-hub/management/storage/containers/items?container_id=" . (int)$containerId
+        );
+    }
+
     $storageItemRepository = new StorageItemRepository();
     $containerRepo = new StorageContainerRepository();
 
@@ -24,7 +30,7 @@ $router->get(function () {
 
     $container = $containerRepo->getOne([
        "id" => $containerId,
-       "id_owner" => $user->getId()
+       "id_owner" => $user->getOwner()
     ]);
 
     if (!$container) {
@@ -51,9 +57,14 @@ $router->post(function () {
     $storageItemRepository = new StorageItemRepository();
     $user = LoginService::getSession();
 
+    if (!$user->hasPermissionForModule('storage')) {
+        MessageUtil::setMessage("Storage management access is required to change container items.");
+        LocationUtils::redirectInternal("panel/home");
+    }
+
     $container = $containerRepo->getOne([
         "id" => $containerId,
-        "id_owner" => $user->getId()
+        "id_owner" => $user->getOwner()
     ]);
 
     if (!$container) {

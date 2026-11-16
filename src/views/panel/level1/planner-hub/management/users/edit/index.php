@@ -6,7 +6,9 @@ use App\Repositories\CrmLeadRepository;
 use App\Repositories\RolesRepository;
 use App\Repositories\StoreUserRolesRepository;
 use App\Repositories\UserRepository;
+use App\Repositories\UserFeaturePermissionsRepository;
 use App\Repositories\UserRolesRepository;
+use App\Entity\UserPermissions;
 use App\Services\LoginService;
 use App\Services\UserInstitutionService;
 use App\Services\UserEditService;
@@ -27,6 +29,7 @@ $router->get(function () {
     $storeUserRolesRepo = new StoreUserRolesRepository();
     $userInstitutionService = new UserInstitutionService();
     $institutionRepo = new InstitutionProfileRepository();
+    $featurePermissionsRepo = new UserFeaturePermissionsRepository();
 
     $id = $_GET["id"] ?? null;
     if (!$id) {
@@ -116,6 +119,26 @@ $router->get(function () {
         $categories = $categoryRepo->getAllByInstitutionOwner((int) $currentOwnerId);
     }
 
+    $featureSlugs = $featurePermissionsRepo->getSlugsByUserId((int)$user->id);
+    if (in_array(UserPermissions::MANAGEMENT_CONFIGURED, $featureSlugs, true)) {
+        $selectedManagementModules = array_values(array_intersect(
+            UserPermissions::managementModuleSlugs(),
+            $featureSlugs
+        ));
+    } else {
+        $selectedManagementModules = [];
+        foreach ($roleRepo->getUserRoleAndPermissions((int)$user->id, $currentInstitutionId ? (int)$currentInstitutionId : null) as $permission) {
+            $module = strtolower($permission->getModule());
+            if ($module === UserPermissions::CRM) {
+                $selectedManagementModules[] = UserPermissions::CRM_CLIENTS;
+                $selectedManagementModules[] = UserPermissions::CRM_SPONSORS;
+            } elseif (in_array($module, UserPermissions::managementModuleSlugs(), true)) {
+                $selectedManagementModules[] = $module;
+            }
+        }
+        $selectedManagementModules = array_values(array_unique($selectedManagementModules));
+    }
+
     return TemplateResponse::render(__DIR__ . "/index.twig", [
         "user_edit" => $user,
         "roles" => $rolesRepo->getAll(),
@@ -125,7 +148,9 @@ $router->get(function () {
         "store_team_role" => $store_team_role,
         "is_event_manager" => $isEventManager,
         "is_primary_company" => $isPrimaryCompany,
-        "crm_categories" => $categories
+        "crm_categories" => $categories,
+        "managementModules" => UserPermissions::managementModules(),
+        "selectedManagementModules" => $selectedManagementModules,
     ]);
 });
 
@@ -136,6 +161,7 @@ $router->post(function () {
     $userInstitutionService = new UserInstitutionService();
     $institutionRepo = new InstitutionProfileRepository();
     $userEditService = new UserEditService();
+    $featurePermissionsRepo = new UserFeaturePermissionsRepository();
 
     $id = $_POST["id"] ?? null;
     if (!$id) {
@@ -229,6 +255,7 @@ $router->post(function () {
 
         $clientsRepo->create((int) $user->id, (int) $currentOwnerId);
         $storeUserRolesRepo->deleteByOwnerAndUser((int)$currentOwnerId, (int)$user->id);
+        $featurePermissionsRepo->deleteByUserId((int)$user->id);
 
         $addToCrm = isset($_POST["add_to_crm"]) && $_POST["add_to_crm"] === "1";
         $existingLead = $leadRepo->getOneWithoutOwnership([
@@ -516,7 +543,16 @@ $router->post(function () {
         $managerDb->execute();
     }
 
-    if (!empty($newData)) {
+    $managementModulesUpdated = false;
+    if ((int)$user->level === 4 && isset($_POST['management_modules_configured'])) {
+        $featurePermissionsRepo->replaceManagementModules(
+            (int)$id,
+            is_array($_POST['management_modules'] ?? null) ? $_POST['management_modules'] : []
+        );
+        $managementModulesUpdated = true;
+    }
+
+    if (!empty($newData) || $managementModulesUpdated) {
         if ($user->password_updated == 0) {
             MessageUtil::setMessage("User updated successfully.");
         } elseif (!$isPrimaryCompany) {

@@ -6,6 +6,7 @@ use App\Core\FindViewTrait;
 use App\Core\GetViewTrait;
 use App\Core\IncludeViewTrait;
 use App\Entity\User;
+use App\Entity\UserPermissions;
 use App\Repositories\CmsCategoriesRepository;
 use App\Repositories\CmsRoutesRepository;
 use App\Repositories\InstitutionProfileRepository;
@@ -415,13 +416,36 @@ class Kernel
                         $urlViews[2] === 'management'
                     ) {
                         $module = $urlViews[3];
+                        $requiredModule = $module;
+                        if ($module === UserPermissions::CRM) {
+                            $requiredModule = (($urlViews[4] ?? '') === 'partnerships')
+                                ? UserPermissions::CRM_SPONSORS
+                                : UserPermissions::CRM_CLIENTS;
+                        }
 
-                        if (!$user->hasPermissionForModule($module)) {
+                        if (!$user->hasPermissionForModule($requiredModule)) {
                             if ($module === 'orders') {
                                 LocationUtils::redirectInternal("panel/planner-hub/team/orders/orders/");
                             }
 
                             \App\Utils\MessageUtil::setMessage("ℹ️ This area is reserved for administrators. Let us know if you need help finding what you are looking for.");
+                            LocationUtils::redirectInternal("panel/home");
+                        }
+                    }
+
+                    if ($user->getLevel() === 4) {
+                        $isMochiRoute = ($urlViews[1] ?? '') === 'planner-hub'
+                            && ($urlViews[2] ?? '') === 'settings'
+                            && ($urlViews[3] ?? '') === 'automation';
+                        $isGrowthHubRoute = ($urlViews[1] ?? '') === 'growth-hub';
+
+                        if ($isMochiRoute && !$user->hasPermissionForModule(UserPermissions::MOCHI)) {
+                            \App\Utils\MessageUtil::setMessage("Mochi access has not been enabled for this account.");
+                            LocationUtils::redirectInternal("panel/home");
+                        }
+
+                        if ($isGrowthHubRoute && !$user->hasPermissionForModule(UserPermissions::GROWTH_HUB)) {
+                            \App\Utils\MessageUtil::setMessage("Growth Hub access has not been enabled for this account.");
                             LocationUtils::redirectInternal("panel/home");
                         }
                     }
