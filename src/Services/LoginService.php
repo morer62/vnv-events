@@ -108,7 +108,7 @@ class LoginService
         ]), [
             'expires' => time() + (86400 * 30 * 6),
             'path' => '/',
-            'secure' => false,
+            'secure' => self::isHttpsRequest(),
             'httponly' => true,
             'samesite' => 'Lax'
         ]);
@@ -119,7 +119,7 @@ class LoginService
         $cookie_settings = [
             'expires' => time() + (86400 * 30 * 6),
             'path' => '/',
-            'secure' => false,
+            'secure' => self::isHttpsRequest(),
             'httponly' => true,
             'samesite' => 'Lax'
         ];
@@ -129,6 +129,12 @@ class LoginService
             'email' => $user->getEmail()
         ];
         setcookie('vnv_autologin', json_encode($cookie_payload), $cookie_settings);
+    }
+
+    private static function isHttpsRequest(): bool
+    {
+        return (!empty($_SERVER['HTTPS']) && strtolower((string)$_SERVER['HTTPS']) !== 'off')
+            || strtolower((string)($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '')) === 'https';
     }
 
 
@@ -354,9 +360,11 @@ class LoginService
         $repo = new UserRepository();
         $userRoleRepository = new UserRolesRepository();
 
-        $data = $repo->getOne(["api_token" => $token]);
+        // Token authentication must not inherit ownership constraints from a
+        // stale PHP session that may belong to another device/user.
+        $data = $repo->getOneWithoutOwnership(["api_token" => $token]);
 
-        if (!$data) {
+        if (!$data || (int)($data->is_active ?? 0) !== 1) {
             return null;
         }
 

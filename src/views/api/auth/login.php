@@ -170,9 +170,9 @@ $router->post(function () {
             $userEntity = LoginService::getSession();
         }
 
-        // Generar token API
-        $token = bin2hex(random_bytes(32));
-        $repo->updateApiToken($userEntity->getId(), $token);
+        // Keep one durable mobile token per account. Rotating this token on
+        // every login used to sign out another phone/tablet without warning.
+        $token = $repo->getOrCreateApiToken($userEntity->getId());
 
         // Guardar expo_token si viene
         $expo_token = trim((string)($body["expo_token"] ?? ($body["expo_push_token"] ?? "")));

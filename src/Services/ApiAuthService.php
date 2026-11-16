@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Entity\User;
+use App\Entity\UserPermissions;
 use App\Utils\Request;
 
 class ApiAuthService
@@ -69,6 +70,14 @@ class ApiAuthService
     public static function userPayload(User $user): array
     {
         $ownerScopeId = (int)$user->getOwner();
+        $managementModules = [];
+        if ((int)$user->getLevel() === 4) {
+            foreach (UserPermissions::managementModules() as $module) {
+                if ($user->hasPermissionForModule((string)$module['slug'])) {
+                    $managementModules[] = $module;
+                }
+            }
+        }
 
         return [
             'id' => (int)$user->getId(),
@@ -86,6 +95,7 @@ class ApiAuthService
             'raw_id_owner' => $user->getIdOwner(),
             'allow_chat_with_clients' => (int)$user->getAllowChatWithClients(),
             'is_active' => (int)$user->getIsActive(),
+            'management_modules' => $managementModules,
         ];
     }
 

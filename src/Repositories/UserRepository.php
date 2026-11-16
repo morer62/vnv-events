@@ -104,6 +104,33 @@ class UserRepository extends BaseRepository
         $this->db->execute();
     }
 
+    /**
+     * Return the durable mobile token for a user, creating it only when the
+     * account does not have one yet. Reusing the token prevents a login on a
+     * second phone from silently invalidating the first phone's app session.
+     */
+    public function getOrCreateApiToken(int $id): string
+    {
+        $user = $this->getOneWithoutOwnership(['id' => $id], ['api_token']);
+        $existing = trim((string)($user->api_token ?? ''));
+        if ($existing !== '') {
+            return $existing;
+        }
+
+        $token = bin2hex(random_bytes(32));
+        $this->db->query(
+            "UPDATE users
+             SET api_token = :token
+             WHERE id = :id AND (api_token IS NULL OR TRIM(api_token) = '')"
+        );
+        $this->db->bind(':token', $token);
+        $this->db->bind(':id', $id);
+        $this->db->execute();
+
+        $user = $this->getOneWithoutOwnership(['id' => $id], ['api_token']);
+        return trim((string)($user->api_token ?? $token));
+    }
+
     public function updateExpoToken(int $userId, string $token): void
     {
 

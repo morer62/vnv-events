@@ -2,6 +2,7 @@
 
 use App\Repositories\Connection;
 use App\Repositories\EventRequestRepository;
+use App\Entity\UserPermissions;
 use App\Services\ApiAuthService;
 use App\Services\LoyaltyRewardsService;
 use App\Utils\Cors;
@@ -23,6 +24,28 @@ function mobileDashboardScalar(Connection $db, string $sql, array $bindings): in
     }
 }
 
+function mobileDashboardManagementModules($user): array
+{
+    if ((int)$user->getLevel() !== 4) return [];
+
+    $routes = [
+        UserPermissions::MOCHI => ['route'=>'panel/planner-hub/settings/automation','icon'=>'comments'],
+        UserPermissions::CRM_CLIENTS => ['route'=>'panel/planner-hub/management/crm/lead','icon'=>'users'],
+        UserPermissions::CRM_SPONSORS => ['route'=>'panel/planner-hub/management/crm/partnerships','icon'=>'bullseye'],
+        UserPermissions::STORAGE => ['route'=>'panel/planner-hub/management/storage','icon'=>'boxes'],
+        UserPermissions::ORDERS => ['route'=>'panel/planner-hub/management/orders','icon'=>'briefcase'],
+        UserPermissions::PAYROLL => ['route'=>'panel/planner-hub/management/payroll','icon'=>'money-check-alt'],
+        UserPermissions::GROWTH_HUB => ['route'=>'panel/growth-hub','icon'=>'chart-line'],
+    ];
+    $modules = [];
+    foreach (UserPermissions::managementModules() as $module) {
+        $slug = (string)$module['slug'];
+        if (!$user->hasPermissionForModule($slug)) continue;
+        $modules[] = array_merge($module, $routes[$slug] ?? []);
+    }
+    return $modules;
+}
+
 $router->get(function () {
     $user = ApiAuthService::getAuthenticatedUser();
     if (!$user) return JsonResponse::createResponse(['success'=>false,'message'=>'Unauthorized'], 401);
@@ -34,9 +57,10 @@ $router->get(function () {
         $requests=new EventRequestRepository();
         $metrics=[
             'pending_orders'=>mobileDashboardScalar($db,"SELECT COUNT(*) total FROM orders WHERE id_owner=:owner AND is_archived=0 AND (status_workflow IS NULL OR status_workflow<>'INVOICE_PAID')",[':owner'=>$ownerId]),
+            'unread_requests'=>$requests->countUnreadForOwner($ownerId),
+            'pending_proposals'=>mobileDashboardScalar($db,"SELECT COUNT(*) total FROM orders o LEFT JOIN order_proposals p ON p.id_order=o.id WHERE o.id_owner=:owner AND o.is_archived=0 AND o.proposal_requires_approval=1 AND (p.status IS NULL OR p.status<>'APPROVED')",[':owner'=>$ownerId]),
             'upcoming_events'=>mobileDashboardScalar($db,"SELECT COUNT(*) total FROM orders WHERE id_owner=:owner AND is_archived=0 AND event_date>=CURDATE()",[':owner'=>$ownerId]),
             'pending_deliveries'=>mobileDashboardScalar($db,"SELECT COUNT(*) total FROM store_orders WHERE id_owner=:owner AND fulfillment_method='DELIVERY' AND payment_status='PAID' AND status NOT IN ('DELIVERED','COMPLETED','CANCELLED','CLOSED')",[':owner'=>$ownerId]),
-            'unread_requests'=>$requests->countUnreadForOwner($ownerId),
             'open_requests'=>$requests->countForOwner($ownerId,false),
         ];
         try { $balance=(new LoyaltyRewardsService())->settings($ownerId,'vnvevents'); $metrics['reward_percent']=(float)$balance->reward_percent; $metrics['point_value']=(float)$balance->point_value; } catch(Throwable $e) {}
@@ -51,10 +75,17 @@ $router->get(function () {
             'orders'=>mobileDashboardScalar($db,"SELECT COUNT(*) total FROM orders WHERE id_client=:user AND is_archived=0",[':user'=>$userId]),
             'upcoming_events'=>mobileDashboardScalar($db,"SELECT COUNT(*) total FROM orders WHERE id_client=:user AND is_archived=0 AND event_date>=CURDATE()",[':user'=>$userId]),
             'store_orders'=>mobileDashboardScalar($db,"SELECT COUNT(*) total FROM store_orders WHERE id_user=:user",[':user'=>$userId]),
+            'pending_proposals'=>mobileDashboardScalar($db,"SELECT COUNT(*) total FROM orders o INNER JOIN order_proposals p ON p.id_order=o.id WHERE o.id_client=:user AND o.is_archived=0 AND o.proposal_requires_approval=1 AND p.status='PENDING_APPROVAL'",[':user'=>$userId]),
         ];
         try { $loyalty=new LoyaltyRewardsService();$rewards=$loyalty->balance($ownerId,$userId);$settings=$loyalty->settings($ownerId); $metrics['available_points']=(float)$rewards['available_points']; $metrics['available_value']=(float)$rewards['available_value'];$metrics['processing_points']=(float)$rewards['pending_points'];$metrics['processing_value']=(float)$rewards['pending_value'];$metrics['reward_release_hours']=(int)($settings->release_hours??48); } catch(Throwable $e) {}
     }
 
-    return JsonResponse::createResponse(['success'=>true,'data'=>['level'=>$level,'metrics'=>$metrics,'alerts'=>$alerts,'generated_at'=>date(DATE_ATOM)]]);
+    return JsonResponse::createResponse(['success'=>true,'data'=>[
+        'level'=>$level,
+        'metrics'=>$metrics,
+        'alerts'=>$alerts,
+        'management_modules'=>mobileDashboardManagementModules($user),
+        'generated_at'=>date(DATE_ATOM),
+    ]]);
 });
 $router->run();
