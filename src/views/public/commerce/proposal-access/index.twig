@@ -1,0 +1,144 @@
+{% extends 'templates/base.twig' %}
+
+{% set status = proposal.status|default('NOT_STARTED') %}
+{% set status_labels = {
+    'NOT_STARTED': 'Not started',
+    'DRAFT': 'Being prepared',
+    'PENDING_APPROVAL': 'Ready for your approval',
+    'APPROVED': 'Approved and signed',
+    'CHANGES_REQUESTED': 'Changes requested'
+} %}
+
+{% block title %}Secure Menu / Proposal | VNV Events{% endblock %}
+{% block meta %}<meta name="robots" content="noindex,nofollow,noarchive">{% endblock %}
+
+{% block styles %}
+<style>
+    :root { --proposal-ink:#12384b; --proposal-teal:#159b98; --proposal-line:#d8e4e8; }
+    body { background:linear-gradient(145deg,#edf6f7 0%,#fff 45%,#edf4f6 100%); color:var(--proposal-ink); min-height:100vh; }
+    .public-proposal-shell { width:min(1040px,calc(100% - 28px)); margin:clamp(24px,6vw,72px) auto; }
+    .public-proposal-brand { display:flex; justify-content:space-between; align-items:center; gap:20px; margin-bottom:22px; }
+    .public-proposal-brand img { width:170px; max-width:45vw; height:auto; }
+    .public-proposal-status { display:inline-flex; align-items:center; min-height:38px; padding:8px 14px; border-radius:999px; background:#fff1c8; color:#735200; font-weight:800; border:1px solid #f2d98c; }
+    .public-proposal-status--approved { background:#ddf5e8; color:#0e6338; border-color:#b7dfc9; }
+    .public-proposal-status--changes { background:#ffe8e8; color:#812828; border-color:#efc2c2; }
+    .public-proposal-heading { display:flex; justify-content:space-between; align-items:flex-start; gap:20px; flex-wrap:wrap; margin-bottom:24px; }
+    .public-proposal-heading h1 { font-size:clamp(1.8rem,5vw,3rem); line-height:1.05; margin:4px 0 10px; }
+    .public-proposal-kicker { color:var(--proposal-teal); text-transform:uppercase; letter-spacing:.12em; font-size:.78rem; font-weight:900; }
+    .public-proposal-card { background:#fff; border:1px solid var(--proposal-line); border-radius:20px; box-shadow:0 18px 50px rgba(18,56,75,.09); overflow:hidden; }
+    .public-proposal-document { padding:clamp(22px,6vw,64px); font:17px/1.68 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; color:#172a34; min-height:280px; }
+    .public-proposal-document h2 { font-size:1.9rem; margin:1.4rem 0 .7rem; }
+    .public-proposal-document h3 { font-size:1.35rem; margin:1.2rem 0 .55rem; }
+    .public-proposal-document p { margin:0 0 1rem; }
+    .public-proposal-document ul,.public-proposal-document ol { padding-left:1.7rem; margin:0 0 1rem; }
+    .public-proposal-document img { display:block; max-width:100%; height:auto; margin:1rem auto; border-radius:12px; }
+    .proposal-page-break { border-top:2px dashed #8ca3af; margin:2rem 0; height:0; }
+    .public-proposal-panel { background:#f4fbfa; border:1px solid #cce4e1; border-radius:18px; padding:clamp(18px,4vw,30px); margin-top:22px; }
+    .public-proposal-panel label { font-weight:700; }
+    .public-proposal-button { border:0; border-radius:10px; background:var(--proposal-teal); color:#fff; font-weight:800; padding:12px 20px; min-height:48px; }
+    .public-proposal-button--danger { background:#fff; border:1px solid #c74a4a; color:#9b2c2c; }
+    .public-proposal-notice { background:#fff; border:1px solid var(--proposal-line); border-radius:16px; padding:20px; }
+    .public-proposal-history { margin-top:28px; }
+    .public-proposal-history summary { cursor:pointer; font-weight:800; padding:18px 0; }
+    .public-proposal-history ul { list-style:none; padding:0; }
+    .public-proposal-history li { border-left:3px solid var(--proposal-teal); padding:2px 0 18px 16px; margin-left:5px; }
+    .public-proposal-history a { color:#087c79; font-weight:700; }
+    .form-control { min-height:48px; }
+    @media(max-width:640px){
+        .public-proposal-brand { align-items:flex-start; }
+        .public-proposal-heading { display:block; }
+        .public-proposal-status { margin-top:8px; }
+        .public-proposal-document { font-size:16px; padding:20px; }
+    }
+    @media print {
+        body { background:#fff; }
+        .public-proposal-shell { width:100%; margin:0; }
+        .public-proposal-panel,.public-proposal-history,.public-proposal-status { display:none; }
+        .public-proposal-card { border:0; box-shadow:none; }
+    }
+</style>
+{% endblock %}
+
+{% block body %}
+<main class="public-proposal-shell">
+    <div class="public-proposal-brand">
+        <img src="{{ asset_for('assets/images/planner-hub-logo-positive.png') }}" alt="VNV Events">
+        <div class="small text-end">Secure client review<br><strong>Order VNV-341{{ order.id }}</strong></div>
+    </div>
+
+    <header class="public-proposal-heading">
+        <div>
+            <div class="public-proposal-kicker">Menu / Proposal</div>
+            <h1>Review your event proposal</h1>
+            <div>Event {{ order.event_date|date('F j, Y') }} · Revision {{ proposal.revision_number|default('—') }}</div>
+        </div>
+        <span class="public-proposal-status {{ status == 'APPROVED' ? 'public-proposal-status--approved' : (status == 'CHANGES_REQUESTED' ? 'public-proposal-status--changes' : '') }}">{{ status_labels[status]|default(status) }}</span>
+    </header>
+
+    {% if not proposal or not proposal.current_revision_id or status == 'DRAFT' or status == 'CHANGES_REQUESTED' %}
+        <div class="public-proposal-notice">
+            <h2 class="h4">The event team is preparing your proposal.</h2>
+            <p class="mb-0">This secure link remains active. Please return when VNV Events confirms that the next revision is ready.</p>
+        </div>
+    {% else %}
+        <article class="public-proposal-card" aria-label="Current menu or proposal">
+            <div class="public-proposal-document">{{ proposal.content_html|raw }}</div>
+        </article>
+    {% endif %}
+
+    {% if status == 'PENDING_APPROVAL' %}
+        <form method="post" enctype="multipart/form-data" class="public-proposal-panel" id="publicProposalApprovalForm">
+            <input type="hidden" name="token" value="{{ token }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+            <input type="hidden" name="action" value="approve">
+            <input type="hidden" name="user_local_timestamp" id="proposalLocalTimestamp">
+            <h2 class="h4">Approve and sign this exact revision</h2>
+            <p>Your signature creates a dated PDF copy and locks revision {{ proposal.revision_number }}.</p>
+            <div class="row g-3">
+                <div class="col-md-6"><label class="form-label" for="typedInitials">Typed initials</label><input id="typedInitials" name="typed_initials" class="form-control" maxlength="30" autocomplete="off"></div>
+                <div class="col-md-6"><label class="form-label" for="signatureImage">Or upload signature image</label><input id="signatureImage" type="file" name="signature_image" class="form-control" accept="image/jpeg,image/png,image/webp"></div>
+            </div>
+            <button class="public-proposal-button mt-3">Approve and sign proposal</button>
+        </form>
+    {% endif %}
+
+    {% if status == 'APPROVED' %}
+        <section class="public-proposal-panel">
+            <h2 class="h4">Approved revision</h2>
+            <p>This proposal is signed and locked. If a correction is needed, enter the reason below. The previous approval and PDF remain in the history.</p>
+            <form method="post" class="row g-2 align-items-end">
+                <input type="hidden" name="token" value="{{ token }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                <input type="hidden" name="action" value="revoke">
+                <div class="col-md-9"><label class="form-label" for="revokeReason">Reason for reopening</label><input id="revokeReason" name="reason" class="form-control" required minlength="5" maxlength="500"></div>
+                <div class="col-md-3"><button class="public-proposal-button public-proposal-button--danger w-100">Reopen approval</button></div>
+            </form>
+        </section>
+    {% endif %}
+
+    {% if history %}
+        <details class="public-proposal-history">
+            <summary>Revision and approval history</summary>
+            <ul>
+                {% for entry in history %}
+                    <li>
+                        <strong>{{ entry.event_type|replace({'_':' '})|title }}</strong>
+                        <div class="small text-muted">{{ entry.created_at|date('M j, Y g:i A') }}</div>
+                        {% if entry.reason %}<div>{{ entry.reason }}</div>{% endif %}
+                        {% if entry.metadata.signed_pdf_path %}<a href="{{ entry.metadata.signed_pdf_path }}" target="_blank" rel="noopener">Open signed PDF copy</a>{% endif %}
+                    </li>
+                {% endfor %}
+            </ul>
+        </details>
+    {% endif %}
+</main>
+{% endblock %}
+
+{% block scripts %}
+<script>
+(() => {
+    const timestamp = document.getElementById('proposalLocalTimestamp');
+    if (timestamp) timestamp.value = new Date().toISOString().slice(0,19).replace('T',' ');
+})();
+</script>
+{% endblock %}

@@ -4,6 +4,7 @@ use App\Repositories\InstitutionProfileRepository;
 use App\Repositories\OrderProposalRepository;
 use App\Repositories\OrdersRepository;
 use App\Services\LoginService;
+use App\Services\OrderProposalAccessService;
 use App\Services\OrderProposalWorkflowService;
 use App\Utils\LocationUtils;
 use App\Utils\MessageUtil;
@@ -63,6 +64,7 @@ $router->get(function () use ($proposalManagerMode, $loadContext) {
             $entry->metadata = !empty($entry->metadata_json) ? (json_decode((string)$entry->metadata_json, true) ?: []) : [];
         }
         $_SESSION['proposal_csrf_token'] ??= bin2hex(random_bytes(32));
+        $clientAccessUrl = (new OrderProposalAccessService())->urlForOrder($order);
 
         return TemplateResponse::render(
             dirname(__DIR__, 3) . DIRECTORY_SEPARATOR . 'templates' . DIRECTORY_SEPARATOR . 'components' . DIRECTORY_SEPARATOR . 'orderProposalWorkspace.twig',
@@ -72,6 +74,7 @@ $router->get(function () use ($proposalManagerMode, $loadContext) {
             'history' => $history,
             'manager_mode' => $proposalManagerMode,
             'csrf_token' => $_SESSION['proposal_csrf_token'],
+            'client_access_url' => $clientAccessUrl,
             ]
         );
     } catch (Throwable $exception) {

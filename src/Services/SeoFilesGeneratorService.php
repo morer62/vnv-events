@@ -253,6 +253,7 @@ class SeoFilesGeneratorService
             'Disallow: /cart',
             'Disallow: /checkout',
             'Disallow: /order-access',
+            'Disallow: /proposal-access',
             'Disallow: /storage/private/',
             '',
             '# Public discovery files',

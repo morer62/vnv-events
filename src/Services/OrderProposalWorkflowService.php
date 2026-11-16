@@ -59,6 +59,7 @@ class OrderProposalWorkflowService
         $this->proposals->setStatus((int)$proposal->id, 'PENDING_APPROVAL', $actorId);
         $this->proposals->addAudit((int)$proposal->id, (int)$proposal->current_revision_id, 'SENT_FOR_APPROVAL', $actorId);
         $this->notifyClient((int)$proposal->id_order, 'A menu / proposal is ready for your review and signature.');
+        $this->emailProposalReady((int)$proposal->id_order);
     }
 
     /** @return array{file_path:string,hash:string,content:string} */
@@ -226,6 +227,39 @@ class OrderProposalWorkflowService
             // The signed PDF and immutable approval record remain authoritative
             // even if the SMTP provider is temporarily unavailable.
             error_log('Proposal approval email copy failed: ' . $exception->getMessage());
+        }
+    }
+
+    private function emailProposalReady(int $orderId): void
+    {
+        try {
+            $orderData = (new OrdersRepository())->getByIdWithoutOwnershipCheck($orderId);
+            if (!$orderData) return;
+
+            $order = (object)$orderData;
+            $client = (new UserRepository())->getOneWithoutOwnership(['id' => (int)$order->id_client]);
+            $email = trim((string)($client->email ?? ''));
+            if ($email === '' || filter_var($email, FILTER_VALIDATE_EMAIL) === false) return;
+
+            $url = (new OrderProposalAccessService())->urlForOrder($order);
+            $safeUrl = htmlspecialchars($url, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+            $safeName = htmlspecialchars(trim((string)($client->name ?? '')), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+            $subject = 'Your menu / proposal is ready - Order VNV-341' . $orderId;
+            $body = '<div style="font-family:Arial,sans-serif;max-width:620px;margin:0 auto;color:#17384a">'
+                . '<h2>Your menu / proposal is ready</h2>'
+                . '<p>Hello' . ($safeName !== '' ? ' ' . $safeName : '') . ',</p>'
+                . '<p>Please review the current proposal for Order <strong>VNV-341' . $orderId . '</strong>. You can approve and sign it from the secure link below.</p>'
+                . '<p style="margin:28px 0"><a href="' . $safeUrl . '" style="display:inline-block;background:#0b8f8a;color:#fff;text-decoration:none;padding:13px 22px;border-radius:8px;font-weight:700">Review and sign proposal</a></p>'
+                . '<p>If the button does not open, copy this URL into your browser:</p>'
+                . '<p style="word-break:break-all"><a href="' . $safeUrl . '">' . $safeUrl . '</a></p>'
+                . '<p>This secure link can also be sent to you directly by the VNV Events team.</p>'
+                . '</div>';
+
+            (new EmailService((int)$order->id_owner))->sendSimpleEmail($email, $subject, $body, true);
+        } catch (\Throwable $exception) {
+            // The dashboard link and approval state remain available even when
+            // the SMTP provider is temporarily unavailable.
+            error_log('Proposal ready email failed: ' . $exception->getMessage());
         }
     }
 }

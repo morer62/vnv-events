@@ -10,7 +10,7 @@ $calendar = file_get_contents($root . '/src/views/panel/level1/planner-hub/manag
 $controller = file_get_contents($root . '/src/views/panel/shared/order-proposal/controller.php');
 $migration = file_get_contents($root . '/db/migrations/20261116120000_create_order_proposal_approvals.php');
 
-foreach (['insertUnorderedList', 'insertOrderedList', 'proposal-page-break', 'proposalImageInput', 'Approve and sign proposal', 'Reason for reopening', 'signed_pdf_path'] as $needle) {
+foreach (['insertUnorderedList', 'insertOrderedList', 'proposal-page-break', 'proposalImageInput', 'Approve and sign proposal', 'Reason for reopening', 'signed_pdf_path', 'Client proposal link', 'copyProposalClientLink'] as $needle) {
     $assert(str_contains($workspace, $needle), "Proposal workspace contract missing: {$needle}");
 }
 foreach (['orders-calendar-print-agenda', 'printable_orders', 'Proposal approval pending'] as $needle) {

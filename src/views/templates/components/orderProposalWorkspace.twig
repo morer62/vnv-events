@@ -71,6 +71,18 @@
     </div>
 
     {% if manager_mode %}
+        <section class="proposal-card mb-3 proposal-screen-only" aria-labelledby="proposalClientLinkTitle">
+            <div class="p-3 p-md-4">
+                <h2 class="h5 mb-2" id="proposalClientLinkTitle">Client proposal link</h2>
+                <p class="text-muted mb-3">Open or copy this secure link whenever you need to send the proposal manually. The client does not need to log in.</p>
+                <div class="input-group">
+                    <input id="proposalClientLink" class="form-control" type="text" value="{{ client_access_url }}" readonly aria-label="Secure client proposal link">
+                    <button class="btn btn-outline-primary" type="button" id="copyProposalClientLink">Copy link</button>
+                    <a class="btn btn-outline-secondary" href="{{ client_access_url }}" target="_blank" rel="noopener">Open</a>
+                </div>
+                <div id="proposalCopyStatus" class="small text-success mt-2" role="status" aria-live="polite"></div>
+            </div>
+        </section>
         {% if status == 'APPROVED' %}
             <div class="proposal-alert mb-3"><strong>This revision is locked.</strong> Reopen the approval with a reason before making any change. The signed PDF and approval history will remain preserved.</div>
         {% endif %}
@@ -214,6 +226,21 @@
     }
     const timestamp = document.getElementById('proposalLocalTimestamp');
     if (timestamp) timestamp.value = new Date().toISOString().slice(0, 19).replace('T', ' ');
+
+    const copyButton = document.getElementById('copyProposalClientLink');
+    const clientLink = document.getElementById('proposalClientLink');
+    const copyStatus = document.getElementById('proposalCopyStatus');
+    copyButton?.addEventListener('click', async () => {
+        if (!clientLink) return;
+        try {
+            await navigator.clipboard.writeText(clientLink.value);
+            copyStatus.textContent = 'Link copied. You can now send it to the client.';
+        } catch (error) {
+            clientLink.focus(); clientLink.select();
+            document.execCommand('copy');
+            copyStatus.textContent = 'Link copied. You can now send it to the client.';
+        }
+    });
 })();
 </script>
 {% endblock %}
