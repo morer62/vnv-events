@@ -212,8 +212,15 @@ class OrderProposalWorkflowService
             $mailer = new EmailService((int)$orderData['id_owner']);
             $subject = 'Signed menu / proposal approval - Order VNV-341' . $orderId;
             $body = '<p>The client approved and signed revision ' . (int)$revision->revision_number . ' of the menu / proposal for Order VNV-341' . $orderId . '.</p><p>A retained PDF copy is attached.</p>';
-            foreach (array_unique(array_filter([(string)($client->email ?? ''), (string)($owner->email ?? '')])) as $email) {
-                $mailer->sendEmailWithStringAttachment($email, $subject, $body, $pdfContent, 'VNV-341' . $orderId . '-proposal-approval.pdf');
+            // Send the business copy first and isolate recipient failures. A bad
+            // or retired client address must never prevent VNV from retaining
+            // and receiving its own signed approval copy.
+            foreach (array_unique(array_filter([(string)($owner->email ?? ''), (string)($client->email ?? '')])) as $email) {
+                try {
+                    $mailer->sendEmailWithStringAttachment($email, $subject, $body, $pdfContent, 'VNV-341' . $orderId . '-proposal-approval.pdf');
+                } catch (\Throwable $recipientException) {
+                    error_log('Proposal approval email copy failed for one recipient: ' . $recipientException->getMessage());
+                }
             }
         } catch (\Throwable $exception) {
             // The signed PDF and immutable approval record remain authoritative
