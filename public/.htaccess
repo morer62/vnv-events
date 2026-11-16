@@ -1,11 +1,6 @@
 <IfModule mod_rewrite.c>
     RewriteEngine On
 
-    # Preserve Bearer authentication for PHP/FastCGI. Some cPanel Apache
-    # configurations otherwise strip Authorization before it reaches PHP.
-    RewriteCond %{HTTP:Authorization} ^(.+)$
-    RewriteRule ^ - [E=HTTP_AUTHORIZATION:%1]
-
     # If the requested file or directory exists, serve it directly
     RewriteCond %{REQUEST_FILENAME} -f [OR]
     RewriteCond %{REQUEST_FILENAME} -d

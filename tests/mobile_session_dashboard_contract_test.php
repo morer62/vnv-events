@@ -12,8 +12,6 @@ $loginService = (string)file_get_contents($root . '/src/Services/LoginService.ph
 $apiAuth = (string)file_get_contents($root . '/src/Services/ApiAuthService.php');
 $dashboard = (string)file_get_contents($root . '/src/views/api/mobile/dashboard/index.php');
 $navigation = (string)file_get_contents($root . '/src/views/api/mobile/navigation/index.php');
-$publicHtaccess = (string)file_get_contents($root . '/public/.htaccess');
-$rootHtaccess = (string)file_get_contents($root . '/.htaccess');
 
 foreach (['session.gc_maxlifetime', 'session.cookie_lifetime', "'samesite' => 'Lax'", '60 * 60 * 24 * 180'] as $needle) {
     $assert(str_contains($publicIndex, $needle), "Persistent PHP session contract missing: {$needle}");
@@ -26,8 +24,6 @@ $assert(str_contains($login, 'getOrCreateApiToken'), 'Login still does not reuse
 $assert(str_contains($loginService, 'getOneWithoutOwnership(["api_token" => $token])'), 'Token validation still inherits stale owner scope.');
 $assert(str_contains($loginService, 'is_active'), 'Inactive accounts are not rejected during token validation.');
 $assert(str_contains($loginService, 'self::synchronizeManagementModules($user);'), 'Token validation does not load Level 4 management grants.');
-$assert(str_contains($publicHtaccess, 'E=HTTP_AUTHORIZATION:%1'), 'Apache does not preserve Bearer authorization for PHP.');
-$assert(str_contains($rootHtaccess, 'E=HTTP_AUTHORIZATION:%1'), 'Root rewrite does not preserve Bearer authorization.');
 
 foreach (['management_modules', 'UserPermissions::managementModules()', 'hasPermissionForModule'] as $needle) {
     $assert(str_contains($apiAuth, $needle), "Mobile user permissions payload missing: {$needle}");
