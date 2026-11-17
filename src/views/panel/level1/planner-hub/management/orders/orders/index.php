@@ -13,6 +13,7 @@ use App\Repositories\OrdersServicesAssignedRepository;
 use App\Repositories\OrderProposalRepository;
 use App\Repositories\ServiceRepository;
 use App\Services\InvoiceService;
+use App\Services\ArchivedOrderService;
 use App\Utils\LocationUtils;
 use App\Utils\MessageUtil;
 
@@ -453,15 +454,11 @@ $router->post(function () {
 
     if (isset($_POST['archive_order_id'])) {
         $id = (int)$_POST['archive_order_id'];
-        $repo = new OrdersRepository();
-        $order = $repo->getOneByIdAndOwner($id, (int)$session->getOwner());
-        if (!$order) {
-            MessageUtil::setMessage("Order not found or access denied.", "Error", "error");
+        if (!(new ArchivedOrderService())->archive($id, (int)$session->getOwner())) {
+            MessageUtil::setMessage("Order not found, already archived or access denied.", "Error", "error");
             LocationUtils::reload();
         }
-        $repo->update(['is_archived' => 1], ['id' => $id]);
-
-        MessageUtil::setMessage("Order archived successfully.");
+        MessageUtil::setMessage("Order archived. Payments and history remain available in Archived Orders.");
         LocationUtils::reload();
     }
 

@@ -1,6 +1,7 @@
 <?php
 
 use App\Services\LoginService;
+use App\Services\ArchivedOrderService;
 use App\Utils\Router;
 use App\Utils\TemplateResponse;
 use App\Repositories\OrdersRepository;
@@ -283,24 +284,11 @@ $router->post(function () {
 
     if (isset($_POST['archive_order_id'])) {
         $id = (int)$_POST['archive_order_id'];
-        $repo = new OrdersRepository();
-        
-        // Verificar que la orden existe y pertenece al usuario
-        $order = $repo->getOne(['id' => $id]);
-        if (!$order || $order->id_user != $session->getId()) {
-            MessageUtil::setMessage("Order not found or access denied.");
+        if (!(new ArchivedOrderService())->archive($id, (int)$session->getOwner())) {
+            MessageUtil::setMessage("Order not found, already archived or access denied.", "Error", "error");
             LocationUtils::reload();
-            return;
         }
-        
-        $result = $repo->update(['is_archived' => 1], ['id' => $id]);
-        
-        if ($result) {
-            MessageUtil::setMessage("Order #$id archived successfully.");
-        } else {
-            MessageUtil::setMessage("Failed to archive order #$id.");
-        }
-        
+        MessageUtil::setMessage("Order VNV341{$id} archived. Payments and history remain available in Archived Orders.");
         LocationUtils::reload();
     }
 

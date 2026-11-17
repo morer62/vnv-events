@@ -6,6 +6,7 @@ use App\Services\LoginService;
 use App\Services\NotificationService;
 use App\Services\WeeklyExecutionService;
 use App\Services\EventExecutionService;
+use App\Services\ArchivedOrderService;
 use App\Utils\FileUtils;
 use App\Utils\LocationUtils;
 use App\Utils\MessageUtil;
@@ -85,6 +86,14 @@ $router->post(function () use ($range) {
         LocationUtils::redirectInternal('panel/planner-hub/management/orders/orders/execution' . $returnQuery);
     }
     $action = (string)($_POST['action'] ?? '');
+    if ($action === 'archive_order') {
+        if (!(new ArchivedOrderService())->archive($orderId, (int)$user->getOwner())) {
+            MessageUtil::setMessage('The order could not be archived. It may already be archived.', 'Event Execution', 'error');
+        } else {
+            MessageUtil::setMessage('Order archived. Payments and history remain available in Archived Orders.');
+        }
+        LocationUtils::redirectInternal('panel/planner-hub/management/orders/orders/execution' . $returnQuery);
+    }
     if ($action === 'delete_file') {
         $fileId = (int)($_POST['file_id'] ?? 0);
         $files = new OrderExecutionFilesRepository();

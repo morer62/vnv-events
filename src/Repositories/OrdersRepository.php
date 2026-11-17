@@ -364,6 +364,75 @@ class OrdersRepository extends BaseRepository
         return (int)$result->total;
     }
 
+    public function getArchivedOrdersForOwner(int $ownerId, ?string $search = null, ?string $startDate = null, ?string $endDate = null, int $limit = 20, int $offset = 0): array
+    {
+        $where = ['o.id_owner = :owner_id', 'o.is_archived = 1'];
+        $params = [':owner_id' => $ownerId];
+
+        if ($search !== null && trim($search) !== '') {
+            $where[] = "(CAST(o.id AS CHAR) LIKE :search_id OR o.address LIKE :search_address OR u.name LIKE :search_name OR u.lastname LIKE :search_lastname OR u.email LIKE :search_email OR u.phone LIKE :search_phone)";
+            $term = '%' . trim($search) . '%';
+            foreach (['search_id', 'search_address', 'search_name', 'search_lastname', 'search_email', 'search_phone'] as $key) {
+                $params[':' . $key] = $term;
+            }
+        }
+        if ($startDate) {
+            $where[] = 'o.event_date >= :start_date';
+            $params[':start_date'] = $startDate;
+        }
+        if ($endDate) {
+            $where[] = 'o.event_date <= :end_date';
+            $params[':end_date'] = $endDate;
+        }
+
+        $sql = "SELECT o.*,
+                       TRIM(CONCAT(COALESCE(u.name, ''), ' ', COALESCE(u.lastname, ''))) AS client_name,
+                       COALESCE(u.email, '') AS client_email,
+                       COALESCE(u.phone, '') AS client_phone,
+                       COALESCE((SELECT SUM(GREATEST(COALESCE(p.amount, 0) - COALESCE(p.refunded_amount, 0), 0)) FROM orders_payments p WHERE p.id_order = o.id), 0) AS payment_total,
+                       (SELECT COUNT(*) FROM orders_payments p WHERE p.id_order = o.id) AS payment_count,
+                       COALESCE((SELECT SUM(GREATEST(COALESCE(a.amount, 0) - COALESCE(a.refunded_amount, 0), 0)) FROM orders_advances a WHERE a.id_order = o.id), 0) AS advance_total,
+                       (SELECT COUNT(*) FROM orders_advances a WHERE a.id_order = o.id) AS advance_count
+                FROM orders o
+                LEFT JOIN users u ON u.id = o.id_client
+                WHERE " . implode(' AND ', $where) . "
+                ORDER BY COALESCE(o.archived_at, o.created_at) DESC, o.id DESC
+                LIMIT :limit OFFSET :offset";
+        $this->db->query($sql);
+        foreach ($params as $key => $value) {
+            $this->db->bind($key, $value);
+        }
+        $this->db->bind(':limit', max(1, $limit));
+        $this->db->bind(':offset', max(0, $offset));
+        return $this->db->fetchAll();
+    }
+
+    public function getArchivedOrdersForOwnerCount(int $ownerId, ?string $search = null, ?string $startDate = null, ?string $endDate = null): int
+    {
+        $where = ['o.id_owner = :owner_id', 'o.is_archived = 1'];
+        $params = [':owner_id' => $ownerId];
+        if ($search !== null && trim($search) !== '') {
+            $where[] = "(CAST(o.id AS CHAR) LIKE :search_id OR o.address LIKE :search_address OR u.name LIKE :search_name OR u.lastname LIKE :search_lastname OR u.email LIKE :search_email OR u.phone LIKE :search_phone)";
+            $term = '%' . trim($search) . '%';
+            foreach (['search_id', 'search_address', 'search_name', 'search_lastname', 'search_email', 'search_phone'] as $key) {
+                $params[':' . $key] = $term;
+            }
+        }
+        if ($startDate) {
+            $where[] = 'o.event_date >= :start_date';
+            $params[':start_date'] = $startDate;
+        }
+        if ($endDate) {
+            $where[] = 'o.event_date <= :end_date';
+            $params[':end_date'] = $endDate;
+        }
+        $this->db->query('SELECT COUNT(*) AS total FROM orders o LEFT JOIN users u ON u.id = o.id_client WHERE ' . implode(' AND ', $where));
+        foreach ($params as $key => $value) {
+            $this->db->bind($key, $value);
+        }
+        return (int)($this->db->fetchOne()->total ?? 0);
+    }
+
 
     public function getFiltered2(array $baseFilters, ?string $search, ?string $startDate, ?string $endDate): array
     {

@@ -1,152 +1,72 @@
 {% extends 'templates/base.admin.twig' %}
-{% import 'templates/macros.twig' as macros %}
+
+{% block style %}
+<style>
+  .archive-hero{border:0;border-radius:22px;background:linear-gradient(135deg,#13221f,#174c42);color:#fff;overflow:hidden}.archive-hero h1{color:#fff!important}.archive-kicker{color:#5be2cc;font-size:.75rem;font-weight:900;letter-spacing:.12em;text-transform:uppercase}.archive-card{border:1px solid #dfe9e7;border-radius:18px;box-shadow:0 12px 34px rgba(19,34,31,.07);overflow:hidden}.archive-search{border-radius:18px;background:#f5faf9;padding:1rem}.archive-table th{font-size:.75rem;letter-spacing:.06em;text-transform:uppercase;white-space:nowrap;color:#61716d}.archive-client strong{display:block}.archive-client a{overflow-wrap:anywhere}.archive-money{min-width:170px}.archive-money strong{display:block;color:#0d725f;font-size:1.05rem}.archive-actions{min-width:245px}.archive-delete{border:1px solid #ecc3bd;border-radius:12px;background:#fff7f6;padding:.65rem;margin-top:.55rem}.archive-delete summary{cursor:pointer;color:#9b3328;font-weight:800}.archive-delete input{font-family:monospace}.archive-empty{padding:4rem 1rem;text-align:center;color:#687772}@media(max-width:767px){.archive-hero{border-radius:16px}.archive-search .btn{width:100%}}
+</style>
+{% endblock %}
 
 {% block body %}
-<h2 class="mb-4">📦 Archived Orders</h2>
-{{ macros.breadcrumb2() }}
+<section class="card archive-hero mb-4">
+  <div class="card-body p-4 p-lg-5 d-flex flex-column flex-lg-row justify-content-between gap-3 align-items-lg-center">
+    <div><div class="archive-kicker">Order retention</div><h1 class="h2 mb-2">Archived Orders</h1><p class="mb-0 text-white-50">Removed from calendars and execution while payments, files and history remain available.</p></div>
+    <span class="badge rounded-pill bg-light text-dark fs-6 px-3 py-2">{{ totalOrders }} archived</span>
+  </div>
+</section>
 
-<section class="card">
-    <div class="card-body">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <h5 class="mb-0">Archived Orders</h5>
-            <div class="d-flex gap-2">
-                <a href="{{ path('panel/planner-hub/management/orders/orders/previous') }}" class="btn btn-outline-primary">
-                    📅 Past Orders
-                </a>
-                <a href="{{ path('panel/planner-hub/management/orders/orders') }}" class="btn btn-outline-secondary">
-                    ← Back to Orders
-                </a>
-            </div>
-        </div>
+<div class="d-flex flex-wrap gap-2 mb-4">
+  <a class="btn btn-outline-dark" href="{{ path('panel/planner-hub/management/orders/orders/execution') }}">Weekly Execution</a>
+  <a class="btn btn-outline-primary" href="{{ path('panel/planner-hub/management/orders/orders') }}?tab=orders">Active Orders</a>
+  <a class="btn btn-outline-secondary" href="{{ path('panel/planner-hub/management/orders/orders/previous') }}">Past Orders</a>
+</div>
 
-        <!-- Search and Filter -->
-        <form method="GET" class="row g-3 mb-4">
-            <div class="col-md-4">
-                <input type="text" name="search" class="form-control" placeholder="Search by address or client..." value="{{ search ?? '' }}">
-            </div>
-            <div class="col-md-3">
-                <input type="date" name="start_date" class="form-control" value="{{ start_date ?? '' }}">
-            </div>
-            <div class="col-md-3">
-                <input type="date" name="end_date" class="form-control" value="{{ end_date ?? '' }}">
-            </div>
-            <div class="col-md-2">
-                <button type="submit" class="btn btn-primary w-100">Search</button>
-            </div>
-        </form>
+<section class="card archive-card">
+  <div class="card-body">
+    <form method="get" class="archive-search row g-3 align-items-end mb-4">
+      <div class="col-lg-5"><label class="form-label fw-bold">Find an archived order</label><input class="form-control" name="search" value="{{ search }}" placeholder="Client email, name, phone, address or order number"></div>
+      <div class="col-md-3 col-lg-2"><label class="form-label">Event from</label><input class="form-control" type="date" name="start_date" value="{{ start_date }}"></div>
+      <div class="col-md-3 col-lg-2"><label class="form-label">Event through</label><input class="form-control" type="date" name="end_date" value="{{ end_date }}"></div>
+      <div class="col-md-3 col-lg-1"><button class="btn btn-primary w-100">Search</button></div>
+      <div class="col-md-3 col-lg-2"><a class="btn btn-outline-secondary w-100" href="{{ path('panel/planner-hub/management/orders/orders/archived') }}">Clear</a></div>
+    </form>
 
-        <!-- Results Info -->
-        <div class="alert alert-info mb-3">
-            <strong>Showing {{ orders|length }} to {{ (currentPage - 1) * perPage + orders|length }} of {{ totalOrders }} archived orders</strong>
-        </div>
-
-        {% if orders is empty %}
-            <div class="text-center py-5">
-                <div class="mb-3">
-                    <i data-feather="archive" style="width: 64px; height: 64px; color: #6c757d;"></i>
+    {% if orders is empty %}
+      <div class="archive-empty"><i data-feather="archive" style="width:52px;height:52px"></i><h2 class="h5 mt-3">No archived orders match this search</h2><p class="mb-0">Try the full client email or clear the filters.</p></div>
+    {% else %}
+      <div class="table-responsive">
+        <table class="table table-hover align-middle archive-table">
+          <thead><tr><th>Order</th><th>Client</th><th>Event</th><th>Received / deposits</th><th>Archived</th><th>Actions</th></tr></thead>
+          <tbody>
+          {% for order in orders %}
+            {% set received = order.payment_total + order.advance_total %}
+            <tr>
+              <td><strong>VNV341{{ order.id }}</strong><small class="d-block text-muted">{{ order.address|default('Address not provided') }}</small></td>
+              <td class="archive-client"><strong>{{ order.client_name|default('Client not found') }}</strong>{% if order.client_email %}<a class="d-block" href="mailto:{{ order.client_email }}">{{ order.client_email }}</a>{% endif %}{% if order.client_phone %}<small>{{ order.client_phone }}</small>{% endif %}</td>
+              <td><strong>{{ order.event_date|date('M j, Y') }}</strong><small class="d-block text-muted">{{ order.start_time ? order.start_time|date('g:i A') : 'Time TBD' }}</small></td>
+              <td class="archive-money"><strong>${{ received|number_format(2, '.', ',') }} received</strong><small class="d-block">{{ order.payment_count }} payment record{{ order.payment_count == 1 ? '' : 's' }}</small><small class="d-block">{{ order.advance_count }} advance{{ order.advance_count == 1 ? '' : 's' }} · ${{ order.advance_total|number_format(2, '.', ',') }}</small></td>
+              <td><span class="badge bg-secondary">Archived</span><small class="d-block text-muted mt-1">{{ (order.archived_at ?: order.created_at)|date('M j, Y') }}</small></td>
+              <td class="archive-actions">
+                <div class="d-flex flex-wrap gap-1">
+                  <a class="btn btn-sm btn-primary" href="{{ path('panel/planner-hub/management/orders/orders/payments') }}?id={{ order.id }}">Payments / deposits</a>
+                  <a class="btn btn-sm btn-outline-info" href="{{ path('panel/planner-hub/management/orders/orders/files') }}?id={{ order.id }}">Files</a>
+                  <form method="post" onsubmit="return confirm('Restore this order to calendars and execution?');"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><input type="hidden" name="action" value="unarchive"><input type="hidden" name="order_id" value="{{ order.id }}"><button class="btn btn-sm btn-outline-success">Unarchive</button></form>
                 </div>
-                <h5 class="text-muted">No Archived Orders Found</h5>
-                <p class="text-muted">Orders that have been manually archived will appear here.</p>
-                <a href="{{ path('panel/planner-hub/management/orders/orders') }}" class="btn btn-primary">
-                    ← Back to Orders
-                </a>
-            </div>
-        {% else %}
-            <div class="table-responsive">
-                <table class="table table-hover">
-                    <thead>
-                        <tr>
-                            <th>Order ID</th>
-                            <th>Client</th>
-                            <th>Event Date</th>
-                            <th>Address</th>
-                            <th>Status</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for order in orders %}
-                            <tr>
-                                <td>
-                                    <strong>VNV 341{{ order.id }}</strong>
-                                </td>
-                                <td>
-                                    {% for client in clients %}
-                                        {% if client.id == order.id_client %}
-                                            {{ client.name }} {{ client.lastname }}
-                                            <br><small class="text-muted">{{ client.email }}</small>
-                                        {% endif %}
-                                    {% endfor %}
-                                </td>
-                                <td>
-                                    {{ order.event_date|date("M j, Y") }}
-                                    <br><small class="text-muted">{{ order.start_time|date("g:i A") }} - {{ order.end_time|date("g:i A") }}</small>
-                                </td>
-                                <td>{{ order.address }}</td>
-                                <td>
-                                    <span class="badge bg-secondary">Archived</span>
-                                </td>
-                                <td>
-                                    <div class="btn-group" role="group">
-                                        <a href="{{ path('panel/planner-hub/management/orders/orders/edit') }}?id={{ order.id }}" class="btn btn-sm btn-outline-primary">
-                                            <i data-feather="edit"></i> Edit
-                                        </a>
-                                        <a href="{{ path('panel/planner-hub/management/orders/orders/files') }}?id={{ order.id }}" class="btn btn-sm btn-outline-info">
-                                            <i data-feather="folder"></i> Files
-                                        </a>
-                                        <form method="POST" style="display: inline;" onsubmit="return confirm('Are you sure you want to unarchive this order?')">
-                                            <input type="hidden" name="unarchive_order_id" value="{{ order.id }}">
-                                            <button type="submit" class="btn btn-sm btn-outline-success">
-                                                <i data-feather="archive"></i> Unarchive
-                                            </button>
-                                        </form>
-                                    </div>
-                                </td>
-                            </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
+                <details class="archive-delete"><summary>Delete permanently</summary><p class="small mt-2 mb-2">This removes the order and its operational records. Type <strong>DELETE VNV341{{ order.id }}</strong> to continue.</p><form method="post" onsubmit="return confirm('This cannot be undone. Permanently delete VNV341{{ order.id }}?');"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><input type="hidden" name="action" value="delete_permanently"><input type="hidden" name="order_id" value="{{ order.id }}"><input class="form-control form-control-sm mb-2" name="confirmation" required autocomplete="off" placeholder="DELETE VNV341{{ order.id }}"><button class="btn btn-sm btn-danger w-100">Permanently delete</button></form></details>
+              </td>
+            </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
 
-            <!-- Pagination -->
-            {% if totalPages > 1 %}
-                <nav aria-label="Archived orders pagination" class="mt-4">
-                    <ul class="pagination justify-content-center">
-                        {% if currentPage > 1 %}
-                            <li class="page-item">
-                                <a class="page-link" href="?page={{ currentPage - 1 }}{% if search %}&search={{ search }}{% endif %}{% if start_date %}&start_date={{ start_date }}{% endif %}{% if end_date %}&end_date={{ end_date }}{% endif %}">Previous</a>
-                            </li>
-                        {% endif %}
-
-                        {% for page in 1..totalPages %}
-                            {% if page == currentPage %}
-                                <li class="page-item active">
-                                    <span class="page-link">{{ page }}</span>
-                                </li>
-                            {% elseif page <= 3 or page > totalPages - 3 or (page >= currentPage - 2 and page <= currentPage + 2) %}
-                                <li class="page-item">
-                                    <a class="page-link" href="?page={{ page }}{% if search %}&search={{ search }}{% endif %}{% if start_date %}&start_date={{ start_date }}{% endif %}{% if end_date %}&end_date={{ end_date }}{% endif %}">{{ page }}</a>
-                                </li>
-                            {% elseif page == 4 and currentPage > 5 %}
-                                <li class="page-item disabled">
-                                    <span class="page-link">...</span>
-                                </li>
-                            {% elseif page == totalPages - 3 and currentPage < totalPages - 4 %}
-                                <li class="page-item disabled">
-                                    <span class="page-link">...</span>
-                                </li>
-                            {% endif %}
-                        {% endfor %}
-
-                        {% if currentPage < totalPages %}
-                            <li class="page-item">
-                                <a class="page-link" href="?page={{ currentPage + 1 }}{% if search %}&search={{ search }}{% endif %}{% if start_date %}&start_date={{ start_date }}{% endif %}{% if end_date %}&end_date={{ end_date }}{% endif %}">Next</a>
-                            </li>
-                        {% endif %}
-                    </ul>
-                </nav>
-            {% endif %}
-        {% endif %}
-    </div>
+      {% if totalPages > 1 %}
+        <nav aria-label="Archived orders pages" class="mt-4"><ul class="pagination justify-content-center">
+          {% if currentPage > 1 %}<li class="page-item"><a class="page-link" href="?page={{ currentPage - 1 }}&search={{ search|url_encode }}&start_date={{ start_date }}&end_date={{ end_date }}">Previous</a></li>{% endif %}
+          <li class="page-item active"><span class="page-link">{{ currentPage }} / {{ totalPages }}</span></li>
+          {% if currentPage < totalPages %}<li class="page-item"><a class="page-link" href="?page={{ currentPage + 1 }}&search={{ search|url_encode }}&start_date={{ start_date }}&end_date={{ end_date }}">Next</a></li>{% endif %}
+        </ul></nav>
+      {% endif %}
+    {% endif %}
+  </div>
 </section>
 {% endblock %}
