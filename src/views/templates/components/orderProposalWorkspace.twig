@@ -27,6 +27,7 @@
     .proposal-editor h2, .proposal-document h2 { font-size:1.9rem; margin:1.4rem 0 .7rem; }
     .proposal-editor h3, .proposal-document h3 { font-size:1.35rem; margin:1.2rem 0 .55rem; }
     .proposal-editor p, .proposal-document p { margin:0 0 1rem; }
+    .proposal-editor small, .proposal-document small { display:block; color:#5f6f78; font-size:.82em; line-height:1.55; }
     .proposal-editor ul, .proposal-editor ol, .proposal-document ul, .proposal-document ol { padding-left:1.7rem; margin:0 0 1rem; }
     .proposal-editor img, .proposal-document img { display:block; max-width:100%; height:auto; margin:1rem auto; border-radius:12px; }
     .proposal-page-break { border-top:2px dashed #8ca3af; margin:2rem 0; height:0; position:relative; page-break-after:always; break-after:page; }
@@ -107,6 +108,8 @@
                     Insert image <input type="file" id="proposalImageInput" accept="image/jpeg,image/png,image/webp" hidden {{ status == 'APPROVED' ? 'disabled' : '' }}>
                 </label>
                 <button type="button" class="btn btn-sm btn-outline-primary" id="proposalPageBreak" {{ status == 'APPROVED' ? 'disabled' : '' }}>Page break</button>
+                <button type="button" class="btn btn-sm btn-outline-warning" data-proposal-disclaimer="food" {{ status == 'APPROVED' ? 'disabled' : '' }}>+ Food station disclaimer</button>
+                <button type="button" class="btn btn-sm btn-outline-warning" data-proposal-disclaimer="decor" {{ status == 'APPROVED' ? 'disabled' : '' }}>+ Décor &amp; setup disclaimer</button>
                 <span id="proposalUploadStatus" class="small align-self-center" role="status" aria-live="polite"></span>
             </div>
             <div id="proposalEditor" class="proposal-editor" contenteditable="{{ status == 'APPROVED' ? 'false' : 'true' }}" role="textbox" aria-multiline="true" aria-label="Proposal content">{{ proposal.content_html|default('')|raw }}</div>
@@ -195,6 +198,30 @@
             editor.focus();
             document.execCommand('insertHTML', false, '<div class="proposal-page-break" data-page-break="true" contenteditable="false"></div><p><br></p>');
         });
+        const disclaimerTexts = {
+            food: 'Colors and decorative elements are for reference purposes only. VNV Events may adapt its selection based on availability while making every effort to maintain the event’s visual harmony.',
+            decor: 'The setup will aim to match the approved design as closely as possible. Slight variations in proportions, layout, and details may occur due to venue conditions, terrain, weather, or other external factors.'
+        };
+        document.querySelectorAll('[data-proposal-disclaimer]').forEach(button => button.addEventListener('click', () => {
+            const text = disclaimerTexts[button.dataset.proposalDisclaimer];
+            if (!text) return;
+            const paragraph = document.createElement('p');
+            const small = document.createElement('small');
+            small.textContent = text;
+            paragraph.appendChild(small);
+            editor.appendChild(paragraph);
+            const nextParagraph = document.createElement('p');
+            nextParagraph.appendChild(document.createElement('br'));
+            editor.appendChild(nextParagraph);
+            editor.focus();
+            const selection = window.getSelection();
+            const range = document.createRange();
+            range.selectNodeContents(nextParagraph);
+            range.collapse(true);
+            selection.removeAllRanges();
+            selection.addRange(range);
+            document.getElementById('proposalUploadStatus').textContent = 'Editable disclaimer inserted.';
+        }));
         form?.addEventListener('submit', () => { contentInput.value = editor.innerHTML; });
 
         const imageInput = document.getElementById('proposalImageInput');

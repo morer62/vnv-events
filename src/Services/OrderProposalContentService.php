@@ -8,7 +8,7 @@ use DOMNode;
 
 class OrderProposalContentService
 {
-    private const ALLOWED_TAGS = ['div', 'p', 'h2', 'h3', 'ul', 'ol', 'li', 'strong', 'em', 'u', 'br', 'img', 'figure', 'figcaption'];
+    private const ALLOWED_TAGS = ['div', 'p', 'h2', 'h3', 'ul', 'ol', 'li', 'strong', 'em', 'u', 'small', 'br', 'img', 'figure', 'figcaption'];
 
     /**
      * Sanitizes the editor HTML while preserving document semantics needed by

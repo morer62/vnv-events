@@ -41,6 +41,7 @@ class OrderProposalPdfGenerator
             .brand { color:#0b5f59; font-size:18px; font-weight:700; }
             h1 { font-size:24px; margin:16px 0 4px; } h2 { font-size:20px; margin:20px 0 8px; }
             h3 { font-size:15px; margin:16px 0 6px; } p { margin:0 0 10px; }
+            small { display:block; color:#52606b; font-size:8.5px; line-height:1.5; }
             ul, ol { margin:0 0 12px 22px; padding:0; } li { margin:0 0 4px; }
             figure { margin:14px 0; } img { max-width:100%; height:auto; } figcaption { color:#66737d; font-size:9px; }
             .proposal-page-break { page-break-after:always; height:1px; }

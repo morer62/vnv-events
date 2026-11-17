@@ -16,10 +16,11 @@ $assert = static function (bool $condition, string $message): void {
 };
 
 $content = new OrderProposalContentService();
-$sanitized = $content->sanitize('<h2 onclick="bad()">Menu</h2><ul><li>Starter</li><li>Main</li></ul><script>alert(1)</script><img src="javascript:bad" onerror="bad()"><div class="proposal-page-break" data-page-break="true">bad</div><p>Finish</p>');
+$sanitized = $content->sanitize('<h2 onclick="bad()">Menu</h2><ul><li>Starter</li><li>Main</li></ul><p><small>Editable proposal disclaimer.</small></p><script>alert(1)</script><img src="javascript:bad" onerror="bad()"><div class="proposal-page-break" data-page-break="true">bad</div><p>Finish</p>');
 $assert(str_contains($sanitized, '<h2>Menu</h2>'), 'Heading formatting was not preserved.');
 $assert(str_contains($sanitized, '<ul><li>Starter</li><li>Main</li></ul>'), 'List continuity markup was not preserved.');
 $assert(str_contains($sanitized, 'proposal-page-break'), 'Page break was not preserved.');
+$assert(str_contains($sanitized, '<small>Editable proposal disclaimer.</small>'), 'Small editable disclaimer formatting was not preserved.');
 $assert(!str_contains($sanitized, '<script'), 'Script markup was not removed.');
 $assert(!str_contains($sanitized, 'onclick'), 'Event attributes were not removed.');
 $assert(!str_contains($sanitized, 'javascript:'), 'Unsafe image URLs were not removed.');
