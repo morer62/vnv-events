@@ -394,6 +394,67 @@
     }
 }
 
+/* Compact desktop header. Mobile keeps its dedicated app bar and menu. */
+@media (min-width: 861px){
+    .vnvx-header__row{
+        min-height: 68px;
+        gap: 14px;
+    }
+
+    .vnvx-header__nav{
+        gap: clamp(1px, .25vw, 5px);
+        padding: 5px;
+    }
+
+    .vnvx-header__nav a{
+        min-height: 36px;
+        padding: 7px clamp(8px, .75vw, 13px);
+        font-size: .72rem;
+        letter-spacing: .06em;
+        flex-shrink: 0;
+    }
+
+    .vnvx-nav-group{
+        flex-shrink: 0;
+    }
+
+    .vnvx-header__home{
+        width: 36px;
+        min-width: 36px;
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+        font-size: .82rem !important;
+    }
+
+    .vnvx-header__right{
+        gap: 8px;
+    }
+
+    .vnvx-header__socials{
+        gap: 6px;
+    }
+
+    .vnvx-header__socials a{
+        width: 34px;
+        height: 34px;
+        font-size: .86rem;
+    }
+
+    .vnvx-header__login,
+    .vnvx-header__cta{
+        min-height: 38px;
+        font-size: .7rem;
+    }
+
+    .vnvx-header__login{
+        padding: 0 12px;
+    }
+
+    .vnvx-header__cta{
+        padding: 0 14px;
+    }
+}
+
 /* Mobile */
 @media (max-width: 860px){
     .vnvx-header{
@@ -586,7 +647,9 @@
             </div>
 
             <nav class="vnvx-header__nav" aria-label="Main navigation">
-                <a href="{{ path('/') }}">Home</a>
+                <a href="{{ path('/') }}" class="vnvx-header__home" aria-label="Home">
+                    <i class="fa-solid fa-house" aria-hidden="true"></i>
+                </a>
                 <a href="{{ path('/#services') }}">Services</a>
                 <div class="vnvx-nav-group">
                     <a class="vnvx-nav-group__trigger" href="{{ path('/event-production') }}" aria-haspopup="true">Productions <i class="fa-solid fa-chevron-down" aria-hidden="true"></i></a>
