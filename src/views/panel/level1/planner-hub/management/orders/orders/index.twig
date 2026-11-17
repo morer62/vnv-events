@@ -6,68 +6,47 @@
 	<link rel="stylesheet" href="{{ asset_for('assets/css/datatables/dataTables.bootstrap5.min.css') }}">
 	<link rel="stylesheet" href="{{ asset_for('assets/css/datatables/responsive.bootstrap5.min.css') }}">
 	<style>
+		.vnv-orders-table-scroll {
+			max-width: 100%;
+			overflow-x: auto !important;
+			overflow-y: visible;
+			-webkit-overflow-scrolling: touch;
+			overscroll-behavior-x: contain;
+			touch-action: pan-x pan-y;
+		}
+
+		#ordersTable_wrapper .dataTables_scrollBody,
+		#estimatesTable_wrapper .dataTables_scrollBody {
+			overflow-x: auto !important;
+			-webkit-overflow-scrolling: touch;
+			overscroll-behavior-x: contain;
+			touch-action: pan-x pan-y;
+		}
+
+		#ordersTable {
+			min-width: 3000px !important;
+		}
+
+		#estimatesTable {
+			min-width: 2300px !important;
+		}
+
+		.vnv-scroll-hint {
+			color: #52656a;
+			font-size: 0.82rem;
+			margin: 0 0 0.65rem;
+		}
+
 		@media (max-width: 768px) {
-			#ordersTable th:nth-child(1),
-			#ordersTable td:nth-child(1),
-			#ordersTable th:nth-child(2),
-			#ordersTable td:nth-child(2),
-			#ordersTable th:nth-child(3),
-			#ordersTable td:nth-child(3),
-			#ordersTable th:nth-child(4),
-			#ordersTable td:nth-child(4),
-			#ordersTable th:nth-child(5),
-			#ordersTable td:nth-child(5) {
+			#ordersTable th,
+			#ordersTable td,
+			#estimatesTable th,
+			#estimatesTable td {
 				display: table-cell !important;
 			}
-			#ordersTable th:nth-child(6),
-			#ordersTable td:nth-child(6),
-			#ordersTable th:nth-child(7),
-			#ordersTable td:nth-child(7),
-			#ordersTable th:nth-child(8),
-			#ordersTable td:nth-child(8),
-			#ordersTable th:nth-child(9),
-			#ordersTable td:nth-child(9),
-			#ordersTable th:nth-child(10),
-			#ordersTable td:nth-child(10),
-			#ordersTable th:nth-child(11),
-			#ordersTable td:nth-child(11),
-			#ordersTable th:nth-child(12),
-			#ordersTable td:nth-child(12),
-			#ordersTable th:nth-child(13),
-			#ordersTable td:nth-child(13),
-			#ordersTable th:nth-child(14),
-			#ordersTable td:nth-child(14),
-			#ordersTable th:nth-child(15),
-			#ordersTable td:nth-child(15) {
-				display: none !important;
-			}
-			#estimatesTable th:nth-child(1),
-			#estimatesTable td:nth-child(1),
-			#estimatesTable th:nth-child(2),
-			#estimatesTable td:nth-child(2),
-			#estimatesTable th:nth-child(3),
-			#estimatesTable td:nth-child(3),
-			#estimatesTable th:nth-child(4),
-			#estimatesTable td:nth-child(4),
-			#estimatesTable th:nth-child(5),
-			#estimatesTable td:nth-child(5) {
-				display: table-cell !important;
-			}
-			#estimatesTable th:nth-child(6),
-			#estimatesTable td:nth-child(6),
-			#estimatesTable th:nth-child(7),
-			#estimatesTable td:nth-child(7),
-			#estimatesTable th:nth-child(8),
-			#estimatesTable td:nth-child(8),
-			#estimatesTable th:nth-child(9),
-			#estimatesTable td:nth-child(9),
-			#estimatesTable th:nth-child(10),
-			#estimatesTable td:nth-child(10),
-			#estimatesTable th:nth-child(11),
-			#estimatesTable td:nth-child(11),
-			#estimatesTable th:nth-child(12),
-			#estimatesTable td:nth-child(12) {
-				display: none !important;
+
+			.vnv-scroll-hint {
+				font-weight: 700;
 			}
 		}
 	</style>
@@ -154,7 +133,8 @@
 			<div class="tab-content" id="ordersTabsContent">
 				
 				<div class="tab-pane fade {{ activeTab != 'estimates' ? 'show active' : '' }}" id="orders-content" role="tabpanel" aria-labelledby="orders-tab">
-					<div class="table-responsive">
+					<p class="vnv-scroll-hint" aria-live="polite">↔ Swipe or scroll horizontally to see every order column.</p>
+					<div class="table-responsive vnv-orders-table-scroll" tabindex="0" aria-label="Orders table, horizontally scrollable">
 						<table id="ordersTable" class="table table-striped table-bordered align-middle text-center vnv-table" style="min-width: 768px;">
 							<thead>
 								<tr>
@@ -359,7 +339,8 @@
 				</div>
 
 				<div class="tab-pane fade {{ activeTab == 'estimates' ? 'show active' : '' }}" id="estimates-content" role="tabpanel" aria-labelledby="estimates-tab">
-					<div class="table-responsive">
+					<p class="vnv-scroll-hint" aria-live="polite">↔ Swipe or scroll horizontally to see every estimate column.</p>
+					<div class="table-responsive vnv-orders-table-scroll" tabindex="0" aria-label="Estimates table, horizontally scrollable">
 						<table id="estimatesTable" class="table table-striped table-bordered align-middle text-center" style="min-width: 768px;">
 							<thead>
 								<tr>
@@ -877,23 +858,11 @@
             ordersTable.DataTable({
                 order: [],
                 ordering: false,
+				scrollX: true,
+				scrollCollapse: false,
                 pageLength: 25,
                 lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
-                responsive: {
-                    details: {
-                        type: 'column',
-                        target: 0, // Show details button in first column (ID)
-                        renderer: function(api, rowIdx, columns) {
-                            // Return empty or minimal content since we're using direct click on ID column
-                            return '';
-                        }
-                    },
-                    breakpoints: [
-                        { name: 'desktop', width: Infinity },
-                        { name: 'tablet', width: 1024 },
-                        { name: 'mobile', width: 768 }
-                    ]
-                },
+				responsive: false,
                 autoWidth: false,
                 language: {
                     search: "Search:",
@@ -1005,23 +974,11 @@
             estimatesTable.DataTable({
                 order: [],
                 ordering: false,
+				scrollX: true,
+				scrollCollapse: false,
                 pageLength: 25,
                 lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
-                responsive: {
-                    details: {
-                        type: 'column',
-                        target: 0, // Show details button in first column (ID)
-                        renderer: function(api, rowIdx, columns) {
-                            // Return empty or minimal content since we're using direct click on ID column
-                            return '';
-                        }
-                    },
-                    breakpoints: [
-                        { name: 'desktop', width: Infinity },
-                        { name: 'tablet', width: 1024 },
-                        { name: 'mobile', width: 768 }
-                    ]
-                },
+				responsive: false,
                 autoWidth: false,
                 language: {
                     search: "Search:",

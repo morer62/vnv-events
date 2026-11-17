@@ -37,6 +37,10 @@ archiveContractAssert(str_contains($executionController, "\$action === 'archive_
 archiveContractAssert(str_contains($executionTemplate, 'Archive order'), 'Weekly execution must show an archive control.');
 archiveContractAssert(str_contains($ordersTemplate, 'Archive estimate'), 'The complete estimates table must expose archive next to the visible estimate ID.');
 archiveContractAssert(str_contains($ordersTemplate, 'Archive order'), 'The complete orders table must expose archive next to the visible order ID.');
+archiveContractAssert(substr_count($ordersTemplate, 'scrollX: true') === 2, 'Orders and estimates must provide native horizontal DataTables scrolling.');
+archiveContractAssert(substr_count($ordersTemplate, 'responsive: false') === 2, 'Responsive column removal must be disabled for orders and estimates.');
+archiveContractAssert(!str_contains($ordersTemplate, '#ordersTable th:nth-child(6)'), 'Mobile CSS must not hide later order columns.');
+archiveContractAssert(str_contains($ordersTemplate, 'Swipe or scroll horizontally'), 'The tables must explain horizontal access to users.');
 archiveContractAssert(str_contains($editController, "\$_POST['action'] ?? '') === 'archive_order'"), 'The order editor must accept the archive action.');
 archiveContractAssert(str_contains($editTemplate, 'Remove it from active calendars and execution'), 'The order editor must explain and expose archive behavior.');
 archiveContractAssert(str_contains($weeklyExecution, "'is_archived' => 0"), 'Archived orders must remain excluded from weekly execution.');
