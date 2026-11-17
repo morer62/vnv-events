@@ -56,6 +56,14 @@ class OrderProposalWorkflowService
         if ((string)$proposal->status === 'APPROVED') {
             throw new RuntimeException('This proposal is already approved.');
         }
+        // Sending a revision is the authoritative moment when client approval
+        // becomes required. This keeps the proposal workflow independent from
+        // contract/payment status and also supports older orders whose create
+        // form did not have the approval checkbox enabled.
+        (new OrdersRepository())->update(
+            ['proposal_requires_approval' => 1],
+            ['id' => (int)$proposal->id_order]
+        );
         $this->proposals->setStatus((int)$proposal->id, 'PENDING_APPROVAL', $actorId);
         $this->proposals->addAudit((int)$proposal->id, (int)$proposal->current_revision_id, 'SENT_FOR_APPROVAL', $actorId);
         $this->notifyClient((int)$proposal->id_order, 'A menu / proposal is ready for your review and signature.');

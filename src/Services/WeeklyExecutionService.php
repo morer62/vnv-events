@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Repositories\Connection;
 use App\Repositories\OrderExecutionFilesRepository;
+use App\Repositories\OrderProposalRepository;
 use App\Repositories\OrdersPaymentsRepository;
 use App\Repositories\OrdersRepository;
 use App\Repositories\OrdersSuborderRepository;
@@ -15,6 +16,7 @@ final class WeeklyExecutionService
     public function listReadyEvents(int $ownerId, string $startDate, string $endDate): array
     {
         $orders = (new OrdersRepository())->getExecutionCandidates($ownerId, $startDate, $endDate);
+        $orders = (new OrderProposalRepository())->attachSummaries($orders);
         $users = new UserRepository();
         $files = new OrderExecutionFilesRepository();
         $result = [];
@@ -39,6 +41,7 @@ final class WeeklyExecutionService
             $order->balance_due = $readiness['balance'];
             $order->is_fully_paid = $readiness['is_paid'];
             $order->contract_token = $this->orderAccessToken($order);
+            $order->proposal_access_url = (new OrderProposalAccessService())->urlForOrder($order);
             $result[] = $order;
         }
 

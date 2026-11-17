@@ -13,11 +13,19 @@ $migration = file_get_contents($root . '/db/migrations/20261116120000_create_ord
 foreach (['insertUnorderedList', 'insertOrderedList', 'proposal-page-break', 'proposalImageInput', 'Approve and sign proposal', 'Reason for reopening', 'signed_pdf_path', 'Client proposal link', 'copyProposalClientLink'] as $needle) {
     $assert(str_contains($workspace, $needle), "Proposal workspace contract missing: {$needle}");
 }
-foreach (['orders-calendar-print-agenda', 'printable_orders', 'Proposal approval pending'] as $needle) {
+foreach (['orders-calendar-print-agenda', 'printable_orders', 'Menu / Proposal', 'calendarOrderProposalLink', 'Signed PDF'] as $needle) {
     $assert(str_contains($calendar, $needle), "Calendar print/pending contract missing: {$needle}");
 }
 foreach (['save_draft', 'send_for_approval', 'approve', 'revoke', 'upload_image'] as $action) {
     $assert(str_contains($controller, $action), "Proposal route action missing: {$action}");
+}
+$teamRoute = file_get_contents($root . '/src/views/panel/level4/planner-hub/team/orders/orders/proposal/index.php');
+$teamWork = file_get_contents($root . '/src/views/panel/level4/planner-hub/team/my-work/index.twig');
+foreach (['proposalTeamMode', 'controller.php'] as $needle) {
+    $assert(str_contains($teamRoute, $needle), "Team proposal route contract missing: {$needle}");
+}
+foreach (['Menu / Proposal', 'No details yet', 'Signed PDF'] as $needle) {
+    $assert(str_contains($teamWork, $needle), "Team proposal visibility contract missing: {$needle}");
 }
 foreach (['order_proposal_revisions', 'order_proposal_approvals', 'order_proposal_audit_logs', 'proposal_requires_approval'] as $table) {
     $assert(str_contains($migration, $table), "Proposal persistence contract missing: {$table}");

@@ -1,6 +1,7 @@
 <?php
 
 use App\Repositories\OrdersTeamTasksRepository;
+use App\Repositories\OrderProposalRepository;
 use App\Repositories\StoreDeliveryLocationLogsRepository;
 use App\Repositories\StoreOrderTasksRepository;
 use App\Repositories\StoreOrderWorkflowRepository;
@@ -23,6 +24,21 @@ $router->get(function () {
     $serviceTasks = $ownerId > 0
         ? (new OrdersTeamTasksRepository())->getForUserAndOwnerDetailed((int)$user->getId(), $ownerId)
         : [];
+    $serviceOrderIds = array_values(array_unique(array_filter(array_map(
+        static fn($task) => (int)($task->id_order ?? 0),
+        $serviceTasks
+    ))));
+    $proposalSummaries = (new OrderProposalRepository())->getSummariesByOrderIds($serviceOrderIds);
+    foreach ($serviceTasks as $task) {
+        $summary = $proposalSummaries[(int)($task->id_order ?? 0)] ?? null;
+        $task->proposal_status = $summary->status ?? 'NOT_STARTED';
+        $task->proposal_has_content = $summary ? (bool)$summary->current_revision_id : false;
+        $task->proposal_status_label = OrderProposalRepository::statusLabel(
+            $task->proposal_status,
+            $task->proposal_has_content
+        );
+        $task->proposal_signed_pdf_path = $summary->signed_pdf_path ?? null;
+    }
     $storeTasks = $ownerId > 0
         ? (new StoreOrderTasksRepository())->getForAssignee($ownerId, (int)$user->getId())
         : [];

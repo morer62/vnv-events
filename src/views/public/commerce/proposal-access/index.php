@@ -20,9 +20,7 @@ $loadContext = static function (): array {
     $payload = (new OrderProposalAccessService())->validateToken($token);
     $orderData = (new OrdersRepository())->getByIdWithoutOwnershipCheck((int)$payload['order_id']);
     $order = $orderData ? (object)$orderData : null;
-    if (!$order
-        || (int)$order->id_client !== (int)$payload['user_id']
-        || (int)($order->proposal_requires_approval ?? 0) !== 1) {
+    if (!$order || (int)$order->id_client !== (int)$payload['user_id']) {
         throw new RuntimeException('The proposal link is not available.');
     }
 

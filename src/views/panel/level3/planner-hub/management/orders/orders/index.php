@@ -155,9 +155,7 @@ $router->get(callback: function () {
         ];
         $payload["hash"] = hash_hmac("sha256", json_encode($payload), $secret);
         $order->contract_token = base64_encode(json_encode($payload));
-        $order->proposal_access_url = (int)($order->proposal_requires_approval ?? 0) === 1
-            ? (new \App\Services\OrderProposalAccessService())->urlForOrder($order)
-            : null;
+        $order->proposal_access_url = (new \App\Services\OrderProposalAccessService())->urlForOrder($order);
     }
 
     $suborderRepo = new OrdersSuborderRepository();

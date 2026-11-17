@@ -88,7 +88,16 @@
                             <td>#{{ task.id_order ?: task.id_suborder }}</td>
                             <td>{{ task.event_date ?: '—' }}</td>
                             <td><span class="badge {{ task.is_done ? 'bg-success' : 'bg-warning text-dark' }}">{{ task.is_done ? 'COMPLETED' : 'PENDING' }}</span></td>
-                            <td class="text-end"><a class="btn btn-sm btn-outline-primary" href="{{ path('panel/planner-hub/team/orders/orders/tasks?id=' ~ task.id_order ~ (task.id_suborder ? '&suborder=' ~ task.id_suborder : '')) }}">Open</a></td>
+                            <td class="text-end">
+                                <div class="d-flex flex-column align-items-end gap-1">
+                                    <a class="btn btn-sm btn-outline-primary" href="{{ path('panel/planner-hub/team/orders/orders/tasks?id=' ~ task.id_order ~ (task.id_suborder ? '&suborder=' ~ task.id_suborder : '')) }}">Open task</a>
+                                    {% if task.id_order %}
+                                        <a class="btn btn-sm {{ task.proposal_has_content ? 'btn-outline-success' : 'btn-outline-secondary' }}" href="{{ path('panel/planner-hub/team/orders/orders/proposal?id=' ~ task.id_order) }}">Menu / Proposal</a>
+                                        <span class="small text-muted">{{ task.proposal_status_label|default('No details yet') }}</span>
+                                        {% if task.proposal_signed_pdf_path %}<a class="btn btn-sm btn-link" href="{{ task.proposal_signed_pdf_path }}" target="_blank" rel="noopener">Signed PDF</a>{% endif %}
+                                    {% endif %}
+                                </div>
+                            </td>
                         </tr>
                     {% else %}
                         <tr><td colspan="5" class="text-center text-muted py-4">No service or event tasks assigned.</td></tr>

@@ -368,7 +368,9 @@ class OrdersCalendarService
             'payments_url' => 'panel/planner-hub/management/orders/orders/payments?id=' . $id,
             'status_url' => 'panel/planner-hub/management/orders/orders/status?id=' . $id,
             'proposal_status' => $this->stringValue($order, 'proposal_status', ''),
+            'proposal_status_label' => $this->stringValue($order, 'proposal_status_label', 'No details yet'),
             'proposal_pending' => (bool)($order->proposal_pending ?? false),
+            'proposal_signed_pdf_path' => $this->stringValue($order, 'proposal_signed_pdf_path', ''),
             'proposal_url' => 'panel/planner-hub/management/orders/orders/proposal?id=' . $id,
         ];
     }

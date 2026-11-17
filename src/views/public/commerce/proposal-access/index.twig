@@ -8,6 +8,8 @@
     'APPROVED': 'Approved and signed',
     'CHANGES_REQUESTED': 'Changes requested'
 } %}
+{% set has_details = proposal and proposal.current_revision_id %}
+{% set status_display = has_details ? status_labels[status]|default(status) : 'No details yet' %}
 
 {% block title %}Secure Menu / Proposal | VNV Events{% endblock %}
 {% block meta %}<meta name="robots" content="noindex,nofollow,noarchive">{% endblock %}
@@ -72,12 +74,12 @@
             <h1>Review your event proposal</h1>
             <div>Event {{ order.event_date|date('F j, Y') }} · Revision {{ proposal.revision_number|default('—') }}</div>
         </div>
-        <span class="public-proposal-status {{ status == 'APPROVED' ? 'public-proposal-status--approved' : (status == 'CHANGES_REQUESTED' ? 'public-proposal-status--changes' : '') }}">{{ status_labels[status]|default(status) }}</span>
+        <span class="public-proposal-status {{ status == 'APPROVED' ? 'public-proposal-status--approved' : (status == 'CHANGES_REQUESTED' ? 'public-proposal-status--changes' : '') }}">{{ status_display }}</span>
     </header>
 
     {% if not proposal or not proposal.current_revision_id or status == 'DRAFT' or status == 'CHANGES_REQUESTED' %}
         <div class="public-proposal-notice">
-            <h2 class="h4">The event team is preparing your proposal.</h2>
+            <h2 class="h4">No details yet.</h2>
             <p class="mb-0">This secure link remains active. Please return when VNV Events confirms that the next revision is ready.</p>
         </div>
     {% else %}

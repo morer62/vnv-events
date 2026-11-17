@@ -58,13 +58,13 @@
                     <td style="min-width: 160px;">{{ order.created_at|date("Y-m-d H:i") }}</td>
                     <td style="min-width: 160px;">
                         <div class="btn-group">
-                            {% if order.proposal_requires_approval %}
-                                <a href="{{ path('panel/planner-hub/orders/orders/proposal') }}?id={{ order.id }}" class="btn btn-sm {{ order.proposal_pending ? 'btn-warning' : 'btn-success' }}">Propuesta / menú</a>
-                            {% endif %}
+                            <a href="{{ path('panel/planner-hub/orders/orders/proposal') }}?id={{ order.id }}" class="btn btn-sm {{ order.proposal_pending ? 'btn-warning' : (order.proposal_has_content ? 'btn-success' : 'btn-outline-secondary') }}">Menu / Proposal</a>
+                            {% if order.proposal_signed_pdf_path %}<a href="{{ order.proposal_signed_pdf_path }}" target="_blank" rel="noopener" class="btn btn-sm btn-outline-success">Signed PDF</a>{% endif %}
                             <a href="{{ path('panel/planner-hub/orders/orders/files') }}?id={{ order.id }}" class="btn btn-sm btn-secondary">Files</a>
                             <a href="{{ path('panel/planner-hub/orders/orders/suborders') }}?id={{ order.id }}" class="btn btn-sm btn-info">Suborders</a>
                             <a href="{{ path('panel/planner-hub/orders/orders/print') }}?id={{ order.id }}" class="btn btn-sm btn-dark">Print</a>
                         </div>
+                        <div class="small text-muted mt-1">{{ order.proposal_status_label|default('No details yet') }}</div>
                     </td>
                 </tr>
             {% else %}

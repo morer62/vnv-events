@@ -3,6 +3,7 @@
 use App\Repositories\InstitutionProfileRepository;
 use App\Repositories\OrderProposalRepository;
 use App\Repositories\OrdersRepository;
+use App\Repositories\OrdersTeamTasksRepository;
 use App\Services\LoginService;
 use App\Services\OrderProposalAccessService;
 use App\Services\OrderProposalWorkflowService;
@@ -12,8 +13,9 @@ use App\Utils\Router;
 use App\Utils\TemplateResponse;
 
 $router = new Router();
+$proposalTeamMode = $proposalTeamMode ?? false;
 
-$loadContext = static function (bool $manager): array {
+$loadContext = static function (bool $manager, bool $team): array {
     $user = LoginService::getSession();
     if (!$user) {
         LocationUtils::redirectInternal('login');
@@ -25,7 +27,14 @@ $loadContext = static function (bool $manager): array {
         throw new RuntimeException('Order not found.');
     }
 
-    if ($manager) {
+    if ($team) {
+        $authorized = (int)$user->getLevel() === 4
+            && (bool)(new OrdersTeamTasksRepository())->getOneWithoutOwnershipCheck([
+                'id_order' => (int)$order->id,
+                'id_user' => (int)$user->getId(),
+                'id_owner' => (int)$order->id_owner,
+            ]);
+    } elseif ($manager) {
         $authorized = (int)$order->id_owner === (int)$user->getOwner();
         if ((int)$user->getLevel() === 4 && !empty($_SESSION['current_institution_id'])) {
             $institution = (new InstitutionProfileRepository())->getById((int)$_SESSION['current_institution_id']);
@@ -40,24 +49,29 @@ $loadContext = static function (bool $manager): array {
     return [$user, $order];
 };
 
+$routeForMode = static function (bool $manager, bool $team, int $orderId = 0): string {
+    $route = $team
+        ? 'panel/planner-hub/team/orders/orders/proposal'
+        : ($manager
+            ? 'panel/planner-hub/management/orders/orders/proposal'
+            : 'panel/planner-hub/orders/orders/proposal');
+    return $orderId > 0 ? $route . '?id=' . $orderId : $route;
+};
+
 $validCsrf = static function (): bool {
     $stored = (string)($_SESSION['proposal_csrf_token'] ?? '');
     $posted = (string)($_POST['csrf_token'] ?? '');
     return $stored !== '' && $posted !== '' && hash_equals($stored, $posted);
 };
 
-$router->get(function () use ($proposalManagerMode, $loadContext) {
+$router->get(function () use ($proposalManagerMode, $proposalTeamMode, $loadContext, $routeForMode) {
     try {
-        [$user, $order] = $loadContext($proposalManagerMode);
+        [$user, $order] = $loadContext($proposalManagerMode, $proposalTeamMode);
         $repository = new OrderProposalRepository();
         $workflow = new OrderProposalWorkflowService();
         $proposal = $proposalManagerMode
             ? $workflow->getOrCreate($order, (int)$user->getId())
             : $repository->getByOrder((int)$order->id);
-
-        if (!$proposalManagerMode && (int)($order->proposal_requires_approval ?? 0) !== 1) {
-            throw new RuntimeException('This order does not require a menu / proposal approval.');
-        }
 
         $history = $proposal ? $repository->getHistory((int)$proposal->id) : [];
         foreach ($history as $entry) {
@@ -73,25 +87,31 @@ $router->get(function () use ($proposalManagerMode, $loadContext) {
             'proposal' => $proposal,
             'history' => $history,
             'manager_mode' => $proposalManagerMode,
+            'team_mode' => $proposalTeamMode,
             'csrf_token' => $_SESSION['proposal_csrf_token'],
-            'client_access_url' => $clientAccessUrl,
+            'client_access_url' => $proposalManagerMode ? $clientAccessUrl : null,
             ]
         );
     } catch (Throwable $exception) {
         MessageUtil::setMessage($exception->getMessage(), 'Proposal', 'danger');
-        LocationUtils::redirectInternal($proposalManagerMode
-            ? 'panel/planner-hub/management/orders/orders'
-            : 'panel/planner-hub/orders/orders');
+        LocationUtils::redirectInternal($proposalTeamMode
+            ? 'panel/planner-hub/team/my-work'
+            : ($proposalManagerMode
+                ? 'panel/planner-hub/management/orders/orders'
+                : 'panel/planner-hub/orders/orders'));
     }
 });
 
-$router->post(function () use ($proposalManagerMode, $loadContext, $validCsrf) {
+$router->post(function () use ($proposalManagerMode, $proposalTeamMode, $loadContext, $validCsrf, $routeForMode) {
     $isJson = ($_POST['action'] ?? '') === 'upload_image';
     try {
         if (!$validCsrf()) {
             throw new RuntimeException('Your session expired. Reload the page and try again.');
         }
-        [$user, $order] = $loadContext($proposalManagerMode);
+        [$user, $order] = $loadContext($proposalManagerMode, $proposalTeamMode);
+        if ($proposalTeamMode) {
+            throw new RuntimeException('Team members have read-only access to the menu / proposal.');
+        }
         $repository = new OrderProposalRepository();
         $workflow = new OrderProposalWorkflowService();
         $proposal = $proposalManagerMode
@@ -135,9 +155,7 @@ $router->post(function () use ($proposalManagerMode, $loadContext, $validCsrf) {
             throw new RuntimeException('Unknown proposal action.');
         }
 
-        LocationUtils::redirectInternal(($proposalManagerMode
-            ? 'panel/planner-hub/management/orders/orders/proposal?id='
-            : 'panel/planner-hub/orders/orders/proposal?id=') . (int)$order->id);
+        LocationUtils::redirectInternal($routeForMode($proposalManagerMode, $proposalTeamMode, (int)$order->id));
     } catch (Throwable $exception) {
         if ($isJson) {
             http_response_code(422);
@@ -146,9 +164,11 @@ $router->post(function () use ($proposalManagerMode, $loadContext, $validCsrf) {
             exit;
         }
         MessageUtil::setMessage($exception->getMessage(), 'Proposal', 'danger');
-        LocationUtils::redirectInternal(($proposalManagerMode
-            ? 'panel/planner-hub/management/orders/orders/proposal?id='
-            : 'panel/planner-hub/orders/orders/proposal?id=') . (int)($_POST['id_order'] ?? 0));
+        LocationUtils::redirectInternal($routeForMode(
+            $proposalManagerMode,
+            $proposalTeamMode,
+            (int)($_POST['id_order'] ?? 0)
+        ));
     }
 });
 

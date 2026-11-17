@@ -10,6 +10,7 @@ use App\Repositories\OrdersSuborderRepository;
 use App\Repositories\OrderSuborderServicesAssignedRepository;
 use App\Repositories\OrdersPaymentsRepository;
 use App\Repositories\OrdersServicesAssignedRepository;
+use App\Repositories\OrderProposalRepository;
 use App\Repositories\ServiceRepository;
 use App\Services\InvoiceService;
 use App\Utils\LocationUtils;
@@ -65,6 +66,7 @@ $router->get(callback: function () {
     $allOrders = array_filter($allOrders, function($order) use ($today) {
         return $order->event_date >= $today;
     });
+    $allOrders = (new OrderProposalRepository())->attachSummaries(array_values($allOrders));
 
     $orders = [];
     $estimates = [];
@@ -167,9 +169,7 @@ $router->get(callback: function () {
         ];
         $payload["hash"] = hash_hmac("sha256", json_encode($payload), $secret);
         $order->contract_token = base64_encode(json_encode($payload));
-        $order->proposal_access_url = (int)($order->proposal_requires_approval ?? 0) === 1
-            ? (new \App\Services\OrderProposalAccessService())->urlForOrder($order)
-            : null;
+        $order->proposal_access_url = (new \App\Services\OrderProposalAccessService())->urlForOrder($order);
         $managerId = (int)($order->main_manager_id ?? 0);
         if ($managerId > 0) {
             if (!array_key_exists($managerId, $managerNames)) {

@@ -176,6 +176,49 @@ class OrderProposalRepository
         return $row ?: null;
     }
 
+    /** @return array<int,object> */
+    public function getSummariesByOrderIds(array $orderIds): array
+    {
+        $ids = array_values(array_unique(array_filter(array_map('intval', $orderIds))));
+        if (!$ids) {
+            return [];
+        }
+
+        $placeholders = implode(',', array_fill(0, count($ids), '?'));
+        $this->db->query(
+            "SELECT p.id, p.id_order, p.status, p.current_revision_id, p.approved_revision_id,
+                    (SELECT a.signed_pdf_path
+                     FROM order_proposal_approvals a
+                     WHERE a.id_proposal = p.id
+                       AND a.action = 'APPROVED'
+                       AND a.signed_pdf_path IS NOT NULL
+                     ORDER BY a.id DESC
+                     LIMIT 1) AS signed_pdf_path
+             FROM order_proposals p
+             WHERE p.id_order IN ({$placeholders})"
+        );
+        foreach ($ids as $index => $id) {
+            $this->db->bind($index + 1, $id);
+        }
+
+        $summaries = [];
+        foreach ($this->db->fetchAll() as $row) {
+            $summaries[(int)$row->id_order] = $row;
+        }
+        return $summaries;
+    }
+
+    public static function statusLabel(?string $status, bool $hasContent = false): string
+    {
+        return match ((string)$status) {
+            'DRAFT' => $hasContent ? 'Draft' : 'No details yet',
+            'PENDING_APPROVAL' => 'Awaiting client signature',
+            'APPROVED' => 'Approved and signed',
+            'CHANGES_REQUESTED' => 'Changes requested',
+            default => 'No details yet',
+        };
+    }
+
     /** Adds proposal status fields to order objects without N+1 queries. */
     public function attachSummaries(array $orders): array
     {
@@ -183,21 +226,16 @@ class OrderProposalRepository
         if (!$ids) {
             return $orders;
         }
-        $placeholders = implode(',', array_fill(0, count($ids), '?'));
-        $this->db->query("SELECT id_order, status, current_revision_id FROM order_proposals WHERE id_order IN ({$placeholders})");
-        foreach ($ids as $index => $id) {
-            $this->db->bind($index + 1, $id);
-        }
-        $summaries = [];
-        foreach ($this->db->fetchAll() as $row) {
-            $summaries[(int)$row->id_order] = $row;
-        }
+        $summaries = $this->getSummariesByOrderIds($ids);
         foreach ($orders as $order) {
             $summary = $summaries[(int)($order->id ?? 0)] ?? null;
-            $order->proposal_status = $summary->status ?? null;
+            $order->proposal_status = $summary->status ?? 'NOT_STARTED';
             $order->proposal_has_content = $summary ? (bool)$summary->current_revision_id : false;
-            $order->proposal_pending = (int)($order->proposal_requires_approval ?? 0) === 1
-                && !in_array((string)($order->proposal_status ?? ''), ['APPROVED'], true);
+            $order->proposal_status_label = self::statusLabel($order->proposal_status, $order->proposal_has_content);
+            $order->proposal_signed_pdf_path = $summary->signed_pdf_path ?? null;
+            $order->proposal_pending = (string)$order->proposal_status === 'PENDING_APPROVAL'
+                || ((int)($order->proposal_requires_approval ?? 0) === 1
+                    && !in_array((string)$order->proposal_status, ['APPROVED'], true));
         }
         return $orders;
     }

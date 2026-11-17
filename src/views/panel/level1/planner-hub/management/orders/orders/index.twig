@@ -211,8 +211,10 @@
 												{% endif %}
 												{% if order.proposal_access_url %}
 													<hr class="my-2">
+												<small class="d-block fw-bold mb-1">Menu / Proposal: {{ order.proposal_status_label|default('No details yet') }}</small>
 													<button type="button" class="btn btn-outline-primary btn-sm mb-1" onclick="copyPaymentLink('{{ order.proposal_access_url|e('js') }}')">Copy Proposal Link</button><br>
-													<a href="{{ order.proposal_access_url }}" target="_blank" rel="noopener" class="btn btn-outline-secondary btn-sm">Open Proposal</a>
+												<a href="{{ path('panel/planner-hub/management/orders/orders/proposal') }}?id={{ order.id }}" class="btn btn-outline-secondary btn-sm">View / Edit Proposal</a>
+												{% if order.proposal_signed_pdf_path %}<br><a href="{{ order.proposal_signed_pdf_path }}" target="_blank" rel="noopener" class="btn btn-outline-success btn-sm mt-1">Open Signed PDF</a>{% endif %}
 												{% endif %}
 											</td>
 											<td style="min-width: 220px; text-align: left;">
@@ -401,8 +403,10 @@
 												{% endif %}
 												{% if estimate.proposal_access_url %}
 													<hr class="my-2">
+													<small class="d-block fw-bold mb-1">Menu / Proposal: {{ estimate.proposal_status_label|default('No details yet') }}</small>
 													<button type="button" class="btn btn-outline-primary btn-sm mb-1" onclick="copyPaymentLink('{{ estimate.proposal_access_url|e('js') }}')">Copy Proposal Link</button><br>
-													<a href="{{ estimate.proposal_access_url }}" target="_blank" rel="noopener" class="btn btn-outline-secondary btn-sm">Open Proposal</a>
+													<a href="{{ path('panel/planner-hub/management/orders/orders/proposal') }}?id={{ estimate.id }}" class="btn btn-outline-secondary btn-sm">View / Edit Proposal</a>
+													{% if estimate.proposal_signed_pdf_path %}<br><a href="{{ estimate.proposal_signed_pdf_path }}" target="_blank" rel="noopener" class="btn btn-outline-success btn-sm mt-1">Open Signed PDF</a>{% endif %}
 												{% endif %}
 											</td>
 											<td style="min-width: 220px; text-align: left;">

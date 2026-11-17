@@ -41,9 +41,10 @@ $template = (string)file_get_contents($root . '/src/views/public/commerce/propos
 $workspace = (string)file_get_contents($root . '/src/views/templates/components/orderProposalWorkspace.twig');
 $workflow = (string)file_get_contents($root . '/src/Services/OrderProposalWorkflowService.php');
 
-foreach (['validateToken', 'proposal_requires_approval', "action === 'approve'", "action === 'revoke'", 'proposal_public_csrf_token'] as $needle) {
+foreach (['validateToken', "action === 'approve'", "action === 'revoke'", 'proposal_public_csrf_token'] as $needle) {
     $assert(str_contains($controller, $needle), "Public proposal controller contract missing: {$needle}");
 }
+$assert(!str_contains($controller, "proposal_requires_approval ?? 0) !== 1"), 'Public proposal access is still gated by the order checkbox.');
 foreach (['noindex,nofollow,noarchive', 'Approve and sign proposal', 'Reopen approval', 'content_html|raw'] as $needle) {
     $assert(str_contains($template, $needle), "Public proposal template contract missing: {$needle}");
 }
@@ -58,7 +59,7 @@ for ($level = 1; $level <= 4; $level++) {
     $orderListTemplate = (string)file_get_contents($root . "/src/views/panel/level{$level}/planner-hub/management/orders/orders/index.twig");
     $assert(str_contains($orderListController, 'proposal_access_url'), "Level {$level} order list does not generate the proposal URL.");
     $assert(str_contains($orderListTemplate, 'Copy Proposal Link'), "Level {$level} order list does not expose the proposal copy action.");
-    $assert(str_contains($orderListTemplate, 'Open Proposal'), "Level {$level} order list does not expose the proposal open action.");
+    $assert(str_contains($orderListTemplate, 'Open Proposal') || str_contains($orderListTemplate, 'View / Edit Proposal'), "Level {$level} order list does not expose the proposal open action.");
 }
 
 echo "PASS secure public proposal link, manual sharing and ready-email contracts\n";

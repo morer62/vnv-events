@@ -22,6 +22,7 @@ $assert(str_contains($sanitized, 'proposal-page-break'), 'Page break was not pre
 $assert(!str_contains($sanitized, '<script'), 'Script markup was not removed.');
 $assert(!str_contains($sanitized, 'onclick'), 'Event attributes were not removed.');
 $assert(!str_contains($sanitized, 'javascript:'), 'Unsafe image URLs were not removed.');
+$assert(OrderProposalRepository::statusLabel('NOT_STARTED', false) === 'No details yet', 'Empty proposal status is not user friendly.');
 
 $pdo = new PDO($_ENV['DATABASE_URL']);
 $order = $pdo->query('SELECT o.id, o.id_owner FROM orders o LEFT JOIN order_proposals p ON p.id_order = o.id WHERE p.id IS NULL ORDER BY o.id DESC LIMIT 1')->fetch(PDO::FETCH_OBJ);
@@ -53,6 +54,11 @@ try {
         'user_local_timestamp' => date('Y-m-d H:i:s'),
     ]);
     $repository->setStatus((int)$proposal->id, 'APPROVED', (int)$order->id_owner, $revisionId);
+    $summaries = $repository->getSummariesByOrderIds([(int)$order->id]);
+    $summary = $summaries[(int)$order->id] ?? null;
+    $assert($summary && (string)$summary->status === 'APPROVED', 'Approved proposal summary was not available to order/calendar views.');
+    $assert((string)$summary->signed_pdf_path === 'https://example.invalid/signed-copy.pdf', 'Signed PDF was not exposed through the proposal summary.');
+    $assert(OrderProposalRepository::statusLabel('APPROVED', true) === 'Approved and signed', 'Approved proposal status label changed unexpectedly.');
     $repository->addApproval([
         'id_proposal' => (int)$proposal->id,
         'id_revision' => $revisionId,

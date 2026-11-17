@@ -478,7 +478,7 @@
 						</div>
 						<div class="orders-calendar-events">
 							{% for order in day.orders %}
-								<button type="button" class="orders-calendar-event {{ order.status_class }}" data-order-calendar-details='{{ order|json_encode|e('html_attr') }}' data-detail-url="{{ order.detail_url|e('html_attr') }}" data-edit-url="{{ path(order.edit_url)|e('html_attr') }}" data-status-url="{{ path(order.status_url)|e('html_attr') }}" data-payments-url="{{ path(order.payments_url)|e('html_attr') }}">
+								<button type="button" class="orders-calendar-event {{ order.status_class }}" data-order-calendar-details='{{ order|json_encode|e('html_attr') }}' data-detail-url="{{ order.detail_url|e('html_attr') }}" data-edit-url="{{ path(order.edit_url)|e('html_attr') }}" data-status-url="{{ path(order.status_url)|e('html_attr') }}" data-payments-url="{{ path(order.payments_url)|e('html_attr') }}" data-proposal-url="{{ path(order.proposal_url)|e('html_attr') }}" data-proposal-pdf="{{ order.proposal_signed_pdf_path|e('html_attr') }}">
 									<div class="orders-calendar-time">{{ order.range_label }}</div>
 									<div class="orders-calendar-title">{{ order.title }}</div>
 									<div class="orders-calendar-meta">
@@ -489,7 +489,7 @@
 										{% endif %}
 									</div>
 									<span class="orders-calendar-status">{{ order.status_label }}</span>
-									{% if order.proposal_pending %}<span class="orders-calendar-proposal-badge">Proposal approval pending</span>{% endif %}
+									<span class="orders-calendar-proposal-badge">Menu / Proposal: {{ order.proposal_status_label|default('No details yet') }}</span>
 									<span class="orders-calendar-detail-hint">{{ trans('planner_hub.view_details') }} <i data-feather="arrow-right"></i></span>
 									<span class="orders-calendar-print-url" data-print-event-url="{{ path(order.edit_url)|e('html_attr') }}"></span>
 								</button>
@@ -499,12 +499,12 @@
 								<div class="orders-no-time">
 									<div class="orders-no-time-label">No time assigned</div>
 									{% for order in day.no_time_orders %}
-										<button type="button" class="orders-calendar-event {{ order.status_class }}" data-order-calendar-details='{{ order|json_encode|e('html_attr') }}' data-detail-url="{{ order.detail_url|e('html_attr') }}" data-edit-url="{{ path(order.edit_url)|e('html_attr') }}" data-status-url="{{ path(order.status_url)|e('html_attr') }}" data-payments-url="{{ path(order.payments_url)|e('html_attr') }}">
+										<button type="button" class="orders-calendar-event {{ order.status_class }}" data-order-calendar-details='{{ order|json_encode|e('html_attr') }}' data-detail-url="{{ order.detail_url|e('html_attr') }}" data-edit-url="{{ path(order.edit_url)|e('html_attr') }}" data-status-url="{{ path(order.status_url)|e('html_attr') }}" data-payments-url="{{ path(order.payments_url)|e('html_attr') }}" data-proposal-url="{{ path(order.proposal_url)|e('html_attr') }}" data-proposal-pdf="{{ order.proposal_signed_pdf_path|e('html_attr') }}">
 											<div class="orders-calendar-time">No time assigned</div>
 											<div class="orders-calendar-title">{{ order.title }}</div>
 											<div class="orders-calendar-meta">{{ order.code }} - {{ order.client_name }}</div>
 											<span class="orders-calendar-status">{{ order.status_label }}</span>
-											{% if order.proposal_pending %}<span class="orders-calendar-proposal-badge">Proposal approval pending</span>{% endif %}
+											<span class="orders-calendar-proposal-badge">Menu / Proposal: {{ order.proposal_status_label|default('No details yet') }}</span>
 											<span class="orders-calendar-detail-hint">{{ trans('planner_hub.view_details') }} <i data-feather="arrow-right"></i></span>
 											<span class="orders-calendar-print-url" data-print-event-url="{{ path(order.edit_url)|e('html_attr') }}"></span>
 										</button>
@@ -533,7 +533,7 @@
 								<div>{{ order.code }}<br>{{ order.status_label }}</div>
 								<div><strong>{{ order.client_name }}</strong><br>{{ order.title }}</div>
 								<div>{{ order.address|default('No address') }}</div>
-								<div>{% if order.proposal_pending %}<span class="orders-calendar-print-pending">Proposal approval pending</span>{% else %}Proposal: {{ order.proposal_status|default('not required')|replace({'_':' '})|lower }}{% endif %}</div>
+								<div>Menu / Proposal: {{ order.proposal_status_label|default('No details yet') }}</div>
 							</div>
 						{% endfor %}
 					</div>
@@ -546,7 +546,7 @@
 				<div class="orders-agenda-day">
 					<div class="orders-agenda-day-title">{{ day.day_name }}, {{ day.month }} {{ day.day_number }}</div>
 					{% for order in day.orders %}
-						<button type="button" class="orders-calendar-event {{ order.status_class }} mb-2" data-order-calendar-details='{{ order|json_encode|e('html_attr') }}' data-detail-url="{{ order.detail_url|e('html_attr') }}" data-edit-url="{{ path(order.edit_url)|e('html_attr') }}" data-status-url="{{ path(order.status_url)|e('html_attr') }}" data-payments-url="{{ path(order.payments_url)|e('html_attr') }}">
+						<button type="button" class="orders-calendar-event {{ order.status_class }} mb-2" data-order-calendar-details='{{ order|json_encode|e('html_attr') }}' data-detail-url="{{ order.detail_url|e('html_attr') }}" data-edit-url="{{ path(order.edit_url)|e('html_attr') }}" data-status-url="{{ path(order.status_url)|e('html_attr') }}" data-payments-url="{{ path(order.payments_url)|e('html_attr') }}" data-proposal-url="{{ path(order.proposal_url)|e('html_attr') }}" data-proposal-pdf="{{ order.proposal_signed_pdf_path|e('html_attr') }}">
 							<div class="orders-calendar-time">{{ order.range_label }}</div>
 							<div class="orders-calendar-title">{{ order.title }}</div>
 							<div class="orders-calendar-meta">
@@ -554,7 +554,7 @@
 								{% if order.address %}<br>{{ order.address }}{% endif %}
 							</div>
 							<span class="orders-calendar-status">{{ order.status_label }}</span>
-							{% if order.proposal_pending %}<span class="orders-calendar-proposal-badge">Proposal approval pending</span>{% endif %}
+							<span class="orders-calendar-proposal-badge">Menu / Proposal: {{ order.proposal_status_label|default('No details yet') }}</span>
 							<span class="orders-calendar-detail-hint">{{ trans('planner_hub.view_details') }} <i data-feather="arrow-right"></i></span>
 						</button>
 					{% endfor %}
@@ -562,11 +562,11 @@
 						<div class="orders-no-time">
 							<div class="orders-no-time-label">No time assigned</div>
 							{% for order in day.no_time_orders %}
-								<button type="button" class="orders-calendar-event {{ order.status_class }} mb-2" data-order-calendar-details='{{ order|json_encode|e('html_attr') }}' data-detail-url="{{ order.detail_url|e('html_attr') }}" data-edit-url="{{ path(order.edit_url)|e('html_attr') }}" data-status-url="{{ path(order.status_url)|e('html_attr') }}" data-payments-url="{{ path(order.payments_url)|e('html_attr') }}">
+								<button type="button" class="orders-calendar-event {{ order.status_class }} mb-2" data-order-calendar-details='{{ order|json_encode|e('html_attr') }}' data-detail-url="{{ order.detail_url|e('html_attr') }}" data-edit-url="{{ path(order.edit_url)|e('html_attr') }}" data-status-url="{{ path(order.status_url)|e('html_attr') }}" data-payments-url="{{ path(order.payments_url)|e('html_attr') }}" data-proposal-url="{{ path(order.proposal_url)|e('html_attr') }}" data-proposal-pdf="{{ order.proposal_signed_pdf_path|e('html_attr') }}">
 									<div class="orders-calendar-title">{{ order.title }}</div>
 									<div class="orders-calendar-meta">{{ order.code }} - Client: {{ order.client_name }}</div>
 									<span class="orders-calendar-status">{{ order.status_label }}</span>
-									{% if order.proposal_pending %}<span class="orders-calendar-proposal-badge">Proposal approval pending</span>{% endif %}
+									<span class="orders-calendar-proposal-badge">Menu / Proposal: {{ order.proposal_status_label|default('No details yet') }}</span>
 									<span class="orders-calendar-detail-hint">{{ trans('planner_hub.view_details') }} <i data-feather="arrow-right"></i></span>
 								</button>
 							{% endfor %}
@@ -611,6 +611,14 @@
 						<i data-feather="credit-card"></i>
 						{{ trans('planner_hub.payments') }}
 					</a>
+					<a id="calendarOrderProposalLink" class="btn btn-outline-success" href="#">
+						<i data-feather="file-text"></i>
+						Menu / Proposal
+					</a>
+					<a id="calendarOrderProposalPdfLink" class="btn btn-outline-success d-none" href="#" target="_blank" rel="noopener">
+						<i data-feather="check-circle"></i>
+						Signed PDF
+					</a>
 					<button type="button" class="btn btn-secondary ms-auto" data-bs-dismiss="modal">{{ trans('planner_hub.close') }}</button>
 				</div>
 			</div>
@@ -636,8 +644,10 @@
 			var editLink = document.getElementById('calendarOrderEditLink');
 			var statusLink = document.getElementById('calendarOrderStatusLink');
 			var paymentsLink = document.getElementById('calendarOrderPaymentsLink');
+			var proposalLink = document.getElementById('calendarOrderProposalLink');
+			var proposalPdfLink = document.getElementById('calendarOrderProposalPdfLink');
 
-			if (!content || !title || !detailsLink || !editLink || !statusLink || !paymentsLink) {
+			if (!content || !title || !detailsLink || !editLink || !statusLink || !paymentsLink || !proposalLink || !proposalPdfLink) {
 				return;
 			}
 
@@ -647,6 +657,9 @@
 			editLink.href = order.edit_url_resolved || '#';
 			statusLink.href = order.status_url_resolved || '#';
 			paymentsLink.href = order.payments_url_resolved || '#';
+			proposalLink.href = order.proposal_url_resolved || '#';
+			proposalPdfLink.href = order.proposal_pdf_resolved || '#';
+			proposalPdfLink.classList.toggle('d-none', !order.proposal_pdf_resolved);
 
 			var rows = [
 				['{{ trans('planner_hub.id') }}', order.code || order.id],
@@ -655,6 +668,7 @@
 				['{{ trans('planner_hub.event_date') }}', order.event_date],
 				['{{ trans('planner_hub.start_end') }}', order.range_label],
 				['{{ trans('planner_hub.status') }}', order.status_label],
+				['Menu / Proposal', order.proposal_status_label || 'No details yet'],
 				['{{ trans('planner_hub.address') }}', order.address]
 			];
 
@@ -686,6 +700,8 @@
 					order.edit_url_resolved = eventButton.getAttribute('data-edit-url') || '#';
 					order.status_url_resolved = eventButton.getAttribute('data-status-url') || '#';
 					order.payments_url_resolved = eventButton.getAttribute('data-payments-url') || '#';
+					order.proposal_url_resolved = eventButton.getAttribute('data-proposal-url') || '#';
+					order.proposal_pdf_resolved = eventButton.getAttribute('data-proposal-pdf') || '';
 					openCalendarOrderDetails(order);
 				} catch (error) {
 					console.error('Error opening calendar order details:', error);

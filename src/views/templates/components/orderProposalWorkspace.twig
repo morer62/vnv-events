@@ -8,6 +8,8 @@
     'APPROVED': 'Approved and signed',
     'CHANGES_REQUESTED': 'Changes requested'
 } %}
+{% set has_details = proposal and proposal.current_revision_id %}
+{% set status_display = has_details ? status_labels[status]|default(status) : 'No details yet' %}
 
 {% block style %}
 <style>
@@ -54,7 +56,7 @@
 <div class="proposal-shell">
     <nav aria-label="breadcrumb" class="mb-3 proposal-screen-only">
         <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="{{ manager_mode ? path('panel/planner-hub/management/orders/orders') : path('panel/planner-hub/orders/orders') }}">Orders</a></li>
+            <li class="breadcrumb-item"><a href="{{ team_mode ? path('panel/planner-hub/team/my-work') : (manager_mode ? path('panel/planner-hub/management/orders/orders') : path('panel/planner-hub/orders/orders')) }}">{{ team_mode ? 'My Work' : 'Orders' }}</a></li>
             <li class="breadcrumb-item active">Menu / Proposal</li>
         </ol>
     </nav>
@@ -62,11 +64,11 @@
     <div class="proposal-header mb-4">
         <div>
             <div class="text-uppercase small fw-bold text-primary mb-1">Order VNV-341{{ order.id }}</div>
-            <h1 class="h2 mb-2">Proposal – {{ manager_mode ? 'View / Edit proposal / menu' : 'Review proposal / menu' }}</h1>
+            <h1 class="h2 mb-2">Proposal – {{ manager_mode ? 'View / Edit proposal / menu' : (team_mode ? 'Event menu / proposal' : 'Review proposal / menu') }}</h1>
             <div class="text-muted">Event {{ order.event_date|date('F j, Y') }} · Revision {{ proposal.revision_number|default('—') }}</div>
         </div>
         <span class="proposal-status {{ status == 'APPROVED' ? 'proposal-status--approved' : (status == 'PENDING_APPROVAL' ? 'proposal-status--pending' : (status == 'CHANGES_REQUESTED' ? 'proposal-status--changes' : '')) }}">
-            {{ status_labels[status]|default(status) }}
+            {{ status_display }}
         </span>
     </div>
 
@@ -85,6 +87,8 @@
         </section>
         {% if status == 'APPROVED' %}
             <div class="proposal-alert mb-3"><strong>This revision is locked.</strong> Reopen the approval with a reason before making any change. The signed PDF and approval history will remain preserved.</div>
+        {% elseif not has_details %}
+            <div class="proposal-alert mb-3"><strong>No details yet.</strong> Add the menu or proposal below, save the first revision, and then send the secure client link for signature.</div>
         {% endif %}
         <form method="post" id="proposalEditorForm" class="proposal-card" enctype="multipart/form-data">
             <input type="hidden" name="id_order" value="{{ order.id }}">
@@ -127,9 +131,17 @@
                 <button class="btn btn-success">Send current revision for client approval</button>
             </form>
         {% endif %}
+    {% elseif team_mode %}
+        {% if not has_details %}
+            <div class="proposal-alert"><strong>No details yet.</strong> The event menu / proposal has not been prepared.</div>
+        {% else %}
+            <article class="proposal-card">
+                <div class="proposal-document">{{ proposal.content_html|raw }}</div>
+            </article>
+        {% endif %}
     {% else %}
         {% if not proposal or not proposal.current_revision_id or status == 'DRAFT' or status == 'CHANGES_REQUESTED' %}
-            <div class="proposal-alert">The event team is preparing the next menu / proposal revision. You will be notified when it is ready to review.</div>
+            <div class="proposal-alert"><strong>No details yet.</strong> The event team is preparing the next menu / proposal revision. You will be notified when it is ready to review.</div>
         {% else %}
             <article class="proposal-card">
                 <div class="proposal-document">{{ proposal.content_html|raw }}</div>
@@ -156,14 +168,18 @@
     {% if status == 'APPROVED' %}
         <section class="proposal-signature-card mt-4">
             <h2 class="h5">Approved revision</h2>
-            <p>This proposal is signed and locked. If a correction is needed, reopen it below; the previous approval and PDF will remain in the history.</p>
-            <form method="post" class="row g-2 align-items-end">
-                <input type="hidden" name="id_order" value="{{ order.id }}">
-                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-                <input type="hidden" name="action" value="revoke">
-                <div class="col-md-9"><label class="form-label" for="revokeReason">Reason for reopening <span class="text-danger">required</span></label><input id="revokeReason" name="reason" class="form-control" required minlength="5" maxlength="500"></div>
-                <div class="col-md-3"><button class="btn btn-outline-danger w-100">Reopen approval</button></div>
-            </form>
+            {% if team_mode %}
+                <p class="mb-0">This proposal is signed and locked. The retained signed PDF is available in the approval history below.</p>
+            {% else %}
+                <p>This proposal is signed and locked. If a correction is needed, reopen it below; the previous approval and PDF will remain in the history.</p>
+                <form method="post" class="row g-2 align-items-end">
+                    <input type="hidden" name="id_order" value="{{ order.id }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                    <input type="hidden" name="action" value="revoke">
+                    <div class="col-md-9"><label class="form-label" for="revokeReason">Reason for reopening <span class="text-danger">required</span></label><input id="revokeReason" name="reason" class="form-control" required minlength="5" maxlength="500"></div>
+                    <div class="col-md-3"><button class="btn btn-outline-danger w-100">Reopen approval</button></div>
+                </form>
+            {% endif %}
         </section>
     {% endif %}
 
