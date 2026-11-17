@@ -61,6 +61,10 @@ $assert(GourmetLandingAttributionService::minimumEventDate($controlledNow) === '
 $assert(!GourmetLandingAttributionService::isFutureEventDate('2026-11-06', $controlledNow), 'Today must not be accepted as a future event date.');
 $assert(GourmetLandingAttributionService::isFutureEventDate('2026-11-07', $controlledNow), 'Tomorrow must be accepted.');
 $assert(str_ends_with(GourmetLandingAttributionService::conversionTime($controlledNow), '-05:00'), 'Conversion time must include the Eastern offset.');
+$assert(GourmetLandingAttributionService::isValidEventTime('18:30'), 'Valid event time was rejected.');
+$assert(!GourmetLandingAttributionService::isValidEventTime('25:10'), 'Invalid event time was accepted.');
+$assert(GourmetLandingAttributionService::normalizeUsPhone('(754) 332-9259') === '+17543329259', 'US phone normalization failed.');
+$assert(GourmetLandingAttributionService::formatUsPhone('17543329259') === '+1 (754) 332-9259', 'US phone formatting failed.');
 
 $assert(GourmetLeadRateLimiter::decision(4, 19)['allowed'], 'Limiter blocked a request before either threshold.');
 $assert(!GourmetLeadRateLimiter::decision(5, 5)['allowed'], 'Ten-minute threshold was not enforced.');
@@ -101,6 +105,9 @@ foreach (['call_click', 'whatsapp_click', 'generate_lead', 'gclid', 'gbraid', 'w
     $assert(str_contains($template, $needle), 'Landing template missing contract: ' . $needle);
 }
 $assert(str_contains($template, "q.get('lead')==='success'&&leadId"), 'Lead conversion must require a persisted lead ID.');
+$assert(str_contains($template, 'name="full_name" autocomplete="name" minlength="2" maxlength="180" required'), 'Gourmet landing name must be required.');
+$assert(str_contains($template, 'name="event_time" type="time" required'), 'Gourmet landing event time must be required.');
+$assert(str_contains($template, 'name="event_address"'), 'Gourmet landing event location is missing.');
 $assert(!str_contains($template, "submit',function(event){const phone=form.phone.value.replace(/\\D/g,''),email=form.email.value.trim();if(phone.length<10&&!email){event.preventDefault();alert('Please enter a phone number or email address.');return;}track('generate_lead')"), 'Lead conversion is still emitted before persistence.');
 $assert(
     str_contains($template, 'templates/components/publicEventRequestModal.html.twig')
@@ -111,6 +118,9 @@ $comparison = file_get_contents(dirname(__DIR__) . '/src/views/public/pages/cate
 foreach (['data-cs-form', 'not-sure-yet', 'vnv_ads_session', 'minimum_event_date'] as $needle) {
     $assert(str_contains($comparison, $needle), 'Comparison Ads mode missing contract: ' . $needle);
 }
+$assert(str_contains($comparison, 'name="full_name" autocomplete="name" minlength="2" maxlength="180" required'), 'Comparison landing name must be required.');
+$assert(str_contains($comparison, 'name="event_time" type="time" required'), 'Comparison landing event time must be required.');
+$assert(str_contains($comparison, 'name="event_address"'), 'Comparison landing event location is missing.');
 $assert(
     str_contains($comparison, 'templates/components/publicEventRequestModal.html.twig')
     && str_contains($comparison, "request_form_source: 'gourmet_comparison_landing'"),
@@ -122,6 +132,8 @@ $leadEndpoint = file_get_contents(dirname(__DIR__) . '/src/views/api/public/gour
 foreach (['beginTransaction', 'commit()', 'rollback()', 'GourmetLeadRateLimiter', 'http_response_code(429)', "'setup_minutes' => 0", "'is_test' =>", "'lead_id' => \$requestId", "'lead_qualified' => \$qualified"] as $needle) {
     $assert(str_contains($leadEndpoint, $needle), 'Lead endpoint missing contract: ' . $needle);
 }
+$assert(str_contains($leadEndpoint, 'isValidEventTime($eventTime)'), 'Lead endpoint does not validate event time.');
+$assert(str_contains($leadEndpoint, "'event_address' => \$eventAddress . ' · ZIP ' . \$zip"), 'Lead endpoint does not persist the full event location.');
 $baseTemplate = file_get_contents(dirname(__DIR__) . '/src/views/templates/base.twig');
 foreach (['vnvTrackMarketingEvent', "window.gtag('event', eventName, payload)", "query.get('lead') === 'success' && leadId", "window.vnvTrackMarketingEvent('generate_lead'"] as $needle) {
     $assert(str_contains($baseTemplate, $needle), 'Global marketing measurement missing contract: ' . $needle);

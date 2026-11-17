@@ -124,6 +124,23 @@ function level1HomeRequestDate(?string $value, string $format, string $fallback 
     }
 }
 
+function level1HomeRequestPhone(string $phone): array
+{
+    $raw = trim($phone);
+    $digits = preg_replace('/\D+/', '', $raw);
+    if (strlen($digits) === 10) {
+        $digits = '1' . $digits;
+    }
+    if (strlen($digits) === 11 && str_starts_with($digits, '1')) {
+        return [
+            'display' => sprintf('+1 (%s) %s-%s', substr($digits, 1, 3), substr($digits, 4, 3), substr($digits, 7, 4)),
+            'href' => '+' . $digits,
+        ];
+    }
+
+    return ['display' => $raw, 'href' => $raw];
+}
+
 function level1HomeRequestView(object $request): array
 {
     $services = json_decode((string)($request->selected_services ?? ''), true);
@@ -150,39 +167,6 @@ function level1HomeRequestView(object $request): array
         $landingUrl = '';
     }
 
-    $extra = [];
-    $addExtra = static function (string $label, mixed $value) use (&$extra): void {
-        if (is_bool($value)) {
-            $value = $value ? 'Yes' : 'No';
-        }
-        if ($value === null || trim((string)$value) === '') {
-            return;
-        }
-        $extra[] = ['label' => $label, 'value' => trim((string)$value)];
-    };
-
-    $addExtra('Reference code', $metadata['ref_code'] ?? null);
-    $addExtra('Requested service', isset($metadata['service']) ? ucwords(str_replace(['_', '-'], ' ', (string)$metadata['service'])) : null);
-    $addExtra('Guest range', isset($metadata['guest_bucket']) ? str_replace('-', '–', (string)$metadata['guest_bucket']) : null);
-    $addExtra('ZIP code', $metadata['zip'] ?? null);
-    $addExtra('County', $metadata['zip_classification']['county'] ?? null);
-    $addExtra('Lead review', isset($metadata['qualification_status']) ? ucwords(strtolower(str_replace('_', ' ', (string)$metadata['qualification_status']))) : null);
-    $addExtra('Gourmet To Go alternative', !empty($metadata['gourmet_to_go_alternative']) ? 'Recommended' : null);
-
-    $attribution = isset($metadata['attribution']) && is_array($metadata['attribution']) ? $metadata['attribution'] : [];
-    foreach ([
-        'gclid' => 'Google click ID',
-        'gbraid' => 'Google GBRAID',
-        'wbraid' => 'Google WBRAID',
-        'utm_source' => 'Campaign source',
-        'utm_medium' => 'Campaign medium',
-        'utm_campaign' => 'Campaign name',
-        'utm_term' => 'Campaign term',
-        'utm_content' => 'Campaign content',
-    ] as $key => $label) {
-        $addExtra($label, $attribution[$key] ?? null);
-    }
-
     $guestCount = (int)($request->guest_count ?? 0);
     $status = strtoupper(trim((string)($request->status ?? 'NEW')));
     $requestEmail = trim((string)($request->email ?? ''));
@@ -191,11 +175,14 @@ function level1HomeRequestView(object $request): array
         || (bool)preg_match('/@(example\.)?(test|invalid)$/i', $requestEmail)
         || (bool)preg_match('/\b(browser\s+qa|qa\s+.+test)\b/i', $requestName);
 
+    $phone = level1HomeRequestPhone((string)($request->phone ?? ''));
+
     return [
         'id' => (int)$request->id,
         'full_name' => $requestName ?: 'Name not provided',
         'email' => $requestEmail,
-        'phone' => trim((string)($request->phone ?? '')),
+        'phone' => $phone['display'],
+        'phone_href' => $phone['href'],
         'address' => trim((string)($request->event_address ?? '')) ?: 'Address not provided',
         'event_date' => level1HomeRequestDate($request->event_date ?? null, 'M j, Y'),
         'event_time' => level1HomeRequestDate($request->event_time ?? null, 'g:i A'),
@@ -213,7 +200,6 @@ function level1HomeRequestView(object $request): array
         'is_new' => $status === 'NEW',
         'is_test' => $isTest,
         'is_archived' => (bool)($request->is_archived ?? false),
-        'extra' => $extra,
         'lead_intake_id' => (int)($request->lead_intake_id ?? 0),
         'converted_order_id' => (int)($request->converted_order_id ?? 0),
     ];

@@ -128,6 +128,35 @@ final class GourmetLandingAttributionService
         return $date > $today;
     }
 
+    public static function isValidEventTime(string $eventTime): bool
+    {
+        return (bool)preg_match('/^(?:[01]\d|2[0-3]):[0-5]\d$/', trim($eventTime));
+    }
+
+    public static function normalizeUsPhone(string $phone): string
+    {
+        $digits = preg_replace('/\D+/', '', $phone);
+        if (strlen($digits) === 10) {
+            return '+1' . $digits;
+        }
+        if (strlen($digits) === 11 && str_starts_with($digits, '1')) {
+            return '+' . $digits;
+        }
+
+        return '';
+    }
+
+    public static function formatUsPhone(string $phone): string
+    {
+        $normalized = self::normalizeUsPhone($phone);
+        if ($normalized === '') {
+            return trim($phone);
+        }
+
+        $digits = substr($normalized, 2);
+        return sprintf('+1 (%s) %s-%s', substr($digits, 0, 3), substr($digits, 3, 3), substr($digits, 6, 4));
+    }
+
     public static function isQualified(
         string $eventDate,
         string $guestBucket,
@@ -137,7 +166,7 @@ final class GourmetLandingAttributionService
         string $phone
     ): bool {
         $contactValid = filter_var($email, FILTER_VALIDATE_EMAIL)
-            || strlen(preg_replace('/\D+/', '', $phone)) >= 10;
+            || self::normalizeUsPhone($phone) !== '';
 
         return self::isFutureEventDate($eventDate)
             && self::guestBucketMinimum($guestBucket) >= $minimumGuests

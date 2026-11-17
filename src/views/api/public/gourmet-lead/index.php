@@ -69,14 +69,23 @@ $router->post(function (): void {
     $guestCount = GourmetLandingAttributionService::guestBucketMinimum($guestBucket);
     $zip = trim((string)($_POST['zip'] ?? ''));
     $fullName = mb_substr(trim((string)($_POST['full_name'] ?? '')), 0, 180);
+    $eventAddress = mb_substr(trim((string)($_POST['event_address'] ?? '')), 0, 255);
+    $eventTime = trim((string)($_POST['event_time'] ?? ''));
     $email = mb_substr(trim((string)($_POST['email'] ?? '')), 0, 190);
     $phone = mb_substr(trim((string)($_POST['phone'] ?? '')), 0, 80);
     $refCode = mb_substr(preg_replace('/[^A-Za-z0-9-]/', '', (string)($_POST['ref_code'] ?? '')), 0, 40);
     $isTest = (string)($_POST['vnv_test'] ?? '') === '1';
 
     $emailValid = $email !== '' && filter_var($email, FILTER_VALIDATE_EMAIL);
-    $phoneValid = strlen(preg_replace('/\D+/', '', $phone)) >= 10;
+    $normalizedPhone = GourmetLandingAttributionService::normalizeUsPhone($phone);
+    $phoneValid = $normalizedPhone !== '';
+    $nameValid = mb_strlen($fullName) >= 2
+        && !preg_match('#(?:https?://|www\.)#i', $fullName);
+    $addressValid = mb_strlen($eventAddress) >= 5;
     if (!GourmetLandingAttributionService::isFutureEventDate($eventDate)
+        || !GourmetLandingAttributionService::isValidEventTime($eventTime)
+        || !$nameValid
+        || !$addressValid
         || $guestCount <= 0
         || !preg_match('/^\d{5}$/', $zip)
         || (!$emailValid && !$phoneValid)
@@ -100,6 +109,8 @@ $router->post(function (): void {
         'landing_url' => $landing,
         'guest_bucket' => $guestBucket,
         'zip' => $zip,
+        'event_address' => $eventAddress,
+        'event_time' => $eventTime,
         'zip_classification' => $zipClassification,
         'qualified_lead' => $qualified,
         'qualification_status' => $qualificationStatus,
@@ -115,12 +126,12 @@ $router->post(function (): void {
         $requestId = (new EventRequestRepository($connection))->createFromPublicForm([
             'id_owner' => $ownerId,
             'id_user' => null,
-            'full_name' => $fullName !== '' ? $fullName : ($emailValid ? $email : 'VNV Gourmet lead'),
+            'full_name' => $fullName,
             'email' => $emailValid ? $email : '',
-            'phone' => $phoneValid ? $phone : '',
-            'event_address' => 'ZIP ' . $zip,
+            'phone' => $phoneValid ? GourmetLandingAttributionService::formatUsPhone($normalizedPhone) : '',
+            'event_address' => $eventAddress . ' · ZIP ' . $zip,
             'event_date' => $eventDate,
-            'event_time' => null,
+            'event_time' => $eventTime,
             'guest_count' => $guestCount,
             'selected_services' => json_encode([$serviceName], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE),
             'details' => json_encode($payload, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE),
@@ -134,14 +145,14 @@ $router->post(function (): void {
             'source' => 'gourmet_landing',
             'external_id' => 'gourmet-request-' . $requestId,
             'channel' => 'website',
-            'contact_name' => $fullName !== '' ? $fullName : null,
+            'contact_name' => $fullName,
             'email' => $emailValid ? $email : null,
-            'phone' => $phoneValid ? $phone : null,
+            'phone' => $phoneValid ? GourmetLandingAttributionService::formatUsPhone($normalizedPhone) : null,
             'service_requested' => $serviceName,
             'guest_count' => $guestCount,
-            'venue' => 'ZIP ' . $zip,
+            'venue' => $eventAddress . ' · ZIP ' . $zip,
             'event_date' => $eventDate,
-            'start_time' => null,
+            'start_time' => $eventTime,
             'end_time' => null,
             'setup_minutes' => 0,
             'availability_status' => $qualificationStatus,

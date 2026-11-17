@@ -53,7 +53,7 @@
 
 <section class="cl-section cl-light" style="padding-top:0"><div class="cl-wrap cl-faq"><div class="cl-heading"><span class="cl-eyebrow">Questions</span><h2 class="cl-title">Before you reserve</h2></div>{% for faq in page.faqs %}<details><summary>{{ faq.question }}</summary><p>{{ faq.answer }}</p></details>{% endfor %}</div></section>
 
-<section class="cl-section cl-quote" id="quote"><div class="cl-wrap"><div class="cl-heading"><span class="cl-eyebrow">Quick quote request</span><h2 class="cl-title">Check availability in one step</h2><p>Share the essentials. Phone or email is required; both are welcome.</p></div>
+<section class="cl-section cl-quote" id="quote"><div class="cl-wrap"><div class="cl-heading"><span class="cl-eyebrow">Quick quote request</span><h2 class="cl-title">Check availability in one step</h2><p>Tell us who you are and when and where the event will take place. Phone or email is required; both are welcome.</p></div>
 {% if page.landing_notice.message|default('') %}<div class="cl-notice {{ page.landing_notice.type == 'error' ? 'error' : '' }}" role="status" aria-live="polite">{{ page.landing_notice.message }}</div>{% endif %}
 <form class="cl-card cl-form" method="post" action="{{ path('/api/public/gourmet-lead') }}" data-cl-form>
   <input type="hidden" name="csrf_token" value="{{ get_csrf() }}">
@@ -64,11 +64,13 @@
   <input type="hidden" name="vnv_test" value="{{ page.is_test ? '1' : '0' }}">
   {% for key in ['gclid','gbraid','wbraid','utm_source','utm_medium','utm_campaign','utm_term','utm_content'] %}<input type="hidden" name="{{ key }}" value="" data-cl-attribution="{{ key }}">{% endfor %}
   <div class="cl-honeypot" aria-hidden="true"><label>Website<input type="text" name="company_website" tabindex="-1" autocomplete="off"></label></div>
+  <div class="cl-field"><label for="cl-name">Full name</label><input class="cl-input" id="cl-name" name="full_name" autocomplete="name" minlength="2" maxlength="180" required></div>
   <div class="cl-field"><label for="cl-date">Event date</label><input class="cl-input" id="cl-date" name="event_date" type="date" min="{{ page.minimum_event_date }}" required></div>
+  <div class="cl-field"><label for="cl-time">Event time</label><input class="cl-input" id="cl-time" name="event_time" type="time" required></div>
   <div class="cl-field"><label for="cl-guests">Guests</label><select class="cl-input" id="cl-guests" name="guest_bucket" required><option value="">Choose a range</option><option value="25-40">25–40</option><option value="41-75">41–75</option><option value="76-150">76–150</option><option value="150+">150+</option><option value="fewer-than-25">Fewer than 25</option></select></div>
-  <div class="cl-field"><label for="cl-zip">Event ZIP</label><input class="cl-input" id="cl-zip" name="zip" inputmode="numeric" pattern="[0-9]{5}" maxlength="5" required></div>
-  <div class="cl-field"><label for="cl-name">Name <span class="cl-help">(optional)</span></label><input class="cl-input" id="cl-name" name="full_name" autocomplete="name"></div>
-  <div class="cl-field"><label for="cl-phone">Phone</label><input class="cl-input" id="cl-phone" name="phone" type="tel" autocomplete="tel"></div>
+  <div class="cl-field full"><label for="cl-address">Event location <span class="cl-help">(venue or full address)</span></label><input class="cl-input" id="cl-address" name="event_address" autocomplete="street-address" minlength="5" maxlength="255" required></div>
+  <div class="cl-field"><label for="cl-zip">Event ZIP</label><input class="cl-input" id="cl-zip" name="zip" inputmode="numeric" pattern="[0-9]{5}" maxlength="5" autocomplete="postal-code" required></div>
+  <div class="cl-field"><label for="cl-phone">Phone</label><input class="cl-input" id="cl-phone" name="phone" type="tel" autocomplete="tel" inputmode="tel" placeholder="(305) 555-0123"></div>
   <div class="cl-field"><label for="cl-email">Email</label><input class="cl-input" id="cl-email" name="email" type="email" autocomplete="email"></div>
   <div class="cl-field full"><p class="cl-help">For groups under 25, submit the request and our team will confirm the smaller-format options currently available.</p><button class="cl-btn dark" type="submit">Send request</button></div>
 </form></div></section>
@@ -91,7 +93,9 @@
   const q=new URLSearchParams(location.search),maxAge=7776000,secure=location.protocol==='https:'?'; Secure':'';
   if(q.get('gclid')||q.get('gbraid')||q.get('wbraid')||(q.get('utm_source')||'').toLowerCase()==='google'){document.cookie='vnv_ads_session=1; Path=/; SameSite=Lax'+secure;}
   keys.forEach(function(key){const incoming=q.get(key);if(incoming){document.cookie='vnv_'+key+'='+encodeURIComponent(incoming)+'; Max-Age='+maxAge+'; Path=/; SameSite=Lax'+secure;}const match=document.cookie.match(new RegExp('(?:^|; )vnv_'+key+'=([^;]*)'));const value=incoming||(match?decodeURIComponent(match[1]):'');document.querySelectorAll('[data-cl-attribution="'+key+'"]').forEach(function(input){input.value=value;});});
-  const form=document.querySelector('[data-cl-form]'),date=document.getElementById('cl-date'),guests=document.getElementById('cl-guests'),zip=document.getElementById('cl-zip');
+  const form=document.querySelector('[data-cl-form]'),date=document.getElementById('cl-date'),guests=document.getElementById('cl-guests'),zip=document.getElementById('cl-zip'),phoneInput=document.getElementById('cl-phone');
+  function formatPhone(value){let digits=value.replace(/\D/g,'').slice(0,11);if(digits.length===11&&digits[0]==='1')return '+1 ('+digits.slice(1,4)+') '+digits.slice(4,7)+'-'+digits.slice(7);if(digits.length>6)return '('+digits.slice(0,3)+') '+digits.slice(3,6)+'-'+digits.slice(6);if(digits.length>3)return '('+digits.slice(0,3)+') '+digits.slice(3);return digits;}
+  phoneInput?.addEventListener('input',function(){const caretAtEnd=this.selectionStart===this.value.length;this.value=formatPhone(this.value);if(caretAtEnd)this.setSelectionRange(this.value.length,this.value.length);});
   function track(event,extra){window.vnvTrackMarketingEvent(event,Object.assign({service:'{{ page.service_key|e('js') }}',ref_code:'{{ page.ref_code|e('js') }}',landing_url:location.pathname},extra||{}));}
   function waUrl(){const message=['Hi VNV Events, I am interested in {{ page.service_name|e('js') }}.','Visible price: {{ page.store_price_label|e('js') }}','Event date: '+(date?.value||'Not provided'),'Guests: '+(guests?.options[guests.selectedIndex]?.text||'Not provided'),'ZIP: '+(zip?.value||'Not provided'),'Reference: {{ page.ref_code|e('js') }}'].join('\n');return 'https://wa.me/{{ page.whatsapp_number|e('js') }}?text='+encodeURIComponent(message);}
   document.querySelectorAll('[data-cl-call]').forEach(a=>a.addEventListener('click',()=>track('call_click',{method:'phone'})));

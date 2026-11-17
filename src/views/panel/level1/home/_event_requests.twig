@@ -5,7 +5,8 @@
   .vnv-lead-tab[aria-selected="true"]{background:#5ec6c4;border-color:#5ec6c4;color:#10201f}
   .vnv-lead-tab[aria-selected="true"] span{background:rgba(11,46,45,.12)}
   .vnv-lead-panel[hidden]{display:none}
-  .vnv-lead-list{display:grid;gap:.75rem}
+  .vnv-lead-panel{max-width:100%;overflow-x:auto;padding-bottom:.55rem;scrollbar-color:#5ec6c4 rgba(255,255,255,.1);scrollbar-width:thin}
+  .vnv-lead-list{display:grid;gap:.75rem;min-width:1010px}
   .vnv-lead-row{display:grid;grid-template-columns:minmax(180px,1.15fr) minmax(210px,1.35fr) minmax(150px,.85fr) minmax(150px,.85fr) minmax(100px,.55fr) auto;gap:.9rem;align-items:center;padding:1rem;border:1px solid rgba(255,255,255,.1);border-radius:18px;background:#fff;color:#17231f;box-shadow:0 12px 26px rgba(0,0,0,.12)}
   .vnv-lead-row--new{border-left:5px solid #e0ae49}
   .vnv-lead-cell{min-width:0}
@@ -50,7 +51,7 @@
   .vnv-lead-action--danger{border:1px solid #e4b8b8;background:#fff;color:#9d3333}
   body.vnv-lead-modal-open{overflow:hidden}
   @media(max-width:1050px){.vnv-lead-row{grid-template-columns:repeat(3,minmax(0,1fr))}.vnv-lead-row .vnv-lead-open{justify-self:start}.vnv-lead-summary{grid-template-columns:repeat(2,minmax(0,1fr))}}
-  @media(max-width:640px){.vnv-request-board{padding:1rem}.vnv-lead-row{grid-template-columns:1fr 1fr;gap:.75rem}.vnv-lead-row .vnv-lead-cell:first-child,.vnv-lead-row .vnv-lead-cell:nth-child(2),.vnv-lead-row .vnv-lead-open{grid-column:1/-1}.vnv-lead-row .vnv-lead-open{width:100%}.vnv-lead-modal{padding:0}.vnv-lead-modal__dialog{width:100%;height:100%;max-height:none;border-radius:0}.vnv-lead-modal__body{padding:1rem}.vnv-lead-summary,.vnv-lead-grid,.vnv-lead-data{grid-template-columns:1fr}.vnv-lead-actions>*{width:100%;margin:0}}
+  @media(max-width:640px){.vnv-request-board{padding:1rem}.vnv-lead-panel{overflow:visible}.vnv-lead-list{min-width:0}.vnv-lead-row{grid-template-columns:1fr 1fr;gap:.75rem}.vnv-lead-row .vnv-lead-cell:first-child,.vnv-lead-row .vnv-lead-cell:nth-child(2),.vnv-lead-row .vnv-lead-open{grid-column:1/-1}.vnv-lead-row .vnv-lead-open{width:100%}.vnv-lead-modal{padding:0}.vnv-lead-modal__dialog{width:100%;height:100%;max-height:none;border-radius:0}.vnv-lead-modal__body{padding:1rem}.vnv-lead-summary,.vnv-lead-grid,.vnv-lead-data{grid-template-columns:1fr}.vnv-lead-actions>*{width:100%;margin:0}}
 </style>
 
 <section class="vnv-request-board" id="event-requests" aria-labelledby="event-requests-title">
@@ -101,7 +102,7 @@
           <div><small>Received</small><strong>{{ request.received_at }}</strong></div><div><small>Event date</small><strong>{{ request.event_date }}</strong></div><div><small>Event time</small><strong>{{ request.event_time }}</strong></div><div><small>Attendance</small><strong>{{ request.guest_label }}</strong></div>
         </div>
         <div class="vnv-lead-grid">
-          <section class="vnv-lead-section"><h4>Contact</h4><div class="vnv-lead-contact">{% if request.email %}<a href="mailto:{{ request.email }}">{{ request.email }}</a>{% else %}<span>Email not provided</span>{% endif %}{% if request.phone %}<a href="tel:{{ request.phone|replace({' ': '', '(': '', ')': '', '-': ''}) }}">{{ request.phone }}</a>{% else %}<span>Phone not provided</span>{% endif %}</div></section>
+          <section class="vnv-lead-section"><h4>Contact</h4><div class="vnv-lead-contact"><strong>{{ request.full_name }}</strong>{% if request.email %}<a href="mailto:{{ request.email }}">{{ request.email }}</a>{% else %}<span>Email not provided</span>{% endif %}{% if request.phone %}<a href="tel:{{ request.phone_href }}">{{ request.phone }}</a>{% else %}<span>Phone not provided</span>{% endif %}</div></section>
           <section class="vnv-lead-section"><h4>Source</h4><p>{{ request.source_label }}</p>{% if request.source_url %}<a class="vnv-lead-source-link" href="{{ request.source_url }}" target="_blank" rel="noopener">Open originating landing page</a>{% endif %}</section>
         </div>
         <section class="vnv-lead-section"><h4>Event location</h4><p>{{ request.address }}</p></section>
@@ -109,7 +110,6 @@
           <section class="vnv-lead-section"><h4>Requested services</h4>{% if request.services %}<ul class="vnv-lead-services">{% for service in request.services %}<li>{{ service }}</li>{% endfor %}</ul>{% else %}<p>No services were selected.</p>{% endif %}</section>
           <section class="vnv-lead-section"><h4>Client notes</h4><p>{{ request.details_text ?: 'No additional notes were provided.' }}</p></section>
         </div>
-        {% if request.extra %}<section class="vnv-lead-section vnv-lead-details"><h4>Lead and campaign details</h4><dl class="vnv-lead-data">{% for item in request.extra %}<div><dt>{{ item.label }}</dt><dd>{{ item.value }}</dd></div>{% endfor %}</dl></section>{% endif %}
         <div class="vnv-lead-actions">
           {% if request.converted_order_id %}<a class="vnv-lead-action--primary" href="{{ path('panel/planner-hub/management/orders/orders/edit') }}?id={{ request.converted_order_id }}">Open order #{{ request.converted_order_id }}</a>{% elseif request.lead_intake_id %}<a class="vnv-lead-action--primary" href="{{ path('panel/planner-hub/management/orders/orders/create') }}?lead_intake_id={{ request.lead_intake_id }}">Create estimate / quote</a>{% else %}<a class="vnv-lead-action--primary" href="{{ path('panel/planner-hub/management/orders/orders/create') }}?client_email={{ request.email|url_encode }}">Create estimate / quote</a>{% endif %}
           {% if request.is_new and not request.is_archived %}<form method="post"><input type="hidden" name="action" value="read_event_request"><input type="hidden" name="event_request_id" value="{{ request.id }}"><button type="submit" class="vnv-lead-action--secondary">Mark as reviewed</button></form>{% endif %}
