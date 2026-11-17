@@ -94,14 +94,15 @@
             <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
             <input type="hidden" name="action" value="save_draft">
             <input type="hidden" name="content_html" id="proposalContentInput">
+            <div class="px-3 pt-3 pb-2 bg-light border-bottom small text-muted">Select text—or place the cursor on a line—then choose Large title, Medium title, Paragraph, Bold, Italic, or a list format.</div>
             <div class="proposal-toolbar" role="toolbar" aria-label="Proposal formatting tools">
                 <select id="proposalBlockFormat" class="form-select form-select-sm w-auto" aria-label="Text style" {{ status == 'APPROVED' ? 'disabled' : '' }}>
                     <option value="p">Paragraph</option>
-                    <option value="h2">Title</option>
-                    <option value="h3">Subtitle</option>
+                    <option value="h2">Large title</option>
+                    <option value="h3">Medium title</option>
                 </select>
-                <button type="button" class="btn btn-sm btn-outline-secondary" data-command="bold" {{ status == 'APPROVED' ? 'disabled' : '' }}><strong>B</strong><span class="visually-hidden">Bold</span></button>
-                <button type="button" class="btn btn-sm btn-outline-secondary" data-command="italic" {{ status == 'APPROVED' ? 'disabled' : '' }}><em>I</em><span class="visually-hidden">Italic</span></button>
+                <button type="button" class="btn btn-sm btn-outline-secondary" data-command="bold" {{ status == 'APPROVED' ? 'disabled' : '' }}><strong>Bold</strong></button>
+                <button type="button" class="btn btn-sm btn-outline-secondary" data-command="italic" {{ status == 'APPROVED' ? 'disabled' : '' }}><em>Italic</em></button>
                 <button type="button" class="btn btn-sm btn-outline-secondary" data-command="insertUnorderedList" {{ status == 'APPROVED' ? 'disabled' : '' }}>• Bullets</button>
                 <button type="button" class="btn btn-sm btn-outline-secondary" data-command="insertOrderedList" {{ status == 'APPROVED' ? 'disabled' : '' }}>1. List</button>
                 <label class="btn btn-sm btn-outline-primary mb-0 {{ status == 'APPROVED' ? 'disabled' : '' }}">
@@ -190,10 +191,35 @@
     const contentInput = document.getElementById('proposalContentInput');
     const format = document.getElementById('proposalBlockFormat');
     if (editor && editor.contentEditable === 'true') {
-        document.querySelectorAll('[data-command]').forEach(button => button.addEventListener('click', () => {
-            editor.focus(); document.execCommand(button.dataset.command, false);
-        }));
-        format?.addEventListener('change', () => { editor.focus(); document.execCommand('formatBlock', false, format.value); });
+        let savedSelection = null;
+        const rememberSelection = () => {
+            const selection = window.getSelection();
+            if (selection?.rangeCount && editor.contains(selection.anchorNode)) {
+                savedSelection = selection.getRangeAt(0).cloneRange();
+            }
+        };
+        const restoreSelection = () => {
+            editor.focus();
+            if (!savedSelection) return;
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(savedSelection);
+        };
+        ['keyup', 'mouseup', 'input', 'focus'].forEach(eventName => editor.addEventListener(eventName, rememberSelection));
+        document.querySelectorAll('[data-command]').forEach(button => {
+            button.addEventListener('mousedown', event => event.preventDefault());
+            button.addEventListener('click', () => {
+                restoreSelection();
+                document.execCommand(button.dataset.command, false);
+                rememberSelection();
+            });
+        });
+        format?.addEventListener('mousedown', rememberSelection);
+        format?.addEventListener('change', () => {
+            restoreSelection();
+            document.execCommand('formatBlock', false, format.value);
+            rememberSelection();
+        });
         document.getElementById('proposalPageBreak')?.addEventListener('click', () => {
             editor.focus();
             document.execCommand('insertHTML', false, '<div class="proposal-page-break" data-page-break="true" contenteditable="false"></div><p><br></p>');

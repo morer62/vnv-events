@@ -18,6 +18,9 @@ foreach (['insertUnorderedList', 'insertOrderedList', 'proposal-page-break', 'pr
 foreach (['data-proposal-disclaimer="food"', 'data-proposal-disclaimer="decor"', 'Colors and decorative elements are for reference purposes only.', 'The setup will aim to match the approved design as closely as possible.', 'Editable disclaimer inserted.'] as $needle) {
     $assert(str_contains($workspace, $needle), "Proposal disclaimer helper missing: {$needle}");
 }
+foreach (['Large title', 'Medium title', '<strong>Bold</strong>', 'rememberSelection', 'restoreSelection'] as $needle) {
+    $assert(str_contains($workspace, $needle), "Proposal rich-text formatting control missing: {$needle}");
+}
 foreach (['orders-calendar-print-agenda', 'printable_orders', 'Menu / Proposal', 'calendarOrderProposalLink', 'Signed PDF', 'orders-calendar-proposal-badge--approved', 'data-open-proposal-url'] as $needle) {
     $assert(str_contains($calendar, $needle), "Calendar print/pending contract missing: {$needle}");
 }
