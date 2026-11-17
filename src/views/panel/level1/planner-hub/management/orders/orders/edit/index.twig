@@ -10,6 +10,20 @@
   <button class="btn btn-outline-primary">🧾 Open or create invoice</button>
 </form>
 
+{% if canArchive %}
+<div class="alert alert-warning d-flex flex-column flex-lg-row align-items-lg-center justify-content-between gap-3 mb-3" role="region" aria-label="Archive order">
+  <div>
+    <strong>Archive this order</strong>
+    <div class="small">Remove it from active calendars and execution while keeping payments, deposits and history available.</div>
+  </div>
+  <form method="post" class="m-0" onsubmit="return confirm('Archive this order? Payments and history will remain available in Archived Orders.');">
+    <input type="hidden" name="id" value="{{ order.id }}">
+    <input type="hidden" name="action" value="archive_order">
+    <button type="submit" class="btn btn-warning text-nowrap">Archive order</button>
+  </form>
+</div>
+{% endif %}
+
 <section class="card">
     <div class="card-body">
     {% if canClose %}

@@ -194,6 +194,10 @@
 												<small class="d-block text-primary mt-1" style="font-size: 0.75rem; cursor: pointer;" onclick="openOrderDetailsModalByOrderId({{ order.id }}, 'orders')">
 													Click to view details
 												</small>
+										<form method="post" class="mt-2" onsubmit="return confirm('Archive this order? Payments and history will remain available in Archived Orders.');">
+											<input type="hidden" name="archive_order_id" value="{{ order.id }}">
+											<button type="submit" class="btn btn-sm btn-outline-warning">Archive order</button>
+										</form>
 											</td>
 											<td style="min-width: 220px;">
 												{% if order.event_access_code %}<strong class="d-block">Private Event Code: <span class="font-monospace user-select-all">{{ order.event_access_code }}</span></strong><button type="button" class="btn btn-outline-secondary btn-sm my-1" onclick="navigator.clipboard.writeText('{{ order.event_access_code }}')">Copy Code</button>{% endif %}
@@ -370,7 +374,7 @@
 									<th>Basic Actions</th> 
 									<th>Payment Plan</th>
 									<th>Add to Calendar</th>
-									<th>Delete</th>
+									<th>Archive</th>
 								</tr>
 							</thead>
 							<tbody>
@@ -391,6 +395,10 @@
 												<small class="d-block text-primary mt-1" style="font-size: 0.75rem; cursor: pointer;" onclick="openOrderDetailsModalByOrderId({{ estimate.id }}, 'estimates')">
 													Click to view details
 												</small>
+										<form method="post" class="mt-2" onsubmit="return confirm('Archive this estimate? It will remain available in Archived Orders.');">
+											<input type="hidden" name="archive_order_id" value="{{ estimate.id }}">
+											<button type="submit" class="btn btn-sm btn-outline-warning">Archive estimate</button>
+										</form>
 											</td>
 											<td style="min-width: 220px;">
 												{% set token = estimate.contract_token ?? '' %}
@@ -467,9 +475,9 @@
 												</button>
 											</td>
 											<td>
-												<form method="post" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this estimate?');">
+										<form method="post" style="display:inline;" onsubmit="return confirm('Archive this estimate? It will remain available in Archived Orders.');">
 													<input type="hidden" name="archive_order_id" value="{{ estimate.id }}">
-													<button type="submit" class="btn btn-sm btn-outline-danger">🗑️ Delete</button>
+											<button type="submit" class="btn btn-sm btn-outline-warning">Archive</button>
 												</form>
 											</td>
 										</tr>
@@ -1434,7 +1442,7 @@ VNV-Events Team`;
                 8: 'Basic Actions',
                 9: 'Payment Plan',
                 10: 'Add to Calendar',
-                11: 'Delete'
+                11: 'Archive'
             };
         }
         
@@ -1535,7 +1543,7 @@ VNV-Events Team`;
                 8: 'Basic Actions',
                 9: 'Payment Plan',
                 10: 'Add to Calendar',
-                11: 'Delete'
+                11: 'Archive'
             };
         }
         

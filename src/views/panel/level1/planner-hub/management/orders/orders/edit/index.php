@@ -15,6 +15,7 @@ use App\Repositories\OrdersPaymentSplitRepository;
 use App\Services\NotificationService;
 use App\Repositories\TipsRepository;
 use App\Services\ManagerAvailabilityService;
+use App\Services\ArchivedOrderService;
 use App\Repositories\Connection;
 
 
@@ -139,6 +140,7 @@ $router->get(callback: function () {
             "contractEditable" => $contractEditable,
             "contractSigned" => $contractSigned,
             "modificationMessage" => $modificationMessage
+            ,"canArchive" => $user->getLevel() === 1
             ,"managers" => $managers
         ]);
 
@@ -189,6 +191,22 @@ $router->post(function () {
             $contractSigned = true;
             break;
         }
+    }
+
+    // Archiving is independent from payment state; payments and history are preserved.
+    if (($_POST['action'] ?? '') === 'archive_order') {
+        if ($user->getLevel() !== 1) {
+            MessageUtil::setMessage('Only a Level 1 administrator can archive an order.', 'Archive not allowed', 'warning');
+            LocationUtils::redirectInternal("panel/planner-hub/management/orders/orders/edit?id=" . (int)$order->id);
+        }
+
+        if (!(new ArchivedOrderService())->archive((int)$order->id, (int)$user->getOwner())) {
+            MessageUtil::setMessage('The order could not be archived. It may already be archived.', 'Archive unavailable', 'warning');
+            LocationUtils::redirectInternal("panel/planner-hub/management/orders/orders/edit?id=" . (int)$order->id);
+        }
+
+        MessageUtil::setMessage('Order archived. Payments, deposits and history remain available.', 'Order archived', 'success');
+        LocationUtils::redirectInternal('panel/planner-hub/management/orders/orders/archived');
     }
 
     // Si ya se ha recibido pago, permitir edición limitada (fecha, dirección, hora inicio, contrato)
