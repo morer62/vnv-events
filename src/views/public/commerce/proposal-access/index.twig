@@ -41,6 +41,10 @@
     .public-proposal-button { border:0; border-radius:10px; background:var(--proposal-teal); color:#fff; font-weight:800; padding:12px 20px; min-height:48px; }
     .public-proposal-button--danger { background:#fff; border:1px solid #c74a4a; color:#9b2c2c; }
     .public-proposal-notice { background:#fff; border:1px solid var(--proposal-line); border-radius:16px; padding:20px; }
+    .proposal-signature-preview { min-height:140px; border:2px dashed #8aa7b1; border-radius:14px; background:#fff; display:flex; align-items:center; justify-content:center; padding:16px; text-align:center; overflow:hidden; }
+    .proposal-signature-preview__typed { font-family:'Brush Script MT','Segoe Script',cursive; font-size:clamp(2.35rem,8vw,3.8rem); line-height:1.1; color:var(--proposal-ink); overflow-wrap:anywhere; }
+    .proposal-signature-preview__image { display:block; max-width:100%; max-height:170px; object-fit:contain; }
+    .proposal-signature-preview__placeholder { color:#7a8b94; font-style:italic; }
     .form-control { min-height:48px; }
     @media(max-width:640px){
         .public-proposal-brand { align-items:flex-start; }
@@ -93,10 +97,19 @@
             <h2 class="h4">Approve and sign this exact revision</h2>
             <p>Your signature creates a dated PDF copy and locks revision {{ proposal.revision_number }}.</p>
             <div class="row g-3">
-                <div class="col-md-6"><label class="form-label" for="typedInitials">Typed initials</label><input id="typedInitials" name="typed_initials" class="form-control" maxlength="30" autocomplete="off"></div>
+                <div class="col-md-6"><label class="form-label" for="typedInitials">Type your signature or initials</label><input id="typedInitials" name="typed_initials" class="form-control" maxlength="30" autocomplete="off" placeholder="Your name or initials"></div>
                 <div class="col-md-6"><label class="form-label" for="signatureImage">Or upload signature image</label><input id="signatureImage" type="file" name="signature_image" class="form-control" accept="image/jpeg,image/png,image/webp"></div>
             </div>
-            <button class="public-proposal-button mt-3">Approve and sign proposal</button>
+            <div class="mt-3">
+                <label class="form-label">Signature preview</label>
+                <div class="proposal-signature-preview" id="proposalSignaturePreview" aria-live="polite">
+                    <span class="proposal-signature-preview__placeholder" id="proposalSignaturePlaceholder">Your signature will appear here.</span>
+                    <span class="proposal-signature-preview__typed d-none" id="proposalTypedSignature"></span>
+                    <img class="proposal-signature-preview__image d-none" id="proposalImageSignature" alt="Uploaded signature preview">
+                </div>
+                <div class="small text-muted mt-2" id="proposalSignatureMethod">Type a signature or choose an image before signing.</div>
+            </div>
+            <button class="public-proposal-button mt-3" id="proposalSignButton" disabled>Approve and sign proposal</button>
         </form>
     {% endif %}
 
@@ -124,6 +137,45 @@
 (() => {
     const timestamp = document.getElementById('proposalLocalTimestamp');
     if (timestamp) timestamp.value = new Date().toISOString().slice(0,19).replace('T',' ');
+    const typedSignature = document.getElementById('typedInitials');
+    const signatureFile = document.getElementById('signatureImage');
+    const typedPreview = document.getElementById('proposalTypedSignature');
+    const imagePreview = document.getElementById('proposalImageSignature');
+    const signaturePlaceholder = document.getElementById('proposalSignaturePlaceholder');
+    const signatureMethod = document.getElementById('proposalSignatureMethod');
+    const signButton = document.getElementById('proposalSignButton');
+    const updateSignaturePreview = () => {
+        const typedValue = typedSignature?.value.trim() || '';
+        const file = signatureFile?.files?.[0] || null;
+        if (file && imagePreview) {
+            const reader = new FileReader();
+            reader.addEventListener('load', () => {
+                imagePreview.src = String(reader.result || '');
+                imagePreview.classList.remove('d-none');
+                typedPreview?.classList.add('d-none');
+                signaturePlaceholder?.classList.add('d-none');
+            });
+            reader.readAsDataURL(file);
+            if (signatureMethod) signatureMethod.textContent = 'The uploaded image will be used as your signature.';
+        } else if (typedValue && typedPreview) {
+            typedPreview.textContent = typedValue;
+            typedPreview.classList.remove('d-none');
+            imagePreview?.classList.add('d-none');
+            imagePreview?.removeAttribute('src');
+            signaturePlaceholder?.classList.add('d-none');
+            if (signatureMethod) signatureMethod.textContent = 'The handwritten-style preview above will be used as your signature.';
+        } else {
+            typedPreview?.classList.add('d-none');
+            imagePreview?.classList.add('d-none');
+            imagePreview?.removeAttribute('src');
+            signaturePlaceholder?.classList.remove('d-none');
+            if (signatureMethod) signatureMethod.textContent = 'Type a signature or choose an image before signing.';
+        }
+        if (signButton) signButton.disabled = !typedValue && !file;
+    };
+    typedSignature?.addEventListener('input', updateSignaturePreview);
+    signatureFile?.addEventListener('change', updateSignaturePreview);
+    updateSignaturePreview();
 })();
 </script>
 {% endblock %}

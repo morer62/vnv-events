@@ -21,6 +21,10 @@ foreach (['data-proposal-disclaimer="food"', 'data-proposal-disclaimer="decor"',
 foreach (['Large title', 'Medium title', '<strong>Bold</strong>', 'rememberSelection', 'restoreSelection'] as $needle) {
     $assert(str_contains($workspace, $needle), "Proposal rich-text formatting control missing: {$needle}");
 }
+foreach (['Signature preview', 'proposalTypedSignature', 'proposalImageSignature', 'FileReader', 'handwritten-style preview', 'proposalSignButton'] as $needle) {
+    $assert(str_contains($workspace, $needle), "Account proposal signature preview missing: {$needle}");
+    $assert(str_contains($publicWorkspace, $needle), "Public proposal signature preview missing: {$needle}");
+}
 foreach (['orders-calendar-print-agenda', 'printable_orders', 'Menu / Proposal', 'calendarOrderProposalLink', 'Signed PDF', 'orders-calendar-proposal-badge--approved', 'data-open-proposal-url'] as $needle) {
     $assert(str_contains($calendar, $needle), "Calendar print/pending contract missing: {$needle}");
 }

@@ -47,7 +47,7 @@ class OrderProposalPdfGenerator
             .proposal-page-break { page-break-after:always; height:1px; }
             .meta { color:#52606b; margin-top:4px; }
             .signature { margin-top:34px; border:1px solid #cfe5e2; background:#f4fbfa; padding:16px; }
-            .typed-signature { font-size:24px; font-style:italic; margin:6px 0; }
+            .typed-signature { font-family:DejaVu Serif,serif; font-size:26px; font-style:italic; letter-spacing:.5px; margin:8px 0; }
             .signature-image { max-width:260px; max-height:90px; }
             .audit { color:#52606b; font-size:8px; margin-top:16px; border-top:1px solid #d8e0e6; padding-top:8px; }
         </style></head><body>
