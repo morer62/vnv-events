@@ -53,11 +53,34 @@ class EventRequestRepository extends BaseRepository
     {
         try {
             $this->db->query("
-                SELECT *
-                FROM `{$this->table}`
-                WHERE `id_owner` = :id_owner
-                  AND `is_archived` = :is_archived
-                ORDER BY (`status` = 'NEW') DESC, `created_at` DESC
+                SELECT
+                    er.*,
+                    (
+                        SELECT li.id
+                        FROM lead_intake li
+                        WHERE li.id_owner = er.id_owner
+                          AND li.external_id IN (
+                              CONCAT('event-request-', er.id),
+                              CONCAT('gourmet-request-', er.id)
+                          )
+                        ORDER BY li.id DESC
+                        LIMIT 1
+                    ) AS lead_intake_id,
+                    (
+                        SELECT li.converted_order_id
+                        FROM lead_intake li
+                        WHERE li.id_owner = er.id_owner
+                          AND li.external_id IN (
+                              CONCAT('event-request-', er.id),
+                              CONCAT('gourmet-request-', er.id)
+                          )
+                        ORDER BY li.id DESC
+                        LIMIT 1
+                    ) AS converted_order_id
+                FROM `{$this->table}` er
+                WHERE er.`id_owner` = :id_owner
+                  AND er.`is_archived` = :is_archived
+                ORDER BY (er.`status` = 'NEW') DESC, er.`created_at` DESC
                 LIMIT :limit
             ");
             $this->db->bind(':id_owner', $ownerId);
@@ -138,6 +161,24 @@ class EventRequestRepository extends BaseRepository
                 `updated_at` = NOW()
             WHERE `id` = :id
               AND `id_owner` = :id_owner
+        ");
+        $this->db->bind(':id', $id);
+        $this->db->bind(':id_owner', $ownerId);
+        $this->db->execute();
+
+        return $this->db->rowCount() > 0;
+    }
+
+    public function restoreForOwner(int $id, int $ownerId): bool
+    {
+        $this->db->query("
+            UPDATE `{$this->table}`
+            SET `is_archived` = 0,
+                `archived_at` = NULL,
+                `updated_at` = NOW()
+            WHERE `id` = :id
+              AND `id_owner` = :id_owner
+              AND `is_archived` = 1
         ");
         $this->db->bind(':id', $id);
         $this->db->bind(':id_owner', $ownerId);

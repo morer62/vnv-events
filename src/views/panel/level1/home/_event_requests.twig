@@ -1,65 +1,135 @@
-<section class="vnv-request-board" id="event-requests">
+<style>
+  .vnv-lead-tabs{display:flex;gap:.55rem;flex-wrap:wrap;margin:1.1rem 0}
+  .vnv-lead-tab{display:inline-flex;align-items:center;gap:.45rem;min-height:44px;padding:.65rem 1rem;border:1px solid rgba(255,255,255,.18);border-radius:999px;background:rgba(255,255,255,.06);color:#dce8e7;font-weight:850}
+  .vnv-lead-tab span{display:grid;place-items:center;min-width:24px;height:24px;padding:0 .35rem;border-radius:999px;background:rgba(255,255,255,.12);font-size:.76rem}
+  .vnv-lead-tab[aria-selected="true"]{background:#5ec6c4;border-color:#5ec6c4;color:#10201f}
+  .vnv-lead-tab[aria-selected="true"] span{background:rgba(11,46,45,.12)}
+  .vnv-lead-panel[hidden]{display:none}
+  .vnv-lead-list{display:grid;gap:.75rem}
+  .vnv-lead-row{display:grid;grid-template-columns:minmax(180px,1.15fr) minmax(210px,1.35fr) minmax(150px,.85fr) minmax(150px,.85fr) minmax(100px,.55fr) auto;gap:.9rem;align-items:center;padding:1rem;border:1px solid rgba(255,255,255,.1);border-radius:18px;background:#fff;color:#17231f;box-shadow:0 12px 26px rgba(0,0,0,.12)}
+  .vnv-lead-row--new{border-left:5px solid #e0ae49}
+  .vnv-lead-cell{min-width:0}
+  .vnv-lead-cell small{display:block;margin-bottom:.2rem;color:#6b7b79;font-size:.7rem;font-weight:900;letter-spacing:.07em;text-transform:uppercase}
+  .vnv-lead-cell strong,.vnv-lead-cell span{display:block;color:#17231f;font-size:.9rem;line-height:1.35;overflow-wrap:anywhere}
+  .vnv-lead-badge{display:inline-flex!important;align-items:center;width:max-content;margin-top:.35rem;padding:.22rem .48rem;border-radius:999px;background:#eaf6f5;color:#176966!important;font-size:.68rem!important;font-weight:900;text-transform:uppercase;letter-spacing:.05em}
+  .vnv-lead-badge--new{background:#fff2cf;color:#7b5704!important}
+  .vnv-lead-badge--test{background:#f2e9ff;color:#6d35a4!important}
+  .vnv-lead-open{min-height:44px;border:0;border-radius:999px;padding:.7rem .95rem;background:#123f3d;color:#fff;font-weight:900;white-space:nowrap}
+  .vnv-lead-empty{padding:1.25rem;border:1px dashed rgba(255,255,255,.2);border-radius:18px;color:#d8e2e1;text-align:center}
+  .vnv-lead-empty strong{display:block;color:#fff;margin-bottom:.25rem}
+  .vnv-lead-source-note{display:flex;align-items:center;gap:.45rem;margin-top:.7rem;color:#aebdbc;font-size:.82rem}
+  .vnv-lead-modal{position:fixed;inset:0;z-index:1400;display:grid;place-items:center;padding:1rem}
+  .vnv-lead-modal[hidden]{display:none}
+  .vnv-lead-modal__backdrop{position:absolute;inset:0;border:0;background:rgba(3,12,12,.76);backdrop-filter:blur(6px)}
+  .vnv-lead-modal__dialog{position:relative;width:min(860px,100%);max-height:min(92vh,900px);overflow:auto;border-radius:26px;background:#f7faf9;color:#17231f;box-shadow:0 30px 90px rgba(0,0,0,.42)}
+  .vnv-lead-modal__head{position:sticky;top:0;z-index:2;display:flex;justify-content:space-between;gap:1rem;padding:1.25rem 1.35rem;background:#123f3d;color:#fff}
+  .vnv-lead-modal__head small{display:block;color:#9adbd8;font-weight:900;letter-spacing:.1em;text-transform:uppercase}
+  .vnv-lead-modal__head h3{margin:.2rem 0 0;color:#fff;font-size:clamp(1.25rem,3vw,1.75rem);font-weight:900}
+  .vnv-lead-modal__close{flex:0 0 44px;width:44px;height:44px;border:1px solid rgba(255,255,255,.25);border-radius:50%;background:rgba(255,255,255,.08);color:#fff;font-size:1.55rem;line-height:1}
+  .vnv-lead-modal__body{padding:1.35rem}
+  .vnv-lead-summary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:.75rem;margin-bottom:1rem}
+  .vnv-lead-summary>div,.vnv-lead-section{border:1px solid #dce9e7;border-radius:16px;background:#fff;padding:.9rem}
+  .vnv-lead-summary small,.vnv-lead-section>small{display:block;margin-bottom:.25rem;color:#657774;font-size:.7rem;font-weight:900;letter-spacing:.07em;text-transform:uppercase}
+  .vnv-lead-summary strong{display:block;line-height:1.35;color:#183331}
+  .vnv-lead-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.75rem;margin-bottom:.75rem}
+  .vnv-lead-section h4{margin:0 0 .65rem;color:#173f3d;font-size:1rem;font-weight:900}
+  .vnv-lead-section p{margin:0;color:#334745;white-space:pre-wrap;overflow-wrap:anywhere}
+  .vnv-lead-contact{display:grid;gap:.45rem}
+  .vnv-lead-contact a,.vnv-lead-source-link{color:#0c7773;font-weight:800;overflow-wrap:anywhere}
+  .vnv-lead-services{display:flex;flex-wrap:wrap;gap:.42rem;margin:0;padding:0;list-style:none}
+  .vnv-lead-services li{padding:.38rem .62rem;border-radius:999px;background:#e9f6f5;color:#175d59;font-size:.8rem;font-weight:800}
+  .vnv-lead-details{margin-top:.75rem}
+  .vnv-lead-data{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.55rem;margin:0}
+  .vnv-lead-data>div{padding:.65rem;border-radius:12px;background:#f2f7f6}
+  .vnv-lead-data dt{color:#657774;font-size:.72rem;font-weight:900;text-transform:uppercase}
+  .vnv-lead-data dd{margin:.15rem 0 0;color:#263d3b;overflow-wrap:anywhere}
+  .vnv-lead-actions{display:flex;gap:.6rem;flex-wrap:wrap;margin-top:1rem;padding-top:1rem;border-top:1px solid #dce9e7}
+  .vnv-lead-actions a,.vnv-lead-actions button{display:inline-flex;align-items:center;justify-content:center;min-height:44px;border-radius:999px;padding:.65rem .95rem;font-weight:900;text-decoration:none}
+  .vnv-lead-action--primary{border:0;background:#159c96;color:#fff!important}
+  .vnv-lead-action--secondary{border:1px solid #b9cfcc;background:#fff;color:#173f3d}
+  .vnv-lead-action--danger{border:1px solid #e4b8b8;background:#fff;color:#9d3333}
+  body.vnv-lead-modal-open{overflow:hidden}
+  @media(max-width:1050px){.vnv-lead-row{grid-template-columns:repeat(3,minmax(0,1fr))}.vnv-lead-row .vnv-lead-open{justify-self:start}.vnv-lead-summary{grid-template-columns:repeat(2,minmax(0,1fr))}}
+  @media(max-width:640px){.vnv-request-board{padding:1rem}.vnv-lead-row{grid-template-columns:1fr 1fr;gap:.75rem}.vnv-lead-row .vnv-lead-cell:first-child,.vnv-lead-row .vnv-lead-cell:nth-child(2),.vnv-lead-row .vnv-lead-open{grid-column:1/-1}.vnv-lead-row .vnv-lead-open{width:100%}.vnv-lead-modal{padding:0}.vnv-lead-modal__dialog{width:100%;height:100%;max-height:none;border-radius:0}.vnv-lead-modal__body{padding:1rem}.vnv-lead-summary,.vnv-lead-grid,.vnv-lead-data{grid-template-columns:1fr}.vnv-lead-actions>*{width:100%;margin:0}}
+</style>
+
+<section class="vnv-request-board" id="event-requests" aria-labelledby="event-requests-title">
   <div class="vnv-request-board__head">
     <div>
-      <h2>New event requests</h2>
-      <p>Requests submitted from the public popup or client dashboard. Review them here even when the email notification was not opened.</p>
+      <h2 id="event-requests-title">Event requests</h2>
+      <p>Review the essentials at a glance, then open a request to see every contact, service and source detail before preparing the estimate.</p>
+      <div class="vnv-lead-source-note"><i class="fa-solid fa-circle-info" aria-hidden="true"></i> Source labels identify the exact form or landing page that created each request.</div>
     </div>
-    <div class="vnv-request-count">{{ eventRequestsUnreadCount|default(0) }} new · {{ eventRequestsCount|default(0) }} active</div>
+    <div class="vnv-request-count">{{ eventRequestsUnreadCount|default(0) }} new · {{ eventRequestsCount|default(0) }} pending{% if eventRequestsTestCount|default(0) %} · {{ eventRequestsTestCount }} QA{% endif %}</div>
   </div>
 
-  <div class="vnv-request-list">
-    {% for request in eventRequests|default([]) %}
-      {% set services = request.selected_services ? request.selected_services|json_decode : [] %}
-      {% set requestMeta = request.details ? request.details|json_decode : [] %}
-      <article class="vnv-request-card{% if request.status == 'NEW' %} vnv-request-card--new{% endif %}">
-        <div class="vnv-request-card__top">
-          <div>
-            <strong>{{ request.full_name }}</strong>
-            <small>{{ request.email }}{% if request.phone %} · {{ request.phone }}{% endif %}</small>
-          </div>
-          <span class="vnv-request-card__date">{% if request.status == 'NEW' %}NEW · {% endif %}{{ request.event_date|date('M j') }}</span>
-        </div>
-        <div>{{ request.event_time|date('g:i A') }} · {{ request.event_address }}</div>
-        {% if services %}
-          <div class="vnv-request-card__services">{{ services|join(', ') }}</div>
-        {% endif %}
-        {% if requestMeta %}
-          <div class="vnv-request-card__metadata" aria-label="Request details">
-            {% if requestMeta.ref_code|default('') %}<span>Ref {{ requestMeta.ref_code }}</span>{% endif %}
-            {% if requestMeta.guest_bucket|default('') %}<span>{{ requestMeta.guest_bucket }} guests</span>{% endif %}
-            {% if requestMeta.zip|default('') %}
-              <span>
-                ZIP {{ requestMeta.zip }}
-                {% if requestMeta.zip_classification.county|default('') %} · {{ requestMeta.zip_classification.county }}{% endif %}
-              </span>
-            {% endif %}
-            {% if requestMeta.qualification_status|default('') %}
-              <span class="{% if requestMeta.qualified_lead|default(false) %}is-qualified{% endif %}">{{ requestMeta.qualification_status|replace({'_':' '})|title }}</span>
-            {% endif %}
-          </div>
-        {% elseif request.details %}
-          <small>{{ request.details }}</small>
-        {% endif %}
-        <div class="d-flex flex-wrap gap-2">
-          {% if request.status == 'NEW' %}
-            <form method="post">
-              <input type="hidden" name="action" value="read_event_request">
-              <input type="hidden" name="event_request_id" value="{{ request.id }}">
-              <button type="submit" class="vnv-request-archive">Mark as read</button>
-            </form>
-          {% endif %}
-          <form method="post">
-            <input type="hidden" name="action" value="archive_event_request">
-            <input type="hidden" name="event_request_id" value="{{ request.id }}">
-            <button type="submit" class="vnv-request-archive" onclick="return confirm('Archive this event request?')">Archive request</button>
-          </form>
-        </div>
-      </article>
-    {% else %}
-      <article class="vnv-request-card">
-        <strong>No active event requests yet.</strong>
-        <small>New popup submissions will appear here for Level 1 follow-up.</small>
-      </article>
-    {% endfor %}
+  <div class="vnv-lead-tabs" role="tablist" aria-label="Event request status">
+    <button class="vnv-lead-tab" type="button" role="tab" id="vnv-lead-tab-pending" aria-selected="true" aria-controls="vnv-lead-panel-pending" data-lead-tab="pending">Pending review <span>{{ eventRequestsCount|default(0) }}</span></button>
+    <button class="vnv-lead-tab" type="button" role="tab" id="vnv-lead-tab-archived" aria-selected="false" aria-controls="vnv-lead-panel-archived" data-lead-tab="archived">Archived <span>{{ eventRequestsArchivedCount|default(0) }}</span></button>
   </div>
+
+  {% for group, requests in {'pending': eventRequests|default([]), 'archived': eventRequestsArchived|default([])} %}
+    <div class="vnv-lead-panel" id="vnv-lead-panel-{{ group }}" role="tabpanel" aria-labelledby="vnv-lead-tab-{{ group }}" data-lead-panel="{{ group }}"{% if group == 'archived' %} hidden{% endif %}>
+      <div class="vnv-lead-list">
+        {% for request in requests %}
+          <article class="vnv-lead-row{% if request.is_new %} vnv-lead-row--new{% endif %}">
+            <div class="vnv-lead-cell"><small>Name</small><strong>{{ request.full_name }}</strong>{% if request.is_new %}<span class="vnv-lead-badge vnv-lead-badge--new">New</span>{% endif %}{% if request.is_test %}<span class="vnv-lead-badge vnv-lead-badge--test">QA test</span>{% endif %}</div>
+            <div class="vnv-lead-cell"><small>Event address</small><span>{{ request.address }}</span></div>
+            <div class="vnv-lead-cell"><small>Received</small><span>{{ request.received_at }}</span></div>
+            <div class="vnv-lead-cell"><small>Event date</small><span>{{ request.event_date }}{% if request.event_time != 'Not provided' %} · {{ request.event_time }}{% endif %}</span></div>
+            <div class="vnv-lead-cell"><small>Attendance</small><span>{{ request.guest_label }}</span></div>
+            <button type="button" class="vnv-lead-open" data-lead-open="vnv-lead-modal-{{ request.id }}">View details</button>
+          </article>
+        {% else %}
+          <div class="vnv-lead-empty"><strong>{{ group == 'pending' ? 'No pending requests.' : 'No archived requests.' }}</strong><span>{{ group == 'pending' ? 'New website requests will appear here.' : 'Archived requests remain available here for reference.' }}</span></div>
+        {% endfor %}
+      </div>
+    </div>
+  {% endfor %}
 </section>
+
+{% for request in (eventRequests|default([]))|merge(eventRequestsArchived|default([])) %}
+  <div class="vnv-lead-modal" id="vnv-lead-modal-{{ request.id }}" hidden aria-hidden="true">
+    <button type="button" class="vnv-lead-modal__backdrop" data-lead-close aria-label="Close request details"></button>
+    <section class="vnv-lead-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="vnv-lead-title-{{ request.id }}" tabindex="-1">
+      <header class="vnv-lead-modal__head">
+        <div><small>Event request #{{ request.id }} · {{ request.source_label }}</small><h3 id="vnv-lead-title-{{ request.id }}">{{ request.full_name }}</h3></div>
+        <button type="button" class="vnv-lead-modal__close" data-lead-close aria-label="Close">×</button>
+      </header>
+      <div class="vnv-lead-modal__body">
+        <div class="vnv-lead-summary">
+          <div><small>Received</small><strong>{{ request.received_at }}</strong></div><div><small>Event date</small><strong>{{ request.event_date }}</strong></div><div><small>Event time</small><strong>{{ request.event_time }}</strong></div><div><small>Attendance</small><strong>{{ request.guest_label }}</strong></div>
+        </div>
+        <div class="vnv-lead-grid">
+          <section class="vnv-lead-section"><h4>Contact</h4><div class="vnv-lead-contact">{% if request.email %}<a href="mailto:{{ request.email }}">{{ request.email }}</a>{% else %}<span>Email not provided</span>{% endif %}{% if request.phone %}<a href="tel:{{ request.phone|replace({' ': '', '(': '', ')': '', '-': ''}) }}">{{ request.phone }}</a>{% else %}<span>Phone not provided</span>{% endif %}</div></section>
+          <section class="vnv-lead-section"><h4>Source</h4><p>{{ request.source_label }}</p>{% if request.source_url %}<a class="vnv-lead-source-link" href="{{ request.source_url }}" target="_blank" rel="noopener">Open originating landing page</a>{% endif %}</section>
+        </div>
+        <section class="vnv-lead-section"><h4>Event location</h4><p>{{ request.address }}</p></section>
+        <div class="vnv-lead-grid vnv-lead-details">
+          <section class="vnv-lead-section"><h4>Requested services</h4>{% if request.services %}<ul class="vnv-lead-services">{% for service in request.services %}<li>{{ service }}</li>{% endfor %}</ul>{% else %}<p>No services were selected.</p>{% endif %}</section>
+          <section class="vnv-lead-section"><h4>Client notes</h4><p>{{ request.details_text ?: 'No additional notes were provided.' }}</p></section>
+        </div>
+        {% if request.extra %}<section class="vnv-lead-section vnv-lead-details"><h4>Lead and campaign details</h4><dl class="vnv-lead-data">{% for item in request.extra %}<div><dt>{{ item.label }}</dt><dd>{{ item.value }}</dd></div>{% endfor %}</dl></section>{% endif %}
+        <div class="vnv-lead-actions">
+          {% if request.converted_order_id %}<a class="vnv-lead-action--primary" href="{{ path('panel/planner-hub/management/orders/orders/edit') }}?id={{ request.converted_order_id }}">Open order #{{ request.converted_order_id }}</a>{% elseif request.lead_intake_id %}<a class="vnv-lead-action--primary" href="{{ path('panel/planner-hub/management/orders/orders/create') }}?lead_intake_id={{ request.lead_intake_id }}">Create estimate / quote</a>{% else %}<a class="vnv-lead-action--primary" href="{{ path('panel/planner-hub/management/orders/orders/create') }}?client_email={{ request.email|url_encode }}">Create estimate / quote</a>{% endif %}
+          {% if request.is_new and not request.is_archived %}<form method="post"><input type="hidden" name="action" value="read_event_request"><input type="hidden" name="event_request_id" value="{{ request.id }}"><button type="submit" class="vnv-lead-action--secondary">Mark as reviewed</button></form>{% endif %}
+          {% if request.is_archived %}<form method="post"><input type="hidden" name="action" value="restore_event_request"><input type="hidden" name="event_request_id" value="{{ request.id }}"><button type="submit" class="vnv-lead-action--secondary">Restore request</button></form>{% else %}<form method="post" onsubmit="return confirm('Archive this event request?')"><input type="hidden" name="action" value="archive_event_request"><input type="hidden" name="event_request_id" value="{{ request.id }}"><button type="submit" class="vnv-lead-action--danger">Archive request</button></form>{% endif %}
+        </div>
+      </div>
+    </section>
+  </div>
+{% endfor %}
+
+<script>
+(() => {
+  const tabs = Array.from(document.querySelectorAll('[data-lead-tab]'));
+  const panels = Array.from(document.querySelectorAll('[data-lead-panel]'));
+  const modals = Array.from(document.querySelectorAll('.vnv-lead-modal'));
+  let returnFocus = null;
+  const selectTab = (name) => { tabs.forEach((tab) => { const active = tab.dataset.leadTab === name; tab.setAttribute('aria-selected', active ? 'true' : 'false'); tab.tabIndex = active ? 0 : -1; }); panels.forEach((panel) => { panel.hidden = panel.dataset.leadPanel !== name; }); };
+  tabs.forEach((tab, index) => { tab.addEventListener('click', () => selectTab(tab.dataset.leadTab)); tab.addEventListener('keydown', (event) => { if (!['ArrowLeft', 'ArrowRight'].includes(event.key)) return; event.preventDefault(); const next = event.key === 'ArrowRight' ? (index + 1) % tabs.length : (index - 1 + tabs.length) % tabs.length; selectTab(tabs[next].dataset.leadTab); tabs[next].focus(); }); });
+  const closeModal = (modal) => { if (!modal) return; modal.hidden = true; modal.setAttribute('aria-hidden', 'true'); document.body.classList.remove('vnv-lead-modal-open'); returnFocus?.focus(); returnFocus = null; };
+  document.querySelectorAll('[data-lead-open]').forEach((button) => { button.addEventListener('click', () => { const modal = document.getElementById(button.dataset.leadOpen); if (!modal) return; returnFocus = button; modal.hidden = false; modal.setAttribute('aria-hidden', 'false'); document.body.classList.add('vnv-lead-modal-open'); modal.querySelector('.vnv-lead-modal__close')?.focus(); }); });
+  modals.forEach((modal) => { modal.querySelectorAll('[data-lead-close]').forEach((button) => button.addEventListener('click', () => closeModal(modal))); modal.addEventListener('keydown', (event) => { if (event.key === 'Escape') { event.preventDefault(); closeModal(modal); return; } if (event.key !== 'Tab') return; const focusable = Array.from(modal.querySelectorAll('a[href],button:not([disabled]),input:not([type="hidden"]),[tabindex]:not([tabindex="-1"])')); if (!focusable.length) return; const first = focusable[0], last = focusable[focusable.length - 1]; if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); } if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); } }); });
+})();
+</script>
