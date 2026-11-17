@@ -32,6 +32,8 @@ $assert(str_contains($calendarService, 'Client has not approved the menu yet'), 
 $assert(str_contains($calendarService, 'Menu approved by client'), 'Calendar service does not expose the green approved message.');
 $assert(!str_contains($workspace, 'Revision and approval history'), 'Internal proposal audit history is still exposed in the account workspace.');
 $assert(!str_contains($publicWorkspace, 'Revision and approval history'), 'Internal proposal audit history is still exposed in the secure client view.');
+$assert(!preg_match('/\bRevision\b/i', $publicWorkspace), 'Technical revision wording is still exposed in the secure client view.');
+$assert(str_contains($publicWorkspace, 'Approve and sign this proposal'), 'The client-friendly proposal approval heading is missing.');
 $assert(str_contains($workspace, 'Save and request client approval'), 'Saving details does not clearly publish the current version for client approval.');
 $assert(str_contains($workspace, '{{ guest_count }} guests'), 'Proposal workspace does not show the guest count.');
 $assert(str_contains($publicWorkspace, '{{ guest_count }} guests'), 'Secure proposal view does not show the guest count.');

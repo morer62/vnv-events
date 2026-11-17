@@ -72,7 +72,7 @@
         <div>
             <div class="public-proposal-kicker">Menu / Proposal</div>
             <h1>Review your event proposal</h1>
-            <div>Event {{ order.event_date|date('F j, Y') }}{% if guest_count %} · {{ guest_count }} guests{% endif %} · Revision {{ proposal.revision_number|default('—') }}</div>
+            <div>Event {{ order.event_date|date('F j, Y') }}{% if guest_count %} · {{ guest_count }} guests{% endif %}</div>
         </div>
         <span class="public-proposal-status {{ status == 'APPROVED' ? 'public-proposal-status--approved' : (status == 'CHANGES_REQUESTED' ? 'public-proposal-status--changes' : '') }}">{{ status_display }}</span>
     </header>
@@ -80,7 +80,7 @@
     {% if not proposal or not proposal.current_revision_id or status == 'CHANGES_REQUESTED' %}
         <div class="public-proposal-notice">
             <h2 class="h4">No details yet.</h2>
-            <p class="mb-0">This secure link remains active. Please return when VNV Events confirms that the next revision is ready.</p>
+            <p class="mb-0">This secure link remains active. Please return when VNV Events confirms that your proposal is ready.</p>
         </div>
     {% else %}
         <article class="public-proposal-card" aria-label="Current menu or proposal">
@@ -94,8 +94,8 @@
             <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
             <input type="hidden" name="action" value="approve">
             <input type="hidden" name="user_local_timestamp" id="proposalLocalTimestamp">
-            <h2 class="h4">Approve and sign this exact revision</h2>
-            <p>Your signature creates a dated PDF copy and locks revision {{ proposal.revision_number }}.</p>
+            <h2 class="h4">Approve and sign this proposal</h2>
+            <p>Your signature creates a dated PDF copy of the approved menu / proposal.</p>
             <div class="row g-3">
                 <div class="col-md-6"><label class="form-label" for="typedInitials">Type your signature or initials</label><input id="typedInitials" name="typed_initials" class="form-control" maxlength="30" autocomplete="off" placeholder="Your name or initials"></div>
                 <div class="col-md-6"><label class="form-label" for="signatureImage">Or upload signature image</label><input id="signatureImage" type="file" name="signature_image" class="form-control" accept="image/jpeg,image/png,image/webp"></div>
@@ -115,7 +115,7 @@
 
     {% if status == 'APPROVED' %}
         <section class="public-proposal-panel">
-            <h2 class="h4">Approved revision</h2>
+            <h2 class="h4">Approved proposal</h2>
             <p>This is the current approved and signed proposal.</p>
             {% if proposal.current_signed_pdf_path %}<p><a class="public-proposal-button d-inline-block text-decoration-none" href="{{ proposal.current_signed_pdf_path }}" target="_blank" rel="noopener">Open signed PDF</a></p>{% endif %}
             <p>If a correction is needed, enter the reason below. The replacement will become the only active client version.</p>

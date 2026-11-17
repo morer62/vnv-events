@@ -68,7 +68,7 @@
         <div>
             <div class="text-uppercase small fw-bold text-primary mb-1">Order VNV-341{{ order.id }}</div>
             <h1 class="h2 mb-2">Proposal – {{ manager_mode ? 'View / Edit proposal / menu' : (team_mode ? 'Event menu / proposal' : 'Review proposal / menu') }}</h1>
-            <div class="text-muted">Event {{ order.event_date|date('F j, Y') }}{% if guest_count %} · {{ guest_count }} guests{% endif %} · Revision {{ proposal.revision_number|default('—') }}</div>
+            <div class="text-muted">Event {{ order.event_date|date('F j, Y') }}{% if guest_count %} · {{ guest_count }} guests{% endif %}{% if manager_mode %} · Internal version {{ proposal.revision_number|default('—') }}{% endif %}</div>
         </div>
         <span class="proposal-status {{ status == 'APPROVED' ? 'proposal-status--approved' : (status in ['DRAFT', 'PENDING_APPROVAL'] and has_details ? 'proposal-status--pending' : (status == 'CHANGES_REQUESTED' ? 'proposal-status--changes' : '')) }}">
             {{ status_display }}
@@ -138,7 +138,7 @@
         {% endif %}
     {% else %}
         {% if not proposal or not proposal.current_revision_id or status == 'CHANGES_REQUESTED' %}
-            <div class="proposal-alert"><strong>No details yet.</strong> The event team is preparing the next menu / proposal revision. You will be notified when it is ready to review.</div>
+            <div class="proposal-alert"><strong>No details yet.</strong> The event team is preparing your menu / proposal. You will be notified when it is ready to review.</div>
         {% else %}
             <article class="proposal-card">
                 <div class="proposal-document">{{ proposal.content_html|raw }}</div>
@@ -151,8 +151,8 @@
                 <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
                 <input type="hidden" name="action" value="approve">
                 <input type="hidden" name="user_local_timestamp" id="proposalLocalTimestamp">
-                <h2 class="h5">Approve and sign this exact revision</h2>
-                <p class="text-muted">Your signature creates a dated PDF copy and locks revision {{ proposal.revision_number }}.</p>
+                <h2 class="h5">Approve and sign this proposal</h2>
+                <p class="text-muted">Your signature creates a dated PDF copy of the approved menu / proposal.</p>
                 <div class="row g-3">
                     <div class="col-md-6"><label class="form-label" for="typedInitials">Type your signature or initials</label><input id="typedInitials" name="typed_initials" class="form-control" maxlength="30" autocomplete="off" placeholder="Your name or initials"></div>
                     <div class="col-md-6"><label class="form-label" for="signatureImage">Or upload signature image</label><input id="signatureImage" type="file" name="signature_image" class="form-control" accept="image/jpeg,image/png,image/webp"></div>
@@ -173,7 +173,7 @@
 
     {% if status == 'APPROVED' %}
         <section class="proposal-signature-card mt-4">
-            <h2 class="h5">Approved revision</h2>
+            <h2 class="h5">Approved proposal</h2>
             {% if proposal.current_signed_pdf_path %}
                 <p><a href="{{ proposal.current_signed_pdf_path }}" target="_blank" rel="noopener" class="btn btn-outline-success">Open current signed PDF</a></p>
             {% endif %}
