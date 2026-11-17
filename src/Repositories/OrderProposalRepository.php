@@ -16,12 +16,20 @@ class OrderProposalRepository
     public function getByOrder(int $orderId): ?object
     {
         $this->db->query(
-            'SELECT p.*, r.revision_number, r.content_html, r.content_text, r.change_note,
-                    r.created_at AS revision_created_at
+            "SELECT p.*, r.revision_number, r.content_html, r.content_text, r.change_note,
+                    r.created_at AS revision_created_at,
+                    (SELECT a.signed_pdf_path
+                     FROM order_proposal_approvals a
+                     WHERE a.id_proposal = p.id
+                       AND a.id_revision = p.approved_revision_id
+                       AND a.action = 'APPROVED'
+                       AND a.signed_pdf_path IS NOT NULL
+                     ORDER BY a.id DESC
+                     LIMIT 1) AS current_signed_pdf_path
              FROM order_proposals p
              LEFT JOIN order_proposal_revisions r ON r.id = p.current_revision_id
              WHERE p.id_order = :order_id
-             LIMIT 1'
+             LIMIT 1"
         );
         $this->db->bind(':order_id', $orderId);
         $row = $this->db->fetchOne();
@@ -77,7 +85,8 @@ class OrderProposalRepository
 
             $this->db->query(
                 'UPDATE order_proposals
-                 SET current_revision_id = :revision_id, status = :status, updated_by = :actor_id
+                 SET current_revision_id = :revision_id, approved_revision_id = NULL,
+                     status = :status, updated_by = :actor_id
                  WHERE id = :proposal_id'
             );
             $this->db->bind(':revision_id', $revisionId);
@@ -93,11 +102,19 @@ class OrderProposalRepository
         }
     }
 
-    public function setStatus(int $proposalId, string $status, int $actorId, ?int $approvedRevisionId = null): void
+    public function setStatus(
+        int $proposalId,
+        string $status,
+        int $actorId,
+        ?int $approvedRevisionId = null,
+        bool $clearApprovedRevision = false
+    ): void
     {
         $sql = 'UPDATE order_proposals SET status = :status, updated_by = :actor_id';
         if ($approvedRevisionId !== null) {
             $sql .= ', approved_revision_id = :approved_revision_id';
+        } elseif ($clearApprovedRevision) {
+            $sql .= ', approved_revision_id = NULL';
         }
         $sql .= ' WHERE id = :proposal_id';
         $this->db->query($sql);
@@ -187,13 +204,15 @@ class OrderProposalRepository
         $placeholders = implode(',', array_fill(0, count($ids), '?'));
         $this->db->query(
             "SELECT p.id, p.id_order, p.status, p.current_revision_id, p.approved_revision_id,
-                    (SELECT a.signed_pdf_path
+                    CASE WHEN p.status = 'APPROVED' THEN (SELECT a.signed_pdf_path
                      FROM order_proposal_approvals a
                      WHERE a.id_proposal = p.id
+                       AND a.id_revision = p.approved_revision_id
                        AND a.action = 'APPROVED'
                        AND a.signed_pdf_path IS NOT NULL
                      ORDER BY a.id DESC
-                     LIMIT 1) AS signed_pdf_path
+                     LIMIT 1)
+                     ELSE NULL END AS signed_pdf_path
              FROM order_proposals p
              WHERE p.id_order IN ({$placeholders})"
         );
@@ -211,10 +230,10 @@ class OrderProposalRepository
     public static function statusLabel(?string $status, bool $hasContent = false): string
     {
         return match ((string)$status) {
-            'DRAFT' => $hasContent ? 'Draft' : 'No details yet',
-            'PENDING_APPROVAL' => 'Awaiting client signature',
+            'DRAFT' => $hasContent ? 'Client approval pending' : 'No details yet',
+            'PENDING_APPROVAL' => 'Client approval pending',
             'APPROVED' => 'Approved and signed',
-            'CHANGES_REQUESTED' => 'Changes requested',
+            'CHANGES_REQUESTED' => $hasContent ? 'Client approval pending' : 'No details yet',
             default => 'No details yet',
         };
     }
@@ -233,9 +252,8 @@ class OrderProposalRepository
             $order->proposal_has_content = $summary ? (bool)$summary->current_revision_id : false;
             $order->proposal_status_label = self::statusLabel($order->proposal_status, $order->proposal_has_content);
             $order->proposal_signed_pdf_path = $summary->signed_pdf_path ?? null;
-            $order->proposal_pending = (string)$order->proposal_status === 'PENDING_APPROVAL'
-                || ((int)($order->proposal_requires_approval ?? 0) === 1
-                    && !in_array((string)$order->proposal_status, ['APPROVED'], true));
+            $order->proposal_pending = $order->proposal_has_content
+                && (string)$order->proposal_status !== 'APPROVED';
         }
         return $orders;
     }

@@ -3,7 +3,7 @@
 {% set status = proposal.status|default('NOT_STARTED') %}
 {% set status_labels = {
     'NOT_STARTED': 'Not started',
-    'DRAFT': 'Being prepared',
+    'DRAFT': 'Ready for your approval',
     'PENDING_APPROVAL': 'Ready for your approval',
     'APPROVED': 'Approved and signed',
     'CHANGES_REQUESTED': 'Changes requested'
@@ -40,11 +40,6 @@
     .public-proposal-button { border:0; border-radius:10px; background:var(--proposal-teal); color:#fff; font-weight:800; padding:12px 20px; min-height:48px; }
     .public-proposal-button--danger { background:#fff; border:1px solid #c74a4a; color:#9b2c2c; }
     .public-proposal-notice { background:#fff; border:1px solid var(--proposal-line); border-radius:16px; padding:20px; }
-    .public-proposal-history { margin-top:28px; }
-    .public-proposal-history summary { cursor:pointer; font-weight:800; padding:18px 0; }
-    .public-proposal-history ul { list-style:none; padding:0; }
-    .public-proposal-history li { border-left:3px solid var(--proposal-teal); padding:2px 0 18px 16px; margin-left:5px; }
-    .public-proposal-history a { color:#087c79; font-weight:700; }
     .form-control { min-height:48px; }
     @media(max-width:640px){
         .public-proposal-brand { align-items:flex-start; }
@@ -55,7 +50,7 @@
     @media print {
         body { background:#fff; }
         .public-proposal-shell { width:100%; margin:0; }
-        .public-proposal-panel,.public-proposal-history,.public-proposal-status { display:none; }
+        .public-proposal-panel,.public-proposal-status { display:none; }
         .public-proposal-card { border:0; box-shadow:none; }
     }
 </style>
@@ -72,12 +67,12 @@
         <div>
             <div class="public-proposal-kicker">Menu / Proposal</div>
             <h1>Review your event proposal</h1>
-            <div>Event {{ order.event_date|date('F j, Y') }} · Revision {{ proposal.revision_number|default('—') }}</div>
+            <div>Event {{ order.event_date|date('F j, Y') }}{% if guest_count %} · {{ guest_count }} guests{% endif %} · Revision {{ proposal.revision_number|default('—') }}</div>
         </div>
         <span class="public-proposal-status {{ status == 'APPROVED' ? 'public-proposal-status--approved' : (status == 'CHANGES_REQUESTED' ? 'public-proposal-status--changes' : '') }}">{{ status_display }}</span>
     </header>
 
-    {% if not proposal or not proposal.current_revision_id or status == 'DRAFT' or status == 'CHANGES_REQUESTED' %}
+    {% if not proposal or not proposal.current_revision_id or status == 'CHANGES_REQUESTED' %}
         <div class="public-proposal-notice">
             <h2 class="h4">No details yet.</h2>
             <p class="mb-0">This secure link remains active. Please return when VNV Events confirms that the next revision is ready.</p>
@@ -88,7 +83,7 @@
         </article>
     {% endif %}
 
-    {% if status == 'PENDING_APPROVAL' %}
+    {% if status in ['DRAFT', 'PENDING_APPROVAL'] %}
         <form method="post" enctype="multipart/form-data" class="public-proposal-panel" id="publicProposalApprovalForm">
             <input type="hidden" name="token" value="{{ token }}">
             <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
@@ -107,7 +102,9 @@
     {% if status == 'APPROVED' %}
         <section class="public-proposal-panel">
             <h2 class="h4">Approved revision</h2>
-            <p>This proposal is signed and locked. If a correction is needed, enter the reason below. The previous approval and PDF remain in the history.</p>
+            <p>This is the current approved and signed proposal.</p>
+            {% if proposal.current_signed_pdf_path %}<p><a class="public-proposal-button d-inline-block text-decoration-none" href="{{ proposal.current_signed_pdf_path }}" target="_blank" rel="noopener">Open signed PDF</a></p>{% endif %}
+            <p>If a correction is needed, enter the reason below. The replacement will become the only active client version.</p>
             <form method="post" class="row g-2 align-items-end">
                 <input type="hidden" name="token" value="{{ token }}">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
@@ -118,21 +115,6 @@
         </section>
     {% endif %}
 
-    {% if history %}
-        <details class="public-proposal-history">
-            <summary>Revision and approval history</summary>
-            <ul>
-                {% for entry in history %}
-                    <li>
-                        <strong>{{ entry.event_type|replace({'_':' '})|title }}</strong>
-                        <div class="small text-muted">{{ entry.created_at|date('M j, Y g:i A') }}</div>
-                        {% if entry.reason %}<div>{{ entry.reason }}</div>{% endif %}
-                        {% if entry.metadata.signed_pdf_path %}<a href="{{ entry.metadata.signed_pdf_path }}" target="_blank" rel="noopener">Open signed PDF copy</a>{% endif %}
-                    </li>
-                {% endfor %}
-            </ul>
-        </details>
-    {% endif %}
 </main>
 {% endblock %}
 

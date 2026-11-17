@@ -344,6 +344,16 @@ class OrdersCalendarService
         $endTime = $this->stringValue($order, 'end_time', '');
         $primaryTime = $this->pickPrimaryTime($order);
         $hasTime = $this->isUsableTime($primaryTime);
+        $proposalStatus = $this->stringValue($order, 'proposal_status', '');
+        $proposalHasContent = (bool)($order->proposal_has_content ?? false);
+        $proposalCalendarClass = $proposalStatus === 'APPROVED'
+            ? 'approved'
+            : ($proposalHasContent ? 'pending' : 'empty');
+        $proposalCalendarLabel = $proposalStatus === 'APPROVED'
+            ? 'Menu approved by client'
+            : ($proposalHasContent
+                ? 'Client has not approved the menu yet'
+                : 'No menu / proposal details yet');
 
         return [
             'id' => $id,
@@ -367,8 +377,10 @@ class OrdersCalendarService
             'staff_url' => $staffRoutePrefix . $id,
             'payments_url' => 'panel/planner-hub/management/orders/orders/payments?id=' . $id,
             'status_url' => 'panel/planner-hub/management/orders/orders/status?id=' . $id,
-            'proposal_status' => $this->stringValue($order, 'proposal_status', ''),
+            'proposal_status' => $proposalStatus,
             'proposal_status_label' => $this->stringValue($order, 'proposal_status_label', 'No details yet'),
+            'proposal_status_class' => $proposalCalendarClass,
+            'proposal_calendar_label' => $proposalCalendarLabel,
             'proposal_pending' => (bool)($order->proposal_pending ?? false),
             'proposal_signed_pdf_path' => $this->stringValue($order, 'proposal_signed_pdf_path', ''),
             'proposal_url' => 'panel/planner-hub/management/orders/orders/proposal?id=' . $id,

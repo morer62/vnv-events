@@ -3,6 +3,7 @@
 use App\Repositories\OrderProposalRepository;
 use App\Repositories\OrdersRepository;
 use App\Services\OrderProposalAccessService;
+use App\Services\OrderGuestCountService;
 use App\Services\OrderProposalWorkflowService;
 use App\Utils\LocationUtils;
 use App\Utils\MessageUtil;
@@ -37,12 +38,7 @@ $router->get(function () use ($loadContext, $invalidLink) {
         [$token, $payload, $order] = $loadContext();
         $repository = new OrderProposalRepository();
         $proposal = $repository->getByOrder((int)$order->id);
-        $history = $proposal ? $repository->getHistory((int)$proposal->id) : [];
-        foreach ($history as $entry) {
-            $entry->metadata = !empty($entry->metadata_json)
-                ? (json_decode((string)$entry->metadata_json, true) ?: [])
-                : [];
-        }
+        $guestCount = (new OrderGuestCountService())->resolve($order);
 
         $_SESSION['proposal_public_csrf_token'] ??= bin2hex(random_bytes(32));
 
@@ -51,9 +47,9 @@ $router->get(function () use ($loadContext, $invalidLink) {
             [
                 'order' => $order,
                 'proposal' => $proposal,
-                'history' => $history,
                 'token' => $token,
                 'csrf_token' => $_SESSION['proposal_public_csrf_token'],
+                'guest_count' => $guestCount,
                 'skip_public_gtm_initial' => true,
                 'skip_public_app_bundle' => true,
                 'skip_public_google_maps' => true,

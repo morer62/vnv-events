@@ -3,6 +3,7 @@
 require_once __DIR__ . '/../vendor/autoload.php';
 
 use App\Repositories\OrderProposalRepository;
+use App\Services\OrderGuestCountService;
 use App\Services\OrderProposalContentService;
 use Dotenv\Dotenv;
 
@@ -23,6 +24,8 @@ $assert(!str_contains($sanitized, '<script'), 'Script markup was not removed.');
 $assert(!str_contains($sanitized, 'onclick'), 'Event attributes were not removed.');
 $assert(!str_contains($sanitized, 'javascript:'), 'Unsafe image URLs were not removed.');
 $assert(OrderProposalRepository::statusLabel('NOT_STARTED', false) === 'No details yet', 'Empty proposal status is not user friendly.');
+$assert(OrderProposalRepository::statusLabel('DRAFT', true) === 'Client approval pending', 'An unsigned current proposal is not labeled as pending approval.');
+$assert((new OrderGuestCountService())->resolve((object)['notes' => "Event type: Social Event\nGuest count: 25"]) === 25, 'Guest count was not resolved from order notes.');
 
 $pdo = new PDO($_ENV['DATABASE_URL']);
 $order = $pdo->query('SELECT o.id, o.id_owner FROM orders o LEFT JOIN order_proposals p ON p.id_order = o.id WHERE p.id IS NULL ORDER BY o.id DESC LIMIT 1')->fetch(PDO::FETCH_OBJ);
@@ -69,7 +72,11 @@ try {
         'user_agent' => 'Automated test',
         'user_local_timestamp' => date('Y-m-d H:i:s'),
     ]);
-    $repository->setStatus((int)$proposal->id, 'CHANGES_REQUESTED', (int)$order->id_owner);
+    $repository->setStatus((int)$proposal->id, 'CHANGES_REQUESTED', (int)$order->id_owner, null, true);
+    $reopened = $repository->getByOrder((int)$order->id);
+    $assert($reopened && $reopened->approved_revision_id === null, 'Reopened approval remained active.');
+    $summaries = $repository->getSummariesByOrderIds([(int)$order->id]);
+    $assert(empty($summaries[(int)$order->id]->signed_pdf_path), 'A superseded signed PDF remained exposed as the active version.');
     $history = $repository->getHistory((int)$proposal->id);
     $assert(count($history) >= 3, 'Revision, approval and revocation history was not retained.');
     echo "PASS order proposal workflow and sanitizer\n";

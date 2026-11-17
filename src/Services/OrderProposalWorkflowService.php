@@ -73,7 +73,7 @@ class OrderProposalWorkflowService
     /** @return array{file_path:string,hash:string,content:string} */
     public function approve(object $proposal, int $actorId, string $typedInitials, ?array $signatureUpload, ?string $userTimestamp): array
     {
-        if ((string)$proposal->status !== 'PENDING_APPROVAL') {
+        if (!in_array((string)$proposal->status, ['DRAFT', 'PENDING_APPROVAL'], true)) {
             throw new RuntimeException('Only the current proposal awaiting approval can be signed.');
         }
         if (empty($proposal->current_revision_id)) {
@@ -116,6 +116,10 @@ class OrderProposalWorkflowService
             'user_agent' => substr((string)($_SERVER['HTTP_USER_AGENT'] ?? ''), 0, 1000),
             'user_local_timestamp' => $signedAt,
         ]);
+        (new OrdersRepository())->update(
+            ['proposal_requires_approval' => 1],
+            ['id' => (int)$proposal->id_order]
+        );
         $this->proposals->setStatus((int)$proposal->id, 'APPROVED', $actorId, (int)$revision->id);
         $this->proposals->addAudit((int)$proposal->id, (int)$revision->id, 'PROPOSAL_APPROVED', $actorId, null, [
             'content_hash' => $pdf['hash'],
@@ -142,7 +146,7 @@ class OrderProposalWorkflowService
             'user_agent' => substr((string)($_SERVER['HTTP_USER_AGENT'] ?? ''), 0, 1000),
             'user_local_timestamp' => date('Y-m-d H:i:s'),
         ]);
-        $this->proposals->setStatus((int)$proposal->id, 'CHANGES_REQUESTED', $actorId);
+        $this->proposals->setStatus((int)$proposal->id, 'CHANGES_REQUESTED', $actorId, null, true);
         $this->proposals->addAudit((int)$proposal->id, (int)$proposal->approved_revision_id, 'APPROVAL_REVOKED', $actorId, $reason);
         $this->notifyBoth((int)$proposal->id_order, 'The proposal approval was reopened. Reason: ' . $reason);
     }

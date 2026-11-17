@@ -54,6 +54,8 @@ foreach (['Client proposal link', 'Copy link', 'client_access_url'] as $needle) 
 foreach (['emailProposalReady', 'Review and sign proposal', 'sendSimpleEmail'] as $needle) {
     $assert(str_contains($workflow, $needle), "Proposal ready email contract missing: {$needle}");
 }
+$assert(str_contains($workflow, "['DRAFT', 'PENDING_APPROVAL']"), 'A saved current revision cannot be signed directly from its secure link.');
+$assert(!str_contains($template, 'Revision and approval history'), 'Secure client link exposes internal proposal audit history.');
 for ($level = 1; $level <= 4; $level++) {
     $orderListController = (string)file_get_contents($root . "/src/views/panel/level{$level}/planner-hub/management/orders/orders/index.php");
     $orderListTemplate = (string)file_get_contents($root . "/src/views/panel/level{$level}/planner-hub/management/orders/orders/index.twig");

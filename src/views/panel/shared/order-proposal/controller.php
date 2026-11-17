@@ -6,6 +6,7 @@ use App\Repositories\OrdersRepository;
 use App\Repositories\OrdersTeamTasksRepository;
 use App\Services\LoginService;
 use App\Services\OrderProposalAccessService;
+use App\Services\OrderGuestCountService;
 use App\Services\OrderProposalWorkflowService;
 use App\Utils\LocationUtils;
 use App\Utils\MessageUtil;
@@ -73,23 +74,20 @@ $router->get(function () use ($proposalManagerMode, $proposalTeamMode, $loadCont
             ? $workflow->getOrCreate($order, (int)$user->getId())
             : $repository->getByOrder((int)$order->id);
 
-        $history = $proposal ? $repository->getHistory((int)$proposal->id) : [];
-        foreach ($history as $entry) {
-            $entry->metadata = !empty($entry->metadata_json) ? (json_decode((string)$entry->metadata_json, true) ?: []) : [];
-        }
         $_SESSION['proposal_csrf_token'] ??= bin2hex(random_bytes(32));
         $clientAccessUrl = (new OrderProposalAccessService())->urlForOrder($order);
+        $guestCount = (new OrderGuestCountService())->resolve($order);
 
         return TemplateResponse::render(
             dirname(__DIR__, 3) . DIRECTORY_SEPARATOR . 'templates' . DIRECTORY_SEPARATOR . 'components' . DIRECTORY_SEPARATOR . 'orderProposalWorkspace.twig',
             [
             'order' => $order,
             'proposal' => $proposal,
-            'history' => $history,
             'manager_mode' => $proposalManagerMode,
             'team_mode' => $proposalTeamMode,
             'csrf_token' => $_SESSION['proposal_csrf_token'],
             'client_access_url' => $proposalManagerMode ? $clientAccessUrl : null,
+            'guest_count' => $guestCount,
             ]
         );
     } catch (Throwable $exception) {
@@ -133,7 +131,10 @@ $router->post(function () use ($proposalManagerMode, $proposalTeamMode, $loadCon
         if ($action === 'save_draft') {
             if (!$proposalManagerMode) throw new RuntimeException('Only the event team can edit the proposal.');
             $workflow->saveDraft($proposal, (string)($_POST['content_html'] ?? ''), $_POST['change_note'] ?? null, (int)$user->getId());
-            MessageUtil::setMessage('Proposal revision saved.');
+            $currentProposal = $repository->getByOrder((int)$order->id);
+            if (!$currentProposal) throw new RuntimeException('The saved proposal could not be reloaded.');
+            $workflow->sendForApproval($currentProposal, (int)$user->getId());
+            MessageUtil::setMessage('The current proposal was saved and is ready for the client to approve and sign.');
         } elseif ($action === 'send_for_approval') {
             if (!$proposalManagerMode) throw new RuntimeException('Only the event team can send a proposal.');
             $workflow->sendForApproval($proposal, (int)$user->getId());

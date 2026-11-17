@@ -25,6 +25,7 @@ class OrderProposalPdfGenerator
         $institution = (new InstitutionProfileRepository())->getByOwner((int)$order->id_owner);
         $clientName = trim((string)(($client->name ?? '') . ' ' . ($client->lastname ?? ''))) ?: (string)($client->email ?? 'Client');
         $companyName = (string)($institution->company_name ?? $institution->name ?? 'VNV Events');
+        $guestCount = (new OrderGuestCountService())->resolve($order);
         $signedAt = $userTimestamp ? date('Y-m-d H:i:s', strtotime($userTimestamp)) : date('Y-m-d H:i:s');
         $displayDate = date('F j, Y - g:i A', strtotime($signedAt));
 
@@ -51,7 +52,7 @@ class OrderProposalPdfGenerator
         </style></head><body>
             <div class="header"><div class="brand">' . htmlspecialchars($companyName, ENT_QUOTES, 'UTF-8') . '</div>
             <h1>Menu / Proposal Approval</h1>
-            <div class="meta">Order VNV-341' . (int)$order->id . ' · Revision ' . (int)$revision->revision_number . ' · Event ' . htmlspecialchars(date('F j, Y', strtotime((string)$order->event_date)), ENT_QUOTES, 'UTF-8') . '</div></div>
+            <div class="meta">Order VNV-341' . (int)$order->id . ' &middot; Revision ' . (int)$revision->revision_number . ' &middot; Event ' . htmlspecialchars(date('F j, Y', strtotime((string)$order->event_date)), ENT_QUOTES, 'UTF-8') . ($guestCount ? ' &middot; Guests ' . $guestCount : '') . '</div></div>
             <main>' . (string)$revision->content_html . '</main>
             <section class="signature"><strong>Approved and electronically signed by ' . htmlspecialchars($clientName, ENT_QUOTES, 'UTF-8') . '</strong><br>' . $signatureHtml . '<div>' . htmlspecialchars($displayDate, ENT_QUOTES, 'UTF-8') . '</div></section>
             <div class="audit">Revision ID: ' . (int)$revision->id . '<br>IP: ' . htmlspecialchars((string)($_SERVER['REMOTE_ADDR'] ?? ''), ENT_QUOTES, 'UTF-8') . '<br>User agent: ' . htmlspecialchars((string)($_SERVER['HTTP_USER_AGENT'] ?? ''), ENT_QUOTES, 'UTF-8') . '</div>
