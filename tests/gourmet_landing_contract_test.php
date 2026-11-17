@@ -128,6 +128,11 @@ $assert(
 );
 $assert(is_file(dirname(__DIR__) . '/src/views/public/pages/appetizer-catering-south-florida/index.php'), 'Appetizer landing is missing.');
 
+$levelOneHome = file_get_contents(dirname(__DIR__) . '/src/views/panel/level1/home/index.php');
+foreach (["metadata['conversion_time']", "DateTimeZone('America/New_York')", " . ' ET'"] as $needle) {
+    $assert(str_contains($levelOneHome, $needle), 'Level 1 request timestamps must use the authoritative Eastern Time conversion: ' . $needle);
+}
+
 $leadEndpoint = file_get_contents(dirname(__DIR__) . '/src/views/api/public/gourmet-lead/index.php');
 foreach (['beginTransaction', 'commit()', 'rollback()', 'GourmetLeadRateLimiter', 'http_response_code(429)', "'setup_minutes' => 0", "'is_test' =>", "'lead_id' => \$requestId", "'lead_qualified' => \$qualified"] as $needle) {
     $assert(str_contains($leadEndpoint, $needle), 'Lead endpoint missing contract: ' . $needle);

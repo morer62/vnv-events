@@ -124,6 +124,35 @@ function level1HomeRequestDate(?string $value, string $format, string $fallback 
     }
 }
 
+function level1HomeRequestReceivedDate(?string $createdAt, array $metadata): string
+{
+    $authoritativeTime = trim((string)($metadata['conversion_time'] ?? ''));
+
+    if ($authoritativeTime !== '') {
+        try {
+            $easternTime = (new DateTimeImmutable($authoritativeTime))
+                ->setTimezone(new DateTimeZone('America/New_York'));
+
+            return $easternTime->format('M j, Y · g:i A') . ' ET';
+        } catch (Throwable $e) {
+            // Fall back to the request creation timestamp for legacy records.
+        }
+    }
+
+    $createdAt = trim((string)$createdAt);
+    if ($createdAt === '' || $createdAt === '0000-00-00 00:00:00') {
+        return 'Not provided';
+    }
+
+    try {
+        return (new DateTimeImmutable($createdAt, new DateTimeZone('UTC')))
+            ->setTimezone(new DateTimeZone('America/New_York'))
+            ->format('M j, Y · g:i A') . ' ET';
+    } catch (Throwable $e) {
+        return $createdAt;
+    }
+}
+
 function level1HomeRequestPhone(string $phone): array
 {
     $raw = trim($phone);
@@ -186,7 +215,7 @@ function level1HomeRequestView(object $request): array
         'address' => trim((string)($request->event_address ?? '')) ?: 'Address not provided',
         'event_date' => level1HomeRequestDate($request->event_date ?? null, 'M j, Y'),
         'event_time' => level1HomeRequestDate($request->event_time ?? null, 'g:i A'),
-        'received_at' => level1HomeRequestDate($request->created_at ?? null, 'M j, Y · g:i A'),
+        'received_at' => level1HomeRequestReceivedDate($request->created_at ?? null, $metadata),
         'archived_at' => level1HomeRequestDate($request->archived_at ?? null, 'M j, Y · g:i A', ''),
         'guest_count' => $guestCount > 0 ? $guestCount : null,
         'guest_label' => $guestCount > 0 ? $guestCount . ' guests' : ((string)($metadata['guest_bucket'] ?? '') !== '' ? str_replace('-', '–', (string)$metadata['guest_bucket']) . ' guests' : 'Not provided'),
