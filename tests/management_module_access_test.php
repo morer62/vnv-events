@@ -68,12 +68,21 @@ assertModuleAccess($legacy->hasPermissionForModule('crm_sponsors'), 'Legacy Spon
 assertModuleAccess($legacy->hasPermissionForModule('orders'), 'Legacy Orders compatibility was removed.');
 
 $requestTemplate = file_get_contents(dirname(__DIR__) . '/src/views/panel/level1/home/_event_requests.twig');
-assertModuleAccess(str_contains($requestTemplate, 'requestMeta'), 'Dashboard request metadata is not parsed.');
-assertModuleAccess(str_contains($requestTemplate, '{% elseif request.details %}'), 'Plain-text request details lost their fallback.');
+$requestController = file_get_contents(dirname(__DIR__) . '/src/views/panel/level1/home/index.php');
+foreach (['request.address', 'request.lead_intelligence', 'eventRequestsQa', 'QA tests', 'eventRequestsCsrfToken'] as $needle) {
+    assertModuleAccess(str_contains($requestTemplate, $needle), "Dashboard request UI is missing {$needle}.");
+}
+foreach (['zip_classification', 'qualification_status', "'Google click ID'", 'CSRF::validateCSRF()', 'eventRequestsQa'] as $needle) {
+    assertModuleAccess(str_contains($requestController, $needle), "Dashboard request controller is missing {$needle}.");
+}
 
 $storageTemplate = file_get_contents(dirname(__DIR__) . '/src/views/panel/level4/planner-hub/management/storage/containers/items/index.twig');
 assertModuleAccess(str_contains($storageTemplate, 'Print Container Tag'), 'Container detail is missing its print control.');
 assertModuleAccess(str_contains($storageTemplate, 'Add New Item'), 'Container detail is missing item management.');
+
+$privateModuleNav = file_get_contents(dirname(__DIR__) . '/src/views/templates/components/private-module-nav.twig');
+assertModuleAccess(str_contains($privateModuleNav, "hasPermissionForModule('crm_clients')"), 'Context navigation does not isolate Client CRM access.');
+assertModuleAccess(str_contains($privateModuleNav, "hasPermissionForModule('crm_sponsors')"), 'Context navigation does not isolate Sponsors CRM access.');
 
 $twig = new Environment(new FilesystemLoader(dirname(__DIR__) . '/src/views'), [
     'cache' => false,
@@ -89,6 +98,7 @@ foreach ([
     'panel/level1/planner-hub/management/users/edit/index.twig',
     'panel/level4/planner-hub/management/storage/containers/items/index.twig',
     'templates/layout/sidebars/4.twig',
+    'templates/components/private-module-nav.twig',
 ] as $template) {
     $twig->load($template);
 }

@@ -169,7 +169,7 @@ final class CommercialPartnershipRepository
         }
 
         $this->db->query(
-            'SELECT o.*,c.name contact_name,c.email,c.phone,org.name organization_name
+            'SELECT o.*,c.name contact_name,c.email,c.phone,c.role_title,org.name organization_name
              FROM commercial_opportunities o
              LEFT JOIN commercial_contacts c ON c.id=o.contact_id
              LEFT JOIN commercial_organizations org ON org.id=o.organization_id
@@ -187,12 +187,184 @@ final class CommercialPartnershipRepository
         return ['items' => $items, 'counts' => $this->db->fetchAll(), 'stages' => self::ALLOWED_STAGES];
     }
 
-    public function updateStage(int $ownerId, string $siteKey, int $opportunityId, string $stage, ?int $actorUserId = null): bool
-    {
-        $this->db->query('SELECT pipeline,stage FROM commercial_opportunities WHERE id_owner=:owner AND site_key=:site AND id=:id');
+    /**
+     * Create an internal partnership record without manufacturing public-form
+     * consent. Team-created records are assigned to their creator so they are
+     * immediately available inside the scoped Level 4 pipeline.
+     */
+    public function createManualOpportunity(
+        int $ownerId,
+        string $siteKey,
+        string $program,
+        array $data,
+        int $actorUserId,
+        ?string $actorName = null,
+        bool $assignToActor = false
+    ): int {
+        $program = strtoupper(trim($program));
+        if (!isset(self::PIPELINES[$program])) {
+            throw new \InvalidArgumentException('Select a valid partnership program.');
+        }
+
+        $contactName = trim((string)($data['contact_name'] ?? ''));
+        $email = strtolower(trim((string)($data['email'] ?? '')));
+        if ($contactName === '' || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            throw new \InvalidArgumentException('Contact name and a valid email address are required.');
+        }
+
+        $siteKey = preg_replace('/[^a-z0-9_-]/', '', strtolower($siteKey)) ?: 'vnvevents';
+        $organizationName = trim((string)($data['organization_name'] ?? ''));
+        $pipeline = self::PIPELINES[$program];
+
+        $this->db->beginTransaction();
+        try {
+            $organizationId = $this->findOrCreateOrganization($ownerId, $siteKey, $organizationName, $data, $program);
+            $contactId = $this->findOrCreateContact($ownerId, $siteKey, $organizationId, $contactName, $email, $data);
+            $eventName = trim((string)($data['event_name'] ?? ''));
+            $title = trim((string)($data['title'] ?? ''));
+            if ($title === '') {
+                $title = $eventName !== '' ? $eventName : ($organizationName !== '' ? $organizationName : $contactName);
+            }
+
+            $this->db->query(
+                'INSERT INTO commercial_opportunities
+                (id_owner,site_key,organization_id,contact_id,program,pipeline,stage,title,event_name,event_date,venue,city,guest_count,budget_range,requested_services,assigned_owner_name,assigned_user_id,source,next_follow_up_at,payload_json)
+                VALUES
+                (:owner,:site,:organization,:contact,:program,:pipeline,:stage,:title,:event_name,:event_date,:venue,:city,:guest_count,:budget,:services,:assigned_owner,:assigned_user,:source,:follow_up,:payload)'
+            );
+            $this->db->bind(':owner', $ownerId);
+            $this->db->bind(':site', $siteKey);
+            $this->db->bind(':organization', $organizationId ?: null);
+            $this->db->bind(':contact', $contactId);
+            $this->db->bind(':program', $program);
+            $this->db->bind(':pipeline', $pipeline['pipeline']);
+            $this->db->bind(':stage', $pipeline['stage']);
+            $this->db->bind(':title', mb_substr($title, 0, 220));
+            $this->db->bind(':event_name', $this->short($eventName, 220));
+            $this->db->bind(':event_date', $this->dateOrNull($data['event_date'] ?? null));
+            $this->db->bind(':venue', $this->short($data['venue'] ?? null, 255));
+            $this->db->bind(':city', $this->short($data['city'] ?? null, 120));
+            $this->db->bind(':guest_count', ($data['guest_count'] ?? 0) > 0 ? (int)$data['guest_count'] : null);
+            $this->db->bind(':budget', $this->short($data['budget_range'] ?? null, 120));
+            $this->db->bind(':services', $this->short($data['requested_services'] ?? null, 4000));
+            $this->db->bind(':assigned_owner', $assignToActor ? $this->short($actorName, 120) : null);
+            $this->db->bind(':assigned_user', $assignToActor ? $actorUserId : null);
+            $this->db->bind(':source', 'manual_crm');
+            $this->db->bind(':follow_up', $this->dateTimeOrNull($data['next_follow_up_at'] ?? null));
+            $this->db->bind(':payload', json_encode(['created_manually' => true], JSON_UNESCAPED_SLASHES));
+            $this->db->execute();
+            $opportunityId = (int)$this->db->lastId();
+
+            $this->recordActivity($ownerId, $siteKey, $opportunityId, 'MANUAL_ENTRY', 'Partnership contact created inside the CRM.', [], $actorUserId);
+            $this->audit($ownerId, $siteKey, 'opportunity', $opportunityId, 'CREATED', null, ['source' => 'manual_crm'], $actorUserId);
+            $this->db->commit();
+            return $opportunityId;
+        } catch (\Throwable $e) {
+            $this->db->rollback();
+            throw $e;
+        }
+    }
+
+    public function updateOpportunityDetails(
+        int $ownerId,
+        string $siteKey,
+        int $opportunityId,
+        array $data,
+        int $actorUserId,
+        ?int $requiredAssignedUserId = null
+    ): void {
+        $this->db->query(
+            'SELECT o.*,c.id contact_record_id,c.name contact_name,c.email,c.phone,c.role_title,
+                    org.id organization_record_id,org.name organization_name
+             FROM commercial_opportunities o
+             LEFT JOIN commercial_contacts c ON c.id=o.contact_id
+             LEFT JOIN commercial_organizations org ON org.id=o.organization_id
+             WHERE o.id_owner=:owner AND o.site_key=:site AND o.id=:id LIMIT 1'
+        );
         $this->db->bind(':owner', $ownerId);
         $this->db->bind(':site', $siteKey);
         $this->db->bind(':id', $opportunityId);
+        $current = $this->db->fetchOne();
+        if (!$current || ($requiredAssignedUserId !== null && (int)$current->assigned_user_id !== $requiredAssignedUserId)) {
+            throw new \InvalidArgumentException('This partnership record is not assigned to your account.');
+        }
+
+        $contactName = trim((string)($data['contact_name'] ?? ''));
+        $email = strtolower(trim((string)($data['email'] ?? '')));
+        $title = trim((string)($data['title'] ?? ''));
+        if ($contactName === '' || !filter_var($email, FILTER_VALIDATE_EMAIL) || $title === '') {
+            throw new \InvalidArgumentException('Title, contact name and a valid email address are required.');
+        }
+
+        $this->db->beginTransaction();
+        try {
+            if (!empty($current->contact_record_id)) {
+                $this->db->query('UPDATE commercial_contacts SET name=:name,email=:email,phone=:phone,role_title=:role,updated_at=NOW() WHERE id_owner=:owner AND site_key=:site AND id=:id');
+                $this->db->bind(':name', mb_substr($contactName, 0, 191));
+                $this->db->bind(':email', mb_substr($email, 0, 191));
+                $this->db->bind(':phone', $this->short($data['phone'] ?? null, 80));
+                $this->db->bind(':role', $this->short($data['contact_role'] ?? null, 150));
+                $this->db->bind(':owner', $ownerId);
+                $this->db->bind(':site', $siteKey);
+                $this->db->bind(':id', (int)$current->contact_record_id);
+                $this->db->execute();
+            }
+            $organizationName = trim((string)($data['organization_name'] ?? ''));
+            if (!empty($current->organization_record_id) && $organizationName !== '') {
+                $this->db->query('UPDATE commercial_organizations SET name=:name,updated_at=NOW() WHERE id_owner=:owner AND site_key=:site AND id=:id');
+                $this->db->bind(':name', mb_substr($organizationName, 0, 191));
+                $this->db->bind(':owner', $ownerId);
+                $this->db->bind(':site', $siteKey);
+                $this->db->bind(':id', (int)$current->organization_record_id);
+                $this->db->execute();
+            }
+
+            $this->db->query(
+                'UPDATE commercial_opportunities SET title=:title,event_name=:event_name,event_date=:event_date,venue=:venue,city=:city,guest_count=:guest_count,budget_range=:budget,requested_services=:services,next_follow_up_at=:follow_up,updated_at=NOW()
+                 WHERE id_owner=:owner AND site_key=:site AND id=:id'
+            );
+            $this->db->bind(':title', mb_substr($title, 0, 220));
+            $this->db->bind(':event_name', $this->short($data['event_name'] ?? null, 220));
+            $this->db->bind(':event_date', $this->dateOrNull($data['event_date'] ?? null));
+            $this->db->bind(':venue', $this->short($data['venue'] ?? null, 255));
+            $this->db->bind(':city', $this->short($data['city'] ?? null, 120));
+            $this->db->bind(':guest_count', ($data['guest_count'] ?? 0) > 0 ? (int)$data['guest_count'] : null);
+            $this->db->bind(':budget', $this->short($data['budget_range'] ?? null, 120));
+            $this->db->bind(':services', $this->short($data['requested_services'] ?? null, 4000));
+            $this->db->bind(':follow_up', $this->dateTimeOrNull($data['next_follow_up_at'] ?? null));
+            $this->db->bind(':owner', $ownerId);
+            $this->db->bind(':site', $siteKey);
+            $this->db->bind(':id', $opportunityId);
+            $this->db->execute();
+            $this->recordActivity($ownerId, $siteKey, $opportunityId, 'DETAILS_UPDATED', 'Partnership contact and opportunity details updated.', [], $actorUserId);
+            $this->audit($ownerId, $siteKey, 'opportunity', $opportunityId, 'DETAILS_UPDATED', ['title' => $current->title], ['title' => $title], $actorUserId);
+            $this->db->commit();
+        } catch (\Throwable $e) {
+            $this->db->rollback();
+            throw $e;
+        }
+    }
+
+    public function updateStage(
+        int $ownerId,
+        string $siteKey,
+        int $opportunityId,
+        string $stage,
+        ?int $actorUserId = null,
+        ?int $requiredAssignedUserId = null
+    ): bool
+    {
+        $sql = 'SELECT pipeline,stage FROM commercial_opportunities WHERE id_owner=:owner AND site_key=:site AND id=:id';
+        if ($requiredAssignedUserId !== null) {
+            $sql .= ' AND assigned_user_id=:assigned_user_id';
+        }
+        $this->db->query($sql);
+        $this->db->bind(':owner', $ownerId);
+        $this->db->bind(':site', $siteKey);
+        $this->db->bind(':id', $opportunityId);
+        if ($requiredAssignedUserId !== null) {
+            $this->db->bind(':assigned_user_id', $requiredAssignedUserId);
+        }
         $current = $this->db->fetchOne();
         if (!$current || !in_array($stage, self::ALLOWED_STAGES[$current->pipeline] ?? [], true)) {
             return false;
@@ -507,5 +679,15 @@ final class CommercialPartnershipRepository
         $value = trim((string)$value);
         $date = \DateTimeImmutable::createFromFormat('Y-m-d', $value);
         return $date && $date->format('Y-m-d') === $value ? $value : null;
+    }
+
+    private function dateTimeOrNull(mixed $value): ?string
+    {
+        $value = trim((string)$value);
+        if ($value === '') {
+            return null;
+        }
+        $date = \DateTimeImmutable::createFromFormat('Y-m-d\TH:i', $value);
+        return $date && $date->format('Y-m-d\TH:i') === $value ? $date->format('Y-m-d H:i:s') : null;
     }
 }

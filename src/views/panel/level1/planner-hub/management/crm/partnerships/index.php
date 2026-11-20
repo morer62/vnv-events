@@ -15,6 +15,8 @@ $router->get(function () {
     $ownerId = (int)$user->getOwner();
     $siteKey = SiteContext::siteKey();
     $canManageFinance = in_array((int)$user->getLevel(), [1, 6], true);
+    $canManagePipeline = in_array((int)$user->getLevel(), [1, 3, 6], true)
+        || $user->hasPermissionForModule(\App\Entity\UserPermissions::CRM_SPONSORS);
     if (empty($_SESSION['commercial_crm_csrf'])) {
         $_SESSION['commercial_crm_csrf'] = bin2hex(random_bytes(24));
     }
@@ -31,9 +33,19 @@ $router->get(function () {
     $error = null;
     $finance = ['grants' => [], 'commissions' => [], 'invoice_links' => []];
     $teamMembers = [];
+    $editItem = null;
     try {
         $repository = new CommercialPartnershipRepository();
         $dashboard = $repository->dashboard($ownerId, $siteKey, $filters);
+        $editId = (int)($_GET['edit'] ?? 0);
+        if ($editId > 0) {
+            foreach ($dashboard['items'] as $item) {
+                if ((int)$item->id === $editId) {
+                    $editItem = $item;
+                    break;
+                }
+            }
+        }
         if ($canManageFinance) {
             $finance = $repository->financeSnapshot($ownerId, $siteKey);
             $teamMembers = $repository->teamMembers($ownerId);
@@ -52,6 +64,8 @@ $router->get(function () {
         'can_manage_finance' => $canManageFinance,
         'finance' => $finance,
         'team_members' => $teamMembers,
+        'can_manage_pipeline' => $canManagePipeline,
+        'edit_item' => $editItem,
     ]);
 });
 
@@ -70,9 +84,43 @@ $router->post(function () {
         $siteKey = SiteContext::siteKey();
         $actorId = (int)$user->getId();
         $canManageFinance = in_array((int)$user->getLevel(), [1, 6], true);
-        if ($action === 'stage') {
+        $canManagePipeline = in_array((int)$user->getLevel(), [1, 3, 6], true)
+            || $user->hasPermissionForModule(\App\Entity\UserPermissions::CRM_SPONSORS);
+        if (!$canManagePipeline) {
+            throw new InvalidArgumentException('Sponsors CRM access has not been enabled for this account.');
+        }
+        if ($action === 'manual_create') {
+            $actorName = trim($user->getName() . ' ' . $user->getLastname());
+            $opportunityId = $repository->createManualOpportunity(
+                $ownerId,
+                $siteKey,
+                (string)($_POST['program'] ?? ''),
+                $_POST,
+                $actorId,
+                $actorName,
+                !$canManageFinance
+            );
+            MessageUtil::setMessage('Partnership contact created as opportunity #' . $opportunityId . '.', 'CRM', 'success');
+        } elseif ($action === 'update_details') {
+            $repository->updateOpportunityDetails(
+                $ownerId,
+                $siteKey,
+                $id,
+                $_POST,
+                $actorId,
+                $canManageFinance ? null : $actorId
+            );
+            MessageUtil::setMessage('Partnership details updated.', 'CRM', 'success');
+        } elseif ($action === 'stage') {
             $stage = preg_replace('/[^A-Z_]/', '', strtoupper(trim((string)($_POST['stage'] ?? ''))));
-            $updated = $repository->updateStage($ownerId, $siteKey, $id, $stage, $actorId);
+            $updated = $repository->updateStage(
+                $ownerId,
+                $siteKey,
+                $id,
+                $stage,
+                $actorId,
+                $canManageFinance ? null : $actorId
+            );
             MessageUtil::setMessage($updated ? 'Pipeline stage updated.' : 'That stage is not valid for this pipeline.', 'CRM', $updated ? 'success' : 'warning');
         } elseif (!$canManageFinance) {
             MessageUtil::setMessage('Only Direction can approve financial terms.', 'CRM permissions', 'warning');
