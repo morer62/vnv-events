@@ -49,6 +49,11 @@ foreach (['Pasta Station', 'GA-PASTA-7K3', '33351', '2026-12-20'] as $needle) {
 $assert(GourmetLandingAttributionService::guestBucketMinimum('25-40') === 25, 'Guest bucket parsing failed.');
 $assert(GourmetLandingAttributionService::guestBucketMinimum('fewer-than-25') === 1, 'Under-minimum bucket parsing failed.');
 $assert(GourmetLandingAttributionService::classifyZip('33351')['in_area'] === true, 'Broward ZIP should qualify.');
+$campusZip = GourmetLandingAttributionService::classifyZip('33199');
+$assert($campusZip['in_area'] === true && $campusZip['county'] === 'Miami-Dade County', 'FIU campus ZIP should be in Miami-Dade.');
+$assert(GourmetLandingAttributionService::isQualified(
+    GourmetLandingAttributionService::minimumEventDate(), '25-40', 25, '33199', 'planner@example.com', ''
+), 'An otherwise qualified FIU event should pass the service-area check.');
 foreach (['33040', '33455', '33440'] as $zip) {
     $assert(GourmetLandingAttributionService::classifyZip($zip)['in_area'] === false, $zip . ' must be a verified external ZIP.');
 }
