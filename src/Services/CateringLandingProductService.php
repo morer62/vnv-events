@@ -90,6 +90,12 @@ final class CateringLandingProductService
         ],
     ];
 
+    /** @return list<string> */
+    public static function canonicalLandingSlugs(): array
+    {
+        return array_column(self::SERVICES, 'landing_slug');
+    }
+
     public static function hydrate(array $page): array
     {
         $serviceKey = self::serviceKeyForPage($page);

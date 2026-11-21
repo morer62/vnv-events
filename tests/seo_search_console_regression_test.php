@@ -118,6 +118,31 @@ $assert(
 
 $generator = new SeoFilesGeneratorService(sys_get_temp_dir());
 $reflection = new ReflectionClass($generator);
+$collectPhysicalPages = $reflection->getMethod('collectPhysicalPublicPages');
+$collectPhysicalPages->setAccessible(true);
+$siteKey = $_ENV['SITE_KEY'] ?? null;
+$cateringSlugs = [
+    'pasta-station-catering-south-florida', 'appetizer-catering-south-florida',
+    'crepes-catering-south-florida', 'taco-station-catering-south-florida',
+    'corporate-catering-south-florida', 'pizza-station-catering-south-florida',
+    'paella-catering-south-florida', 'shawarma-station-catering-south-florida',
+];
+foreach (['vnvevents', 'miamitechlab'] as $tenant) {
+    $_ENV['SITE_KEY'] = $tenant;
+    $paths = array_map(
+        static fn (array $entry) => parse_url($entry['loc'], PHP_URL_PATH),
+        $collectPhysicalPages->invoke($generator)
+    );
+    foreach ($cateringSlugs as $slug) {
+        $assert(in_array("/{$slug}/", $paths, true) === ($tenant === 'vnvevents'), "Incorrect catering sitemap membership for {$tenant}: {$slug}");
+    }
+    $assert(!in_array('/catering-delivery/', $paths, true), 'Redirect-only route included in physical page discovery.');
+}
+if ($siteKey === null) {
+    unset($_ENV['SITE_KEY']);
+} else {
+    $_ENV['SITE_KEY'] = $siteKey;
+}
 $rank = $reflection->getMethod('rankLlmsEntries');
 $rank->setAccessible(true);
 $ranked = $rank->invoke($generator, [

@@ -467,6 +467,8 @@ class SeoFilesGeneratorService
             'vnv-gourmet-express',
         ];
 
+        $cateringSlugs = SiteContext::siteKey() === 'vnvevents' ? CateringLandingProductService::canonicalLandingSlugs() : [];
+        $cateringTemplate = dirname(__DIR__) . '/views/templates/pages/cateringServiceLanding.twig';
         $entries = [];
         $iterator = new \RecursiveIteratorIterator(
             new \RecursiveDirectoryIterator($pagesRoot, \FilesystemIterator::SKIP_DOTS)
@@ -487,7 +489,9 @@ class SeoFilesGeneratorService
                 continue;
             }
 
-            $templatePath = $file->getPath() . DIRECTORY_SEPARATOR . 'index.twig';
+            $templatePath = in_array($directory, $cateringSlugs, true)
+                ? $cateringTemplate
+                : $file->getPath() . DIRECTORY_SEPARATOR . 'index.twig';
             if (!$this->isIndexablePhysicalTemplate($templatePath)) {
                 continue;
             }
