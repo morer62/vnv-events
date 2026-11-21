@@ -32,6 +32,7 @@ function eventRequestRedirectSuccess(int $requestId = 0, string $formSource = 'p
     $query = http_build_query([
         'lead' => 'success',
         'lead_id' => $requestId,
+        'lead_form' => 'public_event_request',
         'source' => mb_substr($safeSource, 0, 80),
     ]);
     LocationUtils::redirectTo(LocationUtils::pathFor('sucess-request') . '?' . $query);

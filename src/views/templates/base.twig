@@ -774,21 +774,40 @@ body::before{
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     const query = new URLSearchParams(window.location.search);
-    const leadId = (query.get('lead_id') || '').replace(/[^0-9]/g, '');
-    const source = (query.get('source') || 'public_event_request').replace(/[^a-zA-Z0-9_-]/g, '').slice(0, 80);
+    const leadId = query.get('lead_id') || '';
+    if (query.get('lead') !== 'success' || !/^[1-9][0-9]*$/.test(leadId)) return;
 
-    if (query.get('lead') === 'success' && leadId) {
-        const eventId = 'event-request-' + leadId;
-        const storageKey = 'vnv_tracked_generate_lead_' + eventId;
-        if (window.sessionStorage.getItem(storageKey)) return;
-
-        window.vnvTrackMarketingEvent('generate_lead', {
-            event_id: eventId,
-            form_name: 'public_event_request',
-            form_source: source
-        });
-        window.sessionStorage.setItem(storageKey, '1');
+    const service = query.get('service');
+    const qualification = query.get('lead_qualified');
+    const hasGourmetReceipt = service && (qualification === '0' || qualification === '1');
+    let formName = query.get('lead_form');
+    if (formName === null) {
+        // Older redirects identify the form by its receipt fields, even on a shared landing.
+        if (hasGourmetReceipt) formName = 'gourmet_short_form';
+        else if (query.has('source') || /\/sucess-request\/?$/.test(window.location.pathname)) formName = 'public_event_request';
     }
+
+    let payload;
+    if (formName === 'gourmet_short_form' && hasGourmetReceipt) {
+        payload = {
+            event_id: 'gourmet-request-' + leadId,
+            form_name: formName,
+            service: service,
+            lead_qualified: qualification === '1',
+            ref_code: '{{ gourmet_lead_ref_code|default('')|e('js') }}',
+            landing_url: window.location.pathname
+        };
+    } else if (formName === 'public_event_request') {
+        const source = (query.get('source') || 'public_event_request').replace(/[^a-zA-Z0-9_-]/g, '').slice(0, 80);
+        payload = {event_id: 'event-request-' + leadId, form_name: formName, form_source: source};
+    } else {
+        return;
+    }
+
+    const storageKey = 'vnv_tracked_generate_lead_' + payload.event_id;
+    if (window.sessionStorage.getItem(storageKey)) return;
+    window.vnvTrackMarketingEvent('generate_lead', payload);
+    window.sessionStorage.setItem(storageKey, '1');
 });
 </script>
     <script>

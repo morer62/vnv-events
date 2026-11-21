@@ -2,6 +2,7 @@
 {% set show_whatsapp = false %}
 {% set defer_public_third_party = true %}
 {% set skip_public_gtm_initial = true %}
+{% set gourmet_lead_ref_code = ref_code %}
 
 {% block title %}Live Catering Stations in South Florida | VNV Events{% endblock %}
 {% block meta_description %}Compare VNV Events catering stations in South Florida: Pasta, Appetizers, Crepes and Taco, with current base prices and minimums.{% endblock %}
@@ -86,8 +87,10 @@
   document.querySelectorAll('[data-cs-call]').forEach(a=>a.addEventListener('click',()=>track('call_click',{method:'phone'})));
   document.querySelectorAll('[data-cs-whatsapp]').forEach(function(a){a.addEventListener('click',function(){a.href=waUrl();track('whatsapp_click',{method:'whatsapp'});const payload={csrf_token:form?.querySelector('[name=csrf_token]')?.value||'',service:selected().key,landing_url:location.pathname,ref_code:'{{ ref_code|e('js') }}',vnv_test:form?.vnv_test?.value||'0'};keys.forEach(k=>payload[k]=form?.querySelector('[name='+k+']')?.value||'');navigator.sendBeacon('{{ path('/api/public/gourmet-track') }}',new Blob([JSON.stringify(payload)],{type:'application/json'}));});});
   form?.addEventListener('submit',function(event){sync();const phone=form.phone.value.replace(/\D/g,''),email=form.email.value.trim();if(phone.length<10&&!email){event.preventDefault();alert('Please enter a phone number or email address.');}});
-  const leadId=(q.get('lead_id')||'').replace(/[^0-9]/g,'');
-  if(q.get('lead')==='success'&&leadId){const eventId='gourmet-request-'+leadId,storageKey='vnv_tracked_generate_lead_'+eventId;if(!sessionStorage.getItem(storageKey)){if(service&&q.get('service'))service.value=q.get('service');sync();track('generate_lead',{event_id:eventId,lead_qualified:q.get('lead_qualified')==='1',form_name:'gourmet_short_form'});sessionStorage.setItem(storageKey,'1');}}
+  if (service && q.get('lead') === 'success' && q.has('lead_qualified') && q.get('service')) {
+    service.value = q.get('service');
+    sync();
+  }
 })();
 </script>
 {% endif %}

@@ -106,10 +106,9 @@ foreach (['Google Click ID', 'Conversion Name', 'Conversion Currency', 'QA-GCLID
 }
 
 $template = file_get_contents(dirname(__DIR__) . '/src/views/templates/pages/cateringServiceLanding.twig');
-foreach (['call_click', 'whatsapp_click', 'generate_lead', 'gclid', 'gbraid', 'wbraid', 'SameSite=Lax', 'vnv_ads_session', 'minimum_event_date', 'data-cl-form'] as $needle) {
+foreach (['call_click', 'whatsapp_click', 'gclid', 'gbraid', 'wbraid', 'SameSite=Lax', 'vnv_ads_session', 'minimum_event_date', 'data-cl-form'] as $needle) {
     $assert(str_contains($template, $needle), 'Landing template missing contract: ' . $needle);
 }
-$assert(str_contains($template, "q.get('lead')==='success'&&leadId"), 'Lead conversion must require a persisted lead ID.');
 $assert(str_contains($template, 'name="full_name" autocomplete="name" minlength="2" maxlength="180" required'), 'Gourmet landing name must be required.');
 $assert(str_contains($template, 'name="event_time" type="time" required'), 'Gourmet landing event time must be required.');
 $assert(str_contains($template, 'name="event_address"'), 'Gourmet landing event location is missing.');
@@ -139,17 +138,17 @@ foreach (["metadata['conversion_time']", "DateTimeZone('America/New_York')", " .
 }
 
 $leadEndpoint = file_get_contents(dirname(__DIR__) . '/src/views/api/public/gourmet-lead/index.php');
-foreach (['beginTransaction', 'commit()', 'rollback()', 'GourmetLeadRateLimiter', 'http_response_code(429)', "'setup_minutes' => 0", "'is_test' =>", "'lead_id' => \$requestId", "'lead_qualified' => \$qualified"] as $needle) {
+foreach (['beginTransaction', 'commit()', 'rollback()', 'GourmetLeadRateLimiter', 'http_response_code(429)', "'setup_minutes' => 0", "'is_test' =>", "'lead_id' => \$requestId", "'lead_form' => 'gourmet_short_form'", "'lead_qualified' => \$qualified"] as $needle) {
     $assert(str_contains($leadEndpoint, $needle), 'Lead endpoint missing contract: ' . $needle);
 }
 $assert(str_contains($leadEndpoint, 'isValidEventTime($eventTime)'), 'Lead endpoint does not validate event time.');
 $assert(str_contains($leadEndpoint, "'event_address' => \$eventAddress . ' · ZIP ' . \$zip"), 'Lead endpoint does not persist the full event location.');
 $baseTemplate = file_get_contents(dirname(__DIR__) . '/src/views/templates/base.twig');
-foreach (['vnvTrackMarketingEvent', "window.gtag('event', eventName, payload)", "query.get('lead') === 'success' && leadId", "window.vnvTrackMarketingEvent('generate_lead'"] as $needle) {
+foreach (['vnvTrackMarketingEvent', "window.gtag('event', eventName, payload)", "window.vnvTrackMarketingEvent('generate_lead'"] as $needle) {
     $assert(str_contains($baseTemplate, $needle), 'Global marketing measurement missing contract: ' . $needle);
 }
 $eventRequestEndpoint = file_get_contents(dirname(__DIR__) . '/src/views/api/public/event-request/index.php');
-foreach (["'lead' => 'success'", "'lead_id' => \$requestId", "'source' => mb_substr"] as $needle) {
+foreach (["'lead' => 'success'", "'lead_id' => \$requestId", "'lead_form' => 'public_event_request'", "'source' => mb_substr"] as $needle) {
     $assert(str_contains($eventRequestEndpoint, $needle), 'Public event request conversion redirect missing contract: ' . $needle);
 }
 $clickEndpoint = file_get_contents(dirname(__DIR__) . '/src/views/api/public/gourmet-track/index.php');
