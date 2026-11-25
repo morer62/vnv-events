@@ -1,0 +1,42 @@
+.ops-tour {
+  --ink: #13283f;
+  --muted: #43576b;
+  font-family: "Inter", Arial, sans-serif;
+  color: var(--ink);
+  background: #fff;
+  line-height: 1.55;
+}
+.ops-tour__wrap { width: min(1190px, 90%); margin-inline: auto; }
+.ops-tour__header { background: #10243a; color: #f1f7fb; padding: clamp(32px, 5vw, 76px) 0; }
+.ops-tour h1, .ops-tour h2, .ops-tour h3, .ops-tour h4 { font-family: inherit; font-weight: 700; line-height: 1.08; }
+.ops-tour h1 { margin: 28px 0 16px; font-size: clamp(2.65rem, 6vw, 5.7rem); letter-spacing: -.06em; color: #fff; }
+.ops-tour__header p { max-width: 67ch; color: #d9e9f2; font-size: clamp(1rem, 1.45vw, 1.2rem); }
+.ops-tour__actions { display: flex; align-items: center; flex-wrap: wrap; gap: 12px 24px; margin-top: 24px; }
+.ops-tour__button { display: inline-flex; align-items: center; gap: 15px; padding: 13px 19px; border-radius: 4px; background: #a4e7fc; color: #0e273e; font-weight: 700; text-decoration: none; }
+.ops-tour__button:hover { color: #071525; background: #c5f2ff; }
+.ops-tour__back, .ops-tour__text-link { color: #d9f4ff; text-underline-offset: .22em; }
+.ops-tour__back:hover, .ops-tour__text-link:hover { color: #fff; }
+.ops-tour__back { font-size: .92rem; }
+.ops-tour__workspace { display: grid; grid-template-columns: minmax(215px, .43fr) minmax(0, 1fr); gap: clamp(25px, 5vw, 80px); padding-block: clamp(40px, 6vw, 90px); scroll-margin-top: 5rem; }
+.ops-tour h2 { font-size: clamp(1.8rem, 3vw, 3rem); letter-spacing: -.045em; }
+.ops-tour__chooser p, .ops-tour__screen p, .ops-tour__invite p { color: var(--muted); }
+.ops-tour__chooser nav { display: grid; border-top: 1px solid #ccdae4; }
+.ops-tour__chooser nav a { display: flex; gap: 10px; align-items: center; padding: 13px 8px; text-decoration: none; color: var(--ink); border-bottom: 1px solid #ccdae4; font-weight: 600; line-height: 1.35; }
+.ops-tour__chooser nav a[aria-current], .ops-tour__chooser nav a:hover { background: #e6f4fb; }
+.ops-tour__level { color: #24617c; font: 600 .78rem/1.25 ui-monospace, monospace; }
+.ops-tour__screen h3 { font-size: clamp(1.5rem, 2.4vw, 2.1rem); margin: 0 0 5px; letter-spacing: -.03em; }
+.ops-tour__screen video { display: block; background: #15273c; width: 100%; height: auto; border: 1px solid #aac0cd; border-radius: 8px; }
+.ops-tour__chapters { margin-top: 20px; }
+.ops-tour h4 { font-size: 1rem; }
+.ops-tour__chapters ol { padding: 0; margin: 0; display: grid; grid-template-columns: repeat(auto-fit,minmax(min(100%,225px),1fr)); gap: 4px 12px; list-style: none; }
+.ops-tour__chapters button { display: flex; gap: 10px; align-items: center; width: 100%; text-align: left; background: transparent; border: none; border-bottom: 1px solid #d9e5ec; padding: 8px 0; min-height: 44px; color: var(--ink); font: inherit; font-size: .93rem; cursor: pointer; }
+.ops-tour__chapters time { color: #1b5976; font-variant-numeric: tabular-nums; }
+.ops-tour__transcript { margin-top: 14px; }
+.ops-tour__transcript summary { cursor: pointer; font-weight: 600; padding-block: 9px; }
+.ops-tour__invite { background: #edf4f9; padding-block: clamp(36px, 5vw, 78px); scroll-margin-top: 5rem; }
+.ops-tour__invite p { max-width: 61ch; }
+.ops-tour :focus-visible { outline: 3px solid #3788b2; outline-offset: 3px; }
+@media (max-width: 760px) {
+  .ops-tour__workspace { grid-template-columns: 1fr; }
+  .ops-tour__chooser nav { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}

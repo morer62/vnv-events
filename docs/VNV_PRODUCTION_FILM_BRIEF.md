@@ -9,8 +9,8 @@ Each page should answer one visitor’s question and end at the action that visi
 | Corporate & Brand Experiences | Who connects the stage, speakers and hospitality when the program changes? | Follow the producer’s cues across the room. Give a planner a specific example of a handoff. | Request a conversation about one event or a defined annual series. |
 | Sponsor Activation Production | What will guests actually do at our activation? | Take one tasting from guest arrival to handoff, then show the approvals and the agreed recap. | Send the brand, audience and activation idea. Request technical details once the project fits. |
 | Original Experiences | Which of these would I want to attend? | Contrast a morning with other parents and a dance night through what guests do, the music and the atmosphere. | Choose an experience and its own priority list. |
-| Retro Glam Sessions | What kind of night is this? | Show the music, dance floor and social moments that distinguish a Retro Glam night. | Join the Retro Glam list for its date, venue and ticket details. |
-| Mommy & Daddy Break Club | Can I come on my own and what am I signing up for? | Follow a morning from arrival and coffee into conversation and time to recharge. Preserve the approved Miami Morning hero. | Join the free list for one or two adults. The invitation states the venue, activities and ticket price before booking. |
+| Retro Glam Sessions | What kind of night is this? | Each edition chooses one decade. Follow its live DJ, era-inspired dress and group photo set through an Art Deco room. | Join the Retro Glam list for its date, venue and ticket details. |
+| Mommy & Daddy Break Club | Can I come on my own and what am I signing up for? | Show parents moving between hospitality, gentle breaks, conversation and portrait opportunities. Preserve the approved Miami Morning hero. | Join the free list for one or two adults. The invitation states the venue, activities and ticket price before booking. |
 
 ## What the proposal promises
 
@@ -21,8 +21,16 @@ Each page should answer one visitor’s question and end at the action that visi
 
 ## Media and review
 
-Use VNV portfolio footage with known provenance, original motion graphics or clearly identified concept imagery. Keep identifiable third-party photography, organizations and screenshots in their dedicated, attributed case studies. Present concept scenes as illustrations of what the team can produce. Reserve dates, venue announcements, sponsor names and attendance figures for confirmed events.
+Use VNV portfolio footage with known provenance, original motion graphics or identified concept imagery. In the Cause on Cue film and its silent preview, credit the Victoria Venezuela Foundation’s 2026 charity golf tournament on the photographs. The sequence shows registration, the welcome team and sound support before the film introduces the 2027 pilot. Reserve dates, venue announcements, sponsor names and attendance figures for confirmed events.
+
+The seven English films use Cedar, the voice used in The Ground Floor’s Super Bowl and Miami episodes. Direct each script as a continuous conversation. Give a producer a practical decision, a parent a moment with another guest, and the DJ a record the room recognizes. The corporate films use navy, white, cyan and contemporary sans-serif type. The Break Club keeps its relaxed morning identity. Retro Glam uses plum, antique gold and stepped Art Deco geometry. The Original Experiences hub shows both concepts side by side.
 
 Keep silent previews and narrated films distinct. Preview covers should communicate the page’s offer with motion disabled. Compose desktop and mobile crops separately where the subject changes position. Keep captions clear of titles, changing diagrams and the primary subject. Label synthesized narration.
 
 Review the final export in three passes. Watch without sound for staging and legibility, listen without the picture for promises and pacing, then play it in the actual page at desktop and phone widths. Test the precise call to action, the English captions and the transcript against the final cut.
+
+## Operational software
+
+The four commissioned production pages link to `/operational-software/`. The Originals collection and both club pages keep their own invitation journeys. The software landing contains five narrated recordings of the pilot, with individual role links, module chapters and English transcripts. Use synthetic organizations and accounts for recordings.
+
+After external DNS and trusted HTTPS are verified at `https://operations.vnvevents.com/login`, set `VNV_OPERATIONS_DEMO_LIVE=true` on the corporate site to reveal the login link. Until then visitors can view the tours and request a personal invitation. The private pilot has its own Git deployment.

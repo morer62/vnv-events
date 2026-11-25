@@ -8,7 +8,7 @@
 {% block styles %}
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@200;300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,700;0,900;1,700;1,900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@200;300;400;500;600;700;800&display=swap" rel="stylesheet">
 
 <style>
 :root {
@@ -41,7 +41,7 @@ body {
 }
 
 h1, h2, h3, h4, h5, .luxury-font {
-    font-family: 'Playfair Display', serif;
+    font-family: 'Plus Jakarta Sans', Arial, sans-serif;
 }
 
 .text-vnv { color: var(--vnv-primary) !important; }
@@ -187,7 +187,7 @@ h1, h2, h3, h4, h5, .luxury-font {
     margin-top: 42px;
 }
 .trust-stat .num {
-    font-family: 'Playfair Display', serif;
+    font-family: 'Plus Jakarta Sans', Arial, sans-serif;
     font-size: 2.4rem;
     font-weight: 900;
     line-height: 1;
@@ -947,11 +947,13 @@ h1, h2, h3, h4, h5, .luxury-font {
 </style>
 <link rel="stylesheet" href="{{ asset_for('assets/css/vnv-production-offers.css', { v: 'production-films-2' }) }}">
 {% include "templates/components/vnvProductionEditorialAssets.html.twig" %}
+<link rel="stylesheet" href="{{ asset_for('assets/css/vnv-production-studio.css', { v: '20261125d' }) }}">
 {% endblock %}
 
 {% block body %}
 
 {% include "templates/layout/publicHeaderVnv.html.twig" %}
+<main class="production-studio">
 
 {% include "templates/components/vnvProductionHero.html.twig" with {
   hero: {
@@ -1022,7 +1024,7 @@ h1, h2, h3, h4, h5, .luxury-font {
     <div class="container">
         <div class="intro-wrap">
             <div class="intro-image-card">
-                <img src="{{ asset_for('assets/images/production2.jpg') }}" alt="Event production planning by VNV Events">
+                <img src="{{ asset_for('assets/images/production2.jpg') }}" alt="Stage lighting and equipment in place before a live program">
             </div>
 
             <div class="intro-panel">
@@ -1040,7 +1042,7 @@ h1, h2, h3, h4, h5, .luxury-font {
                     <li>Digital support including RSVP, ticketing and landing pages</li>
                     <li>Sponsor structure, sales support and rollout planning</li>
                     <li>Team assignment, staffing flow and on-site execution</li>
-                    <li>One strategic plan instead of disconnected vendors</li>
+                    <li>A run of show with venue contacts, crew calls and handoffs</li>
                 </ul>
             </div>
         </div>
@@ -1057,7 +1059,7 @@ h1, h2, h3, h4, h5, .luxury-font {
             <span class="vnv-badge">360 Event Production</span>
             <h2 class="text-white">What Full Production Can Include <span class="text-vnv">Before The Event Even Starts</span></h2>
             <p>
-                When the project is serious, production begins long before event day. The value is in building the system that makes the event possible.
+                Choose the work you want us to own. We assign a producer, document what needs approval and carry those decisions through load-in, show calls and breakdown.
             </p>
         </div>
 
@@ -1066,7 +1068,7 @@ h1, h2, h3, h4, h5, .luxury-font {
                 <div class="service-icon-box"><i class="fa-solid fa-lightbulb"></i></div>
                 <h3>Concept & Positioning</h3>
                 <p>
-                    Defining what the event is, who it's for, how it should feel and how the brand should show up across the experience.
+                    Define the audience, event format and floor plan. Map how guests arrive, what they experience and where the program ends.
                 </p>
             </div>
 
@@ -1074,15 +1076,15 @@ h1, h2, h3, h4, h5, .luxury-font {
                 <div class="service-icon-box"><i class="fa-solid fa-chart-line"></i></div>
                 <h3>Budget & Structure</h3>
                 <p>
-                    Building a realistic production plan with priorities, resource mapping, cost logic and decision-making structure.
+                    Price the venue, crew, equipment and hospitality. Track deposits and change requests against the approved budget.
                 </p>
             </div>
 
             <div class="service-card">
                 <div class="service-icon-box"><i class="fa-solid fa-laptop-code"></i></div>
-                <h3>Digital Layer</h3>
+                <h3>Guest registration &amp; production software</h3>
                 <p>
-                    RSVP systems, ticketing flows, landing pages, sales pages, email touchpoints and digital materials.
+                    Give guests a registration page and arrival instructions. Give the crew a task board and a named owner for each handoff. <a class="studio-inline-link" href="{{ path('operational-software') }}">See the production workspace</a>.
                 </p>
             </div>
 
@@ -1106,7 +1108,7 @@ h1, h2, h3, h4, h5, .luxury-font {
                 <div class="service-icon-box"><i class="fa-solid fa-gears"></i></div>
                 <h3>On-Site Execution</h3>
                 <p>
-                    Staffing, logistics, team communication, cue management and event-day problem solving.
+                    Book the load-in, rehearse the AV cues and brief the floor lead. Coordinate rentals, lighting, décor, catering and strike with the venue.
                 </p>
             </div>
         </div>
@@ -1191,10 +1193,10 @@ h1, h2, h3, h4, h5, .luxury-font {
                 </a>
 
                 <div class="location-gallery-grid mt-4">
-                    <img src="{{ asset_for('assets/images/production1.jpg') }}" alt="Event production gallery 1">
-                    <img src="{{ asset_for('assets/images/production2.jpg') }}" alt="Event production gallery 2">
-                    <img src="{{ asset_for('assets/images/production3.jpg') }}" alt="Event production gallery 3">
-                    <img src="{{ asset_for('assets/images/production4.jpg') }}" alt="Event production gallery 4">
+                    <img src="{{ asset_for('assets/images/production1.jpg') }}" alt="A reception with illuminated tables">
+                    <img src="{{ asset_for('assets/images/production2.jpg') }}" alt="A crew preparing a stage for a live program">
+                    <img src="{{ asset_for('assets/images/production3.jpg') }}" alt="A DJ at the mixing console">
+                    <img src="{{ asset_for('assets/images/production4.jpg') }}" alt="A conference audience facing the stage">
                 </div>
             </div>
 
@@ -1261,6 +1263,8 @@ h1, h2, h3, h4, h5, .luxury-font {
         </div>
     </div>
 </section>
+
+</main>
 
 {% include "templates/components/publicEventRequestModal.html.twig" with {
     request_form_action: "/api/public/event-request"

@@ -1,17 +1,17 @@
 {% extends "templates/base.twig" %}
 
 {% block title %}Retro Glam Sessions | VNV Events Productions{% endblock %}
-{% block meta_description %}Discover a South Florida night of disco, retro pop and dancing from the 1970s through the 1990s. Join the Retro Glam priority list for the first edition.{% endblock %}
+{% block meta_description %}Retro Glam Sessions brings one decade to life each night in South Florida, with a dedicated DJ set, styled photo lounges and Miami Art Deco glamour. Join the priority list.{% endblock %}
 {% block canonical %}https://vnvevents.com/vnv-events-productions/retro-glam/{% endblock %}
-{% block og_image %}https://vnvevents.com/assets/images/productions/retro-glam.jpg{% endblock %}
-{% block og_image_alt %}Retro Glam fashion portrait with white sunglasses and a red striped backdrop{% endblock %}
+{% block og_image %}https://vnvevents.com/assets/original-experiences/retro-glam-ballroom.webp{% endblock %}
+{% block og_image_alt %}Concept rendering of a brass Art Deco ballroom with a mirror ball, DJ and dancers{% endblock %}
 {% set show_whatsapp = true %}
 
 {% block styles %}
 <link rel="stylesheet" href="{{ asset_for('assets/css/vnv-partnerships.css') }}">
 <link rel="stylesheet" href="{{ asset_for('assets/css/vnv-production-offers.css', { v: 'production-films-2' }) }}">
 {% include "templates/components/vnvProductionEditorialAssets.html.twig" %}
-<link rel="stylesheet" href="{{ asset_for('assets/css/vnv-originals.css') }}">
+<link rel="stylesheet" href="{{ asset_for('assets/css/vnv-originals.css', { v: 'deco-editions-1' }) }}">
 {% endblock %}
 
 {% block body %}
@@ -21,9 +21,9 @@
   <section class="rg-hero" aria-labelledby="rg-title">
     <div class="rg-hero__copy">
       <a class="rg-back" href="{{ path('vnv-events-productions') }}">← VNV Original Experiences</a>
-      <p class="rg-eyebrow">South Florida · Music &amp; nightlife</p>
+      <p class="rg-eyebrow">South Florida · Decade nights</p>
       <h1 id="rg-title">Retro Glam <em>Sessions</em></h1>
-      <p class="rg-lead">Dress for your favorite decade. Meet for a cocktail, find your friends in the photo lounge and dance to the records you grew up with.</p>
+      <p class="rg-lead">One night belongs to one decade. Step into a Miami Art Deco ballroom where the DJ set, the portraits and the way you dress all take their cue from the same era.</p>
       <div class="rg-actions">
         <a class="rg-cta" href="{{ list_url }}">Join the Retro Glam priority list <span aria-hidden="true">↗</span></a>
         <a class="rg-link" data-vnv-watch-film href="#retro-glam-film">Watch the Retro Glam film with sound</a>
@@ -31,17 +31,41 @@
       <p class="rg-availability">The first edition is in development. Join the list for date, venue and ticket updates.</p>
     </div>
     <div class="rg-hero__picture">
-      <img fetchpriority="high" src="{{ asset_for('assets/images/productions/retro-glam.jpg') }}" alt="Retro fashion portrait in white sunglasses against red stripes" width="800" height="600">
+      <img fetchpriority="high" src="{{ asset_for('assets/original-experiences/retro-glam-ballroom.webp') }}" alt="Concept rendering of dancers beneath a mirror ball and a DJ framed by brass Art Deco arches" width="1440" height="1080">
     </div>
   </section>
 
   <section class="rg-section rg-experience" id="experience" aria-labelledby="rg-experience-title">
-    <div class="rg-experience__image"><img loading="lazy" decoding="async" src="{{ asset_for('assets/images/productions/retro-glam-sessions-hero.jpg') }}" alt="Guests facing a light-filled stage under a shower of confetti" width="1920" height="1080"></div>
+    <div class="rg-experience__image"><img loading="lazy" decoding="async" src="{{ asset_for('assets/original-experiences/retro-records.webp') }}" alt="A DJ cueing a vinyl record beside a second turntable" width="860" height="573"></div>
     <div>
-      <p class="rg-eyebrow">The music &amp; the room</p>
-      <h2 id="rg-experience-title">Three decades.<br><em>One dance floor.</em></h2>
-      <p>Disco, soulful edits and retro pop take the DJ set from the ’70s through the ’90s. Between songs, slip into the lounge for a conversation or get the group together at a styled photo set.</p>
-      <a class="rg-link" href="#agenda">Explore the evening’s program</a>
+      <p class="rg-eyebrow">The DJ session</p>
+      <h2 id="rg-experience-title">The room moves <em>with the record.</em></h2>
+      <p>The first drinks arrive over the warm-up set. By the time your friends reach the dance floor, the DJ is deep into the records that define this edition. The invitation announces the decade so you can plan your look before you arrive.</p>
+      <a class="rg-link" href="#editions">Explore the decade editions</a>
+    </div>
+  </section>
+
+  <section class="rg-editions" id="editions" aria-labelledby="rg-editions-title">
+    <div class="rg-editions__inner">
+      <header>
+        <p class="rg-eyebrow">The edition series</p>
+        <h2 id="rg-editions-title">Pick your <em>decade.</em></h2>
+        <p>Each of these is a separate night in development. The music and photo experiences change with the edition.</p>
+      </header>
+      <div class="rg-editions__grid">
+        <article class="rg-era rg-era--disco">
+          <h3><span>1970s</span> Mirror-ball disco</h3>
+          <p>Disco strings and funk basslines carry the set. Gather the group beneath the mirror ball for a glittering dance-floor portrait.</p>
+        </article>
+        <article class="rg-era rg-era--synth">
+          <h3><span>1980s</span> After-dark synth</h3>
+          <p>Synth-pop and new wave fill the room. Slip into a neon portrait set with bold color, sharp silhouettes and a friend dressed for the part.</p>
+        </article>
+        <article class="rg-era rg-era--groove">
+          <h3><span>1990s</span> The club years</h3>
+          <p>House grooves and dance-pop hooks take over. Head to the cover-art corner for a group portrait styled like a favorite CD sleeve.</p>
+        </article>
+      </div>
     </div>
   </section>
 
@@ -50,21 +74,30 @@
       slug: 'retro-glam',
       route: 'vnv-events-productions/retro-glam/',
       title: 'Which song gets your table dancing?',
-      description: 'Picture the first Retro Glam night, from the welcome cocktail and photo set to the moment everyone recognizes the track.',
+      description: 'Preview the feel of a Retro Glam edition, from a group portrait at the welcome lounge to the moment everyone recognizes the track.',
       cta: 'Join the Retro Glam priority list',
       href: list_url
     }
   } only %}
 
+  <section class="rg-section rg-portraits" aria-labelledby="rg-portraits-title">
+    <div>
+      <p class="rg-eyebrow">The photo lounges</p>
+      <h2 id="rg-portraits-title">Make the <em>cover shot.</em></h2>
+      <p>Take a full-length portrait at the Deco entrance while everyone is dressed for the night. Later, squeeze the whole table into a group shot at the era set, or catch a candid under the lights as the DJ brings your song back.</p>
+    </div>
+    <div class="rg-experience__image"><img loading="lazy" decoding="async" src="{{ asset_for('assets/original-experiences/retro-photo-lounge.webp') }}" alt="Friends posing together at a gold-curtain photo lounge" width="780" height="585"></div>
+  </section>
+
   <section id="agenda" class="rg-section rg-agenda" aria-labelledby="rg-agenda-title">
     <div>
       <p class="rg-eyebrow">The proposed evening</p>
       <h2 id="rg-agenda-title">From first drink<br><em>to last track.</em></h2>
-      <p>The four-hour format runs from 7 to 11 PM. The invitation will confirm the schedule for the first edition.</p>
+      <p>Here is how a four-hour edition could unfold. Your invitation confirms the decade, venue and hours.</p>
     </div>
     <ol class="rg-times">
       <li><span>7:00 – 7:45 PM</span><div><h3>Arrive for cocktails</h3><p>Meet your group and get your first look at the room.</p></div></li>
-      <li><span>7:45 – 8:30 PM</span><div><h3>Find your photo set</h3><p>Try the styled backdrops and explore the partner experiences.</p></div></li>
+      <li><span>7:45 – 8:30 PM</span><div><h3>Make the photo rounds</h3><p>Start with a portrait at the Art Deco entrance, then take your group to the decade’s signature set.</p></div></li>
       <li><span>8:30 – 10:00 PM</span><div><h3>Meet on the dance floor</h3><p>The DJ takes the room through the evening’s throwback set.</p></div></li>
       <li><span>10:00 – 11:00 PM</span><div><h3>Stay for the closing set</h3><p>One last dance and a final photo with your friends.</p></div></li>
     </ol>

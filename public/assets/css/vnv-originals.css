@@ -1,6 +1,26 @@
-/* The two VNV Originals share an editorial structure while keeping their own palettes. */
+/* The collection uses VNV production styling; each invitation has its own identity. */
+@font-face {
+  font-family: "Retro Cinzel";
+  src: url("../original-experiences/cinzel-latin.woff2") format("woff2");
+  font-weight: 400 700;
+  font-style: normal;
+  font-display: swap;
+}
+.vo-page .ve-hero {
+  --ve-pine: #0e2333;
+  --ve-cream: #f7fafb;
+  --ve-honey: #a3dedc;
+  --ve-serif: "Inter", Arial, sans-serif;
+}
+.vo-page .ve-hero h1,
+.vo-page .ve-film h2,
+.vo-page .vnvp-form-intro h2 { font-family: "Inter", Arial, sans-serif; font-weight: 700; }
+.vo-page .ve-hero h1 em { color: #a3dedc; font-style: normal; }
+.vo-page .ve-hero .ve-kicker, .vo-page .ve-hero .ve-hero__intro { color: #dfedef; }
+.vo-page .vnv-film.ve-film { background: #ecf3f4; color: #102435; }
+.vo-page .vo-signup { background: white; }
 .vo-collection {
-  background: #f8f5ef;
+  background: #f7f9f9;
 }
 .vo-grid {
   display: grid;
@@ -12,7 +32,7 @@
   min-width: 0;
   color: var(--vo-ink);
 }
-.vo-card--night { --vo-ink: #501c2a; }
+.vo-card--night { --vo-ink: #142b38; }
 .vo-card__image {
   display: block;
   overflow: hidden;
@@ -39,6 +59,10 @@
   font: 400 clamp(2.25rem, 4vw, 4rem)/1.04 "Baskervville", Georgia, serif;
   letter-spacing: -.045em;
 }
+.vo-card--night h2 {
+  font: 600 clamp(2.05rem, 3.65vw, 3.6rem)/1.05 "Retro Cinzel", Georgia, serif;
+  letter-spacing: -.035em;
+}
 .vo-card__intro, .vo-card__terms {
   color: #374542;
   line-height: 1.55;
@@ -59,12 +83,13 @@
 .vo-collection, .vo-signup, .rg-page section[id], #application { scroll-margin-top: 90px; }
 
 .rg-page {
-  --rg-paper: #fbf4e9;
-  --rg-plum: #381922;
-  --rg-berry: #812c47;
-  --rg-pink: #ffc5cd;
-  --rg-gold: #f8d899;
-  color: var(--rg-plum);
+  --rg-paper: #f5f0e4;
+  --rg-night: #0d202a;
+  --rg-teal: #123d42;
+  --rg-gold: #e6c27e;
+  --rg-brass: #9c7b44;
+  --rg-display: "Retro Cinzel", Georgia, serif;
+  color: var(--rg-night);
   background: var(--rg-paper);
   font: 400 1rem/1.6 "Inter", Arial, sans-serif;
 }
@@ -76,21 +101,30 @@
 .rg-page h1, .rg-page h2 {
   margin: 0;
   color: inherit;
-  font: 400 clamp(2.65rem, 5.2vw, 5.7rem)/.98 "Baskervville", "Baskerville", Georgia, serif;
-  letter-spacing: -.055em;
+  font: 600 clamp(2.35rem, 4.4vw, 4.8rem)/1.05 var(--rg-display);
+  letter-spacing: -.045em;
 }
-.rg-page h1 { font-size: clamp(3.5rem, 6.6vw, 7.8rem); }
-.rg-page h1 em { display: block; color: var(--rg-pink); }
+.rg-page h1 { font-size: clamp(3.1rem, 5.9vw, 6.5rem); }
+.rg-page :is(h1,h2) em { font-style: normal; }
+.rg-page h1 em { display: block; color: var(--rg-gold); font-size: .66em; letter-spacing: .11em; margin-top: .16em; }
 .rg-hero {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1.04fr);
-  background: var(--rg-plum);
+  background: radial-gradient(ellipse at 0 100%, #124149, transparent 65%), var(--rg-night);
   color: var(--rg-paper);
 }
 .rg-hero__copy {
   min-width: 0;
   align-self: center;
   padding: clamp(30px, 5vw, 80px);
+}
+.rg-hero__copy::after {
+  content: "";
+  display: block;
+  width: 92px;
+  height: 6px;
+  border-block: 1px solid var(--rg-brass);
+  margin-top: clamp(24px, 3vw, 42px);
 }
 .rg-back {
   display: inline-flex;
@@ -104,6 +138,15 @@
 }
 .rg-hero .rg-eyebrow { color: var(--rg-gold); }
 .rg-hero__picture { position: relative; min-width: 0; min-height: 480px; }
+.rg-hero__picture::after {
+  position: absolute;
+  content: "";
+  inset: 13px;
+  border: 1px solid #efcf8f9c;
+  outline: 1px solid #efcf8f67;
+  outline-offset: 4px;
+  pointer-events: none;
+}
 .rg-hero__picture img {
   position: absolute;
   inset: 0;
@@ -123,17 +166,17 @@
 }
 .rg-cta {
   border: 1px solid transparent;
-  border-radius: 3px;
+  border-radius: 0;
   padding: 12px 18px;
   text-decoration: none;
   background: var(--rg-gold);
-  color: var(--rg-plum);
+  color: var(--rg-night);
   cursor: pointer;
 }
-.rg-cta:hover { color: var(--rg-plum); background: #fff0c9; }
+.rg-cta:hover { color: var(--rg-night); background: #fff0c9; }
 .rg-link { color: inherit; text-decoration: underline; text-underline-offset: .25em; }
 .rg-back:hover, .rg-link:hover { color: inherit; text-decoration-thickness: 2px; }
-.rg-availability { margin: 13px 0 0; max-width: 45ch; color: #ecd8d5; font-size: .88rem; }
+.rg-availability { margin: 13px 0 0; max-width: 45ch; color: #dfd9cb; font-size: .88rem; }
 .rg-section {
   padding: clamp(48px, 7vw, 98px) max(calc((100% - 1200px)/2), 5vw);
   display: grid;
@@ -141,19 +184,31 @@
   align-items: center;
   gap: clamp(26px, 5vw, 86px);
 }
-.rg-section .rg-eyebrow { color: var(--rg-berry); }
+.rg-section .rg-eyebrow { color: #73572d; }
 .rg-section p:not(.rg-eyebrow) { max-width: 48ch; margin: 16px 0; }
 .rg-experience__image img { width: 100%; display: block; height: auto; }
-.rg-agenda { color: var(--rg-paper); background: #301c26; align-items: start; }
-.rg-agenda .rg-eyebrow { color: var(--rg-pink); }
+.rg-editions { background: var(--rg-teal); color: var(--rg-paper); padding: clamp(48px, 7vw, 98px) 5vw; }
+.rg-editions__inner { width: min(100%,1200px); margin-inline: auto; }
+.rg-editions header > p:last-child { max-width: 53ch; }
+.rg-editions .rg-eyebrow { color: var(--rg-gold); }
+.rg-editions__grid { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: clamp(20px,4vw,60px); margin-top: 36px; }
+.rg-era { padding-top: 20px; border-top: 3px double #b49a69; }
+.rg-era h3 { margin: 0; color: var(--rg-paper); font: 600 1.16rem/1.35 "Inter",Arial,sans-serif; }
+.rg-era h3 span { display: block; font: 500 clamp(2.8rem,4.9vw,5.4rem)/1.12 var(--rg-display); color: var(--rg-gold); margin-bottom: 13px; }
+.rg-era p { max-width: 37ch; margin: 10px 0 0; }
+.rg-page .vnv-film.ve-film { background: #eee8d9; color: var(--rg-night); }
+.rg-page .ve-film .vnvp-button { border-radius: 0; background: var(--rg-teal); color: white; }
+.rg-page .ve-film :is(p,figcaption) { color: #394a4b; }
+.rg-agenda { color: var(--rg-paper); background: var(--rg-night); align-items: start; }
+.rg-agenda .rg-eyebrow { color: var(--rg-gold); }
 .rg-times { list-style: none; margin: 0; padding: 0; }
-.rg-times li { display: grid; grid-template-columns: 8.1rem 1fr; gap: 12px; border-top: 1px solid #806770; padding: 17px 0; }
+.rg-times li { display: grid; grid-template-columns: 8.1rem 1fr; gap: 12px; border-top: 1px solid #707771; padding: 17px 0; }
 .rg-times li > span { color: var(--rg-gold); font-size: .82rem; font-weight: 700; }
 .rg-times h3 { margin: 0; font: 600 1.24rem/1.35 "Inter", Arial, sans-serif; color: inherit; }
-.rg-times p:not(.rg-eyebrow) { margin: 5px 0 0; color: #efdedd; }
+.rg-times p:not(.rg-eyebrow) { margin: 5px 0 0; color: #e1e4dc; }
 .rg-partners .rg-actions { flex-direction: column; }
-.rg-partners .rg-cta { color: #fff; background: var(--rg-berry); }
-.rg-partners .rg-cta:hover { background: var(--rg-plum); }
+.rg-partners .rg-cta { color: #fff; background: var(--rg-teal); }
+.rg-partners .rg-cta:hover { background: var(--rg-night); }
 
 @media (max-width: 760px) {
   .vo-grid, .rg-hero, .rg-section { grid-template-columns: 1fr; }
@@ -164,6 +219,9 @@
   .rg-hero__picture img { object-position: 50% 40%; }
   .rg-section { padding-inline: 6vw; }
   .rg-experience__image { order: 2; }
+  .rg-editions { padding-inline: 6vw; }
+  .rg-editions__grid { grid-template-columns: 1fr; }
+  .rg-era h3 span { font-size: 3rem; }
 }
 @media (max-width: 430px) {
   .rg-times li { grid-template-columns: 1fr; gap: 4px; }
