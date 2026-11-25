@@ -15,7 +15,7 @@ $router->get(function () {
 
     $seo = [
         'title' => 'VNV Support 2027 | Nonprofit Impact Initiative',
-        'description' => 'VNV Support 2027 helps South Florida nonprofits produce fundraising events with event operations, registration technology and optional donor or sponsor introductions.',
+        'description' => 'VNV Support 2027 offers South Florida nonprofits fundraiser production, a branded digital guest platform and optional donor or sponsor introductions.',
         'canonical' => 'https://vnvevents.com/nonprofit-partnerships/',
     ];
 

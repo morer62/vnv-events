@@ -113,8 +113,10 @@ function url(route) {
         assert.equal(await journey.locator('li').count(), 3, `${label}: expected three visible phases`);
         assert.equal(await journey.evaluate(node => getComputedStyle(node).listStyleType), 'none', `${label}: duplicate list numbering`);
         assert.match(await journey.innerText(), /Eligibility Review[\s\S]*Approved Support Plan[\s\S]*Impact & Results Review/, `${label}: review milestones missing`);
-        await page.locator('.support-intro__figure img').evaluate(image => image.decode());
-        assert.equal(await page.locator('.support-intro__figure img').evaluate(image => image.naturalWidth > 0), true, `${label}: Victoria event photo did not load`);
+        const hero = page.locator('main .vnvp-hero');
+        assert.match(await hero.evaluate(node => getComputedStyle(node, '::before').backgroundImage), /production1\.jpg/, `${label}: original production backdrop`);
+        assert.equal(await hero.locator('img[src*="victoria-venezuela"]').count(), 0, `${label}: Victoria photo should appear in the case study`);
+        assert.equal(await page.getByRole('heading', { name: 'Digital Guest Platform', exact: true }).count(), 1, `${label}: digital guest platform overview`);
         assert.equal(await page.locator('input[value="Donor & Sponsor Connections"]').count(), 1, `${label}: optional donor and sponsor support is missing`);
         assert.equal(await page.locator('#np-event').getAttribute('required'), null, `${label}: event name should be optional`);
         assert.equal(await page.getByText(/up to (60|80)%/).count(), 0, `${label}: unapproved discount remains`);
