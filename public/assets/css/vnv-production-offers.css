@@ -1,0 +1,184 @@
+.vnv-offer {
+  --offer-ink: #132c28;
+  --offer-muted: #50625c;
+  --offer-dark: #102b28;
+  --offer-gold: #e7c381;
+  background: #f7f4ed;
+  color: var(--offer-ink);
+  padding: clamp(56px, 7.6vw, 112px) 0;
+  scroll-margin-top: 90px;
+}
+
+.vnv-offer__wrap {
+  width: min(1216px, calc(100% - 40px));
+  margin-inline: auto;
+}
+
+.vnv-offer__heading {
+  max-width: 760px;
+  margin-bottom: clamp(26px, 4.3vw, 52px);
+}
+
+.vnv-offer__eyebrow {
+  display: inline-block;
+  color: #24655c;
+  margin-bottom: 13px;
+  font: 800 .78rem/1.3 "Plus Jakarta Sans", sans-serif;
+  text-transform: uppercase;
+  letter-spacing: .12em;
+}
+
+.vnv-offer h2 {
+  margin: 0;
+  color: inherit;
+  font: 800 clamp(2rem, 4.2vw, 4.1rem)/1.04 "Plus Jakarta Sans", sans-serif;
+  letter-spacing: -.054em;
+  text-wrap: balance;
+}
+
+.vnv-offer__heading > p, .vnv-offer__copy > p {
+  margin: 17px 0 0;
+  color: var(--offer-muted);
+  font-size: clamp(1rem, 1.65vw, 1.16rem);
+  line-height: 1.68;
+}
+
+.vnv-offer__spread {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+  overflow: hidden;
+  border-radius: 24px;
+  background: var(--offer-dark);
+}
+
+.vnv-offer__photo {
+  position: relative;
+  min-height: 440px;
+  margin: 0;
+  display: grid;
+  align-items: end;
+}
+
+.vnv-offer__photo > img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: var(--offer-photo-position, center);
+}
+
+.vnv-offer__photo > figcaption {
+  position: relative;
+  background: linear-gradient(0deg, rgba(8, 24, 22, .97), rgba(8, 24, 22, .18) 100%);
+  color: #fff;
+  padding: 32px 24px 17px;
+  font-size: .91rem;
+  line-height: 1.4;
+}
+
+.vnv-offer__deliverables {
+  list-style: none;
+  margin: 0;
+  padding: clamp(22px, 4vw, 54px);
+  align-content: center;
+  display: grid;
+}
+
+.vnv-offer__deliverables > li + li {
+  border-top: 1px solid #365650;
+  margin-top: 18px;
+  padding-top: 18px;
+}
+
+.vnv-offer__deliverables h3 {
+  margin: 0 0 7px;
+  color: var(--offer-gold);
+  font: 800 clamp(1.06rem, 1.6vw, 1.35rem)/1.3 "Plus Jakarta Sans", sans-serif;
+  letter-spacing: -.018em;
+}
+
+.vnv-offer__deliverables p {
+  margin: 0;
+  color: #e2e9e3;
+  font-size: 1rem;
+  line-height: 1.55;
+}
+
+.vnv-offer--platform { background: #e9f1ed; }
+
+.vnv-offer__platform {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, .92fr);
+  gap: clamp(24px, 7vw, 96px);
+  align-items: center;
+}
+
+.vnv-offer__workflow {
+  display: grid;
+  gap: 6px;
+  margin: 22px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.vnv-offer__workflow > li {
+  margin: 0;
+  padding: 11px 0;
+  border-bottom: 1px solid #cadbd3;
+  color: var(--offer-muted);
+  line-height: 1.55;
+}
+
+.vnv-offer__workflow strong { color: var(--offer-ink); }
+
+.vnv-offer__portal {
+  display: grid;
+  justify-items: center;
+  gap: 15px;
+  margin: 0;
+  padding: clamp(22px, 4vw, 46px) 18px;
+  border-radius: 24px;
+  background: radial-gradient(ellipse at 70% 0%, #32655e, var(--offer-dark) 76%);
+}
+
+.vnv-offer__portal img {
+  display: block;
+  width: min(100%, 320px);
+  height: auto;
+  border-radius: 15px;
+  border: 1px solid #4f726b;
+  box-shadow: 0 12px 34px #0c1e1b80;
+}
+
+.vnv-offer__portal figcaption { text-align: center; }
+.vnv-offer__portal a { color: #f3d190; font-weight: 700; text-underline-offset: 4px; }
+
+.vnvp-hero .cause-on-cue-mark {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 18px;
+  color: #f4ddae;
+  font: 700 .82rem/1.35 "Plus Jakarta Sans", sans-serif;
+  letter-spacing: .06em;
+}
+
+.cause-on-cue-mark img {
+  display: block;
+  width: clamp(49px, 5.8vw, 72px);
+  height: auto;
+  aspect-ratio: 1;
+  object-fit: contain;
+}
+
+.cause-on-cue-mark > div { display: grid; gap: 5px; }
+.cause-on-cue-mark .vnvp-eyebrow { margin: 0; }
+.vnvp-hero .cause-on-cue-mark + h1 + p { max-width: 40ch; }
+
+@media (max-width: 760px) {
+  .vnv-offer__spread, .vnv-offer__platform { grid-template-columns: 1fr; }
+  .vnv-offer__photo { min-height: clamp(226px, 64vw, 390px); }
+  .vnv-offer__deliverables { padding: 23px; }
+  .vnv-offer__wrap { width: calc(100% - 30px); }
+}

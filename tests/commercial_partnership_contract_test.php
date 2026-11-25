@@ -81,7 +81,7 @@ foreach (['The VNV Ecosystem', 'The VNV 360 Way', 'Scope of Support', 'The Produ
 
 $corporate = file_get_contents($root . '/src/views/public/pages/corporate-events/index.twig');
 $assert(str_contains($corporate, 'By Invitation'), 'Corporate integrated projects are missing the By Invitation status.');
-$assert(str_contains($corporate, 'Traditional catering, entertainment, decor, rentals and planning remain normally available.'), 'Corporate page does not preserve regular traditional services.');
+$assert(str_contains($corporate, 'Book catering, entertainment, decor, rentals and planning individually'), 'Corporate page does not preserve regular traditional services.');
 $assert(substr_count($corporate, 'REQUEST SERVICE →') === 4, 'Corporate core-service cards do not all use the ordinary request CTA.');
 foreach (["path('vnv-gourmet')", "path('vnv-live')", "path('photo-booth-rental-video-photography-services-in-south-florida')", "path('event-staffing/')"] as $destination) {
     $assert(str_contains($corporate, $destination), 'Corporate core-service destination is missing: ' . $destination);

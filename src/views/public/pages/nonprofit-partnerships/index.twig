@@ -9,7 +9,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="{{ asset_for('assets/css/vnv-partnerships.css') }}">
 <link rel="stylesheet" href="{{ asset_for('assets/css/vnv-support-2027.css') }}">
-<link rel="stylesheet" href="{{ asset_for('assets/css/vnv-production-films.css') }}">
+<link rel="stylesheet" href="{{ asset_for('assets/css/vnv-production-offers.css') }}">
 {% endblock %}
 
 {% block body %}
@@ -18,10 +18,12 @@
   <section class="vnvp-hero" aria-labelledby="support-title" style="--vnvp-hero-image:url('{{ asset_for('assets/images/production1.jpg') }}')">
     <div class="vnvp-container">
       <div class="vnvp-hero__copy">
-        <span class="vnvp-eyebrow">Nonprofit Impact Initiative</span>
+        <div class="cause-on-cue-mark">
+          <img src="{{ asset_for('assets/images/productions/cause-on-cue-mark-v1.webp') }}" width="72" height="72" alt="">
+          <div><span class="vnvp-eyebrow">Nonprofit Impact Initiative</span><span>by VNV Events</span></div>
+        </div>
         <h1 id="support-title">Cause on Cue 2027</h1>
-        <p class="cause-on-cue-signature">by VNV Events</p>
-        <p>Fundraising event production and a digital guest platform for South Florida nonprofits.</p>
+        <p>Spend event day with the people who support your cause. We help South Florida nonprofits produce fundraisers and manage guests from invitation through check-in.</p>
         <div class="vnvp-actions">
           <a class="vnvp-button vnvp-button--gold" href="#application">Apply to Cause on Cue 2027</a>
           <button class="vnvp-button vnvp-button--ghost" type="button" data-vnv-open-quick-request data-quick-request-type="NONPROFIT" data-quick-request-source="nonprofit_exploratory_2027">Request an Exploratory Meeting</button>
@@ -37,44 +39,41 @@
     </div>
   </aside>
 
-  <section class="vnvp-section support-services" id="support" aria-labelledby="support-services-title">
-    <div class="vnvp-container">
-      <div class="vnvp-heading">
-        <h2 id="support-services-title">What we can take on for your fundraiser</h2>
-        <p>Bring us the part you need help with, whether you are shaping a first event or improving one you already run.</p>
+  {% include "templates/components/vnvProductionOffer.html.twig" with {
+    offer: {
+      id: 'support',
+      label: 'Fundraiser production',
+      title: 'Make room for the moments that move people',
+      description: 'From a first gala to an annual charity tournament, VNV helps you plan how people arrive, hear your story and take part. We agree on the pieces your team wants us to own.',
+      image: 'assets/images/case-studies/victoria-venezuela-2026-P4794.webp',
+      image_alt: 'The clubhouse tables set for Victoria Venezuela Foundation’s charity golf tournament',
+      caption: 'Victoria Venezuela Foundation · Charity Golf Tournament · Weston, Florida',
+      deliverables: [
+        ['Program and production', 'Plan the run of show, sound and visuals around speakers, sponsor recognition and the moments when you ask people to support your mission.'],
+        ['Welcome desk and event operations', 'Give staff and volunteers a check-in plan, a shared guest list and defined roles for arrivals, vendor coordination and the handoff to the main program.'],
+        ['Donor and sponsor connections', 'Identify aligned supporters, plan how a sponsor could participate and facilitate introductions when both parties agree. Your organization leads the fundraising conversation.']
+      ]
+    }
+  } only %}
+
+  <section class="vnv-offer vnv-offer--platform" id="guest-platform" aria-labelledby="guest-platform-title">
+    <div class="vnv-offer__wrap vnv-offer__platform">
+      <div class="vnv-offer__copy">
+        <span class="vnv-offer__eyebrow">Developed by VNV Events</span>
+        <h2 id="guest-platform-title">Digital Guest Platform</h2>
+        <p>Add a branded portal to the website your community already knows. Your guests have an online place to respond, and your team works from the same list when the doors open.</p>
+        <ul class="vnv-offer__workflow" role="list">
+          <li><strong>Before the event.</strong> Guests RSVP from their phone. Your team reviews access requests and manages approved companions.</li>
+          <li><strong>At the door.</strong> Staff use the live guest list to check arrivals and handle changes, with an agreed backup procedure.</li>
+          <li><strong>After the event.</strong> Review responses, arrivals and check-in issues, then use what you learned to plan the next edition.</li>
+        </ul>
       </div>
-      <div class="support-services__grid">
-        <article class="support-service">
-          <span class="support-service__icon"><i class="fa-solid fa-microphone-lines" aria-hidden="true"></i></span>
-          <h3>Event Production</h3>
-          <p>Shape the concept, run of show, audiovisual plan and guest experience around the mission and fundraising goal.</p>
-        </article>
-        <article class="support-service">
-          <span class="support-service__icon"><i class="fa-solid fa-list-check" aria-hidden="true"></i></span>
-          <h3>Operational &amp; Logistics Support</h3>
-          <p>Coordinate vendors, staff and volunteers. Plan guest flow, preparation and on-site responsibilities.</p>
-        </article>
-        <article class="support-service">
-          <span class="support-service__icon"><i class="fa-solid fa-qrcode" aria-hidden="true"></i></span>
-          <h3>Digital Guest Platform</h3>
-          <p>Give guests a branded web portal to RSVP and check in. Your team works from one list to manage approvals, guest communications and arrivals.</p>
-        </article>
-      </div>
-      <aside class="support-connections">
-        <div>
-          <h3>Donor and sponsor connections</h3>
-          <p>We can help your foundation identify good-fit supporters, develop ways for sponsors to participate and make introductions when both sides agree. Your organization leads the fundraising conversation.</p>
-        </div>
-        <img src="{{ asset_for('assets/images/case-studies/victoria-venezuela-2026-P4794.webp') }}" width="1600" height="1066" loading="lazy" decoding="async" alt="Tables arranged for the charity golf tournament gathering">
-      </aside>
+      <figure class="vnv-offer__portal">
+        <img src="{{ asset_for('assets/images/case-studies/victoria-rsvp-portal-v1.webp') }}" width="420" height="523" alt="Public RSVP and check-in screen built for Victoria Venezuela Foundation" loading="lazy" decoding="async">
+        <figcaption><a href="https://golf.victoriavenezuelafoundation.org/">See Victoria’s public guest portal <span aria-hidden="true">→</span></a></figcaption>
+      </figure>
     </div>
   </section>
-
-  {% include "templates/components/vnvProductionFilm.html.twig" with {
-    film_slug: 'cause-on-cue',
-    film_title: 'Meet Cause on Cue',
-    film_description: 'See how VNV helps nonprofits run fundraisers with event production and a branded digital guest portal.'
-  } only %}
 
   <div id="event-stories">
     {% include "templates/components/publicNonprofitStories.html.twig" with {

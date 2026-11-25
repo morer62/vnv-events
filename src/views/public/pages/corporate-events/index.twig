@@ -9,7 +9,7 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@200;300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,700;0,900;1,700;1,900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="{{ asset_for('assets/css/vnv-production-films.css') }}">
+<link rel="stylesheet" href="{{ asset_for('assets/css/vnv-production-offers.css') }}">
 
 <style>
 :root {
@@ -196,69 +196,6 @@ h1, h2, h3, h4, h5, .luxury-font {
 }
 .section-dark .section-heading p {
     color: var(--vnv-text-muted);
-}
-
-.corp-intro-wrap {
-    display: grid;
-    grid-template-columns: 1.05fr .95fr;
-    gap: 40px;
-    align-items: center;
-}
-
-.corp-image-card {
-    border-radius: 30px;
-    overflow: hidden;
-    box-shadow: 0 25px 70px rgba(0,0,0,.10);
-    border: 1px solid rgba(17,24,26,.08);
-    background: #fff;
-}
-
-.corp-image-card img {
-    width: 100%;
-    height: 100%;
-    min-height: 420px;
-    object-fit: cover;
-    display: block;
-}
-
-.corp-info-panel {
-    background: #fff;
-    border: 1px solid rgba(17,24,26,.08);
-    border-radius: 30px;
-    padding: 40px;
-    box-shadow: 0 25px 70px rgba(0,0,0,.08);
-}
-
-.corp-info-panel h3 {
-    font-size: 2rem;
-    color: var(--vnv-text-dark);
-    margin-bottom: 20px;
-}
-
-.corp-info-panel p,
-.corp-info-panel li {
-    color: #4f5b5f;
-}
-
-.corp-info-panel ul {
-    list-style: none;
-    padding: 0;
-    margin: 25px 0 0;
-}
-.corp-info-panel ul li {
-    position: relative;
-    padding-left: 22px;
-    margin-bottom: 10px;
-}
-.corp-info-panel ul li::before {
-    content: "";
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: var(--vnv-gold);
-    position: absolute;
-    left: 0;
-    top: 12px;
 }
 
 .services-bg-video-wrap {
@@ -537,7 +474,6 @@ h1, h2, h3, h4, h5, .luxury-font {
 }
 
 @media (max-width: 991px) {
-    .corp-intro-wrap,
     .solution-wrap {
         grid-template-columns: 1fr;
     }
@@ -548,7 +484,6 @@ h1, h2, h3, h4, h5, .luxury-font {
         border-radius: 0;
     }
 
-    .corp-info-panel,
     .solution-panel,
     .vnv-studio-card {
         padding: 32px 28px;
@@ -610,7 +545,7 @@ h1, h2, h3, h4, h5, .luxury-font {
 
         <h1>Corporate Events That Feel <span class="text-gold">Organized, Polished & Professional</span></h1>
 
-        <p class="hero-copy">New integrated productions are reviewed by invitation. Traditional catering, entertainment, decor, rentals and planning remain normally available.</p>
+        <p class="hero-copy">Bring your run of show, audiovisual production, hospitality and staffing into one plan for a conference, launch or client event in South Florida.</p>
 
         <div class="hero-cta-row">
             <a href="#" data-vnv-open-quick-request data-quick-request-type="CORPORATE" data-quick-request-source="corporate_hero" class="vnv-btn btn-gold-vnv">Request an Invitation</a>
@@ -619,38 +554,21 @@ h1, h2, h3, h4, h5, .luxury-font {
     </div>
 </section>
 
-<section class="section-vnv section-white">
-    <div class="container">
-        <div class="corp-intro-wrap">
-            <div class="corp-image-card">
-                <img src="{{ asset_for('assets/images/corp2.jpg') }}" alt="Corporate hospitality by VNV Events">
-            </div>
-
-            <div class="corp-info-panel">
-                <span class="vnv-badge">Built for Business Environments</span>
-                <h3>Corporate events need more than a nice setup.</h3>
-                <p>
-                    They need timing, presentation, coordination and a guest experience that reflects well on the company behind the event.
-                </p>
-                <p>
-                    That is why our corporate approach focuses on the areas that most directly impact how the event feels in real life: food service, sound clarity, visual support and operational staffing.
-                </p>
-
-                <ul>
-                    <li>Cleaner guest experience without internal chaos</li>
-                    <li>Fewer moving parts for your team to manage</li>
-                    <li>Professional execution across hospitality and logistics</li>
-                    <li>A more complete event without hiring multiple vendors</li>
-                </ul>
-            </div>
-        </div>
-    </div>
-</section>
-
-{% include "templates/components/vnvProductionFilm.html.twig" with {
-    film_slug: 'corporate-events',
-    film_title: 'From the brief to event day',
-    film_description: 'See how we coordinate the venue, audiovisual production and guest experience for corporate events.'
+{% include "templates/components/vnvProductionOffer.html.twig" with {
+    offer: {
+        id: 'corporate-production',
+        label: 'Integrated corporate production',
+        title: 'One plan for the room, the program and the people',
+        description: 'Start with the audience and what you need the event to accomplish. VNV turns that brief into a production schedule, a clear scope and an on-site plan your team can work from.',
+        image: 'assets/images/corp2.jpg',
+        image_alt: 'Attendees listening to a participant with a handheld microphone',
+        caption: 'Illustrative format · Conference and speaker session',
+        deliverables: [
+            ['Meetings and conferences', 'Plan seating and room flow, set microphone and presentation cues, coordinate speaker transitions and build in time for networking and food service.'],
+            ['Product launches and client events', 'Plan the reveal, demo or guest interaction. Coordinate sound, screens, lighting, staffing and hospitality around the sequence of the event.'],
+            ['A written production plan', 'Align the venue, vendors and event team around one run of show. Define who manages each handoff and include digital RSVP and check-in when the event needs them.']
+        ]
+    }
 } only %}
 
 <section class="section-vnv section-dark" id="corporate-services">
@@ -665,7 +583,7 @@ h1, h2, h3, h4, h5, .luxury-font {
         <div class="text-center mb-5 pb-5 section-heading">
             <span class="vnv-badge">Core Services</span>
             <h2 class="text-white">What We Bring to <span class="text-vnv">Corporate Events</span></h2>
-            <p>These are the services companies tend to need most when they want the event to run well and look professional.</p>
+            <p>Book catering, entertainment, decor, rentals and planning individually, or bring the services your event needs into an integrated scope.</p>
         </div>
 
         <div class="row g-4">
@@ -876,7 +794,7 @@ if (typeof gsap !== 'undefined' && typeof ScrollTrigger !== 'undefined') {
         });
     });
 
-    gsap.from(".corp-image-card, .corp-info-panel, .solution-image-stack, .solution-panel, .vnv-studio-card, .final-cta-card", {
+    gsap.from(".solution-image-stack, .solution-panel, .vnv-studio-card, .final-cta-card", {
         scrollTrigger: {
             trigger: ".corp-image-card",
             start: "top 82%"

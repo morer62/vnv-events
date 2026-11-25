@@ -47,11 +47,10 @@ function url(route) {
       assert.equal(await page.locator('body').innerText().then((text) => /Ophyra/i.test(text)), false, `${label}: internal software brand is publicly visible`);
 
       if (['nonprofit-partnerships', 'corporate-events', 'sponsor-activation-production'].includes(route)) {
-        const film = page.locator('.vnv-production-film video');
-        assert.equal(await film.count(), 1, `${label}: production explainer`);
-        assert.equal(await film.getAttribute('autoplay'), null, `${label}: explainer must play on request`);
-        assert.match(await film.locator('track[kind="captions"][srclang="en"]').getAttribute('src'), /\.vtt$/, `${label}: English captions`);
-        assert.match(await film.locator('source[type="video/mp4"]').getAttribute('src'), /assets\/video\/productions\/.+\.mp4$/, `${label}: hosted explainer`);
+        const offer = page.locator('.vnv-offer__spread');
+        assert.equal(await offer.count(), 1, `${label}: production offer`);
+        assert.equal(await offer.locator('.vnv-offer__deliverables li').count(), 3, `${label}: scope examples`);
+        assert.equal(await page.locator('video source[src*="/video/productions/"]').count(), 0, `${label}: retired explainer`);
       }
 
       if (route === '') {
@@ -125,6 +124,7 @@ function url(route) {
         assert.match(await hero.evaluate(node => getComputedStyle(node, '::before').backgroundImage), /production1\.jpg/, `${label}: original production backdrop`);
         assert.equal(await hero.locator('img[src*="victoria-venezuela"]').count(), 0, `${label}: Victoria photo should appear in the case study`);
         assert.equal(await page.getByRole('heading', { name: 'Digital Guest Platform', exact: true }).count(), 1, `${label}: digital guest platform overview`);
+        assert.equal(await page.locator('#guest-platform a').getAttribute('href'), 'https://golf.victoriavenezuelafoundation.org/', `${label}: real public platform`);
         assert.equal(await page.locator('input[value="Donor & Sponsor Connections"]').count(), 1, `${label}: optional donor and sponsor support is missing`);
         assert.equal(await page.locator('#np-event').getAttribute('required'), null, `${label}: event name should be optional`);
         assert.equal(await page.getByText(/up to (60|80)%/).count(), 0, `${label}: unapproved discount remains`);

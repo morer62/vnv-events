@@ -1,0 +1,20 @@
+<section class="vnv-offer" id="{{ offer.id }}" aria-labelledby="{{ offer.id }}-title">
+  <div class="vnv-offer__wrap">
+    <header class="vnv-offer__heading">
+      <span class="vnv-offer__eyebrow">{{ offer.label }}</span>
+      <h2 id="{{ offer.id }}-title">{{ offer.title }}</h2>
+      <p>{{ offer.description }}</p>
+    </header>
+    <div class="vnv-offer__spread">
+      <figure class="vnv-offer__photo">
+        <img src="{{ asset_for(offer.image) }}" alt="{{ offer.image_alt }}" width="1200" height="800" loading="lazy" decoding="async">
+        <figcaption>{{ offer.caption }}</figcaption>
+      </figure>
+      <ul class="vnv-offer__deliverables" role="list">
+        {% for deliverable in offer.deliverables %}
+          <li><h3>{{ deliverable[0] }}</h3><p>{{ deliverable[1] }}</p></li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+</section>
