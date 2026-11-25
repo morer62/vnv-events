@@ -8,7 +8,7 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="{{ asset_for('assets/css/vnv-partnerships.css') }}">
-<link rel="stylesheet" href="{{ asset_for('assets/css/vnv-production-offers.css') }}?v=production-films-1">
+<link rel="stylesheet" href="{{ asset_for('assets/css/vnv-production-offers.css', { v: 'production-films-2' }) }}">
 {% endblock %}
 
 {% block body %}
@@ -29,14 +29,24 @@
       label: 'Activation production',
       title: 'Turn an approved sponsorship into a live experience',
       description: 'Bring your brand guidelines, audience and organizer requirements. We work out how the space will function, how guests will participate and what your on-site team needs.',
-      image: 'assets/images/case-studies/victoria-venezuela-2026-P4083.webp',
-      image_alt: 'Tournament guests posing at a scenic photo installation',
-      caption: 'VNV event décor and photo experience · Victoria Venezuela Foundation',
+      image: 'assets/video/production-films/v3/tasting-setup.webp',
+      image_alt: 'A tasting cup set on a wood counter at a sample station',
+      caption: 'Illustrative tasting experience',
       deliverables: [
         ['Concept and footprint', 'Define the guest interaction and where it happens. Plan the layout, access, lighting and branding to fit the space and organizer requirements.'],
         ['Install and staff the experience', 'Coordinate the agreed fabrication or décor, installation schedule, guest flow, staffing and breakdown.'],
         ['Leave with agreed documentation', 'Set the recap deliverables in the brief, such as event photographs, an activation summary or participation counts where tracking is in scope.']
       ]
+    }
+  } only %}
+
+  {% include "templates/components/vnvProductionFilm.html.twig" with {
+    film: {
+      slug: 'brand-activation',
+      title: 'See a brand activation take shape',
+      description: 'See how we plan the guest experience, coordinate the build and keep the brand, organizer and crew working from one brief.',
+      cta: 'Share your activation brief',
+      href: '#activation-brief'
     }
   } only %}
 

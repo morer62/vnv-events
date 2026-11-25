@@ -9,7 +9,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="{{ asset_for('assets/css/vnv-partnerships.css') }}">
 <link rel="stylesheet" href="{{ asset_for('assets/css/vnv-support-2027.css') }}">
-<link rel="stylesheet" href="{{ asset_for('assets/css/vnv-production-offers.css') }}?v=production-films-1">
+<link rel="stylesheet" href="{{ asset_for('assets/css/vnv-production-offers.css', { v: 'production-films-2' }) }}">
 {% endblock %}
 
 {% block body %}
@@ -23,7 +23,7 @@
           <div><span class="vnvp-eyebrow">Nonprofit Impact Initiative</span><span>by VNV Events</span></div>
         </div>
         <h1 id="support-title">Cause on Cue 2027</h1>
-        <p>Spend event day with the people who support your cause. We help South Florida nonprofits produce fundraisers and manage guests from invitation through check-in.</p>
+        <p>Bring your next fundraiser to life with an experienced production team. We help South Florida nonprofits reach sponsors, coordinate logistics and run event day through one shared system.</p>
         <div class="vnvp-actions">
           <a class="vnvp-button vnvp-button--gold" href="#application">Apply to Cause on Cue 2027</a>
           <button class="vnvp-button vnvp-button--ghost" type="button" data-vnv-open-quick-request data-quick-request-type="NONPROFIT" data-quick-request-source="nonprofit_exploratory_2027">Request an Exploratory Meeting</button>
@@ -43,16 +43,26 @@
     offer: {
       id: 'support',
       label: 'Fundraiser production',
-      title: 'Make room for the moments that move people',
-      description: 'From a first gala to an annual charity tournament, VNV helps you plan how people arrive, hear your story and take part. We agree on the pieces your team wants us to own.',
-      image: 'assets/images/case-studies/victoria-venezuela-2026-P4794.webp',
-      image_alt: 'The clubhouse tables set for Victoria Venezuela Foundation’s charity golf tournament',
-      caption: 'Victoria Venezuela Foundation · Charity Golf Tournament · Weston, Florida',
+      title: 'An experienced team to produce your fundraiser',
+      description: 'From the first plan through event day, we bring years of production experience to the people, partners and logistics your fundraiser needs.',
+      image: 'assets/video/production-films/v3/fundraiser-setup.webp',
+      image_alt: 'A welcome table in a light-filled event room set for a fundraiser',
+      caption: 'Illustrative fundraiser setup',
       deliverables: [
-        ['Program and production', 'Plan the run of show, sound and visuals around speakers, sponsor recognition and the moments when you ask people to support your mission.'],
-        ['Welcome desk and event operations', 'Give staff and volunteers a check-in plan, a shared guest list and defined roles for arrivals, vendor coordination and the handoff to the main program.'],
-        ['Donor and sponsor connections', 'Identify aligned supporters, plan how a sponsor could participate and facilitate introductions when both parties agree. Your organization leads the fundraising conversation.']
+        ['Sponsor outreach', 'Define sponsorship opportunities, identify aligned supporters and make introductions when both parties agree. Your organization leads the fundraising conversation.'],
+        ['Production and logistics', 'Coordinate vendors, scheduling, sound, visuals and staffing around the moments that matter to your guests and sponsors.'],
+        ['A connected event crew', 'Give staff and volunteers shared assignments and updates, with a live guest list and defined roles from arrival through the main program.']
       ]
+    }
+  } only %}
+
+  {% include "templates/components/vnvProductionFilm.html.twig" with {
+    film: {
+      slug: 'cause-on-cue',
+      title: 'Watch Cause on Cue 2027',
+      description: 'See how our team produces fundraisers and how the shared platform supports your nonprofit during the event and throughout the year.',
+      cta: 'Tell us about your fundraiser',
+      href: '#application'
     }
   } only %}
 
@@ -60,17 +70,16 @@
     <div class="vnv-offer__wrap vnv-offer__platform">
       <div class="vnv-offer__copy">
         <span class="vnv-offer__eyebrow">Developed by VNV Events</span>
-        <h2 id="guest-platform-title">Digital Guest Platform</h2>
-        <p>Add a branded portal to the website your community already knows. Your guests have an online place to respond, and your team works from the same list when the doors open.</p>
+        <h2 id="guest-platform-title">One platform for the event and the year ahead</h2>
+        <p>VNV’s event management system gives the production crew and your team one place to coordinate the work. It can support your nonprofit between events, too.</p>
         <ul class="vnv-offer__workflow" role="list">
-          <li><strong>Before the event.</strong> Guests RSVP from their phone. Your team reviews access requests and manages approved companions.</li>
-          <li><strong>At the door.</strong> Staff use the live guest list to check arrivals and handle changes, with an agreed backup procedure.</li>
-          <li><strong>After the event.</strong> Review responses, arrivals and check-in issues, then use what you learned to plan the next edition.</li>
+          <li><strong>For the event.</strong> Share the schedule, crew assignments and changes. Manage RSVPs before the event and check-in at the door.</li>
+          <li><strong>Year-round.</strong> Accept donations, recruit volunteers and offer sponsorship packages.</li>
+          <li><strong>Your own mobile app.</strong> For selected nonprofits, mobile app development can be included at no development cost in the approved support plan.</li>
         </ul>
       </div>
-      <figure class="vnv-offer__portal">
-        <img src="{{ asset_for('assets/images/case-studies/victoria-rsvp-portal-v1.webp') }}" width="420" height="523" alt="Public RSVP and check-in screen built for Victoria Venezuela Foundation" loading="lazy" decoding="async">
-        <figcaption><a href="https://golf.victoriavenezuelafoundation.org/">See Victoria’s public guest portal <span aria-hidden="true">→</span></a></figcaption>
+      <figure class="vnv-offer__portal vnv-offer__portal--overview">
+        <img src="{{ asset_for('assets/video/production-films/v3/nonprofit-platform.webp') }}" width="1120" height="630" alt="Illustration of year-round nonprofit tools for donations, volunteer sign-ups and sponsorship packages" loading="lazy" decoding="async">
       </figure>
     </div>
   </section>
