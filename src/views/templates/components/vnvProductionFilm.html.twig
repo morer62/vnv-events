@@ -1,12 +1,12 @@
 {% set media = 'assets/video/production-films/v3/' ~ film.slug %}
-<section class="vnv-film" aria-labelledby="{{ film.slug }}-film-title" id="{{ film.slug }}-film">
+<section class="vnv-film ve-film" aria-labelledby="{{ film.slug }}-film-title" id="{{ film.slug }}-film">
   <div class="vnv-offer__wrap vnv-film__layout">
     <div class="vnv-film__copy">
       <h2 id="{{ film.slug }}-film-title">{{ film.title }}</h2>
       <p>{{ film.description }}</p>
-      {% if film.request_type is defined %}
+      {% if film.cta is defined and film.request_type is defined %}
         <button class="vnvp-button vnvp-button--gold" type="button" data-vnv-open-quick-request data-quick-request-type="{{ film.request_type }}" data-quick-request-source="{{ film.request_source }}">{{ film.cta }}</button>
-      {% else %}
+      {% elseif film.cta is defined %}
         <a class="vnvp-button vnvp-button--gold" href="{{ film.href }}">{{ film.cta }}</a>
       {% endif %}
     </div>
@@ -17,6 +17,11 @@
         <a href="{{ asset_for(media ~ '.mp4') }}">Download the video</a>
       </video>
       <figcaption id="{{ film.slug }}-film-credit">AI-generated narration</figcaption>
+      <div class="ve-film__tools">
+        <a href="{{ asset_for(media ~ '.mp4') }}" target="_blank" rel="noopener">Open film with sound</a>
+        <button type="button" class="ve-film__share" data-vnv-share-film="{{ path(film.route) }}#{{ film.slug }}-film" data-film-title="{{ film.title }}" hidden>Share film</button>
+        <span class="ve-film__status" role="status"></span>
+      </div>
     </figure>
   </div>
 </section>

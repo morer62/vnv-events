@@ -10,27 +10,26 @@
 <link rel="stylesheet" href="{{ asset_for('assets/css/vnv-partnerships.css') }}">
 <link rel="stylesheet" href="{{ asset_for('assets/css/vnv-support-2027.css') }}">
 <link rel="stylesheet" href="{{ asset_for('assets/css/vnv-production-offers.css', { v: 'production-films-2' }) }}">
+{% include "templates/components/vnvProductionEditorialAssets.html.twig" %}
 {% endblock %}
 
 {% block body %}
 {% include "templates/layout/publicHeaderVnv.html.twig" %}
 <main class="vnv-partnership-page vnv-support">
-  <section class="vnvp-hero" aria-labelledby="support-title" style="--vnvp-hero-image:url('{{ asset_for('assets/images/production1.jpg') }}')">
-    <div class="vnvp-container">
-      <div class="vnvp-hero__copy">
-        <div class="cause-on-cue-mark">
-          <img src="{{ asset_for('assets/images/productions/cause-on-cue-mark-v1.webp') }}" width="72" height="72" alt="">
-          <div><span class="vnvp-eyebrow">Nonprofit Impact Initiative</span><span>by VNV Events</span></div>
-        </div>
-        <h1 id="support-title">Cause on Cue 2027</h1>
-        <p>Bring your next fundraiser to life with an experienced production team. We help South Florida nonprofits reach sponsors, coordinate logistics and run event day through one shared system.</p>
-        <div class="vnvp-actions">
-          <a class="vnvp-button vnvp-button--gold" href="#application">Apply to Cause on Cue 2027</a>
-          <button class="vnvp-button vnvp-button--ghost" type="button" data-vnv-open-quick-request data-quick-request-type="NONPROFIT" data-quick-request-source="nonprofit_exploratory_2027">Request an Exploratory Meeting</button>
-        </div>
-      </div>
-    </div>
-  </section>
+  {% include "templates/components/vnvProductionHero.html.twig" with {
+  hero: {
+    slug: 'cause-on-cue',
+    label: 'Nonprofit Impact Initiative · South Florida',
+    title: 'Cause on Cue',
+    emphasis: '2027',
+    description: 'Bring your fundraiser to life with an experienced production team and a platform that can support your nonprofit year-round.',
+    details: ['Sponsor outreach, vendor coordination and event-day production', 'One plan for your team, RSVPs and check-in', 'Year-round tools for donations, volunteers and sponsorships'],
+    cta: 'Apply to Cause on Cue 2027',
+    href: '#application',
+    mark: 'assets/images/productions/cause-on-cue-mark-v1.webp',
+    preview_label: 'An illustrative nonprofit fundraiser, from room setup to guest arrival'
+  }
+} only %}
 
   <aside class="support-pilot" aria-label="2027 pilot">
     <div class="vnvp-container support-pilot__layout">
@@ -59,6 +58,7 @@
   {% include "templates/components/vnvProductionFilm.html.twig" with {
     film: {
       slug: 'cause-on-cue',
+      route: 'nonprofit-partnerships',
       title: 'Watch Cause on Cue 2027',
       description: 'See how our team produces fundraisers and how the shared platform supports your nonprofit during the event and throughout the year.',
       cta: 'Tell us about your fundraiser',

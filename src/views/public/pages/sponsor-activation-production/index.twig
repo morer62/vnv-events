@@ -9,19 +9,27 @@
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="{{ asset_for('assets/css/vnv-partnerships.css') }}">
 <link rel="stylesheet" href="{{ asset_for('assets/css/vnv-production-offers.css', { v: 'production-films-2' }) }}">
+{% include "templates/components/vnvProductionEditorialAssets.html.twig" %}
 {% endblock %}
 
 {% block body %}
 {% include "templates/layout/publicHeaderVnv.html.twig" %}
 <main class="vnv-partnership-page">
-  <section class="vnvp-hero" style="--vnvp-hero-image:url('{{ asset_for('assets/images/production3.jpg') }}')">
-    <div class="vnvp-container"><div class="vnvp-hero__copy">
-      <span class="vnvp-eyebrow">Sponsor Activation Production · By Invitation</span>
-      <h1>Sponsor Activation Production in South Florida</h1>
-      <p>Give guests something to do with your brand. We design, build and run on-site experiences for sponsors, from a hosted lounge to a product tasting or a branded photo set.</p>
-      <div class="vnvp-actions"><a class="vnvp-button vnvp-button--gold" href="#" data-vnv-open-quick-request data-quick-request-type="ACTIVATION" data-quick-request-source="activation_hero">Request an Invitation</a><a class="vnvp-button vnvp-button--ghost" href="#formats">Explore Formats</a></div>
-    </div></div>
-  </section>
+  {% include "templates/components/vnvProductionHero.html.twig" with {
+  hero: {
+    slug: 'brand-activation',
+    label: 'South Florida · By Invitation',
+    title: 'Sponsor activation',
+    emphasis: 'production.',
+    description: 'Give guests a way to experience your brand, from a product tasting to a hosted lounge or a styled photo set.',
+    details: ['Guest experience and layout built around your brief', 'Installation, staffing and coordination with the organizer', 'Agreed photos, participation counts or a recap'],
+    cta: 'Request an invitation',
+    href: '#activation-brief',
+    request_type: 'ACTIVATION',
+    request_source: 'activation_hero',
+    preview_label: 'An illustrative sponsor tasting experience'
+  }
+} only %}
 
   {% include "templates/components/vnvProductionOffer.html.twig" with {
     offer: {
@@ -43,6 +51,7 @@
   {% include "templates/components/vnvProductionFilm.html.twig" with {
     film: {
       slug: 'brand-activation',
+      route: 'sponsor-activation-production',
       title: 'See a brand activation take shape',
       description: 'See how we plan the guest experience, coordinate the build and keep the brand, organizer and crew working from one brief.',
       cta: 'Share your activation brief',

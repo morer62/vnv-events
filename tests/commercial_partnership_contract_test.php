@@ -36,7 +36,7 @@ $assert(!preg_match('/guaranteed\s+(?:sponsorship|funding|approval)/i', $nonprof
 $assert(!preg_match('/up to (?:60|80)%/i', $nonprofit), 'Nonprofit page promotes an unapproved discount.');
 
 $activation = file_get_contents($root . '/src/views/public/pages/sponsor-activation-production/index.twig');
-foreach (['Sponsor Activation Production in South Florida', 'Request an Invitation', 'Brief. Design. Approval. Build. Live. Recap.', 'Complete technical activation brief'] as $needle) {
+foreach (["title: 'Sponsor activation'", "emphasis: 'production.'", 'Request an Invitation', 'Brief. Design. Approval. Build. Live. Recap.', 'Complete technical activation brief'] as $needle) {
     $assert(stripos($activation, $needle) !== false, 'Activation landing is missing: ' . $needle);
 }
 foreach (['$2,500', '$5,000', '$10,000', '$2500', '$5000', '$10000'] as $price) {
@@ -61,7 +61,7 @@ $assert(!str_contains($home, 'publicQuickRequestModal.html.twig'), 'Home still m
 $assert(!str_contains($home, 'Planning for March 2027'), 'Home still exposes the retired March 2027 commercial status.');
 
 $production = file_get_contents($root . '/src/views/public/pages/event-production/index.twig');
-foreach (['From creative concepts to seamless execution.', 'Support up to 12 nonprofit organizations', 'Now Accepting', 'By Invitation', 'Our Production Method'] as $needle) {
+foreach (['From brief to showtime.', 'Support up to 12 nonprofit organizations', 'Now Accepting', 'By Invitation', 'Our Production Method'] as $needle) {
     $source = $needle === 'Support up to 12 nonprofit organizations' ? file_get_contents($root . '/src/views/templates/components/publicNonprofitStories.html.twig') : $production;
     $assert(str_contains($source, $needle), 'Event Production polish is missing: ' . $needle);
 }
@@ -98,6 +98,9 @@ $assert(str_contains($publicFooter, 'VNV Events technology'), 'Public footer is 
 $assert(!str_contains($publicFooter, 'Ophyra'), 'Public footer still exposes an internal software brand.');
 
 $originals = file_get_contents($root . '/src/views/public/pages/vnv-events-productions/index.twig');
+foreach ([$production, $nonprofit, $corporate, $activation, $originals] as $page) {
+    $assert(str_contains($page, 'vnvProductionHero.html.twig') && str_contains($page, 'vnvProductionFilm.html.twig'), 'A production page is missing the shared preview or narrated film.');
+}
 foreach (['Retro Glam', 'Mommy &amp; Daddy Break', 'does not provide or promise childcare', 'Join Priority List'] as $needle) {
     $assert(str_contains($originals, $needle), 'Original Experiences page is missing: ' . $needle);
 }

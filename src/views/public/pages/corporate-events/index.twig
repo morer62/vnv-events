@@ -533,26 +533,28 @@ h1, h2, h3, h4, h5, .luxury-font {
     }
 }
 </style>
+{% include "templates/components/vnvProductionEditorialAssets.html.twig" %}
 {% endblock %}
 
 {% block body %}
 
 {% include "templates/layout/publicHeaderVnv.html.twig" %}
 
-<section class="hero-corporate">
-    <div class="container hero-corporate-inner">
-        <span class="vnv-badge">By Invitation · Integrated Projects</span>
-
-        <h1>Corporate Events That Feel <span class="text-gold">Organized, Polished & Professional</span></h1>
-
-        <p class="hero-copy">Bring your run of show, audiovisual production, hospitality and staffing into one plan for a conference, launch or client event in South Florida.</p>
-
-        <div class="hero-cta-row">
-            <a href="#" data-vnv-open-quick-request data-quick-request-type="CORPORATE" data-quick-request-source="corporate_hero" class="vnv-btn btn-gold-vnv">Request an Invitation</a>
-            <a href="tel:+13052045427" class="vnv-btn btn-outline-vnv">Call (305) 204-5427</a>
-        </div>
-    </div>
-</section>
+{% include "templates/components/vnvProductionHero.html.twig" with {
+  hero: {
+    slug: 'corporate-events',
+    label: 'South Florida · By Invitation',
+    title: 'Corporate & brand',
+    emphasis: 'experiences.',
+    description: 'Produce your conference, launch or client event with one team coordinating the room, the program and the people.',
+    details: ['One run of show for venues, vendors and presenters', 'Audiovisual cues, staffing and hospitality', 'Guest registration and check-in when needed'],
+    cta: 'Request an invitation',
+    href: '#corporate-partnerships',
+    request_type: 'CORPORATE',
+    request_source: 'corporate_hero',
+    preview_label: 'A preview of a corporate stage and hospitality setup'
+  }
+} only %}
 
 {% include "templates/components/vnvProductionOffer.html.twig" with {
     offer: {
@@ -574,6 +576,7 @@ h1, h2, h3, h4, h5, .luxury-font {
 {% include "templates/components/vnvProductionFilm.html.twig" with {
     film: {
         slug: 'corporate-events',
+        route: 'corporate-events',
         title: 'See how we produce corporate events',
         description: 'See how our production team brings vendors, technical cues and on-site staff together in one shared schedule.',
         cta: 'Tell us about your event',
@@ -584,9 +587,6 @@ h1, h2, h3, h4, h5, .luxury-font {
 
 <section class="section-vnv section-dark" id="corporate-services">
     <div class="services-bg-video-wrap">
-        <video class="services-bg-video" autoplay muted loop playsinline preload="auto">
-            <source src="{{ asset_for('assets/video/intro.mp4') }}" type="video/mp4">
-        </video>
         <div class="services-bg-overlay"></div>
     </div>
 

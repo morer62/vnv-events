@@ -72,7 +72,7 @@ function url(route) {
         assert.equal(await planMyEvent.evaluate((node) => document.activeElement === node), true, `${label}: New Request focus was not restored to Plan My Event`);
       }
       if (route === 'event-production') {
-        assert.equal(await page.getByText(/From creative concepts to seamless execution\./).count(), 1, `${label}: final hero copy missing`);
+        assert.equal(await page.getByRole('heading', { level: 1, name: 'Full event production. From brief to showtime.' }).count(), 1, `${label}: production hero missing`);
         assert.equal(await page.locator('.process-step').count(), 5, `${label}: production method must contain five steps`);
         assert.equal(await page.getByText(/The VNV Ecosystem|The VNV 360 Way|Scope of Support|The Production Blueprint/).count(), 0, `${label}: redundant production block remains`);
         assert.equal(await page.getByText('Support up to 12 nonprofit organizations', { exact: true }).count(), 1, `${label}: 2027 roadmap goal missing`);
@@ -122,8 +122,8 @@ function url(route) {
         assert.equal(await journey.locator('li').count(), 3, `${label}: expected three visible phases`);
         assert.equal(await journey.evaluate(node => getComputedStyle(node).listStyleType), 'none', `${label}: duplicate list numbering`);
         assert.match(await journey.innerText(), /Eligibility Review[\s\S]*Approved Support Plan[\s\S]*Impact & Results Review/, `${label}: review milestones missing`);
-        const hero = page.locator('main .vnvp-hero');
-        assert.match(await hero.evaluate(node => getComputedStyle(node, '::before').backgroundImage), /production1\.jpg/, `${label}: original production backdrop`);
+        const hero = page.locator('main .ve-hero');
+        assert.match(await hero.locator('video').getAttribute('data-src'), /\/previews\/cause-on-cue\.mp4$/, `${label}: campaign preview`);
         assert.equal(await hero.locator('img[src*="victoria-venezuela"]').count(), 0, `${label}: Victoria photo should appear in the case study`);
         const platform = page.locator('#guest-platform');
         assert.equal(await platform.getByRole('heading', { name: 'One platform for the event and the year ahead' }).count(), 1, `${label}: nonprofit platform overview`);
@@ -206,6 +206,11 @@ function url(route) {
         assert.equal(await sponsorForm.count(), 1, `${label}: partnership-interest form missing`);
         assert.equal(await sponsorForm.locator('input[name="contact_consent"]').count(), 1, `${label}: sponsor consent missing`);
         assert.equal(await sponsorForm.getByText(/\$1,690|\$460|\$220|\$120/).count(), 0, `${label}: premature sponsor package price remains visible`);
+      }
+      if (route === 'vnv-events-productions/mommy-and-daddy-break') {
+        assert.equal(await page.locator('#agenda .bc-agenda li').count(), 4, `${label}: sample morning agenda`);
+        assert.match(await page.locator('.bc-cadence').innerText(), /two mornings a month.*different South Florida venue/i, `${label}: rotating locations`);
+        assert.match(await page.locator('#agenda').innerText(), /massage table[\s\S]*On select dates[\s\S]*yoga/i, `${label}: optional wellness experiences`);
       }
       checks++;
       await context.close();

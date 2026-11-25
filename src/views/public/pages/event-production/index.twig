@@ -945,51 +945,41 @@ h1, h2, h3, h4, h5, .luxury-font {
     }
 }
 </style>
+<link rel="stylesheet" href="{{ asset_for('assets/css/vnv-production-offers.css', { v: 'production-films-2' }) }}">
+{% include "templates/components/vnvProductionEditorialAssets.html.twig" %}
 {% endblock %}
 
 {% block body %}
 
 {% include "templates/layout/publicHeaderVnv.html.twig" %}
 
-<section class="hero-production">
-    <div class="container hero-production-inner">
-        <span class="vnv-badge">VNV Event Production</span>
+{% include "templates/components/vnvProductionHero.html.twig" with {
+  hero: {
+    slug: 'full-production',
+    label: 'VNV Events · South Florida',
+    title: 'Full event production.',
+    emphasis: 'From brief to showtime.',
+    description: 'One production partner for your event, from concept and budget through the final handoff.',
+    details: ['Concept, budget and run of show', 'Venue, vendors, hospitality and technical production', 'Guest check-in and an on-site team'],
+    cta: 'Request a consultation',
+    href: '#production-process',
+    request_type: 'PRODUCTION',
+    request_source: 'event_production_hero',
+    preview_label: 'A preview of event production, from technical setup to service and guest arrival'
+  }
+} only %}
 
-        <h1>Full Event Production &amp; <span class="text-gold">Partnerships</span> in South Florida</h1>
-
-        <p class="hero-copy">
-            From creative concepts to seamless execution. One production partner managing every detail of your experience.
-        </p>
-
-        <div class="hero-services-row">
-            <span>Strategy</span>
-            <span>Sponsors</span>
-            <span>Logistics</span>
-            <span>Content</span>
-            <span>Execution</span>
-        </div>
-
-        <div class="hero-cta-row">
-            <a href="#" data-vnv-open-quick-request data-quick-request-type="PRODUCTION" data-quick-request-source="event_production_hero" class="vnv-btn btn-gold-vnv">Request a Consultation</a>
-            <a href="tel:+13052045427" class="vnv-btn btn-outline-vnv">Call (305) 204-5427</a>
-        </div>
-
-        <div class="trust-bar">
-            <div class="trust-stat">
-                <div class="num">FULL</div>
-                <div class="label">Production Scopes Available</div>
-            </div>
-            <div class="trust-stat">
-                <div class="num">3</div>
-                <div class="label">South Florida Counties Served</div>
-            </div>
-            <div class="trust-stat">
-                <div class="num">ONE</div>
-                <div class="label">Coordinated Production Plan</div>
-            </div>
-        </div>
-    </div>
-</section>
+{% include "templates/components/vnvProductionFilm.html.twig" with {
+  film: {
+    slug: 'full-production',
+    route: 'event-production',
+    title: 'See how we produce an event',
+    description: 'Walk through planning, vendor coordination, guest technology and on-site execution in under a minute.',
+    cta: 'Tell us about your event',
+    request_type: 'PRODUCTION',
+    request_source: 'event_production_film'
+  }
+} only %}
 
 {% include "templates/components/publicNonprofitStories.html.twig" with {
     story_heading_id: 'production-proof-title',
@@ -1048,9 +1038,6 @@ h1, h2, h3, h4, h5, .luxury-font {
 
 <section class="section-vnv section-dark" id="production-process">
     <div class="services-bg-video-wrap">
-        <video class="services-bg-video" autoplay muted loop playsinline preload="auto">
-            <source src="{{ asset_for('assets/video/intro.mp4') }}" type="video/mp4">
-        </video>
         <div class="services-bg-overlay"></div>
     </div>
 

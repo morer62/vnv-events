@@ -1,0 +1,22 @@
+{% set preview = 'assets/video/production-films/previews/' ~ hero.slug %}
+<section class="ve-hero" aria-labelledby="{{ hero.slug }}-title">
+  <div class="ve-hero__copy">
+    {% if hero.mark is defined %}
+      <img class="ve-hero__mark" src="{{ asset_for(hero.mark) }}" width="72" height="72" alt="">
+    {% endif %}
+    <p class="ve-kicker">{{ hero.label }}</p>
+    <h1 id="{{ hero.slug }}-title">{{ hero.title }}{% if hero.emphasis is defined %} <em>{{ hero.emphasis }}</em>{% endif %}</h1>
+    <p class="ve-hero__intro">{{ hero.description }}</p>
+    <ul class="ve-hero__details" role="list">
+      {% for detail in hero.details %}<li>{{ detail }}</li>{% endfor %}
+    </ul>
+    <div class="ve-hero__actions">
+      <a class="ve-button" href="{{ hero.href }}"{% if hero.request_type is defined %} data-vnv-open-quick-request data-quick-request-type="{{ hero.request_type }}" data-quick-request-source="{{ hero.request_source }}"{% endif %}>{{ hero.cta }} <span aria-hidden="true">↗</span></a>
+      <a class="ve-hero__film-link" href="#{{ hero.slug }}-film">Watch the film with sound</a>
+    </div>
+  </div>
+  <div class="ve-hero__media" data-vnv-preview>
+    <video id="{{ hero.slug }}-preview" muted loop playsinline preload="none" poster="{{ asset_for(preview ~ '.webp') }}" data-src="{{ asset_for(preview ~ '.mp4') }}" data-mobile-src="{{ asset_for(preview ~ '-mobile.mp4') }}" aria-label="{{ hero.preview_label }}"></video>
+    <button class="ve-hero__toggle" type="button" aria-controls="{{ hero.slug }}-preview" hidden>Play preview</button>
+  </div>
+</section>

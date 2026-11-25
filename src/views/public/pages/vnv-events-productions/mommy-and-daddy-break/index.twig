@@ -5,7 +5,7 @@
 {% block og_image %}https://vnvevents.com/assets/break-club/hero-miami-morning.webp{% endblock %}
 {% block og_image_alt %}Illustrative Miami poolside brunch for the Mommy and Daddy Break Club{% endblock %}
 {% block styles %}
-<link rel="stylesheet" href="{{ asset_for('assets/break-club/landing.css') }}">
+<link rel="stylesheet" href="{{ asset_for('assets/break-club/landing.css', { v: 'morning-agenda-1' }) }}">
 {% endblock %}
 {% block body %}
 {% include "templates/layout/publicHeaderVnv.html.twig" %}
@@ -16,25 +16,35 @@
             <p class="bc-kicker">A South Florida social club for parents</p>
             <h1 id="club-title">A morning<br><em>of your own.</em></h1>
             <p>Finish a coffee while it’s still warm. Hear the end of a story. Spend a few hours with adults who get it.</p>
+            <p class="bc-cadence">We’re planning two mornings a month, each at a different South Florida venue.</p>
             <a class="bc-button" href="#waitlist">Join the free priority list <span aria-hidden="true">↗</span></a>
             <a class="bc-member-link" href="{{ path('panel/break-club') }}">Already a member? Open your dashboard</a>
         </div>
-        <div class="bc-hero-film">
+        <div class="bc-hero-film" data-vnv-preview data-mobile-width="610">
             <video id="club-film" muted loop playsinline preload="none" poster="{{ asset_for('assets/break-club/hero-miami-morning.webp') }}" aria-label="A concept preview of a Miami morning club for parents with poolside brunch, a DJ, massage tables, photo moments and relaxed conversation" data-src="{{ asset_for('assets/break-club/hero-miami-morning.mp4') }}" data-mobile-src="{{ asset_for('assets/break-club/hero-miami-morning-mobile.mp4') }}"></video>
-            <button class="bc-film-toggle" type="button" aria-controls="club-film" hidden>Play film</button>
+            <button class="bc-film-toggle" type="button" aria-controls="club-film" data-pause-label="Pause film" hidden>Play film</button>
         </div>
     </section>
 
     <section class="bc-story bc-shell" id="experience" aria-labelledby="experience-title">
         <div>
-            <p class="bc-kicker">The experience</p>
+            <p class="bc-kicker">A sample three-hour morning</p>
             <h2 id="experience-title">Come alone.<br><em>Pull up a chair.</em></h2>
-            <p class="bc-intro">Our morning socials bring parents together for about three hours. Come on your own or invite one other adult. Childcare is arranged separately by each guest.</p>
+            <p class="bc-intro">Come on your own or invite one other adult. Each edition gives you time to recharge, meet other parents and discover a different South Florida setting. Each invitation lists the venue, activities and what your ticket includes.</p>
+            <p class="bc-intro">Childcare is arranged separately by each guest.</p>
+            <a class="bc-text-link bc-watch-link" href="{{ asset_for('assets/video/production-films/v3/morning-club.mp4') }}" target="_blank" rel="noopener">Watch and share with sound <span aria-hidden="true">↗</span></a>
         </div>
-        <div id="agenda" class="bc-agenda">
-            <section><h3>Meet over coffee</h3><p>Start with coffee or matcha and a light bite. There’s time for a second cup.</p></section>
-            <section><h3>Stay for the music</h3><p>A morning soundtrack sits low enough for conversation. Take a seat with someone new or catch up with your guest.</p></section>
-            <section><h3>Take a moment to reset</h3><p>Leave room for a quiet pause. Each invitation includes the wellness experiences and hospitality planned for that morning.</p></section>
+        <div id="agenda">
+            <ol class="bc-agenda" role="list">
+                <li><span class="bc-agenda-time">First 30 min</span><div><h3>Arrive and settle in</h3><p>Meet the hosts over coffee, matcha or a welcome drink and enjoy brunch bites.</p></div></li>
+                <li><span class="bc-agenda-time">30–75 min</span><div><h3>Meet someone new</h3><p>A morning DJ sets the pace while hosts make easy introductions. Share a table, exchange ideas or make a connection worth following up on.</p></div></li>
+                <li><span class="bc-agenda-time">75–135 min</span><div><h3>Make time for yourself</h3><p>Take a quiet pause or reserve a short session at a massage table when offered.</p></div></li>
+                <li><span class="bc-agenda-time">135–180 min</span><div><h3>Stay for one more conversation</h3><p>Take a photo, trade contact details if you like and head back to your day at your own pace.</p></div></li>
+            </ol>
+            <div class="bc-edition-note">
+                <h3>On select dates</h3>
+                <p>Try a separate beginner-friendly yoga or mobility class, a short guided breathing session or a wellness demonstration hosted by a partner. Each edition has its own program.</p>
+            </div>
         </div>
     </section>
 
@@ -71,9 +81,12 @@
             </div>
         </div>
     </section>
-    <aside class="bc-shell bc-partners"><div><p class="bc-kicker">Venue &amp; brand partners</p><h2>Host a morning with us.</h2></div><button class="bc-text-link" type="button" data-vnv-open-sponsor>Talk to VNV Events <span aria-hidden="true">↗</span></button></aside>
+    <aside class="bc-shell bc-partners"><div><p class="bc-kicker">Venue &amp; brand partners</p><h2>Host a morning with us.</h2><p>Host an edition or sponsor a part of the morning, from the welcome bar to a massage station, movement class or photo moment.</p></div><button class="bc-text-link" type="button" data-vnv-open-sponsor>Talk to VNV Events <span aria-hidden="true">↗</span></button></aside>
 </main>
 {% include "templates/components/publicSponsorRequestModal.html.twig" with { sponsor_form_action: path('api/public/sponsor-request') } %}
 {% include "templates/layout/publicFooterVnv.html.twig" %}
 {% endblock %}
-{% block scripts %}<script defer src="{{ asset_for('assets/break-club/landing.js') }}"></script>{% endblock %}
+{% block scripts %}
+<script defer src="{{ asset_for('assets/break-club/landing.js', { v: 'party-fields-1' }) }}"></script>
+<script defer src="{{ asset_for('assets/js/vnv-production-editorial.js') }}"></script>
+{% endblock %}
