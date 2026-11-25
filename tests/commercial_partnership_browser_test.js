@@ -84,6 +84,8 @@ function url(route) {
         assert.equal(await cases.nth(0).getByText('Where It Started', { exact: true }).count(), 1, `${label}: Shake-A-Leg label`);
         assert.equal(await cases.nth(1).getByText('Behind the Experience', { exact: true }).count(), 1, `${label}: Victoria label`);
         for (const image of await page.locator('.vnv-story-card img').all()) {
+          await image.scrollIntoViewIfNeeded();
+          await image.evaluate((node) => node.decode());
           assert.equal(await image.evaluate((node) => node.complete && node.naturalWidth > 0), true, `${label}: case-study image failed to load`);
         }
         const productionTrigger = page.locator('[data-vnv-open-quick-request][data-quick-request-type="PRODUCTION"]').first();

@@ -24,6 +24,45 @@
         if (!motion.matches && !navigator.connection?.saveData) play();
     });
 
+    document.querySelectorAll('[data-vnv-watch-film]').forEach(link => {
+        const film = document.getElementById(link.hash.slice(1));
+        const player = film?.querySelector('video[controls]');
+        if (!player) return;
+
+        link.addEventListener('click', event => {
+            if (event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
+            event.preventDefault();
+            if (window.location.hash !== link.hash) history.pushState(null, '', link.hash);
+            player.scrollIntoView({ block: 'center', behavior: 'instant' });
+            player.focus({ preventScroll: true });
+            player.play().catch(() => { /* Native controls remain available. */ });
+        });
+        player.addEventListener('play', () => {
+            document.querySelectorAll('.ve-hero [data-vnv-preview] video').forEach(preview => preview.pause());
+        });
+    });
+
+    document.querySelectorAll('.ve-film__transcript').forEach(details => {
+        const paragraph = details.querySelector('p');
+        const captions = paragraph.querySelector('a');
+        details.addEventListener('toggle', async () => {
+            if (!details.open || !captions.isConnected || details.dataset.loading) return;
+            details.dataset.loading = 'true';
+            try {
+                const response = await fetch(captions.href);
+                if (!response.ok) return;
+                const cues = (await response.text()).trim().split(/\r?\n\s*\r?\n/);
+                const phrases = cues.flatMap(cue => {
+                    const lines = cue.split(/\r?\n/);
+                    const timing = lines.findIndex(line => line.includes(' --> '));
+                    return timing < 0 ? [] : lines.slice(timing + 1);
+                });
+                if (phrases.length) paragraph.textContent = phrases.join(' ');
+            } catch { /* Keep the direct link available when offline. */ }
+            finally { delete details.dataset.loading; }
+        });
+    });
+
     document.querySelectorAll('[data-vnv-share-film]').forEach(button => {
         if (!navigator.share && !navigator.clipboard) return;
         const status = button.closest('.ve-film__tools').querySelector('[role="status"]');

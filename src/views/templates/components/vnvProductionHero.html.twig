@@ -12,11 +12,11 @@
     </ul>
     <div class="ve-hero__actions">
       <a class="ve-button" href="{{ hero.href }}"{% if hero.request_type is defined %} data-vnv-open-quick-request data-quick-request-type="{{ hero.request_type }}" data-quick-request-source="{{ hero.request_source }}"{% endif %}>{{ hero.cta }} <span aria-hidden="true">↗</span></a>
-      <a class="ve-hero__film-link" href="#{{ hero.slug }}-film">Watch the film with sound</a>
+      <a class="ve-hero__film-link" data-vnv-watch-film href="#{{ hero.slug }}-film">Watch the film with sound</a>
     </div>
   </div>
   <div class="ve-hero__media" data-vnv-preview>
-    <video id="{{ hero.slug }}-preview" muted loop playsinline preload="none" poster="{{ asset_for(preview ~ '.webp') }}" data-src="{{ asset_for(preview ~ '.mp4') }}" data-mobile-src="{{ asset_for(preview ~ '-mobile.mp4') }}" aria-label="{{ hero.preview_label }}"></video>
+    <video id="{{ hero.slug }}-preview" muted loop playsinline preload="none" poster="{{ asset_for(preview ~ '.webp', { v: '20261125b' }) }}" data-src="{{ asset_for(preview ~ '.mp4') }}" data-mobile-src="{{ asset_for(preview ~ '-mobile.mp4') }}" aria-label="{{ hero.preview_label }}"></video>
     <button class="ve-hero__toggle" type="button" aria-controls="{{ hero.slug }}-preview" hidden>Play preview</button>
   </div>
 </section>

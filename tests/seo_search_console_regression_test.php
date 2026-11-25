@@ -80,7 +80,7 @@ $extractSeo->setAccessible(true);
 
 $productionPages = [
     'flavor-fusion-fest' => 'Flavor Fusion Fest | VNV Events Productions',
-    'mommy-and-daddy-break' => 'Mommy and Daddy Break | VNV Events Productions',
+    'mommy-and-daddy-break' => 'Mommy & Daddy Break Club | South Florida Morning Socials',
     'retro-glam' => 'Retro Glam Sessions | VNV Events Productions',
     'vanguard-business-gala' => 'Vanguard Business Gala | VNV Events Productions',
 ];
