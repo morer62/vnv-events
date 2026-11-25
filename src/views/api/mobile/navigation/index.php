@@ -1,6 +1,7 @@
 <?php
 
 use App\Services\ApiAuthService;
+use App\Services\BreakClubPanel;
 use App\Services\AutomationCenterService;
 use App\Repositories\StoreUserRolesRepository;
 use App\Utils\Cors;
@@ -16,6 +17,11 @@ function mobileNavigationForUser($user): array
     $common = [
         ['key' => 'notifications', 'label' => 'Notifications', 'icon' => 'bell', 'native_screen' => 'Notifications', 'group' => 'Account'],
     ];
+    if (BreakClubPanel::showNavigation($user)) {
+        $common[] = $level === 1
+            ? ['key' => 'event_productions', 'label' => 'Event Productions', 'icon' => 'calendar-alt', 'route' => 'panel/event-productions', 'group' => 'VNV Events']
+            : ['key' => 'break_club', 'label' => 'Mommy & Daddy Break Club', 'icon' => 'sun', 'route' => 'panel/break-club', 'group' => 'My Events'];
+    }
 
     if ($level === 1) {
         return array_merge([

@@ -38,7 +38,7 @@ try {
         LocationUtils::redirectInternal("login");
     }
 
-    LoginService::authenticateFromUserDbo($user);
+    LoginService::authenticateFromUserDbo($user, true);
 
     if (str_contains($user->email, "privaterelay.appleid.com")) {
         MessageUtil::setMessage("Please update your info.");

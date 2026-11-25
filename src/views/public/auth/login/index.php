@@ -135,7 +135,7 @@ function handleGoogleLogin($client, $code): never
             'google_token' => json_encode($token)
         ]);
 
-        LoginService::authenticateFromUserDbo($user);
+        LoginService::authenticateFromUserDbo($user, (bool)$data->verifiedEmail);
         LocationUtils::redirectInternal(consumePostAuthRedirect());
 
     } catch (Exception $e) {

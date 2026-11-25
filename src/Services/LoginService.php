@@ -101,6 +101,7 @@ class LoginService
         );
 
         $this->setSession($userEntity);
+        $_SESSION['vnv_credentials_verified_for'] = (int)$userEntity->getId();
 
         setcookie('vnv_autologin', json_encode([
             'id' => $userEntity->getId(),
@@ -163,6 +164,7 @@ class LoginService
     $cookieChecked = true;
 
     if (isset($_COOKIE['vnv_autologin'])) {
+        unset($_SESSION['vnv_credentials_verified_for']);
         $data = json_decode($_COOKIE['vnv_autologin'], true);
 
         if (isset($data['id'])) {
@@ -223,7 +225,7 @@ class LoginService
     }
 
     public static function logout(): void {
-        unset($_SESSION['user']);
+        unset($_SESSION['user'], $_SESSION['vnv_credentials_verified_for']);
         setcookie('vnv_autologin', '', time() - 3600, '/');
     }
 
@@ -324,7 +326,7 @@ class LoginService
     /**
      * @throws Exception
      */
-    public static function authenticateFromUserDbo($user): void
+    public static function authenticateFromUserDbo($user, bool $verifiedInteractiveLogin = false): void
     {
         if (!$user) {
             throw new Exception("User not found");
@@ -352,6 +354,9 @@ class LoginService
         );
 
         self::setSession($user);
+        if ($verifiedInteractiveLogin) {
+            $_SESSION['vnv_credentials_verified_for'] = (int)$user->getId();
+        }
         self::setSessionCookie($user);
     }
 

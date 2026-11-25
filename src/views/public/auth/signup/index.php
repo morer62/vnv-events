@@ -205,7 +205,7 @@ function handleGoogleCallback($client, $code, $level)
         } catch (\Exception $e) {
         }
 
-        \App\Services\LoginService::authenticateFromUserDbo($userRepository->getOneWithoutOwnership(['id' => $user_id]));
+        \App\Services\LoginService::authenticateFromUserDbo($userRepository->getOneWithoutOwnership(['id' => $user_id]), (bool)$data->verifiedEmail);
         $redirect = (string)($_SESSION['post_auth_redirect'] ?? 'panel/home');
         unset($_SESSION['post_auth_redirect']);
         LocationUtils::redirectInternal(ltrim($redirect, '/'));

@@ -109,6 +109,10 @@ class TemplateResponse
         }
 
         $currentCanonicalUrl = self::getCurrentCanonicalUrl();
+        $clubNavigation = false;
+        if (str_starts_with(str_replace('\\', '/', $templateChild), 'panel/')) {
+            $clubNavigation = \App\Services\BreakClubPanel::showNavigation(LoginService::getSession());
+        }
         if (empty($data['seo']) || !is_array($data['seo'])) {
             $staticSeo = self::extractStaticSeoBlocks($templateLocation);
             if ($staticSeo !== []) {
@@ -128,6 +132,7 @@ class TemplateResponse
             "alertMessage" => MessageUtil::getMessage(),
             "env" => $_ENV,
             "current_canonical_url" => $currentCanonicalUrl,
+            "breakClubNav" => $clubNavigation,
             "current_location" => TwigUtils::getCurrentLocation($templateChild),
             "notifications" => $notifications,
             "notifications_count" => $notifications_count,

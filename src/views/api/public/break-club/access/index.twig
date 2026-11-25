@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="robots" content="noindex,nofollow"><meta name="referrer" content="no-referrer">
+    <title>Mommy &amp; Daddy Break Club | VNV Events</title>
+    <style>
+        *{box-sizing:border-box}body{margin:0;background:#faf5eb;color:#243d32;font:1.05rem/1.6 system-ui,sans-serif}
+        main{margin:12vh auto;max-width:38rem;padding:1.8rem}.brand{font:italic 1.2rem Georgia,serif}
+        h1{font:normal clamp(2.2rem,6vw,3.4rem)/1.12 Georgia,serif;margin:.8em 0 .4em}p{max-width:43ch}
+        button,.action{display:inline-block;padding:.8rem 1.3rem;background:#253d33;color:white;border:0;border-radius:1.5rem;font:inherit;cursor:pointer;text-decoration:none}
+        a{color:inherit}a:focus-visible,button:focus-visible{outline:3px solid #8d5228;outline-offset:3px}
+    </style>
+</head>
+<body><main>
+<a class="brand" href="{{ path('vnv-events-productions/mommy-and-daddy-break/') }}">Mommy &amp; Daddy Break Club</a>
+{% if purpose == 'VERIFY' %}
+<h1>Confirm your invitation list request.</h1><p>Joining is free. We’ll send priority invitations to upcoming mornings. Admission is purchased separately for each event.</p>
+{% elseif purpose == 'CLAIM' %}
+<h1>Connect your membership.</h1><p>Link this club membership to your signed-in VNV client account to see upcoming events and your tickets.</p>
+{% elseif purpose == 'INVITE' %}
+<h1>{{ title }}</h1><p>{{ starts_at|date('M j, Y · g:i a', false) }} Miami time<br>{{ location }}</p>
+<p>{{ party_size }} {{ party_size == 1 ? 'adult' : 'adults' }} · USD {{ (total_cents / 100)|number_format(2) }} total.</p>
+{% if status != 'INVITED' %}<p>Your ticket payment status is {{ status|lower|replace({'_':' '}) }}.</p>{% endif %}
+{% elseif purpose == 'UNSUBSCRIBE' %}
+<h1>Stop invitation emails?</h1><p>You can keep using tickets you already purchased.</p>
+{% elseif purpose == 'UNSUBSCRIBED' %}
+<h1>You’re off the invitation list.</h1><p>You can still use any tickets you already purchased.</p>
+{% elseif purpose == 'LINKED' or purpose == 'CONFIRMED' %}
+<h1>{{ purpose == 'LINKED' ? 'Your membership is connected.' : 'You’re on the invitation list.' }}</h1>
+<p>Watch your inbox for priority access. To view your club in VNV, sign in with the same email, then open Break Club.</p>
+<a class="action" href="{{ path('panel/break-club') }}">Open my club</a> <a href="{{ path('signup') }}">Create a client account</a>
+{% elseif purpose == 'SIGN_IN' %}
+<h1>Sign in to your VNV account.</h1><p>Use your password or your connected sign-in provider to access private club information.</p>
+<form method="post" action="{{ path('api/public/break-club/sign-in') }}"><input type="hidden" name="_token" value="{{ csrf }}"><input type="hidden" name="target" value="{{ target }}"><input type="hidden" name="token" value="{{ token }}"><button>Continue to sign in</button></form>
+{% elseif purpose == 'RECEIPT' %}
+<h1>{{ status == 'PAID' ? 'Your tickets are confirmed.' : 'Ticket payment status' }}</h1>
+<p>{{ status == 'PAID' ? 'Your party is on the event list. Give the door team your name when you arrive.' : (status == 'INVITED' ? 'Your payment has not been confirmed yet. Refresh this receipt to check again.' : 'This payment has a refund. Please contact VNV Events for ticket details.') }}</p>
+<a class="action" href="{{ path('panel/break-club') }}">Open my club</a>
+{% else %}
+<h1>We couldn’t complete that request.</h1><p role="alert">{{ message }}</p>
+{% endif %}
+{% if purpose in ['VERIFY','CLAIM','UNSUBSCRIBE'] or (purpose == 'INVITE' and status == 'INVITED') %}
+<form method="post" action="{{ path('api/public/break-club/access') }}">
+<input type="hidden" name="_token" value="{{ csrf }}"><input type="hidden" name="token" value="{{ token }}">
+<button>{{ {'VERIFY':'Confirm my email','CLAIM':'Connect my membership','INVITE':'Pay for this event','UNSUBSCRIBE':'Unsubscribe'}[purpose] }}</button>
+</form>
+{% endif %}
+</main></body></html>

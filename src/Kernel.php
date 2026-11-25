@@ -359,6 +359,7 @@ class Kernel
 
                     if ($user instanceof User) {
                         LoginService::setSession($user);
+                        $_SESSION['vnv_credentials_verified_for'] = (int)$user->getId();
                         $_SESSION['IS_MOBILE_APP'] = true;
                         $redirectTo = implode("/", $internalRoute);
                         LocationUtils::redirectInternal($redirectTo);
@@ -476,6 +477,10 @@ class Kernel
 
                     $this->includeAdminViewAndExit($this->getPrivateView($urlViews, $user));
                 } else {
+                    if ($urlViews === ['panel', 'break-club']) {
+                        $_SESSION['post_auth_redirect'] = 'panel/break-club';
+                        LocationUtils::redirectInternal('login');
+                    }
                     $this->renderPanelLoginFallbackAndExit();
                 }
             }

@@ -473,6 +473,9 @@
       <span class="vnv-kicker"><i class="fa-solid fa-gem"></i> VNV Client Portal</span>
       <h1>Welcome back{% if user.name is defined and user.name %}, {{ user.name }}{% endif %}. Your event life, organized.</h1>
       <div class="vnv-hero-actions">
+        {% if breakClubNav %}
+          <a class="vnv-btn vnv-btn-ghost" href="{{ path('panel/break-club') }}"><i class="fa-solid fa-sun"></i> Mommy &amp; Daddy Break Club</a>
+        {% endif %}
         <a class="vnv-btn vnv-btn-primary" href="{{ path('panel/planner-hub/orders/orders') }}">
           <i class="fa-solid fa-file-invoice"></i> Open Orders
         </a>

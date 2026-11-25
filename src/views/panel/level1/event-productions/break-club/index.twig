@@ -1,0 +1,136 @@
+{% extends 'templates/base.admin.twig' %}
+
+{% macro form_state(token, selected, search, page) %}
+  <input type="hidden" name="csrf_token" value="{{ token }}">
+  <input type="hidden" name="event_id" value="{{ selected.id|default(0) }}">
+  <input type="hidden" name="q" value="{{ search }}">
+  <input type="hidden" name="page" value="{{ page }}">
+{% endmacro %}
+
+{% macro event_form(token, event) %}
+<form method="post" class="row g-3 mt-1">
+  <input type="hidden" name="csrf_token" value="{{ token }}">
+  <input type="hidden" name="action" value="save_event">
+  <input type="hidden" name="event_id" value="{{ event.id|default(0) }}">
+  <div class="col-md-6"><label class="form-label">Event title<input class="form-control" name="title" required maxlength="160" value="{{ event.title|default('') }}"></label></div>
+  <div class="col-md-6"><label class="form-label">Starts in Miami (Eastern time)<input class="form-control" type="datetime-local" name="starts_at" required value="{{ event.starts_at ? event.starts_at|slice(0, 16)|replace({' ': 'T'}) : '' }}"></label></div>
+  <div class="col-md-6"><label class="form-label">Venue and address<input class="form-control" name="location" required maxlength="220" value="{{ event.location|default('') }}"></label></div>
+  <div class="col-md-3"><label class="form-label">Ticket per person (USD)<input class="form-control" name="price" type="number" step=".01" min=".50" max="99999.99" required value="{{ event.price_cents is defined ? (event.price_cents / 100)|number_format(2, '.', '') : '' }}"></label></div>
+  <div class="col-md-3"><label class="form-label">Visibility<select class="form-select" name="status"><option value="DRAFT">Draft</option><option value="PUBLISHED"{% if event.status == 'PUBLISHED' %} selected{% endif %}>Published to members</option></select></label></div>
+  <div><button class="btn btn-primary" type="submit">Save event</button></div>
+</form>
+{% endmacro %}
+
+{% block body %}
+{% set route = 'panel/event-productions/break-club' %}
+<div class="container-fluid py-4 club-ops">
+  <style>
+    .club-ops{max-width:1440px;color:#202d29}.club-ops h1,.club-ops h2{color:#203b32}.club-ops .form-label{width:100%}.club-ops caption{caption-side:top}.club-ops .counts{display:flex;flex-wrap:wrap;gap:1rem 2rem;padding:1rem 0}.club-ops .counts dt{font-weight:500;color:#4d6358}.club-ops .counts dd{font-size:1.35rem;font-weight:700;margin:0}.club-ops .cell-detail{display:block;font-size:.85rem}.club-ops .btn,.club-ops summary{min-height:40px}.club-ops summary{cursor:pointer;color:#215c49;font-weight:600;display:list-item}.club-ops .table th,.club-ops .table td{vertical-align:middle}.club-ops a:focus-visible,.club-ops button:focus-visible,.club-ops summary:focus-visible{outline:3px solid #16785c;outline-offset:2px}
+  </style>
+  <a href="{{ path('panel/event-productions') }}">← Event Productions</a>
+  <div class="d-flex flex-wrap gap-3 justify-content-between align-items-center mt-2 mb-3">
+    <h1 class="mb-0">Mommy &amp; Daddy Break Club</h1>
+    <a class="btn btn-outline-primary" href="{{ path('vnv-events-productions/mommy-and-daddy-break') }}">View public page</a>
+  </div>
+  {% if notice %}<div class="alert alert-{{ notice.type }}" role="status">{{ notice.text }}</div>{% endif %}
+  <section class="card mb-3" aria-labelledby="events-title"><div class="card-body">
+    <div class="d-flex flex-wrap align-items-start justify-content-between gap-3">
+      <div><h2 id="events-title" class="h4">Club events</h2><p class="mb-2">Choose an event to send invitations, review payments and check in each guest.</p></div>
+    </div>
+    {% if events %}
+    <form method="get" class="d-flex flex-wrap gap-2 align-items-end mb-3">
+      <div><label class="form-label mb-0">Event<select name="event" class="form-select">
+        <option value="">All members</option>
+        {% for event in events %}<option value="{{ event.id }}"{% if selected and selected.id == event.id %} selected{% endif %}>{{ event.title }} · {{ event.starts_at|date('M j, Y') }} · {{ event.status|lower|capitalize }}</option>{% endfor %}
+      </select></label></div>
+      <button type="submit" class="btn btn-outline-primary">Open</button>
+    </form>
+    {% else %}<p class="text-muted">There are no club events yet. Members can still join the priority list.</p>{% endif %}
+    {% if selected %}
+      <div class="border-start ps-3 mb-3"><h3 class="h5">{{ selected.title }}</h3><p class="mb-2">{{ selected.starts_at|date('M j, Y · g:i a') }} ET · {{ selected.location }} · ${{ (selected.price_cents / 100)|number_format(2) }} per person</p>
+      {% if report.invited_requests > 0 %}<p class="small text-muted">Event details are locked because invitations have been sent.</p>
+      {% else %}<details><summary>Edit this event</summary>{{ _self.event_form(token, selected) }}</details>{% endif %}</div>
+    {% endif %}
+    <details><summary>Create a club event</summary>{{ _self.event_form(token, {}) }}</details>
+  </div></section>
+  <form method="get" class="mb-3 d-flex flex-wrap align-items-end gap-2">
+    {% if selected %}<input type="hidden" name="event" value="{{ selected.id }}">{% endif %}
+    <div><label class="form-label mb-0">Find a member or companion<input class="form-control" name="q" type="search" maxlength="150" value="{{ search }}" placeholder="Name, email or phone"></label></div>
+    <button class="btn btn-primary" type="submit">Search</button>
+    {% if search %}<a class="btn btn-link" href="{{ path(route, selected ? {'event':selected.id} : {}) }}">Clear</a>{% endif %}
+  </form>
+
+  {% if selected %}
+  <section id="guest-list" class="card mb-3" aria-labelledby="roster-title"><div class="card-body">
+    <h2 class="h4" id="roster-title">Event report · {{ selected.title }}</h2>
+    <dl class="counts">
+      <div><dt>Invitations</dt><dd>{{ report.invited_requests|default(0) }}</dd></div>
+      <div><dt>Paid bookings</dt><dd>{{ report.paid_requests|default(0) }}</dd></div>
+      <div><dt>Paid guests</dt><dd>{{ report.paid_people|default(0) }}</dd></div>
+      <div><dt>Net collected</dt><dd>${{ (report.paid_cents|default(0) / 100)|number_format(2) }}</dd></div>
+      <div><dt>Checked in</dt><dd>{{ report.checked_in|default(0) }}</dd></div>
+    </dl>
+    {% if registrations %}
+    <div class="table-responsive"><table class="table"><caption>Guest list{% if search %} matching “{{ search }}”{% endif %}</caption><thead><tr>
+      <th scope="col">Member / guest</th><th scope="col">Payment</th><th scope="col">Check-in</th>
+    </tr></thead><tbody>
+      {% for reg in registrations %}
+      <tr>
+        <td><strong>{{ reg.name }}</strong><span class="cell-detail">{{ reg.email }} · {{ reg.phone }}</span>
+          <span class="cell-detail">Account {{ reg.user_id ? '#' ~ reg.user_id : 'not linked' }} · {{ reg.party_size }} {{ reg.party_size == 1 ? 'person' : 'people' }}</span>
+          {% if reg.party_size == 2 %}<span class="cell-detail">Guest · {{ reg.companion_name }} {% if reg.companion_email %} · {{ reg.companion_email }}{% endif %}</span>{% endif %}
+        </td>
+        <td><strong>{{ reg.status|replace({'_':' '})|lower|capitalize }}</strong>
+          {% if reg.paid_at %}<span class="cell-detail">${{ (reg.paid_cents / 100)|number_format(2) }} · {{ reg.paid_at|slice(0,10) }}</span>{% endif %}
+          {% if reg.checkout_session_id %}<form method="post">{{ _self.form_state(token, selected, search, page) }}
+            <input type="hidden" name="action" value="reconcile"><input type="hidden" name="registration_id" value="{{ reg.id }}">
+            <button type="submit" class="btn btn-sm btn-link p-0">Refresh payment</button></form>{% endif %}
+        </td>
+        <td>{% for role, label in {'PRINCIPAL':reg.name,'COMPANION':reg.companion_name} %}{% if role == 'PRINCIPAL' or reg.party_size == 2 %}
+          {% set checked = role == 'PRINCIPAL' ? reg.principal_checked_at : reg.companion_checked_at %}
+          {% if checked %}<span class="cell-detail">✓ {{ label }} checked in</span>
+          {% elseif reg.status == 'PAID' %}
+          <form method="post">{{ _self.form_state(token, selected, search, page) }}<input type="hidden" name="action" value="checkin">
+            <input type="hidden" name="registration_id" value="{{ reg.id }}"><input type="hidden" name="role" value="{{ role }}">
+            <button class="btn btn-sm btn-outline-primary mb-1" type="submit">Check in {{ label }}</button></form>
+          {% elseif loop.first %}<span class="text-muted">Paid tickets required</span>{% endif %}
+        {% endif %}{% endfor %}</td>
+      </tr>
+      {% endfor %}
+    </tbody></table></div>
+    {% else %}<p class="text-muted">No invitations{{ search ? ' match this search.' : ' for this event yet.' }}</p>{% endif %}
+  </div></section>
+  {% endif %}
+
+  <section id="members" class="card" aria-labelledby="members-title"><div class="card-body">
+    <h2 id="members-title" class="h4">Priority list <small class="text-muted">({{ member_total }})</small></h2>
+    <p><a href="{{ path('panel/planner-hub/management/crm/partnerships', {'pipeline':'ORIGINAL_WAITLIST','q':'Mommy and Daddy Break'}) }}">View earlier expressions of interest in the CRM</a>. Those contacts predate club membership and require their own opt-in.</p>
+    {% if members %}
+    <div class="table-responsive"><table class="table"><thead><tr>
+      <th scope="col">Member</th><th scope="col">Guest request</th><th scope="col">Interest</th><th scope="col">Email status</th>{% if selected %}<th scope="col">Invitation</th>{% endif %}
+    </tr></thead><tbody>{% for member in members %}
+      <tr><td><strong>{{ member.name }}</strong><span class="cell-detail">{{ member.email }} · {{ member.phone }}</span><span class="cell-detail">Account {{ member.user_id ? '#' ~ member.user_id : 'not linked' }}</span></td>
+      <td>{{ member.party_size }} {{ member.party_size == 1 ? 'person' : 'people' }}{% if member.party_size == 2 %}<span class="cell-detail">{{ member.companion_name }}</span><span class="cell-detail">{{ member.companion_email }}</span>{% endif %}</td>
+      <td>{{ categories[member.category]|default(member.category) }}
+        {% if member.utm_source or member.utm_campaign or member.utm_content %}
+        <details class="small"><summary>Signup source</summary><dl class="mb-0">{% for label, value in {'Source': member.utm_source,'Campaign': member.utm_campaign,'Post': member.utm_content} %}{% if value %}<dt>{{ label }}</dt><dd>{{ value }}</dd>{% endif %}{% endfor %}</dl></details>
+        {% endif %}
+      </td><td>{{ member.status|lower|capitalize }}</td>
+      {% if selected %}<td>
+        {% if invited_members[member.id] %}<span>Invitation sent</span>
+        {% elseif selected.status == 'PUBLISHED' and upcoming and member.status == 'ACTIVE' %}
+        <form method="post">{{ _self.form_state(token, selected, search, page) }}<input type="hidden" name="action" value="invite"><input type="hidden" name="member_id" value="{{ member.id }}">
+          <button class="btn btn-sm btn-outline-primary" type="submit" aria-label="Send {{ selected.title }} invitation to {{ member.name }}">Send invitation</button></form>
+        {% elseif selected.status == 'DRAFT' %}Publish event first{% else %}Unavailable{% endif %}
+      </td>{% endif %}</tr>
+    {% endfor %}</tbody></table></div>
+    {% if page > 1 or member_total > page * 50 %}
+    <nav aria-label="Priority list pages" class="d-flex gap-3">
+      {% if page > 1 %}<a href="{{ path(route, {'event':selected.id|default(0),'q':search,'page':page - 1}) }}#members">Previous</a>{% endif %}
+      <span>Page {{ page }}</span>
+      {% if member_total > page * 50 %}<a href="{{ path(route, {'event':selected.id|default(0),'q':search,'page':page + 1}) }}#members">Next</a>{% endif %}
+    </nav>{% endif %}
+    {% else %}<p class="text-muted">No members{{ search ? ' match this search.' : ' on the priority list yet.' }}</p>{% endif %}
+  </div></section>
+</div>
+{% endblock %}

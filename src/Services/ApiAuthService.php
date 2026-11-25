@@ -62,6 +62,7 @@ class ApiAuthService
             $user = LoginService::validateToken($token);
             if ($user instanceof User) {
                 LoginService::setSession($user);
+                $_SESSION['vnv_credentials_verified_for'] = (int)$user->getId();
                 return $user;
             }
         }
