@@ -109,7 +109,13 @@ function url(route) {
         assert.equal(await page.getByText('Now accepting applications', { exact: true }).count(), 1, `${label}: nonprofit status missing`);
         assert.equal(await page.getByRole('heading', { level: 1, name: 'VNV Support 2027' }).count(), 1, `${label}: campaign title`);
         assert.equal(await page.getByRole('link', { name: 'Apply to VNV Support 2027' }).getAttribute('href'), '#application', `${label}: application destination`);
-        assert.equal(await page.locator('#process .vnvp-step').count(), 7, `${label}: expected seven application steps`);
+        const journey = page.locator('#process .support-process__steps');
+        assert.equal(await journey.locator('li').count(), 3, `${label}: expected three visible phases`);
+        assert.equal(await journey.evaluate(node => getComputedStyle(node).listStyleType), 'none', `${label}: duplicate list numbering`);
+        assert.match(await journey.innerText(), /Eligibility Review[\s\S]*Approved Support Plan[\s\S]*Impact & Results Review/, `${label}: review milestones missing`);
+        await page.locator('.support-intro__figure img').evaluate(image => image.decode());
+        assert.equal(await page.locator('.support-intro__figure img').evaluate(image => image.naturalWidth > 0), true, `${label}: Victoria event photo did not load`);
+        assert.equal(await page.locator('input[value="Donor & Sponsor Connections"]').count(), 1, `${label}: optional donor and sponsor support is missing`);
         assert.equal(await page.locator('#np-event').getAttribute('required'), null, `${label}: event name should be optional`);
         assert.equal(await page.getByText(/up to (60|80)%/).count(), 0, `${label}: unapproved discount remains`);
       }

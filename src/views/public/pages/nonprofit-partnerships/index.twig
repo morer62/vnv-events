@@ -8,48 +8,84 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="{{ asset_for('assets/css/vnv-partnerships.css') }}">
+<link rel="stylesheet" href="{{ asset_for('assets/css/vnv-support-2027.css') }}">
 {% endblock %}
 
 {% block body %}
 {% include "templates/layout/publicHeaderVnv.html.twig" %}
-<main class="vnv-partnership-page">
-  <section class="vnvp-hero" style="--vnvp-hero-image:url('{{ asset_for('assets/images/production1.jpg') }}')">
-    <div class="vnvp-container">
-      <div class="vnvp-hero__copy">
-        <span class="vnvp-eyebrow">Nonprofit Impact Initiative</span>
-        <h1>VNV Support 2027</h1>
-        <p>Empowering local missions through event production, operational expertise and technology.</p>
-        <div class="vnvp-actions">
+<main class="vnv-partnership-page vnv-support">
+  <section class="support-intro" aria-labelledby="support-title">
+    <div class="vnvp-container support-intro__layout">
+      <div class="support-intro__copy">
+        <p class="support-label">VNV Events Nonprofit Impact Initiative</p>
+        <h1 id="support-title">VNV Support 2027</h1>
+        <p class="support-intro__promise">Event production for the causes you serve.</p>
+        <p class="support-intro__description">Planning a gala, a charity golf tournament or another fundraiser? VNV Events helps South Florida nonprofits plan and run the event, welcome guests and create ways for supporters to get involved.</p>
+        <div class="vnvp-actions support-intro__actions">
           <a class="vnvp-button vnvp-button--gold" href="#application">Apply to VNV Support 2027</a>
-          <button class="vnvp-button vnvp-button--ghost" type="button" data-vnv-open-quick-request data-quick-request-type="NONPROFIT" data-quick-request-source="nonprofit_exploratory_2027">Request an Exploratory Meeting</button>
+          <button class="vnvp-button support-button-outline" type="button" data-vnv-open-quick-request data-quick-request-type="NONPROFIT" data-quick-request-source="nonprofit_exploratory_2027">Request an Exploratory Meeting</button>
         </div>
       </div>
+      <figure class="support-intro__figure">
+        <img src="{{ asset_for('assets/images/case-studies/victoria-venezuela-2026-P4189.webp') }}" width="1600" height="1066" fetchpriority="high" alt="The registration team at Victoria Venezuela Foundation’s 2026 Charity Golf Tournament">
+        <figcaption>
+          <strong>Victoria Venezuela Foundation</strong>
+          <span>2026 Charity Golf Tournament · Weston, Florida</span>
+        </figcaption>
+      </figure>
     </div>
   </section>
 
-  <section class="vnvp-section" id="support">
+  <aside class="support-pilot" aria-label="2027 pilot">
+    <div class="vnvp-container support-pilot__layout">
+      <p><strong>Up to 12 organizations</strong> <span>Selected in 2027 based on project fit, capacity and approved scope.</span></p>
+      <a href="#event-stories">See what we delivered in Weston <span aria-hidden="true">↓</span></a>
+    </div>
+  </aside>
+
+  <section class="vnvp-section support-services" id="support" aria-labelledby="support-services-title">
     <div class="vnvp-container">
       <div class="vnvp-heading">
-        <h2>A pilot for South Florida nonprofits</h2>
-        <p>VNV Support aims to support up to 12 organizations during 2027, subject to available resources, project evaluation and approval of each scope. The pilot will help us measure results and improve future editions.</p>
-        <p>Jonathan Moreno, Founder of VNV Events and Director of the VNV Support Initiative, brings together three areas of expertise to help nonprofits carry out projects that serve their communities.</p>
+        <h2 id="support-services-title">What we can take on for your fundraiser</h2>
+        <p>Bring us the part you need help with, whether you are shaping a first event or improving one you already run.</p>
       </div>
-      <div class="vnvp-grid">
-        <article class="vnvp-card"><span class="vnvp-card__icon"><i class="fa-solid fa-compass-drafting" aria-hidden="true"></i></span><h3>Event Production</h3><p>Creative direction, experience design, audiovisual advice and fundraising event planning, including ways to give existing sponsors visibility.</p></article>
-        <article class="vnvp-card"><span class="vnvp-card__icon"><i class="fa-solid fa-list-check" aria-hidden="true"></i></span><h3>Operational &amp; Logistics Support</h3><p>Vendor coordination, staffing and guest experience planning, process design and basic training for an approved project.</p></article>
-        <article class="vnvp-card"><span class="vnvp-card__icon"><i class="fa-solid fa-laptop-code" aria-hidden="true"></i></span><h3>Technology &amp; Digital Integration</h3><p>Registration, RSVP, QR check-in, access control, communications and reporting adapted to your team’s needs and the tools available.</p></article>
+      <div class="support-services__grid">
+        <article class="support-service">
+          <span class="support-service__icon"><i class="fa-solid fa-microphone-lines" aria-hidden="true"></i></span>
+          <h3>Event Production</h3>
+          <p>Shape the concept, run of show, audiovisual plan and guest experience around the mission and fundraising goal.</p>
+        </article>
+        <article class="support-service">
+          <span class="support-service__icon"><i class="fa-solid fa-list-check" aria-hidden="true"></i></span>
+          <h3>Operational &amp; Logistics Support</h3>
+          <p>Coordinate vendors, staff and volunteers. Plan guest flow, preparation and on-site responsibilities.</p>
+        </article>
+        <article class="support-service">
+          <span class="support-service__icon"><i class="fa-solid fa-qrcode" aria-hidden="true"></i></span>
+          <h3>Technology &amp; Digital Integration</h3>
+          <p>Set up registration, RSVP, QR check-in, guest communications and event reporting as needed.</p>
+        </article>
       </div>
+      <aside class="support-connections">
+        <div>
+          <h3>Donor and sponsor connections</h3>
+          <p>We can help your foundation identify good-fit supporters, develop ways for sponsors to participate and make introductions when both sides agree. Your organization leads the fundraising conversation.</p>
+        </div>
+        <img src="{{ asset_for('assets/images/case-studies/victoria-venezuela-2026-P4794.webp') }}" width="1600" height="1066" loading="lazy" decoding="async" alt="Tables arranged for the charity golf tournament gathering">
+      </aside>
     </div>
   </section>
 
-  {% include "templates/components/publicNonprofitStories.html.twig" with {
-    story_heading_id: 'nonprofit-collaborations-title',
-    story_section_class: 'vnvp-section vnvp-section--soft',
-    story_container_class: 'vnvp-container',
-    story_eyebrow: 'Collaboration in Practice',
-    story_heading: 'Built around each organization’s real needs.',
-    story_intro: 'Explore how our nonprofit support evolved from focused services to a connected event experience.'
-  } %}
+  <div id="event-stories">
+    {% include "templates/components/publicNonprofitStories.html.twig" with {
+      story_heading_id: 'nonprofit-collaborations-title',
+      story_section_class: 'vnvp-section vnvp-section--soft',
+      story_container_class: 'vnvp-container',
+      story_eyebrow: 'South Florida collaborations',
+      story_heading: 'See the work behind the fundraiser',
+      story_intro: 'At Victoria Venezuela Foundation’s charity golf tournament, VNV brought together audiovisual support, registration, guest check-in and event coordination.'
+    } %}
+  </div>
 
   <section class="vnvp-section vnvp-section--dark">
     <div class="vnvp-container">
@@ -62,13 +98,26 @@
     </div>
   </section>
 
-  <section class="vnvp-section vnvp-section--soft" id="process">
-    <div class="vnvp-container">
-      <div class="vnvp-heading"><h2>From application to results</h2><p>We prioritize South Florida nonprofits that can verify their organization, identify a concrete need, participate in the work and document results. We evaluate community benefit, feasibility and available resources.</p></div>
-      <ol class="vnvp-process vnvp-process--nonprofit">
-        {% for step in ['Application', 'Eligibility Review', 'Discovery Meeting', 'Needs Assessment', 'Approved Support Plan', 'Implementation', 'Impact & Results Review'] %}
-          <li class="vnvp-step"><strong>{{ step }}</strong></li>
-        {% endfor %}
+  <section class="vnvp-section support-process" id="process" aria-labelledby="support-process-title">
+    <div class="vnvp-container support-process__layout">
+      <div class="support-process__intro">
+        <h2 id="support-process-title">From first conversation to event day</h2>
+        <p>Start with the cause, the fundraiser you have in mind and what your team needs. You can apply before you have a confirmed date or venue.</p>
+        <a href="#application">Start your application <span aria-hidden="true">→</span></a>
+      </div>
+      <ol class="support-process__steps" role="list">
+        <li>
+          <span class="support-process__number" aria-hidden="true">01</span>
+          <div><h3>Tell us about your fundraiser</h3><p>We review your application for eligibility, community benefit, timing and fit.</p><small>Application · Eligibility Review</small></div>
+        </li>
+        <li>
+          <span class="support-process__number" aria-hidden="true">02</span>
+          <div><h3>Agree on what VNV will provide</h3><p>We meet with your team, assess the work and put deliverables, responsibilities and costs in a written plan.</p><small>Discovery Meeting · Needs Assessment · Approved Support Plan</small></div>
+        </li>
+        <li>
+          <span class="support-process__number" aria-hidden="true">03</span>
+          <div><h3>Deliver the event and review results</h3><p>We carry out the approved work and review what was delivered and what your team can verify.</p><small>Implementation · Impact &amp; Results Review</small></div>
+        </li>
       </ol>
     </div>
   </section>
@@ -78,7 +127,8 @@
       <div class="vnvp-heading"><span class="vnvp-eyebrow">Frequently asked questions</span><h2>Clear expectations before you apply.</h2></div>
       <div class="vnvp-faq">
         <details><summary>Who can submit an application?</summary><p>Local nonprofits and organizations with a documented nonprofit structure, including a fiscal sponsor, can apply. Each request is evaluated on its needs, community impact and available resources.</p></details>
-        <details><summary>Can we apply without a confirmed event?</summary><p>Yes. Describe the operational or technology challenge and the result your organization needs. Event details can be added later if they become relevant.</p></details>
+        <details><summary>Can we apply without a confirmed event?</summary><p>Yes. Tell us what you want your fundraiser to accomplish and what support you need. You can add the date and venue later.</p></details>
+        <details><summary>Can VNV help us connect with donors or sponsors?</summary><p>Yes. For an approved project, we can help define sponsor opportunities and facilitate introductions when both parties agree. Your organization makes the fundraising decisions. Introductions do not guarantee sponsorship, donations or fundraising results.</p></details>
         <details><summary>What does the program cover?</summary><p>VNV Events provides professional and operational support within a written Approved Support Plan. The program does not guarantee approval, cash grants, funding, sponsors, fundraising results, a free event or catering, payment of venues, materials or vendors, unlimited staffing or software development, or ongoing technical support.</p></details>
         <details><summary>How will we review results?</summary><p>VNV and the organization agree on expected outcomes in the support plan and review the work after delivery. We report only results that can be verified.</p></details>
         <details><summary>How is application data used?</summary><p>Information is used to review the request and coordinate follow-up. Attendee data is not converted into an unrelated commercial prospect list without appropriate consent.</p></details>
@@ -91,7 +141,8 @@
       <div class="vnvp-form-intro">
         <span class="vnvp-eyebrow">Now accepting applications</span>
         <h2>Tell us what your organization needs</h2>
-        <p>Share the problem you want to solve and how support could help. If you would like to discuss fit before applying, request an exploratory meeting.</p>
+        <p>Tell us about your planned fundraiser and the support your team needs. You can also request a meeting to discuss fit before applying.</p>
+        <p class="support-leadership">Led by <strong>Jonathan Moreno</strong>, Founder of VNV Events and Director of the VNV Support Initiative.</p>
         <button class="vnvp-button" type="button" data-vnv-open-quick-request data-quick-request-type="NONPROFIT" data-quick-request-source="nonprofit_exploratory_2027">Request an Exploratory Meeting</button>
       </div>
       <details class="vnvp-advanced" open><summary>VNV Support 2027 Application</summary><form class="vnvp-form" action="{{ path('api/public/partnership-request') }}" method="post">
@@ -116,10 +167,10 @@
           <div class="vnvp-field"><label for="np-format">Event format</label><input id="np-format" name="event_format" maxlength="120" placeholder="Gala, fundraiser, community event..."></div>
           <div class="vnvp-field"><label for="np-guests">Expected guests</label><input id="np-guests" name="guest_count" type="number" min="1" max="100000"></div>
           <div class="vnvp-field vnvp-field--full"><label for="np-budget">Budget range</label><input id="np-budget" name="budget_range" maxlength="120" placeholder="A range is enough; this helps us recommend a realistic scope."></div>
-          <div class="vnvp-field vnvp-field--full"><label for="np-outcomes">What do you need help with? *</label><textarea id="np-outcomes" name="desired_outcomes" placeholder="Describe the need and the outcome you hope to achieve." required maxlength="2000"></textarea></div>
+          <div class="vnvp-field vnvp-field--full"><label for="np-outcomes">What do you want your fundraiser to achieve? *</label><textarea id="np-outcomes" name="desired_outcomes" placeholder="Tell us what you are planning and where your team needs support." required maxlength="2000"></textarea></div>
           <div class="vnvp-field vnvp-field--full"><label for="np-sponsors">Existing sponsors or partners</label><textarea id="np-sponsors" name="existing_sponsors" maxlength="1200"></textarea></div>
           <fieldset class="vnvp-group"><legend>Support requested</legend><div class="vnvp-checks">
-            {% for option in ['Event Production', 'Operational & Logistics Support', 'Technology & Digital Integration'] %}<label class="vnvp-check"><input type="checkbox" name="requested_services[]" value="{{ option }}"><span>{{ option }}</span></label>{% endfor %}
+            {% for option in ['Event Production', 'Operational & Logistics Support', 'Technology & Digital Integration', 'Donor & Sponsor Connections'] %}<label class="vnvp-check"><input type="checkbox" name="requested_services[]" value="{{ option }}"><span>{{ option }}</span></label>{% endfor %}
           </div></fieldset>
           <div class="vnvp-field vnvp-field--full"><label for="np-time">Decision timeframe</label><input id="np-time" name="timeframe" maxlength="120"></div>
         </div>

@@ -15,7 +15,7 @@ $router->get(function () {
 
     $seo = [
         'title' => 'VNV Support 2027 | Nonprofit Impact Initiative',
-        'description' => 'VNV Support 2027 is a pilot for South Florida nonprofits seeking event production, operational support or technology integration. Explore eligibility and apply.',
+        'description' => 'VNV Support 2027 helps South Florida nonprofits produce fundraising events with event operations, registration technology and optional donor or sponsor introductions.',
         'canonical' => 'https://vnvevents.com/nonprofit-partnerships/',
     ];
 
@@ -43,7 +43,8 @@ $router->get(function () {
                 [
                     '@type' => 'FAQPage',
                     'mainEntity' => [
-                        ['@type' => 'Question', 'name' => 'Can we apply without a confirmed event?', 'acceptedAnswer' => ['@type' => 'Answer', 'text' => 'Yes. Describe the operational or technology challenge and the result your organization needs. Event details can be added later if they become relevant.']],
+                        ['@type' => 'Question', 'name' => 'Can we apply without a confirmed event?', 'acceptedAnswer' => ['@type' => 'Answer', 'text' => 'Yes. Tell us what you want your fundraiser to accomplish and what support you need. You can add the date and venue later.']],
+                        ['@type' => 'Question', 'name' => 'Can VNV help us connect with donors or sponsors?', 'acceptedAnswer' => ['@type' => 'Answer', 'text' => 'Yes. For an approved project, we can help define sponsor opportunities and facilitate introductions when both parties agree. Your organization makes the fundraising decisions. Introductions do not guarantee sponsorship, donations or fundraising results.']],
                         ['@type' => 'Question', 'name' => 'What does the program cover?', 'acceptedAnswer' => ['@type' => 'Answer', 'text' => 'VNV Events provides professional and operational support within a written Approved Support Plan. The program does not guarantee approval, cash grants, funding, sponsors, fundraising results, a free event or catering, payment of venues, materials or vendors, unlimited staffing or software development, or ongoing technical support.']],
                         ['@type' => 'Question', 'name' => 'How will we review results?', 'acceptedAnswer' => ['@type' => 'Answer', 'text' => 'VNV and the organization agree on expected outcomes in the support plan and review the work after delivery. We report only results that can be verified.']],
                     ],
