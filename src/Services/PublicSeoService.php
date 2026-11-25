@@ -401,7 +401,7 @@ class PublicSeoService
             ['label' => 'Request a Quote', 'url' => self::SITE_URL . '/event-planners/'],
             ['label' => 'Service Areas', 'url' => self::SITE_URL . '/service-areas-in-south-florida/'],
             ['label' => 'Event Production', 'url' => self::SITE_URL . '/event-production/'],
-            ['label' => 'Nonprofit Partnerships', 'url' => self::SITE_URL . '/nonprofit-partnerships/'],
+            ['label' => 'VNV Support 2027', 'url' => self::SITE_URL . '/nonprofit-partnerships/'],
             ['label' => 'Sponsor Activation Production', 'url' => self::SITE_URL . '/sponsor-activation-production/'],
             ['label' => 'Corporate Events', 'url' => self::SITE_URL . '/corporate-events/'],
             ['label' => 'Locations', 'url' => self::SITE_URL . '/locations/'],

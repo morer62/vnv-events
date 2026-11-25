@@ -102,6 +102,10 @@ $router->post(function () {
     ];
     $label = $labels[$requestType];
     $source = preg_replace('/[^a-zA-Z0-9_-]/', '', quickRequestField('form_source', 80)) ?: 'public_quick_request';
+    $isExploratoryRequest = $requestType === 'NONPROFIT' && $source === 'nonprofit_exploratory_2027';
+    if ($isExploratoryRequest) {
+        $label = 'VNV Support 2027 exploratory meeting request';
+    }
     $externalId = 'quick-' . strtolower($requestType) . '-' . date('YmdHis') . '-' . bin2hex(random_bytes(3));
     $landingUrl = quickRequestField('landing_url', 500);
 
@@ -121,6 +125,10 @@ $router->post(function () {
         'wbraid' => quickRequestField('wbraid', 255),
         'consent' => true,
     ];
+    if ($isExploratoryRequest) {
+        $payload['campaign_key'] = 'nonprofit_support_2027';
+        $payload['request_kind'] = 'exploratory_meeting';
+    }
 
     try {
         $leadId = (new LeadIntakeRepository())->upsert(quickRequestOwnerId(), [

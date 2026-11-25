@@ -86,7 +86,9 @@ $router->post(function () {
     if (!filter_var($email, FILTER_VALIDATE_EMAIL)) $errors[] = 'valid email';
     if ($program !== 'ORIGINAL' && $phone === '') $errors[] = 'phone';
     if (!$consent) $errors[] = 'consent';
-    if ($program === 'NONPROFIT' && partnershipField('event_name', 220) === '') $errors[] = 'event name';
+    if ($program === 'NONPROFIT' && partnershipField('desired_outcomes', 2000) === '' && partnershipField('event_name', 220) === '') {
+        $errors[] = 'a project need or event name';
+    }
     if ($program === 'ACTIVATION' && partnershipField('event_organizer', 220) === '') $errors[] = 'event or organizer';
     if ($program === 'ORIGINAL' && !in_array(partnershipField('event_name', 220), ['Retro Glam', 'Mommy and Daddy Break'], true)) $errors[] = 'experience';
 
@@ -142,6 +144,7 @@ $router->post(function () {
             'ACTIVATION' => 'activation_landing',
             default => 'original_priority_list',
         },
+        'campaign_key' => $program === 'NONPROFIT' ? 'nonprofit_support_2027' : null,
         'gclid' => partnershipField('gclid', 255),
         'gbraid' => partnershipField('gbraid', 255),
         'wbraid' => partnershipField('wbraid', 255),
@@ -175,7 +178,7 @@ $router->post(function () {
             'email' => $email,
             'phone' => $phone,
             'service_requested' => match ($program) {
-                'NONPROFIT' => 'Nonprofit Partnership',
+                'NONPROFIT' => 'VNV Support 2027 application',
                 'ACTIVATION' => 'Sponsor Activation Production',
                 default => 'Original Experience Priority List: ' . $data['event_name'],
             },
@@ -194,7 +197,7 @@ $router->post(function () {
     try {
         $emailService = new EmailService($ownerId);
         $label = match ($program) {
-            'NONPROFIT' => 'Nonprofit Partnership application',
+            'NONPROFIT' => 'VNV Support 2027 application',
             'ACTIVATION' => 'Sponsor Activation brief',
             default => 'Original Experience priority-list request',
         };
@@ -215,7 +218,7 @@ $router->post(function () {
             $emailService->sendSimpleEmail(
                 $adminEmail,
                 'New ' . $label . ' #' . $opportunityId,
-                '<div style="font-family:Arial,sans-serif"><h2>' . htmlspecialchars($label) . '</h2><p><strong>Organization/brand or experience:</strong> ' . $safeOrganization . '</p><p><strong>Contact:</strong> ' . $safeName . ' &middot; ' . htmlspecialchars($email) . ' &middot; ' . htmlspecialchars($phone) . '</p><p>Open VNV CRM &rarr; Partnership Pipelines to review and assign the next step.</p></div>',
+                '<div style="font-family:Arial,sans-serif"><h2>' . htmlspecialchars($label) . '</h2><p><strong>Organization/brand or experience:</strong> ' . $safeOrganization . '</p><p><strong>Contact:</strong> ' . $safeName . ' &middot; ' . htmlspecialchars($email) . ' &middot; ' . htmlspecialchars($phone) . '</p><p>Open the VNV Events Productions CRM to review and assign the next step.</p></div>',
                 true
             );
         }

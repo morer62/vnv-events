@@ -66,12 +66,12 @@ function url(route) {
         assert.equal(await page.getByText(/From creative concepts to seamless execution\./).count(), 1, `${label}: final hero copy missing`);
         assert.equal(await page.locator('.process-step').count(), 5, `${label}: production method must contain five steps`);
         assert.equal(await page.getByText(/The VNV Ecosystem|The VNV 360 Way|Scope of Support|The Production Blueprint/).count(), 0, `${label}: redundant production block remains`);
-        assert.equal(await page.getByText(/Support 20 organizations/).count(), 1, `${label}: 2027 roadmap goal missing`);
+        assert.equal(await page.getByText('Support up to 12 nonprofit organizations', { exact: true }).count(), 1, `${label}: 2027 roadmap goal missing`);
         const cases = page.locator('[data-vnv-story-component] .vnv-story-card');
         assert.equal(await cases.count(), 2, `${label}: production collaboration card count`);
         assert.equal((await cases.nth(0).innerText()).includes('Shake-A-Leg Miami'), true, `${label}: Shake-A-Leg must be first`);
         assert.equal((await cases.nth(1).innerText()).includes('Victoria Venezuela Foundation'), true, `${label}: Victoria must be second`);
-        assert.equal(await page.locator('.vnv-story-roadmap').getByText('2027 Roadmap', { exact: true }).count(), 1, `${label}: roadmap must follow the collaboration cards`);
+        assert.equal(await page.locator('.vnv-story-roadmap').getByText('VNV Support 2027', { exact: true }).count(), 1, `${label}: roadmap must follow the collaboration cards`);
         assert.equal(await cases.nth(0).getByText('Where It Started', { exact: true }).count(), 1, `${label}: Shake-A-Leg label`);
         assert.equal(await cases.nth(1).getByText('Behind the Experience', { exact: true }).count(), 1, `${label}: Victoria label`);
         for (const image of await page.locator('.vnv-story-card img').all()) {
@@ -106,7 +106,12 @@ function url(route) {
         assert.equal(await victoriaModal.isHidden(), true, `${label}: backdrop did not close Victoria modal`);
       }
       if (route === 'nonprofit-partnerships') {
-        assert.equal(await page.getByText(/Now Accepting/).count() > 0, true, `${label}: nonprofit status missing`);
+        assert.equal(await page.getByText('Now accepting applications', { exact: true }).count(), 1, `${label}: nonprofit status missing`);
+        assert.equal(await page.getByRole('heading', { level: 1, name: 'VNV Support 2027' }).count(), 1, `${label}: campaign title`);
+        assert.equal(await page.getByRole('link', { name: 'Apply to VNV Support 2027' }).getAttribute('href'), '#application', `${label}: application destination`);
+        assert.equal(await page.locator('#process .vnvp-step').count(), 7, `${label}: expected seven application steps`);
+        assert.equal(await page.locator('#np-event').getAttribute('required'), null, `${label}: event name should be optional`);
+        assert.equal(await page.getByText(/up to (60|80)%/).count(), 0, `${label}: unapproved discount remains`);
       }
       if (route === 'corporate-events') {
         const serviceCards = page.locator('.vnv-service-grid-card').filter({ has: page.locator('a', { hasText: 'REQUEST SERVICE' }) });
@@ -130,9 +135,11 @@ function url(route) {
         assert.match(await mobileAccount.getAttribute('href'), /login/, `${label}: mobile account access does not lead to login`);
         await page.locator('.vnvx-mobile-production summary').click();
         assert.equal(await page.locator('.vnvx-mobile-production__links a').count(), 5, `${label}: mobile production accordion`);
+        assert.match(await page.locator('.vnvx-mobile-production__links a').filter({ hasText: 'VNV Support 2027' }).getAttribute('href'), /nonprofit-partnerships/, `${label}: mobile campaign link`);
         await page.locator('[data-vnvx-toggle]').first().click();
       } else {
         assert.equal(await page.locator('.vnvx-nav-group__menu a').count(), 5, `${label}: desktop production submenu`);
+        assert.match(await page.locator('.vnvx-nav-group__menu a').filter({ hasText: 'VNV Support 2027' }).getAttribute('href'), /nonprofit-partnerships/, `${label}: desktop campaign link`);
         const desktopAccount = page.locator('.vnvx-header__login');
         assert.equal(await desktopAccount.isVisible(), true, `${label}: desktop Login / Access is not visible`);
         assert.match(await desktopAccount.getAttribute('href'), /login/, `${label}: desktop account access does not lead to login`);
@@ -150,6 +157,10 @@ function url(route) {
         assert.equal(await modal.locator('input[name="consent"]').count(), 1, `${label}: quick consent missing`);
         if (route === 'event-production') {
           assert.equal(await modal.locator('select[name="request_type"]').inputValue(), 'PRODUCTION', `${label}: production request type was not preserved`);
+        }
+        if (route === 'nonprofit-partnerships') {
+          assert.equal(await modal.getByRole('heading', { name: 'Request an Exploratory Meeting' }).count(), 1, `${label}: exploratory meeting dialog`);
+          assert.equal(await modal.locator('select[name="request_type"]').inputValue(), 'NONPROFIT', `${label}: meeting request type`);
         }
         assert.equal(await page.locator('body').evaluate((node) => node.classList.contains('vnv-quick-request-lock')), true, `${label}: body lock missing`);
         if (await page.locator('.floating-whatsapp').count()) {

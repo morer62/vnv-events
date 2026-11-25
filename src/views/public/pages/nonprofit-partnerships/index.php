@@ -14,8 +14,8 @@ $router->get(function () {
     }
 
     $seo = [
-        'title' => 'Nonprofit Event Partnerships in South Florida | VNV Events',
-        'description' => 'Apply for VNV Events nonprofit event support in South Florida, including concept development, logistics, event technology, catering, staffing, decor and sponsor guidance.',
+        'title' => 'VNV Support 2027 | Nonprofit Impact Initiative',
+        'description' => 'VNV Support 2027 is a pilot for South Florida nonprofits seeking event production, operational support or technology integration. Explore eligibility and apply.',
         'canonical' => 'https://vnvevents.com/nonprofit-partnerships/',
     ];
 
@@ -30,7 +30,7 @@ $router->get(function () {
             '@graph' => [
                 [
                     '@type' => 'Service',
-                    'name' => 'VNV Nonprofit Event Partnerships',
+                    'name' => 'VNV Support 2027 — Nonprofit Impact Initiative',
                     'description' => $seo['description'],
                     'url' => $seo['canonical'],
                     'provider' => ['@type' => 'Organization', 'name' => 'VNV Events', 'url' => 'https://vnvevents.com/'],
@@ -43,9 +43,9 @@ $router->get(function () {
                 [
                     '@type' => 'FAQPage',
                     'mainEntity' => [
-                        ['@type' => 'Question', 'name' => 'Does an application guarantee approval or donated services?', 'acceptedAnswer' => ['@type' => 'Answer', 'text' => 'No. Submission starts a review only. Any support must be approved in writing with a defined scope.']],
-                        ['@type' => 'Question', 'name' => 'How do the preferential nonprofit terms work?', 'acceptedAnswer' => ['@type' => 'Answer', 'text' => 'Approved projects may qualify for up to 60% preferential pricing on selected food or staffing and up to 80% on selected decor, depending on reference pricing, capacity and approved scope.']],
-                        ['@type' => 'Question', 'name' => 'Will VNV guarantee sponsors or fundraising revenue?', 'acceptedAnswer' => ['@type' => 'Answer', 'text' => 'No. VNV may provide guidance and consented introductions but cannot promise meetings, sponsors, funding, revenue or return on investment.']],
+                        ['@type' => 'Question', 'name' => 'Can we apply without a confirmed event?', 'acceptedAnswer' => ['@type' => 'Answer', 'text' => 'Yes. Describe the operational or technology challenge and the result your organization needs. Event details can be added later if they become relevant.']],
+                        ['@type' => 'Question', 'name' => 'What does the program cover?', 'acceptedAnswer' => ['@type' => 'Answer', 'text' => 'VNV Events provides professional and operational support within a written Approved Support Plan. The program does not guarantee approval, cash grants, funding, sponsors, fundraising results, a free event or catering, payment of venues, materials or vendors, unlimited staffing or software development, or ongoing technical support.']],
+                        ['@type' => 'Question', 'name' => 'How will we review results?', 'acceptedAnswer' => ['@type' => 'Answer', 'text' => 'VNV and the organization agree on expected outcomes in the support plan and review the work after delivery. We report only results that can be verified.']],
                     ],
                 ],
             ],

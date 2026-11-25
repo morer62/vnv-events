@@ -29,10 +29,11 @@ $requiredFiles = [
 foreach ($requiredFiles as $file) $assert(is_file($root . '/' . $file), 'Missing implementation file: ' . $file);
 
 $nonprofit = file_get_contents($root . '/src/views/public/pages/nonprofit-partnerships/index.twig');
-foreach (['Your Mission. Our Expertise.', 'Apply for Nonprofit Support', 'up to 60%', 'up to 80%', 'does not guarantee approval', 'requested_services[]', 'application'] as $needle) {
+foreach (['VNV Support 2027', 'Nonprofit Impact Initiative', 'up to 12 organizations', 'Request an Exploratory Meeting', 'Approved Support Plan', 'does not guarantee approval', 'requested_services[]'] as $needle) {
     $assert(stripos($nonprofit, $needle) !== false, 'Nonprofit landing is missing: ' . $needle);
 }
 $assert(!preg_match('/guaranteed\s+(?:sponsorship|funding|approval)/i', $nonprofit), 'Nonprofit page contains a prohibited guarantee.');
+$assert(!preg_match('/up to (?:60|80)%/i', $nonprofit), 'Nonprofit page promotes an unapproved discount.');
 
 $activation = file_get_contents($root . '/src/views/public/pages/sponsor-activation-production/index.twig');
 foreach (['Sponsor Activation Production in South Florida', 'Request an Invitation', 'Brief. Design. Approval. Build. Live. Recap.', 'Complete technical activation brief'] as $needle) {
@@ -43,7 +44,7 @@ foreach (['$2,500', '$5,000', '$10,000', '$2500', '$5000', '$10000'] as $price) 
 }
 
 $header = file_get_contents($root . '/src/views/templates/layout/publicHeaderVnv.html.twig');
-foreach (['Full Production', 'Nonprofit Partnerships', 'Corporate &amp; Brand Experiences', 'Sponsor Activation Production', 'Original Experiences', 'vnvx-mobile-production'] as $needle) {
+foreach (['Full Production', 'VNV Support 2027', 'Corporate &amp; Brand Experiences', 'Sponsor Activation Production', 'Original Experiences', 'vnvx-mobile-production'] as $needle) {
     $assert(str_contains($header, $needle), 'Public navigation is missing: ' . $needle);
 }
 $assert(str_contains($header, 'class="vnvx-header__login"'), 'Desktop Login / Access action is missing from the public header.');
@@ -60,8 +61,8 @@ $assert(!str_contains($home, 'publicQuickRequestModal.html.twig'), 'Home still m
 $assert(!str_contains($home, 'Planning for March 2027'), 'Home still exposes the retired March 2027 commercial status.');
 
 $production = file_get_contents($root . '/src/views/public/pages/event-production/index.twig');
-foreach (['From creative concepts to seamless execution.', 'Support 20 organizations', 'Now Accepting', 'By Invitation', 'Our Production Method'] as $needle) {
-    $source = $needle === 'Support 20 organizations' ? file_get_contents($root . '/src/views/templates/components/publicNonprofitStories.html.twig') : $production;
+foreach (['From creative concepts to seamless execution.', 'Support up to 12 nonprofit organizations', 'Now Accepting', 'By Invitation', 'Our Production Method'] as $needle) {
+    $source = $needle === 'Support up to 12 nonprofit organizations' ? file_get_contents($root . '/src/views/templates/components/publicNonprofitStories.html.twig') : $production;
     $assert(str_contains($source, $needle), 'Event Production polish is missing: ' . $needle);
 }
 $assert(str_contains($production, 'data-quick-request-type="PRODUCTION"'), 'Event Production no longer opens its specialized production request flow.');
@@ -69,7 +70,7 @@ $stories = file_get_contents($root . '/src/views/templates/components/publicNonp
 $assert(str_contains($production, 'templates/components/publicNonprofitStories.html.twig'), 'Event Production does not use the shared nonprofit stories component.');
 $shakePosition = strpos($stories, "id: 'shake-a-leg'");
 $victoriaPosition = strpos($stories, "id: 'victoria-venezuela'");
-$roadmapPosition = strpos($stories, '2027 Roadmap');
+$roadmapPosition = strpos($stories, 'Support up to 12 nonprofit organizations');
 $assert($shakePosition !== false && $victoriaPosition !== false && $roadmapPosition !== false && $shakePosition < $victoriaPosition && $victoriaPosition < $roadmapPosition, 'Production collaboration history is not in the verified chronological order.');
 foreach (['Where It Started', 'Behind the Experience', 'Our role: catering and event décor', 'positive impact in the community', 'View Our Story', 'assets/images/case-studies/shake-a-leg-miami-logo.svg', 'victoria-venezuela-2026-P4014.webp', 'victoria-venezuela-2026-P4019.webp', 'victoria-venezuela-2026-P4043.webp', 'victoria-venezuela-2026-P4049.webp', 'victoria-venezuela-2026-P4065.webp', 'victoria-venezuela-2026-P4078.webp', 'victoria-venezuela-2026-P4083.webp', 'victoria-venezuela-2026-P4094.webp', 'victoria-venezuela-2026-P4189.webp', 'victoria-venezuela-2026-P4197.webp', 'victoria-venezuela-2026-P4200.webp', 'victoria-venezuela-2026-P4316.webp', 'victoria-venezuela-2026-P4415.webp', 'victoria-venezuela-2026-P4794.webp', 'victoria-venezuela-2026-P4861.webp', 'https://www.victoriavenezuelafoundation.org/events/2026-golf-tournament', 'View Full Event Gallery', 'data-vnv-story-open', "event.key === 'Escape'", 'data-vnv-gallery-next'] as $needle) {
     $assert(str_contains($stories, $needle), 'Verified shared case-study content is missing: ' . $needle);
