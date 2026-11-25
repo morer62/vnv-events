@@ -125,7 +125,8 @@ function url(route) {
         assert.equal(await journey.evaluate(node => getComputedStyle(node).listStyleType), 'none', `${label}: duplicate list numbering`);
         assert.match(await journey.innerText(), /Eligibility Review[\s\S]*Approved Support Plan[\s\S]*Impact & Results Review/, `${label}: review milestones missing`);
         const hero = page.locator('main .ve-hero');
-        assert.match(await hero.locator('video').getAttribute('data-src'), /\/previews\/cause-on-cue\.mp4$/, `${label}: campaign preview`);
+        const previewUrl = new URL(await hero.locator('video').getAttribute('data-src'), page.url());
+        assert.match(previewUrl.pathname, /\/previews\/cause-on-cue\.mp4$/, `${label}: campaign preview`);
         assert.equal(await hero.locator('img[src*="victoria-venezuela"]').count(), 0, `${label}: Victoria photo should appear in the case study`);
         const platform = page.locator('#guest-platform');
         assert.equal(await platform.getByRole('heading', { name: 'One platform for the event and the year ahead' }).count(), 1, `${label}: nonprofit platform overview`);

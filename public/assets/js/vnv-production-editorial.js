@@ -37,9 +37,14 @@
             player.focus({ preventScroll: true });
             player.play().catch(() => { /* Native controls remain available. */ });
         });
+    });
+
+    document.querySelectorAll('.ve-film video[controls]').forEach(player => {
         player.addEventListener('play', () => {
-            document.querySelectorAll('.ve-hero [data-vnv-preview] video').forEach(preview => preview.pause());
+            document.querySelectorAll('[data-vnv-preview] video').forEach(preview => preview.pause());
         });
+        const action = player.closest('.ve-film').querySelector('.vnv-film__copy .vnvp-button');
+        action?.addEventListener('click', () => player.pause());
     });
 
     document.querySelectorAll('.ve-film__transcript').forEach(details => {

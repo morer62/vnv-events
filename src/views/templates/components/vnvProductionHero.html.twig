@@ -1,4 +1,5 @@
 {% set preview = 'assets/video/production-films/previews/' ~ hero.slug %}
+{% set edition = { v: '20261125c' } %}
 <section class="ve-hero" aria-labelledby="{{ hero.slug }}-title">
   <div class="ve-hero__copy">
     {% if hero.mark is defined %}
@@ -16,7 +17,7 @@
     </div>
   </div>
   <div class="ve-hero__media" data-vnv-preview>
-    <video id="{{ hero.slug }}-preview" muted loop playsinline preload="none" poster="{{ asset_for(preview ~ '.webp', { v: '20261125b' }) }}" data-src="{{ asset_for(preview ~ '.mp4') }}" data-mobile-src="{{ asset_for(preview ~ '-mobile.mp4') }}" aria-label="{{ hero.preview_label }}"></video>
+    <video id="{{ hero.slug }}-preview" muted loop playsinline preload="none" poster="{{ asset_for(preview ~ '.webp', edition) }}" data-src="{{ asset_for(preview ~ '.mp4', edition) }}" data-mobile-src="{{ asset_for(preview ~ '-mobile.mp4', edition) }}" aria-label="{{ hero.preview_label }}"></video>
     <button class="ve-hero__toggle" type="button" aria-controls="{{ hero.slug }}-preview" hidden>Play preview</button>
   </div>
 </section>

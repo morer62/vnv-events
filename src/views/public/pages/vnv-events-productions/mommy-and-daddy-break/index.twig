@@ -5,7 +5,10 @@
 {% block og_image %}https://vnvevents.com/assets/break-club/hero-miami-morning.webp{% endblock %}
 {% block og_image_alt %}Illustrative Miami poolside brunch for the Mommy and Daddy Break Club{% endblock %}
 {% block styles %}
-<link rel="stylesheet" href="{{ asset_for('assets/break-club/landing.css', { v: 'morning-agenda-1' }) }}">
+<link rel="stylesheet" href="{{ asset_for('assets/css/vnv-partnerships.css') }}">
+<link rel="stylesheet" href="{{ asset_for('assets/css/vnv-production-offers.css', { v: 'production-films-2' }) }}">
+{% include "templates/components/vnvProductionEditorialAssets.html.twig" %}
+<link rel="stylesheet" href="{{ asset_for('assets/break-club/landing.css', { v: 'morning-film-2' }) }}">
 {% endblock %}
 {% block body %}
 {% include "templates/layout/publicHeaderVnv.html.twig" %}
@@ -32,7 +35,7 @@
             <h2 id="experience-title">Come alone.<br><em>Pull up a chair.</em></h2>
             <p class="bc-intro">Come on your own or invite one other adult. Each edition gives you time to recharge, meet other parents and discover a different South Florida setting. Each invitation lists the venue, activities and what your ticket includes.</p>
             <p class="bc-intro">Childcare is arranged separately by each guest.</p>
-            <a class="bc-text-link bc-watch-link" href="{{ asset_for('assets/video/production-films/v3/morning-club.mp4') }}" target="_blank" rel="noopener">Watch and share with sound <span aria-hidden="true">↗</span></a>
+            <a class="bc-text-link bc-watch-link" data-vnv-watch-film href="#morning-club-film">Watch the club film with sound</a>
         </div>
         <div id="agenda">
             <ol class="bc-agenda" role="list">
@@ -47,6 +50,17 @@
             </div>
         </div>
     </section>
+
+    {% include "templates/components/vnvProductionFilm.html.twig" with {
+      film: {
+        slug: 'morning-club',
+        route: 'vnv-events-productions/mommy-and-daddy-break/',
+        title: 'Time for one more coffee',
+        description: 'Imagine a morning at the club, from the first pour to a conversation you can finish. Each invitation includes the venue, price and booking link.',
+        cta: 'Join the free priority list',
+        href: '#waitlist'
+      }
+    } only %}
 
     <section id="waitlist" class="bc-signup" aria-labelledby="signup-title">
         <div class="bc-shell bc-signup-grid">
@@ -88,5 +102,4 @@
 {% endblock %}
 {% block scripts %}
 <script defer src="{{ asset_for('assets/break-club/landing.js', { v: 'party-fields-1' }) }}"></script>
-<script defer src="{{ asset_for('assets/js/vnv-production-editorial.js') }}"></script>
 {% endblock %}

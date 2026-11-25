@@ -8,12 +8,15 @@
 {% set show_whatsapp = true %}
 
 {% block styles %}
+<link rel="stylesheet" href="{{ asset_for('assets/css/vnv-partnerships.css') }}">
+<link rel="stylesheet" href="{{ asset_for('assets/css/vnv-production-offers.css', { v: 'production-films-2' }) }}">
+{% include "templates/components/vnvProductionEditorialAssets.html.twig" %}
 <link rel="stylesheet" href="{{ asset_for('assets/css/vnv-originals.css') }}">
 {% endblock %}
 
 {% block body %}
 {% include "templates/layout/publicHeaderVnv.html.twig" %}
-{% set list_url = path('vnv-events-productions') ~ '#priority-list' %}
+{% set list_url = path('vnv-events-productions/') ~ '#priority-list' %}
 <main class="rg-page">
   <section class="rg-hero" aria-labelledby="rg-title">
     <div class="rg-hero__copy">
@@ -23,7 +26,7 @@
       <p class="rg-lead">Dress for your favorite decade. Meet for a cocktail, find your friends in the photo lounge and dance to the records you grew up with.</p>
       <div class="rg-actions">
         <a class="rg-cta" href="{{ list_url }}">Join the Retro Glam priority list <span aria-hidden="true">↗</span></a>
-        <a class="rg-link" href="#agenda">Explore the evening</a>
+        <a class="rg-link" data-vnv-watch-film href="#retro-glam-film">Watch the Retro Glam film with sound</a>
       </div>
       <p class="rg-availability">The first edition is in development. Join the list for date, venue and ticket updates.</p>
     </div>
@@ -38,9 +41,20 @@
       <p class="rg-eyebrow">The music &amp; the room</p>
       <h2 id="rg-experience-title">Three decades.<br><em>One dance floor.</em></h2>
       <p>Disco, soulful edits and retro pop take the DJ set from the ’70s through the ’90s. Between songs, slip into the lounge for a conversation or get the group together at a styled photo set.</p>
-      <a class="rg-link" href="{{ path('vnv-events-productions') }}#original-experiences-film">Watch the VNV Originals film <span aria-hidden="true">↗</span></a>
+      <a class="rg-link" href="#agenda">Explore the evening’s program</a>
     </div>
   </section>
+
+  {% include "templates/components/vnvProductionFilm.html.twig" with {
+    film: {
+      slug: 'retro-glam',
+      route: 'vnv-events-productions/retro-glam/',
+      title: 'Which song gets your table dancing?',
+      description: 'Picture the first Retro Glam night, from the welcome cocktail and photo set to the moment everyone recognizes the track.',
+      cta: 'Join the Retro Glam priority list',
+      href: list_url
+    }
+  } only %}
 
   <section id="agenda" class="rg-section rg-agenda" aria-labelledby="rg-agenda-title">
     <div>
