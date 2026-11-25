@@ -15,6 +15,10 @@
     RewriteRule ^(.*)$ index.php?url=$1 [L,QSA]
 </IfModule>
 
+<IfModule mod_mime.c>
+    AddType text/vtt .vtt
+</IfModule>
+
 <IfModule mod_expires.c>
     ExpiresActive On
     ExpiresByType image/avif "access plus 1 year"
