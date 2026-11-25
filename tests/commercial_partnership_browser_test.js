@@ -46,6 +46,14 @@ function url(route) {
       assert.equal(canonical, route === '' ? 'https://vnvevents.com/' : `https://vnvevents.com/${route}/`, `${label}: canonical`);
       assert.equal(await page.locator('body').innerText().then((text) => /Ophyra/i.test(text)), false, `${label}: internal software brand is publicly visible`);
 
+      if (['nonprofit-partnerships', 'corporate-events', 'sponsor-activation-production'].includes(route)) {
+        const film = page.locator('.vnv-production-film video');
+        assert.equal(await film.count(), 1, `${label}: production explainer`);
+        assert.equal(await film.getAttribute('autoplay'), null, `${label}: explainer must play on request`);
+        assert.match(await film.locator('track[kind="captions"][srclang="en"]').getAttribute('src'), /\.vtt$/, `${label}: English captions`);
+        assert.match(await film.locator('source[type="video/mp4"]').getAttribute('src'), /assets\/video\/productions\/.+\.mp4$/, `${label}: hosted explainer`);
+      }
+
       if (route === '') {
         for (const status of ['Now Accepting', 'By Invitation', 'Coming Soon']) {
           assert.equal(await page.getByText(status, { exact: true }).count() > 0, true, `${label}: missing commercial status ${status}`);
@@ -71,7 +79,7 @@ function url(route) {
         assert.equal(await cases.count(), 2, `${label}: production collaboration card count`);
         assert.equal((await cases.nth(0).innerText()).includes('Shake-A-Leg Miami'), true, `${label}: Shake-A-Leg must be first`);
         assert.equal((await cases.nth(1).innerText()).includes('Victoria Venezuela Foundation'), true, `${label}: Victoria must be second`);
-        assert.equal(await page.locator('.vnv-story-roadmap').getByText('VNV Support 2027', { exact: true }).count(), 1, `${label}: roadmap must follow the collaboration cards`);
+        assert.equal(await page.locator('.vnv-story-roadmap').getByText('Cause on Cue 2027', { exact: true }).count(), 1, `${label}: roadmap must follow the collaboration cards`);
         assert.equal(await cases.nth(0).getByText('Where It Started', { exact: true }).count(), 1, `${label}: Shake-A-Leg label`);
         assert.equal(await cases.nth(1).getByText('Behind the Experience', { exact: true }).count(), 1, `${label}: Victoria label`);
         for (const image of await page.locator('.vnv-story-card img').all()) {
@@ -107,8 +115,8 @@ function url(route) {
       }
       if (route === 'nonprofit-partnerships') {
         assert.equal(await page.getByText('Now accepting applications', { exact: true }).count(), 1, `${label}: nonprofit status missing`);
-        assert.equal(await page.getByRole('heading', { level: 1, name: 'VNV Support 2027' }).count(), 1, `${label}: campaign title`);
-        assert.equal(await page.getByRole('link', { name: 'Apply to VNV Support 2027' }).getAttribute('href'), '#application', `${label}: application destination`);
+        assert.equal(await page.getByRole('heading', { level: 1, name: 'Cause on Cue 2027' }).count(), 1, `${label}: campaign title`);
+        assert.equal(await page.getByRole('link', { name: 'Apply to Cause on Cue 2027' }).getAttribute('href'), '#application', `${label}: application destination`);
         const journey = page.locator('#process .support-process__steps');
         assert.equal(await journey.locator('li').count(), 3, `${label}: expected three visible phases`);
         assert.equal(await journey.evaluate(node => getComputedStyle(node).listStyleType), 'none', `${label}: duplicate list numbering`);
@@ -143,11 +151,11 @@ function url(route) {
         assert.match(await mobileAccount.getAttribute('href'), /login/, `${label}: mobile account access does not lead to login`);
         await page.locator('.vnvx-mobile-production summary').click();
         assert.equal(await page.locator('.vnvx-mobile-production__links a').count(), 5, `${label}: mobile production accordion`);
-        assert.match(await page.locator('.vnvx-mobile-production__links a').filter({ hasText: 'VNV Support 2027' }).getAttribute('href'), /nonprofit-partnerships/, `${label}: mobile campaign link`);
+        assert.match(await page.locator('.vnvx-mobile-production__links a').filter({ hasText: 'Cause on Cue 2027' }).getAttribute('href'), /nonprofit-partnerships/, `${label}: mobile campaign link`);
         await page.locator('[data-vnvx-toggle]').first().click();
       } else {
         assert.equal(await page.locator('.vnvx-nav-group__menu a').count(), 5, `${label}: desktop production submenu`);
-        assert.match(await page.locator('.vnvx-nav-group__menu a').filter({ hasText: 'VNV Support 2027' }).getAttribute('href'), /nonprofit-partnerships/, `${label}: desktop campaign link`);
+        assert.match(await page.locator('.vnvx-nav-group__menu a').filter({ hasText: 'Cause on Cue 2027' }).getAttribute('href'), /nonprofit-partnerships/, `${label}: desktop campaign link`);
         const desktopAccount = page.locator('.vnvx-header__login');
         assert.equal(await desktopAccount.isVisible(), true, `${label}: desktop Login / Access is not visible`);
         assert.match(await desktopAccount.getAttribute('href'), /login/, `${label}: desktop account access does not lead to login`);

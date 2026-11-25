@@ -370,7 +370,7 @@ class SeoFilesGeneratorService
             ['/event-planners/', 'Event Planners', 'weekly', 0.9],
             ['/corporate-events/', 'Corporate Events', 'weekly', 0.8],
             ['/event-production/', 'Event Production', 'weekly', 0.8],
-            ['/nonprofit-partnerships/', 'VNV Support 2027', 'weekly', 0.8],
+            ['/nonprofit-partnerships/', 'Cause on Cue 2027', 'weekly', 0.8],
             ['/sponsor-activation-production/', 'Sponsor Activation Production', 'weekly', 0.8],
             ['/event-staffing/', 'Event Staffing', 'weekly', 0.7],
             ['/locations/', 'VNV Events Locations', 'weekly', 0.8],

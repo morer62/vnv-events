@@ -4,6 +4,7 @@ use App\Repositories\EventRequestRepository;
 use App\Repositories\LeadIntakeRepository;
 use App\Repositories\CommercialPartnershipRepository;
 use App\Services\EmailService;
+use App\Services\PublicRequestNotification;
 use App\Services\LoginService;
 use App\Utils\LocationUtils;
 use App\Utils\MessageUtil;
@@ -393,15 +394,7 @@ $router->post(function () {
     $emailDelivered = false;
     try {
         $emailService = new EmailService($ownerId);
-        $results = $emailService->sendBulkEmail([
-            ['email' => 'info@vnvevents.com', 'name' => 'VNV Events'],
-            ['email' => 'contact@vnvevents.com', 'name' => 'VNV Events'],
-        ], $subject, $body, true);
-
-        $emailDelivered = in_array(true, $results, true);
-        if (!$emailDelivered) {
-            error_log('Public event request #' . $requestId . ' was saved, but no notification email was delivered.');
-        }
+        $emailDelivered = PublicRequestNotification::send($emailService, $subject, $body, 'event #' . $requestId);
     } catch (\Throwable $e) {
         error_log('Public event request email error: ' . $e->getMessage());
     }

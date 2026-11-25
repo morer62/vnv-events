@@ -1,6 +1,7 @@
 <?php
 
 use App\Services\EmailService;
+use App\Services\PublicRequestNotification;
 use App\Repositories\CommercialPartnershipRepository;
 use App\Utils\LocationUtils;
 use App\Utils\MessageUtil;
@@ -340,15 +341,12 @@ $router->post(function () {
     </div>';
 
     $emailDelivered = false;
-    if ($mailTo !== '') {
-        try {
-            $emailService = new EmailService();
-            $emailDelivered = $emailService->sendSimpleEmail($mailTo, $subject, $body, true);
-        } catch (\Throwable $e) {
-            error_log('Public sponsor request email error: ' . $e->getMessage());
-        }
-    } else {
-        error_log('Public sponsor request #' . $opportunityId . ' saved without a configured notification recipient.');
+    try {
+        $emailDelivered = PublicRequestNotification::send(
+            new EmailService(), $subject, $body, 'sponsor #' . $opportunityId, $mailTo
+        );
+    } catch (\Throwable $e) {
+        error_log('Public sponsor request email error: ' . $e->getMessage());
     }
 
     MessageUtil::setMessage(

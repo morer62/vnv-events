@@ -9,6 +9,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="{{ asset_for('assets/css/vnv-partnerships.css') }}">
 <link rel="stylesheet" href="{{ asset_for('assets/css/vnv-support-2027.css') }}">
+<link rel="stylesheet" href="{{ asset_for('assets/css/vnv-production-films.css') }}">
 {% endblock %}
 
 {% block body %}
@@ -18,10 +19,11 @@
     <div class="vnvp-container">
       <div class="vnvp-hero__copy">
         <span class="vnvp-eyebrow">Nonprofit Impact Initiative</span>
-        <h1 id="support-title">VNV Support 2027</h1>
+        <h1 id="support-title">Cause on Cue 2027</h1>
+        <p class="cause-on-cue-signature">by VNV Events</p>
         <p>Fundraising event production and a digital guest platform for South Florida nonprofits.</p>
         <div class="vnvp-actions">
-          <a class="vnvp-button vnvp-button--gold" href="#application">Apply to VNV Support 2027</a>
+          <a class="vnvp-button vnvp-button--gold" href="#application">Apply to Cause on Cue 2027</a>
           <button class="vnvp-button vnvp-button--ghost" type="button" data-vnv-open-quick-request data-quick-request-type="NONPROFIT" data-quick-request-source="nonprofit_exploratory_2027">Request an Exploratory Meeting</button>
         </div>
       </div>
@@ -67,6 +69,12 @@
       </aside>
     </div>
   </section>
+
+  {% include "templates/components/vnvProductionFilm.html.twig" with {
+    film_slug: 'cause-on-cue',
+    film_title: 'Meet Cause on Cue',
+    film_description: 'See how VNV helps nonprofits run fundraisers with event production and a branded digital guest portal.'
+  } only %}
 
   <div id="event-stories">
     {% include "templates/components/publicNonprofitStories.html.twig" with {
@@ -137,7 +145,7 @@
         <p class="support-leadership">Led by <strong>Jonathan Moreno</strong>, Founder of VNV Events and Director of the VNV Support Initiative.</p>
         <button class="vnvp-button" type="button" data-vnv-open-quick-request data-quick-request-type="NONPROFIT" data-quick-request-source="nonprofit_exploratory_2027">Request an Exploratory Meeting</button>
       </div>
-      <details class="vnvp-advanced" open><summary>VNV Support 2027 Application</summary><form class="vnvp-form" action="{{ path('api/public/partnership-request') }}" method="post">
+      <details class="vnvp-advanced" open><summary>Cause on Cue 2027 Application</summary><form class="vnvp-form" action="{{ path('api/public/partnership-request') }}" method="post">
         {% if submitted %}<div class="vnvp-success" role="status"><strong>Application received.</strong> We sent an acknowledgment with your reference number.</div>{% endif %}
         <input type="hidden" name="program" value="NONPROFIT">
         <input type="hidden" name="_token" value="{{ partnership_csrf }}">

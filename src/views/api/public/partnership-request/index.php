@@ -3,6 +3,7 @@
 use App\Repositories\CommercialPartnershipRepository;
 use App\Repositories\LeadIntakeRepository;
 use App\Services\EmailService;
+use App\Services\PublicRequestNotification;
 use App\Utils\LocationUtils;
 use App\Utils\MessageUtil;
 use App\Utils\Router;
@@ -178,7 +179,7 @@ $router->post(function () {
             'email' => $email,
             'phone' => $phone,
             'service_requested' => match ($program) {
-                'NONPROFIT' => 'VNV Support 2027 application',
+                'NONPROFIT' => 'Cause on Cue 2027 application',
                 'ACTIVATION' => 'Sponsor Activation Production',
                 default => 'Original Experience Priority List: ' . $data['event_name'],
             },
@@ -197,7 +198,7 @@ $router->post(function () {
     try {
         $emailService = new EmailService($ownerId);
         $label = match ($program) {
-            'NONPROFIT' => 'VNV Support 2027 application',
+            'NONPROFIT' => 'Cause on Cue 2027 application',
             'ACTIVATION' => 'Sponsor Activation brief',
             default => 'Original Experience priority-list request',
         };
@@ -206,22 +207,21 @@ $router->post(function () {
             ? $organizationName
             : ((string)($data['event_name'] ?? '') !== '' ? (string)$data['event_name'] : $contactName);
         $safeOrganization = htmlspecialchars($requestSubject, ENT_QUOTES, 'UTF-8');
+        PublicRequestNotification::send(
+            $emailService,
+            'New ' . $label . ' #' . $opportunityId,
+            '<div style="font-family:Arial,sans-serif"><h2>' . htmlspecialchars($label) . '</h2><p><strong>Organization/brand or experience:</strong> ' . $safeOrganization . '</p><p><strong>Contact:</strong> ' . $safeName . ' &middot; ' . htmlspecialchars($email) . ' &middot; ' . htmlspecialchars($phone) . '</p><p>Open the VNV Events Productions CRM to review and assign the next step.</p></div>',
+            'VNV-' . $opportunityId,
+            (string)($_ENV['EVENT_REQUEST_EMAIL'] ?? $_ENV['CONTACT_EMAIL'] ?? '')
+        );
+
         $emailService->sendSimpleEmail(
             $email,
             'We received your VNV Events request #' . $opportunityId,
-            '<div style="font-family:Arial,sans-serif;max-width:680px;margin:auto;color:#162124"><h2>Thank you, ' . $safeName . '.</h2><p>We received the ' . htmlspecialchars(strtolower($label)) . ' for <strong>' . $safeOrganization . '</strong>.</p><p>Our team will review the information and follow up. This acknowledgment is not an approval, funding commitment, sponsorship guarantee or confirmation of availability.</p><p>Reference: <strong>VNV-' . $opportunityId . '</strong></p></div>',
+            '<div style="font-family:Arial,sans-serif;max-width:680px;margin:auto;color:#162124"><h2>Thank you, ' . $safeName . '.</h2><p>We received the ' . htmlspecialchars($label) . ' for <strong>' . $safeOrganization . '</strong>.</p><p>Our team will review the information and follow up. This acknowledgment is not an approval, funding commitment, sponsorship guarantee or confirmation of availability.</p><p>Reference: <strong>VNV-' . $opportunityId . '</strong></p></div>',
             true
         );
 
-        $adminEmail = trim((string)($_ENV['EVENT_REQUEST_EMAIL'] ?? $_ENV['CONTACT_EMAIL'] ?? 'info@vnvevents.com'));
-        if (filter_var($adminEmail, FILTER_VALIDATE_EMAIL)) {
-            $emailService->sendSimpleEmail(
-                $adminEmail,
-                'New ' . $label . ' #' . $opportunityId,
-                '<div style="font-family:Arial,sans-serif"><h2>' . htmlspecialchars($label) . '</h2><p><strong>Organization/brand or experience:</strong> ' . $safeOrganization . '</p><p><strong>Contact:</strong> ' . $safeName . ' &middot; ' . htmlspecialchars($email) . ' &middot; ' . htmlspecialchars($phone) . '</p><p>Open the VNV Events Productions CRM to review and assign the next step.</p></div>',
-                true
-            );
-        }
     } catch (Throwable $e) {
         error_log('Commercial partnership acknowledgment error #' . $opportunityId . ': ' . $e->getMessage());
     }

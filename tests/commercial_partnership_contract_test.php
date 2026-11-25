@@ -29,7 +29,7 @@ $requiredFiles = [
 foreach ($requiredFiles as $file) $assert(is_file($root . '/' . $file), 'Missing implementation file: ' . $file);
 
 $nonprofit = file_get_contents($root . '/src/views/public/pages/nonprofit-partnerships/index.twig');
-foreach (['VNV Support 2027', 'Nonprofit Impact Initiative', 'up to 12 organizations', 'Request an Exploratory Meeting', 'Approved Support Plan', 'does not guarantee approval', 'requested_services[]'] as $needle) {
+foreach (['Cause on Cue 2027', 'Nonprofit Impact Initiative', 'up to 12 organizations', 'Request an Exploratory Meeting', 'Approved Support Plan', 'does not guarantee approval', 'requested_services[]'] as $needle) {
     $assert(stripos($nonprofit, $needle) !== false, 'Nonprofit landing is missing: ' . $needle);
 }
 $assert(!preg_match('/guaranteed\s+(?:sponsorship|funding|approval)/i', $nonprofit), 'Nonprofit page contains a prohibited guarantee.');
@@ -44,7 +44,7 @@ foreach (['$2,500', '$5,000', '$10,000', '$2500', '$5000', '$10000'] as $price) 
 }
 
 $header = file_get_contents($root . '/src/views/templates/layout/publicHeaderVnv.html.twig');
-foreach (['Full Production', 'VNV Support 2027', 'Corporate &amp; Brand Experiences', 'Sponsor Activation Production', 'Original Experiences', 'vnvx-mobile-production'] as $needle) {
+foreach (['Full Production', 'Cause on Cue 2027', 'Corporate &amp; Brand Experiences', 'Sponsor Activation Production', 'Original Experiences', 'vnvx-mobile-production'] as $needle) {
     $assert(str_contains($header, $needle), 'Public navigation is missing: ' . $needle);
 }
 $assert(str_contains($header, 'class="vnvx-header__login"'), 'Desktop Login / Access action is missing from the public header.');

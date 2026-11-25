@@ -1,0 +1,13 @@
+<section class="vnv-production-film" aria-labelledby="{{ film_slug }}-film-title">
+  <div class="vnv-production-film__layout">
+    <div>
+      <h2 id="{{ film_slug }}-film-title">{{ film_title }}</h2>
+      <p>{{ film_description }}</p>
+    </div>
+    <video controls playsinline preload="none" width="960" height="540" aria-labelledby="{{ film_slug }}-film-title" poster="{{ asset_for('assets/video/productions/' ~ film_slug ~ '-v1.webp') }}">
+      <source src="{{ asset_for('assets/video/productions/' ~ film_slug ~ '-v1.mp4') }}" type="video/mp4">
+      <track kind="captions" src="{{ asset_for('assets/video/productions/' ~ film_slug ~ '-v1.vtt') }}" srclang="en" label="English" default>
+      <a href="{{ asset_for('assets/video/productions/' ~ film_slug ~ '-v1.mp4') }}">Watch the video</a>
+    </video>
+  </div>
+</section>

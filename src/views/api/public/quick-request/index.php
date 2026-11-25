@@ -2,6 +2,7 @@
 
 use App\Repositories\LeadIntakeRepository;
 use App\Services\EmailService;
+use App\Services\PublicRequestNotification;
 use App\Utils\LocationUtils;
 use App\Utils\MessageUtil;
 use App\Utils\Router;
@@ -104,7 +105,7 @@ $router->post(function () {
     $source = preg_replace('/[^a-zA-Z0-9_-]/', '', quickRequestField('form_source', 80)) ?: 'public_quick_request';
     $isExploratoryRequest = $requestType === 'NONPROFIT' && $source === 'nonprofit_exploratory_2027';
     if ($isExploratoryRequest) {
-        $label = 'VNV Support 2027 exploratory meeting request';
+        $label = 'Cause on Cue 2027 exploratory meeting request';
     }
     $externalId = 'quick-' . strtolower($requestType) . '-' . date('YmdHis') . '-' . bin2hex(random_bytes(3));
     $landingUrl = quickRequestField('landing_url', 500);
@@ -164,6 +165,13 @@ $router->post(function () {
         $safeOrganization = htmlspecialchars($organization, ENT_QUOTES, 'UTF-8');
         $safeBrief = nl2br(htmlspecialchars($brief, ENT_QUOTES, 'UTF-8'));
         $reference = 'VNV-Q' . $leadId;
+        PublicRequestNotification::send(
+            $emailService,
+            'New ' . $label . ' ' . $reference,
+            '<div style="font-family:Arial,sans-serif;max-width:720px"><h2>' . $safeLabel . '</h2><p><strong>Contact:</strong> ' . $safeName . ' &middot; ' . htmlspecialchars($email, ENT_QUOTES, 'UTF-8') . ($phone !== '' ? ' &middot; ' . htmlspecialchars($phone, ENT_QUOTES, 'UTF-8') : '') . '</p>' . ($organization !== '' ? '<p><strong>Organization / brand:</strong> ' . $safeOrganization . '</p>' : '') . '<p><strong>Brief:</strong><br>' . $safeBrief . '</p><p>Open Level 1 &rarr; Lead Intake to review this request.</p></div>',
+            $reference,
+            (string)($_ENV['EVENT_REQUEST_EMAIL'] ?? $_ENV['CONTACT_EMAIL'] ?? '')
+        );
 
         $emailService->sendSimpleEmail(
             $email,
@@ -172,15 +180,6 @@ $router->post(function () {
             true
         );
 
-        $adminEmail = trim((string)($_ENV['EVENT_REQUEST_EMAIL'] ?? $_ENV['CONTACT_EMAIL'] ?? 'info@vnvevents.com'));
-        if (filter_var($adminEmail, FILTER_VALIDATE_EMAIL)) {
-            $emailService->sendSimpleEmail(
-                $adminEmail,
-                'New ' . $label . ' ' . $reference,
-                '<div style="font-family:Arial,sans-serif;max-width:720px"><h2>' . $safeLabel . '</h2><p><strong>Contact:</strong> ' . $safeName . ' &middot; ' . htmlspecialchars($email, ENT_QUOTES, 'UTF-8') . ($phone !== '' ? ' &middot; ' . htmlspecialchars($phone, ENT_QUOTES, 'UTF-8') : '') . '</p>' . ($organization !== '' ? '<p><strong>Organization / brand:</strong> ' . $safeOrganization . '</p>' : '') . '<p><strong>Brief:</strong><br>' . $safeBrief . '</p><p>Open Level 1 &rarr; Lead Intake to review this request.</p></div>',
-                true
-            );
-        }
     } catch (Throwable $e) {
         error_log('Public quick request email error #' . $leadId . ': ' . $e->getMessage());
     }

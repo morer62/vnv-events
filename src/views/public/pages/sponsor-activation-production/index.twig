@@ -8,6 +8,7 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="{{ asset_for('assets/css/vnv-partnerships.css') }}">
+<link rel="stylesheet" href="{{ asset_for('assets/css/vnv-production-films.css') }}">
 {% endblock %}
 
 {% block body %}
@@ -21,6 +22,12 @@
       <div class="vnvp-actions"><a class="vnvp-button vnvp-button--gold" href="#" data-vnv-open-quick-request data-quick-request-type="ACTIVATION" data-quick-request-source="activation_hero">Request an Invitation</a><a class="vnvp-button vnvp-button--ghost" href="#formats">Explore Formats</a></div>
     </div></div>
   </section>
+
+  {% include "templates/components/vnvProductionFilm.html.twig" with {
+    film_slug: 'brand-activation',
+    film_title: 'How we bring an activation to life',
+    film_description: 'From hospitality lounges to product sampling and photo experiences, see how we plan and produce each format.'
+  } only %}
 
   <section class="vnvp-section" id="formats"><div class="vnvp-container">
     <div class="vnvp-heading"><span class="vnvp-eyebrow">Built around the event and the audience</span><h2>Brand presence guests can actually experience.</h2><p>Every activation begins with the sponsor's goals, venue rules, organizer approvals, available footprint and production reality. Pricing is custom to the approved scope.</p></div>

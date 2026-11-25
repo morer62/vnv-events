@@ -14,8 +14,8 @@ $router->get(function () {
     }
 
     $seo = [
-        'title' => 'VNV Support 2027 | Nonprofit Impact Initiative',
-        'description' => 'VNV Support 2027 offers South Florida nonprofits fundraiser production, a branded digital guest platform and optional donor or sponsor introductions.',
+        'title' => 'Cause on Cue 2027 | Nonprofit Impact Initiative',
+        'description' => 'Cause on Cue 2027 offers South Florida nonprofits fundraiser production, a branded digital guest platform and optional donor or sponsor introductions.',
         'canonical' => 'https://vnvevents.com/nonprofit-partnerships/',
     ];
 
@@ -30,7 +30,7 @@ $router->get(function () {
             '@graph' => [
                 [
                     '@type' => 'Service',
-                    'name' => 'VNV Support 2027 — Nonprofit Impact Initiative',
+                    'name' => 'Cause on Cue 2027 — Nonprofit Impact Initiative',
                     'description' => $seo['description'],
                     'url' => $seo['canonical'],
                     'provider' => ['@type' => 'Organization', 'name' => 'VNV Events', 'url' => 'https://vnvevents.com/'],
