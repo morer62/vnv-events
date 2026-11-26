@@ -1,4 +1,4 @@
-{% set preview = 'assets/video/production-films/previews/' ~ hero.slug %}
+{% set preview = hero.preview_media|default('assets/video/production-films/previews/' ~ hero.slug) %}
 <section class="ve-hero" aria-labelledby="{{ hero.slug }}-title">
   <div class="ve-hero__copy">
     {% if hero.mark is defined %}

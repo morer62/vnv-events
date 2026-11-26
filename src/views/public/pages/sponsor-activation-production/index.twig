@@ -21,13 +21,14 @@
     label: 'South Florida · By Invitation',
     title: 'Sponsor activation',
     emphasis: 'production.',
-    description: 'Give guests a way to experience your brand, from a product tasting to a hosted lounge or a styled photo set.',
-    details: ['Guest experience and layout built around your brief', 'Installation, staffing and coordination with the organizer', 'Agreed photos, participation counts or a recap'],
+    description: 'Build a trade show booth, product demo or hosted brand experience that gives guests a reason to stop.',
+    details: ['Trade show booth design, printing and graphics', 'Installation, staffing and coordination with the organizer', 'Agreed photos, participation counts or a recap'],
     cta: 'Request an invitation',
     href: '#activation-brief',
     request_type: 'ACTIVATION',
     request_source: 'activation_hero',
-    preview_label: 'An illustrative sponsor tasting experience'
+    preview_media: 'assets/video/production-films/v4/brand-activation-preview',
+    preview_label: 'An illustrative trade show booth with printed graphics and guest interactions'
   }
 } only %}
 
@@ -36,12 +37,13 @@
       id: 'activation-delivery',
       label: 'Activation production',
       title: 'Turn an approved sponsorship into a live experience',
-      description: 'Bring your brand guidelines, audience and organizer requirements. We work out how the space will function, how guests will participate and what your on-site team needs.',
-      image: 'assets/video/production-films/v3/tasting-setup.webp',
-      image_alt: 'A tasting cup set on a wood counter at a sample station',
-      caption: 'Illustrative tasting experience',
+      description: 'Bring your brand guidelines, booth footprint and organizer requirements. We plan how guests will move through the space, what needs to be printed and how your on-site team will run it.',
+      image: 'assets/video/production-films/v4/trade-show-booth.webp',
+      image_alt: 'Trade show attendees talking with booth staff beside a printed backdrop, branded counter graphics and a freestanding display',
+      caption: 'Illustrative trade show booth',
       deliverables: [
         ['Concept and footprint', 'Define the guest interaction and where it happens. Plan the layout, access, lighting and branding to fit the space and organizer requirements.'],
+        ['Booth printing and graphics', 'Produce approved graphics for exhibit backdrops, counter wraps and signage, sized for the stand and its installation.'],
         ['Install and staff the experience', 'Coordinate the agreed fabrication or décor, installation schedule, guest flow, staffing and breakdown.'],
         ['Leave with agreed documentation', 'Set the recap deliverables in the brief, such as event photographs, an activation summary or participation counts where tracking is in scope.']
       ]
@@ -53,7 +55,7 @@
       slug: 'brand-activation',
       route: 'sponsor-activation-production',
       title: 'See a brand activation take shape',
-      description: 'See how we plan the guest experience, coordinate the build and keep the brand, organizer and crew working from one brief.',
+      description: 'See how we plan the stand, coordinate its build and printing, and keep the brand, organizer and crew working from one brief.',
       cta: 'Share your activation brief',
       href: '#activation-brief'
     }
@@ -62,6 +64,7 @@
   <section class="vnvp-section" id="formats"><div class="vnvp-container">
     <div class="vnvp-heading"><span class="vnvp-eyebrow">Built around the event and the audience</span><h2>Brand presence guests can actually experience.</h2><p>Every activation begins with the sponsor's goals, venue rules, organizer approvals, available footprint and production reality. Pricing is custom to the approved scope.</p></div>
     <div class="vnvp-grid">
+      <article class="vnvp-card"><span class="vnvp-card__icon"><i class="fa-solid fa-print"></i></span><h3>Trade show booths & printing</h3><p>Exhibition layouts, printed backdrops, counter wraps and signage coordinated with the build and show requirements.</p></article>
       <article class="vnvp-card"><span class="vnvp-card__icon"><i class="fa-solid fa-couch"></i></span><h3>Lounges & hospitality</h3><p>Designed spaces for conversation, hosting, rest, VIP moments or sponsor-led hospitality.</p></article>
       <article class="vnvp-card"><span class="vnvp-card__icon"><i class="fa-solid fa-camera"></i></span><h3>Photo moments</h3><p>Branded, event-appropriate visual moments planned around footprint, lighting and guest flow.</p></article>
       <article class="vnvp-card"><span class="vnvp-card__icon"><i class="fa-solid fa-box-open"></i></span><h3>Sampling & product experience</h3><p>Operational planning for permitted product sampling, demonstrations or guided interactions.</p></article>
@@ -95,7 +98,7 @@
         <div class="vnvp-field"><label for="act-date">Event date</label><input id="act-date" name="event_date" type="date"></div>
         <div class="vnvp-field"><label for="act-venue">Venue</label><input id="act-venue" name="venue" maxlength="255"></div>
         <div class="vnvp-field"><label for="act-city">City</label><input id="act-city" name="city" maxlength="120"></div>
-        <div class="vnvp-field"><label for="act-type">Activation type</label><input id="act-type" name="activation_type" maxlength="150" placeholder="Lounge, photo moment, sampling..."></div>
+        <div class="vnvp-field"><label for="act-type">Activation type</label><input id="act-type" name="activation_type" maxlength="150" placeholder="Trade show booth, demo, lounge, photo moment..."></div>
         <div class="vnvp-field"><label for="act-size">Available dimensions</label><input id="act-size" name="dimensions" maxlength="150"></div>
         <div class="vnvp-field vnvp-field--full"><label for="act-audience">Audience and expected attendance</label><textarea id="act-audience" name="audience" maxlength="500"></textarea></div>
         <div class="vnvp-field"><label for="act-budget">Budget range</label><input id="act-budget" name="budget_range" maxlength="120"></div>
@@ -103,7 +106,7 @@
         <div class="vnvp-field vnvp-field--full"><label for="act-approval">Organizer, venue and brand approval requirements</label><textarea id="act-approval" name="approval_requirements" maxlength="1000"></textarea></div>
         <div class="vnvp-field"><label for="act-power">Electricity / utility access</label><input id="act-power" name="electricity" maxlength="120"></div>
         <div class="vnvp-field"><label for="act-staff">Staffing needs</label><input id="act-staff" name="staffing" maxlength="500"></div>
-        <fieldset class="vnvp-group"><legend>Requested deliverables</legend><div class="vnvp-checks">{% for option in ['Concept design','Fabrication / install','Decor / scenic','Hospitality','Sampling operations','Activation staffing','Photo / video documentation','Event recap'] %}<label class="vnvp-check"><input type="checkbox" name="deliverables[]" value="{{ option }}"><span>{{ option }}</span></label>{% endfor %}</div></fieldset>
+        <fieldset class="vnvp-group"><legend>Requested deliverables</legend><div class="vnvp-checks">{% for option in ['Concept design','Fabrication / install','Booth printing / graphics','Decor / scenic','Hospitality','Sampling operations','Activation staffing','Photo / video documentation','Event recap'] %}<label class="vnvp-check"><input type="checkbox" name="deliverables[]" value="{{ option }}"><span>{{ option }}</span></label>{% endfor %}</div></fieldset>
         <div class="vnvp-field"><label for="act-name">Contact name *</label><input id="act-name" name="contact_name" required maxlength="191"></div>
         <div class="vnvp-field"><label for="act-role">Role</label><input id="act-role" name="contact_role" maxlength="150"></div>
         <div class="vnvp-field"><label for="act-email">Email *</label><input id="act-email" name="email" type="email" required maxlength="191"></div>

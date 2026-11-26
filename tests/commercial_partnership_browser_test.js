@@ -51,7 +51,7 @@ function url(route) {
         assert.equal(await offer.count(), 1, `${label}: production offer`);
         assert.equal(await offer.locator('.vnv-offer__deliverables li').count(), 3, `${label}: scope examples`);
         assert.equal(await page.locator('video source[src*="/video/productions/"]').count(), 0, `${label}: retired explainer`);
-        assert.equal(await page.locator('.vnv-film video source[src*="/production-films/v3/"]').count(), 1, `${label}: current promo video`);
+        assert.equal(await page.locator('.vnv-film video source[src*="/production-films/v4/"]').count(), 1, `${label}: current promo video`);
         assert.doesNotMatch(await offer.innerHTML(), /victoria[- ]venezuela/i, `${label}: case-study attribution in production offer`);
       }
 
