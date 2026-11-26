@@ -19,6 +19,7 @@ $templates = [
     'public/pages/sponsor-activation-production/index.twig',
     'public/pages/event-production/index.twig',
     'public/pages/corporate-events/index.twig',
+    'public/pages/operational-software/index.twig',
     'public/pages/vnv-events-productions/index.twig',
     'public/pages/vnv-events-productions/retro-glam/index.twig',
     'public/pages/vnv-events-productions/mommy-and-daddy-break/index.twig',

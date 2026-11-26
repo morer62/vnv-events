@@ -1,11 +1,14 @@
 {% extends "templates/base.twig" %}
 {% block title %}Mommy &amp; Daddy Break Club | South Florida Morning Socials{% endblock %}
-{% block meta_description %}A morning of coffee, music and conversation for South Florida parents. Join the free Mommy &amp; Daddy Break Club priority list for invitations to individually ticketed events.{% endblock %}
+{% block meta_description %}Discover South Florida morning socials for parents, with brunch, introductions and space to unwind. Join the free priority list for individually ticketed editions.{% endblock %}
 {% block canonical %}https://vnvevents.com/vnv-events-productions/mommy-and-daddy-break/{% endblock %}
 {% block og_image %}https://vnvevents.com/assets/break-club/hero-miami-morning.webp{% endblock %}
 {% block og_image_alt %}Illustrative Miami poolside brunch for the Mommy and Daddy Break Club{% endblock %}
 {% block styles %}
-<link rel="stylesheet" href="{{ asset_for('assets/break-club/landing.css', { v: 'morning-agenda-1' }) }}">
+<link rel="stylesheet" href="{{ asset_for('assets/css/vnv-partnerships.css') }}">
+<link rel="stylesheet" href="{{ asset_for('assets/css/vnv-production-offers.css', { v: 'production-films-2' }) }}">
+{% include "templates/components/vnvProductionEditorialAssets.html.twig" %}
+<link rel="stylesheet" href="{{ asset_for('assets/break-club/landing.css', { v: 'morning-spaces-1' }) }}">
 {% endblock %}
 {% block body %}
 {% include "templates/layout/publicHeaderVnv.html.twig" %}
@@ -26,13 +29,39 @@
         </div>
     </section>
 
+    <section class="bc-spaces" aria-labelledby="bc-spaces-title">
+        <div class="bc-shell">
+            <header class="bc-spaces__heading">
+                <h2 id="bc-spaces-title">Find your <em>corner.</em></h2>
+                <p>Some mornings call for a stretch. Other mornings you want a full table and a second mimosa. The invitation tells you which spaces the hosts are setting up that day.</p>
+            </header>
+            <div class="bc-spaces__grid">
+                <article class="bc-space">
+                    <img loading="lazy" decoding="async" width="720" height="480" src="{{ asset_for('assets/break-club/morning-yoga.webp') }}" alt="An outdoor group reaching into a side stretch on yoga mats">
+                    <h3>The quiet corner</h3>
+                    <p>Ease into the day in the relaxation area. On movement editions, join a gentle yoga class, then linger for a few minutes of quiet.</p>
+                </article>
+                <article class="bc-space">
+                    <img loading="lazy" decoding="async" width="720" height="480" src="{{ asset_for('assets/break-club/brunch-toast.webp') }}" alt="Friends raising mimosas across a sunlit brunch table">
+                    <h3>Brunch &amp; the coffee bar</h3>
+                    <p>Pull up a chair for brunch. Choose a mimosa when it’s on the menu, or take your coffee to the terrace and finish the conversation there.</p>
+                </article>
+                <article class="bc-space">
+                    <img loading="lazy" decoding="async" width="720" height="480" src="{{ asset_for('assets/break-club/morning-portraits.webp') }}" alt="Three guests coming together for an outdoor portrait">
+                    <h3>The social table</h3>
+                    <p>Come solo and ask a host to introduce you to other local parents. Trade a recommendation, then gather your new tablemates for a picture at the photo corner.</p>
+                </article>
+            </div>
+        </div>
+    </section>
+
     <section class="bc-story bc-shell" id="experience" aria-labelledby="experience-title">
         <div>
             <p class="bc-kicker">A sample three-hour morning</p>
             <h2 id="experience-title">Come alone.<br><em>Pull up a chair.</em></h2>
             <p class="bc-intro">Come on your own or invite one other adult. Each edition gives you time to recharge, meet other parents and discover a different South Florida setting. Each invitation lists the venue, activities and what your ticket includes.</p>
             <p class="bc-intro">Childcare is arranged separately by each guest.</p>
-            <a class="bc-text-link bc-watch-link" href="{{ asset_for('assets/video/production-films/v3/morning-club.mp4') }}" target="_blank" rel="noopener">Watch and share with sound <span aria-hidden="true">↗</span></a>
+            <a class="bc-text-link bc-watch-link" data-vnv-watch-film href="#morning-club-film">Watch the club film with sound</a>
         </div>
         <div id="agenda">
             <ol class="bc-agenda" role="list">
@@ -47,6 +76,17 @@
             </div>
         </div>
     </section>
+
+    {% include "templates/components/vnvProductionFilm.html.twig" with {
+      film: {
+        slug: 'morning-club',
+        route: 'vnv-events-productions/mommy-and-daddy-break/',
+        title: 'Stay a little longer.',
+        description: 'See how the morning moves from the welcome table to time with other parents. Your invitation includes the venue, price and booking link.',
+        cta: 'Join the free priority list',
+        href: '#waitlist'
+      }
+    } only %}
 
     <section id="waitlist" class="bc-signup" aria-labelledby="signup-title">
         <div class="bc-shell bc-signup-grid">
@@ -88,5 +128,4 @@
 {% endblock %}
 {% block scripts %}
 <script defer src="{{ asset_for('assets/break-club/landing.js', { v: 'party-fields-1' }) }}"></script>
-<script defer src="{{ asset_for('assets/js/vnv-production-editorial.js') }}"></script>
 {% endblock %}

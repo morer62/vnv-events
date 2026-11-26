@@ -1,25 +1,36 @@
 # VNV Events production films
 
-## Direction
+Each page should answer one visitor’s question and end at the action that visitor can actually take. The unmuted film, captions, written offer and destination all describe the same service. The final English narration for each cut is kept alongside its MP4 in `public/assets/video/production-films/v3/*-en.vtt`.
 
-Three English-language films run about 40 seconds each in 16:9. Lead with what VNV produces and show how the event management system connects the team doing the work. Use neutral Seedance footage, original diagrams and generic VNV portfolio material. Keep third-party names, photography and identifiable screens in their dedicated case studies.
+| Page | Visitor’s question | What the film should show | Next step |
+| --- | --- | --- | --- |
+| Full Production | Who takes responsibility between planning and opening the doors? | Follow a floor plan into setup, guest arrival and an on-site handoff. | Describe the event and request a production consultation. |
+| Cause on Cue 2027 | Where can a producer help our existing nonprofit team? | Follow a fundraiser from setup through guest check-in. Show the roles of staff and volunteers and the support the organization can request. | Apply with the fundraiser and its needs. VNV reviews fit and capacity before agreeing on support. |
+| Corporate & Brand Experiences | Who connects the stage, speakers and hospitality when the program changes? | Follow the producer’s cues across the room. Give a planner a specific example of a handoff. | Request a conversation about one event or a defined annual series. |
+| Sponsor Activation Production | What will guests actually do at our activation? | Take one tasting from guest arrival to handoff, then show the approvals and the agreed recap. | Send the brand, audience and activation idea. Request technical details once the project fits. |
+| Original Experiences | Which of these would I want to attend? | Contrast a morning with other parents and a dance night through what guests do, the music and the atmosphere. | Choose an experience and its own priority list. |
+| Retro Glam Sessions | What kind of night is this? | Each edition chooses one decade. Follow its live DJ, era-inspired dress and group photo set through an Art Deco room. | Join the Retro Glam list for its date, venue and ticket details. |
+| Mommy & Daddy Break Club | Can I come on my own and what am I signing up for? | Show parents moving between hospitality, gentle breaks, conversation and portrait opportunities. Preserve the approved Miami Morning hero. | Join the free list for one or two adults. The invitation states the venue, activities and ticket price before booking. |
 
-Record with OpenAI Marin and edit locally. Use CapCut for illustrative footage. Align English captions to the final narration, retain the provenance of illustrative footage and identify the AI narration for viewers.
+## What the proposal promises
 
-## Cause on Cue 2027
+- Full and corporate production start with the guest experience, decision maker, event date or window and budget. The proposal identifies deliverables, responsibilities, costs and a review date. Corporate clients may discuss one event or a series of 2, 4 or 6.
+- For selected nonprofits, the written support plan identifies VNV’s contributions, subsidized items and separately quoted services. An app may be included at no development cost when approved. The organization directs its fundraising. Introductions depend on consent.
+- For sponsor activations, the sponsor’s existing rights, venue restrictions and organizer approvals determine what can be built. Agree on staffing, documentation and recap deliverables in the proposal.
+- Original Experiences have separate interest lists. Joining a list provides updates. A reservation requires a published event and its booking process.
 
-> We produce fundraisers for South Florida nonprofits. Our team brings years of event experience to planning, sponsor outreach, vendor logistics and running the day. We use one management system to keep your team connected, from the first invitation to check-in. Keep using it year-round to accept donations, recruit volunteers and offer sponsorship packages. We can even develop a mobile app for your organization at no cost. That’s Cause on Cue, our twenty twenty-seven program. Tell us about the fundraiser you want to produce.
+## Media and review
 
-Open on an illustrative fundraiser room and cut to sound and service. Use two original graphics to show the event team working from one plan and the platform supporting donations, volunteers, sponsorship packages and mobile app development year-round. Close on the Cause on Cue mark and the fundraiser inquiry.
+Use VNV portfolio footage with known provenance, original motion graphics or identified concept imagery. In the Cause on Cue film and its silent preview, credit the Victoria Venezuela Foundation’s 2026 charity golf tournament on the photographs. The sequence shows registration, the welcome team and sound support before the film introduces the 2027 pilot. Reserve dates, venue announcements, sponsor names and attendance figures for confirmed events.
 
-## Corporate Events
+The seven English films use Cedar, the voice used in The Ground Floor’s Super Bowl and Miami episodes. Direct each script as a continuous conversation. Give a producer a practical decision, a parent a moment with another guest, and the DJ a record the room recognizes. The corporate films use navy, white, cyan and contemporary sans-serif type. The Break Club keeps its relaxed morning identity. Retro Glam uses plum, antique gold and stepped Art Deco geometry. The Original Experiences hub shows both concepts side by side.
 
-> A corporate event works when everyone knows what needs to happen next. Our team brings years of production experience to your conference, launch or client event. We coordinate the venue and vendors, set the cues for sound and presentations, and manage hospitality and staffing on the day. Our event platform gives the crew one place for the schedule, updates and assignments. The platform can also handle guest registration and check-in. Tell us what you want to accomplish. Let’s build the production around it.
+Keep silent previews and narrated films distinct. Preview covers should communicate the page’s offer with motion disabled. Compose desktop and mobile crops separately where the subject changes position. Keep captions clear of titles, changing diagrams and the primary subject. Label synthesized narration.
 
-Use the stage, speaker and hospitality shots to show the physical work involved. An animated run of show connects the crew’s assignments, updates and check-in. Close with the corporate event inquiry.
+Review the final export in three passes. Watch without sound for staging and legibility, listen without the picture for promises and pacing, then play it in the actual page at desktop and phone widths. Test the precise call to action, the English captions and the transcript against the final cut.
 
-## Brand Activation
+## Operational software
 
-> Give guests a reason to stop. A tasting, a hosted lounge, or a photo they’ll want to keep. We plan and produce sponsor experiences around what you want people to do. We design the space, coordinate vendors and installation, and staff the experience on-site. Our production system keeps the brand, organizer and event team aligned on approvals, schedules and what to capture for the recap. Tell us who you want to reach. Let’s build the experience around them.
+The four commissioned production pages link to `/operational-software/`. The Originals collection and both club pages keep their own invitation journeys. The software landing contains five narrated recordings of the pilot, with individual role links, module chapters and English transcripts. Use synthetic organizations and accounts for recordings.
 
-Follow a visitor to the tasting station and cut in close to the product handoff. Show the guest journey followed by the approvals, schedule and recap graphic. Close with the activation brief.
+After external DNS and trusted HTTPS are verified at `https://operations.vnvevents.com/login`, set `VNV_OPERATIONS_DEMO_LIVE=true` on the corporate site to reveal the login link. Until then visitors can view the tours and request a personal invitation. The private pilot has its own Git deployment.

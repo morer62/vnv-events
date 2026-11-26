@@ -52,7 +52,11 @@ function url(route) {
         assert.equal(await offer.locator('.vnv-offer__deliverables li').count(), 3, `${label}: scope examples`);
         assert.equal(await page.locator('video source[src*="/video/productions/"]').count(), 0, `${label}: retired explainer`);
         assert.equal(await page.locator('.vnv-film video source[src*="/production-films/v3/"]').count(), 1, `${label}: current promo video`);
-        assert.doesNotMatch(await offer.innerHTML(), /victoria[- ]venezuela/i, `${label}: case-study attribution in production offer`);
+        if (route === 'corporate-events') {
+          assert.doesNotMatch(await offer.innerHTML(), /victoria[- ]venezuela/i, `${label}: unrelated foundation case in corporate offer`);
+        } else {
+          assert.match(await offer.locator('figcaption').innerText(), /Victoria Venezuela Foundation.+Weston, 2026/, `${label}: documentary image must be credited to the actual event`);
+        }
       }
 
       if (route === '') {
@@ -84,6 +88,8 @@ function url(route) {
         assert.equal(await cases.nth(0).getByText('Where It Started', { exact: true }).count(), 1, `${label}: Shake-A-Leg label`);
         assert.equal(await cases.nth(1).getByText('Behind the Experience', { exact: true }).count(), 1, `${label}: Victoria label`);
         for (const image of await page.locator('.vnv-story-card img').all()) {
+          await image.scrollIntoViewIfNeeded();
+          await image.evaluate((node) => node.decode());
           assert.equal(await image.evaluate((node) => node.complete && node.naturalWidth > 0), true, `${label}: case-study image failed to load`);
         }
         const productionTrigger = page.locator('[data-vnv-open-quick-request][data-quick-request-type="PRODUCTION"]').first();
@@ -123,7 +129,8 @@ function url(route) {
         assert.equal(await journey.evaluate(node => getComputedStyle(node).listStyleType), 'none', `${label}: duplicate list numbering`);
         assert.match(await journey.innerText(), /Eligibility Review[\s\S]*Approved Support Plan[\s\S]*Impact & Results Review/, `${label}: review milestones missing`);
         const hero = page.locator('main .ve-hero');
-        assert.match(await hero.locator('video').getAttribute('data-src'), /\/previews\/cause-on-cue\.mp4$/, `${label}: campaign preview`);
+        const previewUrl = new URL(await hero.locator('video').getAttribute('data-src'), page.url());
+        assert.match(previewUrl.pathname, /\/previews\/cause-on-cue\.mp4$/, `${label}: campaign preview`);
         assert.equal(await hero.locator('img[src*="victoria-venezuela"]').count(), 0, `${label}: Victoria photo should appear in the case study`);
         const platform = page.locator('#guest-platform');
         assert.equal(await platform.getByRole('heading', { name: 'One platform for the event and the year ahead' }).count(), 1, `${label}: nonprofit platform overview`);
@@ -134,7 +141,7 @@ function url(route) {
         assert.equal(await page.getByText(/up to (60|80)%/).count(), 0, `${label}: unapproved discount remains`);
       }
       if (route === 'corporate-events') {
-        const serviceCards = page.locator('.vnv-service-grid-card').filter({ has: page.locator('a', { hasText: 'REQUEST SERVICE' }) });
+        const serviceCards = page.locator('#corporate-services .vnv-service-grid-card');
         assert.equal(await serviceCards.count(), 4, `${label}: four ordinary service cards expected`);
         for (const [service, destination] of [['Sound', 'vnv-live'], ['Multimedia', 'photo-booth-rental-video-photography-services-in-south-florida'], ['Staffing', 'event-staffing/']]) {
           const card = page.locator('.vnv-service-grid-card').filter({ has: page.getByRole('heading', { name: service, exact: true }) });
