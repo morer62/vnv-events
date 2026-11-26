@@ -211,6 +211,20 @@ function url(route) {
         assert.equal(await page.locator('#agenda .bc-agenda li').count(), 4, `${label}: sample morning agenda`);
         assert.match(await page.locator('.bc-cadence').innerText(), /two mornings a month.*different South Florida venue/i, `${label}: rotating locations`);
         assert.match(await page.locator('#agenda').innerText(), /massage table[\s\S]*On select dates[\s\S]*yoga/i, `${label}: optional wellness experiences`);
+        assert.doesNotMatch(await page.locator('#agenda').innerText(), /\b\d+\s*min\b/i, `${label}: minute-by-minute schedule`);
+      }
+      if (route === 'vnv-events-productions/retro-glam') {
+        const editions = page.locator('[data-retro-edition-open]');
+        assert.equal(await editions.count(), 4, `${label}: four decade concepts`);
+        assert.equal(await page.locator('#agenda').count(), 0, `${label}: retired party schedule`);
+        const opener = editions.first();
+        await opener.click();
+        const dialog = page.locator('dialog[open]');
+        assert.equal(await dialog.getByRole('heading', { name: 'Disco in Gold' }).count(), 1, `${label}: edition dialog`);
+        await page.keyboard.press('Escape');
+        await dialog.waitFor({ state: 'hidden' });
+        await page.waitForFunction(() => document.activeElement?.dataset.retroEditionOpen === 'disco-70s');
+        assert.equal(await opener.evaluate(node => node === document.activeElement), true, `${label}: focus returns to the edition`);
       }
       checks++;
       await context.close();
