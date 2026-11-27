@@ -15,9 +15,9 @@
 <div class="table-responsive"><table class="table"><thead><tr><th scope="col">Organization</th><th scope="col">Environment</th><th scope="col">Status</th><th scope="col">Manager</th><th scope="col">Next action</th></tr></thead>
 <tbody>{% for row in reg.accounts %}<tr>
 <td><a href="{{ base }}?tab={{ tab }}&amp;account_id={{ row.id }}">{{ row.name }}</a></td>
-<td>{{ row.environment|capitalize }}</td><td>{{ row.status == 'pending' ? 'Pending activation' : row.status|capitalize }}</td>
+<td>{{ row.environment|capitalize }}</td><td>{{ row.status == 'pending' ? 'Pending activation' : row.status|capitalize }}{% if row.expired %} · Expired{% endif %}</td>
 <td>{{ reg.managers[row.manager_id]|default('Manager #' ~ row.manager_id) }}</td>
-<td>{% if row.pending_request %}<strong>{{ row.pending_request|capitalize }} requested</strong><br>{% endif %}{{ row.next_action|default('—') }}</td></tr>{% endfor %}</tbody></table></div>
+<td>{% if row.pending_request %}<strong>{{ row.pending_request=='activate' ? 'Activation requested' : 'Deactivation requested' }}</strong><br>{% endif %}{{ row.next_action|default('—') }}</td></tr>{% endfor %}</tbody></table></div>
 {% else %}<p>No organizations are visible in this portfolio yet.</p>{% endif %}
 </div></section>
 {% if reg.caps['accounts.create'] %}
@@ -47,7 +47,9 @@
 </dl>
 {% if reg.access_ready %}<p><a href="{{ account.access_url }}" target="_blank" rel="noopener noreferrer">Open workspace</a></p>
 {% else %}<p>External access is pending domain and trusted TLS verification.</p>{% endif %}
-{% if reg.caps['onboarding.view'] %}<p><a href="{{ base }}?tab=onboarding&amp;account_id={{ account.id }}">View onboarding</a></p>{% endif %}
+{% if reg.caps['onboarding.view'] %}
+{% if reg.training.levels[2] is defined %}<p>Administrator onboarding · {{ reg.training.levels[2].completed }} of {{ reg.training.levels[2].total }} activities verified ({{ reg.training.levels[2].percent }}%).</p>{% endif %}
+<p><a href="{{ base }}?tab=onboarding&amp;account_id={{ account.id }}">View onboarding by member</a></p>{% endif %}
 {% if reg.access_ready %}<label class="d-block">Access URL<input id="pmc-access-url" class="form-control" readonly value="{{ account.access_url }}"></label>
 <button class="btn btn-outline-secondary btn-sm" type="button" data-pmc-copy="pmc-access-url">Copy access URL</button>
 <label class="d-block mt-2">Account information<textarea id="pmc-account-info" class="form-control" rows="6" readonly>Organization: {{ account.name }}
