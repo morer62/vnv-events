@@ -1,0 +1,60 @@
+.cuebook {
+  --cb-ink: #122c31;
+  --cb-body: #37535a;
+  --cb-paper: #f8f8f3;
+  --cb-mint: #a9f1d6;
+  background: var(--cb-paper);
+  color: var(--cb-ink);
+  font-family: Inter, Arial, sans-serif;
+}
+.cb-wrap { width: min(90%, 1180px); margin-inline: auto; }
+.cb-split { display: grid; grid-template-columns: 1fr 1fr; align-items: center; gap: clamp(32px, 5vw, 84px); }
+.cuebook h1, .cuebook h2, .cuebook h3 { margin: 0; color: inherit; font-family: inherit; line-height: 1.08; letter-spacing: -.04em; }
+.cuebook h2 { font-size: clamp(1.9rem, 3.7vw, 3.1rem); }
+.cuebook h3 { font-size: clamp(1.17rem, 1.7vw, 1.5rem); }
+.cuebook p { color: var(--cb-body); font-size: 1.03rem; line-height: 1.65; margin: .8rem 0; }
+.cb-hero { padding-block: clamp(40px, 5.8vw, 88px); background: linear-gradient(116deg, #11282d 25%, #153e42 82%, #184949); color: #fff; }
+.cb-hero h1 { font-size: clamp(3.7rem, 6.9vw, 6.3rem); letter-spacing: -.075em; }
+.cb-hero p { max-width: 54ch; color: #dfebea; }
+.cb-hero .cb-kicker, .cb-sheet .cb-sheet__label { margin: 0 0 .8rem; font-size: .8rem; font-weight: 750; letter-spacing: .14em; text-transform: uppercase; }
+.cb-hero .cb-kicker { color: var(--cb-mint); }
+.cb-hero .cb-lede { font-size: clamp(1.3rem, 2.3vw, 1.88rem); line-height: 1.25; letter-spacing: -.025em; color: white; }
+.cb-actions { display: flex; flex-wrap: wrap; align-items: center; gap: .85rem 1.45rem; margin-top: 1.6rem; }
+.cuebook .cb-button { display: inline-flex; align-items: center; justify-content: center; gap: .6rem; padding: .78rem 1.2rem; min-height: 44px; border-radius: 6px; background: var(--cb-ink); color: #fff; font-weight: 700; text-decoration: none; }
+.cb-hero .cb-button { color: var(--cb-ink); background: var(--cb-mint); }
+.cuebook .cb-link { color: var(--cb-ink); font-weight: 650; text-underline-offset: .23em; text-decoration: underline; }
+.cb-hero .cb-link { color: white; }
+.cuebook a:hover { text-decoration: underline; }
+.cuebook a:focus-visible { outline: 3px solid #bd7019; outline-offset: 4px; }
+.cb-sheet { min-width: 0; padding: clamp(21px, 3.1vw, 46px); border-top: 5px solid var(--cb-mint); border-radius: 8px; background: #f5f5ec; color: var(--cb-ink); box-shadow: 0 12px 38px #081d2033; }
+.cb-sheet .cb-sheet__label { color: #32625e; }
+.cb-sheet h2 { font-size: clamp(1.65rem, 3vw, 2.5rem); }
+.cb-sheet dl { margin: 1.2rem 0 0; }
+.cb-sheet dl div { display: grid; grid-template-columns: 5.5rem minmax(0, 1fr); gap: .8rem; padding-block: .8rem; border-top: 1px solid #c4d3c9; }
+.cb-sheet dl div:last-child { padding-bottom: 0; }
+.cb-sheet dt { font-size: 1.25rem; line-height: 1.25; font-variant-numeric: tabular-nums; }
+.cb-sheet dt small { font-size: .62em; }
+.cb-sheet dd { margin: 0; }
+.cb-sheet dd strong, .cb-sheet dd span { display: block; }
+.cb-sheet dd span, .cb-field figcaption { margin-top: .18rem; font-size: .87rem; color: var(--cb-body); line-height: 1.45; }
+.cb-section, .cb-field { padding-block: clamp(32px, 4vw, 60px); }
+.cb-intro { max-width: 77ch; }
+.cb-workflow, .cb-paths { display: grid; gap: clamp(18px, 2.6vw, 36px); margin-top: 1.7rem; }
+.cb-workflow { grid-template-columns: repeat(3, 1fr); }
+.cb-workflow article { border-top: 2px solid #6d9a91; padding-top: .85rem; }
+.cb-workflow p, .cb-paths p { margin-bottom: 0; }
+.cb-field { background: #e6efeb; }
+.cb-field figure { margin: 0; }
+.cb-field img { display: block; width: 100%; height: auto; aspect-ratio: 4 / 3; object-fit: cover; border-radius: 8px; }
+.cb-field figcaption { margin-top: .55rem; }
+.cb-field h3 { margin-top: 1.65rem; }
+.cb-paths { grid-template-columns: 1fr 1fr; }
+.cb-paths article { display: flex; flex-direction: column; align-items: start; padding: clamp(18px, 2.5vw, 30px); border: 1px solid #c5d2cc; border-radius: 8px; background: #fff; }
+.cb-paths p { margin-bottom: 1.2rem; }
+.cb-paths .cb-button { margin-top: auto; }
+.cb-access { scroll-margin-top: 7rem; }
+@media (max-width: 760px) {
+  .cb-split, .cb-workflow, .cb-paths { grid-template-columns: minmax(0, 1fr); }
+  .cb-wrap { width: 90%; }
+  .cb-sheet dl div { grid-template-columns: 4.7rem minmax(0, 1fr); }
+}

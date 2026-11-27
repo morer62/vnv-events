@@ -39,6 +39,7 @@ function quickRequestRedirect(bool $success = false): void
         'nonprofit-partnerships',
         'corporate-events',
         'sponsor-activation-production',
+        'vnv-support',
         'vnv-events-productions',
     ];
     if (!in_array($route, $allowed, true)) {

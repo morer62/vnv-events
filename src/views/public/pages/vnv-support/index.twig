@@ -1,0 +1,80 @@
+{% extends "templates/base.twig" %}
+{% block title %}{{ seo.title }}{% endblock %}
+{% block meta_description %}{{ seo.description }}{% endblock %}
+{% block canonical %}{{ seo.canonical }}{% endblock %}
+{% set show_whatsapp = true %}
+{% block styles %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<link rel="stylesheet" href="{{ asset_for('assets/css/vnv-cuebook.css', {v: '1'}) }}">
+{% endblock %}
+{% block body %}
+{% include "templates/layout/publicHeaderVnv.html.twig" %}
+<main class="cuebook">
+  <section class="cb-hero" aria-labelledby="cuebook-title">
+    <div class="cb-wrap cb-split">
+      <div>
+        <p class="cb-kicker">VNV Support</p>
+        <h1 id="cuebook-title">Cuebook</h1>
+        <p class="cb-lede">The workspace behind your event.</p>
+        <p>When doors open, your front desk needs the guest list, your stage manager needs the next cue and your sponsor needs to know who is handling their moment. Cuebook keeps them working from the same plan.</p>
+        <div class="cb-actions">
+          <a class="cb-button" href="#partner-access">Get access with VNV <span aria-hidden="true">↓</span></a>
+          <a class="cb-link" href="{{ path('login') }}">VNV client sign-in</a>
+        </div>
+      </div>
+      <div class="cb-sheet">
+        <p class="cb-sheet__label">Sample run of show</p>
+        <h2>Opening the doors</h2>
+        <dl>
+          <div><dt>5:30 <small>PM</small></dt><dd><strong>Crew briefing</strong><span>Producer · Confirm roles and handoffs</span></dd></div>
+          <div><dt>6:00 <small>PM</small></dt><dd><strong>Guest arrival</strong><span>Welcome desk · Check in guests and companions</span></dd></div>
+          <div><dt>6:30 <small>PM</small></dt><dd><strong>Sponsor welcome</strong><span>Stage manager · Cue the host and sponsor slide</span></dd></div>
+        </dl>
+      </div>
+    </div>
+  </section>
+
+  <section class="cb-wrap cb-section" aria-labelledby="cb-work">
+    <h2 id="cb-work">How we run the event together</h2>
+    <p class="cb-intro">Jonathan Moreno leads production at VNV Events. He created the software and the working method our producers use with your team, from the first brief through the final handoff.</p>
+    <div class="cb-workflow">
+      <article><h3>Before the event</h3><p>Agree on who owns each task. Build the run of show, collect RSVPs and give vendors and sponsors a deadline for each deliverable.</p></article>
+      <article><h3>On the floor</h3><p>Check in a guest even if their party arrives separately. Share a schedule change with the crew and give the next cue to the person responsible.</p></article>
+      <article><h3>After the doors close</h3><p>Review attendance, record what each sponsor received and give outstanding follow-ups an owner. Keep the workspace for the next event.</p></article>
+    </div>
+  </section>
+
+  <section class="cb-field" aria-labelledby="cb-mobile">
+    <div class="cb-wrap cb-split">
+      <figure>
+        <img src="{{ asset_for('assets/images/case-studies/victoria-venezuela-2026-P4078.webp') }}" alt="Guests and junior golfers arriving at the Victoria Venezuela Foundation welcome desk" width="960" height="640" loading="lazy" decoding="async">
+        <figcaption>Victoria Venezuela Foundation · 2026 charity golf tournament, Weston</figcaption>
+      </figure>
+      <div>
+        <h2 id="cb-mobile">A direct line from the floor to your producer</h2>
+        <p>When a speaker changes the order, open the VNV Events app to check the schedule and message the production team from your phone. Clients can follow their event updates, and crew members see their assigned work.</p>
+        <a class="cb-link" href="https://apps.apple.com/us/app/vnv-events/id6747983836">See the VNV Events iPhone app <span aria-hidden="true">↗</span></a>
+        <h3>An app in your organization's name</h3>
+        <p>A branded app can be part of an agreed production or nonprofit support plan. At Victoria Venezuela Foundation's golf tournament, guests used the foundation's portal or iOS app to RSVP and manage companions. Staff checked arrivals against the same list.</p>
+        <a class="cb-link" href="https://apps.apple.com/us/app/victoria-venezuela-foundation/id6820720423">See the foundation's iOS app <span aria-hidden="true">↗</span></a>
+      </div>
+    </div>
+  </section>
+
+  <section class="cb-wrap cb-section cb-access" id="partner-access" aria-labelledby="cb-access-title">
+    <h2 id="cb-access-title">Bring Cuebook to your event</h2>
+    <p class="cb-intro">Setup and access to the tools in your agreement are included at no additional cost. Your team can keep using its workspace for future events. We agree on the scope of a dedicated mobile app with you.</p>
+    <div class="cb-paths">
+      <article><h3>Companies and brands</h3><p>When you hire VNV for production, we set up the workspace around your event or series. Tell us what you are producing and we can walk you through the workflow that fits your team.</p>
+        <a class="cb-button" href="{{ path('corporate-events') }}#corporate-partnerships" data-vnv-open-quick-request data-quick-request-type="CORPORATE" data-quick-request-source="vnv_support_corporate">Talk to a producer <span aria-hidden="true">↗</span></a>
+      </article>
+      <article><h3>Foundations and nonprofits</h3><p>Apply through Cause on Cue. If your event is selected, the approved support plan defines your guest, volunteer and sponsor tools, any year-round donation features and whether a branded app is included.</p>
+        <a class="cb-button" href="{{ path('nonprofit-partnerships') }}#application">Apply for nonprofit support <span aria-hidden="true">↗</span></a>
+      </article>
+    </div>
+  </section>
+</main>
+{% include "templates/components/publicEventRequestModal.html.twig" with {request_form_action: path('api/public/event-request'), request_form_source: 'vnv_support'} %}
+{% include "templates/components/publicQuickRequestModal.html.twig" with {quick_request_type: 'CORPORATE', quick_request_source: 'vnv_support_corporate', quick_request_title: 'Discuss your event with a producer', quick_request_cta: 'Send inquiry'} %}
+{% include "templates/layout/publicFooterVnv.html.twig" %}
+{% endblock %}
