@@ -13,14 +13,19 @@ $router->get(function () {
         $_SESSION['quick_request_csrf'] = bin2hex(random_bytes(24));
     }
 
+    $sponsorQuestion = 'Can VNV manage sponsors we already have or introduce new ones?';
+    $sponsorAnswer = 'Yes. Under your Approved Support Plan, we can be the event contact for confirmed sponsors, collect their logos, coordinate recognition and recap what each sponsor received. We can also introduce prospective sponsors or donors when both parties agree. Your nonprofit approves the partners and terms and leads fundraising. Introductions do not guarantee funding.';
+
     $seo = [
         'title' => 'Cause on Cue 2027 | Nonprofit Impact Initiative',
-        'description' => 'Cause on Cue 2027 offers South Florida nonprofits fundraiser production, a branded digital guest platform and optional donor or sponsor introductions.',
+        'description' => 'Cause on Cue 2027 helps South Florida nonprofits produce fundraisers, manage event sponsors and coordinate guest registration and check-in.',
         'canonical' => 'https://vnvevents.com/nonprofit-partnerships/',
     ];
 
     return TemplateResponse::render(__DIR__ . '/index.twig', [
         'seo' => $seo,
+        'sponsor_question' => $sponsorQuestion,
+        'sponsor_answer' => $sponsorAnswer,
         'partnership_csrf' => $_SESSION['partnership_csrf'],
         'submitted' => isset($_GET['submitted']),
         'quick_request_csrf' => $_SESSION['quick_request_csrf'],
@@ -44,7 +49,7 @@ $router->get(function () {
                     '@type' => 'FAQPage',
                     'mainEntity' => [
                         ['@type' => 'Question', 'name' => 'Can we apply without a confirmed event?', 'acceptedAnswer' => ['@type' => 'Answer', 'text' => 'Yes. Tell us what you want your fundraiser to accomplish and what support you need. You can add the date and venue later.']],
-                        ['@type' => 'Question', 'name' => 'Can VNV help us connect with donors or sponsors?', 'acceptedAnswer' => ['@type' => 'Answer', 'text' => 'Yes. For an approved project, we can help define sponsor opportunities and facilitate introductions when both parties agree. Your organization makes the fundraising decisions. Introductions do not guarantee sponsorship, donations or fundraising results.']],
+                        ['@type' => 'Question', 'name' => $sponsorQuestion, 'acceptedAnswer' => ['@type' => 'Answer', 'text' => $sponsorAnswer]],
                         ['@type' => 'Question', 'name' => 'What does the program cover?', 'acceptedAnswer' => ['@type' => 'Answer', 'text' => 'VNV Events provides professional and operational support within a written Approved Support Plan. The program does not guarantee approval, cash grants, funding, sponsors, fundraising results, a free event or catering, payment of venues, materials or vendors, unlimited staffing or software development, or ongoing technical support.']],
                         ['@type' => 'Question', 'name' => 'How will we review results?', 'acceptedAnswer' => ['@type' => 'Answer', 'text' => 'VNV and the organization agree on expected outcomes in the support plan and review the work after delivery. We report only results that can be verified.']],
                     ],
