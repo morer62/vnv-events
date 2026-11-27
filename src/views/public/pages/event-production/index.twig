@@ -131,6 +131,12 @@ h1, h2, h3, h4, h5, .luxury-font {
 .ve-page--production .production-brief {
     padding-block: clamp(36px, 4.5vw, 72px);
 }
+.ve-page--production .production-method {
+    padding-block-end: clamp(32px, 4vw, 56px);
+}
+.ve-page--production .production-questions {
+    padding-block-start: 0;
+}
 
 .vnv-badge {
     display: inline-flex;
@@ -617,6 +623,31 @@ h1, h2, h3, h4, h5, .luxury-font {
     position: absolute;
     left: 0;
     top: 11px;
+}
+
+@media (min-width: 992px) {
+    .process-step:last-child:nth-child(odd) {
+        grid-column: 1 / -1;
+        display: grid;
+        grid-template-columns: auto minmax(0, 1fr) minmax(0, .6fr);
+        column-gap: 28px;
+        align-content: center;
+    }
+    .process-step:last-child:nth-child(odd) .process-number {
+        grid-row: 1 / 3;
+        margin-bottom: 0;
+    }
+    .process-step:last-child:nth-child(odd) p {
+        grid-column: 2;
+        margin-bottom: 0;
+    }
+    .process-step:last-child:nth-child(odd) ul {
+        grid-column: 3;
+        grid-row: 1 / 3;
+        align-self: center;
+        margin: 0;
+    }
+    .process-step:last-child:nth-child(odd) li:last-child { margin-bottom: 0; }
 }
 
 .production-wrap {
@@ -1152,7 +1183,7 @@ h1, h2, h3, h4, h5, .luxury-font {
     </div>
 </section>
 
-<section class="section-vnv section-white">
+<section class="section-vnv section-white production-method">
     <div class="container">
         <div class="section-heading">
             <span class="vnv-badge">Our Production Method</span>
@@ -1169,11 +1200,11 @@ h1, h2, h3, h4, h5, .luxury-font {
     </div>
 </section>
 
-<section class="section-vnv section-white">
+<section class="section-vnv section-white production-questions" id="production-questions" aria-labelledby="production-questions-title">
     <div class="container">
         <div class="text-center section-heading" style="margin-left:auto;margin-right:auto;">
             <span class="vnv-badge">Common Questions</span>
-            <h2>Planning your first consultation</h2>
+            <h2 id="production-questions-title">Planning your first consultation</h2>
         </div>
 
         <div class="faq-wrap" style="color:var(--vnv-text-dark);">
