@@ -5,6 +5,14 @@
 {% block body %}
 <main class="vnv-team-home mt-4 container pb-5">
   {% include 'panel/shared/automation/frog-banner.twig' %}
+  {% if productionsCenterNav %}
+    <section class="card my-3"><div class="card-body">
+      <h2 class="h4">Productions Management Center</h2>
+      <p>Review your assigned opportunities, production deadlines and workspace training.</p>
+      <a class="btn btn-primary" href="{{ path('panel/productions-management-center') }}">Open Productions</a>
+      <a class="btn btn-outline-primary" href="{{ path('panel/productions-management-center') }}?tab=tasks">My production tasks</a>
+    </div></section>
+  {% endif %}
 
   <style>
     :root{

@@ -110,8 +110,14 @@ class TemplateResponse
 
         $currentCanonicalUrl = self::getCurrentCanonicalUrl();
         $clubNavigation = false;
+        $productionsNav = false;
         if (str_starts_with(str_replace('\\', '/', $templateChild), 'panel/')) {
-            $clubNavigation = \App\Services\BreakClubPanel::showNavigation(LoginService::getSession());
+            $panelUser = LoginService::getSession();
+            $clubNavigation = \App\Services\BreakClubPanel::showNavigation($panelUser);
+            if ($panelUser && \App\Services\BreakClubPanel::inClubTenant($panelUser)) {
+                $productionsNav = ($panelUser->getLevel() === 1 && (int)$panelUser->getId() === SiteContext::businessOwnerId())
+                    || ($panelUser->getLevel() === 4 && $panelUser->hasPermissionForModule('pmc_center'));
+            }
         }
         if (empty($data['seo']) || !is_array($data['seo'])) {
             $staticSeo = self::extractStaticSeoBlocks($templateLocation);
@@ -133,6 +139,7 @@ class TemplateResponse
             "env" => $_ENV,
             "current_canonical_url" => $currentCanonicalUrl,
             "breakClubNav" => $clubNavigation,
+            "productionsCenterNav" => $productionsNav,
             "current_location" => TwigUtils::getCurrentLocation($templateChild),
             "notifications" => $notifications,
             "notifications_count" => $notifications_count,

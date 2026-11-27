@@ -49,7 +49,20 @@ class UserFeaturePermissionsRepository extends BaseRepository
 
         $this->db->beginTransaction();
         try {
-            $this->removeAllByUserId($userId);
+            // Center delegation is controlled separately by VNV direction. A normal
+            // management form may only replace the permissions it presents.
+            $managed = array_merge(array_keys($allowed), [UserPermissions::MANAGEMENT_CONFIGURED, UserPermissions::CRM]);
+            $parameters = [];
+            foreach ($managed as $index => $slug) {
+                $parameters[':scope'.$index] = $slug;
+            }
+            $in = implode(',', array_keys($parameters));
+            $this->db->query("DELETE FROM {$this->table} WHERE id_user=:user AND feature_slug IN ($in)");
+            $this->db->bind(':user', $userId);
+            foreach ($parameters as $parameter => $value) {
+                $this->db->bind($parameter, $value);
+            }
+            $this->db->execute();
             $this->addPermission($userId, UserPermissions::MANAGEMENT_CONFIGURED);
             foreach (array_keys($selected) as $slug) {
                 $this->addPermission($userId, $slug);
