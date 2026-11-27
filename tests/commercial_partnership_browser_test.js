@@ -46,13 +46,23 @@ function url(route) {
       assert.equal(canonical, route === '' ? 'https://vnvevents.com/' : `https://vnvevents.com/${route}/`, `${label}: canonical`);
       assert.equal(await page.locator('body').innerText().then((text) => /Ophyra/i.test(text)), false, `${label}: internal software brand is publicly visible`);
 
+      if (route && route !== 'vnv-events-productions/retro-glam') {
+        const film = page.locator('.vnv-caption-frame video[controls]');
+        assert.equal(await film.count(), 1, `${label}: captioned feature film`);
+        const source = await film.locator('source').getAttribute('src');
+        assert.match(source, /\/production-films\/v6\/[^/]+\.mp4$/, `${label}: current film`);
+        const captions = film.locator('track[kind="captions"][srclang="en"]');
+        assert.equal(await captions.getAttribute('src'), source.replace(/\.mp4$/, '-en.vtt'), `${label}: matching English captions`);
+        assert.equal(await captions.getAttribute('default'), null, `${label}: opt-in captions`);
+      }
       if (['nonprofit-partnerships', 'corporate-events', 'sponsor-activation-production'].includes(route)) {
         const offer = page.locator('.vnv-offer__spread');
         assert.equal(await offer.count(), 1, `${label}: production offer`);
-        assert.equal(await offer.locator('.vnv-offer__deliverables li').count(), 3, `${label}: scope examples`);
+        assert.equal(await offer.locator('.vnv-offer__deliverables li').count(), route === 'sponsor-activation-production' ? 4 : 3, `${label}: scope examples`);
         assert.equal(await page.locator('video source[src*="/video/productions/"]').count(), 0, `${label}: retired explainer`);
-        assert.equal(await page.locator('.vnv-film video source[src*="/production-films/v4/"]').count(), 1, `${label}: current promo video`);
-        assert.doesNotMatch(await offer.innerHTML(), /victoria[- ]venezuela/i, `${label}: case-study attribution in production offer`);
+        if (route === 'nonprofit-partnerships') {
+          assert.match(await offer.innerText(), /Victoria Venezuela Foundation/i, `${label}: attributed fundraiser photograph`);
+        }
       }
 
       if (route === '') {

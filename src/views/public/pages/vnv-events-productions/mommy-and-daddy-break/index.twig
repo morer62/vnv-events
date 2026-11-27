@@ -5,7 +5,8 @@
 {% block og_image %}https://vnvevents.com/assets/break-club/hero-miami-morning.webp{% endblock %}
 {% block og_image_alt %}Illustrative Miami poolside brunch for the Mommy and Daddy Break Club{% endblock %}
 {% block styles %}
-<link rel="stylesheet" href="{{ asset_for('assets/break-club/landing.css', { v: 'morning-agenda-2' }) }}">
+<link rel="stylesheet" href="{{ asset_for('assets/break-club/landing.css', { v: 'morning-film-3' }) }}">
+<link rel="stylesheet" href="{{ asset_for('assets/css/vnv-film-captions.css') }}">
 {% endblock %}
 {% block body %}
 {% include "templates/layout/publicHeaderVnv.html.twig" %}
@@ -21,7 +22,7 @@
             <a class="bc-member-link" href="{{ path('panel/break-club') }}">Already a member? Open your dashboard</a>
         </div>
         <div class="bc-hero-film" data-vnv-preview data-mobile-width="610">
-            <video id="club-film" muted loop playsinline preload="none" poster="{{ asset_for('assets/break-club/hero-miami-morning.webp') }}" aria-label="A concept preview of a Miami morning club for parents with poolside brunch, a DJ, massage tables, photo moments and relaxed conversation" data-src="{{ asset_for('assets/break-club/hero-miami-morning.mp4') }}" data-mobile-src="{{ asset_for('assets/break-club/hero-miami-morning-mobile.mp4') }}"></video>
+            <video id="club-film" muted loop playsinline preload="none" poster="{{ asset_for('assets/video/production-films/v6/morning-club-preview.webp') }}" aria-label="A preview of a South Florida morning social for parents" data-src="{{ asset_for('assets/video/production-films/v6/morning-club-preview.mp4') }}" data-mobile-src="{{ asset_for('assets/video/production-films/v6/morning-club-preview-mobile.mp4') }}"></video>
             <button class="bc-film-toggle" type="button" aria-controls="club-film" data-pause-label="Pause film" hidden>Play film</button>
         </div>
     </section>
@@ -32,7 +33,14 @@
             <h2 id="experience-title">Come alone.<br><em>Pull up a chair.</em></h2>
             <p class="bc-intro">Come on your own or bring one other adult. The club meets for about three hours, with time to recharge, meet other parents and discover a different South Florida setting. Your invitation lists the venue, activities and what your ticket includes.</p>
             <p class="bc-intro">Childcare is arranged separately by each guest.</p>
-            <a class="bc-text-link bc-watch-link" href="{{ asset_for('assets/video/production-films/v4/morning-club.mp4') }}" target="_blank" rel="noopener">Watch and share with sound <span aria-hidden="true">↗</span></a>
+            <figure class="bc-feature-film vnv-caption-frame" id="morning-club-film">
+                <video controls playsinline preload="none" width="1280" height="720" aria-label="A morning at Mommy and Daddy Break Club" poster="{{ asset_for('assets/video/production-films/v6/morning-club.webp') }}">
+                    <source src="{{ asset_for('assets/video/production-films/v6/morning-club.mp4') }}" type="video/mp4">
+                    <track kind="captions" srclang="en" label="English" src="{{ asset_for('assets/video/production-films/v6/morning-club-en.vtt') }}">
+                </video>
+                {% include 'templates/components/vnvFilmCaptions.html.twig' with {caption_id: 'morning-club-captions'} only %}
+                <figcaption><a class="bc-text-link bc-watch-link" href="{{ asset_for('assets/video/production-films/v6/morning-club.mp4') }}" target="_blank" rel="noopener">Open the film with sound <span aria-hidden="true">↗</span></a></figcaption>
+            </figure>
         </div>
         <div id="agenda">
             <ol class="bc-agenda" role="list">
@@ -88,5 +96,5 @@
 {% endblock %}
 {% block scripts %}
 <script defer src="{{ asset_for('assets/break-club/landing.js', { v: 'party-fields-1' }) }}"></script>
-<script defer src="{{ asset_for('assets/js/vnv-production-editorial.js') }}"></script>
+<script defer src="{{ asset_for('assets/js/vnv-production-editorial.js', {v: 'film-captions-1'}) }}"></script>
 {% endblock %}

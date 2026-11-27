@@ -24,6 +24,46 @@
         if (!motion.matches && !navigator.connection?.saveData) play();
     });
 
+    document.querySelectorAll('.vnv-caption-frame').forEach(frame => {
+        const video = frame.querySelector('video');
+        const captions = frame.querySelector('.vnv-film-captions');
+        const trackElement = video?.querySelector('track[kind="captions"][srclang="en"]');
+        if (!captions || !trackElement?.track) return;
+
+        const track = trackElement.track;
+        const button = captions.querySelector('button');
+        const text = captions.querySelector('.vnv-film-captions__text');
+        let enabled = false;
+        let iosFullscreen = false;
+        const fullscreen = () => document.fullscreenElement === video || iosFullscreen;
+
+        function render() {
+            button.setAttribute('aria-pressed', String(enabled));
+            text.hidden = !enabled || fullscreen();
+            text.textContent = text.hidden ? '' : Array.from(track.activeCues || [], cue => cue.text).join('\n');
+        }
+        function updateMode() {
+            // The inline rail and the full-screen renderer use the same timed track.
+            if (enabled) track.mode = fullscreen() ? 'showing' : 'hidden';
+            render();
+        }
+        button.addEventListener('click', () => {
+            enabled = !enabled;
+            if (!enabled) track.mode = 'disabled';
+            updateMode();
+        });
+        track.addEventListener('cuechange', render);
+        trackElement.addEventListener('load', render);
+        video.textTracks.addEventListener('change', () => {
+            if (track.mode === 'disabled' || (!fullscreen() && track.mode === 'showing')) enabled = false;
+            render();
+        });
+        document.addEventListener('fullscreenchange', updateMode);
+        video.addEventListener('webkitbeginfullscreen', () => { iosFullscreen = true; updateMode(); });
+        video.addEventListener('webkitendfullscreen', () => { iosFullscreen = false; updateMode(); });
+        captions.hidden = false;
+    });
+
     document.querySelectorAll('[data-vnv-share-film]').forEach(button => {
         if (!navigator.share && !navigator.clipboard) return;
         const status = button.closest('.ve-film__tools').querySelector('[role="status"]');

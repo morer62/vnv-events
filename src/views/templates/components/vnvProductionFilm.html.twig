@@ -1,4 +1,4 @@
-{% set media = film.media|default('assets/video/production-films/v4/' ~ film.slug) %}
+{% set media = film.media|default('assets/video/production-films/v6/' ~ film.slug) %}
 <section class="vnv-film ve-film" aria-labelledby="{{ film.slug }}-film-title" id="{{ film.slug }}-film">
   <div class="vnv-offer__wrap vnv-film__layout">
     <div class="vnv-film__copy">
@@ -10,14 +10,13 @@
         <a class="vnvp-button vnvp-button--gold" href="{{ film.href }}">{{ film.cta }}</a>
       {% endif %}
     </div>
-    <figure class="vnv-film__media">
+    <figure class="vnv-film__media vnv-caption-frame">
       <video class="vnv-film__player" controls playsinline preload="none" width="1280" height="720" poster="{{ asset_for(media ~ '.webp') }}" aria-labelledby="{{ film.slug }}-film-title" aria-describedby="{{ film.slug }}-film-credit">
         <source src="{{ asset_for(media ~ '.mp4') }}" type="video/mp4">
-        {% if film.show_captions ?? (not film.music_only|default(false)) %}
-          <track kind="captions" srclang="en" label="English" src="{{ asset_for(media ~ '-en.vtt') }}">
-        {% endif %}
+        <track kind="captions" srclang="en" label="English" src="{{ asset_for(media ~ '-en.vtt') }}">
         <a href="{{ asset_for(media ~ '.mp4') }}">Download the video</a>
       </video>
+      {% include 'templates/components/vnvFilmCaptions.html.twig' with {caption_id: film.slug ~ '-captions'} only %}
       <figcaption id="{{ film.slug }}-film-credit">{{ film.credit ?? (film.music_only|default(false) ? 'AI-generated scenes with instrumental music' : 'AI-generated narration') }}</figcaption>
       <div class="ve-film__tools">
         <a href="{{ asset_for(media ~ '.mp4') }}" target="_blank" rel="noopener">Open film with sound</a>

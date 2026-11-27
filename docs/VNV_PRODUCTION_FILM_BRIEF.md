@@ -1,25 +1,26 @@
 # VNV Events production films
 
-## Direction
+## Picture and sound
 
-The five overview films run about 40 seconds each in 16:9. The Morning Club share cut runs about 26 seconds. Lead with what VNV produces and show how the event management system connects the team doing the work. Use neutral Seedance footage, original diagrams and generic VNV portfolio material. Keep third-party names, photography and identifiable screens in their dedicated case studies.
+Use this brief for the films on the public Productions pages, including both Original Experiences films and their mobile and desktop previews.
 
-Record with OpenAI Marin and edit locally. Use CapCut for illustrative footage. Align English captions to the final narration, retain the provenance of illustrative footage and identify the AI narration for viewers. Use a white closing slate with the official VNV Events logo, one call to action and the website. Keep the landing-page previews silent and looping.
+Build every shot from video with visible action. Use cleared VNV footage, generated moving footage, a screen recording of a working interface, or an original animation showing a real change. For example, a guest checks in and the arrival count updates. A still photo with a crop, zoom, dissolve or parallax still counts as a photo and is excluded from the timeline. Use a frame from the finished video for the player poster. Event photographs on the website can illustrate a documented case study.
 
-## Cause on Cue 2027
+Keep each shot while it explains a new step. The sound mix should keep music audible under any narration. Close with the official brand and one relevant action over moving footage. The landing-page previews loop silently. Keep a source and time range for each shot so the next editor can distinguish moving rushes from a photo baked into an older MP4.
 
-> We produce fundraisers for South Florida nonprofits. Our team brings years of event experience to planning, sponsor outreach, vendor logistics and running the day. We use one management system to keep your team connected, from the first invitation to check-in. Keep using it year-round to accept donations, recruit volunteers and offer sponsorship packages. We can even develop a mobile app for your organization at no cost. That’s Cause on Cue, our twenty twenty-seven program. Tell us about the fundraiser you want to produce.
+## What the system offer means
 
-Open on an illustrative fundraiser room and cut to sound and service. Use two original graphics to show the event team working from one plan and the platform supporting donations, volunteers, sponsorship packages and mobile app development year-round. Close with the official VNV Events logo and the fundraiser inquiry.
+When VNV produces an event, VNV includes the digital event and logistics system in the production at no extra cost. The client’s team can keep using it for future events. For foundations with an approved Cause on Cue production, the system is free and the foundation keeps access for future fundraisers. Custom mobile app development follows the foundation’s approved support plan.
 
-## Corporate Events
+Show the relevant work one step at a time:
 
-> A corporate event works when everyone knows what needs to happen next. Our team brings years of production experience to your conference, launch or client event. We coordinate the venue and vendors, set the cues for sound and presentations, and manage hospitality and staffing on the day. Our event platform gives the crew one place for the schedule, updates and assignments. The platform can also handle guest registration and check-in. Tell us what you want to accomplish. Let’s build the production around it.
+- Full production and corporate events can show a crew assignment, a schedule change, an RSVP and a guest check-in.
+- Cause on Cue can show volunteers receiving assignments, sponsor benefits being fulfilled and a foundation preparing its next fundraiser.
+- Sponsor activation can follow the artwork into the booth, then show a visitor choosing to share their details and the team preparing the agreed follow-up.
+- Original Experiences and Mommy & Daddy Break are for attending or hosting a social event. Show what guests experience and how to join the appropriate list.
 
-Use the stage, speaker and hospitality shots to show the physical work involved. An animated run of show connects the crew’s assignments, updates and check-in. Close with the corporate event inquiry.
+## Captions and release review
 
-## Brand Activation
+Provide an optional English WebVTT track on every full player. Time spoken captions to the final voice recording, including the exact offer on recordings that explain pricing. For music-led pieces, identify the music and describe the service or action concisely. “English captions below video” displays the timed text in a high-contrast panel beneath the picture. In full screen, the same track uses native captions. Keep cues to two short lines and place native cues in an area clear of headlines, faces and controls. Keep the page’s silent hero preview free of captions.
 
-> Give guests a reason to stop. A trade show booth with printed graphics. A live demo worth seeing. We plan and produce sponsor experiences around what you want people to do. We design the space, coordinate vendors and installation, and staff the experience on-site. Our production system keeps the brand, organizer and event team aligned on approvals, schedules and what to capture for the recap. Tell us who you want to reach. Let’s build the experience around them.
-
-Open on an illustrative trade show stand. Show the printed backdrop, counter graphics, signage and a product demo. Use a booth-flow diagram for arrival, engagement and follow-up, then show how the brand and event team align on approvals, scheduling and the recap. Close with the activation brief.
+Review the source timeline for stills, overlay marks and repeated shots. Decode each final export completely and inspect the opening, each transition and the moving close. Play the published film on mobile and desktop with captions both off and on, check the caption position over the brightest shot, then seek to the last cue. Confirm the correct silent preview plays at each size and that the controls respect reduced-motion preferences.
