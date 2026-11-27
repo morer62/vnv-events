@@ -5,6 +5,7 @@ declare(strict_types=1);
 require dirname(__DIR__) . '/vendor/autoload.php';
 
 use App\Repositories\CommercialPartnershipRepository;
+use App\Services\RetroGlamEditions;
 use Dotenv\Dotenv;
 
 $root = dirname(__DIR__);
@@ -15,6 +16,7 @@ $suffix = bin2hex(random_bytes(5));
 $email = 'qa-commercial-' . $suffix . '@example.org';
 $organization = 'VNV QA Brand ' . $suffix;
 $opportunityId = 0;
+$waitlistIds = [];
 
 try {
     $opportunityId = $repository->createPublicOpportunity(2, 'vnvevents', 'ACTIVATION', [
@@ -52,8 +54,25 @@ try {
     }
 
     echo 'Commercial partnership repository integration OK: opportunity, activation brief and consent persisted.' . PHP_EOL;
+
+    foreach (RetroGlamEditions::TITLES as $slug => $title) {
+        $interest = [
+            'contact_name' => 'VNV QA Automation', 'email' => $email,
+            'event_name' => 'Retro Glam · ' . $title, 'retro_edition' => $slug, 'request_kind' => 'waitlist',
+            'source' => 'original_priority_list', 'requested_services' => ['Priority list updates'],
+        ];
+        $id = $repository->createPublicOpportunity(2, 'vnvevents', 'ORIGINAL', $interest);
+        $waitlistIds[] = $id;
+        if ($repository->createPublicOpportunity(2, 'vnvevents', 'ORIGINAL', $interest) !== $id) {
+            throw new RuntimeException('Submitting the same waitlist twice must reuse the original opportunity.');
+        }
+    }
+    if (count(array_unique($waitlistIds)) !== count(RetroGlamEditions::TITLES)) {
+        throw new RuntimeException('One attendee must be able to join all four edition waitlists.');
+    }
+    echo 'Distinct Retro Glam waitlists and repeat submissions verified.' . PHP_EOL;
 } finally {
-    if ($opportunityId > 0) {
+    foreach (array_unique(array_filter([$opportunityId, ...$waitlistIds])) as $opportunityId) {
         foreach (['commercial_activation_orders', 'commercial_consents', 'commercial_activities', 'commercial_audit_logs'] as $table) {
             $column = $table === 'commercial_audit_logs' ? 'entity_id' : 'opportunity_id';
             $repository->db->query("DELETE FROM {$table} WHERE {$column}=:id");

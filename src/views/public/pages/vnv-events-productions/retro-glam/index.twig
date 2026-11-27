@@ -1,49 +1,54 @@
 {% extends "templates/base.twig" %}
 {% block title %}Retro Glam Sessions | VNV Events Productions{% endblock %}
-{% block meta_description %}Explore four Retro Glam Sessions concepts in South Florida, from 70s disco to a 2000s flashback. Join the VNV Events priority list for edition announcements.{% endblock %}
+{% block meta_description %}Explore four Retro Glam Sessions in South Florida, from ’70s disco and ’80s Miami freestyle to ’90s R&B and Y2K hip-hop. Join an edition’s waitlist or request a private event.{% endblock %}
 {% block canonical %}https://vnvevents.com/vnv-events-productions/retro-glam/{% endblock %}
 {% block og_image %}https://vnvevents.com/assets/retro-glam/hero.webp{% endblock %}
 {% block og_image_alt %}An illustrated Art Deco ballroom concept for Retro Glam Sessions{% endblock %}
 
 {% set editions = [
   {
-    slug: 'disco-70s', era: '1970s', title: 'Disco in Gold',
+    slug: 'disco-70s', era: '1970s',
     image: 'disco-70s.webp', alt: 'Guests dancing under a gold mirror ball in a velvet ballroom',
     teaser: 'Disco, funk and soul under a mirror ball.',
+    introduction: 'A dress-up disco party with the DJ moving from soul to funk as the mirror ball lights up the floor.',
     sound: 'A DJ set of disco, funk and soul. Live percussion can join the set on select editions.',
     room: 'Gold mirror-ball light, warm brass and velvet with a dance floor at the center.',
     photo: 'A mirror-ball portrait set with amber light and a metallic backdrop.'
   },
   {
-    slug: 'neon-80s', era: '1980s', title: 'Neon Nights',
+    slug: 'neon-80s', era: '1980s',
     image: 'neon-80s.webp', alt: 'A DJ at turntables lit in pink and blue',
     teaser: 'Synth-pop and Miami freestyle in electric color.',
+    introduction: 'A Miami freestyle and synth-pop dance night with neon lighting and chrome photo sets inspired by the city’s 1980s clubs.',
     sound: 'Synth-pop, dance-floor classics and Miami freestyle, with a live sax feature on select editions.',
     room: 'Chrome, sharp silhouettes and a dance floor lit in magenta and electric blue.',
     photo: 'A chrome portrait set with colored light shaped around each guest.'
   },
   {
-    slug: 'after-dark-90s', era: '1990s', title: 'After Dark',
+    slug: 'after-dark-90s', era: '1990s',
     image: 'after-dark-90s.webp', alt: 'Guests in eveningwear socializing beside a teal velvet lounge',
     teaser: 'R&B, house and club classics with a lounge feel.',
+    introduction: 'A ’90s club night that opens with R&B grooves and builds into house anthems. The velvet lounge gives guests a place to catch up between sets.',
     sound: 'A DJ set of R&B, house and club favorites. Guest vocals can be featured when the edition calls for them.',
     room: 'Dark teal velvet, amber lamps and room for dancing or catching up in the lounge.',
     photo: 'A softly lit portrait spot with the feel of a late-night club editorial.'
   },
   {
-    slug: 'flashback-00s', era: '2000s', title: 'Flashback',
+    slug: 'flashback-00s', era: '2000s',
     image: 'flashback-00s.webp', alt: 'An eveningwear pair on a red carpet with chrome accents',
     teaser: 'Y2K pop and hip-hop with a red-carpet entrance.',
+    introduction: 'An early-2000s red-carpet party. Step into a flashbulb portrait, then hit the floor for pop hooks and hip-hop throwbacks.',
     sound: 'Early-2000s pop, hip-hop and club hits in a DJ-led throwback set.',
     room: 'A red-carpet arrival, cool silver finishes and a dance floor for the songs everyone knows.',
     photo: 'A chrome-framed red-carpet photo moment inspired by point-and-shoot party portraits.'
   }
 ] %}
-{% set priority = path('vnv-events-productions') ~ '#priority-list' %}
+{% set hub = path('vnv-events-productions') %}
+{% set priority = hub ~ (edition_attribution ? '?' ~ (edition_attribution|url_encode) : '') ~ '#priority-list' %}
 
 {% block styles %}
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="{{ asset_for('assets/css/vnv-retro-glam.css') }}">
+<link rel="stylesheet" href="{{ asset_for('assets/css/vnv-retro-glam.css', {v: 'edition-choices-1'}) }}">
 {% endblock %}
 
 {% block body %}
@@ -67,7 +72,7 @@
   <section class="rg-section rg-shell" id="retro-editions" aria-labelledby="retro-editions-title">
     <header class="rg-section__intro">
       <h2 id="retro-editions-title">Pick your decade</h2>
-      <p>Explore the sound, look and photo moments of four concepts in development. Each announcement will include the venue, lineup and what your ticket covers.</p>
+      <p>Each edition is a night devoted to one decade. Pick yours to join the waitlist for a public date or ask us to produce it for your private event.</p>
     </header>
     <div class="rg-editions">
       {% for edition in editions %}
@@ -75,9 +80,9 @@
           <img src="{{ asset_for('assets/retro-glam/' ~ edition.image) }}" width="1050" height="700" alt="" loading="lazy" decoding="async">
           <div class="rg-edition__copy">
             <p class="rg-kicker">{{ edition.era }}</p>
-            <h3>{{ edition.title }}</h3>
+            <h3>{{ retro_edition_titles[edition.slug] }}</h3>
             <p>{{ edition.teaser }}</p>
-            <button type="button" class="rg-edition__open" data-retro-edition-open="{{ edition.slug }}" aria-controls="retro-dialog-{{ edition.slug }}" aria-haspopup="dialog">Explore <span class="visually-hidden">{{ edition.era }} {{ edition.title }} </span><span aria-hidden="true">↗</span></button>
+            <a class="rg-edition__open" href="#retro-dialog-{{ edition.slug }}" data-retro-edition-open="{{ edition.slug }}" aria-controls="retro-dialog-{{ edition.slug }}" aria-haspopup="dialog">Explore this edition <span class="visually-hidden">{{ retro_edition_titles[edition.slug] }}</span><span aria-hidden="true"> ↗</span></a>
           </div>
         </article>
       {% endfor %}
@@ -100,27 +105,34 @@
 
   <section class="rg-section rg-partners rg-shell" aria-labelledby="retro-partners-title">
     <div>
-      <h2 id="retro-partners-title">Host or sponsor an edition</h2>
-      <p>Bring the night to your venue or partner on a red-carpet moment, a styled photo set, a lounge or a live performance.</p>
+      <h2 id="retro-partners-title">Sponsor a Retro Glam edition</h2>
+      <p>Talk to our team about a venue partnership, a red-carpet photo set or a branded lounge at a future edition.</p>
     </div>
-    <button type="button" class="rg-button" data-vnv-open-sponsor>Talk to VNV Events <span aria-hidden="true">↗</span></button>
+    <button type="button" class="rg-button" data-vnv-open-sponsor>Explore sponsorship <span aria-hidden="true">↗</span></button>
   </section>
 </main>
 
 {% for edition in editions %}
-  <dialog class="rg-dialog" id="retro-dialog-{{ edition.slug }}" aria-labelledby="retro-dialog-title-{{ edition.slug }}">
+  {% set title = retro_edition_titles[edition.slug] %}
+  {% set selection = edition_attribution|merge({edition: edition.slug}) %}
+  <dialog class="rg-dialog" id="retro-dialog-{{ edition.slug }}" aria-labelledby="retro-dialog-title-{{ edition.slug }}" aria-describedby="retro-intro-{{ edition.slug }}">
     <article class="rg-dialog__content">
-      <form class="rg-dialog__close" method="dialog"><button type="submit" autofocus aria-label="Close {{ edition.title }}">×</button></form>
+      <form class="rg-dialog__close" method="dialog"><button type="submit" autofocus aria-label="Close {{ title }}">×</button></form>
       <img class="rg-dialog__photo" src="{{ asset_for('assets/retro-glam/' ~ edition.image) }}" width="1050" height="700" alt="{{ edition.alt }}" loading="lazy" decoding="async">
       <div class="rg-dialog__body">
         <p class="rg-kicker">{{ edition.era }}</p>
-        <h2 id="retro-dialog-title-{{ edition.slug }}">{{ edition.title }}</h2>
+        <h2 id="retro-dialog-title-{{ edition.slug }}">{{ title }}</h2>
+        <p class="rg-dialog__intro" id="retro-intro-{{ edition.slug }}">{{ edition.introduction }}</p>
+        <div class="rg-dialog__actions">
+          <a class="rg-button" href="{{ hub }}?{{ selection|merge({intent: 'waitlist'})|url_encode }}#priority-list">Join this edition’s waitlist</a>
+          <a class="rg-button rg-button--outline" href="{{ hub }}?{{ selection|merge({intent: 'host'})|url_encode }}#priority-list">Request a private event</a>
+        </div>
         <dl class="rg-dialog__details">
           <div><dt>The sound</dt><dd>{{ edition.sound }}</dd></div>
           <div><dt>The room</dt><dd>{{ edition.room }}</dd></div>
           <div><dt>The photo moment</dt><dd>{{ edition.photo }}</dd></div>
         </dl>
-        <a class="rg-button" href="{{ priority }}">Get edition invitations <span aria-hidden="true">↗</span></a>
+        <a class="rg-dialog__return rg-link" href="#retro-editions">Back to the editions</a>
       </div>
     </article>
   </dialog>
@@ -133,5 +145,5 @@
 {% endblock %}
 
 {% block scripts %}
-<script defer src="{{ asset_for('assets/js/vnv-retro-glam.js') }}"></script>
+<script defer src="{{ asset_for('assets/js/vnv-retro-glam.js', {v: 'edition-choices-1'}) }}"></script>
 {% endblock %}

@@ -101,6 +101,7 @@
   gap: clamp(12px, 2vw, 25px);
 }
 .rg-edition {
+  position: relative;
   display: flex;
   min-width: 0;
   flex-direction: column;
@@ -122,8 +123,11 @@
   color: var(--rg-gold);
   font-size: .87rem;
   font-weight: 650;
+  text-decoration: none;
   cursor: pointer;
 }
+.rg-edition__open::after { position: absolute; inset: 0; content: ""; }
+.rg-edition:focus-within { outline: 2px solid var(--rg-gold); outline-offset: 3px; }
 .rg-edition__open:hover { color: #fff; }
 .rg-amenities { border-block: 1px solid var(--rg-line); background: #20161a; }
 .rg-amenities__grid {
@@ -177,10 +181,19 @@
 }
 .rg-dialog__body { padding: clamp(20px, 5vw, 37px); }
 .rg-dialog h2 { font-size: clamp(2.7rem, 7vw, 4.9rem); }
+.rg-dialog .rg-dialog__intro { margin-top: 12px; }
+.rg-dialog__actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 18px; }
+.rg-button--outline { color: var(--rg-gold); background: transparent; }
+.rg-button--outline:hover { color: var(--rg-ink); }
 .rg-dialog__details { display: grid; gap: 12px; margin: 20px 0 21px; }
 .rg-dialog__details > div { padding-top: 11px; border-top: 1px solid var(--rg-line); }
 .rg-dialog__details dt { font-size: .82rem; font-weight: 700; color: var(--rg-gold); }
 .rg-dialog__details dd { margin: 4px 0 0; color: var(--rg-muted); font-size: .94rem; line-height: 1.55; }
+.rg-dialog__return { display: none; }
+/* A direct link to an edition also works when scripted dialogs are unavailable. */
+.rg-dialog:target:not([open]) { position: static; display: block; margin: 20px auto; max-height: none; scroll-margin-top: 86px; }
+.rg-dialog:target:not([open]) .rg-dialog__close { display: none; }
+.rg-dialog:target:not([open]) .rg-dialog__return { display: inline-flex; }
 
 @media (max-width: 990px) {
   .rg-editions, .rg-amenities__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -195,4 +208,5 @@
 @media (max-width: 510px) {
   .rg-editions, .rg-amenities__grid { grid-template-columns: 1fr; }
   .rg-dialog__photo { height: clamp(150px, 25vh, 220px); }
+  .rg-dialog__actions .rg-button { flex: 1 1 100%; justify-content: center; }
 }

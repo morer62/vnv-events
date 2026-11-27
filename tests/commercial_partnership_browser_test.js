@@ -217,14 +217,21 @@ function url(route) {
         const editions = page.locator('[data-retro-edition-open]');
         assert.equal(await editions.count(), 4, `${label}: four decade concepts`);
         assert.equal(await page.locator('#agenda').count(), 0, `${label}: retired party schedule`);
-        const opener = editions.first();
-        await opener.click();
-        const dialog = page.locator('dialog[open]');
-        assert.equal(await dialog.getByRole('heading', { name: 'Disco in Gold' }).count(), 1, `${label}: edition dialog`);
-        await page.keyboard.press('Escape');
-        await dialog.waitFor({ state: 'hidden' });
-        await page.waitForFunction(() => document.activeElement?.dataset.retroEditionOpen === 'disco-70s');
-        assert.equal(await opener.evaluate(node => node === document.activeElement), true, `${label}: focus returns to the edition`);
+        for (const opener of await editions.all()) {
+          const slug = await opener.getAttribute('data-retro-edition-open');
+          const title = await opener.locator('xpath=ancestor::article//h3').innerText();
+          await opener.click();
+          const dialog = page.locator('dialog[open]');
+          assert.equal(await dialog.getByRole('heading', { name: title, exact: true }).count(), 1, `${label}: ${slug} dialog`);
+          for (const [action, intent] of [[/join.*waitlist/i, 'waitlist'], [/request a private event/i, 'host']]) {
+            const link = new URL(await dialog.getByRole('link', { name: action }).getAttribute('href'), page.url());
+            assert.equal(link.searchParams.get('edition'), slug, `${label}: selected edition`);
+            assert.equal(link.searchParams.get('intent'), intent, `${label}: selected intent`);
+          }
+          await page.keyboard.press('Escape');
+          await dialog.waitFor({ state: 'hidden' });
+          await page.waitForFunction(s => document.activeElement?.dataset.retroEditionOpen === s, slug);
+        }
       }
       checks++;
       await context.close();

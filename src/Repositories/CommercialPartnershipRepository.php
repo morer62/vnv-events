@@ -52,9 +52,12 @@ final class CommercialPartnershipRepository
             $organizationId = $this->findOrCreateOrganization($ownerId, $siteKey, $organizationName, $data, $program);
             $contactId = $this->findOrCreateContact($ownerId, $siteKey, $organizationId, $contactName, $email, $data);
 
+            $eventName = trim((string)($data['event_name'] ?? $data['event_organizer'] ?? ''));
+            // The same attendee can join several edition waitlists on the same visit.
+            $editionFilter = $program === 'ORIGINAL' ? ' AND event_name <=> :original_experience' : '';
             $this->db->query(
                 'SELECT id FROM commercial_opportunities
-                 WHERE id_owner=:owner AND site_key=:site AND program=:program AND contact_id=:contact
+                 WHERE id_owner=:owner AND site_key=:site AND program=:program AND contact_id=:contact' . $editionFilter . '
                    AND created_at >= DATE_SUB(NOW(), INTERVAL 30 MINUTE)
                  ORDER BY id DESC LIMIT 1'
             );
@@ -62,13 +65,15 @@ final class CommercialPartnershipRepository
             $this->db->bind(':site', $siteKey);
             $this->db->bind(':program', $program);
             $this->db->bind(':contact', $contactId);
+            if ($program === 'ORIGINAL') {
+                $this->db->bind(':original_experience', $eventName !== '' ? $eventName : null);
+            }
             $duplicate = $this->db->fetchOne();
             if ($duplicate) {
                 $this->db->commit();
                 return (int)$duplicate->id;
             }
 
-            $eventName = trim((string)($data['event_name'] ?? $data['event_organizer'] ?? ''));
             $titleBase = $eventName !== '' ? $eventName : ($organizationName !== '' ? $organizationName : $contactName);
             $title = mb_substr(ucwords(strtolower($program)) . ' · ' . $titleBase, 0, 220);
             $services = $data['requested_services'] ?? [];

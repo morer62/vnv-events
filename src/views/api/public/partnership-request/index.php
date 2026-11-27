@@ -4,6 +4,7 @@ use App\Repositories\CommercialPartnershipRepository;
 use App\Repositories\LeadIntakeRepository;
 use App\Services\EmailService;
 use App\Services\PublicRequestNotification;
+use App\Services\RetroGlamEditions;
 use App\Utils\LocationUtils;
 use App\Utils\MessageUtil;
 use App\Utils\Router;
@@ -22,6 +23,9 @@ function partnershipField(string $key, int $limit = 1000): string
 
 function partnershipRedirect(string $program, bool $success = false): void
 {
+    if ($program === 'ORIGINAL' && (isset($_POST['retro_edition']) || partnershipField('request_kind') === 'waitlist')) {
+        LocationUtils::redirectInternal(RetroGlamEditions::requestPath(partnershipField('retro_edition', 80), 'waitlist', $success));
+    }
     $route = match ($program) {
         'ACTIVATION' => 'sponsor-activation-production',
         'ORIGINAL' => 'vnv-events-productions',
@@ -66,8 +70,13 @@ $router->post(function () {
         partnershipRedirect($program);
     }
 
+    $isRetroWaitlist = isset($_POST['retro_edition']) || partnershipField('request_kind', 30) === 'waitlist';
+    $retroSlug = partnershipField('retro_edition', 80);
+    $retroTitle = RetroGlamEditions::TITLES[$retroSlug] ?? null;
     $now = time();
-    $lastSubmit = (int)($_SESSION['partnership_last_submit'] ?? 0);
+    $lastSubmit = $program === 'ORIGINAL' && $retroTitle !== null
+        ? (int)($_SESSION['retro_waitlist_last'][$retroSlug] ?? 0)
+        : (int)($_SESSION['partnership_last_submit'] ?? 0);
     if ($lastSubmit > 0 && ($now - $lastSubmit) < 15) {
         MessageUtil::setMessage('Please wait a few seconds before sending another request.', 'Request', 'warning');
         partnershipRedirect($program);
@@ -82,6 +91,9 @@ $router->post(function () {
     $consent = isset($_POST['consent']) && (string)$_POST['consent'] === '1';
 
     $errors = [];
+    if ($isRetroWaitlist && ($program !== 'ORIGINAL' || partnershipField('event_name', 220) !== 'Retro Glam' || $retroTitle === null || partnershipField('request_kind', 30) !== 'waitlist')) {
+        $errors[] = 'a valid Retro Glam waitlist edition';
+    }
     if ($contactName === '') $errors[] = 'contact name';
     if ($program !== 'ORIGINAL' && $organizationName === '') $errors[] = $program === 'NONPROFIT' ? 'organization name' : 'brand name';
     if (!filter_var($email, FILTER_VALIDATE_EMAIL)) $errors[] = 'valid email';
@@ -160,6 +172,14 @@ $router->post(function () {
         '_user_agent' => (string)($_SERVER['HTTP_USER_AGENT'] ?? ''),
     ];
 
+    if ($isRetroWaitlist) {
+        $data['request_kind'] = 'waitlist';
+        $data['retro_edition'] = $retroSlug;
+        $data['retro_edition_title'] = $retroTitle;
+        $data['event_name'] = 'Retro Glam · ' . $retroTitle;
+        $data['requested_services'] = ['Priority list updates'];
+        $data['consent_text'] = 'I agree to receive email invitations and updates for ' . $retroTitle . ' from VNV Events.';
+    }
     $ownerId = partnershipOwnerId();
     $siteKey = SiteContext::siteKey();
     try {
@@ -215,12 +235,14 @@ $router->post(function () {
             (string)($_ENV['EVENT_REQUEST_EMAIL'] ?? $_ENV['CONTACT_EMAIL'] ?? '')
         );
 
-        $emailService->sendSimpleEmail(
-            $email,
-            'We received your VNV Events request #' . $opportunityId,
-            '<div style="font-family:Arial,sans-serif;max-width:680px;margin:auto;color:#162124"><h2>Thank you, ' . $safeName . '.</h2><p>We received the ' . htmlspecialchars($label) . ' for <strong>' . $safeOrganization . '</strong>.</p><p>Our team will review the information and follow up. This acknowledgment is not an approval, funding commitment, sponsorship guarantee or confirmation of availability.</p><p>Reference: <strong>VNV-' . $opportunityId . '</strong></p></div>',
-            true
-        );
+        $subject = 'We received your VNV Events request #' . $opportunityId;
+        $body = '<p>We received the ' . htmlspecialchars($label) . ' for <strong>' . $safeOrganization . '</strong>.</p><p>Our team will review the information and follow up. This acknowledgment is not an approval, funding commitment, sponsorship guarantee or confirmation of availability.</p>';
+        if ($isRetroWaitlist) {
+            $subject = 'You’re on the Retro Glam waitlist for ' . $retroTitle;
+            $body = '<p>You’re on the waitlist for <strong>' . htmlspecialchars($retroTitle, ENT_QUOTES, 'UTF-8') . '</strong>. We’ll email you when the date, venue and ticket details are announced.</p>';
+        }
+        $emailService->sendSimpleEmail($email, $subject,
+            '<div style="font-family:Arial,sans-serif;max-width:680px;margin:auto;color:#162124"><h2>Thank you, ' . $safeName . '.</h2>' . $body . '<p>Reference: <strong>VNV-' . $opportunityId . '</strong></p></div>', true);
 
     } catch (Throwable $e) {
         error_log('Commercial partnership acknowledgment error #' . $opportunityId . ': ' . $e->getMessage());
@@ -228,6 +250,10 @@ $router->post(function () {
 
     $_SESSION['partnership_last_submit'] = $now;
     $_SESSION['partnership_csrf'] = bin2hex(random_bytes(24));
+    if ($isRetroWaitlist) {
+        $_SESSION['retro_waitlist_last'][$retroSlug] = $now;
+        $_SESSION['retro_confirmation'] = [$retroSlug, 'waitlist'];
+    }
     MessageUtil::setMessage('Your request was received. Check your email for reference VNV-' . $opportunityId . '.', 'Thank you', 'success');
     partnershipRedirect($program, true);
 });

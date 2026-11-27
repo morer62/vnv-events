@@ -3,6 +3,7 @@
 use App\Repositories\LeadIntakeRepository;
 use App\Services\EmailService;
 use App\Services\PublicRequestNotification;
+use App\Services\RetroGlamEditions;
 use App\Utils\LocationUtils;
 use App\Utils\MessageUtil;
 use App\Utils\Router;
@@ -27,6 +28,9 @@ function quickRequestOwnerId(): int
 
 function quickRequestRedirect(bool $success = false): void
 {
+    if (quickRequestField('form_source', 80) === 'retro_glam_private_event') {
+        LocationUtils::redirectInternal(RetroGlamEditions::requestPath(quickRequestField('retro_edition', 80), 'host', $success));
+    }
     $rawPath = (string)parse_url(quickRequestField('return_path', 240), PHP_URL_PATH);
     $route = trim($rawPath, '/');
     $allowed = [
@@ -81,8 +85,14 @@ $router->post(function () {
     $brief = quickRequestField('project_brief', 1800);
     $consent = quickRequestField('consent', 4) === '1';
     $organizationRequired = in_array($requestType, ['NONPROFIT', 'CORPORATE', 'ACTIVATION'], true);
+    $isRetroHost = quickRequestField('form_source', 80) === 'retro_glam_private_event';
+    $retroSlug = quickRequestField('retro_edition', 80);
+    $retroTitle = RetroGlamEditions::TITLES[$retroSlug] ?? null;
 
     $errors = [];
+    if (($isRetroHost || isset($_POST['retro_edition'])) && (!$isRetroHost || $requestType !== 'PRODUCTION' || $retroTitle === null)) {
+        $errors[] = 'a valid Retro Glam private edition';
+    }
     if ($name === '') $errors[] = 'name';
     if (!filter_var($email, FILTER_VALIDATE_EMAIL)) $errors[] = 'valid email';
     if ($organizationRequired && $organization === '') $errors[] = 'organization or brand';
@@ -107,6 +117,9 @@ $router->post(function () {
     if ($isExploratoryRequest) {
         $label = 'Cause on Cue 2027 exploratory meeting request';
     }
+    if ($isRetroHost) {
+        $label = 'Retro Glam private event request · ' . $retroTitle;
+    }
     $externalId = 'quick-' . strtolower($requestType) . '-' . date('YmdHis') . '-' . bin2hex(random_bytes(3));
     $landingUrl = quickRequestField('landing_url', 500);
 
@@ -129,6 +142,12 @@ $router->post(function () {
     if ($isExploratoryRequest) {
         $payload['campaign_key'] = 'nonprofit_support_2027';
         $payload['request_kind'] = 'exploratory_meeting';
+    }
+    if ($isRetroHost) {
+        $payload['request_kind'] = 'host';
+        $payload['retro_edition'] = $retroSlug;
+        $payload['retro_edition_title'] = $retroTitle;
+        $payload['consent_text'] = 'I agree that VNV Events may contact me about this private event request.';
     }
 
     try {
@@ -186,6 +205,9 @@ $router->post(function () {
 
     $_SESSION['quick_request_last_submit'] = $now;
     $_SESSION['quick_request_csrf'] = bin2hex(random_bytes(24));
+    if ($isRetroHost) {
+        $_SESSION['retro_confirmation'] = [$retroSlug, 'host'];
+    }
     MessageUtil::setMessage('Your request was received. Reference VNV-Q' . $leadId . '.', 'Thank you', 'success');
     quickRequestRedirect(true);
 });
