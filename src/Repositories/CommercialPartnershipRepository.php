@@ -176,8 +176,8 @@ final class CommercialPartnershipRepository
         $this->db->query(
             'SELECT o.*,c.name contact_name,c.email,c.phone,c.role_title,org.name organization_name
              FROM commercial_opportunities o
-             LEFT JOIN commercial_contacts c ON c.id=o.contact_id
-             LEFT JOIN commercial_organizations org ON org.id=o.organization_id
+             LEFT JOIN commercial_contacts c ON c.id=o.contact_id AND c.id_owner=o.id_owner AND c.site_key=o.site_key
+             LEFT JOIN commercial_organizations org ON org.id=o.organization_id AND org.id_owner=o.id_owner AND org.site_key=o.site_key
              WHERE ' . implode(' AND ', $conditions) . '
              ORDER BY (o.next_follow_up_at IS NOT NULL AND o.next_follow_up_at <= NOW()) DESC,o.created_at DESC LIMIT 250'
         );
@@ -186,9 +186,14 @@ final class CommercialPartnershipRepository
         }
         $items = $this->db->fetchAll();
 
-        $this->db->query('SELECT pipeline,stage,COUNT(*) total FROM commercial_opportunities WHERE id_owner=:owner AND site_key=:site GROUP BY pipeline,stage ORDER BY pipeline,stage');
+        $assignee = (int)($filters['assigned_user_id'] ?? 0);
+        $this->db->query('SELECT pipeline,stage,COUNT(*) total FROM commercial_opportunities WHERE id_owner=:owner AND site_key=:site'
+            . ($assignee > 0 ? ' AND assigned_user_id=:assignee' : '') . ' GROUP BY pipeline,stage ORDER BY pipeline,stage');
         $this->db->bind(':owner', $ownerId);
         $this->db->bind(':site', $siteKey);
+        if ($assignee > 0) {
+            $this->db->bind(':assignee', $assignee);
+        }
         return ['items' => $items, 'counts' => $this->db->fetchAll(), 'stages' => self::ALLOWED_STAGES];
     }
 

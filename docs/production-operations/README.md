@@ -17,7 +17,11 @@ Use one working copy per event. Assign people and dates at kickoff, then use the
 4. Track `todo`, `doing` and `done`. Record the corresponding link or approved evidence reference when marking a task done. Keep donor and guest details in the permissioned system of record. The checklist can point authorized staff there.
 5. For an already-provisioned VNV-Q pilot project, match tasks to the assigned project users and track supported status updates in the workspace. The project lead uses the worksheet for dates, dependencies and completion evidence.
 
-## Handoff from an approved proposal into operations
+## Handoff into VNV Productions
+
+When Productions Management Center is enabled, open Corporate CRM, choose the approved opportunity, record its signed scope or foundation approval reference and confirm the event date. Open the resulting production under Active Productions and apply the relevant five-phase checklist to an actual team member. Direction may link an existing VNV order. Order-backed assignments require confirmed order staff. An approved VNV-owned edition starts under Original Experiences. Full instructions and record boundaries are in the [workboard guide](management-center.md).
+
+## Handoff into a separate VNV-Q workspace
 
 The commercial owner and the receiving producer share responsibility for the handoff. The live commercial CRM records the decision. The separate VNV-Q staging pilot holds fictional organizations and pre-provisioned projects. A pipeline stage change, a signed menu or a linked invoice does not create a VNV-Q project.
 

@@ -1,0 +1,120 @@
+{% import _self as ui %}
+{% set b=workboard %}
+{% set route=pmc_url %}
+{% set tab=pmc_tab %}
+{% set token=csrf_token %}
+{% macro form(action,csrf,tab,pid) %}
+<input type="hidden" name="action" value="{{ action }}"><input type="hidden" name="_csrf" value="{{ csrf }}"><input type="hidden" name="tab" value="{{ tab }}">
+{% if pid %}<input type="hidden" name="project_id" value="{{ pid }}">{% endif %}
+{% endmacro %}
+{% macro page(count,filters,tab,route) %}
+{% set pages=(count/40)|round(0,'ceil') %}{% set current=min(max(1,filters.page|default(1)),max(1,pages)) %}
+{% if pages>1 %}<nav class="d-flex gap-3" aria-label="Result pages">{% if current>1 %}<a href="{{ route }}?{{ filters|merge({tab:tab,page:current-1})|url_encode }}">Previous</a>{% endif %}<span>Page {{ current }} of {{ pages }}</span>{% if current<pages %}<a href="{{ route }}?{{ filters|merge({tab:tab,page:current+1})|url_encode }}">Next</a>{% endif %}</nav>{% endif %}
+{% endmacro %}
+{% macro member(teams,member,field) %}
+<label>Task owner<select class="form-control" name="{{ field }}" required>{% for u in teams %}<option value="{{ u.id }}" {% if u.id==member %}selected{% endif %}>{{ u.name }}</option>{% endfor %}</select></label>
+{% endmacro %}
+{% set labels={'CORPORATE':'Corporate / private','NONPROFIT':'Nonprofit','ACTIVATION':'Brand activation','SPONSORSHIP':'Sponsorship','ORIGINAL':'Original experience'} %}
+
+{% if tab in ['overview','reports'] %}
+<div class="row">
+{% set cards=[
+ ['Active productions',b.metric.active,'active',''],['Upcoming productions',b.metric.upcoming,'active','upcoming'],['Completed productions',b.metric.completed,'past','completed'],
+ ['Active originals',b.metric.original,'active','original'],['Client productions',b.metric.client,'active','client'],
+ ['Overdue tasks',b.metric.overdue,'tasks','overdue'],['Urgent tasks',b.metric.urgent,'tasks','urgent'],['Due within seven days',b.metric.next,'tasks','next'],
+ ['Confirmed club tickets',b.tickets,'originals','']
+] %}
+{% if b.opportunities is defined %}{% set cards=cards|merge([['Commercial opportunities',b.opportunities,'crm',''],['Pending proposals',b.proposal_count,'crm','proposals']]) %}{% endif %}
+{% for item in cards %}<div class="col-6 col-md-4 mb-3"><a class="card h-100 text-reset" href="{{ route }}?tab={{ item[2] }}&amp;scope={{ item[3] }}"><span class="card-body"><strong class="d-block h3">{{ item[1] }}</strong>{{ item[0] }}</span></a></div>{% endfor %}
+</div>
+{% endif %}
+
+{% if tab in ['overview','tasks'] %}
+<section class="card mb-3"><div class="card-body">
+<h2>{{ tab=='overview' ? 'Next Priority Tasks' : 'Tasks & priorities' }}</h2>
+{% if tab=='tasks' %}<nav class="mb-3 d-flex flex-wrap gap-3"><a href="{{ route }}?tab=tasks">All pending</a><a href="{{ route }}?tab=tasks&amp;scope=overdue">Overdue</a><a href="{{ route }}?tab=tasks&amp;scope=urgent">Urgent</a><a href="{{ route }}?tab=tasks&amp;scope=next">Due this week</a></nav>{% endif %}
+{% if b.tasks %}<div class="table-responsive"><table class="table align-middle"><thead><tr><th>Next action</th><th>Production / organization</th><th>Task owner</th><th>Due</th><th>Priority / status</th></tr></thead><tbody>
+{% for t in b.tasks %}<tr id="task-{{ t.id }}"><td>{% if t.project_id %}<a href="{{ route }}?tab=active&amp;project={{ t.project_id }}#schedule-{{ t.id }}">{{ t.task_description }}</a>{% else %}{{ t.task_description }}{% endif %}
+{% if t.pmc_acceptance %}<small class="d-block">{{ t.pmc_acceptance }}</small>{% endif %}
+{% if t.pmc_blocker or t.waiting_on %}<small class="d-block">Blocked by {{ t.pmc_blocker ?: t.waiting_on|join(', ') }}</small>{% endif %}
+{% if not t.project_id and b.direction %}<details><summary>Review training completion</summary><form method="post" action="{{ route }}">{{ ui.form('work_training_review',token,'tasks',0) }}<input type="hidden" name="task_id" value="{{ t.id }}"><label>Reviewed Level 2, 4 and 5 report references<input class="form-control" name="evidence" maxlength="500" required></label><button class="btn btn-primary btn-sm">Record review</button></form></details>{% endif %}
+</td><td>{{ t.project_name }}<small class="d-block">{{ t.organization }}</small></td><td>{{ t.assignee ?: 'Unassigned' }}</td><td>{{ t.pmc_due_date ?: 'Unscheduled' }}</td><td>{{ t.urgent ? 'Urgent' : 'Normal' }} · {{ t.overdue ? 'Overdue' : (t.blocked ? 'Blocked' : 'Open') }}</td></tr>{% endfor %}
+</tbody></table></div>
+{% else %}<p>No pending tasks match this view.</p>{% endif %}
+{% if tab=='tasks' %}{{ ui.page(b.task_total,b.filters,tab,route) }}{% endif %}
+</div></section>
+{% endif %}
+
+{% if tab=='crm' %}
+<section class="card mb-3"><div class="card-body"><div class="d-flex justify-content-between flex-wrap"><h2>Corporate relationships</h2>{% if pmc_crm_url %}<a href="{{ pmc_crm_url }}">Open partnership CRM to add or edit a contact</a>{% endif %}</div>
+<form method="get" action="{{ route }}" class="d-flex align-items-end gap-2 flex-wrap mb-3"><input type="hidden" name="tab" value="crm">
+<label>Search<input class="form-control" name="q" value="{{ b.filters.q }}" placeholder="Organization, contact or email"></label>
+<label>Relationship<select name="category" class="form-control"><option value="">All categories</option>{% for key,name in b.categories %}<option value="{{ key }}" {% if b.filters.category==key %}selected{% endif %}>{{ name }}</option>{% endfor %}</select></label>
+<button class="btn btn-primary">Filter</button></form>
+{% if b.crm_rows %}<div class="table-responsive"><table class="table"><thead><tr><th>Opportunity</th><th>Organization / contact</th><th>Relationship</th><th>Stage</th><th>Next follow-up</th></tr></thead><tbody>
+{% for row in b.crm_rows %}<tr><td><a href="{{ route }}?tab=crm&amp;opportunity={{ row.id }}#opportunity">{{ row.title }}</a></td><td>{{ row.organization }} {{ row.contact_name }}</td><td>{{ b.categories[row.category]|default(row.category) }}</td><td>{{ row.stage|replace({'_':' '})|lower|title }}</td><td>{{ row.next_follow_up_at ?: 'Unscheduled' }}</td></tr>{% endfor %}
+</tbody></table></div>{{ ui.page(b.crm_total,b.filters,tab,route) }}{% else %}<p>No matching commercial opportunities.</p>{% endif %}
+</div></section>
+{% if b.record %}{% set r=b.record %}<section id="opportunity" class="card mb-3"><div class="card-body"><h2>{{ r.title }}</h2>
+{% if pmc_crm_url and r.pipeline!='ORIGINAL_PRODUCTION' %}<a href="{{ pmc_crm_url }}?edit={{ r.id }}">Edit contact and pipeline stage</a>{% endif %}
+<form action="{{ route }}" method="post" class="mb-3">{{ ui.form('work_crm_note',token,'crm',0) }}<input type="hidden" name="opportunity_id" value="{{ r.id }}">
+<label>Relationship<select name="category" class="form-control">{% for key,name in b.categories %}<option value="{{ key }}" {% if key==r.category %}selected{% endif %}>{{ name }}</option>{% endfor %}</select></label>
+<label>Next contact date<input type="date" class="form-control" name="follow_up" value="{{ r.next_follow_up_at|slice(0,10) }}"></label>
+<label class="d-block">Conversation or next action<textarea class="form-control" name="note" maxlength="500"></textarea></label>
+<button class="btn btn-primary mt-2">Save follow-up</button></form>
+{% if b.activities %}<h3>Activity history</h3><ul>{% for a in b.activities %}<li>{{ a.created_at }} · {{ a.summary }}</li>{% endfor %}</ul>{% endif %}
+{% if b.proposals %}<h3>Proposals</h3><ul>{% for a in b.proposals %}<li>Version {{ a.version_number }} · {{ a.status }}{% if a.sent_at %} · Sent {{ a.sent_at }}{% endif %}</li>{% endfor %}</ul>{% endif %}
+{% set last=b.proposals|first %}<details class="mb-3"><summary>Record a proposal or a client decision</summary><form method="post" action="{{ route }}">{{ ui.form('work_crm_proposal',token,'crm',0) }}<input type="hidden" name="opportunity_id" value="{{ r.id }}"><input type="hidden" name="proposal_id" value="{{ last.id|default(0) }}">
+<label>Status<select name="proposal_status" class="form-control">{% if not last or last.status!='DRAFT' %}<option value="DRAFT">Create draft revision</option>{% endif %}{% if last.status=='DRAFT' %}<option value="SENT">Record as sent</option>{% endif %}{% if last.status=='SENT' %}<option value="ACCEPTED">Record client acceptance</option><option value="DECLINED">Record client decline</option>{% endif %}</select></label>
+<label>Proposal or decision reference<input class="form-control" name="proposal_reference" maxlength="190" required></label><button class="btn btn-primary">Save proposal record</button></form></details>
+{% if b.documents %}<h3>Document references</h3><ul>{% for d in b.documents %}<li>{% if d.url %}<a href="{{ d.url }}" target="_blank" rel="noopener noreferrer">{{ d.label ?: d.asset_type }}</a>{% else %}{{ d.label ?: d.asset_type }}{% endif %}</li>{% endfor %}</ul>{% endif %}
+<details class="mb-3"><summary>Add a document reference</summary><form method="post" action="{{ route }}">{{ ui.form('work_crm_document',token,'crm',0) }}<input type="hidden" name="opportunity_id" value="{{ r.id }}"><label>Title<input class="form-control" name="document_label" maxlength="191" required></label><label>Restricted Drive, Microsoft, Asana or VNV link<input class="form-control" type="url" name="document_url" maxlength="500" required></label><button class="btn btn-primary">Add reference</button></form></details>
+{% if r.can_handoff %}<details><summary>Start a production from the approved agreement</summary><form method="post" action="{{ route }}" class="mt-2">{{ ui.form('work_crm_handoff',token,'active',0) }}<input type="hidden" name="opportunity_id" value="{{ r.id }}">
+<label>Event date<input name="date" type="date" class="form-control" required value="{{ r.event_date }}"></label>
+<label>Signed scope or approval reference<input name="approval_ref" class="form-control" maxlength="190" required></label>
+{% if b.direction %}<label>Existing order ID (optional)<input name="order_id" type="number" min="1" class="form-control"></label>{% endif %}
+<button class="btn btn-primary">Confirm production handoff</button></form></details>{% endif %}
+</div></section>{% endif %}
+{% endif %}
+
+{% if tab=='originals' %}
+<section class="card mb-3"><div class="card-body"><h2>Mommy &amp; Daddy Break Club</h2>
+<p>{{ b.club_members }} confirmed club members. Each edition counts invitations, fully paid tickets and individual admissions separately.</p>
+{% if b.club_events %}<div class="table-responsive"><table class="table"><thead><tr><th>Edition</th><th>Date / status</th><th>Invitations</th><th>Paying buyers</th><th>Paid tickets</th><th>Checked in</th>{% if b.direction %}<th>Net receipts</th>{% endif %}</tr></thead><tbody>
+{% for e in b.club_events %}<tr><td>{% if e.can_open %}<a href="{{ route }}?tab=originals&amp;edition={{ e.id }}#registered-guests">{{ e.title }}</a>{% else %}{{ e.title }}{% endif %}<small class="d-block">{{ e.location }}</small>{% if e.project_id %}<a href="{{ route }}?tab=originals&amp;project={{ e.project_id }}#production">Production checklist</a>{% endif %}</td><td>{{ e.starts_at }} · {{ e.status }}</td><td>{{ e.invitations }}</td><td>{{ e.buyers }}</td><td>{{ e.tickets }}</td><td>{{ e.attendance }}</td>{% if b.direction %}<td>${{ (e.net_cents/100)|number_format(2) }}</td>{% endif %}</tr>{% endfor %}</tbody></table></div>{% else %}<p>No club editions have been scheduled.</p>{% endif %}
+{% if b.filters.edition %}<h3 id="registered-guests">Edition guest register</h3>{% if b.guest_register %}<div class="table-responsive"><table class="table"><thead><tr><th>Name</th><th>Admission status</th><th>Checked in</th></tr></thead><tbody>{% for g in b.guest_register %}<tr><td>{{ g.name }}</td><td>{{ g.status|replace({'_':' '})|lower|title }}</td><td>{{ g.principal_checked_at ?: '—' }}</td></tr>{% if g.party_size==2 %}<tr><td>{{ g.companion_name ?: 'Companion' }}</td><td>{{ g.status|replace({'_':' '})|lower|title }}</td><td>{{ g.companion_checked_at ?: '—' }}</td></tr>{% endif %}{% endfor %}</tbody></table></div>{% else %}<p>No guest records are available for this selection.</p>{% endif %}{% endif %}
+<h3>Original experience interest</h3>{% if b.editions %}<div class="table-responsive"><table class="table"><thead><tr><th>Experience</th><th>Interested contacts</th><th>Marked ticketed in CRM</th></tr></thead><tbody>{% for e in b.editions %}<tr><td>{{ e.edition }}</td><td>{{ e.interested }}</td><td>{{ e.ticketed }}</td></tr>{% endfor %}</tbody></table></div><small>Payment and admission require records from the ticketing provider.</small>{% else %}<p>No original experience interest is visible in your assigned pipeline.</p>{% endif %}
+{% if b.direction and b.teams %}<details class="mt-3"><summary>Approve an original edition for production</summary><form method="post" action="{{ route }}">{{ ui.form('work_original',token,'originals',0) }}
+<label>Experience<select class="form-control" name="edition" required><option value="break-club">Mommy &amp; Daddy Break Club</option><option value="disco-70s">Retro Glam · ’70s</option><option value="neon-80s">Retro Glam · ’80s</option><option value="after-dark-90s">Retro Glam · ’90s</option><option value="flashback-00s">Retro Glam · Y2K</option><option value="other">Other approved original</option></select></label>
+<label>Club edition (for Break Club)<select class="form-control" name="event_id"><option value="">Choose an existing edition</option>{% for e in b.club_events %}<option value="{{ e.id }}">{{ e.title }} · {{ e.starts_at }}</option>{% endfor %}</select></label>
+<label>Date (other experiences)<input class="form-control" type="date" name="date"></label><label>Venue (other experiences)<input name="venue" class="form-control" maxlength="220"></label><label>Title (custom edition)<input name="name" class="form-control" maxlength="160"></label>
+{{ ui.member(b.teams,0,'manager_id') }}<label>Approved brief reference<input name="approval_ref" class="form-control" maxlength="190" required></label><button class="btn btn-primary">Start original production</button>
+</form></details>{% endif %}
+</div></section>{% endif %}
+
+{% if tab in ['active','past','originals'] %}
+<section class="card mb-3"><div class="card-body"><h2>{{ tab=='past' ? 'Past productions' : (tab=='originals' ? 'Original productions' : 'Active productions') }}</h2>
+<form method="get" action="{{ route }}" class="d-flex align-items-end gap-2 flex-wrap mb-3"><input type="hidden" name="tab" value="{{ tab }}">
+<label>Event or organization<input class="form-control" name="q" value="{{ b.filters.q }}"></label><label>Manager<input class="form-control" name="manager" value="{{ b.filters.manager }}"></label>
+<label>Type<select class="form-control" name="type"><option value="">All</option>{% for key,val in labels %}<option value="{{ key }}" {% if b.filters.type==key %}selected{% endif %}>{{ val }}</option>{% endfor %}</select></label><label>From<input type="date" class="form-control" name="from" value="{{ b.filters.from }}"></label><label>Through<input type="date" class="form-control" name="to" value="{{ b.filters.to }}"></label><button class="btn btn-primary">Filter</button></form>
+{% if b.projects %}<div class="table-responsive"><table class="table"><thead><tr><th>Event / venue</th><th>Organization</th><th>Date / manager</th><th>Phase / progress</th><th>Next action</th></tr></thead><tbody>
+{% for p in b.projects %}<tr><td><a href="{{ route }}?tab={{ tab }}&amp;project={{ p.id }}#production">{{ p.name }}</a><small class="d-block">{{ p.venue }} · {{ labels[p.program]|default(p.program) }}</small></td><td>{{ p.organization ?: (p.program=='ORIGINAL' ? 'VNV Events' : 'Unspecified') }}</td><td>{{ p.date ?: 'Unscheduled' }}<small class="d-block">{{ p.manager ?: 'Unassigned' }}</small></td><td>{{ p.phase }}{% if p.progress is not null %}<small class="d-block">{{ p.done }}/{{ p.total }} · {{ p.progress }}%</small>{% endif %}</td><td>{{ p.next.task_description|default(p.closed ? p.status : 'Schedule the checklist') }}{% if p.overdue or p.blocked %}<small class="d-block">{{ p.overdue }} overdue · {{ p.blocked }} blocked</small>{% endif %}</td></tr>{% endfor %}
+</tbody></table></div>{{ ui.page(b.project_total,b.filters,tab,route) }}{% else %}<p>No productions match this view.</p>{% endif %}
+</div></section>{% endif %}
+
+{% if b.selected %}{% set p=b.selected %}<section class="card mb-3" id="production"><div class="card-body"><h2>{{ p.name }}</h2><p>{{ p.date ?: 'Unscheduled' }} · {{ p.manager ?: 'Unassigned' }} · {{ p.status|lower|title }}{% if p.order_id %} · Order #{{ p.order_id }}{% endif %}</p>
+{% if p.milestone %}<p><strong>Next milestone</strong> {{ p.milestone }}</p>{% endif %}
+{% if not p.closed and b.teams %}<details class="mb-3"><summary>Apply or restore the five-phase checklist</summary><form action="{{ route }}" method="post">{{ ui.form('work_template',token,'active',p.id) }}{{ ui.member(b.teams,p.assigned_user_id,'assignee') }}<button class="btn btn-primary">Assign missing template tasks</button></form></details>{% endif %}
+{% for t in p.tasks %}<details id="schedule-{{ t.id }}" class="border-bottom pb-2 mb-2"><summary>{{ t.pmc_task_key }} {{ t.task_description }} · {{ t.is_done ? 'Completed' : (t.blocked ? 'Blocked' : 'Open') }}</summary><p>{{ t.pmc_phase }} · {{ t.assignee }} · {{ t.pmc_due_date ?: 'Unscheduled' }}{% if t.pmc_role %} · {{ t.pmc_role }}{% endif %}</p>
+{% if t.pmc_acceptance %}<p>{{ t.pmc_acceptance }}</p>{% endif %}{% if t.pmc_dependencies %}<p>Depends on {{ t.pmc_dependencies }}. {% if t.waiting_on %}Pending {{ t.waiting_on|join(', ') }}.{% endif %}</p>{% endif %}
+{% if t.pmc_blocker %}<p>Blocker · {{ t.pmc_blocker }}</p>{% endif %}{% if t.pmc_evidence %}<p>Evidence · {{ t.pmc_evidence }}</p>{% endif %}
+{% if not p.closed and t.editable and b.teams %}<form method="post" action="{{ route }}">{{ ui.form('work_task',token,'active',p.id) }}<input type="hidden" name="task_id" value="{{ t.id }}">
+{{ ui.member(b.teams,t.id_user,'assignee') }}<label>Due<input class="form-control" type="date" name="due_date" value="{{ t.pmc_due_date }}"></label>
+<label>Priority<select class="form-control" name="priority"><option value="normal">Normal</option><option value="urgent" {% if t.urgent %}selected{% endif %}>Urgent</option></select></label>
+<label>Blocker<input class="form-control" name="blocker" value="{{ t.pmc_blocker }}" maxlength="500"></label><label>Completion evidence<input class="form-control" name="evidence" value="{{ t.pmc_evidence }}" maxlength="500"></label>
+<label>Status<select name="state" class="form-control"><option value="open">Open</option><option value="done">Completed</option></select></label><button class="btn btn-primary">Save task</button></form>{% endif %}</details>{% endfor %}
+{% if p.documents %}<h3>Document references</h3><ul>{% for d in p.documents %}<li>{{ d.label ?: d.asset_type }}</li>{% endfor %}</ul>{% endif %}
+{% if p.closed %}{% for key,text in p.recap %}{% if text %}<p><strong>{{ key|title }}</strong> {{ text }}</p>{% endif %}{% endfor %}
+{% else %}<details><summary>Close &amp; Recap</summary><form action="{{ route }}" method="post">{{ ui.form('work_close',token,'past',p.id) }}
+<label class="d-block">Results<textarea class="form-control" name="results" maxlength="1500" required></textarea></label><label class="d-block">Incidents<textarea class="form-control" name="incidents" maxlength="1000"></textarea></label><label class="d-block">Lessons learned<textarea class="form-control" name="lessons" maxlength="1000"></textarea></label>{% if b.direction %}<label class="d-block">Financial closeout reference<input class="form-control" name="finance" maxlength="500"></label>{% endif %}<button class="btn btn-primary mt-2">Close production</button></form></details>{% endif %}
+</div></section>{% endif %}

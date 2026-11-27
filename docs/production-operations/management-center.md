@@ -1,0 +1,30 @@
+# Productions Management Center | operational integration
+
+## Dependencies reviewed before implementation
+
+The hosted VNV panel and Ophyra share the original order task manager (`OrdersTeamTasksRepository`, `orders_team_tasks`, the individual task view and the manager's order task view). VNV's traditional CRM owns `crm_leads`, `crm_categories` and status history. The corporate pipeline owns `commercial_organizations`, contacts, opportunities, projects, proposals, activities, media references and audit logs. Public forms may also write a linked intake notification. This is not a separate CRM contact or a second production.
+
+The four CSVs in this directory define five phases, template IDs, role suggestions, dependencies, event-relative dates and acceptance evidence. The private VNV-Q pilot's project and assignment tables belong to its own organization boundary. Keep real client, guest and employee data inside VNV. Use VNV's existing `commercial_projects` for actual Productions projects. Keep `orders_team_tasks.is_done` authoritative and join production scheduling metadata to those tasks. Project-only work needs an optional order reference. Do not create a catering order just to give a producer a task.
+
+Break Club owns the event calendar, confirmed club membership, invitations, Stripe-reconciled ticket status, amounts after refunds and individual admission. Retro Glam edition-specific and general expressions of interest are ORIGINAL_WAITLIST opportunities; a waitlist listing does not establish a purchase. An internal producer-approved original edition is its own production and can be associated with the existing edition or dated club event.
+
+## Visibility and reporting
+
+Direction sees commercial records for its active organization and site. Delegates work on their assigned opportunities and productions. Break Club operational counts are available to authorized Productions staff in the same organization. Payment amounts and financial closeout are restricted to Direction. Opening the full members or CRM admin screens still requires the underlying module permission.
+
+Progress is completed existing tasks divided by total existing project tasks, including existing assigned order tasks when an order is explicitly linked. The first unfinished template phase is current. Missing dates, evidence or measurements remain unspecified. Rank overdue work, explicit urgency, outstanding dependencies and approaching event deadlines ahead of routine work. An event date passing never closes a project. A producer records the operating results and finishes Close & Recap before moving it to Past Productions.
+
+## Working in the center
+
+1. Under **Corporate CRM**, open the assigned record. Use the regular partnership CRM to add a new opportunity, edit the contact or update its stage. Use the center to classify the relationship, add follow-ups, review history, reference documents in the authorized workspace, and record a versioned proposal or its observed client decision. Recording a proposal as sent does not email it. Venue production, sponsorship and prospect categories describe different properties and remain independently filterable.
+2. Confirm the actual engagement and keep the signed scope or approved support reference. An eligible opportunity exposes the handoff form. It reuses the production for the same opportunity and date on retry. Direction links real orders within this owner and checks team assignments. Nonprofit support additionally requires an approved grant. Original waitlist contacts cannot be converted into commissioned productions.
+3. Open the project, apply its five-phase checklist, and select a real team member as the initial owner. Set deadlines, assign individual tasks and record blockers. A repeated template import adds missing tasks only. The existing task manager owns completion state. Record an acceptance reference when completing each production task. For tasks checked off elsewhere, use the project detail to add the missing evidence.
+4. Close the production after the approved checklist and other associated order tasks are complete. Record the outcome, incidents and lessons learned. Only Direction sees or records a financial closeout reference. Past productions retain their working records. Filter by event or client, dates, producer or program.
+5. Under **Original Experiences**, club membership counts represent confirmed active subscribers. Pending invitations, paid buyers, paid seats, receipts net of refunds and individual check-ins use the respective Break Club records. The Retro Glam table counts distinct contacts per edition, including legacy entries with no edition slug. A CRM ticketed flag is not evidence of payment. Center delegates can see aggregate counts for the VNV organization. A named guest register is limited to Direction and the assigned manager of an explicitly associated club edition.
+6. **Next Priority Tasks** also includes the assigned member's standalone onboarding task. Direction records the reviewed onboarding references after checking the actual three journeys. There is no automatic completion on a reminder date.
+
+## Install and verify
+
+Apply `20261128130000_extend_production_workboard.php` after the existing commercial, Break Club and order task schemas. The idempotent adapter adds scheduling fields to the canonical task table, an optional category to the commercial opportunity and an edition key to the existing project. Unlinked productions use a nullable order reference. Existing task IDs and order associations are preserved. Do not roll back by dropping populated schedule columns.
+
+Run `php tests/productions_workboard_test.php` against a local disposable MySQL/MariaDB instance. The test creates and removes its own randomized database on loopback, with port 33742 by default. Override the port, user and password with the `VNV_PMC_TEST_PORT`, `VNV_PMC_TEST_USER` and `VNV_PMC_TEST_PASSWORD` environment variables. Do not point fixtures at a hosted client database.
