@@ -66,6 +66,12 @@ Se usa `--ff-only` para impedir merges automáticos o commits de combinación de
 
 ## Verificación posterior
 
+Para una entrega de medios, comprueba la máscara con `umask` y compara un archivo público de la versión anterior con la carpeta nueva. En esta cuenta, una terminal con `0077` puede crear directorios `700` y videos `600`. Apache devuelve la plantilla de error aunque la página cargue correctamente.
+
+Cuando las **únicas rutas nuevas** del pull son archivos destinados al público, comprueba el diff entrante y limita la máscara al pull con `(umask 022 && git pull --ff-only origin main)`. La sesión recupera su configuración anterior al terminar. Revisa el MP4 por HTTP con una solicitud de rango, las dos vistas previas, los pósteres y el VTT en sus URL públicas.
+
+Para las landings de producción, consulta los documentos vigentes de los demás agentes y los PDF de la [carpeta compartida de producción](https://drive.google.com/drive/folders/1v_ckMp-XbPMCvBvHu5sVODIY8drQ2n-b) antes de editar. Registra en los archivos existentes de Marketing y Coding el alcance, los cambios y las comprobaciones públicas después de cada entrega.
+
 ```bash
 git log -1 --oneline
 git status --short
