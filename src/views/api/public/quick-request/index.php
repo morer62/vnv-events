@@ -206,7 +206,7 @@ $router->post(function () {
     $_SESSION['quick_request_last_submit'] = $now;
     $_SESSION['quick_request_csrf'] = bin2hex(random_bytes(24));
     if ($isRetroHost) {
-        $_SESSION['retro_confirmation'] = [$retroSlug, 'host'];
+        $_SESSION['retro_confirmation'][$retroSlug]['host'] = true;
     }
     MessageUtil::setMessage('Your request was received. Reference VNV-Q' . $leadId . '.', 'Thank you', 'success');
     quickRequestRedirect(true);

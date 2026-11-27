@@ -24,9 +24,9 @@ $router->get(function () {
     }
     $submitted = isset($_GET['submitted']);
     if ($editionRequest) {
-        $submitted = $submitted && ($_SESSION['retro_confirmation'] ?? null) === [$slug, $intent];
+        $submitted = $submitted && !empty($_SESSION['retro_confirmation'][$slug][$intent]);
         if ($submitted) {
-            unset($_SESSION['retro_confirmation']);
+            unset($_SESSION['retro_confirmation'][$slug][$intent]);
         }
     }
     return TemplateResponse::render(__DIR__ . "/index.twig", [

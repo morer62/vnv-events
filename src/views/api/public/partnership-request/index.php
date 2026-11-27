@@ -252,7 +252,7 @@ $router->post(function () {
     $_SESSION['partnership_csrf'] = bin2hex(random_bytes(24));
     if ($isRetroWaitlist) {
         $_SESSION['retro_waitlist_last'][$retroSlug] = $now;
-        $_SESSION['retro_confirmation'] = [$retroSlug, 'waitlist'];
+        $_SESSION['retro_confirmation'][$retroSlug]['waitlist'] = true;
     }
     MessageUtil::setMessage('Your request was received. Check your email for reference VNV-' . $opportunityId . '.', 'Thank you', 'success');
     partnershipRedirect($program, true);
