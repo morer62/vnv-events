@@ -5,11 +5,13 @@
 {% set show_whatsapp = true %}
 {% block styles %}
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-<link rel="stylesheet" href="{{ asset_for('assets/css/vnv-cuebook.css', {v: '1'}) }}">
+<link rel="stylesheet" href="{{ asset_for('assets/css/vnv-production-offers.css', {v: 'production-films-2'}) }}">
+{% include 'templates/components/vnvProductionEditorialAssets.html.twig' %}
+<link rel="stylesheet" href="{{ asset_for('assets/css/vnv-cuebook.css', {v: 'modules-2'}) }}">
 {% endblock %}
 {% block body %}
 {% include "templates/layout/publicHeaderVnv.html.twig" %}
-<main class="cuebook">
+<main class="ve-page cuebook">
   <section class="cb-hero" aria-labelledby="cuebook-title">
     <div class="cb-wrap cb-split">
       <div>
@@ -19,6 +21,7 @@
         <p>When doors open, your front desk needs the guest list, your stage manager needs the next cue and your sponsor needs to know who is handling their moment. Cuebook keeps them working from the same plan.</p>
         <div class="cb-actions">
           <a class="cb-button" href="#partner-access">Get access with VNV <span aria-hidden="true">↓</span></a>
+          <a class="cb-link" href="#cuebook-film">Watch the walkthrough</a>
           <a class="cb-link" href="{{ path('login') }}">VNV client sign-in</a>
         </div>
       </div>
@@ -34,13 +37,63 @@
     </div>
   </section>
 
+  {% include 'templates/components/vnvProductionFilm.html.twig' with {
+    film: {
+      slug: 'cuebook', route: 'vnv-support',
+      title: 'See Cuebook in action',
+      description: 'Follow the work from the first crew briefing to guest arrival and sponsor follow-up.',
+      cta: 'Explore the modules', href: '#cuebook-modules',
+      credit: 'Illustrative event workflows. AI-generated narration.'
+    }
+  } only %}
+
   <section class="cb-wrap cb-section" aria-labelledby="cb-work">
     <h2 id="cb-work">How we run the event together</h2>
-    <p class="cb-intro">Jonathan Moreno leads production at VNV Events. He created the software and the working method our producers use with your team, from the first brief through the final handoff.</p>
+    <p class="cb-intro">Jonathan Moreno leads production at VNV Events. He created Cuebook and the working method our producers use with your team. Alongside our corporate work, VNV has produced more than 250 small and midsize events.</p>
     <div class="cb-workflow">
       <article><h3>Before the event</h3><p>Agree on who owns each task. Build the run of show, collect RSVPs and give vendors and sponsors a deadline for each deliverable.</p></article>
       <article><h3>On the floor</h3><p>Check in a guest even if their party arrives separately. Share a schedule change with the crew and give the next cue to the person responsible.</p></article>
       <article><h3>After the doors close</h3><p>Review attendance, record what each sponsor received and give outstanding follow-ups an owner. Keep the workspace for the next event.</p></article>
+    </div>
+  </section>
+
+  {% set modules = [
+    {key: 'schedule', title: 'Run of show', icon: 'clock', summary: 'Give each cue a time and an owner.', detail: 'Your producer works with the stage manager to put arrivals, doors, speaker calls and sponsor moments in running order.', example: 'If a welcome speech moves ahead of dinner, the producer tells the stage manager and catering lead which cue changed. Both work from the revised schedule.'},
+    {key: 'crew', title: 'Projects & crew tasks', icon: 'list-check', summary: 'See who owns the next handoff.', detail: 'Organize each event as a project. Assign a task to a crew member, track its status and give each person access to the work assigned to their role.', example: 'The floor lead checks the accessible arrival route, marks the task complete and hands the entrance back to the producer before doors open.'},
+    {key: 'guests', title: 'Registration & check-in', icon: 'ticket', summary: 'Bring guest responses to the welcome desk.', detail: 'Agree on the registration rules, collect RSVPs through a branded event page and give authorized staff the guest list. Staff can find a companion by name and check that person in individually.', example: 'A guest arrives before the person who registered them. The desk verifies the guest and records wristband pickup while the principal remains expected.'},
+    {key: 'sponsors', title: 'Sponsor deliverables', icon: 'handshake', summary: 'Track what each partner should receive.', detail: 'Agree on the sponsor benefits, collect the approved artwork, assign a deadline and coordinate placement or acknowledgment with the event team.', example: 'For a sponsored welcome, the producer confirms the logo file, assigns the stage cue and records the acknowledgment for the sponsor’s recap.'},
+    {key: 'contacts', title: 'Contacts & follow-up', icon: 'address-book', summary: 'Keep the next conversation tied to the event.', detail: 'Authorized project leads can record a contact’s stage, meeting notes and next follow-up. A contact involved in two projects can have a different next step in each one.', example: 'After a booth visitor opts in, the brand team can follow up on the demo they requested. The organizer controls which contacts may be shared.'},
+    {key: 'nonprofit', title: 'Donations & volunteers', icon: 'hand-holding-heart', summary: 'Support engagement between fundraisers.', detail: 'For selected foundations, the approved support plan can include donation options, volunteer sign-ups and sponsorship opportunities. The organization determines the opportunities it offers.', example: 'A supporter who cannot attend a tournament can use the foundation’s donation flow. Another can register interest in volunteering at the next event.'},
+    {key: 'mobile', title: 'Mobile team access', icon: 'mobile-screen-button', summary: 'Give each person their own view on the floor.', detail: 'In the VNV Events iOS app, clients can check event details and message production. Crew members can see their assigned work and schedule. Access depends on the person’s role.', example: 'A crew member checks their next assignment from the venue while the client sends a question about the program directly to the production team.'},
+    {key: 'vendors', title: 'Vendor registration & management', icon: 'truck-ramp-box', planned: true, summary: 'A planned intake workflow for event suppliers.', detail: 'The proposed module would give vendors one place to register their company, event contact, services and agreed arrival details. Your producer will confirm availability when scoping the event.', example: 'The intended workflow would let a caterer submit its load-in contact and a floor manager check which vendors still owe arrival information.'},
+    {key: 'contracts', title: 'Contract management', icon: 'file-signature', planned: true, summary: 'A planned workspace for tracking agreements.', detail: 'The proposed module would let authorized staff see which agreements are outstanding, who owns the next action and which version was agreed. Your producer will confirm availability.', example: 'A project lead could see that the venue’s revised agreement is awaiting client review before confirming a production commitment.'}
+  ] %}
+  <section id="cuebook-modules" class="cb-modules cb-section" aria-labelledby="cb-modules-title">
+    <div class="cb-wrap">
+      <h2 id="cb-modules-title">Inside Cuebook</h2>
+      <p class="cb-intro">Explore the tools your producer can include in your agreement. Each module shows how a team would use it at an event.</p>
+      <div class="cb-module-grid">
+        {% for module in modules %}
+          <a class="cb-module-card" href="#module-{{ module.key }}" aria-haspopup="dialog" aria-controls="module-{{ module.key }}" aria-labelledby="card-{{ module.key }}{% if module.planned|default(false) %} status-{{ module.key }}{% endif %}">
+            <span class="cb-module-top"><i class="fa-solid fa-{{ module.icon }}" aria-hidden="true"></i>{% if module.planned|default(false) %}<span id="status-{{ module.key }}" class="cb-module-status">Planned</span>{% endif %}</span>
+            <h3 id="card-{{ module.key }}">{{ module.title }}</h3>
+            <span class="cb-module-line">{{ module.summary }} <span aria-hidden="true">↗</span></span>
+          </a>
+        {% endfor %}
+      </div>
+      {% for module in modules %}
+        <dialog class="cb-module-dialog" id="module-{{ module.key }}" aria-labelledby="detail-{{ module.key }}">
+          <div class="cb-module-detail">
+            <form method="dialog"><button class="cb-module-close" type="submit" aria-label="Close {{ module.title }}" autofocus>×</button></form>
+            {% if module.planned|default(false) %}<p class="cb-module-status">Planned module</p>{% endif %}
+            <h2 id="detail-{{ module.key }}">{{ module.title }}</h2>
+            <p>{{ module.detail }}</p>
+            <h3>{{ module.planned|default(false) ? 'Proposed workflow' : 'At an event' }}</h3>
+            <p>{{ module.example }}</p>
+            <a class="cb-module-return cb-link" href="#card-{{ module.key }}">Back to modules</a>
+          </div>
+        </dialog>
+      {% endfor %}
     </div>
   </section>
 
@@ -77,4 +130,7 @@
 {% include "templates/components/publicEventRequestModal.html.twig" with {request_form_action: path('api/public/event-request'), request_form_source: 'vnv_support'} %}
 {% include "templates/components/publicQuickRequestModal.html.twig" with {quick_request_type: 'CORPORATE', quick_request_source: 'vnv_support_corporate', quick_request_title: 'Discuss your event with a producer', quick_request_cta: 'Send inquiry'} %}
 {% include "templates/layout/publicFooterVnv.html.twig" %}
+{% endblock %}
+{% block scripts %}
+<script defer src="{{ asset_for('assets/js/vnv-cuebook.js', {v: '1'}) }}"></script>
 {% endblock %}

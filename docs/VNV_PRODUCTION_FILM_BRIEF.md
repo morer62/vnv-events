@@ -21,6 +21,14 @@ Show the relevant work one step at a time:
 - Sponsor activation can follow the artwork into the booth, then show a visitor choosing to share their details and the team preparing the agreed follow-up.
 - Original Experiences and Mommy & Daddy Break are for attending or hosting a social event. Show what guests experience and how to join the appropriate list.
 
+## Cuebook and the v8 service films
+
+Open with a production decision the audience recognizes. Narrate in conversational US English and cut each demonstration to the spoken action. Use an understated instrumental bed that remains audible between phrases. Check the final mix on a phone speaker and headphones. For corporate work, use footage of teams at work, exhibitors and guests in a professional setting. Check the first and last frames of every insert for wedding couples, retro party footage, baked-in photos and unrelated transitions.
+
+The Cuebook walkthrough follows an opening shift. Show the producer assigning a cue, the floor team receiving a schedule change, and staff checking in a companion independently. Show sponsor, volunteer and donation workflows only within the organization's authorized scope. Use vendor selection as a producer-led service. Identify vendor onboarding and contract management as planned modules, and describe a custom branded app through its agreed scope. Private corporate full production and approved nonprofit engagements include platform setup, access and reuse for future events at no additional platform charge.
+
+For the experience claim, use “more than 250 small and midsize events, alongside our corporate work.” Keep the figure independent of any yearly cadence. Pair it with the vendor-selection or production sequence and use the final English recording to time and proof the captions. For the v8 Cuebook release, the English VTT, landscape MP4 and WebP poster live together under `public/assets/video/production-films/v8/`.
+
 ## Captions and release review
 
 Provide an optional English WebVTT track on every full player. Time spoken captions to the final voice recording, including the exact offer on recordings that explain pricing. For music-led pieces, identify the music and describe the service or action concisely. “English captions below video” displays the timed text in a high-contrast panel beneath the picture. In full screen, the same track uses native captions. Keep cues to two short lines and place native cues in an area clear of headlines, faces and controls. Keep the page’s silent hero preview free of captions.

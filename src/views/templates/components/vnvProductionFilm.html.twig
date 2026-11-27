@@ -1,4 +1,4 @@
-{% set media = film.media|default('assets/video/production-films/v7/' ~ film.slug) %}
+{% set media = film.media|default('assets/video/production-films/v8/' ~ film.slug) %}
 <section class="vnv-film ve-film" aria-labelledby="{{ film.slug }}-film-title" id="{{ film.slug }}-film">
   <div class="vnv-offer__wrap vnv-film__layout">
     <div class="vnv-film__copy">
@@ -17,7 +17,7 @@
         <a href="{{ asset_for(media ~ '.mp4') }}">Download the video</a>
       </video>
       {% include 'templates/components/vnvFilmCaptions.html.twig' with {caption_id: film.slug ~ '-captions'} only %}
-      <figcaption id="{{ film.slug }}-film-credit">{{ film.credit ?? (film.music_only|default(false) ? 'AI-generated scenes with instrumental music' : 'AI-generated narration') }}</figcaption>
+      <figcaption id="{{ film.slug }}-film-credit">{{ film.credit|default('AI-generated narration') }}</figcaption>
       <div class="ve-film__tools">
         <a href="{{ asset_for(media ~ '.mp4') }}" target="_blank" rel="noopener" data-vnv-play-film="{{ film.slug }}-player">Play film with sound</a>
         <button type="button" class="ve-film__share" data-vnv-share-film="{{ path(film.route) }}#{{ film.slug }}-film" data-film-title="{{ film.title }}" hidden>Share film</button>

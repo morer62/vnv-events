@@ -2,8 +2,8 @@
 {% block title %}Retro Glam Sessions | VNV Events Productions{% endblock %}
 {% block meta_description %}Explore four Retro Glam Sessions in South Florida, from ’70s disco and ’80s Miami freestyle to ’90s R&B and Y2K hip-hop. Join an edition’s waitlist or request a private event.{% endblock %}
 {% block canonical %}https://vnvevents.com/vnv-events-productions/retro-glam/{% endblock %}
-{% block og_image %}https://vnvevents.com/assets/retro-glam/hero.webp{% endblock %}
-{% block og_image_alt %}An illustrated Art Deco ballroom concept for Retro Glam Sessions{% endblock %}
+{% block og_image %}https://vnvevents.com/assets/video/production-films/v8/retro-glam.webp{% endblock %}
+{% block og_image_alt %}A vinyl record on a turntable for Retro Glam Session Night{% endblock %}
 
 {% set editions = [
   {
@@ -48,7 +48,9 @@
 
 {% block styles %}
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="{{ asset_for('assets/css/vnv-retro-glam.css', {v: 'edition-choices-1'}) }}">
+<link rel="stylesheet" href="{{ asset_for('assets/css/vnv-production-offers.css', {v: 'production-films-2'}) }}">
+{% include "templates/components/vnvProductionEditorialAssets.html.twig" %}
+<link rel="stylesheet" href="{{ asset_for('assets/css/vnv-retro-glam.css', {v: 'edition-film-2'}) }}">
 <link rel="stylesheet" href="{{ asset_for('assets/css/vnv-partner-value.css', { v: '1' }) }}">
 {% endblock %}
 
@@ -62,13 +64,26 @@
       <p class="rg-hero__intro">Dress up for a night of throwback music, dancing and red-carpet photos. Each edition brings a different era to the room, framed by the glamour of Miami art déco.</p>
       <div class="rg-actions">
         <a class="rg-button" href="#retro-editions">Explore the editions <span aria-hidden="true">↓</span></a>
+        <a class="rg-link" href="#retro-glam-film" data-vnv-play-film="retro-glam-player">Watch the film</a>
         <a class="rg-link" href="{{ priority }}">Join the priority list</a>
       </div>
     </div>
     <figure class="rg-hero__image">
-      <img src="{{ asset_for('assets/retro-glam/hero.webp') }}" width="1440" height="960" alt="Black-tie guests entering an imagined Art Deco ballroom in Miami" fetchpriority="high" decoding="async">
+      <img src="{{ asset_for('assets/video/production-films/v8/retro-glam.webp') }}" width="1280" height="720" alt="A vinyl record on a turntable for Retro Glam Session Night" fetchpriority="high" decoding="async">
     </figure>
   </section>
+
+  {% include "templates/components/vnvProductionFilm.html.twig" with {
+    film: {
+      slug: 'retro-glam',
+      route: 'vnv-events-productions/retro-glam',
+      title: 'Inside a Retro Glam night',
+      description: 'Each edition follows one decade. See how the DJ set, stage lighting and photo moments work together for a 1970s disco night or a neon party inspired by the 1980s.',
+      cta: 'Pick your decade',
+      href: '#retro-editions',
+      credit: 'Illustrative event scenes. AI-generated narration.'
+    }
+  } only %}
 
   <section class="rg-section rg-shell" id="retro-editions" aria-labelledby="retro-editions-title">
     <header class="rg-section__intro">
