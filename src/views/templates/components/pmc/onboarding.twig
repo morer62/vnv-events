@@ -1,0 +1,49 @@
+{% set reg = account_data %}
+{% set report = reg.training %}
+{% set levels = {2:'Business owner',4:'Team member',5:'Customer'} %}
+{% set base = pmc_url|default('/panel/productions-management-center') %}
+{% set selected = reg.account.id|default(0) %}
+{% set print_url = base ~ '?tab=onboarding&account_id=' ~ selected ~ '&print=1' %}
+{% if not reg.available %}
+<p class="alert alert-warning">{{ reg.notice|default('The private training registry is unavailable.') }}</p>
+{% else %}
+<section class="card mb-3 d-print-none"><div class="card-body"><h2>Organization training</h2>
+{% if reg.accounts %}<form method="get" action="{{ base }}" class="d-flex flex-wrap align-items-end gap-2">
+<input type="hidden" name="tab" value="onboarding"><label>Organization
+<select class="form-select" name="account_id" required><option value="">Select an organization</option>
+{% for org in reg.accounts %}<option value="{{ org.id }}"{% if selected == org.id %} selected{% endif %}>{{ org.name }} · {{ org.environment|capitalize }}</option>{% endfor %}
+</select></label><button class="btn btn-primary">View progress</button></form>{% else %}<p>No workspaces are assigned to you yet.</p>{% endif %}
+</div></section>
+{% if report %}
+<section class="card mb-3"><div class="card-body"><h2>{{ report.organization }}</h2>
+<p>Primary administrator · {{ report.owner|default('Unassigned', true) }}<br>
+Onboarding manager · {{ reg.managers[reg.account.manager_id]|default('Unassigned') }}<br>
+Workspace access · {% if report.url %}<a href="{{ report.url }}">{{ report.url }}</a>{% else %}External access is pending DNS and trusted TLS.{% endif %}</p>
+<p>{{ report.counts.level4 }} team members · {{ report.counts.level5 }} customers · {{ report.counts.projects }} event projects · {{ report.counts.tasks }} tasks · {{ report.counts.activities }} verified activities</p>
+<p>Test tickets · Unavailable in this workspace<br>Latest progress · {{ report.last_activity ? report.last_activity|date('M j, Y H:i','UTC') ~ ' UTC' : 'No verified activity' }}</p>
+{% for alert in report.alerts %}<p>{{ alert }}</p>{% endfor %}
+{% if report.levels %}<div class="table-responsive"><table class="table"><thead><tr><th>Role</th><th>Active people</th><th>Verified / required</th><th>Progress</th></tr></thead><tbody>
+{% for level,row in report.levels %}<tr><td>{{ levels[level] }} · Level {{ level }}</td><td>{{ row.users }}</td><td>{{ row.completed }} / {{ row.total }}</td><td>{{ row.percent }}%</td></tr>{% endfor %}
+</tbody></table></div>{% endif %}
+<p class="d-print-none"><a href="{{ print_url }}">Print Onboarding Checklist</a>
+{% for level,label in levels %} · <a href="{{ print_url }}&amp;print_level={{ level }}">Print Level {{ level }}</a>{% endfor %}</p>
+{% if reg.print_mode %}<p class="d-print-none">Use your browser’s Print command to print this report or save a PDF.</p>{% endif %}
+</div></section>
+{% for person in report.members %}
+{% if (not reg.print_mode) or ((not reg.print_member or person.user_id == reg.print_member) and (not reg.print_level or person.role == reg.print_level)) %}
+<section class="card mb-3"><div class="card-body">
+<h3>{{ person.name }}</h3>
+<p>{{ levels[person.role] }} · Level {{ person.role }} · {{ person.active ? 'Active':'Inactive' }}{% if person.email %} · {{ person.email }}{% endif %}
+<br>Enabled modules · {{ person.modules|join(', ')|default('None assigned',true) }}</p>
+<p><strong>{{ person.percent }}%</strong> · {{ person.completed }} verified · {{ person.pending }} pending
+<br>Latest progress · {{ person.last_activity ? person.last_activity|date('M j, Y H:i','UTC') ~ ' UTC' : 'No verified activity' }}</p>
+{% if person.next %}<p>Up next · <strong>{{ person.next.label }}</strong></p>{% endif %}
+{% for alert in person.alerts %}<p>{{ alert }}</p>{% endfor %}
+<p class="d-print-none"><a href="{{ print_url }}&amp;print_member={{ person.user_id }}">Print individual checklist</a></p>
+<details{% if reg.print_mode %} open{% endif %}><summary>Required activities</summary><ul>
+{% for step in person.items %}<li><strong>{{ step.label }}</strong> · {{ step.done ? 'Verified' : 'Pending' }}{% if step.done %} · {{ step.achieved_at|date('M j, Y H:i','UTC') }} UTC{% endif %}<br>{{ step.instructions }}</li>{% endfor %}
+</ul></details>
+</div></section>
+{% endif %}{% endfor %}
+{% elseif selected %}<p>No training records are currently available for this workspace.</p>{% endif %}
+{% endif %}
