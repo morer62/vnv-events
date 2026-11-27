@@ -8,6 +8,7 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="{{ asset_for('assets/css/vnv-partnerships.css') }}">
+<link rel="stylesheet" href="{{ asset_for('assets/css/vnv-partner-value.css', { v: '1' }) }}">
 <style>
 .originals-hero{padding:clamp(90px,13vw,170px) 0;color:#fff;background:radial-gradient(circle at 80% 10%,rgba(94,198,196,.22),transparent 35%),#0b1517}.originals-hero h1{max-width:900px;margin:0;color:#fff;font-size:clamp(3.1rem,8vw,7.2rem);font-weight:850;line-height:.92;letter-spacing:-.065em}.originals-hero p{max-width:760px;margin:24px 0 0;color:rgba(255,255,255,.75);font-size:1.16rem;line-height:1.75}.originals-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:24px}.original-card{min-width:0;overflow:hidden;border:1px solid rgba(16,25,27,.12);border-radius:28px;background:#fff;box-shadow:0 24px 70px rgba(12,29,31,.1)}.original-card__image{aspect-ratio:16/10;overflow:hidden;background:#102126}.original-card__image img{width:100%;height:100%;object-fit:cover;transition:transform .4s ease}.original-card:hover img{transform:scale(1.035)}.original-card__body{padding:clamp(24px,4vw,40px)}.original-card h2{margin:0;font-size:clamp(2rem,4vw,3.5rem);font-weight:850;line-height:1}.original-card p,.original-card li{color:#596668;line-height:1.7}.original-card ul{padding-left:20px}.original-label{display:inline-flex;margin-bottom:16px;padding:7px 11px;border-radius:999px;color:#123638;background:#d9f5f3;font-size:.72rem;font-weight:900;letter-spacing:.09em;text-transform:uppercase}@media(max-width:760px){.originals-grid{grid-template-columns:1fr}.originals-hero{padding:76px 0 90px}}
 </style>
@@ -35,6 +36,12 @@
   <section class="vnvp-section" id="original-experiences"><div class="vnvp-container originals-grid">
     <article class="original-card"><div class="original-card__image"><img src="{{ asset_for('assets/retro-glam/hero.webp') }}" alt="Retro Glam original experience concept by VNV Events" width="900" height="562"></div><div class="original-card__body"><span class="original-label">Elegant night gala · Coming soon</span><h2>Retro Glam</h2><p>Four South Florida dance nights, each inspired by a different music scene from the 1970s through the early 2000s.</p><ul><li>Interest options: attendee, private host, sponsor or venue partner</li><li>Concept and date are still in development</li><li>No ticket sale is open on this page</li></ul><a class="vnvp-button" href="{{ path('vnv-events-productions/retro-glam') }}">Explore Retro Glam</a></div></article>
     <article class="original-card"><div class="original-card__image"><img src="{{ asset_for('assets/break-club/hero-miami-morning.webp') }}" alt="Mommy and Daddy Break original morning social concept by VNV Events" width="900" height="562"></div><div class="original-card__body"><span class="original-label">Approx. 3-hour morning social · Coming soon</span><h2>Mommy &amp; Daddy Break Club</h2><p>Brunch-style hospitality, a morning DJ, relaxed introductions and time to recharge at rotating South Florida venues.</p><ul><li>Free priority list for one or two adults</li><li>This concept does not provide or promise childcare</li><li>No ticket sale is open on this page</li></ul><a class="vnvp-button" href="{{ path('vnv-events-productions/mommy-and-daddy-break') }}">Explore the club &amp; join the list</a></div></article>
+  </div>
+  <div class="vnvp-container">
+    <details class="vp-sponsor-details">
+      <summary>What digital tools come with an approved sponsorship?</summary>
+      {% include "templates/components/vnvProductionPartnerValue.html.twig" with { audience: 'edition', compact: true } only %}
+    </details>
   </div></section>
 
   {% include "templates/components/vnvProductionFilm.html.twig" with {

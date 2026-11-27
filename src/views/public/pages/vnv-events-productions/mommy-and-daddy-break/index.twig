@@ -7,6 +7,7 @@
 {% block styles %}
 <link rel="stylesheet" href="{{ asset_for('assets/break-club/landing.css', { v: 'morning-film-3' }) }}">
 <link rel="stylesheet" href="{{ asset_for('assets/css/vnv-film-captions.css') }}">
+<link rel="stylesheet" href="{{ asset_for('assets/css/vnv-partner-value.css', { v: '1' }) }}">
 {% endblock %}
 {% block body %}
 {% include "templates/layout/publicHeaderVnv.html.twig" %}
@@ -89,7 +90,20 @@
             </div>
         </div>
     </section>
-    <aside class="bc-shell bc-partners"><div><p class="bc-kicker">Venue &amp; brand partners</p><h2>Host a morning with us.</h2><p>Host an edition or sponsor a part of the morning, from the welcome bar to a massage station, movement class or photo moment.</p></div><button class="bc-text-link" type="button" data-vnv-open-sponsor>Talk to VNV Events <span aria-hidden="true">↗</span></button></aside>
+    <aside class="bc-shell bc-partners">
+        <div>
+            <div>
+                <p class="bc-kicker">Venue &amp; brand partners</p>
+                <h2>Host a morning with us.</h2>
+                <p>Host an edition or sponsor a part of the morning, from the welcome bar to a massage station, movement class or photo moment.</p>
+            </div>
+            <details class="vp-sponsor-details">
+                <summary>What digital tools come with an approved sponsorship?</summary>
+                {% include "templates/components/vnvProductionPartnerValue.html.twig" with { audience: 'edition', compact: true } only %}
+            </details>
+        </div>
+        <button class="bc-text-link" type="button" data-vnv-open-sponsor>Talk to VNV Events <span aria-hidden="true">↗</span></button>
+    </aside>
 </main>
 {% include "templates/components/publicSponsorRequestModal.html.twig" with { sponsor_form_action: path('api/public/sponsor-request') } %}
 {% include "templates/layout/publicFooterVnv.html.twig" %}

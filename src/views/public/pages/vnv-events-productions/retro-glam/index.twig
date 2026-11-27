@@ -49,6 +49,7 @@
 {% block styles %}
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="{{ asset_for('assets/css/vnv-retro-glam.css', {v: 'edition-choices-1'}) }}">
+<link rel="stylesheet" href="{{ asset_for('assets/css/vnv-partner-value.css', { v: '1' }) }}">
 {% endblock %}
 
 {% block body %}
@@ -107,6 +108,10 @@
     <div>
       <h2 id="retro-partners-title">Sponsor a Retro Glam edition</h2>
       <p>Talk to our team about a venue partnership, a red-carpet photo set or a branded lounge at a future edition.</p>
+      <details class="vp-sponsor-details">
+        <summary>What digital tools come with an approved sponsorship?</summary>
+        {% include "templates/components/vnvProductionPartnerValue.html.twig" with { audience: 'edition', compact: true } only %}
+      </details>
     </div>
     <button type="button" class="rg-button" data-vnv-open-sponsor>Explore sponsorship <span aria-hidden="true">↗</span></button>
   </section>
