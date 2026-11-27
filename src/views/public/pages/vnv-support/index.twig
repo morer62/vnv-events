@@ -15,12 +15,12 @@
   <section class="cb-hero" aria-labelledby="cuebook-title">
     <div class="cb-wrap cb-split">
       <div>
-        <p class="cb-kicker">VNV Support</p>
-        <h1 id="cuebook-title">Cuebook</h1>
-        <p class="cb-lede">The workspace behind your event.</p>
-        <p>When doors open, your front desk needs the guest list, your stage manager needs the next cue and your sponsor needs to know who is handling their moment. Cuebook keeps them working from the same plan.</p>
+        <p class="cb-kicker">Event management software by VNV Events</p>
+        <h1 id="cuebook-title">VNV-Q</h1>
+        <p class="cb-lede">One event. One system. One coordinated team.</p>
+        <p>When doors open, your front desk needs the guest list, your stage manager needs the next cue and your sponsor needs to know who is handling their moment. VNV-Q, powered by Ophyra, keeps them working from the same plan.</p>
         <div class="cb-actions">
-          <a class="cb-button" href="#partner-access">Get access with VNV <span aria-hidden="true">↓</span></a>
+          <a class="cb-button" href="{{ path('event-production') }}">Explore Our Production Services <span aria-hidden="true">↗</span></a>
           <a class="cb-link" href="#cuebook-film">Watch the walkthrough</a>
           <a class="cb-link" href="{{ path('login') }}">VNV client sign-in</a>
         </div>
@@ -40,7 +40,7 @@
   {% include 'templates/components/vnvProductionFilm.html.twig' with {
     film: {
       slug: 'cuebook', route: 'vnv-support',
-      title: 'See Cuebook in action',
+      title: 'See VNV-Q in action',
       description: 'Follow the work from the first crew briefing to guest arrival and sponsor follow-up.',
       cta: 'Explore the modules', href: '#cuebook-modules',
       credit: 'Illustrative event workflows. AI-generated narration.'
@@ -49,13 +49,10 @@
 
   <section class="cb-wrap cb-section" aria-labelledby="cb-work">
     <h2 id="cb-work">How we run the event together</h2>
-    <p class="cb-intro">Jonathan Moreno leads production at VNV Events and created Cuebook and the working method behind it. Each year we produce more than 250 small and midsize events in addition to our corporate productions. Our team uses Cuebook to coordinate catering, décor, multimedia, staffing and logistics.</p>
-    <div class="cb-workflow">
-      <article><h3>Before the event</h3><p>Agree on who owns each task. Build the run of show, collect RSVPs and give vendors and sponsors a deadline for each deliverable.</p></article>
-      <article><h3>On the floor</h3><p>Check in a guest even if their party arrives separately. Share a schedule change with the crew and give the next cue to the person responsible.</p></article>
-      <article><h3>After the doors close</h3><p>Review attendance, record what each sponsor received and give outstanding follow-ups an owner. Keep the workspace for the next event.</p></article>
-    </div>
+    <p class="cb-intro">Jonathan Moreno leads production at VNV Events and created VNV-Q and the working method behind it. Each year we produce more than 250 small and midsize events in addition to our corporate productions. Our team uses VNV-Q to coordinate catering, décor, multimedia, staffing and logistics.</p>
   </section>
+
+  {% include "templates/components/vnvProductionPhases.html.twig" with { phases: production_phases, intro: 'The project phases stay the same. A corporate production uses speaker and budget approvals, while a fundraiser configures registration, volunteer assignments and sponsor benefits.' } only %}
 
   {% set modules = [
     {key: 'schedule', title: 'Run of show', icon: 'clock', summary: 'Give each cue a time and an owner.', detail: 'Your producer works with the stage manager to put arrivals, doors, speaker calls and sponsor moments in running order.', example: 'If a welcome speech moves ahead of dinner, the producer tells the stage manager and catering lead which cue changed. Both work from the revised schedule.'},
@@ -70,7 +67,7 @@
   ] %}
   <section id="cuebook-modules" class="cb-modules cb-section" aria-labelledby="cb-modules-title">
     <div class="cb-wrap">
-      <h2 id="cb-modules-title">Inside Cuebook</h2>
+      <h2 id="cb-modules-title">Inside VNV-Q</h2>
       <p class="cb-intro">Explore the tools your producer can include in your agreement. Each module shows how a team would use it at an event.</p>
       <div class="cb-module-grid">
         {% for module in modules %}
@@ -115,11 +112,11 @@
   </section>
 
   <section class="cb-wrap cb-section cb-access" id="partner-access" aria-labelledby="cb-access-title">
-    <h2 id="cb-access-title">Bring Cuebook to your event</h2>
+    <h2 id="cb-access-title">Bring VNV-Q to your event</h2>
     <p class="cb-intro">Setup and access to the tools in your agreement are included at no additional cost. Your team can keep using its workspace for future events. We agree on the scope of a dedicated mobile app with you.</p>
     <div class="cb-paths">
       <article><h3>Companies and brands</h3><p>When you hire VNV for production, we set up the workspace around your event or series. Tell us what you are producing and we can walk you through the workflow that fits your team.</p>
-        <a class="cb-button" href="{{ path('corporate-events') }}#corporate-partnerships" data-vnv-open-quick-request data-quick-request-type="CORPORATE" data-quick-request-source="vnv_support_corporate">Talk to a producer <span aria-hidden="true">↗</span></a>
+        <a class="cb-button" href="{{ path('') }}?request_service=vnv-q-demo#vnvRequestModal" data-vnv-open-request data-vnv-request-service="vnv-q-demo">Request a VNV-Q walkthrough <span aria-hidden="true">↗</span></a>
       </article>
       <article><h3>Foundations and nonprofits</h3><p>Apply through Cause on Cue. If your event is selected, the approved support plan defines your guest, volunteer and sponsor tools, any year-round donation features and whether a branded app is included.</p>
         <a class="cb-button" href="{{ path('nonprofit-partnerships') }}#application">Apply for nonprofit support <span aria-hidden="true">↗</span></a>
@@ -128,7 +125,6 @@
   </section>
 </main>
 {% include "templates/components/publicEventRequestModal.html.twig" with {request_form_action: path('api/public/event-request'), request_form_source: 'vnv_support'} %}
-{% include "templates/components/publicQuickRequestModal.html.twig" with {quick_request_type: 'CORPORATE', quick_request_source: 'vnv_support_corporate', quick_request_title: 'Discuss your event with a producer', quick_request_cta: 'Send inquiry'} %}
 {% include "templates/layout/publicFooterVnv.html.twig" %}
 {% endblock %}
 {% block scripts %}

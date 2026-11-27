@@ -1,5 +1,6 @@
 <?php
 
+use App\Services\VnvProductionCatalog;
 use App\Utils\Router;
 use App\Utils\TemplateResponse;
 
@@ -17,12 +18,13 @@ $router->get(function () {
     $sponsorAnswer = 'Yes. Under your Approved Support Plan, we can be the event contact for confirmed sponsors, collect their logos, coordinate recognition and recap what each sponsor received. We can also introduce prospective sponsors or donors when both parties agree. Your nonprofit approves the partners and terms and leads fundraising. Introductions do not guarantee funding.';
 
     $seo = [
-        'title' => 'Cause on Cue 2027 | Nonprofit Impact Initiative',
+        'title' => 'Nonprofit Partnerships | Cause on Cue 2027 by VNV Events',
         'description' => 'Cause on Cue 2027 helps South Florida nonprofits produce fundraisers, manage event sponsors and coordinate guest registration and check-in.',
         'canonical' => 'https://vnvevents.com/nonprofit-partnerships/',
     ];
 
     return TemplateResponse::render(__DIR__ . '/index.twig', [
+        'production_phases' => VnvProductionCatalog::phases(),
         'seo' => $seo,
         'sponsor_question' => $sponsorQuestion,
         'sponsor_answer' => $sponsorAnswer,

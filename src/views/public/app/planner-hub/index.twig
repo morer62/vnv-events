@@ -1912,6 +1912,7 @@ h1, h2, h3, h4, .luxury-font {
         background-attachment: scroll;
     }
 }
+.vnv-home-catalog{margin-top:clamp(1.75rem,4vw,3.5rem);border-block:1px solid #bea26c;padding:clamp(1.75rem,4vw,3rem) 0;display:flex;align-items:center;justify-content:space-between;gap:1.5rem;flex-wrap:wrap}.vnv-home-catalog h2{font-size:clamp(1.7rem,3.8vw,3rem);margin:0}.vnv-home-catalog p{margin:.6rem 0 0}
 </style>
 {% endblock %}
 
@@ -2090,15 +2091,18 @@ h1, h2, h3, h4, .luxury-font {
                     <div class="service-icon-box"><i class="fa-solid fa-briefcase"></i></div>
                     <h3>Corporate Events</h3>
                     <p>Whether it be a holiday party, fundraiser, marketing event, celebration, seminar, off-site meeting or shopping event.</p>
-                    <a href="{{ path('corporate-events') }}" class="vnv-link-gold">REQUEST SERVICE -></a>
+                    <a href="{{ path('event-production') }}" class="vnv-link-gold">REQUEST SERVICE -></a>
                 </div>
             </div>
         </div>
 
-        <div class="text-center mt-5 pt-4">
-            <p class="text-vnv-muted fs-5 mb-4">Want to compare everything before choosing? Explore our complete event catalog by category.</p>
-            <a href="{{ path('/store-categories/') }}" class="vnv-btn btn-gold-vnv">Browse the Full VNV Catalog</a>
-        </div>
+        <section aria-labelledby="catalog-heading" class="vnv-home-catalog">
+            <div>
+                <h2 id="catalog-heading">Explore Our Complete Service Catalog</h2>
+                <p>Compare catering, entertainment, planning and full-scale production for your South Florida event.</p>
+            </div>
+            <a href="{{ path('/store-categories/') }}" class="vnv-btn btn-gold-vnv">View All Services</a>
+        </section>
     </div>
 </section>
 
@@ -2121,11 +2125,10 @@ h1, h2, h3, h4, .luxury-font {
                 </article>
 
                 <article class="vnv-service-grid-card vnv-program-card">
-                    <span class="vnv-program-status vnv-program-status--future">By Invitation</span>
                     <div class="service-icon-box"><i class="fa-solid fa-building" aria-hidden="true"></i></div>
-                    <h3>Corporate &amp; Brand Experiences</h3>
-                    <p>New integrated productions and annual event partnerships reviewed individually.</p>
-                    <a href="{{ path('corporate-events') }}" class="vnv-link-gold">REQUEST AN INVITATION -&gt;</a>
+                    <h3>Brand Experiences &amp; Activation</h3>
+                    <p>Activate at an existing event, explore a sponsorship or produce your own brand event.</p>
+                    <a href="{{ path('sponsor-activation-production') }}" class="vnv-link-gold">EXPLORE BRAND EXPERIENCES -&gt;</a>
                 </article>
 
                 <article class="vnv-service-grid-card vnv-program-card">
@@ -2543,9 +2546,9 @@ h1, h2, h3, h4, .luxury-font {
 
 <section class="section-plan-vnv" id="upcoming-events">
     <div class="container">
-        <div class="text-center mb-5"><span class="vnv-badge-request">Upcoming Original Experiences</span><h2 class="display-3 fw-bold text-white mt-3">Two concepts currently in development.</h2><p class="fs-5 text-white-50">Join a priority list to receive future announcements. No ticket sale is open on this page.</p></div>
+        <div class="text-center mb-5"><span class="vnv-badge-request">Original Experiences</span><h2 class="display-3 fw-bold text-white mt-3">Two concepts currently in development.</h2><p class="fs-5 text-white-50">Join a priority list to receive future announcements. No ticket sale is open on this page.</p></div>
         <div class="vnv-upcoming-grid">
-            <article class="vnv-upcoming-card" style="--event-image:url('{{ asset_for('assets/images/productions/retro-glam.jpg') }}')"><div class="vnv-upcoming-card__body"><span class="vnv-program-status vnv-program-status--future">Elegant night gala · Coming soon</span><h3>Retro Glam</h3><p>A polished night inspired by the music, fashion and visual energy of the 1970s through the 1990s.</p><div class="d-flex flex-wrap gap-2"><a href="{{ path('vnv-events-productions/retro-glam') }}" class="vnv-btn btn-ghost-white">View Concept</a><a href="{{ path('vnv-events-productions') }}#priority-list" class="vnv-btn btn-gold-vnv">Join Priority List</a></div></div></article>
+            <article class="vnv-upcoming-card" style="--event-image:url('{{ asset_for('assets/images/productions/retro-glam.jpg') }}')"><div class="vnv-upcoming-card__body"><span class="vnv-program-status vnv-program-status--future">Elegant night gala · Coming soon</span><h3>Retro Glam Sessions</h3><p>Each edition takes its music, fashion and photo sets from a single era. Join the list to hear which decade comes next.</p><div class="d-flex flex-wrap gap-2"><a href="{{ path('vnv-events-productions/retro-glam') }}" class="vnv-btn btn-ghost-white">View Concept</a><a href="{{ path('vnv-events-productions') }}#priority-list" class="vnv-btn btn-gold-vnv">Join Priority List</a></div></div></article>
             <article class="vnv-upcoming-card" style="--event-image:url('{{ asset_for('assets/break-club/hero-poster.webp') }}')"><div class="vnv-upcoming-card__body"><span class="vnv-program-status vnv-program-status--future">Approx. 3-hour morning social · Coming soon</span><h3>Mommy &amp; Daddy Break Club</h3><p>A relaxed morning social with hospitality, music, conversation and restorative moments. This concept does not include childcare.</p><div class="d-flex flex-wrap gap-2"><a href="{{ path('vnv-events-productions/mommy-and-daddy-break') }}" class="vnv-btn btn-ghost-white">Explore the club</a><a href="{{ path('vnv-events-productions/mommy-and-daddy-break') }}#waitlist" class="vnv-btn btn-gold-vnv">Join Priority List</a></div></div></article>
         </div>
     </div>

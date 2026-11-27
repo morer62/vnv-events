@@ -6,7 +6,9 @@ use App\Utils\TemplateResponse;
 $router = new Router();
 
 $router->get(function () {
-    return TemplateResponse::render(__DIR__ . "/index.twig");
+    return TemplateResponse::render(__DIR__ . "/index.twig", [
+        'services' => \App\Services\VnvProductionCatalog::services(),
+    ]);
 });
 
 try {

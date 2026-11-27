@@ -87,10 +87,24 @@
                     <h3>2) What services do you need?</h3>
 
                     <div class="vnv-request-service-group">
+                        <h4>Corporate &amp; Professional Event Services</h4>
+                        <div class="vnv-request-pill-list">
+                            <button type="button" class="vnv-request-pill" data-service-key="event-production" data-service="Event Production" aria-pressed="false">Event Production</button>
+                            <button type="button" class="vnv-request-pill" data-service-key="production-essential" data-service="Production Essential" aria-pressed="false">Production Essential</button>
+                            <button type="button" class="vnv-request-pill" data-service-key="full-event-production" data-service="Full Event Production" aria-pressed="false">Full Event Production</button>
+                            <button type="button" class="vnv-request-pill" data-service-key="advanced-production" data-service="Advanced Production" aria-pressed="false">Advanced & Large-Scale Production</button>
+                            <button type="button" class="vnv-request-pill" data-service-key="brand-activation" data-service="Brand Activation" aria-pressed="false">Brand Activation</button>
+                            <button type="button" class="vnv-request-pill" data-service-key="sponsorship-opportunities" data-service="Sponsorship Opportunities" aria-pressed="false">Sponsorship Opportunities</button>
+                            <button type="button" class="vnv-request-pill" data-service-key="nonprofit-partnerships" data-service="Nonprofit Partnerships" aria-pressed="false">Nonprofit Partnerships</button>
+                            <button type="button" class="vnv-request-pill" data-service-key="vnv-q-demo" data-service="Event Software Demo" aria-pressed="false">Event Software Demo</button>
+                            <button type="button" class="vnv-request-pill" data-service-key="event-planner" data-service="Event Planner" aria-pressed="false">Event Planner</button>
+                            <button type="button" class="vnv-request-pill" data-service-key="day-coordinator" data-service="Event Coordinator" aria-pressed="false">Day Coordinator</button>
+                        </div>
+                    </div>
+
+                    <div class="vnv-request-service-group">
                         <h4>Primary Services</h4>
                         <div class="vnv-request-pill-list">
-                            <button type="button" class="vnv-request-pill" data-service="Event Planner">Event Planner</button>
-                            <button type="button" class="vnv-request-pill" data-service="Event Coordinator">Event Coordinator</button>
                             <button type="button" class="vnv-request-pill" data-service="Venue Rental">Venue Rental</button>
                             <button type="button" class="vnv-request-pill" data-service="Dj and Karaoke Services">Dj and Karaoke Services</button>
                             <button type="button" class="vnv-request-pill" data-service="Flower Decorations & Arrangements">Flower Decorations & Arrangements</button>
@@ -171,6 +185,14 @@
             <section class="vnv-request-step" data-vnv-step="3">
                 <div class="vnv-request-panel">
                     <h3>3) Event details & contact</h3>
+                    <fieldset id="vnvOrganizationFields" hidden disabled style="border:0;padding:0;margin:0 0 1rem">
+                        <legend class="vnv-request-label">About your project (optional)</legend>
+                        <div class="vnv-request-grid vnv-request-grid--two">
+                            <label>Company or organization<input class="vnv-request-input" name="organization_name" autocomplete="organization" maxlength="180"></label>
+                            <label>Estimated budget (USD)<input class="vnv-request-input" name="budget_range" placeholder="For example, $15,000–$20,000" maxlength="80"></label>
+                            <label>Event type<input class="vnv-request-input" name="project_event_type" placeholder="Conference, gala, launch…" maxlength="100"></label>
+                        </div>
+                    </fieldset>
 
                     <div class="vnv-request-grid vnv-request-grid--two">
                         <div>
@@ -935,6 +957,19 @@ body.vnv-request-lock{
 
     let currentStep = 1;
     const selectedServices = new Set();
+    const professionalButtons = Array.from(serviceButtons).filter(btn => btn.dataset.serviceKey);
+    const organizationFields = document.getElementById('vnvOrganizationFields');
+    let suggestedService = null;
+
+    function suggestService(key) {
+        const button = professionalButtons.find(item => item.dataset.serviceKey === key);
+        if (!button) return false;
+        if (suggestedService) selectedServices.delete(suggestedService);
+        suggestedService = selectedServices.has(button.dataset.service) ? null : button.dataset.service;
+        selectedServices.add(button.dataset.service);
+        updateSelectedServices();
+        return true;
+    }
     let requestMap = null;
     let requestMarker = null;
     let requestGeocoder = null;
@@ -1010,6 +1045,15 @@ body.vnv-request-lock{
     }
 
     function updateSelectedServices() {
+        serviceButtons.forEach(button => {
+            const active = selectedServices.has(button.dataset.service);
+            button.classList.toggle('is-active', active);
+            button.setAttribute('aria-pressed', String(active));
+        });
+        const hasOrganization = professionalButtons.some(button =>
+            !['event-planner', 'day-coordinator'].includes(button.dataset.serviceKey) && selectedServices.has(button.dataset.service));
+        organizationFields.hidden = !hasOrganization;
+        organizationFields.disabled = !hasOrganization;
         const items = Array.from(selectedServices);
         selectedServicesInput.value = JSON.stringify(items);
 
@@ -1307,6 +1351,7 @@ body.vnv-request-lock{
     openers.forEach(btn => {
         btn.addEventListener('click', function (e) {
             e.preventDefault();
+            suggestService(btn.dataset.vnvRequestService);
             openModal();
         });
     });
@@ -1336,6 +1381,7 @@ body.vnv-request-lock{
         btn.addEventListener('click', function () {
             const value = this.getAttribute('data-service');
             if (!value) return;
+            if (value === suggestedService) suggestedService = null;
 
             if (selectedServices.has(value)) {
                 selectedServices.delete(value);
@@ -1430,7 +1476,6 @@ body.vnv-request-lock{
     normalizeActionUrl();
     waitForGoogleAndInit();
     goToStep(1);
-
-    
+    if (suggestService(new URLSearchParams(window.location.search).get('request_service'))) openModal();
 })();
 </script>

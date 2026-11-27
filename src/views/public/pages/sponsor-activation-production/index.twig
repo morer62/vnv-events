@@ -19,46 +19,43 @@
   {% include "templates/components/vnvProductionHero.html.twig" with {
   hero: {
     slug: 'brand-activation',
-    label: 'South Florida · By Invitation',
-    title: 'Sponsor activation',
-    emphasis: 'production.',
-    description: 'Build a trade show booth, product demo or hosted brand experience that gives guests a reason to stop.',
-    details: ['Custom booths, printed backdrops and branded counter wraps', 'Installation, staffing and coordination with the organizer', 'Agreed photos, participation counts or a recap'],
-    cta: 'Request an invitation',
+    label: 'South Florida · For brands and sponsors',
+    title: 'Brand experiences',
+    emphasis: '& activation.',
+    description: 'Activate your brand at an existing event, partner on an approved experience or produce a launch of your own. We design the guest interaction and lead the team that delivers it.',
+    details: ['Audience goals and creative direction', 'Organizer approvals, production and live staffing', 'Agreed participation measures and follow-up'],
+    cta: 'Create Your Brand Experience',
     href: '#activation-brief',
-    request_type: 'ACTIVATION',
-    request_source: 'activation_hero',
+    request_service: 'brand-activation',
     preview_label: 'A preview of trade show graphics, exhibit structures and the show floor'
   }
 } only %}
 
-  {% include "templates/components/vnvProductionOffer.html.twig" with {
-    offer: {
-      id: 'activation-delivery',
-      label: 'Activation production',
-      title: 'What VNV designs, prints and builds for your booth',
-      description: 'Send us your brand guidelines, the space you booked and the exhibitor manual. We use them to design the stand, prepare the artwork and plan how your team will welcome visitors.',
-      image: 'assets/video/production-films/v4/trade-show-booth.webp',
-      image_alt: 'Trade show attendees talking with booth staff beside a printed backdrop, branded counter graphics and a freestanding display',
-      caption: 'Illustrative trade show booth',
-      deliverables: [
-        ['Brand identity and artwork', 'We adapt your brand colors, type and campaign artwork to the exhibit. Your brand team reviews the layout and print proofs before production.'],
-        ['Printed backdrops and signage', 'We produce large-format backdrops, counter wraps and directional signs sized for the booth. We confirm artwork deadlines and mounting requirements with the show team.'],
-        ['Custom trade show booths', 'For a large exhibit, we plan what visitors see from the aisle, where they enter and how much room a demo needs. The written scope specifies the build, materials and lighting.'],
-        ['Installation and show-floor crew', 'We coordinate fabrication, load-in and setup with the organizer, brief the booth staff and schedule breakdown when the floor closes.']
-      ]
-    }
-  } only %}
+  <section class="vnvp-section vp-brand-modes" id="activation-delivery" aria-labelledby="brand-formats">
+    <div class="vnvp-container">
+      <div class="vnvp-heading"><h2 id="brand-formats">Where do you want to meet your audience?</h2></div>
+      <div class="vnvp-grid">
+        <article class="vnvp-card"><h3>Activate at an existing event</h3><p>At a gala, trade show, conference or community event, give visitors a reason to stop and an action to take. We shape the concept, secure organizer approvals and coordinate the staffing, build, logistics and recap.</p>
+          <a href="{{ path('') }}?request_service=brand-activation#vnvRequestModal" data-vnv-open-request data-vnv-request-service="brand-activation">Plan an activation ↗</a></article>
+        <article class="vnvp-card"><h3>Partner with our experiences</h3><p>Explore sampling, hosted moments and sponsorships with VNV originals or authorized partners. Each project defines its audience, available inventory and approval process.</p>
+          <a href="{{ path('vnv-events-productions') }}">Explore Original Experiences ↗</a></article>
+        <article class="vnvp-card"><h3>Create your own brand event</h3><p>Launch a product, host a customer reception or bring employees together. We develop the program, direct vendors and run the event under one production scope.</p>
+          <a href="{{ path('event-production') }}#production-fees">See event production options ↗</a></article>
+      </div>
+    </div>
+  </section>
+
+{% include "templates/components/vnvProductionFees.html.twig" with { services: production_services, keys: ['brand-activation', 'sponsorship-opportunities'], managed_budget: managed_budget, direct_costs: direct_costs, activation: true } only %}
 
   {% include "templates/components/vnvProductionFilm.html.twig" with {
     film: {
       slug: 'brand-activation',
       route: 'sponsor-activation-production',
       credit: 'Illustrative trade show scenes and exhibit designs. AI-generated narration.',
-      title: 'From brand artwork to a trade show booth',
-      description: 'Follow a visitor from the trade show aisle to a product demo and a sales introduction. See how we select the fabricators, multimedia crew and booth staff. Full corporate production includes our digital system at no extra cost, with continued access after the show.',
-      cta: 'Share your activation brief',
-      href: '#activation-brief'
+      title: 'From a first impression to a real conversation',
+      description: 'See how an audience goal becomes a live activation, a partnership or a brand-owned event. Your producer coordinates fabrication, multimedia, staffing and the next step for interested guests.',
+      cta: 'Create Your Brand Experience',
+      request_service: 'brand-activation'
     }
   } only %}
 
@@ -73,17 +70,15 @@
     </div>
   </div></section>
 
-  <section class="vnvp-section vnvp-section--dark"><div class="vnvp-container">
-    <div class="vnvp-heading"><h2>Brief. Design. Approval. Build. Live. Recap.</h2><p>Your proposal sets out what VNV will produce, who approves it and what your brand will receive after the show.</p></div>
-    <div class="vnvp-grid">
-      <article class="vnvp-card"><h3>Brief and design</h3><p>We review the sponsorship rights, footprint, dates and access to power. You receive a proposed layout, staffing plan, deliverables and price.</p></article>
-      <article class="vnvp-card"><h3>Approval and installation</h3><p>We confirm organizer, venue and brand approvals before purchasing, printing or fabrication. The crew works to the show's load-in and inspection schedule.</p></article>
-      <article class="vnvp-card"><h3>Show day and recap</h3><p>We run the agreed guest experience and manage breakdown. Your recap can include event photos and participation counts. If lead capture is in scope, we agree in advance who receives the contacts.</p></article>
-    </div>
+  <section class="vp-commercial" aria-labelledby="brand-build-title"><div class="vp-commercial__inner">
+    <h2 id="brand-build-title">From the first brief to the handoff</h2>
+    <p class="vp-form-summary">We confirm the audience, sponsorship rights, guest action and success measure. A branded booth, signage, product samples or a hosted lounge can support the plan. We select fabrication and staffing partners, coordinate load-in and rehearsal, and agree on a recap before the show opens.</p>
+    <a href="{{ path('nonprofit-partnerships') }}">See how Cause on Cue works with nonprofit organizers</a>
   </div></section>
 
   <section class="vnvp-section" id="activation-brief"><div class="vnvp-container vnvp-form-wrap">
-    <div class="vnvp-form-intro"><span class="vnvp-eyebrow">By Invitation</span><h2>Start with a brief invitation request.</h2><p>Tell us the show, your brand and what you want visitors to do. If you already have a footprint and artwork deadlines, you can share them in the technical brief below.</p><button class="vnvp-button vnvp-button--gold" type="button" data-vnv-open-quick-request data-quick-request-type="ACTIVATION" data-quick-request-source="activation_brief">Request an Invitation</button><p><strong>Representing a nonprofit?</strong><br><a href="{{ path('nonprofit-partnerships') }}">Apply for Nonprofit Support</a>.</p></div>
+    <div class="vnvp-form-intro"><h2>Tell us what you want guests to do</h2><p>Share your objective, audience and preferred event or date. If you already have a footprint and organizer specifications, use the technical brief.</p>
+      <a class="vnvp-button vnvp-button--gold" href="{{ path('') }}?request_service=brand-activation#vnvRequestModal" data-vnv-open-request data-vnv-request-service="brand-activation">Create Your Brand Experience</a></div>
     <details class="vnvp-advanced"><summary>Complete technical activation brief</summary><form class="vnvp-form" action="{{ path('api/public/partnership-request') }}" method="post">
       {% if submitted %}<div class="vnvp-success" role="status"><strong>Brief received.</strong> We sent an acknowledgment with your reference number.</div>{% endif %}
       <input type="hidden" name="program" value="ACTIVATION"><input type="hidden" name="_token" value="{{ partnership_csrf }}">
@@ -117,12 +112,7 @@
     </form></details>
   </div></section>
 </main>
-{% include "templates/components/publicQuickRequestModal.html.twig" with {
-  quick_request_type: 'ACTIVATION',
-  quick_request_source: 'activation_quick_request',
-  quick_request_title: 'Request a sponsor activation invitation',
-  quick_request_cta: 'Request an Invitation'
-} %}
+{% include "templates/components/publicEventRequestModal.html.twig" with { request_form_action: path('api/public/event-request'), request_form_source: 'brand_experiences' } %}
 {% include "templates/layout/publicFooterVnv.html.twig" %}
 {% endblock %}
 

@@ -1,29 +1,15 @@
 {% set examples = {
-  production: 'Give your producers one place to share the run of show, assign the crew and check in guests. When a cue changes, the people running the event can work from the same schedule.',
-  corporate: 'Your team can manage RSVPs, guest check-in, vendor handoffs and the show schedule in one workspace. The front desk can see who has arrived while the production team follows the program.',
-  activation: 'Give your booth team its schedule and deliverables, record visitor opt-ins and follow up with the people who agreed to hear from your brand.',
-  nonprofit: 'Your foundation can manage RSVPs, check in guests and companions individually, and coordinate volunteers and sponsor benefits. Between fundraisers, keep using the agreed tools for donations, volunteer sign-ups and sponsorships.',
-  edition: 'Once VNV confirms your participation, your team can track its deliverables, artwork deadlines and event-day assignments for that edition.'
+  production: 'Your producer can update the run of show, assign the crew and give the welcome desk a current guest list. Your team keeps access to its agreed workspace for future events.',
+  corporate: 'Registration, guest check-in, presenter cues and crew responsibilities can share one workspace. Your team can reuse it for its next event.',
+  activation: 'Give the activation team its schedule and deliverables. Visitor follow-up uses the consent and access agreed with the organizer.',
+  nonprofit: 'Coordinate guests and companions, volunteer shifts and sponsor commitments. Approved year-round tools can support donations, sign-ups and future fundraisers.',
+  edition: 'Once your participation is confirmed, your team can track its agreed deliverables, artwork deadlines and event-day assignments.'
 } %}
 <section class="vp-value{{ compact|default(false) ? ' vp-value--compact' : '' }}" aria-labelledby="partner-system-title">
   <div class="vp-value__inner">
-    <h2 id="partner-system-title">Your digital event system is included</h2>
-    <p>Your team pays <strong>$0 for setup and access</strong> to the digital tools in its VNV agreement. This applies to paid productions and sponsorships, as well as approved no-fee and in-kind partnerships.</p>
-    <p>{{ examples[audience] }}{% if audience in ['production', 'corporate', 'activation', 'nonprofit'] %} <a href="{{ path('/vnv-support') }}">See how VNV Support works</a>.{% endif %}</p>
-    <table>
-      <caption>One-time setup costs in US dollars</caption>
-      <thead>
-        <tr><th scope="col">Setup service</th><th scope="col">Published example</th><th scope="col">With VNV</th></tr>
-      </thead>
-      <tbody>
-        <tr><th scope="row">Team and dashboard setup</th><td>From $99</td><td>$0</td></tr>
-        <tr><th scope="row">Event registration form</th><td>$300</td><td>$0</td></tr>
-        <tr><th scope="row">Event website setup</th><td>$500</td><td>$0</td></tr>
-        <tr><th scope="row">Full platform configuration</th><td>$1,000</td><td>$0</td></tr>
-      </tbody>
-    </table>
-    <p><strong>Access after setup.</strong> HoldThat lists its Professional Event Pass at $499 for one event with 90 days of access. Your VNV team can reuse its workspace for future events at no additional platform fee.</p>
-    <p class="vp-value__note">Each row is a separate example. The full setup is a package. Your agreement specifies your team's tools, sponsorship rights, production costs and any third-party fees.</p>
-    <p class="vp-value__sources">Prices checked November 27, 2026. <a href="https://events.holdthat.systems/pricing">HoldThat EventOS pricing</a> · <a href="https://eventation.io/pricing/">Eventation pricing</a></p>
+    <h2 id="partner-system-title">{{ audience == 'edition' ? 'Your sponsor workspace' : 'VNV-Q is included within your agreed scope' }}</h2>
+    <p>{{ examples[audience] }}</p>
+    <p>Setup and access for the agreed tools carry no additional platform fee. This applies to paid productions and sponsorships, as well as approved no-fee and in-kind partnerships. The agreement defines the team’s permissions and any third-party costs.</p>
+    {% if audience != 'edition' %}<a href="{{ path('vnv-support') }}">Explore VNV-Q Event Software <span aria-hidden="true">↗</span></a>{% endif %}
   </div>
 </section>

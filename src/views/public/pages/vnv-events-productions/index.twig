@@ -33,10 +33,13 @@
   }
 } only %}
   <section class="vnvp-section" id="original-experiences"><div class="vnvp-container originals-grid">
-    <article class="original-card"><div class="original-card__image"><img src="{{ asset_for('assets/video/production-films/v8/retro-glam.webp') }}" alt="Retro Glam original experience concept by VNV Events" width="900" height="562"></div><div class="original-card__body"><span class="original-label">Elegant night gala · Coming soon</span><h2>Retro Glam</h2><p>Four South Florida dance nights, each inspired by a different music scene from the 1970s through the early 2000s.</p><ul><li>Interest options: attendee, private host, sponsor or venue partner</li><li>Concept and date are still in development</li><li>No ticket sale is open on this page</li></ul><a class="vnvp-button" href="{{ path('vnv-events-productions/retro-glam') }}">Explore Retro Glam</a></div></article>
-    <article class="original-card"><div class="original-card__image"><img src="{{ asset_for('assets/break-club/hero-miami-morning.webp') }}" alt="Mommy and Daddy Break original morning social concept by VNV Events" width="900" height="562"></div><div class="original-card__body"><span class="original-label">Approx. 3-hour morning social · Coming soon</span><h2>Mommy &amp; Daddy Break Club</h2><p>Brunch-style hospitality, a morning DJ, relaxed introductions and time to recharge at rotating South Florida venues.</p><ul><li>Free priority list for one or two adults</li><li>This concept does not provide or promise childcare</li><li>No ticket sale is open on this page</li></ul><a class="vnvp-button" href="{{ path('vnv-events-productions/mommy-and-daddy-break') }}">Explore the club &amp; join the list</a></div></article>
+    <article class="original-card"><div class="original-card__image"><img src="{{ asset_for('assets/video/production-films/v8/retro-glam.webp', {v:'production-commercial-1'}) }}" alt="Retro Glam original experience concept by VNV Events" width="900" height="562"></div><div class="original-card__body"><span class="original-label">Decade-themed DJ nights</span><h2>Retro Glam Sessions</h2><p>Choose a decade-themed edition, from 1970s disco to Y2K hip-hop. VNV produces each night around its music, lighting and guests.</p><ul><li>Interest options: attendee, private host, sponsor or venue partner</li><li>Concept and date are still in development</li><li>No ticket sale is open on this page</li></ul><a class="vnvp-button" href="{{ path('vnv-events-productions/retro-glam') }}">Explore Retro Glam</a></div></article>
+    <article class="original-card"><div class="original-card__image"><img src="{{ asset_for('assets/break-club/hero-miami-morning.webp') }}" alt="Mommy and Daddy Break original morning social concept by VNV Events" width="900" height="562"></div><div class="original-card__body"><span class="original-label">Parent morning social</span><h2>Mommy &amp; Daddy Break Club</h2><p>Brunch-style hospitality, a morning DJ, relaxed introductions and time to recharge at rotating South Florida venues.</p><ul><li>Free priority list for one or two adults</li><li>This concept does not provide or promise childcare</li><li>No ticket sale is open on this page</li></ul><a class="vnvp-button" href="{{ path('vnv-events-productions/mommy-and-daddy-break') }}">Explore the club &amp; join the list</a></div></article>
   </div>
-  <div class="vnvp-container">
+  <div class="vnvp-container vp-original-partners">
+    <h2>Bring your brand into an experience</h2>
+    <p>VNV develops, promotes and produces these concepts. Interested in a hosted lounge, a tasting, an exhibitor space or a venue partnership? We confirm the edition, rights, available placements and costs with you before an agreement.</p>
+    <a class="vnvp-button" href="{{ path('sponsor-activation-production') }}#activation-delivery">Explore brand partnerships</a>
     <details class="vp-sponsor-details">
       <summary>What digital tools come with an approved sponsorship?</summary>
       {% include "templates/components/vnvProductionPartnerValue.html.twig" with { audience: 'edition', compact: true } only %}
@@ -90,6 +93,7 @@
     </form>
   </div></section>
 </main>
+{% include "templates/components/publicEventRequestModal.html.twig" with { request_form_action: path('api/public/event-request'), request_form_source: 'original_experiences' } %}
 {% include "templates/layout/publicFooterVnv.html.twig" %}
 {% endblock %}
 {% block scripts %}<script>(function(){const params=new URLSearchParams(location.search);document.querySelectorAll('[data-attribution]').forEach(function(input){input.value=input.dataset.attribution==='landing_url'?location.href:(params.get(input.dataset.attribution)||'');});})();</script>{% endblock %}

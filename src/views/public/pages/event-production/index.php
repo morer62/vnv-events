@@ -1,5 +1,6 @@
 <?php
 
+use App\Services\VnvProductionCatalog;
 use App\Utils\Router;
 use App\Utils\TemplateResponse;
 
@@ -10,6 +11,10 @@ $router->get(function () {
         $_SESSION['quick_request_csrf'] = bin2hex(random_bytes(24));
     }
     return TemplateResponse::render(__DIR__ . "/index.twig", [
+        'production_services' => VnvProductionCatalog::services(),
+        'managed_budget' => VnvProductionCatalog::MANAGED_BUDGET,
+        'direct_costs' => VnvProductionCatalog::DIRECT_COSTS,
+        'production_phases' => VnvProductionCatalog::phases(),
         'quick_request_csrf' => $_SESSION['quick_request_csrf'],
         'quick_submitted' => isset($_GET['quick_submitted']),
     ]);

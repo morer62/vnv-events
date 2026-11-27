@@ -200,7 +200,7 @@ $router->post(function () {
             'phone' => $phone,
             'service_requested' => match ($program) {
                 'NONPROFIT' => 'Cause on Cue 2027 application',
-                'ACTIVATION' => 'Sponsor Activation Production',
+                'ACTIVATION' => 'Brand Experiences & Activation',
                 default => 'Original Experience Priority List: ' . $data['event_name'],
             },
             'guest_count' => $data['guest_count'] ?: null,

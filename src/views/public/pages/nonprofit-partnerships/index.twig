@@ -20,12 +20,12 @@
   {% include "templates/components/vnvProductionHero.html.twig" with {
   hero: {
     slug: 'cause-on-cue',
-    label: 'Nonprofit Impact Initiative · South Florida',
+    label: 'Nonprofit Partnerships · South Florida',
     title: 'Cause on Cue',
     emphasis: '2027',
     description: 'Bring your fundraiser to life with an experienced production team and a platform that can support your nonprofit year-round.',
     details: ['Sponsor management, vendor coordination and event-day production', 'One plan for your team, RSVPs and check-in', 'Year-round tools for donations, volunteers and sponsorships'],
-    cta: 'Apply to Cause on Cue 2027',
+    cta: 'Explore a Nonprofit Partnership',
     href: '#application',
     mark: 'assets/images/productions/cause-on-cue-mark-v1.webp',
     preview_label: 'An illustrative nonprofit fundraiser, from room setup to guest arrival'
@@ -72,11 +72,11 @@
     <div class="vnv-offer__wrap vnv-offer__platform">
       <div class="vnv-offer__copy">
         <span class="vnv-offer__eyebrow">Developed by VNV Events</span>
-        <h2 id="guest-platform-title">One platform for the event and the year ahead</h2>
-        <p>The digital event and logistics system is free for foundations whose events we produce through Cause on Cue. We set it up and use it with your team during production. Your foundation keeps access for future fundraisers.</p>
+        <h2 id="guest-platform-title">VNV-Q for your fundraiser and the year ahead</h2>
+        <p>VNV-Q event software is included at no additional platform fee for foundations whose events we produce through Cause on Cue. We set it up and use it with your team during production. Your foundation keeps access for future fundraisers.</p>
         <ul class="vnv-offer__workflow" role="list">
-          <li><strong>For the event.</strong> Share the schedule, crew assignments and changes. Manage RSVPs before the event and check-in at the door.</li>
-          <li><strong>Year-round.</strong> Accept donations, recruit volunteers and offer sponsorship packages.</li>
+          <li><strong>For the event.</strong> Share schedules, tasks and crew updates. Track guest registration, RSVPs and check-in, then review attendance and sponsor deliverables.</li>
+          <li><strong>Year-round.</strong> With the approved nonprofit tools, accept donations, follow donor activity, recruit volunteers and coordinate sponsorship packages.</li>
           <li><strong>Your own mobile app.</strong> For selected nonprofits, mobile app development can be included at no development cost in the approved support plan.</li>
         </ul>
       </div>
@@ -109,6 +109,15 @@
   </section>
 
 {% include "templates/components/vnvProductionPartnerValue.html.twig" with { audience: 'nonprofit' } only %}
+
+  <section class="vp-commercial" aria-labelledby="nonprofit-activation-title">
+    <div class="vp-commercial__inner">
+      <h2 id="nonprofit-activation-title">Give sponsors a useful role at your event</h2>
+      <p class="vp-form-summary">Your foundation sets the mission and approves the benefits. With your permission, our producer can help a sponsor host a welcome experience, staff a demonstration or fulfill a promised acknowledgment. You retain control of your relationships and guest records.</p>
+      <a href="{{ path('sponsor-activation-production') }}">Explore Brand Experiences &amp; Activation</a>
+    </div>
+  </section>
+{% include "templates/components/vnvProductionPhases.html.twig" with { phases: production_phases, intro: 'After acceptance, your approved support plan sets any donated, subsidized or paid work. Corporate management fees do not automatically apply to nonprofit engagements.' } only %}
 
   <section class="vnvp-section support-process" id="process" aria-labelledby="support-process-title">
     <div class="vnvp-container support-process__layout">
@@ -154,7 +163,7 @@
         <span class="vnvp-eyebrow">Now accepting applications</span>
         <h2>Tell us what your organization needs</h2>
         <p>Tell us about your planned fundraiser and the support your team needs. You can also request a meeting to discuss fit before applying.</p>
-        <p class="support-leadership"><strong>Jonathan Moreno</strong>, founder of VNV Events and director of the VNV Support Initiative, leads the production team. He created the event software and the method our crew uses to coordinate volunteers, manage guest arrivals and run your fundraiser.</p>
+        <p class="support-leadership"><strong>Jonathan Moreno</strong>, founder of VNV Events and director of Cause on Cue, leads the production team. He created the event software and the method our crew uses to coordinate volunteers, manage guest arrivals and run your fundraiser.</p>
         <button class="vnvp-button" type="button" data-vnv-open-quick-request data-quick-request-type="NONPROFIT" data-quick-request-source="nonprofit_exploratory_2027">Request an Exploratory Meeting</button>
       </div>
       <details class="vnvp-advanced" open><summary>Cause on Cue 2027 Application</summary><form class="vnvp-form" action="{{ path('api/public/partnership-request') }}" method="post">
@@ -199,6 +208,7 @@
   quick_request_title: 'Request an Exploratory Meeting',
   quick_request_cta: 'Send Meeting Request'
 } %}
+{% include "templates/components/publicEventRequestModal.html.twig" with { request_form_action: path('api/public/event-request'), request_form_source: 'nonprofit_partnerships' } %}
 {% include "templates/layout/publicFooterVnv.html.twig" %}
 {% endblock %}
 

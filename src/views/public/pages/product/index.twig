@@ -1,5 +1,5 @@
 {% extends "templates/base.store.twig" %}
-{% set product_brand_label = is_vnv_gourmet_service|default(false) ? 'VNV Gourmet' : 'VNV Gourmet To Go' %}
+{% set product_brand_label = package_start ? 'VNV Events' : (is_vnv_gourmet_service|default(false) ? 'VNV Gourmet' : 'VNV Gourmet To Go') %}
 {% set is_box_builder = product and product.slug in ['appetizer-box','appetizer-box-breakfast-brunch','dessert-box'] %}
 {% set brazo_meta_description = 'Light sponge rolled with pastry cream, topped with fresh strawberries. Serves 10–12. Pickup in Sunrise.' %}
 
@@ -551,7 +551,9 @@
                     <div class="pp-price-row">
                         <div class="pp-price" id="product-price-display">
                             {% if product.product_type == 'VARIABLE' %}
-                                {% if product.min_price == product.max_price %}
+                                {% if package_start %}
+                                    From ${{ package_start|number_format(2, '.', ',') }}
+                                {% elseif product.min_price == product.max_price %}
                                     ${{ product.min_price|number_format(2, '.', ',') }}
                                 {% else %}
                                     From ${{ product.min_price|number_format(2, '.', ',') }}
@@ -754,7 +756,7 @@
                                         data-description="{{ (product.description ?: '')|e('html_attr') }}"
                                         data-main-image="{{ (product.main_image ?: '')|e('html_attr') }}"
                                         data-price="{{ product.display_price|default(product.min_price)|default(0) }}"
-                                        data-lowest-price="{{ product.min_price|default(product.display_price)|default(0) }}"
+                                        data-lowest-price="{{ package_start|default(product.min_price)|default(product.display_price)|default(0) }}"
                                         data-stock-quantity="{{ product.stock_quantity|default(0) }}"
                                         data-min-purchase-qty="{{ product.min_purchase_qty|default(1) }}"
                                         data-max-purchase-qty="{{ product.max_purchase_qty is not null ? product.max_purchase_qty : '' }}"
@@ -873,7 +875,9 @@
                                 <div class="pp-card-title">{{ r.name }}</div>
                                 <div class="pp-card-price">
                                     {% if r.product_type is defined and r.product_type == 'VARIABLE' %}
-                                        {% if r.min_price is defined and r.max_price is defined and r.min_price != r.max_price %}
+                                        {% if package_prices[r.slug] is defined %}
+                                            From ${{ package_prices[r.slug]|number_format(2, '.', ',') }}
+                                        {% elseif r.min_price is defined and r.max_price is defined and r.min_price != r.max_price %}
                                             From ${{ r.min_price|number_format(2, '.', ',') }}
                                         {% elseif r.min_price is defined %}
                                             ${{ r.min_price|number_format(2, '.', ',') }}
@@ -1773,7 +1777,9 @@ document.addEventListener('DOMContentLoaded', function () {
             variationMeta.innerHTML = '';
 
             {% if product.product_type == 'VARIABLE' %}
-                {% if product.min_price == product.max_price %}
+                {% if package_start %}
+                    priceDisplay.textContent = 'From ${{ package_start|number_format(2, '.', ',') }}';
+                {% elseif product.min_price == product.max_price %}
                     priceDisplay.textContent = '${{ product.min_price|number_format(2, '.', ',') }}';
                 {% else %}
                     priceDisplay.textContent = 'From ${{ product.min_price|number_format(2, '.', ',') }}';

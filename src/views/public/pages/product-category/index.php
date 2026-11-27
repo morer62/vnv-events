@@ -2,6 +2,8 @@
 
 use App\Repositories\StoreCategoriesRepository;
 use App\Repositories\StoreProductsRepository;
+use App\Services\VnvStoreProduction;
+use App\Services\VnvProductionCatalog;
 use App\Utils\AvomealContext;
 use App\Utils\SiteContext;
 use App\Utils\TemplateResponse;
@@ -90,8 +92,23 @@ if (empty($blocks)) {
     ];
 }
 
+$proposalServices = [];
+$packagePrices = VnvStoreProduction::packagePrices($siteKey);
+if ($siteKey === 'vnvevents' && $slug === VnvStoreProduction::CATEGORY) {
+    $proposalServices = array_intersect_key(VnvProductionCatalog::services(), array_flip(VnvStoreProduction::PROPOSALS));
+    $category->name = 'Planning, Coordination & Production';
+    $category->meta_title = $category->name . ' | VNV Events';
+    $category->meta_description = 'Compare planning packages, day-of coordination and scoped production or brand activation services in South Florida.';
+    $blocks = [
+        ['type' => 'hero', 'title' => $category->name, 'subtitle' => $category->meta_description],
+        ['type' => 'product_grid', 'title' => 'Planning packages', 'columns' => 2],
+    ];
+}
+
 echo TemplateResponse::render(__DIR__ . "/index.twig", [
     'category' => $category,
+    'package_prices' => $packagePrices,
+    'proposal_services' => $proposalServices,
     'products' => $products,
     'blocks' => $blocks
 ]);

@@ -1,6 +1,6 @@
 {% extends "templates/base.twig" %}
 {% block title %}Corporate Event Production & Annual Partnerships | VNV Events{% endblock %}
-{% block meta_description %}Explore invitation-based integrated corporate event production, annual partnerships and brand experiences across South Florida with VNV Events.{% endblock %}
+{% block meta_description %}Explore South Florida corporate event production for a conference, product launch, employee event or annual series. Compare scopes and request a production proposal.{% endblock %}
 {% block canonical %}https://vnvevents.com/corporate-events/{% endblock %}
 
 {% set show_whatsapp = true %}
@@ -558,19 +558,19 @@ h1, h2, h3, h4, h5, .luxury-font {
 {% include "templates/components/vnvProductionHero.html.twig" with {
   hero: {
     slug: 'corporate-events',
-    label: 'South Florida · By Invitation',
-    title: 'Corporate & brand',
-    emphasis: 'experiences.',
+    label: 'Corporate programs · South Florida',
+    title: 'Corporate event',
+    emphasis: 'production.',
     description: 'Produce your conference, launch or client event with one team coordinating the room, the program and the people.',
     details: ['One run of show for venues, vendors and presenters', 'Audiovisual cues, staffing and hospitality', 'Guest registration and check-in when needed'],
-    cta: 'Request an invitation',
+    cta: 'Request a Production Proposal',
     href: '#corporate-partnerships',
-    request_type: 'CORPORATE',
-    request_source: 'corporate_hero',
+    request_service: 'event-production',
     preview_label: 'Guests and exhibitors at a corporate event'
   }
 } only %}
 
+<nav class="vp-commercial vp-related" aria-label="Corporate production options"><div class="vp-commercial__inner vp-service-links"><a href="{{ path('event-production') }}#production-fees">Compare production scopes and fees</a><a href="{{ path('sponsor-activation-production') }}">Explore a brand activation</a></div></nav>
 {% include "templates/components/vnvProductionOffer.html.twig" with {
     offer: {
         id: 'corporate-production',
@@ -596,8 +596,7 @@ h1, h2, h3, h4, h5, .luxury-font {
         title: 'From the guest list to the show floor',
         description: 'Breakfast is still being served as the keynote begins. Who cues the microphone? See how we rehearse the handoff between catering, sound and the show caller. Full corporate production includes the digital event system at no extra cost for this event and future ones.',
         cta: 'Tell us about your event',
-        request_type: 'CORPORATE',
-        request_source: 'corporate_film'
+        request_service: 'event-production'
     }
 } only %}
 
@@ -672,7 +671,7 @@ h1, h2, h3, h4, h5, .luxury-font {
                     <div class="service-icon-box"><i class="fa-solid fa-calendar-check" aria-hidden="true"></i></div>
                     <h3>One-time full production</h3>
                     <p>For a single conference, launch or reception, we scope the venue coordination, technical production, hospitality and crew your program needs.</p>
-                    <a href="#" data-vnv-open-quick-request data-quick-request-type="CORPORATE" data-quick-request-source="corporate_production" class="vnv-link-gold">Discuss one event <span aria-hidden="true">→</span></a>
+                    <a href="{{ path('') }}?request_service=event-production#vnvRequestModal" data-vnv-open-request data-vnv-request-service="event-production" class="vnv-link-gold">Discuss one event <span aria-hidden="true">→</span></a>
                 </div>
             </div>
             <div class="col-lg-4">
@@ -680,15 +679,15 @@ h1, h2, h3, h4, h5, .luxury-font {
                     <div class="service-icon-box"><i class="fa-solid fa-repeat" aria-hidden="true"></i></div>
                     <h3>Annual production partnership</h3>
                     <p>Plan 2, 4 or 6 events with shared production standards and quarterly reviews. Each event has an agreed scope within the annual plan.</p>
-                    <a href="#" data-vnv-open-quick-request data-quick-request-type="CORPORATE" data-quick-request-source="corporate_annual" class="vnv-link-gold">Discuss an annual plan <span aria-hidden="true">→</span></a>
+                    <a href="{{ path('') }}?request_service=event-production#vnvRequestModal" data-vnv-open-request data-vnv-request-service="event-production" class="vnv-link-gold">Discuss an annual plan <span aria-hidden="true">→</span></a>
                 </div>
             </div>
             <div class="col-lg-4">
                 <div class="vnv-service-grid-card h-100">
                     <div class="service-icon-box"><i class="fa-solid fa-bullseye" aria-hidden="true"></i></div>
-                    <h3>Sponsor activation production</h3>
+                    <h3>Brand Experiences &amp; Activation</h3>
                     <p>Exhibiting at someone else’s event? Start with your footprint, brand guidelines and the action you want visitors to take. We can scope printed graphics, installation and show-floor staffing.</p>
-                    <a href="{{ path('sponsor-activation-production') }}" class="vnv-link-gold">Explore sponsor activations <span aria-hidden="true">→</span></a>
+                    <a href="{{ path('sponsor-activation-production') }}" class="vnv-link-gold">Explore brand experiences <span aria-hidden="true">→</span></a>
                 </div>
             </div>
         </div>
@@ -764,7 +763,7 @@ h1, h2, h3, h4, h5, .luxury-font {
                             Get Directions
                         </a>
 
-                        <a href="#" data-vnv-open-quick-request data-quick-request-type="CORPORATE" data-quick-request-source="corporate_location" class="vnv-btn btn-gold-vnv">
+                        <a href="{{ path('') }}?request_service=event-production#vnvRequestModal" data-vnv-open-request data-vnv-request-service="event-production" class="vnv-btn btn-gold-vnv">
                             Request a studio meeting
                         </a>
                     </div>
@@ -789,7 +788,7 @@ h1, h2, h3, h4, h5, .luxury-font {
                 <div class="col-lg-5 text-center text-lg-end">
                     <div class="d-flex flex-column flex-lg-row gap-3 justify-content-end">
                         <a href="tel:+13052045427" class="vnv-btn btn-gold-vnv vnv-btn-fixed">Call Now</a>
-                        <a href="#" data-vnv-open-quick-request data-quick-request-type="CORPORATE" data-quick-request-source="corporate_final" class="vnv-btn btn-ghost-white vnv-btn-fixed">Discuss your event</a>
+                        <a href="{{ path('') }}?request_service=event-production#vnvRequestModal" data-vnv-open-request data-vnv-request-service="event-production" class="vnv-btn btn-ghost-white vnv-btn-fixed">Discuss your event</a>
                     </div>
                 </div>
             </div>
@@ -803,14 +802,6 @@ h1, h2, h3, h4, h5, .luxury-font {
     request_form_action: "/api/public/event-request",
     request_form_source: "corporate_events"
 } %}
-
-{% include "templates/components/publicQuickRequestModal.html.twig" with {
-    quick_request_type: 'CORPORATE',
-    quick_request_source: 'corporate_events_quick_request',
-    quick_request_title: 'Discuss corporate event production',
-    quick_request_cta: 'Send production inquiry'
-} %}
-
 {% include "templates/layout/publicFooterVnv.html.twig" %}
 
 {% endblock %}

@@ -261,10 +261,15 @@ $router->post(function () {
     }
 
     $services = array_values(array_filter(array_map(function ($service) {
-        return trim((string)$service);
+        return is_string($service) ? trim($service) : '';
     }, $services), function ($service) {
         return $service !== '';
     }));
+
+    $commercial = \App\Services\VnvCommercialIntake::project($services, $_POST);
+    if ($commercial['notes'] !== '') {
+        $details = trim($details . "\n" . $commercial['notes']);
+    }
 
     $sessionUser = LoginService::getSession();
     $ownerId = eventRequestOwnerId();
@@ -317,7 +322,7 @@ $router->post(function () {
             'contact_name' => $fullName,
             'email' => $email,
             'phone' => $phone,
-            'service_requested' => $services !== [] ? implode(', ', $services) : null,
+            'service_requested' => $services !== [] ? mb_substr(implode(', ', $services), 0, 191) : null,
             'guest_count' => $guestCount > 0 ? $guestCount : null,
             'venue' => $eventAddress,
             'event_date' => $eventDate,
@@ -336,13 +341,15 @@ $router->post(function () {
 
     // Preserve the proven Event Request and Lead Intake workflows while also
     // representing corporate enquiries in the commercial pipeline.
-    if ($formSource === 'corporate_events') {
+    if ($formSource === 'corporate_events' || $commercial['program'] !== null) {
         try {
-            (new CommercialPartnershipRepository())->createPublicOpportunity($ownerId, 'vnvevents', 'CORPORATE', [
+            (new CommercialPartnershipRepository())->createPublicOpportunity($ownerId, 'vnvevents', $commercial['program'] ?? 'CORPORATE', [
+                'organization_name' => $commercial['organization_name'],
+                'budget_range' => $commercial['budget_range'],
                 'contact_name' => $fullName,
                 'email' => $email,
                 'phone' => $phone,
-                'event_name' => 'Corporate event request #' . $requestId,
+                'event_name' => ($commercial['event_type'] ?: 'Event request') . ' #' . $requestId,
                 'event_date' => $eventDate,
                 'venue' => $eventAddress,
                 'guest_count' => $guestCount > 0 ? $guestCount : null,

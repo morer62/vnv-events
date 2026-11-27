@@ -38,7 +38,7 @@
             <p class="bc-intro">Come on your own or bring one other adult. The club meets for about three hours, with time to recharge, meet other parents and discover a different South Florida setting. Your invitation lists the venue, activities and what your ticket includes.</p>
             <p class="bc-intro">Childcare is arranged separately by each guest.</p>
             <figure class="bc-feature-film vnv-caption-frame" id="morning-club-film">
-                <video id="morning-club-player" controls playsinline preload="none" width="1280" height="720" aria-label="A morning at Mommy and Daddy Break Club" poster="{{ asset_for('assets/video/production-films/v8/morning-club.webp') }}">
+                <video id="morning-club-player" controls playsinline preload="none" width="1280" height="720" aria-label="A morning at Mommy and Daddy Break Club" poster="{{ asset_for('assets/video/production-films/v8/morning-club.webp', { v: 'production-commercial-1' }) }}">
                     <source src="{{ morning_video_url }}" type="video/mp4">
                     <track kind="captions" srclang="en" label="English" src="{{ film_media.playback_asset(morning_media, '-en.vtt', true) }}">
                 </video>
@@ -105,10 +105,10 @@
                 {% include "templates/components/vnvProductionPartnerValue.html.twig" with { audience: 'edition', compact: true } only %}
             </details>
         </div>
-        <button class="bc-text-link" type="button" data-vnv-open-sponsor>Talk to VNV Events <span aria-hidden="true">↗</span></button>
+        <a class="bc-text-link" href="{{ path('sponsor-activation-production') }}#activation-delivery">Explore brand partnerships <span aria-hidden="true">↗</span></a>
     </aside>
 </main>
-{% include "templates/components/publicSponsorRequestModal.html.twig" with { sponsor_form_action: path('api/public/sponsor-request') } %}
+{% include "templates/components/publicEventRequestModal.html.twig" with { request_form_action: path('api/public/event-request'), request_form_source: 'vnv_original_experiences' } %}
 {% include "templates/layout/publicFooterVnv.html.twig" %}
 {% endblock %}
 {% block scripts %}

@@ -10,28 +10,34 @@ At phone size, look for action inside the frame. A slow pass across a set table 
 
 Keep each shot while it explains a new step. The sound mix should keep music audible under any narration. Close with the official brand and one relevant action over moving footage. The landing-page previews loop silently. Keep a source and time range for each shot so the next editor can distinguish moving rushes from a photo baked into an older MP4.
 
-## What the system offer means
+## Commercial film subjects
 
-When VNV produces an event, VNV includes the digital event and logistics system in the production at no extra cost. The client’s team can keep using it for future events. For foundations with an approved Cause on Cue production, the system is free and the foundation keeps access for future fundraisers. Custom mobile app development follows the foundation’s approved support plan.
+| Film | What the viewer should learn | Final action |
+| --- | --- | --- |
+| Event Production | How a producer owns a limited assignment or the full event, including goals, suppliers, rehearsals and show-day decisions. | Request a Production Proposal |
+| Corporate example | How catering, the stage manager and the speaker coordinate a real handoff. Direct the viewer to Event Production. | Request a Production Proposal |
+| Nonprofit Partnerships | How Cause on Cue works with the foundation's team, volunteers and sponsors under the approved scope. The foundation leads its fundraising relationships. | Explore a Nonprofit Partnership |
+| Brand Experiences & Activation | Three ways to reach guests in person. Activate at an existing event, partner with an eligible experience, or produce a brand-owned event. Explain the audience objective, the guest interaction and the follow-up. Confirm availability with the organizer. | Create Your Brand Experience |
+| VNV-Q | How registration, schedule changes, tasks and check-in move between authorized roles in the event workspace. | Explore Our Production Services |
+| Original Experiences | What each VNV-owned concept offers guests and where a brand can ask about sponsoring or activating. | Explore the editions or inquire about a partnership |
+| Mommy & Daddy Break Club | What a date-specific morning can include and how parents receive priority invitations. | Join the priority list |
+| Retro Glam Sessions | How a single decade shapes the DJ set, stage and photo opportunities at each edition. | Join the priority list or inquire about a private or brand edition |
 
-Show the relevant work one step at a time:
+## VNV-Q and the annual production figure
 
-- Full production and corporate events can show a crew assignment, a schedule change, an RSVP and a guest check-in.
-- Cause on Cue can show volunteers receiving assignments, sponsor benefits being fulfilled and a foundation preparing its next fundraiser.
-- Sponsor activation can follow the artwork into the booth, then show a visitor choosing to share their details and the team preparing the agreed follow-up.
-- Original Experiences and Mommy & Daddy Break are for attending or hosting a social event. Show what guests experience and how to join the appropriate list.
+Write **VNV-Q** on screen, in captions and on posters. Say **V-N-V Cue** in English. Introduce the product as **Event Management Software by VNV Events**. Ophyra is the underlying technology. Configure the platform within the agreed production scope. Full event production and approved nonprofit engagements include setup, access and continued use at no additional platform charge. Keep specific production and activation prices in the website and proposal documents.
 
-## Cuebook and the v8 service films
+The walkthrough follows the welcome desk through opening. Show a producer assigning a cue, the floor team receiving a schedule change and a companion checking in before the principal. Demonstrate sponsor, volunteer and donation work within the nonprofit's authorized scope. Vendor onboarding and contract management are roadmap items. Dedicated app development requires an agreed scope.
 
-Open with a production decision the audience recognizes. Narrate in conversational US English and cut each demonstration to the spoken action. Use an understated instrumental bed that remains audible between phrases. Check the final mix on a phone speaker and headphones. For corporate work, use footage of teams at work, exhibitors and guests in a professional setting. Check the first and last frames of every insert for wedding couples, retro party footage, baked-in photos and unrelated transitions.
+Use the same five phases across divisions. Discover, Design the Scope, Build the System, Produce the Event, and Close & Recap. Select the tasks and people that fit the event.
 
-The Cuebook walkthrough follows an opening shift. Show the producer assigning a cue, the floor team receiving a schedule change, and staff checking in a companion independently. Show sponsor, volunteer and donation workflows only within the organization's authorized scope. Use vendor selection as a producer-led service. Identify vendor onboarding and contract management as planned modules, and describe a custom branded app through its agreed scope. Private corporate full production and approved nonprofit engagements include platform setup, access and reuse for future events at no additional platform charge.
+Jonathan confirmed the operating figure on November 27, 2026. Each year VNV produces **more than 250 small and midsize events in addition to its corporate productions**, covering catering, décor, multimedia, staffing and logistics. Preserve the annual frequency and the distinction between small/midsize volume and corporate work. Treat it as a company-reported figure. Reconfirm the reporting period and definition with operations before making a claim for a named calendar year.
 
-Use the approved experience claim in films, captions and landing pages. “Every year, VNV produces more than 250 small and midsize events in addition to its corporate productions.” Show how the team selects and coordinates catering, décor, multimedia, staffing and logistics partners. Keep the annual frequency in every translation and time the captions to the final English recording. For the v8 Cuebook release, the English VTT, landscape MP4 and WebP poster live together under `public/assets/video/production-films/v8/`.
+Record the full English read in one take. Preserve natural sentence rhythm around the annual figure and derive scene boundaries and WebVTT cues from the actual recording. The public media directory retains its technical v8 paths. The [November commercial film source package](../tools/production_films/README.md) contains the current scripts, motion timing, recorded voice, alignment data and editable compositions.
 
 ## Captions and release review
 
-Provide an optional English WebVTT track on every full player. Time spoken captions to the final voice recording, including the exact offer on recordings that explain pricing. For music-led pieces, identify the music and describe the service or action concisely. “English captions below video” displays the timed text in a high-contrast panel beneath the picture. In full screen, the same track uses native captions. Keep cues to two short lines and place native cues in an area clear of headlines, faces and controls. Keep the page’s silent hero preview free of captions.
+Provide an optional English WebVTT track on every full player. Time spoken captions to the final voice recording, including the exact offer and its eligibility conditions. For music-led pieces, identify the music and describe the service or action concisely. “English captions below video” displays the timed text in a high-contrast panel beneath the picture. In full screen, the same track uses native captions. Keep cues to two short lines and place native cues in an area clear of headlines, faces and controls. Keep the page’s silent hero preview free of captions.
 
 Review the source timeline for stills, overlay marks and repeated shots. Decode each final export completely and inspect the opening, each transition and the moving close. Play the published film on mobile and desktop with captions both off and on, check the caption position over the brightest shot, then seek to the last cue. Confirm the correct silent preview plays at each size and that the controls respect reduced-motion preferences.
 

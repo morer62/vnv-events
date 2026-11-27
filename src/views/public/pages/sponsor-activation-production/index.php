@@ -1,5 +1,6 @@
 <?php
 
+use App\Services\VnvProductionCatalog;
 use App\Utils\Router;
 use App\Utils\TemplateResponse;
 
@@ -14,12 +15,15 @@ $router->get(function () {
     }
 
     $seo = [
-        'title' => 'Sponsor Activation Production in South Florida | VNV Events',
-        'description' => 'VNV Events designs and produces custom trade show booths, large-format branded backdrops and sponsor activations in South Florida, from artwork to show-floor staffing.',
+        'title' => 'Brand Experiences & Activation in South Florida | VNV Events',
+        'description' => 'Plan brand activations at existing events, explore authorized sponsorships or produce your own South Florida brand event with one team.',
         'canonical' => 'https://vnvevents.com/sponsor-activation-production/',
     ];
 
     return TemplateResponse::render(__DIR__ . '/index.twig', [
+        'production_services' => VnvProductionCatalog::services(),
+        'managed_budget' => VnvProductionCatalog::MANAGED_BUDGET,
+        'direct_costs' => VnvProductionCatalog::DIRECT_COSTS,
         'seo' => $seo,
         'partnership_csrf' => $_SESSION['partnership_csrf'],
         'submitted' => isset($_GET['submitted']),
@@ -28,7 +32,7 @@ $router->get(function () {
         'schemaJson' => [
             '@context' => 'https://schema.org',
             '@type' => 'Service',
-            'name' => 'Sponsor Activation Production in South Florida',
+            'name' => 'Brand Experiences & Activation in South Florida',
             'description' => $seo['description'],
             'url' => $seo['canonical'],
             'provider' => ['@type' => 'Organization', 'name' => 'VNV Events', 'url' => 'https://vnvevents.com/'],

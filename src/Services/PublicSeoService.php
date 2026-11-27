@@ -401,9 +401,10 @@ class PublicSeoService
             ['label' => 'Request a Quote', 'url' => self::SITE_URL . '/event-planners/'],
             ['label' => 'Service Areas', 'url' => self::SITE_URL . '/service-areas-in-south-florida/'],
             ['label' => 'Event Production', 'url' => self::SITE_URL . '/event-production/'],
-            ['label' => 'Cause on Cue 2027', 'url' => self::SITE_URL . '/nonprofit-partnerships/'],
-            ['label' => 'Sponsor Activation Production', 'url' => self::SITE_URL . '/sponsor-activation-production/'],
-            ['label' => 'Corporate Events', 'url' => self::SITE_URL . '/corporate-events/'],
+            ['label' => 'Nonprofit Partnerships', 'url' => self::SITE_URL . '/nonprofit-partnerships/'],
+            ['label' => 'Brand Experiences & Activation', 'url' => self::SITE_URL . '/sponsor-activation-production/'],
+            ['label' => 'VNV-Q Event Software', 'url' => self::SITE_URL . '/vnv-support/'],
+            ['label' => 'Original Experiences', 'url' => self::SITE_URL . '/vnv-events-productions/'],
             ['label' => 'Locations', 'url' => self::SITE_URL . '/locations/'],
         ];
     }

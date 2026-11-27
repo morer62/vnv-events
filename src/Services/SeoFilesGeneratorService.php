@@ -296,8 +296,11 @@ class SeoFilesGeneratorService
             '',
             '- Home: ' . $this->absoluteUrl('/'),
             '- Event Planners: ' . $this->absoluteUrl('/event-planners/'),
-            '- Corporate Events: ' . $this->absoluteUrl('/corporate-events/'),
             '- Event Production: ' . $this->absoluteUrl('/event-production/'),
+            '- Nonprofit Partnerships: ' . $this->absoluteUrl('/nonprofit-partnerships/'),
+            '- Brand Experiences & Activation: ' . $this->absoluteUrl('/sponsor-activation-production/'),
+            '- VNV-Q Event Software: ' . $this->absoluteUrl('/vnv-support/'),
+            '- Original Experiences: ' . $this->absoluteUrl('/vnv-events-productions/'),
             '- Locations: ' . $this->absoluteUrl('/locations/'),
             '- Blog: ' . $this->absoluteUrl('/blog/'),
             '- FAQ: ' . $this->absoluteUrl('/faq/'),
@@ -368,11 +371,12 @@ class SeoFilesGeneratorService
         $static = [
             ['/', 'VNV Events Home', 'daily', 1.0],
             ['/event-planners/', 'Event Planners', 'weekly', 0.9],
-            ['/corporate-events/', 'Corporate Events', 'weekly', 0.8],
+            ['/corporate-events/', 'Corporate Event Production', 'monthly', 0.7],
             ['/event-production/', 'Event Production', 'weekly', 0.8],
-            ['/nonprofit-partnerships/', 'Cause on Cue 2027', 'weekly', 0.8],
-            ['/sponsor-activation-production/', 'Sponsor Activation Production', 'weekly', 0.8],
-            ['/vnv-support/', 'VNV Support', 'weekly', 0.8],
+            ['/nonprofit-partnerships/', 'Nonprofit Partnerships', 'weekly', 0.8],
+            ['/sponsor-activation-production/', 'Brand Experiences & Activation', 'weekly', 0.8],
+            ['/vnv-support/', 'VNV-Q Event Software', 'weekly', 0.8],
+            ['/vnv-events-productions/', 'Original Experiences', 'weekly', 0.8],
             ['/event-staffing/', 'Event Staffing', 'weekly', 0.7],
             ['/locations/', 'VNV Events Locations', 'weekly', 0.8],
             ['/blog/', 'VNV Events Blog', 'weekly', 0.7],
@@ -522,13 +526,33 @@ class SeoFilesGeneratorService
         $entries = [];
         $ownerId = AvomealContext::ownerId();
         $siteKey = SiteContext::siteKey();
+        $proposalSlugs = $siteKey === 'vnvevents' ? VnvStoreProduction::PROPOSALS : [];
+        if ($proposalSlugs) {
+            $services = VnvProductionCatalog::services();
+            $modified = max(
+                filemtime(__DIR__ . '/VnvProductionCatalog.php'),
+                filemtime(dirname(__DIR__) . '/views/public/pages/product/proposal.twig')
+            );
+            foreach ($proposalSlugs as $slug) {
+                $entries[] = $this->entry(
+                    '/product/' . $slug,
+                    $services[$slug]['name'],
+                    date('Y-m-d', $modified),
+                    'weekly',
+                    0.7,
+                    'product'
+                );
+            }
+        }
 
         try {
             $productsRepo = new StoreProductsRepository();
             foreach ($productsRepo->getPublicSitemapEntries(5000, $ownerId, $siteKey) as $product) {
                 if ((int)($product->is_addon_only ?? 0) === 1 || strtoupper((string)($product->product_role ?? 'MAIN')) === 'ADDON') continue;
+                $slug = trim((string)$product->slug, '/');
+                if (in_array($slug, $proposalSlugs, true)) continue;
                 $entries[] = $this->entry(
-                    '/product/' . trim((string)$product->slug, '/'),
+                    '/product/' . $slug,
                     $product->name ?? 'Product',
                     $this->bestDate($product),
                     'weekly',

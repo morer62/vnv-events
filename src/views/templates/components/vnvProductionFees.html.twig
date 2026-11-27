@@ -1,0 +1,24 @@
+<section class="vp-commercial vp-pricing" id="production-fees" aria-labelledby="production-fees-title">
+  <div class="vp-commercial__inner">
+    <h2 id="production-fees-title">{{ activation|default(false) ? 'How brand engagements are priced' : 'Choose your level of production' }}</h2>
+    <div class="vp-rate-list">
+      {% for key in keys %}
+        {% set item = services[key] %}
+        <article class="vp-rate">
+          <div><h3>{{ key == 'brand-activation' ? 'Standalone Brand Activation' : item.name }}</h3><p>{{ item.summary }}</p></div>
+          <div class="vp-rate__action"><strong>{{ item.price }}</strong>
+            <a href="{{ path('') }}?request_service={{ item.request_service }}#vnvRequestModal" data-vnv-open-request data-vnv-request-service="{{ item.request_service }}">Request {{ key == 'sponsorship-opportunities' ? 'availability' : 'a proposal' }}<span class="visually-hidden"> for {{ item.name }}</span> <span aria-hidden="true">↗</span></a>
+          </div>
+        </article>
+      {% endfor %}
+    </div>
+    {% if activation|default(false) %}
+      <p class="vp-commercial__note"><strong>Producing your own event?</strong> {{ services['production-essential'].name }} starts at {{ '$' ~ services['production-essential'].minimum|number_format }}. Full production is {{ services['full-event-production'].price }}. An activation already covered by that scope carries no second management fee. <a href="{{ path('event-production') }}#production-fees">Compare production scopes</a>.</p>
+    {% endif %}
+    <details class="vp-terms">
+      <summary>What counts toward the management fee?</summary>
+      <p>For percentage-based work, the fee is the greater of the stated minimum or the percentage of the budget VNV manages. {{ managed_budget }}</p>
+      <p>{{ direct_costs }} {% if activation|default(false) %}Sponsorship rights are a separate agreement with the event organizer.{% endif %}</p>
+    </details>
+  </div>
+</section>

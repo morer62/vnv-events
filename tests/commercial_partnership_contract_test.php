@@ -29,22 +29,22 @@ $requiredFiles = [
 foreach ($requiredFiles as $file) $assert(is_file($root . '/' . $file), 'Missing implementation file: ' . $file);
 
 $nonprofit = file_get_contents($root . '/src/views/public/pages/nonprofit-partnerships/index.twig');
-foreach (['Cause on Cue 2027', 'Nonprofit Impact Initiative', 'up to 12 organizations', 'Request an Exploratory Meeting', 'Approved Support Plan', 'does not guarantee approval', 'requested_services[]'] as $needle) {
+foreach (['Cause on Cue 2027', 'Nonprofit Partnerships', 'up to 12 organizations', 'Request an Exploratory Meeting', 'Approved Support Plan', 'does not guarantee approval', 'requested_services[]'] as $needle) {
     $assert(stripos($nonprofit, $needle) !== false, 'Nonprofit landing is missing: ' . $needle);
 }
 $assert(!preg_match('/guaranteed\s+(?:sponsorship|funding|approval)/i', $nonprofit), 'Nonprofit page contains a prohibited guarantee.');
 $assert(!preg_match('/up to (?:60|80)%/i', $nonprofit), 'Nonprofit page promotes an unapproved discount.');
 
 $activation = file_get_contents($root . '/src/views/public/pages/sponsor-activation-production/index.twig');
-foreach (["title: 'Sponsor activation'", "emphasis: 'production.'", 'Request an Invitation', 'Brief. Design. Approval. Build. Live. Recap.', 'Complete technical activation brief'] as $needle) {
+foreach (['Brand experiences', '& activation.', 'Create Your Brand Experience', 'Activate at an existing event', 'Partner with our experiences', 'Create your own brand event', 'Complete technical activation brief'] as $needle) {
     $assert(stripos($activation, $needle) !== false, 'Activation landing is missing: ' . $needle);
 }
-foreach (['$2,500', '$5,000', '$10,000', '$2500', '$5000', '$10000'] as $price) {
-    $assert(!str_contains($activation, $price), 'Internal activation price leaked publicly: ' . $price);
+foreach (['Request an Invitation', '$2,500', '$5,000', '$10,000', '$2500', '$5000', '$10000'] as $retired) {
+    $assert(!str_contains($activation, $retired), 'Retired activation pricing or invitation gate: ' . $retired);
 }
 
 $header = file_get_contents($root . '/src/views/templates/layout/publicHeaderVnv.html.twig');
-foreach (['Full Production', 'Cause on Cue 2027', 'Corporate &amp; Brand Experiences', 'Sponsor Activation Production', 'Original Experiences', 'vnvx-mobile-production'] as $needle) {
+foreach (['Event Production', 'Nonprofit Partnerships', 'Brand Experiences & Activation', 'VNV-Q Event Software', 'Original Experiences', 'vnvx-mobile-production'] as $needle) {
     $assert(str_contains($header, $needle), 'Public navigation is missing: ' . $needle);
 }
 $assert(str_contains($header, 'class="vnvx-header__login"'), 'Desktop Login / Access action is missing from the public header.');
@@ -52,7 +52,7 @@ $assert(str_contains($header, '<span>Login / Access</span>'), 'Desktop account a
 $assert(substr_count($header, "path('/login')") >= 2, 'Public header must link desktop and mobile account access to login.');
 
 $home = file_get_contents($root . '/src/views/public/app/planner-hub/index.twig');
-foreach (['Event Planning, Production &amp;', 'Plan My Event', 'Explore Production', 'Now Accepting', 'By Invitation', 'Upcoming Original Experiences'] as $needle) {
+foreach (['Event Planning, Production &amp;', 'Plan My Event', 'Explore Production', 'Now Accepting', 'Brand Experiences &amp; Activation', 'Original Experiences'] as $needle) {
     $assert(str_contains($home, $needle), 'Home contract is missing: ' . $needle);
 }
 $assert(str_contains($home, '<button type="button" data-vnv-open-request class="vnv-btn btn-gold-vnv">Plan My Event</button>'), 'Home hero Plan My Event is not connected to the global New Request flow.');
@@ -61,11 +61,11 @@ $assert(!str_contains($home, 'publicQuickRequestModal.html.twig'), 'Home still m
 $assert(!str_contains($home, 'Planning for March 2027'), 'Home still exposes the retired March 2027 commercial status.');
 
 $production = file_get_contents($root . '/src/views/public/pages/event-production/index.twig');
-foreach (['From brief to showtime.', 'Support up to 12 nonprofit organizations', 'Now Accepting', 'By Invitation', 'Our Production Method'] as $needle) {
+foreach (['From brief to showtime.', 'Support up to 12 nonprofit organizations', 'Request a Production Proposal', 'vnvProductionFees.html.twig', 'vnvProductionPhases.html.twig'] as $needle) {
     $source = $needle === 'Support up to 12 nonprofit organizations' ? file_get_contents($root . '/src/views/templates/components/publicNonprofitStories.html.twig') : $production;
     $assert(str_contains($source, $needle), 'Event Production polish is missing: ' . $needle);
 }
-$assert(str_contains($production, 'data-quick-request-type="PRODUCTION"'), 'Event Production no longer opens its specialized production request flow.');
+$assert(str_contains($production, 'data-vnv-request-service="event-production"'), 'Event Production no longer opens New Request with event production selected.');
 $stories = file_get_contents($root . '/src/views/templates/components/publicNonprofitStories.html.twig');
 $assert(str_contains($production, 'templates/components/publicNonprofitStories.html.twig'), 'Event Production does not use the shared nonprofit stories component.');
 $shakePosition = strpos($stories, "id: 'shake-a-leg'");
@@ -80,9 +80,9 @@ foreach (['The VNV Ecosystem', 'The VNV 360 Way', 'Scope of Support', 'The Produ
 }
 
 $corporate = file_get_contents($root . '/src/views/public/pages/corporate-events/index.twig');
-$assert(str_contains($corporate, 'By Invitation'), 'Corporate integrated projects are missing the By Invitation status.');
-$assert(str_contains($corporate, 'Book catering, entertainment, decor, rentals and planning individually'), 'Corporate page does not preserve regular traditional services.');
-$assert(substr_count($corporate, 'REQUEST SERVICE →') === 4, 'Corporate core-service cards do not all use the ordinary request CTA.');
+$assert(!str_contains($corporate, 'By Invitation') && str_contains($corporate, 'Request a Production Proposal'), 'Corporate inquiries should be open to proposals.');
+$assert(str_contains($corporate, 'you can also explore individual services below'), 'Corporate page does not preserve regular traditional services.');
+$assert(substr_count($corporate, 'class="service-num-floating"') === 4, 'Corporate page must retain four individual service cards.');
 foreach (["path('vnv-gourmet')", "path('vnv-live')", "path('photo-booth-rental-video-photography-services-in-south-florida')", "path('event-staffing/')"] as $destination) {
     $assert(str_contains($corporate, $destination), 'Corporate core-service destination is missing: ' . $destination);
 }
@@ -94,7 +94,7 @@ $nonprofitStoriesPage = file_get_contents($root . '/src/views/public/pages/nonpr
 $assert(str_contains($nonprofitStoriesPage, 'templates/components/publicNonprofitStories.html.twig'), 'Nonprofit Partnerships does not use the shared nonprofit stories component.');
 
 $publicFooter = file_get_contents($root . '/src/views/templates/layout/publicFooterVnv.html.twig');
-$assert(str_contains($publicFooter, 'VNV Events technology'), 'Public footer is missing VNV Events technology branding.');
+$assert(str_contains($publicFooter, 'VNV-Q event software'), 'Public footer is missing VNV Events technology branding.');
 $assert(!str_contains($publicFooter, 'Ophyra'), 'Public footer still exposes an internal software brand.');
 
 $originals = file_get_contents($root . '/src/views/public/pages/vnv-events-productions/index.twig');

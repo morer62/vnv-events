@@ -1,4 +1,5 @@
 {% set preview = hero.preview_media|default('assets/video/production-films/v8/' ~ hero.slug ~ '-preview') %}
+{% set preview_query = hero.slug == 'brand-activation' ? {v:'production-commercial-1'} : [] %}
 <section class="ve-hero" aria-labelledby="{{ hero.slug }}-title">
   <div class="ve-hero__copy">
     {% if hero.mark is defined %}
@@ -11,12 +12,12 @@
       {% for detail in hero.details %}<li>{{ detail }}</li>{% endfor %}
     </ul>
     <div class="ve-hero__actions">
-      <a class="ve-button" href="{{ hero.href }}"{% if hero.request_type is defined %} data-vnv-open-quick-request data-quick-request-type="{{ hero.request_type }}" data-quick-request-source="{{ hero.request_source }}"{% endif %}>{{ hero.cta }} <span aria-hidden="true">↗</span></a>
+      <a class="ve-button" {% if hero.request_service is defined %}href="{{ path('') }}?request_service={{ hero.request_service }}#vnvRequestModal" data-vnv-open-request data-vnv-request-service="{{ hero.request_service }}"{% else %}href="{{ hero.href }}"{% endif %}{% if hero.request_type is defined %} data-vnv-open-quick-request data-quick-request-type="{{ hero.request_type }}" data-quick-request-source="{{ hero.request_source }}"{% endif %}>{{ hero.cta }} <span aria-hidden="true">↗</span></a>
       <a class="ve-hero__film-link" data-vnv-play-film="{{ hero.slug }}-player" href="#{{ hero.slug }}-film">Watch the film with sound</a>
     </div>
   </div>
   <div class="ve-hero__media" data-vnv-preview>
-    <video id="{{ hero.slug }}-preview" muted loop playsinline preload="none" poster="{{ asset_for(preview ~ '.webp') }}" data-src="{{ asset_for(preview ~ '.mp4') }}" data-mobile-src="{{ asset_for(preview ~ '-mobile.mp4') }}" aria-label="{{ hero.preview_label }}"></video>
+    <video id="{{ hero.slug }}-preview" muted loop playsinline preload="none" poster="{{ asset_for(preview ~ '.webp', preview_query) }}" data-src="{{ asset_for(preview ~ '.mp4', preview_query) }}" data-mobile-src="{{ asset_for(preview ~ '-mobile.mp4', preview_query) }}" aria-label="{{ hero.preview_label }}"></video>
     <button class="ve-hero__toggle" type="button" aria-controls="{{ hero.slug }}-preview" hidden>Play preview</button>
   </div>
 </section>

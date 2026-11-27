@@ -394,7 +394,7 @@
                     {% endif %}
                     <div class="pc-meta">
                         <span class="pc-meta-chip">Curated category selection</span>
-                        <span class="pc-meta-chip">{{ products|length }} items available</span>
+                        <span class="pc-meta-chip">{{ (products|length) + (proposal_services|default([])|length) }} services and products</span>
                         <span class="pc-meta-chip">South Florida event catalog</span>
                     </div>
                 </section>
@@ -440,7 +440,9 @@
                                         <div class="pc-card-desc">{{ p.short_description ?: 'Explore this item inside this category.' }}</div>
 
                                         <div class="pc-card-price">
-                                            {% if p.product_type is defined and p.product_type == 'VARIABLE' %}
+                                            {% if package_prices[p.slug] is defined %}
+                                                From ${{ package_prices[p.slug]|number_format(2, '.', ',') }}
+                                            {% elseif p.product_type is defined and p.product_type == 'VARIABLE' %}
                                                 {% if p.min_price is defined and p.max_price is defined and p.min_price != p.max_price %}
                                                     From ${{ p.min_price|number_format(2, '.', ',') }}
                                                 {% elseif p.min_price is defined %}
@@ -484,6 +486,25 @@
                 </section>
             {% endif %}
         {% endfor %}
+        {% if proposal_services %}
+        <section class="pc-section">
+            <h2>Production &amp; activation proposals</h2>
+            <p>Choose the service that matches the work you need. Your proposal separates the management fee from vendor and event costs.</p>
+            <div class="pc-grid cols-3">
+                {% for slug, service in proposal_services %}
+                <article class="pc-card">
+                    <img src="{{ asset_for(service.image) }}" alt="" loading="lazy">
+                    <div class="pc-card-body">
+                        <h3 class="pc-card-title">{{ service.name }}</h3>
+                        <p class="pc-card-desc">{{ service.summary }}</p>
+                        <p class="pc-card-price">{{ service.price }}</p>
+                        <a class="pc-card-action" href="{{ path('product/' ~ slug) }}">View service &amp; request a proposal</a>
+                    </div>
+                </article>
+                {% endfor %}
+            </div>
+        </section>
+        {% endif %}
     </div>
 </section>
 {% endblock %}

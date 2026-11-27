@@ -6,13 +6,9 @@ This implementation extends VNV Events under the existing brand, router, authent
 
 ## Public experience
 
-- Homepage: updated positioning, two production CTAs, Production & Partnerships cards and exactly two original-experience cards.
-- Event Production: clearer distinction between full production, nonprofit support, corporate production, sponsorship development and paid sponsor activation production.
-- Corporate Events: one-time production, defined 2/4/6-event annual plans and March 2027 planning language; existing event-request form remains the primary intake and additionally syncs to the Corporate pipeline.
-- Nonprofit Partnerships: canonical `/nonprofit-partnerships/` landing, eligibility/terms/process/FAQ, full application, consent, attribution and acknowledgment.
-- Sponsor Activation Production: canonical `/sponsor-activation-production/` landing, formats, approval workflow, custom brief and no public internal package pricing or unsupported ROI promise.
-- Original Experiences: Retro Glam and Mommy and Daddy Break only, both Coming Soon with priority-list/partner-interest capture and no ticket sale.
-- Archived concepts: Vanguard Business Gala and Flavor Fusion Fest remain physically recoverable but are removed from visible navigation, forms, internal discovery and generated SEO files; their pages are `noindex,nofollow`.
+The Productions menu links to Event Production, Nonprofit Partnerships, Brand Experiences & Activation, VNV-Q Event Software and Original Experiences, in that order. The established corporate route continues to answer directly for inbound links. Cause on Cue retains its application and selection process. Retro Glam Sessions and Mommy & Daddy Break Club accept interest, with specific benefits and availability subject to each edition.
+
+The public service matrix is maintained in `src/Services/VnvProductionCatalog.php`. Jonathan approved its terms on November 27, 2026 for **new agreements**. Day Coordinator and Event Planner retain their package rates. Essential starts at $1,500 for a defined assignment. Full production uses the greater of 10% of the managed production budget and $1,950. Standalone activation uses the greater of 12% of the managed activation budget and $750. Advanced projects and sponsorship inventory require individual proposals. Quote direct costs separately, exclude tax, gratuities and the fee from the managed base, and count each responsibility once. Validate labor, commissions, overhead and margin before issuing a quote. Signed agreements retain their terms.
 
 ## CRM integration
 
@@ -43,21 +39,11 @@ Direction (Level 1/6) can see the complete pipeline, approve nonprofit support, 
 - Nonprofit support validation enforces maximum 60% selected food/staff support and 80% selected decor support.
 - Approved support terms are recorded separately and can be linked to the existing invoice rather than duplicating invoice/order data.
 
-## VNV Support business plan — branded app eligibility
+## VNV-Q and branded app eligibility
 
-**Internal decision draft, November 27, 2026.** Cuebook is the proposed commercial name customers will see under VNV Support. VNV Operations remains the name of the private technical pilot. Direction is evaluating how to fund development and support for an organization's own branded app. The options below are for costing and approval before anyone quotes them.
+VNV-Q is the public identity for VNV Events’ event management software, powered by Ophyra. Management approved its use on November 27, 2026 after a preliminary naming search. Technical identifiers remain unchanged. The earlier corporate 15% agreement recorded on November 16 still governs any contracts signed on those terms. The terms above govern new proposals.
 
-**Current offer.** Paid production partners and approved no-fee or in-kind partners receive the agreed digital workspace, setup and ongoing access for future events at no additional platform charge. A foundation can apply to Cause on Cue with any event budget. Selected nonprofits can already receive a branded app at no development cost when their written support plan includes it. Honor existing commitments. The organization retains control of its guest, donor and volunteer records. Assign access by role and record any authorized sharing separately.
-
-**Existing commercial reference.** The November 16 agreement, recorded in the November 18 VNV Events Productions master summary, sets the private corporate full-production fee at 15% of the approved production budget. The fee appears separately on the proposal and invoice. Charge coordination already in a service package only once. Each date in an annual agreement has its own production budget. Direction still needs to decide whether to use that model for a paid VNV Support production that includes a branded app. Donations, sponsorship proceeds and donated services do not enter the proposed fee base.
-
-| Proposed route to a branded app | Financial illustration | What Direction must decide |
-| --- | --- | --- |
-| Single-event production | Preferred interpretation of the proposed USD 10,000 threshold is the approved production budget before the VNV fee and tax. At that budget, a 15% fee is USD 1,500, bringing the total to USD 11,500 before tax. | Confirm the basis. If USD 10,000 means the fee itself, a 15% fee would require about USD 66,667 of production spend. Check whether the selected fee covers app delivery and event production labor. |
-| Annual production partnership | An organization commits to four contracted events within 12 months. Quote each date separately. If every date were budgeted at USD 10,000 and carried a 15% fee, total production spend would be USD 40,000 and total fees would be USD 6,000 before tax. | Decide whether four events qualify on their own, whether there is a minimum annual spend, and how cancellations or fewer delivered dates affect the app commitment. USD 10,000 is not an all-inclusive four-event price. |
-| Mission-funded exception | Direction can approve app work as an in-kind contribution through a nonprofit's support plan, with the contribution and funding source recorded. | Review fit, available capacity and the cost VNV will absorb. No fee or minimum event count applies to the existing approved grant. |
-
-Before offering either paid route, cost the initial configuration, branding, publishing and training, plus maintenance and support over the agreed term. Record which modules are enabled, who manages store accounts and third-party charges, who provides support and how the organization retains or exports its records. Direction approves the economics and scope in writing before commercial staff quote an app commitment. Keep these scenarios out of public decks, FAQs, intake rules and commission calculations until adopted.
+An agreed digital workspace and the access described in the contract are included in the production service. A selected nonprofit can receive branded app development at no development cost when its written Cause on Cue support plan includes it. The organization controls its records and any introductions require specific consent. For a private branded app, confirm configuration, publication, store accounts, support, ownership and maintenance in the written scope. A $10,000 spend threshold and a four-event annual commitment were discussed as possible routes. Neither is a published entitlement. Price any commitment using agreed delivery costs and coverage.
 
 ## Security and data handling
 

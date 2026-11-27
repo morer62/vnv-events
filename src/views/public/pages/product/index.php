@@ -180,10 +180,19 @@ function product_extract_faqs_from_html(?string $html): array
     return array_values($deduped);
 }
 
-$productsRepository = new StoreProductsRepository();
 $ownerId = AvomealContext::ownerId();
 $siteKey = SiteContext::siteKey();
 
+$packagePrices = \App\Services\VnvStoreProduction::packagePrices($siteKey);
+if ($siteKey === 'vnvevents' && in_array($slug, \App\Services\VnvStoreProduction::PROPOSALS, true)) {
+    $service = \App\Services\VnvProductionCatalog::services()[$slug];
+    echo TemplateResponse::render(__DIR__ . '/proposal.twig', [
+        'service' => $service, 'slug' => $slug, 'direct_costs' => \App\Services\VnvProductionCatalog::DIRECT_COSTS,
+        'managed_budget' => \App\Services\VnvProductionCatalog::MANAGED_BUDGET,
+    ]);
+    return;
+}
+$productsRepository = new StoreProductsRepository();
 $productBase = $productsRepository->getPublicBySlug($slug, $ownerId, $siteKey);
 
 if (!$productBase) {
@@ -337,8 +346,20 @@ $gourmetSeoDescription = (string)$product->slug === 'brazo-gitano'
     ? 'Light sponge rolled with pastry cream, topped with fresh strawberries. Serves 10–12. Pickup in Sunrise.'
     : html_entity_decode(strip_tags((string)$product->short_description), ENT_QUOTES | ENT_HTML5, 'UTF-8');
 
+$schemaProduct = $product;
+if (isset($packagePrices[$slug])) {
+    // Show the bookable packages in search results; overtime remains available on the product itself.
+    $schemaProduct = clone $product;
+    $schemaProduct->min_price = $packagePrices[$slug];
+    $schemaProduct->variations = array_values(array_filter($product->variations ?? [], static function ($option) use ($schemaProduct) {
+        return (float)($option->effective_price ?? $option->price ?? 0) >= $schemaProduct->min_price;
+    }));
+}
+
 echo TemplateResponse::render(__DIR__ . "/index.twig", [
     'product' => $product,
+    'package_prices' => $packagePrices,
+    'package_start' => $packagePrices[$slug] ?? null,
     'related_products' => $relatedProducts,
     'food_profile' => $foodProfile,
     'product_recommendations' => $productRecommendations,
@@ -359,5 +380,5 @@ echo TemplateResponse::render(__DIR__ . "/index.twig", [
         : ($isVnvGourmetService
             ? ['title' => $product->name . ' | VNV Gourmet', 'description' => html_entity_decode(strip_tags((string)$product->short_description), ENT_QUOTES | ENT_HTML5, 'UTF-8'), 'canonical' => $canonicalUrl, 'og_type' => 'product', 'og_image' => $imageUrl, 'og_image_alt' => $product->name, 'site_name' => 'VNV Gourmet']
             : []),
-    'schemaJson' => PublicSeoService::productSchema($product, $productFaqs),
+    'schemaJson' => PublicSeoService::productSchema($schemaProduct, $productFaqs),
 ]);

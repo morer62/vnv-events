@@ -2,7 +2,7 @@
 {% block title %}Retro Glam Sessions | VNV Events Productions{% endblock %}
 {% block meta_description %}Explore four Retro Glam Sessions in South Florida, from ’70s disco and ’80s Miami freestyle to ’90s R&B and Y2K hip-hop. Join an edition’s waitlist or request a private event.{% endblock %}
 {% block canonical %}https://vnvevents.com/vnv-events-productions/retro-glam/{% endblock %}
-{% block og_image %}https://vnvevents.com/assets/video/production-films/v8/retro-glam.webp{% endblock %}
+{% block og_image %}https://vnvevents.com/assets/video/production-films/v8/retro-glam.webp?v=production-commercial-1{% endblock %}
 {% block og_image_alt %}A vinyl record on a turntable for Retro Glam Session Night{% endblock %}
 
 {% set editions = [
@@ -69,7 +69,7 @@
       </div>
     </div>
     <figure class="rg-hero__image">
-      <img src="{{ asset_for('assets/video/production-films/v8/retro-glam.webp') }}" width="1280" height="720" alt="A vinyl record on a turntable for Retro Glam Session Night" fetchpriority="high" decoding="async">
+      <img src="{{ asset_for('assets/video/production-films/v8/retro-glam.webp', {v:'production-commercial-1'}) }}" width="1280" height="720" alt="A vinyl record on a turntable for Retro Glam Session Night" fetchpriority="high" decoding="async">
     </figure>
   </section>
 
@@ -128,7 +128,7 @@
         {% include "templates/components/vnvProductionPartnerValue.html.twig" with { audience: 'edition', compact: true } only %}
       </details>
     </div>
-    <button type="button" class="rg-button" data-vnv-open-sponsor>Explore sponsorship <span aria-hidden="true">↗</span></button>
+    <a class="rg-button" href="{{ path('sponsor-activation-production') }}#activation-delivery">Explore brand partnerships <span aria-hidden="true">↗</span></a>
   </section>
 </main>
 
@@ -157,10 +157,7 @@
     </article>
   </dialog>
 {% endfor %}
-
-{% include "templates/components/publicSponsorRequestModal.html.twig" with {
-  sponsor_form_action: path('api/public/sponsor-request')
-} %}
+{% include "templates/components/publicEventRequestModal.html.twig" with { request_form_action: path('api/public/event-request'), request_form_source: 'vnv_original_experiences' } %}
 {% include "templates/layout/publicFooterVnv.html.twig" %}
 {% endblock %}
 

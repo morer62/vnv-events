@@ -1,6 +1,6 @@
 {% extends "templates/base.twig" %}
-{% block title %}Full Event Production & Partnerships in South Florida | VNV Events{% endblock %}
-{% block meta_description %}Plan full event production, nonprofit partnerships, corporate experiences and sponsor activation production across Miami-Dade, Broward and Palm Beach with VNV Events.{% endblock %}
+{% block title %}Event Production in South Florida | VNV Events{% endblock %}
+{% block meta_description %}Compare production scopes and management fees for conferences, private celebrations, brand launches and community events across South Florida.{% endblock %}
 {% block canonical %}https://vnvevents.com/event-production/{% endblock %}
 
 {% set show_whatsapp = true %}
@@ -969,17 +969,18 @@ h1, h2, h3, h4, h5, .luxury-font {
   hero: {
     slug: 'full-production',
     label: 'VNV Events · South Florida',
-    title: 'Full event production.',
+    title: 'Event production.',
     emphasis: 'From brief to showtime.',
-    description: 'One production partner for your event, from concept and budget through the final handoff.',
+    description: 'Hire one team for a defined part of your event or for the full production. We align your vendors, hospitality, guest operations and show crew around the same schedule.',
     details: ['Concept, budget and run of show', 'Venue, vendors, hospitality and technical production', 'Guest check-in and an on-site team'],
-    cta: 'Request a consultation',
+    cta: 'Request a Production Proposal',
     href: '#production-process',
-    request_type: 'PRODUCTION',
-    request_source: 'event_production_hero',
+    request_service: 'event-production',
     preview_label: 'A preview of event production, from technical setup to service and guest arrival'
   }
 } only %}
+
+{% include "templates/components/vnvProductionFees.html.twig" with { services: production_services, keys: ['production-essential', 'full-event-production', 'advanced-production'], managed_budget: managed_budget, direct_costs: direct_costs, activation: false } only %}
 
 {% include "templates/components/vnvProductionFilm.html.twig" with {
   film: {
@@ -988,9 +989,8 @@ h1, h2, h3, h4, h5, .luxury-font {
     route: 'event-production',
     title: 'See how we produce an event',
     description: 'Each year we produce more than 250 small and midsize events in addition to our corporate productions. See how we select catering, décor, multimedia, staffing and logistics partners and plan their handoffs. Full production includes our digital event system at no extra cost, and your team can keep using it afterward.',
-    cta: 'Tell us about your event',
-    request_type: 'PRODUCTION',
-    request_source: 'event_production_film'
+    cta: 'Request a Production Proposal',
+    request_service: 'event-production'
   }
 } only %}
 
@@ -1004,34 +1004,22 @@ h1, h2, h3, h4, h5, .luxury-font {
     story_include_roadmap: true
 } %}
 
-<section class="section-vnv section-white production-paths" aria-labelledby="production-paths-title">
-    <div class="container">
-        <div class="section-heading">
-            <span class="vnv-badge">Production &amp; Partnerships</span>
-            <h2 id="production-paths-title">Three ways to work with VNV Productions</h2>
-        </div>
-        <div class="ecosystem-grid">
-            <article class="ecosystem-card featured">
-                <div class="service-icon-box"><i class="fa-solid fa-hand-holding-heart" aria-hidden="true"></i></div>
-                <h3>Cause on Cue 2027</h3>
-                <p>Your nonprofit leads fundraising. VNV helps selected organizations plan and run a gala, tournament or community fundraiser. We can introduce sponsors when both parties agree.</p>
-                <a href="{{ path('nonprofit-partnerships') }}">Explore the nonprofit pilot <span aria-hidden="true">→</span></a>
-            </article>
-            <article class="ecosystem-card">
-                <div class="service-icon-box"><i class="fa-solid fa-building" aria-hidden="true"></i></div>
-                <h3>Corporate &amp; Brand Experiences</h3>
-                <p>Bring your conference, product launch or client reception to life with a floor plan, speaker cues, audiovisual production and hospitality coordinated around one schedule.</p>
-                <a href="{{ path('corporate-events') }}">Discuss a corporate event <span aria-hidden="true">→</span></a>
-            </article>
-            <article class="ecosystem-card">
-                <div class="service-icon-box"><i class="fa-solid fa-store" aria-hidden="true"></i></div>
-                <h3>Sponsor &amp; Exhibitor Production</h3>
-                <p>Turn your booth footprint into a place for demos or meetings. We plan the layout, print approved graphics and coordinate installation, show-floor staffing and breakdown.</p>
-                <a href="{{ path('sponsor-activation-production') }}">Plan a sponsor activation <span aria-hidden="true">→</span></a>
-            </article>
-        </div>
-        <p class="production-originals">Interested in a VNV-produced event? <a href="{{ path('vnv-events-productions') }}">Explore Retro Glam and Mommy &amp; Daddy Break Club</a>.</p>
+<section class="vp-commercial vp-formats" aria-labelledby="production-formats-title">
+  <div class="vp-commercial__inner">
+    <h2 id="production-formats-title">What are you producing?</h2>
+    <div class="vp-format-grid">
+      {% for format in [
+        {title:'Corporate programs', image:'assets/images/corp2.jpg', work:'Conferences, conventions, trade shows and exhibitions. We coordinate speaker handoffs, exhibitor access and the show floor.'},
+        {title:'Company milestones', image:'assets/images/corp1.jpg', work:'Product launches, award ceremonies, employee appreciation and brand experiences. We build the reveal, hospitality and program around your business goal.'},
+        {title:'Fundraisers and public events', image:'assets/images/case-studies/victoria-venezuela-2026-P4794.webp', work:'Galas, fundraising and community events. We align sponsors, volunteer assignments, guest arrivals and the program.'},
+        {title:'Private celebrations', image:'assets/images/corp3.jpg', work:'Private events and special celebrations. Coordinate the room, service and entertainment, from first arrival through the final toast.'}
+      ] %}
+        <article><img src="{{ asset_for(format.image) }}" alt="" width="520" height="300" loading="lazy"><div><h3>{{ format.title }}</h3><p>{{ format.work }}</p></div></article>
+      {% endfor %}
     </div>
+    <p class="vp-commercial__note">For a series, we can agree on shared standards and a separate scope for each date. Need a planner for personalized design or a coordinator for your existing plan? <a href="{{ path('event-planners') }}">Compare planning and coordination packages</a>.</p>
+    <div class="vp-service-links"><a href="{{ path('nonprofit-partnerships') }}">Nonprofit Partnerships</a><a href="{{ path('sponsor-activation-production') }}">Brand Experiences &amp; Activation</a><a href="{{ path('vnv-events-productions') }}">Original Experiences</a></div>
+  </div>
 </section>
 
 {% include "templates/components/vnvProductionPartnerValue.html.twig" with { audience: 'production' } only %}
@@ -1056,7 +1044,7 @@ h1, h2, h3, h4, h5, .luxury-font {
     </div>
 </section>
 
-<section class="section-vnv section-dark" id="production-process">
+<section class="section-vnv section-dark" id="production-services">
     <div class="services-bg-video-wrap">
         <div class="services-bg-overlay"></div>
     </div>
@@ -1123,23 +1111,7 @@ h1, h2, h3, h4, h5, .luxury-font {
     </div>
 </section>
 
-<section class="section-vnv section-white production-method">
-    <div class="container">
-        <div class="section-heading">
-            <span class="vnv-badge">Our Production Method</span>
-            <h2>From your first brief to the post-event recap</h2>
-            <p>Jonathan Moreno leads production at VNV Events. He created the event software and the production method our team uses to turn your brief into a run of show, assign responsibilities and coordinate the crew on event day.</p>
-        </div>
-
-        <div class="process-grid">
-            <div class="process-step"><div class="process-number">01</div><h3>Discover</h3><p>Define the goal, audience, priorities, budget reality and measures of success.</p><ul><li>Objectives</li><li>Audience</li><li>Feasibility</li></ul></div>
-            <div class="process-step"><div class="process-number">02</div><h3>Design the Scope</h3><p>Shape the concept, guest journey, production layers and documented responsibilities.</p><ul><li>Creative direction</li><li>Approved scope</li><li>Ownership</li></ul></div>
-            <div class="process-step"><div class="process-number">03</div><h3>Build the System</h3><p>Configure the plan, RSVP or ticketing flow, vendors, team and communications.</p><ul><li>Digital setup</li><li>Assignments</li><li>Timeline</li></ul></div>
-            <div class="process-step"><div class="process-number">04</div><h3>Produce the Event</h3><p>Coordinate installation, hospitality, cues, guest flow and live decision-making.</p><ul><li>Run of show</li><li>On-site leadership</li><li>Issue control</li></ul></div>
-            <div class="process-step"><div class="process-number">05</div><h3>Close & Recap</h3><p>Complete agreed deliverables, operational reporting and the next-step review.</p><ul><li>Closeout</li><li>Recap assets</li><li>Continuity</li></ul></div>
-        </div>
-    </div>
-</section>
+{% include "templates/components/vnvProductionPhases.html.twig" with { phases: production_phases, intro: 'Jonathan Moreno leads our production team and created VNV-Q and this five-phase method. We tailor the tasks, documents and responsibilities to the event.' } only %}
 
 <section class="section-vnv section-white production-questions" id="production-questions" aria-labelledby="production-questions-title">
     <div class="container">
@@ -1221,7 +1193,7 @@ h1, h2, h3, h4, h5, .luxury-font {
                             Get Directions
                         </a>
 
-                        <a href="#" data-vnv-open-quick-request data-quick-request-type="PRODUCTION" data-quick-request-source="event_production_location" class="vnv-btn btn-gold-vnv">
+                        <a href="{{ path('') }}?request_service=event-production#vnvRequestModal" data-vnv-open-request data-vnv-request-service="event-production" class="vnv-btn btn-gold-vnv">
                             Request Production Consultation
                         </a>
                     </div>
@@ -1246,7 +1218,7 @@ h1, h2, h3, h4, h5, .luxury-font {
                 <div class="col-lg-5 text-center text-lg-end">
                     <div class="d-flex flex-column flex-lg-row gap-3 justify-content-end">
                         <a href="tel:+13052045427" class="vnv-btn btn-gold-vnv vnv-btn-fixed">Call Now</a>
-                        <a href="#" data-vnv-open-quick-request data-quick-request-type="PRODUCTION" data-quick-request-source="event_production_final" class="vnv-btn btn-ghost-white vnv-btn-fixed">Request Consultation</a>
+                        <a href="{{ path('') }}?request_service=event-production#vnvRequestModal" data-vnv-open-request data-vnv-request-service="event-production" class="vnv-btn btn-ghost-white vnv-btn-fixed">Request a Production Proposal</a>
                     </div>
                 </div>
             </div>
@@ -1259,14 +1231,6 @@ h1, h2, h3, h4, h5, .luxury-font {
 {% include "templates/components/publicEventRequestModal.html.twig" with {
     request_form_action: "/api/public/event-request"
 } %}
-
-{% include "templates/components/publicQuickRequestModal.html.twig" with {
-    quick_request_type: 'PRODUCTION',
-    quick_request_source: 'event_production_quick_request',
-    quick_request_title: 'Start a production conversation',
-    quick_request_cta: 'Request Consultation'
-} %}
-
 {% include "templates/layout/publicFooterVnv.html.twig" %}
 
 {% endblock %}
