@@ -13,12 +13,12 @@
     <figure class="vnv-film__media">
       <video class="vnv-film__player" controls playsinline preload="none" width="1280" height="720" poster="{{ asset_for(media ~ '.webp') }}" aria-labelledby="{{ film.slug }}-film-title" aria-describedby="{{ film.slug }}-film-credit">
         <source src="{{ asset_for(media ~ '.mp4') }}" type="video/mp4">
-        {% if not film.music_only|default(false) %}
+        {% if film.show_captions ?? (not film.music_only|default(false)) %}
           <track kind="captions" srclang="en" label="English" src="{{ asset_for(media ~ '-en.vtt') }}">
         {% endif %}
         <a href="{{ asset_for(media ~ '.mp4') }}">Download the video</a>
       </video>
-      <figcaption id="{{ film.slug }}-film-credit">{{ film.music_only|default(false) ? 'AI-generated scenes with instrumental music' : 'AI-generated narration' }}</figcaption>
+      <figcaption id="{{ film.slug }}-film-credit">{{ film.credit ?? (film.music_only|default(false) ? 'AI-generated scenes with instrumental music' : 'AI-generated narration') }}</figcaption>
       <div class="ve-film__tools">
         <a href="{{ asset_for(media ~ '.mp4') }}" target="_blank" rel="noopener">Open film with sound</a>
         <button type="button" class="ve-film__share" data-vnv-share-film="{{ path(film.route) }}#{{ film.slug }}-film" data-film-title="{{ film.title }}" hidden>Share film</button>

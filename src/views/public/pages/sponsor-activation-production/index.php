@@ -15,7 +15,7 @@ $router->get(function () {
 
     $seo = [
         'title' => 'Sponsor Activation Production in South Florida | VNV Events',
-        'description' => 'VNV Events produces trade show booths, printed booth graphics and live sponsor activations in South Florida, from layout and installation to staffing and recap.',
+        'description' => 'VNV Events designs and produces custom trade show booths, large-format branded backdrops and sponsor activations in South Florida, from artwork to show-floor staffing.',
         'canonical' => 'https://vnvevents.com/sponsor-activation-production/',
     ];
 
