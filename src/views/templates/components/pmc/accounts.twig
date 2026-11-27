@@ -1,0 +1,104 @@
+{% set reg = account_data %}
+{% set account = reg.account %}
+{% set base = '/panel/productions-management-center' %}
+{% macro fields(action,csrf,id,tab) %}
+<input type="hidden" name="_csrf" value="{{ csrf }}"><input type="hidden" name="action" value="{{ action }}"><input type="hidden" name="tab" value="{{ tab }}">
+{% if id %}<input type="hidden" name="account_id" value="{{ id }}">{% endif %}
+{% endmacro %}
+{% import _self as form %}
+{% if not reg.available %}
+<div class="alert alert-warning" role="status">{{ reg.notice|default('The private VNV-Q registry is unavailable.') }}</div>
+{% else %}
+<section class="card mb-3"><div class="card-body">
+<h2>{{ tab == 'demo' ? 'Demo workspaces' : 'Software accounts' }}</h2>
+{% if reg.accounts %}
+<div class="table-responsive"><table class="table"><thead><tr><th scope="col">Organization</th><th scope="col">Environment</th><th scope="col">Status</th><th scope="col">Manager</th><th scope="col">Next action</th></tr></thead>
+<tbody>{% for row in reg.accounts %}<tr>
+<td><a href="{{ base }}?tab={{ tab }}&amp;account_id={{ row.id }}">{{ row.name }}</a></td>
+<td>{{ row.environment|capitalize }}</td><td>{{ row.status == 'pending' ? 'Pending activation' : row.status|capitalize }}</td>
+<td>{{ reg.managers[row.manager_id]|default('Manager #' ~ row.manager_id) }}</td>
+<td>{% if row.pending_request %}<strong>{{ row.pending_request|capitalize }} requested</strong><br>{% endif %}{{ row.next_action|default('—') }}</td></tr>{% endfor %}</tbody></table></div>
+{% else %}<p>No organizations are visible in this portfolio yet.</p>{% endif %}
+</div></section>
+{% if reg.caps['accounts.create'] %}
+<details class="card mb-3"><summary class="card-body"><strong>{{ tab == 'demo' ? 'Create demo' : 'Create organization or demo' }}</strong></summary>
+<form class="card-body" method="post" action="{{ base }}">
+{{ form.fields('account.create',pmc_csrf,0,tab) }}
+<div class="row"><label class="col-md-6 mb-2">Organization name<input class="form-control" name="name" maxlength="160" required></label>
+<label class="col-md-6 mb-2">Organization type<select class="form-control" name="organization_type" required><option value="Nonprofit">Nonprofit</option><option value="Corporate">Corporate</option><option value="Independent producer">Independent producer</option><option value="Other">Other</option></select></label>
+<label class="col-md-6 mb-2">Administrator name<input class="form-control" name="admin_name" maxlength="160" required></label>
+<label class="col-md-6 mb-2">Administrator email<input class="form-control" type="email" name="admin_email" maxlength="254" required></label>
+<label class="col-md-6 mb-2">Assigned manager<select class="form-control" name="manager_id" required>{% for id,name in reg.managers %}<option value="{{ id }}">{{ name }}</option>{% endfor %}</select></label>
+<label class="col-md-6 mb-2">Workspace type<select class="form-control" name="environment"><option value="demo">Demo</option>{% if tab != 'demo' %}<option value="live">Organization awaiting activation</option>{% endif %}</select></label>
+<label class="col-md-6 mb-2">Demo expires on<input class="form-control" type="date" name="demo_expiration" {{ tab == 'demo' ? 'required' : '' }}><small>Required for demos. Access ends at midnight Eastern on this date.</small></label>
+<label class="col-md-6 mb-2">Next action<input class="form-control" name="next_action" maxlength="500"></label></div>
+<fieldset><legend class="h6">Enabled modules</legend><span>Projects included</span>
+{% for mod in reg.modules %}{% if mod != 'projects' %}<label class="mx-2"><input type="checkbox" name="modules[]" value="{{ mod }}" checked> {{ mod == 'crm' ? 'CRM' : mod|capitalize }}</label>{% endif %}{% endfor %}</fieldset>
+<button class="btn btn-primary" type="submit">Create workspace</button>
+</form></details>
+{% endif %}
+{% if account %}
+<section class="card mb-3"><div class="card-body"><h2>{{ account.name }}</h2>
+<dl class="row">
+{% set rows={'Type':account.organization_type,'VNV portfolio owner ID':account.owner_id,'Workspace organization ID':account.id,'Administrator':account.admin_name,'Administrator email':account.admin_email,'Invitation':account.invitation_status,'Environment':account.environment|capitalize,'Status':account.status == 'pending' ? 'Pending activation' : account.status|capitalize,'Created':account.created_at|date('M j, Y','America/New_York'),'Latest activity':account.last_activity|date('M j, Y g:i a','America/New_York'),'Manager':reg.managers[account.manager_id]|default('Manager #' ~ account.manager_id),'Modules':account.modules|join(', '),'Users':account.users_count,'Events':account.events_count,'Next action':account.next_action|default('—')} %}
+{% for label,value in rows %}<dt class="col-sm-4">{{ label }}</dt><dd class="col-sm-8">{{ value }}</dd>{% endfor %}
+{% if account.demo_expires %}<dt class="col-sm-4">Demo expiration</dt><dd class="col-sm-8">{{ account.demo_expires|date('M j, Y','America/New_York') }}</dd>{% endif %}
+{% if account.effective_at %}<dt class="col-sm-4">Deactivation</dt><dd class="col-sm-8">{{ account.effective_at|date('M j, Y','America/New_York') }} · {{ account.reason }} · {{ account.retention }} · Operator #{{ account.ended_by }}</dd>{% endif %}
+</dl>
+{% if reg.access_ready %}<p><a href="{{ account.access_url }}" target="_blank" rel="noopener noreferrer">Open workspace</a></p>
+{% else %}<p>External access is pending domain and trusted TLS verification.</p>{% endif %}
+{% if reg.caps['onboarding.view'] %}<p><a href="{{ base }}?tab=onboarding&amp;account_id={{ account.id }}">View onboarding</a></p>{% endif %}
+{% if reg.access_ready %}<label class="d-block">Access URL<input id="pmc-access-url" class="form-control" readonly value="{{ account.access_url }}"></label>
+<button class="btn btn-outline-secondary btn-sm" type="button" data-pmc-copy="pmc-access-url">Copy access URL</button>
+<label class="d-block mt-2">Account information<textarea id="pmc-account-info" class="form-control" rows="6" readonly>Organization: {{ account.name }}
+Access URL: {{ account.access_url }}
+Administrator: {{ account.admin_email }}
+Account type: {{ account.environment|capitalize }}
+Status: {{ account.status|capitalize }}
+Invitation: {{ account.invitation_status }}{% if account.demo_expires %}
+Demo expiration: {{ account.demo_expires|date('Y-m-d','America/New_York') }}{% endif %}</textarea></label>
+<button class="btn btn-outline-secondary btn-sm" type="button" data-pmc-copy="pmc-account-info">Copy account information</button><span id="pmc-copy-status" role="status" class="ms-2"></span>{% endif %}
+</div></section>
+<section class="card mb-3"><div class="card-body"><h3>Account actions</h3>
+{% if not account.effective_at %}
+{% set controls=[] %}
+{% if reg.access_ready and reg.caps['accounts.invite'] and account.status in ['demo','active'] %}{% set controls=controls|merge({'invite':'Issue private administrator invitation'}) %}{% endif %}
+{% if reg.caps['accounts.reset'] and account.status=='demo' %}{% set controls=controls|merge({'reset':'Reset demo with fresh practice data'}) %}{% endif %}
+{% if reg.caps['accounts.lifecycle'] %}
+{% if account.status in ['demo','pending'] %}{% set controls=controls|merge({'activate':'Activate a clean live workspace'}) %}{% endif %}
+{% if account.status in ['demo','active'] %}{% set controls=controls|merge({'suspend':'Suspend access'}) %}{% elseif account.status=='suspended' %}{% set controls=controls|merge({'reactivate':'Reactivate access'}) %}{% endif %}
+{% endif %}
+{% for key,label in controls %}<form class="d-inline-block mb-2" method="post" action="{{ base }}">{{ form.fields('account.' ~ key,pmc_csrf,account.id,tab) }}<button class="btn btn-outline-primary btn-sm" type="submit">{{ label }}</button></form> {% endfor %}
+{% if reg.caps['accounts.request'] and not account.pending_request %}
+<details class="my-2"><summary>Request a decision from direction</summary>
+<form method="post" action="{{ base }}">{{ form.fields('account.request',pmc_csrf,account.id,tab) }}
+<label class="d-block">Change requested<select class="form-control" name="requested_change">{% if account.status in ['pending','demo'] %}<option value="activate">Activate</option>{% endif %}<option value="deactivate">Deactivate</option></select></label>
+<label class="d-block">Reason<input class="form-control" name="reason" required maxlength="500"></label>
+<label class="d-block">Next action<input class="form-control" name="next_action" required maxlength="500"></label>
+<button type="submit" class="btn btn-outline-primary mt-2">Request decision</button></form></details>{% endif %}
+{% if reg.caps['accounts.lifecycle'] and account.pending_request %}<details><summary>Decline pending {{ account.pending_request }} request</summary>
+<form method="post" action="{{ base }}">{{ form.fields('account.decline',pmc_csrf,account.id,tab) }}
+<label class="d-block">Decision reason<input class="form-control" name="reason" required maxlength="500"></label>
+<button class="btn btn-outline-secondary mt-2" type="submit">Record decision</button></form></details>{% endif %}
+{% if reg.caps['accounts.lifecycle'] %}<details><summary>Schedule or confirm deactivation</summary>
+<form method="post" action="{{ base }}">{{ form.fields('account.deactivate',pmc_csrf,account.id,tab) }}
+<label class="d-block">Reason<input class="form-control" name="reason" maxlength="500" required></label>
+<label class="d-block">Effective date<input class="form-control" type="date" name="effective_date" required></label>
+<label class="d-block">Data retention instructions<input class="form-control" name="retention" maxlength="500" required></label>
+<label class="d-block">Public destination<select class="form-control" name="redirect_key"><option value="none">Workspace closed message</option><option value="vnv">VNV Events home</option><option value="production">Event production</option></select></label>
+<button class="btn btn-outline-danger mt-2" type="submit">Record deactivation</button></form></details>{% endif %}
+{% else %}<p>Deactivation is recorded. The workspace data is retained.</p>{% endif %}
+</div></section>
+<section class="card"><div class="card-body"><h3>Direction requests</h3>
+{% if account.requests %}<ul>{% for r in account.requests %}<li>{{ r.created_at|date('M j, Y','America/New_York') }} ? {{ r.action|capitalize }} ? {{ r.reason }} ? {{ r.next_action }} ? {{ r.resolution|default('Awaiting direction') }}</li>{% endfor %}</ul>{% else %}<p>No decisions requested.</p>{% endif %}
+<h3>Administrative activity</h3><ul>{% for item in account.activity %}<li>{{ item.occurred_at|date('M j, Y g:i a','America/New_York') }} · {{ item.action|capitalize }} · Operator #{{ item.actor_id }}</li>{% endfor %}</ul></div></section>
+<script>
+document.querySelectorAll('[data-pmc-copy]').forEach(button => button.addEventListener('click', async () => {
+  const input = document.getElementById(button.dataset.pmcCopy);
+  const status = document.getElementById('pmc-copy-status');
+  try { await navigator.clipboard.writeText(input.value); status.textContent = 'Copied.'; }
+  catch { input.focus(); input.select(); status.textContent = 'Text selected. Use your copy shortcut.'; }
+}));
+</script>
+{% endif %}
+{% endif %}
