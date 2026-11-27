@@ -5,15 +5,20 @@ namespace App\Utils;
 class LocationUtils
 {
 
-    public static function assetFor(string $uri, array $queryParams = []): string {
+    public static function assetFor(string $uri, array $queryParams = [], bool $sameOrigin = false): string {
         $queryString = '';
 
         if (!empty($queryParams)) {
             $queryString = "?" . http_build_query($queryParams);
         }
 
+        $base = self::getBasePath();
+        if ($sameOrigin) {
+            $base = parse_url($base, PHP_URL_PATH) ?: '';
+        }
+
         $uri = ltrim($uri, '/');
-        return rtrim(self::getBasePath(), '/') . ($uri === '' ? '/' : '/' . $uri) . $queryString;
+        return rtrim($base, '/') . '/' . $uri . $queryString;
     }
 
     public static function pathFor(string $uri): string {

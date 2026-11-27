@@ -50,9 +50,11 @@ function url(route) {
         const film = page.locator('.vnv-caption-frame video[controls]');
         assert.equal(await film.count(), 1, `${label}: captioned feature film`);
         const source = await film.locator('source').getAttribute('src');
-        assert.match(source, /\/production-films\/v6\/[^/]+\.mp4$/, `${label}: current film`);
+        assert.match(source, /\/production-films\/v7\/[^/]+\.mp4$/, `${label}: current film`);
         const captions = film.locator('track[kind="captions"][srclang="en"]');
-        assert.equal(await captions.getAttribute('src'), source.replace(/\.mp4$/, '-en.vtt'), `${label}: matching English captions`);
+        const captionURL = new URL(await captions.getAttribute('src'), page.url());
+        assert.equal(captionURL.origin, new URL(page.url()).origin, `${label}: same-origin English captions`);
+        assert.equal(captionURL.pathname, new URL(source, page.url()).pathname.replace(/\.mp4$/, '-en.vtt'), `${label}: matching English captions`);
         assert.equal(await captions.getAttribute('default'), null, `${label}: opt-in captions`);
       }
       if (['nonprofit-partnerships', 'corporate-events', 'sponsor-activation-production'].includes(route)) {

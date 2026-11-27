@@ -24,6 +24,19 @@
         if (!motion.matches && !navigator.connection?.saveData) play();
     });
 
+    document.querySelectorAll('[data-vnv-play-film]').forEach(link => {
+        const video = document.getElementById(link.dataset.vnvPlayFilm);
+        if (!video) return;
+        link.addEventListener('click', event => {
+            if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+            event.preventDefault();
+            video.muted = false;
+            video.focus({ preventScroll: true });
+            video.scrollIntoView({ block: 'center' });
+            video.play().catch(() => video.focus());
+        });
+    });
+
     document.querySelectorAll('.vnv-caption-frame').forEach(frame => {
         const video = frame.querySelector('video');
         const captions = frame.querySelector('.vnv-film-captions');
@@ -33,7 +46,7 @@
         const track = trackElement.track;
         const button = captions.querySelector('button');
         const text = captions.querySelector('.vnv-film-captions__text');
-        let enabled = false;
+        let enabled = track.mode === 'showing';
         let iosFullscreen = false;
         const fullscreen = () => document.fullscreenElement === video || iosFullscreen;
 
@@ -44,7 +57,8 @@
         }
         function updateMode() {
             // The inline rail and the full-screen renderer use the same timed track.
-            if (enabled) track.mode = fullscreen() ? 'showing' : 'hidden';
+            const mode = fullscreen() ? 'showing' : 'hidden';
+            if (enabled && track.mode !== mode) track.mode = mode;
             render();
         }
         button.addEventListener('click', () => {
@@ -55,13 +69,15 @@
         track.addEventListener('cuechange', render);
         trackElement.addEventListener('load', render);
         video.textTracks.addEventListener('change', () => {
-            if (track.mode === 'disabled' || (!fullscreen() && track.mode === 'showing')) enabled = false;
-            render();
+            if (track.mode === 'showing') enabled = true;
+            if (track.mode === 'disabled') enabled = false;
+            updateMode();
         });
         document.addEventListener('fullscreenchange', updateMode);
         video.addEventListener('webkitbeginfullscreen', () => { iosFullscreen = true; updateMode(); });
         video.addEventListener('webkitendfullscreen', () => { iosFullscreen = false; updateMode(); });
         captions.hidden = false;
+        updateMode();
     });
 
     document.querySelectorAll('[data-vnv-share-film]').forEach(button => {
