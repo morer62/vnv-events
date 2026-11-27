@@ -101,6 +101,37 @@ h1, h2, h3, h4, h5, .luxury-font {
     position: relative;
 }
 
+.ve-page--production .ve-film {
+    padding-block-end: clamp(20px, 2vw, 32px);
+}
+.ve-page--production .production-proof {
+    padding-block: clamp(26px, 2.5vw, 40px) 0;
+}
+.production-proof .vnv-story-heading__eyebrow {
+    color: #79581b;
+}
+.production-paths .section-heading .vnv-badge {
+    color: #246866;
+}
+.ve-page--production .production-paths {
+    padding-block: clamp(32px, 3.5vw, 56px) 0;
+}
+.ve-page--production .production-paths .section-heading {
+    margin-bottom: clamp(22px, 2.4vw, 36px);
+}
+.production-originals {
+    margin: 24px 0 0;
+    color: #445358;
+}
+.production-originals a {
+    color: #1e6665;
+    font-weight: 700;
+    text-underline-offset: 3px;
+}
+.ve-page--production .production-brief {
+    padding-block: clamp(36px, 4.5vw, 72px);
+}
+
 .vnv-badge {
     display: inline-flex;
     align-items: center;
@@ -266,7 +297,7 @@ h1, h2, h3, h4, h5, .luxury-font {
     color: #fff;
 }
 
-.intro-panel h3 {
+.intro-panel h2 {
     font-size: 2rem;
     color: #fff;
     margin-bottom: 20px;
@@ -448,7 +479,7 @@ h1, h2, h3, h4, h5, .luxury-font {
     flex-grow: 1;
 }
 .ecosystem-card a {
-    color: var(--vnv-primary-dark) !important;
+    color: #1e6665;
     font-weight: 800;
     letter-spacing: 1px;
     font-size: .78rem;
@@ -468,7 +499,7 @@ h1, h2, h3, h4, h5, .luxury-font {
     color: #000;
 }
 .ecosystem-card.featured a {
-    color: #96762f !important;
+    color: #76591e;
 }
 
 /* Old way vs VNV way comparison */
@@ -957,6 +988,7 @@ h1, h2, h3, h4, h5, .luxury-font {
 {% include "templates/components/vnvProductionHero.html.twig" with {
   hero: {
     slug: 'full-production',
+    preview_media: 'assets/video/production-films/v5/full-production-preview',
     label: 'VNV Events · South Florida',
     title: 'Full event production.',
     emphasis: 'From brief to showtime.',
@@ -973,6 +1005,7 @@ h1, h2, h3, h4, h5, .luxury-font {
 {% include "templates/components/vnvProductionFilm.html.twig" with {
   film: {
     slug: 'full-production',
+    media: 'assets/video/production-films/v5/full-production',
     route: 'event-production',
     title: 'See how we produce an event',
     description: 'Walk through planning, vendor coordination, guest technology and on-site execution in under a minute.',
@@ -984,30 +1017,45 @@ h1, h2, h3, h4, h5, .luxury-font {
 
 {% include "templates/components/publicNonprofitStories.html.twig" with {
     story_heading_id: 'production-proof-title',
-    story_section_class: 'section-vnv section-white',
+    story_section_class: 'section-vnv section-white production-proof',
     story_container_class: 'container',
     story_eyebrow: 'Production in Practice',
-    story_heading: 'One method, adapted to each mission.',
-    story_intro: 'Explore how our nonprofit support evolved from focused services to a connected event experience.',
+    story_heading: 'How we support community events',
+    story_intro: 'Our work has ranged from catering and décor to tournament operations. At a 2026 charity golf event, guests confirmed their companions online. At check-in, staff used the same list to verify access and record wristband pickup.',
     story_include_roadmap: true
 } %}
 
-<section class="section-vnv section-white" aria-labelledby="production-paths-title">
+<section class="section-vnv section-white production-paths" aria-labelledby="production-paths-title">
     <div class="container">
         <div class="section-heading">
             <span class="vnv-badge">Production &amp; Partnerships</span>
             <h2 id="production-paths-title">Three ways to work with VNV Productions</h2>
-            <p>Get hands-on production, hospitality and event technology for your fundraiser, company event or sponsor activation. Explore our own upcoming events as well.</p>
         </div>
         <div class="ecosystem-grid">
-            <div class="ecosystem-card featured"><span class="vnv-badge">Now Accepting</span><div class="service-icon-box"><i class="fa-solid fa-hand-holding-heart" aria-hidden="true"></i></div><h3>Cause on Cue 2027</h3><p>Produce a gala or charity tournament. Get a branded RSVP and check-in portal, on-site support and optional donor or sponsor introductions.</p><a href="{{ path('nonprofit-partnerships') }}">Explore Cause on Cue 2027 →</a></div>
-            <div class="ecosystem-card"><span class="vnv-badge">By Invitation</span><div class="service-icon-box"><i class="fa-solid fa-building" aria-hidden="true"></i></div><h3>Corporate &amp; Brand Experiences</h3><p>Bring a conference or launch under one production plan, or build a sponsor lounge, tasting station or photo experience inside an existing event.</p><div class="d-flex flex-column align-items-start gap-2"><a href="{{ path('corporate-events') }}">Discuss a corporate event →</a><a href="{{ path('sponsor-activation-production') }}">Explore sponsor activation →</a></div></div>
-            <div class="ecosystem-card"><span class="vnv-badge">Coming Soon</span><div class="service-icon-box"><i class="fa-solid fa-star" aria-hidden="true"></i></div><h3>Original Experiences</h3><p>Discover Retro Glam and Mommy &amp; Daddy Break, two experiences created by VNV, and register your interest in future releases or brand partnerships.</p><a href="{{ path('vnv-events-productions') }}">Explore VNV originals →</a></div>
+            <article class="ecosystem-card featured">
+                <div class="service-icon-box"><i class="fa-solid fa-hand-holding-heart" aria-hidden="true"></i></div>
+                <h3>Cause on Cue 2027</h3>
+                <p>Your nonprofit leads fundraising. VNV helps selected organizations plan and run a gala, tournament or community fundraiser. We can introduce sponsors when both parties agree.</p>
+                <a href="{{ path('nonprofit-partnerships') }}">Explore the nonprofit pilot <span aria-hidden="true">→</span></a>
+            </article>
+            <article class="ecosystem-card">
+                <div class="service-icon-box"><i class="fa-solid fa-building" aria-hidden="true"></i></div>
+                <h3>Corporate &amp; Brand Experiences</h3>
+                <p>Bring your conference, product launch or client reception to life with a floor plan, speaker cues, audiovisual production and hospitality coordinated around one schedule.</p>
+                <a href="{{ path('corporate-events') }}">Discuss a corporate event <span aria-hidden="true">→</span></a>
+            </article>
+            <article class="ecosystem-card">
+                <div class="service-icon-box"><i class="fa-solid fa-store" aria-hidden="true"></i></div>
+                <h3>Sponsor &amp; Exhibitor Production</h3>
+                <p>Turn your booth footprint into a place for demos or meetings. We plan the layout, print approved graphics and coordinate installation, show-floor staffing and breakdown.</p>
+                <a href="{{ path('sponsor-activation-production') }}">Plan a sponsor activation <span aria-hidden="true">→</span></a>
+            </article>
         </div>
+        <p class="production-originals">Interested in a VNV-produced event? <a href="{{ path('vnv-events-productions') }}">Explore Retro Glam and Mommy &amp; Daddy Break Club</a>.</p>
     </div>
 </section>
 
-<section class="section-vnv section-white">
+<section class="section-vnv section-white production-brief" aria-labelledby="production-brief-title">
     <div class="container">
         <div class="intro-wrap">
             <div class="intro-image-card">
@@ -1015,22 +1063,12 @@ h1, h2, h3, h4, h5, .luxury-font {
             </div>
 
             <div class="intro-panel">
-                <span class="vnv-badge">Not Just Coordination</span>
-                <h3>We don't just manage the day. We build the event.</h3>
-                <p>
-                    Event production means turning a vision into an organized system — budget logic, brand direction, operational structure, timelines, people, platforms and execution.
-                </p>
-                <p>
-                    For some clients, that means producing the full experience. For others, it means stepping into an existing project and bringing order to the moving parts that matter most.
-                </p>
-
+                <h2 id="production-brief-title">What goes into your production brief?</h2>
+                <p>Bring your event idea or an existing plan. Together we decide what your team will handle and what VNV will produce, then put the budget, owners and dates in writing.</p>
                 <ul>
-                    <li>Concept development and event positioning</li>
-                    <li>Budget planning and production mapping</li>
-                    <li>Digital support including RSVP, ticketing and landing pages</li>
-                    <li>Sponsor structure, sales support and rollout planning</li>
-                    <li>Team assignment, staffing flow and on-site execution</li>
-                    <li>One strategic plan instead of disconnected vendors</li>
+                    <li>Your audience, venue, date and budget range</li>
+                    <li>Vendors, technical cues, hospitality and crew assignments</li>
+                    <li>Any registration, check-in, sponsor or post-event reporting needs</li>
                 </ul>
             </div>
         </div>
@@ -1045,9 +1083,9 @@ h1, h2, h3, h4, h5, .luxury-font {
     <div class="container position-relative" style="z-index:2;">
         <div class="text-center mb-5 pb-5 section-heading">
             <span class="vnv-badge">360 Event Production</span>
-            <h2 class="text-white">What Full Production Can Include <span class="text-vnv">Before The Event Even Starts</span></h2>
+            <h2 class="text-white">What your event production plan can include</h2>
             <p>
-                When the project is serious, production begins long before event day. The value is in building the system that makes the event possible.
+                Choose the services your event needs. We agree on responsibilities, costs and deadlines before work begins.
             </p>
         </div>
 
@@ -1070,9 +1108,9 @@ h1, h2, h3, h4, h5, .luxury-font {
 
             <div class="service-card">
                 <div class="service-icon-box"><i class="fa-solid fa-laptop-code"></i></div>
-                <h3>Digital Layer</h3>
+                <h3>Registration &amp; check-in</h3>
                 <p>
-                    RSVP systems, ticketing flows, landing pages, sales pages, email touchpoints and digital materials.
+                    Set up a branded guest page, confirm RSVP or ticketing rules and test a sample check-in with authorized staff.
                 </p>
             </div>
 
@@ -1118,10 +1156,7 @@ h1, h2, h3, h4, h5, .luxury-font {
     <div class="container">
         <div class="section-heading">
             <span class="vnv-badge">Our Production Method</span>
-            <h2>A Clearer Step-By-Step Plan For <span class="text-vnv">Serious Event Projects</span></h2>
-            <p>
-                This is the part that shows we're not improvising — we're building a structured path from idea to execution.
-            </p>
+            <h2>From your first brief to the post-event recap</h2>
         </div>
 
         <div class="process-grid">
@@ -1138,7 +1173,7 @@ h1, h2, h3, h4, h5, .luxury-font {
     <div class="container">
         <div class="text-center section-heading" style="margin-left:auto;margin-right:auto;">
             <span class="vnv-badge">Common Questions</span>
-            <h2>Before You Call, You Might Be <span class="text-vnv">Wondering...</span></h2>
+            <h2>Planning your first consultation</h2>
         </div>
 
         <div class="faq-wrap" style="color:var(--vnv-text-dark);">
@@ -1148,7 +1183,7 @@ h1, h2, h3, h4, h5, .luxury-font {
             </div>
             <div class="faq-item" style="border-bottom-color: rgba(17,24,26,.08);">
                 <h4 style="color:var(--vnv-text-dark);">Is Jonnys.media only available to full production clients?</h4>
-                <p style="color:#566164;">Jonnys.media can support content and media needs on its own, but every VNV production automatically includes access to that team.</p>
+                <p style="color:#566164;">You can engage Jonnys.media separately or include media services in your production scope. Tell us which moments you want to capture and where the content will be used.</p>
             </div>
             <div class="faq-item" style="border-bottom-color: rgba(17,24,26,.08);">
                 <h4 style="color:var(--vnv-text-dark);">What size or type of events do you take on?</h4>
@@ -1234,11 +1269,10 @@ h1, h2, h3, h4, h5, .luxury-font {
             <div class="row align-items-center">
                 <div class="col-lg-7">
                     <span class="vnv-badge">Event Production Consultation</span>
-                    <h2 class="display-3 fw-bold text-white mb-4">If the project has many moving parts, it needs more than vendors.</h2>
+                    <h2 class="display-3 fw-bold text-white mb-4">Tell us what you’re planning.</h2>
                     <p class="fs-5 mb-3">
-                        VNV organizes the creative, digital, commercial and operational sides of your event into one production plan — built for real execution, not a slide deck.
+                        Share your event type, estimated attendance and the parts you need help with. If you have a date, venue or budget range in mind, include those too.
                     </p>
-                    <p class="final-cta-note">Sponsor-driven and multi-vendor events need the most lead time — call early</p>
                 </div>
 
                 <div class="col-lg-5 text-center text-lg-end">
@@ -1274,10 +1308,10 @@ h1, h2, h3, h4, h5, .luxury-font {
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
 
 <script>
-if (typeof gsap !== 'undefined' && typeof ScrollTrigger !== 'undefined') {
+if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches && typeof gsap !== 'undefined' && typeof ScrollTrigger !== 'undefined') {
     gsap.registerPlugin(ScrollTrigger);
 
-    gsap.utils.toArray('.service-card, .ecosystem-card').forEach(card => {
+    gsap.utils.toArray('.service-card').forEach(card => {
         gsap.from(card, {
             scrollTrigger: {
                 trigger: card,
