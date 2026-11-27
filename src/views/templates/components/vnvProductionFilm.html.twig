@@ -1,4 +1,6 @@
+{% import 'templates/components/vnvProductionFilmMedia.html.twig' as film_media %}
 {% set media = film.media|default('assets/video/production-films/v8/' ~ film.slug) %}
+{% set video_url = film_media.playback_asset(media, '.mp4') %}
 <section class="vnv-film ve-film" aria-labelledby="{{ film.slug }}-film-title" id="{{ film.slug }}-film">
   <div class="vnv-offer__wrap vnv-film__layout">
     <div class="vnv-film__copy">
@@ -12,14 +14,14 @@
     </div>
     <figure class="vnv-film__media vnv-caption-frame">
       <video id="{{ film.slug }}-player" class="vnv-film__player" controls playsinline preload="none" width="1280" height="720" poster="{{ asset_for(media ~ '.webp') }}" aria-labelledby="{{ film.slug }}-film-title" aria-describedby="{{ film.slug }}-film-credit">
-        <source src="{{ asset_for(media ~ '.mp4') }}" type="video/mp4">
-        <track kind="captions" srclang="en" label="English" src="{{ asset_for(media ~ '-en.vtt', [], true) }}">
-        <a href="{{ asset_for(media ~ '.mp4') }}">Download the video</a>
+        <source src="{{ video_url }}" type="video/mp4">
+        <track kind="captions" srclang="en" label="English" src="{{ film_media.playback_asset(media, '-en.vtt', true) }}">
+        <a href="{{ video_url }}">Download the video</a>
       </video>
       {% include 'templates/components/vnvFilmCaptions.html.twig' with {caption_id: film.slug ~ '-captions'} only %}
       <figcaption id="{{ film.slug }}-film-credit">{{ film.credit|default('AI-generated narration') }}</figcaption>
       <div class="ve-film__tools">
-        <a href="{{ asset_for(media ~ '.mp4') }}" target="_blank" rel="noopener" data-vnv-play-film="{{ film.slug }}-player">Play film with sound</a>
+        <a href="{{ video_url }}" target="_blank" rel="noopener" data-vnv-play-film="{{ film.slug }}-player">Play film with sound</a>
         <button type="button" class="ve-film__share" data-vnv-share-film="{{ path(film.route) }}#{{ film.slug }}-film" data-film-title="{{ film.title }}" hidden>Share film</button>
         <span class="ve-film__status" role="status"></span>
       </div>

@@ -27,7 +27,7 @@ Open with a production decision the audience recognizes. Narrate in conversation
 
 The Cuebook walkthrough follows an opening shift. Show the producer assigning a cue, the floor team receiving a schedule change, and staff checking in a companion independently. Show sponsor, volunteer and donation workflows only within the organization's authorized scope. Use vendor selection as a producer-led service. Identify vendor onboarding and contract management as planned modules, and describe a custom branded app through its agreed scope. Private corporate full production and approved nonprofit engagements include platform setup, access and reuse for future events at no additional platform charge.
 
-For the experience claim, use “more than 250 small and midsize events, alongside our corporate work.” Keep the figure independent of any yearly cadence. Pair it with the vendor-selection or production sequence and use the final English recording to time and proof the captions. For the v8 Cuebook release, the English VTT, landscape MP4 and WebP poster live together under `public/assets/video/production-films/v8/`.
+Use the approved experience claim in films, captions and landing pages. “Every year, VNV produces more than 250 small and midsize events in addition to its corporate productions.” Show how the team selects and coordinates catering, décor, multimedia, staffing and logistics partners. Keep the annual frequency in every translation and time the captions to the final English recording. For the v8 Cuebook release, the English VTT, landscape MP4 and WebP poster live together under `public/assets/video/production-films/v8/`.
 
 ## Captions and release review
 
