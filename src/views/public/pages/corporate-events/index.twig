@@ -33,6 +33,9 @@
 }
 
 html { scroll-behavior: smooth; }
+@media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+}
 
 body {
     background: var(--vnv-dark-deep);
@@ -194,6 +197,9 @@ h1, h2, h3, h4, h5, .luxury-font {
 .section-white .section-heading p {
     color: #566164;
 }
+.section-white .section-heading .vnv-badge {
+    color: #236763;
+}
 .section-dark .section-heading p {
     color: var(--vnv-text-muted);
 }
@@ -227,6 +233,9 @@ h1, h2, h3, h4, h5, .luxury-font {
 }
 
 .vnv-service-grid-card {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
     background: rgba(28, 34, 35, 0.82);
     backdrop-filter: blur(6px);
     border-radius: 28px;
@@ -282,6 +291,7 @@ h1, h2, h3, h4, h5, .luxury-font {
 }
 
 .vnv-link-gold {
+    margin-top: auto;
     color: var(--vnv-gold) !important;
     font-weight: 800;
     letter-spacing: 2px;
@@ -296,6 +306,9 @@ h1, h2, h3, h4, h5, .luxury-font {
 .vnv-link-gold:hover {
     gap: 20px;
     color: white !important;
+}
+.section-white .vnv-service-grid-card .vnv-link-gold {
+    color: #f6d38d !important;
 }
 
 .solution-wrap {
@@ -336,7 +349,7 @@ h1, h2, h3, h4, h5, .luxury-font {
     box-shadow: 0 25px 70px rgba(0,0,0,.08);
 }
 
-.solution-panel h3 {
+.solution-panel h2 {
     font-size: 2rem;
     color: var(--vnv-text-dark);
     margin-bottom: 18px;
@@ -553,7 +566,8 @@ h1, h2, h3, h4, h5, .luxury-font {
     href: '#corporate-partnerships',
     request_type: 'CORPORATE',
     request_source: 'corporate_hero',
-    preview_label: 'A preview of a corporate stage and hospitality setup'
+    preview_media: 'assets/video/production-films/v5-corporate/corporate-events-preview',
+    preview_label: 'Guests and exhibitors at a corporate event'
   }
 } only %}
 
@@ -561,8 +575,8 @@ h1, h2, h3, h4, h5, .luxury-font {
     offer: {
         id: 'corporate-production',
         label: 'Integrated corporate production',
-        title: 'One plan for the room, the program and the people',
-        description: 'Start with the audience and what you need the event to accomplish. VNV turns that brief into a production schedule, a clear scope and an on-site plan your team can work from.',
+        title: 'What your VNV production team handles',
+        description: 'Tell us who is coming and what needs to happen in the room. Your VNV producer builds the scope and budget with you, then coordinates the venue, vendors and on-site crew around one show schedule.',
         image: 'assets/images/corp2.jpg',
         image_alt: 'Attendees listening to a participant with a handheld microphone',
         caption: 'Illustrative format · Conference and speaker session',
@@ -578,8 +592,10 @@ h1, h2, h3, h4, h5, .luxury-font {
     film: {
         slug: 'corporate-events',
         route: 'corporate-events',
-        title: 'See how we produce corporate events',
-        description: 'See how our production team brings vendors, technical cues and on-site staff together in one shared schedule.',
+        media: 'assets/video/production-films/v5-corporate/corporate-events',
+        music_only: true,
+        title: 'From the show floor to the reception',
+        description: 'Follow a guest into the lounge, meet exhibitors at their booth and see how refreshments and networking lead into an evening reception.',
         cta: 'Tell us about your event',
         request_type: 'CORPORATE',
         request_source: 'corporate_film'
@@ -594,8 +610,8 @@ h1, h2, h3, h4, h5, .luxury-font {
     <div class="container position-relative" style="z-index:2;">
         <div class="text-center mb-5 pb-5 section-heading">
             <span class="vnv-badge">Core Services</span>
-            <h2 class="text-white">What We Bring to <span class="text-vnv">Corporate Events</span></h2>
-            <p>Book catering, entertainment, decor, rentals and planning individually, or bring the services your event needs into an integrated scope.</p>
+            <h2 class="text-white">Services for your <span class="text-vnv">corporate event</span></h2>
+            <p>Your producer coordinates the services in your approved scope. If you already have a production team, you can also explore individual services below.</p>
         </div>
 
         <div class="row g-4">
@@ -603,9 +619,9 @@ h1, h2, h3, h4, h5, .luxury-font {
                 <div class="vnv-service-grid-card">
                     <span class="service-num-floating">01</span>
                     <div class="service-icon-box"><i class="fa-solid fa-utensils"></i></div>
-                    <h3>Food Service</h3>
-                    <p>Curated catering for office gatherings, networking events, activations and internal celebrations with presentation and flow in mind.</p>
-                    <a href="{{ path('vnv-gourmet') }}" class="vnv-link-gold">REQUEST SERVICE →</a>
+                    <h3>Catering</h3>
+                    <p>Plan coffee breaks, working lunches or a reception around the session times, guest count and layout of your venue.</p>
+                    <a href="{{ path('vnv-gourmet') }}" class="vnv-link-gold">Explore catering <span aria-hidden="true">→</span></a>
                 </div>
             </div>
 
@@ -613,9 +629,9 @@ h1, h2, h3, h4, h5, .luxury-font {
                 <div class="vnv-service-grid-card">
                     <span class="service-num-floating">02</span>
                     <div class="service-icon-box"><i class="fa-solid fa-volume-high"></i></div>
-                    <h3>Sound</h3>
-                    <p>Audio support for speeches, presentations and event moments where clarity matters and the room needs to feel controlled.</p>
-                    <a href="{{ path('vnv-live') }}" class="vnv-link-gold">REQUEST SERVICE →</a>
+                    <h3>Sound &amp; entertainment</h3>
+                    <p>Coordinate microphones for presenters and Q&amp;A. For a reception, choose a DJ or live music to suit the room.</p>
+                    <a href="{{ path('vnv-live') }}" class="vnv-link-gold">Explore DJs and live music <span aria-hidden="true">→</span></a>
                 </div>
             </div>
 
@@ -623,9 +639,9 @@ h1, h2, h3, h4, h5, .luxury-font {
                 <div class="vnv-service-grid-card">
                     <span class="service-num-floating">03</span>
                     <div class="service-icon-box"><i class="fa-solid fa-display"></i></div>
-                    <h3>Multimedia</h3>
-                    <p>Screen support, visual playback and presentation-ready execution for events that need stronger communication and brand presence.</p>
-                    <a href="{{ path('photo-booth-rental-video-photography-services-in-south-florida') }}" class="vnv-link-gold">REQUEST SERVICE →</a>
+                    <h3>Screens, photo &amp; video</h3>
+                    <p>Plan how slides and video will play during the program. Add event photography, filming or a photo booth when your brief calls for it.</p>
+                    <a href="{{ path('photo-booth-rental-video-photography-services-in-south-florida') }}" class="vnv-link-gold">Explore photo and video <span aria-hidden="true">→</span></a>
                 </div>
             </div>
 
@@ -634,8 +650,8 @@ h1, h2, h3, h4, h5, .luxury-font {
                     <span class="service-num-floating">04</span>
                     <div class="service-icon-box"><i class="fa-solid fa-user-group"></i></div>
                     <h3>Staffing</h3>
-                    <p>Professional support for service, setup and guest-facing operations so the event does not depend on your internal team running logistics.</p>
-                    <a href="{{ path('event-staffing/') }}" class="vnv-link-gold">REQUEST SERVICE →</a>
+                    <p>Assign setup, welcome desk and service roles so your employees know who handles arrivals and whom to call during the program.</p>
+                    <a href="{{ path('event-staffing/') }}" class="vnv-link-gold">Explore event staffing <span aria-hidden="true">→</span></a>
                 </div>
             </div>
         </div>
@@ -646,13 +662,34 @@ h1, h2, h3, h4, h5, .luxury-font {
     <div class="container">
         <div class="text-center mb-5 section-heading" style="margin-left:auto;margin-right:auto;">
             <span class="vnv-badge">Corporate Production Programs</span>
-            <h2>Choose a one-time production or a defined annual partnership.</h2>
-            <p>Every engagement has a written scope, event count, budget and approval path. Annual partnerships are available in 2-, 4- or 6-event plans and are never unlimited.</p>
+            <h2>Planning one event or an annual series?</h2>
+            <p>VNV offers paid production for a single event or an annual calendar. Your proposal sets out the event count, deliverables, budget and approvals.</p>
         </div>
         <div class="row g-4">
-            <div class="col-lg-4"><div class="vnv-service-grid-card h-100"><div class="service-icon-box"><i class="fa-solid fa-calendar-check"></i></div><h3>One-Time Full Production</h3><p>A custom scope for one corporate event, including the production layers, team and deliverables the project actually requires.</p><a href="#" data-vnv-open-quick-request data-quick-request-type="CORPORATE" data-quick-request-source="corporate_production" class="vnv-link-gold">REQUEST AN INVITATION →</a></div></div>
-            <div class="col-lg-4"><div class="vnv-service-grid-card h-100"><div class="service-icon-box"><i class="fa-solid fa-repeat"></i></div><h3>Annual Production Partnership</h3><p>Plan 2, 4 or 6 defined events with shared standards, quarterly reviews and a more consistent operating relationship.</p><a href="#" data-vnv-open-quick-request data-quick-request-type="CORPORATE" data-quick-request-source="corporate_annual" class="vnv-link-gold">REQUEST AN INVITATION →</a></div></div>
-            <div class="col-lg-4"><div class="vnv-service-grid-card h-100"><div class="service-icon-box"><i class="fa-solid fa-bullseye"></i></div><h3>Sponsor Activation Production</h3><p>Already sponsoring an event? Request a custom lounge, hospitality, photo moment, sampling program or branded installation.</p><a href="{{ path('sponsor-activation-production') }}" class="vnv-link-gold">EXPLORE ACTIVATIONS →</a></div></div>
+            <div class="col-lg-4">
+                <div class="vnv-service-grid-card h-100">
+                    <div class="service-icon-box"><i class="fa-solid fa-calendar-check" aria-hidden="true"></i></div>
+                    <h3>One-time full production</h3>
+                    <p>For a single conference, launch or reception, we scope the venue coordination, technical production, hospitality and crew your program needs.</p>
+                    <a href="#" data-vnv-open-quick-request data-quick-request-type="CORPORATE" data-quick-request-source="corporate_production" class="vnv-link-gold">Discuss one event <span aria-hidden="true">→</span></a>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="vnv-service-grid-card h-100">
+                    <div class="service-icon-box"><i class="fa-solid fa-repeat" aria-hidden="true"></i></div>
+                    <h3>Annual production partnership</h3>
+                    <p>Plan 2, 4 or 6 events with shared production standards and quarterly reviews. Each event has an agreed scope within the annual plan.</p>
+                    <a href="#" data-vnv-open-quick-request data-quick-request-type="CORPORATE" data-quick-request-source="corporate_annual" class="vnv-link-gold">Discuss an annual plan <span aria-hidden="true">→</span></a>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="vnv-service-grid-card h-100">
+                    <div class="service-icon-box"><i class="fa-solid fa-bullseye" aria-hidden="true"></i></div>
+                    <h3>Sponsor activation production</h3>
+                    <p>Exhibiting at someone else’s event? Start with your footprint, brand guidelines and the action you want visitors to take. We can scope printed graphics, installation and show-floor staffing.</p>
+                    <a href="{{ path('sponsor-activation-production') }}" class="vnv-link-gold">Explore sponsor activations <span aria-hidden="true">→</span></a>
+                </div>
+            </div>
         </div>
         <p class="text-center text-muted mt-4">Sponsorship-development support is available only under a written agreement. VNV does not guarantee sponsors, revenue or return on investment.</p>
     </div>
@@ -662,28 +699,18 @@ h1, h2, h3, h4, h5, .luxury-font {
     <div class="container">
         <div class="solution-wrap">
             <div class="solution-image-stack">
-                <img src="{{ asset_for('assets/images/corp3.jpg') }}" alt="Corporate event detail">
-                <img src="{{ asset_for('assets/images/corp4.jpg') }}" alt="Corporate event production detail">
+                <img src="{{ asset_for('assets/images/corp3.jpg') }}" alt="Guests raising a toast at an outdoor evening reception">
+                <img src="{{ asset_for('assets/images/corp4.jpg') }}" alt="Guests talking around cocktail tables at a daytime networking event">
             </div>
 
             <div class="solution-panel">
-                <span class="vnv-badge">How This Helps</span>
-                <h3>A better corporate event usually comes down to execution.</h3>
-
-                <p>
-                    Companies usually do not struggle because they lack ideas. They struggle because too many event elements get fragmented between different providers, different timelines and different expectations.
-                </p>
-
-                <p>
-                    Our role is to reduce that fragmentation by supporting the areas that shape the experience most directly in the room.
-                </p>
+                <h2>Working with your producer</h2>
+                <p>You set the objective, approve the budget and decide who signs off on brand and program changes. Your VNV producer connects those decisions to the work on site.</p>
 
                 <ul>
-                    <li>Food that feels appropriate for the audience and event type</li>
-                    <li>Sound that supports communication instead of becoming a distraction</li>
-                    <li>Visual and multimedia support that strengthens the brand presence</li>
-                    <li>Staffing that keeps service, timing and guest flow under control</li>
-                    <li>A smoother event experience without overloading your internal team</li>
+                    <li><strong>Before the event.</strong> Agree on the venue plan, vendor responsibilities, speaker materials and the run of show.</li>
+                    <li><strong>On site.</strong> The crew checks presentation playback, briefs the welcome team and coordinates service around each session.</li>
+                    <li><strong>At handoff.</strong> Review the deliverables in your brief, such as event photos or attendance records when check-in is included.</li>
                 </ul>
             </div>
         </div>
@@ -701,7 +728,7 @@ h1, h2, h3, h4, h5, .luxury-font {
                 </h2>
 
                 <p class="fs-5 mb-4" style="color:rgba(255,255,255,0.65);">
-                    Explore real events, setup moments and behind-the-scenes details from VNV Events across South Florida.
+                    Visit our Instagram portfolio for VNV event setups and behind-the-scenes work in South Florida. The photos below illustrate corporate event formats.
                 </p>
 
                 <a href="https://www.instagram.com/vnv_events/" target="_blank" class="vnv-btn btn-outline-vnv">
@@ -709,10 +736,10 @@ h1, h2, h3, h4, h5, .luxury-font {
                 </a>
 
                 <div class="instagram-gallery-grid mt-4">
-                    <img src="{{ asset_for('assets/images/corp1.jpg') }}" alt="Corporate event gallery 1">
-                    <img src="{{ asset_for('assets/images/corp2.jpg') }}" alt="Corporate event gallery 2">
-                    <img src="{{ asset_for('assets/images/corp3.jpg') }}" alt="Corporate event gallery 3">
-                    <img src="{{ asset_for('assets/images/corp4.jpg') }}" alt="Corporate event gallery 4">
+                    <img src="{{ asset_for('assets/images/corp1.jpg') }}" alt="Participants working together at a team workshop">
+                    <img src="{{ asset_for('assets/images/corp2.jpg') }}" alt="A participant asking a question with a microphone">
+                    <img src="{{ asset_for('assets/images/corp3.jpg') }}" alt="Guests toasting at an outdoor reception">
+                    <img src="{{ asset_for('assets/images/corp4.jpg') }}" alt="Networking conversations around cocktail tables">
                 </div>
             </div>
 
@@ -723,7 +750,7 @@ h1, h2, h3, h4, h5, .luxury-font {
                     <h3 class="text-white mb-3">Plan it in person.</h3>
 
                     <p>
-                        Visit our VNV Studio in Sunrise, FL to review event direction, discuss food, sound, multimedia and staffing, and shape a more complete corporate event experience.
+                        Meet in Sunrise to review your event brief, room layout and service options with our production team.
                     </p>
 
                     <div class="vnv-studio-info">
@@ -737,7 +764,7 @@ h1, h2, h3, h4, h5, .luxury-font {
                         </a>
 
                         <a href="#" data-vnv-open-quick-request data-quick-request-type="CORPORATE" data-quick-request-source="corporate_location" class="vnv-btn btn-gold-vnv">
-                            Book a Meeting
+                            Request a studio meeting
                         </a>
                     </div>
                 </div>
@@ -752,16 +779,16 @@ h1, h2, h3, h4, h5, .luxury-font {
             <div class="row align-items-center">
                 <div class="col-lg-7">
                     <span class="vnv-badge">Corporate Planning</span>
-                    <h2 class="display-3 fw-bold text-white mb-4">Bring food, sound, multimedia and staffing together under one plan.</h2>
+                    <h2 class="display-3 fw-bold text-white mb-4">Tell us about your corporate event.</h2>
                     <p class="fs-5 mb-5">
-                        If your company needs an event that feels presentable, organized and easier to manage from start to finish, VNV Events can help you build the right setup around the moments that matter most.
+                        Share your objective, expected attendance and preferred date or dates. If you already have a venue, a budget range or vendors in place, include those details in your brief.
                     </p>
                 </div>
 
                 <div class="col-lg-5 text-center text-lg-end">
                     <div class="d-flex flex-column flex-lg-row gap-3 justify-content-end">
                         <a href="tel:+13052045427" class="vnv-btn btn-gold-vnv vnv-btn-fixed">Call Now</a>
-                        <a href="#" data-vnv-open-quick-request data-quick-request-type="CORPORATE" data-quick-request-source="corporate_final" class="vnv-btn btn-ghost-white vnv-btn-fixed">Request an Invitation</a>
+                        <a href="#" data-vnv-open-quick-request data-quick-request-type="CORPORATE" data-quick-request-source="corporate_final" class="vnv-btn btn-ghost-white vnv-btn-fixed">Discuss your event</a>
                     </div>
                 </div>
             </div>
@@ -779,8 +806,8 @@ h1, h2, h3, h4, h5, .luxury-font {
 {% include "templates/components/publicQuickRequestModal.html.twig" with {
     quick_request_type: 'CORPORATE',
     quick_request_source: 'corporate_events_quick_request',
-    quick_request_title: 'Request a corporate invitation',
-    quick_request_cta: 'Request an Invitation'
+    quick_request_title: 'Discuss corporate event production',
+    quick_request_cta: 'Send production inquiry'
 } %}
 
 {% include "templates/layout/publicFooterVnv.html.twig" %}
@@ -792,7 +819,7 @@ h1, h2, h3, h4, h5, .luxury-font {
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
 
 <script>
-if (typeof gsap !== 'undefined' && typeof ScrollTrigger !== 'undefined') {
+if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches && typeof gsap !== 'undefined' && typeof ScrollTrigger !== 'undefined') {
     gsap.registerPlugin(ScrollTrigger);
 
     gsap.utils.toArray('.vnv-service-grid-card').forEach(card => {
@@ -810,7 +837,7 @@ if (typeof gsap !== 'undefined' && typeof ScrollTrigger !== 'undefined') {
 
     gsap.from(".solution-image-stack, .solution-panel, .vnv-studio-card, .final-cta-card", {
         scrollTrigger: {
-            trigger: ".corp-image-card",
+            trigger: ".solution-wrap",
             start: "top 82%"
         },
         y: 35,
@@ -819,34 +846,7 @@ if (typeof gsap !== 'undefined' && typeof ScrollTrigger !== 'undefined') {
         ease: "power3.out"
     });
 
-    if (window.innerWidth > 991) {
-        gsap.to('.services-bg-video', {
-            yPercent: 12,
-            ease: 'none',
-            scrollTrigger: {
-                trigger: '#corporate-services',
-                start: 'top bottom',
-                end: 'bottom top',
-                scrub: true
-            }
-        });
-    }
 }
 
-document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-    anchor.addEventListener('click', function (e) {
-        const target = this.getAttribute('href');
-        if (!target || target === '#') return;
-
-        const el = document.querySelector(target);
-        if (!el) return;
-
-        e.preventDefault();
-        el.scrollIntoView({
-            behavior: 'smooth',
-            block: 'start'
-        });
-    });
-});
 </script>
 {% endblock %}
