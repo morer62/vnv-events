@@ -9,15 +9,19 @@ use App\Utils\AvomealContext;
 use App\Utils\SiteContext;
 use App\Utils\TemplateResponse;
 
+$url = trim($_GET['url'] ?? '', '/');
+$parts = $url !== '' ? explode('/', $url) : [];
+$slug = $parts[1] ?? null;
+
+if ($slug === \App\Services\VnvStoreProduction::LEGACY_PLANNER_SLUG && SiteContext::siteKey() === 'vnvevents') {
+    header('Location: ' . \App\Utils\LocationUtils::pathFor('product/' . \App\Services\VnvProductionCatalog::PACKAGE_SLUGS['event-planner']), true, 301);
+    exit;
+}
 $requestPath = (string)(parse_url($_SERVER['REQUEST_URI'] ?? '', PHP_URL_PATH) ?? '');
 if ($requestPath !== '/' && str_ends_with($requestPath, '/')) {
     header('Location: ' . rtrim($requestPath, '/'), true, 301);
     exit;
 }
-
-$url = trim($_GET['url'] ?? '', '/');
-$parts = $url !== '' ? explode('/', $url) : [];
-$slug = $parts[1] ?? null;
 
 if ($slug === 'ensaimada-family-recipe') {
     header('Location: /gourmet-to-go#desserts', true, 301);
@@ -189,7 +193,7 @@ if ($siteKey === 'vnvevents' && in_array($slug, \App\Services\VnvStoreProduction
     echo TemplateResponse::render(__DIR__ . '/proposal.twig', [
         'service' => $service, 'slug' => $slug, 'direct_costs' => \App\Services\VnvProductionCatalog::DIRECT_COSTS,
         'fee_includes' => \App\Services\VnvProductionCatalog::FEE_INCLUDES,
-        'overtime' => \App\Services\VnvProductionCatalog::OVERTIME,
+        'coordinator_slug' => \App\Services\VnvProductionCatalog::PACKAGE_SLUGS['day-coordinator'],
     ]);
     return;
 }
@@ -347,20 +351,11 @@ $gourmetSeoDescription = (string)$product->slug === 'brazo-gitano'
     ? 'Light sponge rolled with pastry cream, topped with fresh strawberries. Serves 10–12. Pickup in Sunrise.'
     : html_entity_decode(strip_tags((string)$product->short_description), ENT_QUOTES | ENT_HTML5, 'UTF-8');
 
-$schemaProduct = $product;
-if (isset($packagePrices[$slug])) {
-    // Show the bookable packages in search results; overtime remains available on the product itself.
-    $schemaProduct = clone $product;
-    $schemaProduct->min_price = $packagePrices[$slug];
-    $schemaProduct->variations = array_values(array_filter($product->variations ?? [], static function ($option) use ($schemaProduct) {
-        return (float)($option->effective_price ?? $option->price ?? 0) >= $schemaProduct->min_price;
-    }));
-}
-
 echo TemplateResponse::render(__DIR__ . "/index.twig", [
     'product' => $product,
     'package_prices' => $packagePrices,
     'package_start' => $packagePrices[$slug] ?? null,
+    'package_service' => $siteKey === 'vnvevents' ? array_search($slug, \App\Services\VnvProductionCatalog::PACKAGE_SLUGS, true) : null,
     'related_products' => $relatedProducts,
     'food_profile' => $foodProfile,
     'product_recommendations' => $productRecommendations,
@@ -381,5 +376,5 @@ echo TemplateResponse::render(__DIR__ . "/index.twig", [
         : ($isVnvGourmetService
             ? ['title' => $product->name . ' | VNV Gourmet', 'description' => html_entity_decode(strip_tags((string)$product->short_description), ENT_QUOTES | ENT_HTML5, 'UTF-8'), 'canonical' => $canonicalUrl, 'og_type' => 'product', 'og_image' => $imageUrl, 'og_image_alt' => $product->name, 'site_name' => 'VNV Gourmet']
             : []),
-    'schemaJson' => PublicSeoService::productSchema($schemaProduct, $productFaqs),
+    'schemaJson' => PublicSeoService::productSchema($product, $productFaqs),
 ]);

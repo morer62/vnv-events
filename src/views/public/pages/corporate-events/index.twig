@@ -561,22 +561,21 @@ h1, h2, h3, h4, h5, .luxury-font {
     label: 'Corporate programs · South Florida',
     title: 'Corporate event',
     emphasis: 'production.',
-    description: 'Produce your conference, launch or client event with one team coordinating the room, the program and the people.',
+    description: 'Produce your conference, launch or client event with a producer who builds the program, briefs your vendors and prepares the room plan.',
     details: ['One run of show for venues, vendors and presenters', 'Audiovisual cues, staffing and hospitality', 'Guest registration and check-in when needed'],
-    cta: 'Request a Production Proposal',
-    href: '#corporate-partnerships',
+    cta: 'Request Proposal',
     request_service: 'event-production',
     preview_label: 'Guests and exhibitors at a corporate event'
   }
 } only %}
 
-<nav class="vp-commercial vp-related" aria-label="Corporate production options"><div class="vp-commercial__inner vp-service-links"><a href="{{ path('event-production') }}#production-fees">Compare production scopes and fees</a><a href="{{ path('sponsor-activation-production') }}">Explore a brand activation</a></div></nav>
+<nav class="vp-commercial vp-related" aria-label="Corporate production options"><div class="vp-commercial__inner vp-service-links"><a href="#corporate-services">Explore Services</a><a href="#production-fees">How pricing works</a><a href="{{ path('sponsor-activation-production') }}">Explore a brand activation</a></div></nav>
 {% include "templates/components/vnvProductionOffer.html.twig" with {
     offer: {
         id: 'corporate-production',
         label: 'Integrated corporate production',
-        title: 'What your VNV production team handles',
-        description: 'Jonathan Moreno leads the VNV production team. We build the scope and budget with you, then coordinate your venue, vendors and on-site crew around one show schedule.',
+        title: 'Built for business environments',
+        description: 'Jonathan Moreno leads the VNV production team. We build the scope and budget with you, then confirm venue requirements, vendor decisions and the rehearsal plan in VNV-Q.',
         image: 'assets/images/corp2.jpg',
         image_alt: 'Attendees listening to a participant with a handheld microphone',
         caption: 'Illustrative format · Conference and speaker session',
@@ -617,7 +616,7 @@ h1, h2, h3, h4, h5, .luxury-font {
                 <div class="vnv-service-grid-card">
                     <span class="service-num-floating">01</span>
                     <div class="service-icon-box"><i class="fa-solid fa-utensils"></i></div>
-                    <h3>Catering</h3>
+                    <h3>Food service &amp; catering</h3>
                     <p>Plan coffee breaks, working lunches or a reception around the session times, guest count and layout of your venue.</p>
                     <a href="{{ path('vnv-gourmet') }}" class="vnv-link-gold">Explore catering <span aria-hidden="true">→</span></a>
                 </div>
@@ -637,7 +636,7 @@ h1, h2, h3, h4, h5, .luxury-font {
                 <div class="vnv-service-grid-card">
                     <span class="service-num-floating">03</span>
                     <div class="service-icon-box"><i class="fa-solid fa-display"></i></div>
-                    <h3>Screens, photo &amp; video</h3>
+                    <h3>Multimedia</h3>
                     <p>Plan how slides and video will play during the program. Add event photography, filming or a photo booth when your brief calls for it.</p>
                     <a href="{{ path('photo-booth-rental-video-photography-services-in-south-florida') }}" class="vnv-link-gold">Explore photo and video <span aria-hidden="true">→</span></a>
                 </div>
@@ -655,6 +654,14 @@ h1, h2, h3, h4, h5, .luxury-font {
         </div>
     </div>
 </section>
+
+{% include "templates/components/vnvProductionFees.html.twig" with {
+    heading: 'How pricing works', show_activation_note: false,
+    services: production_services, keys: ['production-essential', 'full-event-production', 'full-event-production-plus', 'advanced-production'],
+    fee_includes: fee_includes, direct_costs: direct_costs
+} only %}
+
+{% include "templates/components/vnvHowWeWork.html.twig" only %}
 
 {% include "templates/components/vnvProductionPartnerValue.html.twig" with { audience: 'corporate' } only %}
 
@@ -686,7 +693,7 @@ h1, h2, h3, h4, h5, .luxury-font {
                 <div class="vnv-service-grid-card h-100">
                     <div class="service-icon-box"><i class="fa-solid fa-bullseye" aria-hidden="true"></i></div>
                     <h3>Brand Experiences &amp; Activation</h3>
-                    <p>Exhibiting at someone else’s event? Start with your footprint, brand guidelines and the action you want visitors to take. We can scope printed graphics, installation and show-floor staffing.</p>
+                    <p>Brand activation is included when VNV produces your event. At another organizer’s event, standalone activation is {{ production_services['brand-activation'].price }}. We quote graphics, installation and booth staff for your approval.</p>
                     <a href="{{ path('sponsor-activation-production') }}" class="vnv-link-gold">Explore brand experiences <span aria-hidden="true">→</span></a>
                 </div>
             </div>
@@ -704,12 +711,12 @@ h1, h2, h3, h4, h5, .luxury-font {
             </div>
 
             <div class="solution-panel">
-                <h2>Working with your producer</h2>
-                <p>You set the objective, approve the budget and decide who signs off on brand and program changes. Your VNV producer connects those decisions to the work on site.</p>
+                <h2>How this helps your team</h2>
+                <p>You set the objective, approve the budget and decide who signs off on brand and program changes. Your producer records approvals in VNV-Q so the crew can see which version of the plan to use.</p>
 
                 <ul>
                     <li><strong>Before the event.</strong> Agree on the venue plan, vendor responsibilities, speaker materials and the run of show.</li>
-                    <li><strong>On site.</strong> The crew checks presentation playback, briefs the welcome team and coordinates service around each session.</li>
+                    <li><strong>On site.</strong> If you book a Day Coordinator, that person briefs the welcome team and keeps service and speakers on schedule.</li>
                     <li><strong>At handoff.</strong> Review the deliverables in your brief, such as event photos or attendance records when check-in is included.</li>
                 </ul>
             </div>
@@ -764,7 +771,7 @@ h1, h2, h3, h4, h5, .luxury-font {
                         </a>
 
                         <a href="{{ path('') }}?request_service=event-production#vnvRequestModal" data-vnv-open-request data-vnv-request-service="event-production" class="vnv-btn btn-gold-vnv">
-                            Request a studio meeting
+                            Book a Meeting
                         </a>
                     </div>
                 </div>
@@ -788,7 +795,7 @@ h1, h2, h3, h4, h5, .luxury-font {
                 <div class="col-lg-5 text-center text-lg-end">
                     <div class="d-flex flex-column flex-lg-row gap-3 justify-content-end">
                         <a href="tel:+13052045427" class="vnv-btn btn-gold-vnv vnv-btn-fixed">Call Now</a>
-                        <a href="{{ path('') }}?request_service=event-production#vnvRequestModal" data-vnv-open-request data-vnv-request-service="event-production" class="vnv-btn btn-ghost-white vnv-btn-fixed">Discuss your event</a>
+                        <a href="{{ path('') }}?request_service=event-production#vnvRequestModal" data-vnv-open-request data-vnv-request-service="event-production" class="vnv-btn btn-ghost-white vnv-btn-fixed">Request Proposal</a>
                     </div>
                 </div>
             </div>

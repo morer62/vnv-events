@@ -16,7 +16,7 @@
             <p class="fee">{{ service.price }}</p>
             {% if slug != 'brand-activation' %}<p>{{ fee_includes }}</p>{% endif %}
             <p>{{ direct_costs }}</p>
-            <p>Additional production hours are {{ overtime }}.</p>
+            <p>On-site coordination is booked separately as <a style="color:inherit" href="{{ path('product/' ~ coordinator_slug) }}">Day Coordinator</a>.</p>
             <a class="request" href="{{ path('') }}?request_service={{ slug }}#vnvRequestModal" data-vnv-open-request data-vnv-request-service="{{ slug }}">Request a proposal</a>
             <a href="{{ path(service.route) }}">Explore {{ slug == 'brand-activation' ? 'brand activation' : 'event production' }}</a>
         </section>

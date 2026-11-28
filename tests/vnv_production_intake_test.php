@@ -37,6 +37,7 @@ namespace App\Repositories {
 }
 namespace {
     $base = dirname(__DIR__);
+    require $base . '/src/Services/VnvProductionCatalog.php';
     require $base . '/src/Services/VnvCommercialIntake.php';
     require $base . '/src/Services/PublicRequestNotification.php';
     require $base . '/src/views/api/public/event-request/index.php';
@@ -48,7 +49,7 @@ namespace {
         'budget_range'=>'$12,000','project_event_type'=>'Reception','form_source'=>'production_store'];
     $cases = [
         [['Appetizers','Chairs'],null],
-        [['Event Planner','Event Coordinator'],null],
+        [['Event Planner','Wedding Planner','Event Coordinator'],null],
         [['Production Essential'],'CORPORATE'],
         [['Full Event Production','Appetizers'],'CORPORATE'],
         [['Full Event Production Plus'],'CORPORATE'],
@@ -71,7 +72,15 @@ namespace {
         if ($program) {
             expect(Records::$deals[0][0] === $program && Records::$deals[0][1]['organization_name'] === 'Sample Organization','Wrong partner routing');
             expect(str_contains(Records::$mail[0][2], 'Reception') && str_contains(Records::$request['details'], '$12,000'), 'Missing commercial context');
+        } elseif (in_array('Wedding Planner', $categories, true)) {
+            expect(str_contains(Records::$request['details'], 'Wedding Planner (Up to 75 guests) — $1,950'), 'Missing wedding guest tier');
+            expect(str_contains(Records::$request['details'], 'Day Coordinator (Up to 75 guests) — $850'), 'Missing separate coordinator fee');
+            expect(!str_contains(Records::$request['details'], 'Sample Organization'), 'Corporate fields leaked into planning');
         } else expect(Records::$request['details'] === 'Please contact me', 'Corporate fields leaked into traditional request');
+    }
+    foreach ([0=>null,75=>1500,76=>2250,150=>2250,151=>2950,250=>2950,251=>3750,1001=>3750] as $guests => $price) {
+        $plan = \App\Services\VnvCommercialIntake::project(['Event Planner'], ['guest_count'=>$guests]);
+        expect($price === null ? $plan['notes'] === '' : str_contains($plan['notes'], '$'.number_format($price)), 'Incorrect request tier at '.$guests.' guests');
     }
     $_POST['contact_consent'] = '';
     Records::$request = Records::$mail = [];

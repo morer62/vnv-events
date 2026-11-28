@@ -52,7 +52,18 @@ $router->get(function () {
     };
 
     $cateringAnswer = 'VNV Events builds catering quotes from the guest count, menu, service style, staffing, rentals and venue logistics. Current VNV examples include pasta, paella, pizza and taco stations from $19 per guest, chef-led crepes from $17 per guest, appetizers at $21.77 per guest, brunch stations from $35 to $40 per guest, and entree tiers from $33.77 to $60.77 per guest.';
-    $planningAnswer = 'VNV Events offers planning and coordination support across South Florida. Current planning packages include Event Planner Basic at $1,950, Gold at $2,650 and Premium at $3,250, while Day Coordinator packages start at $780 for 6 hours, $990 for 8 hours and $1,290 for 10 hours.';
+    $production = VnvProductionCatalog::services();
+    $tierFees = static function (array $service): string {
+        $tiers = [];
+        foreach ($service['tiers'] as $guestCount => $price) {
+            $tiers[] = $guestCount . ' — $' . number_format($price);
+        }
+        return implode(', ', $tiers) . '.';
+    };
+    $meetingTerms = 'The four guest tiers include up to 3, 4, 5 or 6 scheduled planning meetings, respectively. ' . VnvProductionCatalog::PLANNING_EXTRAS;
+    $coordinatorTerms = VnvProductionCatalog::COORDINATION_DETAILS . ' The 151–250 and 251+ guest tiers include an assistant coordinator. ' . VnvProductionCatalog::COORDINATION_EXTRAS;
+    $roles = 'On-site coordination is booked separately as Day Coordinator. A different person takes the plan from your planner or producer and runs the event day.';
+    $planningAnswer = 'Event planning starts at $' . number_format(min($production['event-planner']['tiers'])) . ', and wedding planning starts at $' . number_format(min($production['wedding-planner']['tiers'])) . '. The fixed fee depends on guest count and program days. ' . $roles;
     $rentalsAnswer = 'VNV Events can combine rentals, decor, staffing and production with a catering or planning request. Rentals and visual production can include tents, tables, chairs, linens, chargers, dance floors, lighting, backdrops, draping, florals, balloons, welcome boards, photo, video, DJ and event staff.';
 
     $markets = [
@@ -79,7 +90,6 @@ $router->get(function () {
         $add("Does VNV Events provide rentals, decor and staffing in {$city}?", "{$rentalsAnswer} For {$city} events, the team confirms access, power, setup time, weather plan and breakdown needs before the final scope is approved.", 'Decoration');
     }
 
-    $production = VnvProductionCatalog::services();
     $productionAnswer = sprintf(
         'Full Event Production is %s. %s Full Event Production Plus is %s. %s Advanced & Large-Scale Production: %s. %s %s',
         $production['full-event-production']['price'],
@@ -88,16 +98,16 @@ $router->get(function () {
         $production['full-event-production-plus']['summary'],
         $production['advanced-production']['price'],
         $production['advanced-production']['summary'],
-        VnvProductionCatalog::DIRECT_COSTS
+        $roles . ' ' . VnvProductionCatalog::DIRECT_COSTS
     );
     $serviceFaqs = [
         ['How much does full event production cost?', $productionAnswer, 'Planning'],
-        ['What does VNV Events include in a full-service event proposal?', 'A VNV proposal can include planning, coordination, catering, bartending, decor, floral design, staffing, rentals, DJ, sound, lighting, production, photo, video and on-site execution. The exact scope is only what appears in the approved written proposal.'],
+        ['What does VNV Events include in a full-service event proposal?', 'Your written proposal itemizes the services you choose, including production, catering, bar service, décor, staffing, rentals, audiovisual services or event media. If you need someone to manage the day on site, book Day Coordinator as a separate line item.'],
         ['What is the VNV Events retainer policy?', 'VNV requires a 50% retainer to reserve the event date. The retainer is non-refundable and is treated as liquidated damages because the company blocks staff, inventory, vendors and production capacity for that date.'],
         ['When is the final balance due for a VNV event?', 'The remaining balance is due no later than 48 hours before the event. Late payment or non-payment can cancel the event services and forfeit the retainer under the VNV service agreement.'],
         ['Does VNV Events accept cash payments?', 'VNV accepts Stripe, Square or bank transfer only. Cash is not accepted for event services under the current service agreement.'],
         ['Can I reduce or swap services after paying the retainer?', 'Once the retainer is paid, the agreement cannot be modified unilaterally. Reductions, swaps or major scope changes are subject to VNV approval and may include additional fees.'],
-        ['What happens if I request extra services during the event?', 'Additional services requested during or after the event require written approval and must be paid in full within 48 hours after the event. Overtime and additional labor can also apply.'],
+        ['What happens if I request extra services during the event?', 'Additional services requested during or after the event require written approval and must be paid in full within 48 hours after the event. Your Day Coordinator or other separately booked on-site staff may incur additional charges under their service terms.'],
         ['Does VNV Events refund services after setup has started?', 'No. Fees are fully earned once the event becomes executable, including when staff arrives, food or equipment is prepared, rentals are delivered, decor is installed, or VNV is fully staffed and available to perform.'],
         ['What venue access does VNV Events need?', 'Clients must provide the exact address and venue contact at least 48 hours before the event. VNV requires venue access at least 3 hours before setup and 2 hours after breakdown unless the written proposal states otherwise.'],
         ['What power does VNV Events need at the venue?', 'VNV requires two functional power outlets within 10 feet of the setup area unless another power plan is approved. Power needs can change when lighting, DJ, cooking stations, production or photo/video equipment are included.'],
@@ -107,9 +117,11 @@ $router->get(function () {
         ['Does VNV Events provide event staffing only?', 'Yes. VNV can support event staffing for weddings, corporate events, private parties, social events and branded experiences. Staffing quotes depend on role, hours, guest count, service flow and event complexity.'],
         ['How much does a professional bartender cost with VNV Events?', 'The current VNV store lists professional bartenders at $75 per hour with a 4-hour minimum. A bar setup add-on is listed at $120 per event, and liquor, ice, cups and glassware are not included unless arranged in the proposal.'],
         ['Does VNV Events provide liquor for bar service?', 'Bartender service does not automatically include liquor, ice, cups or glassware. Those details must be included in the approved proposal or coordinated separately based on venue rules and local requirements.'],
-        ['How much does day-of coordination cost in South Florida?', 'VNV Day Coordinator packages currently start at $780 for a Basic 6-hour package, $990 for a Gold 8-hour package and $1,290 for a Premium 10-hour package. Additional coordination hours are listed at $180 per hour.'],
-        ['How much does event planning cost with VNV Events?', 'VNV Event Planner packages currently include Basic at $1,950, Gold at $2,650 and Premium at $3,250. Additional planning hours are listed at $220 per hour.'],
-        ['What is the difference between a VNV event planner and a day coordinator?', 'A planner helps shape the event before event day, including priorities, vendors, layout, timeline and production decisions. A day coordinator focuses on event-day execution, timeline control, vendor flow and on-site problem solving.'],
+        ['How much does day-of coordination cost in South Florida?', $tierFees($production['day-coordinator']) . ' ' . $coordinatorTerms, 'Planning'],
+        ['How much does event planning cost with VNV Events?', $tierFees($production['event-planner']) . ' ' . $meetingTerms . ' ' . $roles, 'Planning'],
+        ['How much does wedding planning cost with VNV Events?', $tierFees($production['wedding-planner']) . ' ' . $meetingTerms . ' ' . $roles, 'Planning'],
+        ['What work does my planning fee cover?', 'Your planner builds the budget and timeline, recommends and coordinates vendors, and tracks checklists and approvals with you in VNV-Q. Planning is complete when the agreed tasks are delivered.', 'Planning'],
+        ['What is the difference between a VNV event planner and a day coordinator?', 'A planner prepares the budget, vendors and timeline. A Day Coordinator manages vendor arrivals, the schedule and issues on event day. ' . $roles, 'Planning'],
         ['Does VNV Events offer planning meetings in Sunrise, FL?', 'Yes. VNV is based at Courtyard Business Center, 10258 NW 47th St, Sunrise, FL 33351, and can use the studio as a planning point for reviewing vision, priorities and service details.'],
         ['Can VNV Events coordinate vendors I already booked?', 'Yes, if the role is included in the written proposal. VNV can coordinate timelines, arrival windows, setup needs and event-day communication with existing vendors.'],
         ['How much is a pasta station with VNV Gourmet?', 'The current VNV catalog lists the pasta station from $19 per guest. Packages that add 5 appetizers per guest or a dessert table are listed around $35 per guest, and the package with appetizers plus dessert is listed around $42 per guest.'],
@@ -156,7 +168,7 @@ $router->get(function () {
         ['Can VNV Events build a custom package?', 'Yes. VNV packages can be customized based on the services selected, guest count, city, venue, timing, menu and production level. Only the approved written proposal defines the final package.'],
         ['Can I request only one VNV service?', 'Yes. Clients can request a single service such as bartending, DJ, day coordination, florals, catering station, photo/video or rentals if the date and logistics are available.'],
         ['Can I request multiple VNV services together?', 'Yes. VNV is built for combined event support, so clients can bundle planning, catering, rentals, decor, DJ, media and staffing into one coordinated event plan.'],
-        ['Does VNV Events use a client portal?', 'Yes. VNV uses VNV Core as a client portal for secure payments, event updates and planning support. Portal details are shared as part of the client process.'],
+        ['Does VNV Events use a client portal?', 'Yes. VNV uses VNV-Q as a client portal for secure payments, event updates and planning support. Portal details are shared as part of the client process.'],
         ['Will VNV Events use my event photos or video?', 'The VNV agreement includes a media release for marketing and social media unless the client sends written notice to info@vnvevents.com at least 24 hours before the event.'],
         ['Does VNV Events sell customer data?', 'No. VNV may create a platform account to support the event process, but the agreement states that VNV does not sell, rent or distribute personal data.'],
         ['Can I see all my VNV event orders in one place?', 'Yes. The client portal is designed to centralize active and past event orders so clients can review status, files, payments, contracts and related event information without depending only on email threads.', 'Client Portal'],

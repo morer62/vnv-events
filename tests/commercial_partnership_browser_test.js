@@ -153,7 +153,7 @@ function url(route) {
       if (route === 'corporate-events') {
         const serviceCards = page.locator('#corporate-services .vnv-service-grid-card');
         assert.equal(await serviceCards.count(), 4, `${label}: four ordinary service cards expected`);
-        for (const [service, destination] of [['Sound & entertainment', 'vnv-live'], ['Screens, photo & video', 'photo-booth-rental-video-photography-services-in-south-florida'], ['Staffing', 'event-staffing/']]) {
+        for (const [service, destination] of [['Food service & catering', 'vnv-gourmet'], ['Sound & entertainment', 'vnv-live'], ['Multimedia', 'photo-booth-rental-video-photography-services-in-south-florida'], ['Staffing', 'event-staffing/']]) {
           const card = page.locator('.vnv-service-grid-card').filter({ has: page.getByRole('heading', { name: service, exact: true }) });
           assert.equal(await card.count(), 1, `${label}: ${service} card`);
           assert.match(await card.locator('a').getAttribute('href'), new RegExp(destination.replace('/', '\\/')), `${label}: ${service} ordinary service destination`);
@@ -171,11 +171,13 @@ function url(route) {
         assert.equal(await mobileAccount.isVisible(), true, `${label}: mobile Login / Client Access is not visible`);
         assert.match(await mobileAccount.getAttribute('href'), /login/, `${label}: mobile account access does not lead to login`);
         await page.locator('.vnvx-mobile-production summary').click();
-        assert.equal(await page.locator('.vnvx-mobile-production__links a').count(), 5, `${label}: mobile production accordion`);
+        assert.equal(await page.locator('.vnvx-mobile-production__links a').count(), 6, `${label}: mobile production accordion`);
+        assert.match(await page.locator('.vnvx-mobile-production__links a').filter({ hasText: 'Corporate Events' }).getAttribute('href'), /corporate-events/, 'Mobile production menu must include Corporate Events');
         assert.match(await page.locator('.vnvx-mobile-production__links a').filter({ hasText: 'Nonprofit Partnerships' }).getAttribute('href'), /nonprofit-partnerships/, `${label}: mobile campaign link`);
         await page.locator('[data-vnvx-toggle]').first().click();
       } else {
-        assert.equal(await page.locator('.vnvx-nav-group__menu a').count(), 5, `${label}: desktop production submenu`);
+        assert.equal(await page.locator('.vnvx-nav-group__menu a').count(), 6, `${label}: desktop production submenu`);
+        assert.match(await page.locator('.vnvx-nav-group__menu a').filter({ hasText: 'Corporate Events' }).getAttribute('href'), /corporate-events/, 'Desktop production menu must include Corporate Events');
         assert.match(await page.locator('.vnvx-nav-group__menu a').filter({ hasText: 'Nonprofit Partnerships' }).getAttribute('href'), /nonprofit-partnerships/, `${label}: desktop campaign link`);
         const desktopAccount = page.locator('.vnvx-header__login');
         assert.equal(await desktopAccount.isVisible(), true, `${label}: desktop Login / Access is not visible`);

@@ -23,7 +23,6 @@ $router->get(function () {
     return TemplateResponse::render(__DIR__ . '/index.twig', [
         'production_services' => VnvProductionCatalog::services(),
         'fee_includes' => VnvProductionCatalog::FEE_INCLUDES,
-        'overtime' => VnvProductionCatalog::OVERTIME,
         'direct_costs' => VnvProductionCatalog::DIRECT_COSTS,
         'seo' => $seo,
         'partnership_csrf' => $_SESSION['partnership_csrf'],

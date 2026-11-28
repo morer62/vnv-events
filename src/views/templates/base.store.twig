@@ -6,9 +6,9 @@
 {% set skip_public_stripe = true %}
 {% set show_whatsapp = false %}
 
-{% block meta_keywords %}{% if is_vnv_gourmet_service|default(false) %}VNV Gourmet, food stations South Florida, event catering Miami, staffed catering Broward, wedding catering, corporate catering{% else %}party appetizer boxes, appetizer trays Sunrise FL, party food pickup Broward, empanaditas, profiteroles, dessert box, VNV Gourmet To Go{% endif %}{% endblock %}
-{% block meta_subject %}{% if is_vnv_gourmet_service|default(false) %}VNV Gourmet staffed food stations and full-service event catering{% else %}Party appetizer boxes and family-recipe desserts for pickup in Sunrise, FL{% endif %}{% endblock %}
-{% block meta_category %}{% if is_vnv_gourmet_service|default(false) %}Event Catering, Food Stations, Weddings, Corporate Events{% else %}Party Appetizer Boxes, Desserts{% endif %}{% endblock %}
+{% block meta_keywords %}{% if package_start|default(null) %}VNV Events, event planning, wedding planning and day-of coordination{% elseif is_vnv_gourmet_service|default(false) %}VNV Gourmet, food stations South Florida, event catering Miami, staffed catering Broward, wedding catering, corporate catering{% else %}party appetizer boxes, appetizer trays Sunrise FL, party food pickup Broward, empanaditas, profiteroles, dessert box, VNV Gourmet To Go{% endif %}{% endblock %}
+{% block meta_subject %}{% if package_start|default(null) %}VNV Events, event planning, wedding planning and day-of coordination{% elseif is_vnv_gourmet_service|default(false) %}VNV Gourmet staffed food stations and full-service event catering{% else %}Party appetizer boxes and family-recipe desserts for pickup in Sunrise, FL{% endif %}{% endblock %}
+{% block meta_category %}{% if package_start|default(null) %}VNV Events, event planning, wedding planning and day-of coordination{% elseif is_vnv_gourmet_service|default(false) %}Event Catering, Food Stations, Weddings, Corporate Events{% else %}Party Appetizer Boxes, Desserts{% endif %}{% endblock %}
 {% block head %}<meta name="geo.placename" content="Broward, Miami-Dade and South Palm Beach">{% block store_head %}{% endblock %}{% endblock %}
 {% block styles %}
 <style>
@@ -19,13 +19,16 @@
 {% endblock %}
 {% block body %}
 {% include "templates/layout/publicHeaderVnv.html.twig" %}
+{% if not package_start|default(null) %}
 {% if is_vnv_gourmet_service|default(false) %}
 <header class="store-header"><div class="store-header__inner"><a class="store-brand" href="{{ path('vnv-gourmet') }}" aria-label="VNV Gourmet home"><span class="store-brand__wordmark"><strong>VNV Gourmet</strong><small>Food stations &amp; full service</small></span></a><nav class="store-nav" aria-label="VNV Gourmet menu"><a href="{{ path('vnv-gourmet') }}#menu-services">Food Stations</a><a href="{{ path('vnv-gourmet') }}#best-sellers">Best Sellers</a><a href="{{ path('/catering-stations-south-florida/') }}">Compare Stations</a></nav><div class="store-tools"><a class="store-pill" href="{{ path('/#request') }}" data-vnv-open-request>Request availability</a></div></div></header>
 {% else %}
 <header class="store-header"><div class="store-header__inner"><a class="store-brand" href="{{ path('gourmet-to-go') }}" aria-label="VNV Gourmet To Go home"><img src="{{ path('assets/images/vnv-gourmet-to-go-logo.png') }}" alt="VNV Gourmet To Go" width="210" height="58"></a><nav class="store-nav" aria-label="Store menu"><a href="{{ path('gourmet-to-go') }}#appetizer-boxes">Appetizer Boxes</a><a href="{{ path('gourmet-to-go') }}#desserts">Desserts</a><a href="{{ path('gourmet-to-go') }}#pickup-delivery">Pickup &amp; Delivery</a><a href="{{ path('gourmet-to-go') }}#faq">FAQ</a></nav><div class="store-tools"><a class="store-pill store-wa" href="https://wa.me/13053761210?text=Hi%21%20I%27d%20like%20to%20order%20from%20VNV%20Gourmet%20To%20Go" target="_blank" rel="noopener">WhatsApp</a><a class="store-pill store-cart" href="{{ path('store/cart') }}" aria-label="Open cart">Cart{% if cart_count|default(0) %} ({{ cart_count }}){% endif %}</a></div></div></header>
 {% endif %}
+{% endif %}
 {% block store_body %}{% endblock %}
-{% if is_vnv_gourmet_service|default(false) %}
+{% if package_start|default(null) or is_vnv_gourmet_service|default(false) %}
+{% if package_start|default(null) %}{% include "templates/components/publicEventRequestModal.html.twig" with {request_form_source:"planning_store"} %}{% endif %}
 {% include "templates/layout/publicFooterVnv.html.twig" %}
 {% else %}
 <footer class="store-footer"><div class="store-footer__grid"><section><h2>VNV Gourmet To Go</h2><p>Appetizer boxes and family-recipe desserts, prepared by the VNV Events kitchen.</p><p><a href="tel:+13052045427">(305) 204-5427</a><br><a href="mailto:info@vnvevents.com">info@vnvevents.com</a></p></section><section><h3>Delivery & pickup</h3><ul><li>Free pickup in Sunrise</li><li>Delivery available for an address-based fee</li><li>{{ gourmet_settings.pickup_address_1|default('10258 NW 47th St') }}, {{ gourmet_settings.pickup_city|default('Sunrise') }}, FL {{ gourmet_settings.pickup_zip|default('33351') }}</li></ul></section><section><h3>Information</h3><ul><li><a href="{{ path('gourmet-to-go') }}#pickup-delivery">Delivery & pickup</a></li><li><a href="{{ path('gourmet-to-go') }}#faq">FAQ</a></li><li><a href="{{ path('terms-and-conditions') }}">Terms</a></li></ul></section></div><div class="store-footer__bottom">Planning a bigger event with staff and setup? <a href="{{ path('') }}">VNV Events full-service →</a></div></footer>

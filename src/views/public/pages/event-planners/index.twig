@@ -352,7 +352,7 @@ h1, h2, h3, h4, h5, .luxury-font {
 
 .compare-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 26px;
 }
 
@@ -360,7 +360,7 @@ h1, h2, h3, h4, h5, .luxury-font {
     background: rgba(28, 34, 35, 0.82);
     backdrop-filter: blur(6px);
     border-radius: 28px;
-    padding: 42px 34px;
+    padding: clamp(1.25rem, 2.2vw, 2.25rem);
     border: 1px solid rgba(197, 160, 89, 0.08);
     height: 100%;
     position: relative;
@@ -808,7 +808,8 @@ h1, h2, h3, h4, h5, .luxury-font {
         height: 150px;
     }
 }
-.planning-rates{margin:1rem 0}.planning-rates>div{display:flex;justify-content:space-between;align-items:baseline;gap:1rem;border-bottom:1px solid #ffffff3d;padding:.65rem 0}.planning-rates dd{margin:0;text-align:right}.planning-question{border-top:1px solid #cad5d4;padding:.75rem 0}.planning-question summary{cursor:pointer;font-weight:700}.planning-question p{margin:.65rem 0}
+.planning-rates{margin:1rem 0;color:white}.planning-rates>div{padding:.7rem 0;border-bottom:1px solid #ffffff3d;display:grid;grid-template-columns:1fr auto;gap:.15rem .5rem}.planning-rates dd{margin:0;text-align:right}.planning-rates .tier-includes{grid-column:1/-1;text-align:left;font-size:.9rem;color:rgba(255,255,255,.8)}.compare-card .coord-link{color:#ffe4a5}.compare-card:target{scroll-margin-top:6rem}
+.planning-question{border-top:1px solid #cad5d4;padding:.75rem 0}.planning-question summary{cursor:pointer;font-weight:700}.planning-question p{margin:.65rem 0}
 @media(prefers-reduced-motion:reduce){.services-bg-video{display:none}}
 </style>
 {% endblock %}
@@ -850,17 +851,20 @@ h1, h2, h3, h4, h5, .luxury-font {
     <div class="container position-relative">
         <h2 class="text-white mb-4">Choose the support you need</h2>
         <div class="compare-grid">
-            {% for key in ['day-coordinator','event-planner'] %}
+            {% for key in ['event-planner','wedding-planner','day-coordinator'] %}
             {% set offer = services[key] %}
-            <article class="compare-card">
-                <h3>{{ offer.name }}</h3><p>{{ offer.summary }}</p>
+            <article class="compare-card" id="{{ key }}">
+                <h3>{{ offer.name }}</h3>
+                <p>{{ offer.summary }}</p>
                 <dl class="planning-rates">
                 {% for tier, price in offer.tiers %}
-                    <div><dt>{{ tier|capitalize }}</dt><dd><strong>${{ price|number_format(0,'.',',') }}</strong> · {% if key == 'event-planner' %}{{ [12,18,24][loop.index0] }} consulting hours + 8 hours on site{% else %}{{ [6,8,10][loop.index0] }} hours on site{% endif %}</dd></div>
+                    <div><dt>{{ tier }}</dt><dd><strong>${{ price|number_format(0,'.',',') }}</strong></dd><dd class="tier-includes">{{ offer.tier_inclusions[loop.index0] }}</dd></div>
                 {% endfor %}
                 </dl>
-                {% if key == 'day-coordinator' %}<p>Vendor arrivals, setup, timeline, guest flow and on-site issue resolution. Additional coordination is $180 per hour.</p>{% else %}<p>Budget, timeline, vendor selection and checklists. Gold and Premium also cover guest accommodation guidance. Additional consulting is $220 per hour.</p>{% endif %}
-                <a class="vnv-btn btn-gold-vnv" data-vnv-open-request data-vnv-request-service="{{ key }}" href="{{ path('') }}?request_service={{ key }}#vnvRequestModal">Request {{ offer.name|lower }}</a>
+                <p>{{ offer.details }}</p>
+                <p>{{ offer.extras }}</p>
+                {% if key != 'day-coordinator' %}<p>On-site coordination is booked separately as <a class="coord-link" href="#day-coordinator">Day Coordinator</a>.</p>{% endif %}
+                <a class="vnv-btn btn-gold-vnv" href="{{ path('product/' ~ offer.product_slug) }}">View {{ offer.name }} packages</a>
             </article>
             {% endfor %}
         </div>
@@ -871,13 +875,14 @@ h1, h2, h3, h4, h5, .luxury-font {
         <div class="info-image-card"><img loading="lazy" src="{{ asset_for('assets/images/planner2.jpg') }}" alt="Event planning and design by VNV Events"></div>
         <div class="info-panel">
             <h2>Who will lead my event?</h2>
-            <p>Mary Isern, VNV’s founder and creative director, leads personal planning. We assign an event-day lead who knows your schedule and vendors.</p>
-            <details class="planning-question"><summary>When should I book? Can I add hours?</summary><p>For weddings, allow 6–12 months where possible, especially November through May. Ask about shorter timelines or upgrading your package. We confirm team availability for your dates.</p></details>
+            <p>Mary Isern, VNV’s founder and creative director, leads personal planning. When you also book a Day Coordinator, your planner hands the schedule and vendor contacts to the team member who will run the day.</p>
+            <details class="planning-question"><summary>When should I book?</summary><p>For weddings, allow 6–12 months where possible, especially November through May. Ask about shorter timelines or upgrading your package. We confirm team availability for your dates.</p></details>
             <details class="planning-question"><summary>Can you work with vendors I’ve already hired?</summary><p>Yes. Send your vendor list and timeline so we can agree on remaining decisions, contact points and the handover.</p></details>
-            <details class="planning-question"><summary>When is event production a better fit?</summary><p>A planner package reserves personal consulting hours. Choose Production Essential for one defined assignment, or full production when you want a producer to lead vendors, the run of show and event-day delivery. Each production level has a fixed fee. You approve direct event costs separately.</p><a href="{{ path('event-production') }}#production-fees">Compare production scopes and fees</a></details>
+            <details class="planning-question"><summary>When is event production a better fit?</summary><p>Choose a planner to shape your budget, timeline and vendor choices. Choose Production Essential for one defined production assignment, or full production when you want a producer to manage the run of show, vendor decisions and rehearsal plan in VNV-Q. Each production level has a fixed fee. You approve direct event costs separately.</p><a href="{{ path('event-production') }}#production-fees">Compare production scopes and fees</a></details>
         </div>
     </div>
 </section>
+{% include "templates/components/vnvHowWeWork.html.twig" %}
 <section class="section-vnv section-dark instagram-block">
     <div class="container position-relative" style="z-index:2;">
         <div class="row align-items-center g-5">

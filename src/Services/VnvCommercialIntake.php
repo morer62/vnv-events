@@ -31,6 +31,19 @@ final class VnvCommercialIntake
         foreach (['Organization' => $organization, 'Estimated budget' => $budget, 'Event type' => $eventType] as $label => $value) {
             if ($value !== '') $notes[] = $label . ': ' . $value;
         }
+        $guests = filter_var($fields['guest_count'] ?? null, FILTER_VALIDATE_INT);
+        if ($guests > 0) {
+            foreach (VnvProductionCatalog::GUEST_CAPS as $index => $cap) {
+                if ($cap !== null && $guests > $cap) continue;
+                foreach (['Event Planner' => 'event-planner', 'Wedding Planner' => 'wedding-planner', 'Event Coordinator' => 'day-coordinator'] as $label => $key) {
+                    if (in_array($label, $services, true)) {
+                        $name = $key === 'day-coordinator' ? 'Day Coordinator' : $label;
+                        $notes[] = $name . ' (' . VnvProductionCatalog::GUEST_TIERS[$index] . ') — $' . number_format(VnvProductionCatalog::PACKAGE_RATES[$key][$index]);
+                    }
+                }
+                break;
+            }
+        }
         return ['program' => $program, 'organization_name' => $organization, 'budget_range' => $budget,
             'event_type' => $eventType, 'notes' => implode("\n", $notes)];
     }

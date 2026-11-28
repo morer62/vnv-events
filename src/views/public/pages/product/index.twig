@@ -537,7 +537,7 @@
                     <h1 class="pp-title">{{ product.name }}</h1>
                     <p class="pp-sub">{{ product.short_description ?: 'Explore the details of this product.' }}</p>
 
-                    {% if not is_gourmet_express %}<div class="pp-badges">
+                    {% if not is_gourmet_express and not package_service %}<div class="pp-badges">
                         {% if product.product_type == 'VARIABLE' %}
                             <span class="pp-badge pp-badge-dark">Variable Product</span>
                         {% else %}
@@ -563,13 +563,13 @@
                             {% endif %}
                         </div>
 
-                        {% if product.short_description and not is_gourmet_express %}
+                        {% if product.short_description and not is_gourmet_express and not package_service %}
                             <div class="pp-helper" style="margin-top:0; margin-bottom:14px;">
                                 {{ product.short_description }}
                             </div>
                         {% endif %}
 
-                        {% if store_active and (not is_gourmet_express or product_option_groups|length) %}
+                        {% if store_active and (not is_gourmet_express or product_option_groups|length) and not (package_service and product.purchase_mode == 'REQUEST') %}
                             <div class="pp-price-note" id="product-price-note">
                                 {% if product.product_type == 'VARIABLE' %}
                                     {% if is_gourmet_express %}Select a size and varieties to see the exact price.{% else %}Select an option to see the exact price.{% endif %}
@@ -600,7 +600,7 @@
                         <div class="pp-purchase-box">
                             <h3>Request this experience</h3>
                             <p>This product requires confirmation from our team before payment.</p>
-                            <a href="{{ path('/#request') }}" class="pp-btn pp-btn-main" data-vnv-open-request>Start a request</a>
+                            <a href="{{ package_service ? path('') ~ '?request_service=' ~ package_service ~ '#vnvRequestModal' : path('/#request') }}" class="pp-btn pp-btn-main" data-vnv-open-request {% if package_service %}data-vnv-request-service="{{ package_service }}"{% endif %}>Start a request</a>
                         </div>
                     {% elseif store_active and product.allow_immediate_payment|default(0) %}
                         <div class="pp-purchase-box">

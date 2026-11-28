@@ -99,6 +99,7 @@
                             <button type="button" class="vnv-request-pill" data-service-key="nonprofit-partnerships" data-service="Nonprofit Partnerships" aria-pressed="false">Nonprofit Partnerships</button>
                             <button type="button" class="vnv-request-pill" data-service-key="vnv-q-demo" data-service="Event Software Demo" aria-pressed="false">Event Software Demo</button>
                             <button type="button" class="vnv-request-pill" data-service-key="event-planner" data-service="Event Planner" aria-pressed="false">Event Planner</button>
+                            <button type="button" class="vnv-request-pill" data-service-key="wedding-planner" data-service="Wedding Planner" aria-pressed="false">Wedding Planner</button>
                             <button type="button" class="vnv-request-pill" data-service-key="day-coordinator" data-service="Event Coordinator" aria-pressed="false">Day Coordinator</button>
                         </div>
                     </div>
@@ -1052,7 +1053,7 @@ body.vnv-request-lock{
             button.setAttribute('aria-pressed', String(active));
         });
         const hasOrganization = professionalButtons.some(button =>
-            !['event-planner', 'day-coordinator'].includes(button.dataset.serviceKey) && selectedServices.has(button.dataset.service));
+            !['event-planner', 'wedding-planner', 'day-coordinator'].includes(button.dataset.serviceKey) && selectedServices.has(button.dataset.service));
         organizationFields.hidden = !hasOrganization;
         organizationFields.disabled = !hasOrganization;
         const items = Array.from(selectedServices);

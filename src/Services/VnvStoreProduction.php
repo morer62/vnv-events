@@ -9,18 +9,15 @@ final class VnvStoreProduction
         'production-essential', 'full-event-production', 'full-event-production-plus',
         'advanced-production', 'brand-activation',
     ];
-    public const PACKAGES = [
-        'event-planners-premium-packag' => 'event-planner',
-        'day-coordinator-service-packages-premium' => 'day-coordinator',
-    ];
+    public const LEGACY_PLANNER_SLUG = 'event-planners-premium-packag';
 
     public static function packagePrices(string $siteKey): array
     {
         if ($siteKey !== 'vnvevents') return [];
         $services = VnvProductionCatalog::services();
         $prices = [];
-        foreach (self::PACKAGES as $slug => $service) {
-            $prices[$slug] = $services[$service]['tiers']['basic'];
+        foreach (VnvProductionCatalog::PACKAGE_SLUGS as $service => $slug) {
+            $prices[$slug] = reset($services[$service]['tiers']);
         }
         return $prices;
     }

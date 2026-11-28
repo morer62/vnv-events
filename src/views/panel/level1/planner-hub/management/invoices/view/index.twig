@@ -45,8 +45,11 @@
                         <textarea class="form-control" name="line_description[{{ line.invoice_key }}]" rows="2">{{ line.invoice_description }}</textarea>
                     </div>
                 {% endfor %}
-                <label class="form-label">Invoice notes</label>
-                <textarea class="form-control" name="invoice_notes" rows="3">{{ invoice.invoice_notes }}</textarea>
+                <label class="form-label" for="invoiceNotes">Invoice notes</label>
+                <textarea class="form-control" name="invoice_notes" id="invoiceNotes" rows="3">{{ invoice.invoice_notes }}</textarea>
+                {% if vnv_direct_coordinator|default(false) and invoice.status not in ['VOIDED', 'PAID'] %}
+                    {% include 'templates/components/vnvDirectCoordinatorLine.twig' with {target: 'invoiceNotes'} only %}
+                {% endif %}
                 <button class="btn btn-primary mt-3">Save invoice details</button>
             </div>
         </form>

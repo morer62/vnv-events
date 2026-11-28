@@ -80,7 +80,11 @@ foreach (['The VNV Ecosystem', 'The VNV 360 Way', 'Scope of Support', 'The Produ
 }
 
 $corporate = file_get_contents($root . '/src/views/public/pages/corporate-events/index.twig');
-$assert(!str_contains($corporate, 'By Invitation') && str_contains($corporate, 'Request a Production Proposal'), 'Corporate inquiries should be open to proposals.');
+$assert(!str_contains($corporate, 'By Invitation') && str_contains($corporate, "cta: 'Request Proposal'") && str_contains($corporate, "request_service: 'event-production'"), 'The corporate hero must open a production proposal request.');
+foreach (['Book a Meeting', 'Request Proposal'] as $action) {
+    $assert(preg_match('~<a\b[^>]*\?request_service=event-production#vnvRequestModal[^>]*data-vnv-request-service="event-production"[^>]*>\s*' . preg_quote($action, '~') . '\s*</a>~', $corporate) === 1, 'Corporate action must open the production request form: ' . $action);
+}
+$assert(str_contains($corporate, 'href="#corporate-services">Explore Services') && str_contains($corporate, 'id="corporate-services"'), 'Explore Services must target the corporate services section.');
 $assert(str_contains($corporate, 'you can also explore individual services below'), 'Corporate page does not preserve regular traditional services.');
 $assert(substr_count($corporate, 'class="service-num-floating"') === 4, 'Corporate page must retain four individual service cards.');
 foreach (["path('vnv-gourmet')", "path('vnv-live')", "path('photo-booth-rental-video-photography-services-in-south-florida')", "path('event-staffing/')"] as $destination) {

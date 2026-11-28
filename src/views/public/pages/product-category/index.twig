@@ -439,6 +439,14 @@
                                         <div class="pc-card-title">{{ p.name }}</div>
                                         <div class="pc-card-desc">{{ p.short_description ?: 'Explore this item inside this category.' }}</div>
 
+                                        {% set package = planning_packages[p.slug]|default(null) %}
+                                        {% if package %}
+                                            <ul aria-label="Fees by guest count">
+                                                {% for tier, price in package.tiers %}<li>{{ tier }} · <strong>${{ price|number_format(0, '.', ',') }}</strong> · {{ package.tier_inclusions[loop.index0] }}</li>{% endfor %}
+                                            </ul>
+                                            <p>{{ package.extras }}</p>
+                                            {% if package.request_service == 'day-coordinator' %}<p>{{ package.details }}</p>{% else %}<p>On-site coordination is booked separately as <a href="{{ path('product/' ~ coordinator_slug) }}">Day Coordinator</a>.</p>{% endif %}
+                                        {% else %}
                                         <div class="pc-card-price">
                                             {% if package_prices[p.slug] is defined %}
                                                 From ${{ package_prices[p.slug]|number_format(2, '.', ',') }}
@@ -459,6 +467,7 @@
                                             {% endif %}
                                         </div>
 
+                                        {% endif %}
                                         <a class="pc-card-action" href="{{ path('product/' ~ p.slug) }}">
                                             View Product
                                         </a>
@@ -489,7 +498,7 @@
         {% if proposal_services %}
         <section class="pc-section">
             <h2>Production &amp; activation proposals</h2>
-            <p>Choose the fixed fee that fits your event. Additional production hours are {{ production_overtime }}. You approve direct event costs separately before we commit to them.</p>
+            <p>Choose the fixed fee that fits your event. You approve direct event costs separately before we commit to them.</p>
             <div class="pc-grid cols-3">
                 {% for slug, service in proposal_services %}
                 <article class="pc-card">
@@ -498,6 +507,7 @@
                         <h3 class="pc-card-title">{{ service.name }}</h3>
                         <p class="pc-card-desc">{{ service.summary }}</p>
                         <p class="pc-card-price">{{ service.price }}</p>
+                        <p class="pc-card-desc">On-site coordination is booked separately as <a href="{{ path('product/' ~ coordinator_slug) }}">Day Coordinator</a>.</p>
                         <a class="pc-card-action" href="{{ path('product/' ~ slug) }}">View service &amp; request a proposal</a>
                     </div>
                 </article>

@@ -101,7 +101,7 @@ if ($siteKey === 'vnvevents' && $slug === VnvStoreProduction::CATEGORY) {
     $category->meta_description = 'Compare planning packages, day-of coordination and fixed fees for event production and brand activation in South Florida.';
     $blocks = [
         ['type' => 'hero', 'title' => $category->name, 'subtitle' => $category->meta_description],
-        ['type' => 'product_grid', 'title' => 'Planning packages', 'columns' => 2],
+        ['type' => 'product_grid', 'title' => 'Planning and event-day coordination', 'columns' => 3],
     ];
 }
 
@@ -109,7 +109,8 @@ echo TemplateResponse::render(__DIR__ . "/index.twig", [
     'category' => $category,
     'package_prices' => $packagePrices,
     'proposal_services' => $proposalServices,
-    'production_overtime' => VnvProductionCatalog::OVERTIME,
+    'coordinator_slug' => VnvProductionCatalog::PACKAGE_SLUGS['day-coordinator'],
+    'planning_packages' => $proposalServices ? array_column(array_intersect_key(VnvProductionCatalog::services(), VnvProductionCatalog::PACKAGE_SLUGS), null, 'product_slug') : [],
     'products' => $products,
     'blocks' => $blocks
 ]);

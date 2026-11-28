@@ -64,10 +64,19 @@ namespace {
             throw new RuntimeException('Incorrect fee or request destination for ' . $slug);
         }
     }
-    if (VnvProductionCatalog::OVERTIME !== '$220 per hour'
-        || VnvStoreProduction::packagePrices('vnvevents') !== ['event-planners-premium-packag' => 1950, 'day-coordinator-service-packages-premium' => 780]
+    $planningFees = [
+        'event-planner' => [1500, 2250, 2950, 3750],
+        'wedding-planner' => [1950, 2750, 3450, 4250],
+        'day-coordinator' => [850, 1100, 1400, 1750],
+    ];
+    foreach ($planningFees as $key => $fees) {
+        if (array_values($services[$key]['tiers']) !== $fees || count($services[$key]['tier_inclusions']) !== 4) {
+            throw new RuntimeException('Incorrect guest tiers or inclusions for ' . $key);
+        }
+    }
+    if (VnvStoreProduction::packagePrices('vnvevents') !== ['event-planner-packages' => 1500, 'wedding-planner-packages' => 1950, 'day-coordinator-service-packages-premium' => 850]
         || VnvStoreProduction::packagePrices('miamitechlab') !== []) {
-        throw new RuntimeException('Unexpected overtime, planner or coordinator pricing');
+        throw new RuntimeException('Unexpected planning product slugs, prices or site scope');
     }
 
     $directory = sys_get_temp_dir() . '/vnv-sitemap-' . bin2hex(random_bytes(8));

@@ -11,6 +11,7 @@ use App\Services\OrderProposalWorkflowService;
 use App\Utils\LocationUtils;
 use App\Utils\MessageUtil;
 use App\Utils\Router;
+use App\Utils\SiteContext;
 use App\Utils\TemplateResponse;
 
 $router = new Router();
@@ -84,6 +85,7 @@ $router->get(function () use ($proposalManagerMode, $proposalTeamMode, $loadCont
             'order' => $order,
             'proposal' => $proposal,
             'manager_mode' => $proposalManagerMode,
+            'vnv_direct_coordinator' => SiteContext::siteKey() === 'vnvevents' && (int)$order->id_owner === SiteContext::businessOwnerId(),
             'team_mode' => $proposalTeamMode,
             'csrf_token' => $_SESSION['proposal_csrf_token'],
             'client_access_url' => $proposalManagerMode ? $clientAccessUrl : null,

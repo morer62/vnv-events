@@ -62,6 +62,7 @@ $router->get(function () {
         'csrf' => $_SESSION['commercial_crm_csrf'],
         'load_error' => $error,
         'can_manage_finance' => $canManageFinance,
+        'vnv_direct_coordinator' => $siteKey === 'vnvevents' && $ownerId === SiteContext::businessOwnerId(),
         'finance' => $finance,
         'team_members' => $teamMembers,
         'can_manage_pipeline' => $canManagePipeline,

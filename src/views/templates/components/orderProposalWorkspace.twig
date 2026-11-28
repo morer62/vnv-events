@@ -119,6 +119,9 @@
             </div>
             <div id="proposalEditor" class="proposal-editor" contenteditable="{{ status == 'APPROVED' ? 'false' : 'true' }}" role="textbox" aria-multiline="true" aria-label="Proposal content">{{ proposal.content_html|default('')|raw }}</div>
             {% if status != 'APPROVED' %}
+                {% if vnv_direct_coordinator|default(false) %}
+                    {% include 'templates/components/vnvDirectCoordinatorLine.twig' with {target: 'proposalEditor'} only %}
+                {% endif %}
                 <div class="proposal-actions">
                     <div class="form-group">
                         <label for="proposalChangeNote" class="form-label">Revision note <span class="text-muted">(optional)</span></label>

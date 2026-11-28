@@ -17,9 +17,10 @@ The Productions menu links to Event Production, Nonprofit Partnerships, Brand Ex
 | Full Event Production Plus | $4,500 | More than 300 guests, more than 10 sponsors, paid ticketing, or an outside catering, sound or staffing provider. Check the Advanced criteria first. |
 | Advanced & Large-Scale Production | From $6,500 | Multiple days, multiple venues or more than 1,000 guests. Quote one fixed fee for the project. |
 | Standalone Brand Activation | $1,500 for the first event day, then $500 for each additional day | An activation within a VNV production is included in the production fee. |
-| Production overtime | $220 per hour | Quote additional production hours separately. |
 
-The production fee includes the producer, run of show, event-day coordination and VNV-Q. List direct costs separately, including materials, fabrication, rentals, extra staffing, installation, technical services and third-party costs. Obtain the client's approval before committing to those costs. Validate labor, commissions, overhead and margin before sending a proposal. Day Coordinator and Event Planner keep their existing package rates. Sponsorship rights are quoted for the specific event.
+The production fee covers the producer, run of show, vendor decisions, rehearsal planning and agreed deliverables tracked in VNV-Q. Book a separate Day Coordinator for physical coverage. List direct costs separately, including materials, fabrication, rentals, extra staffing, installation, technical services and third-party costs. Obtain the client's approval before committing to those costs. Validate labor, commissions, overhead and margin before sending a proposal. Sponsorship rights are quoted for the specific event.
+
+Effective November 28, 2026, Event Planner, Wedding Planner and Day Coordinator packages use four guest tiers: up to 75, 76–150, 151–250 and 251+. In that order, Event Planner is $1,500 / $2,250 / $2,950 / $3,750 and Wedding Planner is $1,950 / $2,750 / $3,450 / $4,250. Planning includes 3 / 4 / 5 / 6 scheduled meetings. An extra meeting costs $150 and each additional event day on the planning program costs $500. Day Coordinator is $850 / $1,100 / $1,400 / $1,750 for one day of up to ten hours. The two highest tiers include one assistant. An extra on-site hour costs $180. Each additional coordination day is 75% of the selected tier. Use a separate direct-pay line for the coordinator and exclude that line from the commission base.
 
 ## CRM integration
 

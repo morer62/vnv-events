@@ -972,7 +972,7 @@ h1, h2, h3, h4, h5, .luxury-font {
     title: 'Event production.',
     emphasis: 'From brief to showtime.',
     description: 'Hire one team for a defined part of your event or for the full production. We align your vendors, hospitality, guest operations and show crew around the same schedule.',
-    details: ['Concept, budget and run of show', 'Venue, vendors, hospitality and technical production', 'Guest check-in and an on-site team'],
+    details: ['Concept, budget and run of show', 'Venue, vendors, hospitality and technical production', 'Guest registration and a check-in plan'],
     cta: 'Request a Production Proposal',
     href: '#production-process',
     request_service: 'event-production',
@@ -982,7 +982,7 @@ h1, h2, h3, h4, h5, .luxury-font {
 
 {% include "templates/components/vnvProductionFees.html.twig" with {
     services: production_services, keys: ['production-essential', 'full-event-production', 'full-event-production-plus', 'advanced-production'],
-    fee_includes: fee_includes, direct_costs: direct_costs, overtime: overtime, activation: false
+    fee_includes: fee_includes, direct_costs: direct_costs, activation: false
 } only %}
 
 {% include "templates/components/vnvProductionFilm.html.twig" with {
@@ -1012,10 +1012,10 @@ h1, h2, h3, h4, h5, .luxury-font {
     <h2 id="production-formats-title">What are you producing?</h2>
     <div class="vp-format-grid">
       {% for format in [
-        {title:'Corporate programs', image:'assets/images/corp2.jpg', work:'Conferences, conventions, trade shows and exhibitions. We coordinate speaker handoffs, exhibitor access and the show floor.'},
+        {title:'Corporate programs', image:'assets/images/corp2.jpg', work:'Conferences, conventions, trade shows and exhibitions. We plan speaker handoffs, exhibitor access and show-floor schedules.'},
         {title:'Company milestones', image:'assets/images/corp1.jpg', work:'Product launches, award ceremonies, employee appreciation and brand experiences. We build the reveal, hospitality and program around your business goal.'},
         {title:'Fundraisers and public events', image:'assets/images/case-studies/victoria-venezuela-2026-P4794.webp', work:'Galas, fundraising and community events. We align sponsors, volunteer assignments, guest arrivals and the program.'},
-        {title:'Private celebrations', image:'assets/images/corp3.jpg', work:'Private events and special celebrations. Coordinate the room, service and entertainment, from first arrival through the final toast.'}
+        {title:'Private celebrations', image:'assets/images/corp3.jpg', work:'Private events and special celebrations. Plan the room layout, service and entertainment from first arrival through the final toast.'}
       ] %}
         <article><img src="{{ asset_for(format.image) }}" alt="" width="520" height="300" loading="lazy"><div><h3>{{ format.title }}</h3><p>{{ format.work }}</p></div></article>
       {% endfor %}
@@ -1104,15 +1104,17 @@ h1, h2, h3, h4, h5, .luxury-font {
 
             <div class="service-card">
                 <div class="service-icon-box"><i class="fa-solid fa-gears"></i></div>
-                <h3>On-Site Execution</h3>
+                <h3>Event-day handoff</h3>
                 <p>
-                    Staffing, logistics, team communication, cue management and event-day problem solving.
+                    Give your Day Coordinator the crew assignments, cue sheet, vendor contacts and escalation plan before guests arrive.
                 </p>
             </div>
         </div>
 
     </div>
 </section>
+
+{% include "templates/components/vnvHowWeWork.html.twig" only %}
 
 {% include "templates/components/vnvProductionPhases.html.twig" with { phases: production_phases, intro: 'Jonathan Moreno leads our production team and created VNV-Q and this five-phase method. We tailor the tasks, documents and responsibilities to the event.' } only %}
 
