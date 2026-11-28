@@ -1,6 +1,6 @@
 {% extends "templates/base.twig" %}
 {% block title %}Event Production in South Florida | VNV Events{% endblock %}
-{% block meta_description %}Compare production scopes and management fees for conferences, private celebrations, brand launches and community events across South Florida.{% endblock %}
+{% block meta_description %}Compare fixed event production fees for conferences, private celebrations, brand launches and community events across South Florida. See what each level includes.{% endblock %}
 {% block canonical %}https://vnvevents.com/event-production/{% endblock %}
 
 {% set show_whatsapp = true %}
@@ -980,7 +980,10 @@ h1, h2, h3, h4, h5, .luxury-font {
   }
 } only %}
 
-{% include "templates/components/vnvProductionFees.html.twig" with { services: production_services, keys: ['production-essential', 'full-event-production', 'advanced-production'], managed_budget: managed_budget, direct_costs: direct_costs, activation: false } only %}
+{% include "templates/components/vnvProductionFees.html.twig" with {
+    services: production_services, keys: ['production-essential', 'full-event-production', 'full-event-production-plus', 'advanced-production'],
+    fee_includes: fee_includes, direct_costs: direct_costs, overtime: overtime, activation: false
+} only %}
 
 {% include "templates/components/vnvProductionFilm.html.twig" with {
   film: {

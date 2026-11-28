@@ -8,7 +8,18 @@ This implementation extends VNV Events under the existing brand, router, authent
 
 The Productions menu links to Event Production, Nonprofit Partnerships, Brand Experiences & Activation, VNV-Q Event Software and Original Experiences, in that order. The established corporate route continues to answer directly for inbound links. Cause on Cue retains its application and selection process. Retro Glam Sessions and Mommy & Daddy Break Club accept interest, with specific benefits and availability subject to each edition.
 
-The public service matrix is maintained in `src/Services/VnvProductionCatalog.php`. Jonathan approved its terms on November 27, 2026 for **new agreements**. Day Coordinator and Event Planner retain their package rates. Essential starts at $1,500 for a defined assignment. Full production uses the greater of 10% of the managed production budget and $1,950. Standalone activation uses the greater of 12% of the managed activation budget and $750. Advanced projects and sponsorship inventory require individual proposals. Quote direct costs separately, exclude tax, gratuities and the fee from the managed base, and count each responsibility once. Validate labor, commissions, overhead and margin before issuing a quote. Signed agreements retain their terms.
+`src/Services/VnvProductionCatalog.php` supplies the public prices for new production proposals. Jonathan approved these fixed fees on November 27, 2026.
+
+| Service | Production fee | Scope |
+| --- | --- | --- |
+| Production Essential | $1,950 | One defined production assignment. |
+| Full Event Production | $3,500 | One day, up to 300 guests and up to 10 sponsors, with VNV providing catering, sound and staffing. |
+| Full Event Production Plus | $4,500 | More than 300 guests, more than 10 sponsors, paid ticketing, or an outside catering, sound or staffing provider. Check the Advanced criteria first. |
+| Advanced & Large-Scale Production | From $6,500 | Multiple days, multiple venues or more than 1,000 guests. Quote one fixed fee for the project. |
+| Standalone Brand Activation | $1,500 for the first event day, then $500 for each additional day | An activation within a VNV production is included in the production fee. |
+| Production overtime | $220 per hour | Quote additional production hours separately. |
+
+The production fee includes the producer, run of show, event-day coordination and VNV-Q. List direct costs separately, including materials, fabrication, rentals, extra staffing, installation, technical services and third-party costs. Obtain the client's approval before committing to those costs. Validate labor, commissions, overhead and margin before sending a proposal. Day Coordinator and Event Planner keep their existing package rates. Sponsorship rights are quoted for the specific event.
 
 ## CRM integration
 
@@ -41,7 +52,7 @@ Direction (Level 1/6) can see the complete pipeline, approve nonprofit support, 
 
 ## VNV-Q and branded app eligibility
 
-VNV-Q is the public identity for VNV Events’ event management software, powered by Ophyra. Management approved its use on November 27, 2026 after a preliminary naming search. Technical identifiers remain unchanged. The earlier corporate 15% agreement recorded on November 16 still governs any contracts signed on those terms. The terms above govern new proposals.
+VNV-Q is the public identity for VNV Events’ event management software, powered by Ophyra. Management approved its use on November 27, 2026 after a preliminary naming search. Existing signed agreements continue under their signed terms.
 
 An agreed digital workspace and the access described in the contract are included in the production service. A selected nonprofit can receive branded app development at no development cost when its written Cause on Cue support plan includes it. The organization controls its records and any introductions require specific consent. For a private branded app, confirm configuration, publication, store accounts, support, ownership and maintenance in the written scope. A $10,000 spend threshold and a four-event annual commitment were discussed as possible routes. Neither is a published entitlement. Price any commitment using agreed delivery costs and coverage.
 

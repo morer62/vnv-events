@@ -1,6 +1,6 @@
 {% extends "templates/base.twig" %}
 {% block title %}{{ service.name }} | VNV Events{% endblock %}
-{% block meta_description %}{{ service.summary }}{% endblock %}
+{% block meta_description %}{{ service.price }}. {{ service.summary }}{% endblock %}
 {% block canonical %}https://vnvevents.com/product/{{ slug }}{% endblock %}
 {% block body %}
 {% include "templates/layout/publicHeaderVnv.html.twig" %}
@@ -14,9 +14,9 @@
         <section>
             <h1>{{ service.name }}</h1><p>{{ service.summary }}</p>
             <p class="fee">{{ service.price }}</p>
-            {% if service.percent %}<p>We apply the greater of the percentage fee or the minimum. {{ managed_budget }}</p>{% endif %}
+            {% if slug != 'brand-activation' %}<p>{{ fee_includes }}</p>{% endif %}
             <p>{{ direct_costs }}</p>
-            {% if slug == 'brand-activation' %}<p>When your full production agreement already covers the activation, those responsibilities carry one management fee.</p>{% endif %}
+            <p>Additional production hours are {{ overtime }}.</p>
             <a class="request" href="{{ path('') }}?request_service={{ slug }}#vnvRequestModal" data-vnv-open-request data-vnv-request-service="{{ slug }}">Request a proposal</a>
             <a href="{{ path(service.route) }}">Explore {{ slug == 'brand-activation' ? 'brand activation' : 'event production' }}</a>
         </section>

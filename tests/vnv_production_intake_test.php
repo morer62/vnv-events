@@ -49,7 +49,10 @@ namespace {
     $cases = [
         [['Appetizers','Chairs'],null],
         [['Event Planner','Event Coordinator'],null],
+        [['Production Essential'],'CORPORATE'],
         [['Full Event Production','Appetizers'],'CORPORATE'],
+        [['Full Event Production Plus'],'CORPORATE'],
+        [['Advanced Production'],'CORPORATE'],
         [['Brand Activation'],'ACTIVATION'],
         [['Sponsorship Opportunities'],'CORPORATE'],
         [['Nonprofit Partnerships'],'NONPROFIT'],
@@ -74,5 +77,5 @@ namespace {
     Records::$request = Records::$mail = [];
     try { (\App\Utils\Router::$submit)(); } catch (Redirect $r) { expect($r->getMessage() === '/', 'Consent error route'); }
     expect(!Records::$request && !Records::$mail, 'Unconsented request saved');
-    echo "Seven request scenarios and missing consent passed. No external mail or live records.\n";
+    echo count($cases) . " request scenarios and missing consent passed. No external mail or live records.\n";
 }

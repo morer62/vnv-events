@@ -1,5 +1,6 @@
 <?php
 
+use App\Services\VnvProductionCatalog;
 use App\Utils\Router;
 use App\Utils\TemplateResponse;
 
@@ -78,7 +79,19 @@ $router->get(function () {
         $add("Does VNV Events provide rentals, decor and staffing in {$city}?", "{$rentalsAnswer} For {$city} events, the team confirms access, power, setup time, weather plan and breakdown needs before the final scope is approved.", 'Decoration');
     }
 
+    $production = VnvProductionCatalog::services();
+    $productionAnswer = sprintf(
+        'Full Event Production is %s. %s Full Event Production Plus is %s. %s Advanced & Large-Scale Production: %s. %s %s',
+        $production['full-event-production']['price'],
+        $production['full-event-production']['summary'],
+        $production['full-event-production-plus']['price'],
+        $production['full-event-production-plus']['summary'],
+        $production['advanced-production']['price'],
+        $production['advanced-production']['summary'],
+        VnvProductionCatalog::DIRECT_COSTS
+    );
     $serviceFaqs = [
+        ['How much does full event production cost?', $productionAnswer, 'Planning'],
         ['What does VNV Events include in a full-service event proposal?', 'A VNV proposal can include planning, coordination, catering, bartending, decor, floral design, staffing, rentals, DJ, sound, lighting, production, photo, video and on-site execution. The exact scope is only what appears in the approved written proposal.'],
         ['What is the VNV Events retainer policy?', 'VNV requires a 50% retainer to reserve the event date. The retainer is non-refundable and is treated as liquidated damages because the company blocks staff, inventory, vendors and production capacity for that date.'],
         ['When is the final balance due for a VNV event?', 'The remaining balance is due no later than 48 hours before the event. Late payment or non-payment can cancel the event services and forfeit the retainer under the VNV service agreement.'],

@@ -12,7 +12,8 @@ $router->get(function () {
     }
     return TemplateResponse::render(__DIR__ . "/index.twig", [
         'production_services' => VnvProductionCatalog::services(),
-        'managed_budget' => VnvProductionCatalog::MANAGED_BUDGET,
+        'fee_includes' => VnvProductionCatalog::FEE_INCLUDES,
+        'overtime' => VnvProductionCatalog::OVERTIME,
         'direct_costs' => VnvProductionCatalog::DIRECT_COSTS,
         'production_phases' => VnvProductionCatalog::phases(),
         'quick_request_csrf' => $_SESSION['quick_request_csrf'],

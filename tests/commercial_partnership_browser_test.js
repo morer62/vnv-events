@@ -182,7 +182,7 @@ function url(route) {
         assert.match(await desktopAccount.getAttribute('href'), /login/, `${label}: desktop account access does not lead to login`);
       }
 
-      const proposalChoices = { 'event-production': ['event-production','production-essential','full-event-production','advanced-production'], 'corporate-events': ['event-production'], 'sponsor-activation-production': ['brand-activation','sponsorship-opportunities'], 'vnv-support': ['vnv-q-demo'] };
+      const proposalChoices = { 'event-production': ['event-production','production-essential','full-event-production','full-event-production-plus','advanced-production'], 'corporate-events': ['event-production'], 'sponsor-activation-production': ['brand-activation','sponsorship-opportunities'], 'vnv-support': ['vnv-q-demo'] };
       for (const choice of proposalChoices[route] || []) {
         const trigger = page.locator('[data-vnv-request-service="' + choice + '"]').first();
         await trigger.click();

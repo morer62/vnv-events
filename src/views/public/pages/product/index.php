@@ -188,7 +188,8 @@ if ($siteKey === 'vnvevents' && in_array($slug, \App\Services\VnvStoreProduction
     $service = \App\Services\VnvProductionCatalog::services()[$slug];
     echo TemplateResponse::render(__DIR__ . '/proposal.twig', [
         'service' => $service, 'slug' => $slug, 'direct_costs' => \App\Services\VnvProductionCatalog::DIRECT_COSTS,
-        'managed_budget' => \App\Services\VnvProductionCatalog::MANAGED_BUDGET,
+        'fee_includes' => \App\Services\VnvProductionCatalog::FEE_INCLUDES,
+        'overtime' => \App\Services\VnvProductionCatalog::OVERTIME,
     ]);
     return;
 }

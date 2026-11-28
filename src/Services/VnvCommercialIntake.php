@@ -10,6 +10,7 @@ final class VnvCommercialIntake
         $destinations = [
             'Nonprofit Partnerships' => 'NONPROFIT',
             'Full Event Production' => 'CORPORATE',
+            'Full Event Production Plus' => 'CORPORATE',
             'Event Production' => 'CORPORATE',
             'Production Essential' => 'CORPORATE',
             'Advanced Production' => 'CORPORATE',

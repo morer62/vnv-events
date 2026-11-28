@@ -4,8 +4,9 @@ namespace App\Services;
 
 final class VnvProductionCatalog
 {
-    public const MANAGED_BUDGET = 'The managed budget covers the services VNV directs under the written scope. It excludes taxes, gratuities and the management fee itself.';
-    public const DIRECT_COSTS = 'Materials, fabrication, rentals, extra staffing, installation and technical services are quoted separately. You approve the scope and direct costs before we commit to them.';
+    public const FEE_INCLUDES = 'Your production tier has a fixed fee. It covers your producer, the run of show, event-day coordination and the VNV-Q event system.';
+    public const DIRECT_COSTS = 'We quote materials, fabrication, rentals, extra staff, installation, technical services and third-party costs separately. You approve those costs before we commit to them.';
+    public const OVERTIME = '$220 per hour';
 
     public static function services(): array
     {
@@ -21,23 +22,28 @@ final class VnvProductionCatalog
                 'route' => 'event-planners', 'image' => 'assets/images/planner2.jpg',
             ],
             'production-essential' => [
-                'name' => 'Production Essential', 'minimum' => 1500,
+                'name' => 'Production Essential', 'price' => '$1,950',
                 'summary' => 'Bring us a defined assignment, such as the guest arrival plan or a speaker program. The proposal identifies the deliverable, schedule, handoffs and coverage.',
                 'route' => 'event-production', 'image' => 'assets/images/corp2.jpg',
             ],
             'full-event-production' => [
-                'name' => 'Full Event Production', 'minimum' => 1950, 'percent' => 10,
-                'summary' => 'Put the agreed budget, vendor decisions, run of show, rehearsals and event-day leadership under one producer.',
+                'name' => 'Full Event Production', 'price' => '$3,500',
+                'summary' => 'One day at one venue, with up to 300 guests, up to 10 sponsors and no paid ticketing. VNV provides catering, sound and staffing.',
                 'route' => 'event-production', 'image' => 'assets/images/productions/hero-productions.jpg',
             ],
+            'full-event-production-plus' => [
+                'name' => 'Full Event Production Plus', 'price' => '$4,500',
+                'summary' => 'Choose Plus for a single-day, single-venue event with 301 to 1,000 guests, more than 10 sponsors, paid ticketing or an outside provider for catering, sound or staffing.',
+                'route' => 'event-production', 'image' => 'assets/images/corp4.jpg',
+            ],
             'advanced-production' => [
-                'name' => 'Advanced & Large-Scale Production', 'price' => 'Custom proposal',
-                'summary' => 'Scope a multi-day, multi-venue or technically complex production around the crew and coverage it requires.',
+                'name' => 'Advanced & Large-Scale Production', 'price' => 'From $6,500',
+                'summary' => 'For events spanning multiple days, using multiple venues or welcoming more than 1,000 guests. We quote one fixed fee for your project.',
                 'route' => 'event-production', 'image' => 'assets/images/corp3.jpg',
             ],
             'brand-activation' => [
-                'name' => 'Brand Activation Management', 'minimum' => 750, 'percent' => 12,
-                'summary' => 'Create and deliver a standalone activation at an existing event, from audience and concept through installation, live staffing and the agreed recap.',
+                'name' => 'Brand Activation Management', 'price' => '$1,500 for the first event day + $500 for each additional day',
+                'summary' => 'We coordinate your standalone activation from concept and installation through on-site delivery. When VNV produces your event, its activation is included in the production fee.',
                 'route' => 'sponsor-activation-production', 'image' => 'assets/video/production-films/v4/trade-show-booth.webp',
             ],
             'sponsorship-opportunities' => [
@@ -53,12 +59,8 @@ final class VnvProductionCatalog
         ];
 
         foreach ($services as $slug => &$service) {
-            $service += ['tiers' => [], 'minimum' => null, 'percent' => null];
-            $service['minimum'] ??= $service['tiers']['basic'] ?? null;
-            if ($service['percent'] !== null) {
-                $service['price'] = $service['percent'] . '% · $' . number_format($service['minimum']) . ' minimum';
-            } elseif (!isset($service['price'])) {
-                $service['price'] = 'Starting at $' . number_format($service['minimum']);
+            if (isset($service['tiers'])) {
+                $service['price'] = 'Starting at $' . number_format($service['tiers']['basic']);
             }
             $service['request_service'] = $slug;
         }

@@ -45,7 +45,10 @@
     </div>
   </section>
 
-{% include "templates/components/vnvProductionFees.html.twig" with { services: production_services, keys: ['brand-activation', 'sponsorship-opportunities'], managed_budget: managed_budget, direct_costs: direct_costs, activation: true } only %}
+{% include "templates/components/vnvProductionFees.html.twig" with {
+    services: production_services, keys: ['brand-activation', 'sponsorship-opportunities'],
+    fee_includes: fee_includes, direct_costs: direct_costs, overtime: overtime, activation: true
+} only %}
 
   {% include "templates/components/vnvProductionFilm.html.twig" with {
     film: {
@@ -108,7 +111,7 @@
       </div>
       <label class="vnvp-consent"><input type="checkbox" name="consent" value="1" required><span>I agree that VNV Events may contact me about this brief. I understand that submission does not guarantee availability, organizer approval, event performance or ROI.</span></label>
       <button class="vnvp-button vnvp-button--gold" type="submit">Submit Technical Brief</button>
-      <p class="vnvp-form-note">Final pricing depends on approved scope, footprint, venue rules, labor, fabrication, utilities, access and deliverables.</p>
+      <p class="vnvp-form-note">Your proposal lists the fixed activation fee and any direct costs for the build, venue or crew. You approve those costs before we book them.</p>
     </form></details>
   </div></section>
 </main>

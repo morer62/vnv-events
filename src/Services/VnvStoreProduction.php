@@ -5,7 +5,10 @@ namespace App\Services;
 final class VnvStoreProduction
 {
     public const CATEGORY = 'event-planners-and-coordinator';
-    public const PROPOSALS = ['production-essential', 'full-event-production', 'brand-activation'];
+    public const PROPOSALS = [
+        'production-essential', 'full-event-production', 'full-event-production-plus',
+        'advanced-production', 'brand-activation',
+    ];
     public const PACKAGES = [
         'event-planners-premium-packag' => 'event-planner',
         'day-coordinator-service-packages-premium' => 'day-coordinator',
@@ -17,7 +20,7 @@ final class VnvStoreProduction
         $services = VnvProductionCatalog::services();
         $prices = [];
         foreach (self::PACKAGES as $slug => $service) {
-            $prices[$slug] = $services[$service]['minimum'];
+            $prices[$slug] = $services[$service]['tiers']['basic'];
         }
         return $prices;
     }

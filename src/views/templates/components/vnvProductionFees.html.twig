@@ -13,11 +13,14 @@
       {% endfor %}
     </div>
     {% if activation|default(false) %}
-      <p class="vp-commercial__note"><strong>Producing your own event?</strong> {{ services['production-essential'].name }} starts at {{ '$' ~ services['production-essential'].minimum|number_format }}. Full production is {{ services['full-event-production'].price }}. An activation already covered by that scope carries no second management fee. <a href="{{ path('event-production') }}#production-fees">Compare production scopes</a>.</p>
+      <p class="vp-commercial__note"><strong>Producing your own event?</strong> When VNV produces your event, your activation is included in the production fee. {{ services['production-essential'].name }} is {{ services['production-essential'].price }}, {{ services['full-event-production'].name }} is {{ services['full-event-production'].price }} and {{ services['full-event-production-plus'].name }} is {{ services['full-event-production-plus'].price }}. <a href="{{ path('event-production') }}#production-fees">Compare all production levels</a>.</p>
+    {% else %}
+      <p class="vp-commercial__note">Brand activation is included when VNV produces your event. For a booth or activation at another organizer’s event, see <a href="{{ path('sponsor-activation-production') }}#production-fees">standalone brand activation pricing</a>.</p>
     {% endif %}
+    <p class="vp-commercial__note"><strong>Production overtime</strong> · {{ overtime }}</p>
     <details class="vp-terms">
-      <summary>What counts toward the management fee?</summary>
-      <p>For percentage-based work, the fee is the greater of the stated minimum or the percentage of the budget VNV manages. {{ managed_budget }}</p>
+      <summary>What's included in the production fee?</summary>
+      <p>{{ fee_includes }}</p>
       <p>{{ direct_costs }} {% if activation|default(false) %}Sponsorship rights are a separate agreement with the event organizer.{% endif %}</p>
     </details>
   </div>

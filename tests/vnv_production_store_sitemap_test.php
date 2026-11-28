@@ -40,12 +40,35 @@ namespace App\Services {
 
 namespace {
     use App\Services\SeoFilesGeneratorService;
+    use App\Services\VnvProductionCatalog;
     use App\Services\VnvStoreProduction;
     use App\Utils\SiteContext;
 
     require_once __DIR__ . '/../src/Services/VnvStoreProduction.php';
     require_once __DIR__ . '/../src/Services/VnvProductionCatalog.php';
     require_once __DIR__ . '/../src/Services/SeoFilesGeneratorService.php';
+
+    $expectedFees = [
+        'production-essential' => '$1,950',
+        'full-event-production' => '$3,500',
+        'full-event-production-plus' => '$4,500',
+        'advanced-production' => 'From $6,500',
+        'brand-activation' => '$1,500 for the first event day + $500 for each additional day',
+    ];
+    $services = VnvProductionCatalog::services();
+    if (VnvStoreProduction::PROPOSALS !== array_keys($expectedFees)) {
+        throw new RuntimeException('Missing or unexpected store proposal product');
+    }
+    foreach ($expectedFees as $slug => $price) {
+        if ($services[$slug]['price'] !== $price || $services[$slug]['request_service'] !== $slug) {
+            throw new RuntimeException('Incorrect fee or request destination for ' . $slug);
+        }
+    }
+    if (VnvProductionCatalog::OVERTIME !== '$220 per hour'
+        || VnvStoreProduction::packagePrices('vnvevents') !== ['event-planners-premium-packag' => 1950, 'day-coordinator-service-packages-premium' => 780]
+        || VnvStoreProduction::packagePrices('miamitechlab') !== []) {
+        throw new RuntimeException('Unexpected overtime, planner or coordinator pricing');
+    }
 
     $directory = sys_get_temp_dir() . '/vnv-sitemap-' . bin2hex(random_bytes(8));
     mkdir($directory);

@@ -16,13 +16,14 @@ $router->get(function () {
 
     $seo = [
         'title' => 'Brand Experiences & Activation in South Florida | VNV Events',
-        'description' => 'Plan brand activations at existing events, explore authorized sponsorships or produce your own South Florida brand event with one team.',
+        'description' => 'Compare fixed fees for standalone brand activation, explore sponsorship opportunities or include an activation in your South Florida event production.',
         'canonical' => 'https://vnvevents.com/sponsor-activation-production/',
     ];
 
     return TemplateResponse::render(__DIR__ . '/index.twig', [
         'production_services' => VnvProductionCatalog::services(),
-        'managed_budget' => VnvProductionCatalog::MANAGED_BUDGET,
+        'fee_includes' => VnvProductionCatalog::FEE_INCLUDES,
+        'overtime' => VnvProductionCatalog::OVERTIME,
         'direct_costs' => VnvProductionCatalog::DIRECT_COSTS,
         'seo' => $seo,
         'partnership_csrf' => $_SESSION['partnership_csrf'],
