@@ -2,7 +2,7 @@
 {% set skip_base_app_css = true %}
 {% set skip_base_bootstrap_css = true %}
 {% set skip_public_bootstrap_js = true %}
-{% set skip_public_google_maps = true %}
+{% set skip_public_google_maps = not package_start|default(null) %}
 {% set skip_public_stripe = true %}
 {% set show_whatsapp = false %}
 
@@ -19,12 +19,10 @@
 {% endblock %}
 {% block body %}
 {% include "templates/layout/publicHeaderVnv.html.twig" %}
-{% if not package_start|default(null) %}
 {% if is_vnv_gourmet_service|default(false) %}
 <header class="store-header"><div class="store-header__inner"><a class="store-brand" href="{{ path('vnv-gourmet') }}" aria-label="VNV Gourmet home"><span class="store-brand__wordmark"><strong>VNV Gourmet</strong><small>Food stations &amp; full service</small></span></a><nav class="store-nav" aria-label="VNV Gourmet menu"><a href="{{ path('vnv-gourmet') }}#menu-services">Food Stations</a><a href="{{ path('vnv-gourmet') }}#best-sellers">Best Sellers</a><a href="{{ path('/catering-stations-south-florida/') }}">Compare Stations</a></nav><div class="store-tools"><a class="store-pill" href="{{ path('/#request') }}" data-vnv-open-request>Request availability</a></div></div></header>
-{% else %}
+{% elseif not package_start|default(null) %}
 <header class="store-header"><div class="store-header__inner"><a class="store-brand" href="{{ path('gourmet-to-go') }}" aria-label="VNV Gourmet To Go home"><img src="{{ path('assets/images/vnv-gourmet-to-go-logo.png') }}" alt="VNV Gourmet To Go" width="210" height="58"></a><nav class="store-nav" aria-label="Store menu"><a href="{{ path('gourmet-to-go') }}#appetizer-boxes">Appetizer Boxes</a><a href="{{ path('gourmet-to-go') }}#desserts">Desserts</a><a href="{{ path('gourmet-to-go') }}#pickup-delivery">Pickup &amp; Delivery</a><a href="{{ path('gourmet-to-go') }}#faq">FAQ</a></nav><div class="store-tools"><a class="store-pill store-wa" href="https://wa.me/13053761210?text=Hi%21%20I%27d%20like%20to%20order%20from%20VNV%20Gourmet%20To%20Go" target="_blank" rel="noopener">WhatsApp</a><a class="store-pill store-cart" href="{{ path('store/cart') }}" aria-label="Open cart">Cart{% if cart_count|default(0) %} ({{ cart_count }}){% endif %}</a></div></div></header>
-{% endif %}
 {% endif %}
 {% block store_body %}{% endblock %}
 {% if package_start|default(null) or is_vnv_gourmet_service|default(false) %}

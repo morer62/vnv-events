@@ -20,7 +20,7 @@ final class VnvProductionCatalog
     ];
     public const PLANNING_DETAILS = 'We manage your budget and timeline, select and coordinate vendors, and track checklists, RSVPs and follow-up in VNV-Q.';
     public const PLANNING_EXTRAS = 'Additional planning meetings are $150 each. Add a welcome party, rehearsal, brunch or another event day to the program for $500 per additional day.';
-    public const COORDINATION_DETAILS = 'A dedicated coordinator leads vendor arrivals, setup, the timeline and guest flow, and resolves on-site issues. Each tier covers one event day with up to 10 hours on site.';
+    public const COORDINATION_DETAILS = 'A dedicated coordinator leads vendor arrivals, setup, the timeline and guest flow, and resolves on-site issues. Each tier covers one event day with up to 10 on-site hours.';
     public const COORDINATION_EXTRAS = 'Additional on-site hours are $180 each. Each additional event day costs 75% of your selected tier.';
 
     public static function services(): array

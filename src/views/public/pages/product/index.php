@@ -14,7 +14,10 @@ $parts = $url !== '' ? explode('/', $url) : [];
 $slug = $parts[1] ?? null;
 
 if ($slug === \App\Services\VnvStoreProduction::LEGACY_PLANNER_SLUG && SiteContext::siteKey() === 'vnvevents') {
-    header('Location: ' . \App\Utils\LocationUtils::pathFor('product/' . \App\Services\VnvProductionCatalog::PACKAGE_SLUGS['event-planner']), true, 301);
+    $query = $_GET;
+    unset($query['url']);
+    $destination = \App\Utils\LocationUtils::pathFor('product/' . \App\Services\VnvProductionCatalog::PACKAGE_SLUGS['event-planner']);
+    header('Location: ' . $destination . ($query ? '?' . http_build_query($query) : ''), true, 301);
     exit;
 }
 $requestPath = (string)(parse_url($_SERVER['REQUEST_URI'] ?? '', PHP_URL_PATH) ?? '');
